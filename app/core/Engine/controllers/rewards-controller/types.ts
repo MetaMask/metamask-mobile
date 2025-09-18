@@ -402,8 +402,8 @@ export interface PointsBoostDto {
   icon: ThemeImage;
   boostBips: number;
   seasonLong: boolean;
-  startDate?: Date;
-  endDate?: Date;
+  startDate?: string;
+  endDate?: string;
   backgroundColor: string;
 }
 
@@ -503,8 +503,8 @@ export type ActiveBoostsState = {
     };
     boostBips: number;
     seasonLong: boolean;
-    startDate?: number; // timestamp
-    endDate?: number; // timestamp
+    startDate?: string;
+    endDate?: string;
     backgroundColor: string;
   }[];
   lastFetched: number;

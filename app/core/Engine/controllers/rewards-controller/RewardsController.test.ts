@@ -3124,7 +3124,275 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated cache for subscription',
         subscriptionId,
-        'current',
+        'all seasons',
+      );
+    });
+
+    it('should invalidate cache for all seasons when no seasonId is provided', async () => {
+      // Arrange
+      const subscriptionId = 'test-sub-456';
+      const season1Key = `season-1:${subscriptionId}`;
+      const season2Key = `season-2:${subscriptionId}`;
+      const currentSeasonKey = `current:${subscriptionId}`;
+      const otherSubscriptionKey = `current:other-sub-789`;
+
+      const initialState = {
+        ...getRewardsControllerDefaultState(),
+        subscriptions: {
+          [subscriptionId]: {
+            id: subscriptionId,
+            referralCode: 'REF789',
+            accounts: [],
+          },
+        },
+        seasonStatuses: {
+          [season1Key]: {
+            season: {
+              id: 'season-1',
+              name: 'Season 1',
+              startDate: Date.now(),
+              endDate: Date.now() + 86400000,
+              tiers: [],
+            },
+            balance: { total: 500, refereePortion: 0 },
+            tier: {
+              currentTier: {
+                id: 'bronze',
+                name: 'Bronze',
+                pointsNeeded: 0,
+                image: { lightModeUrl: '', darkModeUrl: '' },
+                levelNumber: '1',
+                rewards: [],
+              },
+              nextTier: null,
+              nextTierPointsNeeded: null,
+            },
+            lastFetched: Date.now(),
+          },
+          [season2Key]: {
+            season: {
+              id: 'season-2',
+              name: 'Season 2',
+              startDate: Date.now(),
+              endDate: Date.now() + 86400000,
+              tiers: [],
+            },
+            balance: { total: 1000, refereePortion: 0 },
+            tier: {
+              currentTier: {
+                id: 'silver',
+                name: 'Silver',
+                pointsNeeded: 1000,
+                image: { lightModeUrl: '', darkModeUrl: '' },
+                levelNumber: '2',
+                rewards: [],
+              },
+              nextTier: null,
+              nextTierPointsNeeded: null,
+            },
+            lastFetched: Date.now(),
+          },
+          [currentSeasonKey]: {
+            season: {
+              id: 'current',
+              name: 'Current Season',
+              startDate: Date.now(),
+              endDate: Date.now() + 86400000,
+              tiers: [],
+            },
+            balance: { total: 1500, refereePortion: 0 },
+            tier: {
+              currentTier: {
+                id: 'gold',
+                name: 'Gold',
+                pointsNeeded: 5000,
+                image: { lightModeUrl: '', darkModeUrl: '' },
+                levelNumber: '3',
+                rewards: [],
+              },
+              nextTier: null,
+              nextTierPointsNeeded: null,
+            },
+            lastFetched: Date.now(),
+          },
+          [otherSubscriptionKey]: {
+            season: {
+              id: 'current',
+              name: 'Current Season',
+              startDate: Date.now(),
+              endDate: Date.now() + 86400000,
+              tiers: [],
+            },
+            balance: { total: 2000, refereePortion: 0 },
+            tier: {
+              currentTier: {
+                id: 'platinum',
+                name: 'Platinum',
+                pointsNeeded: 10000,
+                image: { lightModeUrl: '', darkModeUrl: '' },
+                levelNumber: '4',
+                rewards: [],
+              },
+              nextTier: null,
+              nextTierPointsNeeded: null,
+            },
+            lastFetched: Date.now(),
+          },
+        },
+        activeBoosts: {
+          [season1Key]: {
+            boosts: [
+              {
+                id: 'boost-1',
+                name: 'Season 1 Boost',
+                icon: { lightModeUrl: '', darkModeUrl: '' },
+                boostBips: 1000,
+                seasonLong: true,
+                backgroundColor: '#FF0000',
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+          [season2Key]: {
+            boosts: [
+              {
+                id: 'boost-2',
+                name: 'Season 2 Boost',
+                icon: { lightModeUrl: '', darkModeUrl: '' },
+                boostBips: 500,
+                seasonLong: false,
+                backgroundColor: '#00FF00',
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+          [currentSeasonKey]: {
+            boosts: [
+              {
+                id: 'boost-current',
+                name: 'Current Season Boost',
+                icon: { lightModeUrl: '', darkModeUrl: '' },
+                boostBips: 1500,
+                seasonLong: true,
+                backgroundColor: '#0000FF',
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+          [otherSubscriptionKey]: {
+            boosts: [
+              {
+                id: 'boost-other',
+                name: 'Other Subscription Boost',
+                icon: { lightModeUrl: '', darkModeUrl: '' },
+                boostBips: 2000,
+                seasonLong: true,
+                backgroundColor: '#FFFF00',
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+        },
+        unlockedRewards: {
+          [season1Key]: {
+            rewards: [
+              {
+                id: 'reward-1',
+                seasonRewardId: 'sr1',
+                claimStatus: RewardClaimStatus.UNCLAIMED,
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+          [season2Key]: {
+            rewards: [
+              {
+                id: 'reward-2',
+                seasonRewardId: 'sr2',
+                claimStatus: RewardClaimStatus.CLAIMED,
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+          [currentSeasonKey]: {
+            rewards: [
+              {
+                id: 'reward-current',
+                seasonRewardId: 'src',
+                claimStatus: RewardClaimStatus.UNCLAIMED,
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+          [otherSubscriptionKey]: {
+            rewards: [
+              {
+                id: 'reward-other',
+                seasonRewardId: 'sro',
+                claimStatus: RewardClaimStatus.UNCLAIMED,
+              },
+            ],
+            lastFetched: Date.now(),
+          },
+        },
+      };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
+      mockToHex.mockReturnValue('0xsignature');
+      const mockUpdatedSubscription = {
+        id: subscriptionId,
+        referralCode: 'REF789',
+        accounts: [{ address: '0x123', chainId: 1 }],
+      };
+      mockMessenger.call
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockResolvedValueOnce(mockUpdatedSubscription); // mobileJoin
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+
+      // Verify all seasons for the target subscription were invalidated
+      expect(testController.state.seasonStatuses[season1Key]).toBeUndefined();
+      expect(testController.state.seasonStatuses[season2Key]).toBeUndefined();
+      expect(
+        testController.state.seasonStatuses[currentSeasonKey],
+      ).toBeUndefined();
+      expect(testController.state.activeBoosts[season1Key]).toBeUndefined();
+      expect(testController.state.activeBoosts[season2Key]).toBeUndefined();
+      expect(
+        testController.state.activeBoosts[currentSeasonKey],
+      ).toBeUndefined();
+      expect(testController.state.unlockedRewards[season1Key]).toBeUndefined();
+      expect(testController.state.unlockedRewards[season2Key]).toBeUndefined();
+      expect(
+        testController.state.unlockedRewards[currentSeasonKey],
+      ).toBeUndefined();
+
+      // Verify other subscription's cache was NOT invalidated
+      expect(
+        testController.state.seasonStatuses[otherSubscriptionKey],
+      ).toBeDefined();
+      expect(
+        testController.state.activeBoosts[otherSubscriptionKey],
+      ).toBeDefined();
+      expect(
+        testController.state.unlockedRewards[otherSubscriptionKey],
+      ).toBeDefined();
+
+      // Verify cache invalidation was logged
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Invalidated cache for subscription',
+        subscriptionId,
+        'all seasons',
       );
     });
   });
@@ -3283,8 +3551,8 @@ describe('RewardsController', () => {
           },
           boostBips: 500,
           seasonLong: false,
-          startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-01-31'),
+          startDate: '2024-01-01',
+          endDate: '2024-01-31',
           backgroundColor: '#00FF00',
         },
       ];
@@ -3482,8 +3750,8 @@ describe('RewardsController', () => {
             },
             boostBips: 800,
             seasonLong: false,
-            startDate: Date.now() - 86400000, // 1 day ago
-            endDate: Date.now() + 86400000, // 1 day from now
+            startDate: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+            endDate: new Date(Date.now() + 86400000).toISOString(), // 1 day from now
             backgroundColor: '#00CC66',
           },
         ],
@@ -3573,8 +3841,8 @@ describe('RewardsController', () => {
           },
           boostBips: 750,
           seasonLong: false,
-          startDate: new Date('2024-02-01'),
-          endDate: new Date('2024-02-28'),
+          startDate: '2024-02-01',
+          endDate: '2024-02-28',
           backgroundColor: '#FF3366',
         },
       ];
@@ -3646,8 +3914,8 @@ describe('RewardsController', () => {
           },
           boostBips: 1000,
           seasonLong: false,
-          startDate: new Date('2024-03-01'),
-          endDate: new Date('2024-03-31'),
+          startDate: '2024-03-01',
+          endDate: '2024-03-31',
           backgroundColor: '#FF9900',
         },
       ];
@@ -3691,9 +3959,9 @@ describe('RewardsController', () => {
       expect(cachedBoosts.boosts[1].id).toBe('state-boost-2');
       expect(cachedBoosts.lastFetched).toBeGreaterThan(Date.now() - 1000);
 
-      // Verify serialization: dates should be converted to timestamps
-      expect(typeof cachedBoosts.boosts[1].startDate).toBe('number');
-      expect(typeof cachedBoosts.boosts[1].endDate).toBe('number');
+      // Verify dates are kept as Date objects
+      expect(cachedBoosts.boosts[1].startDate).toBe('2024-03-01');
+      expect(cachedBoosts.boosts[1].endDate).toBe('2024-03-31');
     });
 
     it('should handle cache miss and fetch fresh data', async () => {
@@ -4629,7 +4897,7 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated cache for subscription',
         mockSubscriptionId,
-        'current',
+        'all seasons',
       );
     });
   });

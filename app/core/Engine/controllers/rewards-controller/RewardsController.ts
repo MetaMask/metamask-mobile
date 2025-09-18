@@ -415,48 +415,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Convert PointsBoostDto to serializable format for storage
-   */
-  #convertBoostsToSerializable(
-    boosts: PointsBoostDto[],
-  ): ActiveBoostsState['boosts'] {
-    return boosts.map((boost) => ({
-      id: boost.id,
-      name: boost.name,
-      icon: {
-        lightModeUrl: boost.icon.lightModeUrl,
-        darkModeUrl: boost.icon.darkModeUrl,
-      },
-      boostBips: boost.boostBips,
-      seasonLong: boost.seasonLong,
-      startDate: boost.startDate?.getTime(),
-      endDate: boost.endDate?.getTime(),
-      backgroundColor: boost.backgroundColor,
-    }));
-  }
-
-  /**
-   * Convert serializable format back to PointsBoostDto
-   */
-  #convertBoostsFromSerializable(
-    serializedBoosts: ActiveBoostsState['boosts'],
-  ): PointsBoostDto[] {
-    return serializedBoosts.map((boost) => ({
-      id: boost.id,
-      name: boost.name,
-      icon: {
-        lightModeUrl: boost.icon.lightModeUrl,
-        darkModeUrl: boost.icon.darkModeUrl,
-      },
-      boostBips: boost.boostBips,
-      seasonLong: boost.seasonLong,
-      startDate: boost.startDate ? new Date(boost.startDate) : undefined,
-      endDate: boost.endDate ? new Date(boost.endDate) : undefined,
-      backgroundColor: boost.backgroundColor,
-    }));
-  }
-
-  /**
    * Sign a message for rewards authentication
    */
   async #signRewardsMessage(
@@ -1571,7 +1529,7 @@ export class RewardsController extends BaseController<
           maxAge: Math.round(ACTIVE_BOOSTS_CACHE_THRESHOLD_MS / 1000),
         },
       );
-      return this.#convertBoostsFromSerializable(cachedActiveBoosts.boosts);
+      return cachedActiveBoosts.boosts;
     }
 
     try {
@@ -1594,7 +1552,7 @@ export class RewardsController extends BaseController<
       // Update state with cached active boosts
       this.update((state: RewardsControllerState) => {
         state.activeBoosts[compositeKey] = {
-          boosts: this.#convertBoostsToSerializable(response.boosts),
+          boosts: response.boosts,
           lastFetched: Date.now(),
         };
       });

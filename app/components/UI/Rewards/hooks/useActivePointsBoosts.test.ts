@@ -85,8 +85,8 @@ describe('useActivePointsBoosts', () => {
       },
       boostBips: 500,
       seasonLong: false,
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-01-31'),
+      startDate: '2024-01-01',
+      endDate: '2024-01-31',
       backgroundColor: '#00FF00',
     },
   ];
