@@ -6074,13 +6074,13 @@
     "@metamask/swappable-obj-proxy" "^2.3.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/signature-controller@^32.0.0":
-  version "32.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-32.0.0.tgz#8ae959294e9d43872084627f90599c71f83cf923"
-  integrity sha512-1Psyi85ap5DwvJEtoIu2caK5gMtOiefbEXJfs/Hduiu1eQNYDsve30FnP2rvxl/NM6HeudCmNlPsfAE3buwAPg==
+"@metamask/signature-controller@^33.0.0":
+  version "33.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-33.0.0.tgz#23825f6a5c68bfa14c4a432a3f88187053b03b0f"
+  integrity sha512-KYlBEL1+bClmKETZag96RzOxAmhT7ZnBx5EBuVSbQPzuNM9Gj0nzJepToQ1/hXH9Bi/q2gbNcunpPRt9p0sUJg==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/base-controller" "^8.1.0"
+    "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/utils" "^11.4.2"
     jsonschema "^1.4.1"
