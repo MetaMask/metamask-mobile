@@ -55,6 +55,12 @@ class OnboardingSheet {
     const element = await this.importSeedButton;
     await appwrightExpect(element).toBeVisible({ timeout: 10000 });
   }
+
+  async tapNotNow() {
+    const notNowByText = await AppwrightSelectors.getElementByCatchAll(this._device, 'Not now');
+    await notNowByText.isVisible({ timeout: 2000 });
+    await notNowByText.tap();
+  }
 }
 
 export default new OnboardingSheet();
