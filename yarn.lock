@@ -1884,14 +1884,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.24.0, @babel/runtime@npm:^7.24.1, @babel/runtime@npm:^7.25.0, @babel/runtime@npm:^7.26.9, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.9.2":
-  version: 7.27.6
-  resolution: "@babel/runtime@npm:7.27.6"
-  checksum: 3f7b879df1823c0926bd5dbc941c62f5d60faa790c1aab9758c04799e1f04ee8d93553be9ec059d4e5882f19fe03cbe8933ee4f46212dced0f6d8205992c9c9a
-  languageName: node
-  linkType: hard
-
-"@babel/runtime@npm:^7.25.7":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.24.0, @babel/runtime@npm:^7.24.1, @babel/runtime@npm:^7.25.0, @babel/runtime@npm:^7.25.7, @babel/runtime@npm:^7.26.9, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.9.2":
   version: 7.28.4
   resolution: "@babel/runtime@npm:7.28.4"
   checksum: 934b0a0460f7d06637d93fcd1a44ac49adc33518d17253b5a0b55ff4cb90a45d8fe78bf034b448911dbec7aff2a90b918697559f78d21c99ff8dbadae9565b55
@@ -2375,21 +2368,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emnapi/runtime@npm:^1.2.0":
+"@emnapi/runtime@npm:^1.2.0, @emnapi/runtime@npm:^1.4.3":
   version: 1.5.0
   resolution: "@emnapi/runtime@npm:1.5.0"
   dependencies:
     tslib: ^2.4.0
   checksum: 03b23bdc0bb72bce4d8967ca29d623c2599af18977975c10532577db2ec89a57d97d2c76c5c4bde856c7c29302b9f7af357e921c42bd952bdda206972185819a
-  languageName: node
-  linkType: hard
-
-"@emnapi/runtime@npm:^1.4.3":
-  version: 1.4.5
-  resolution: "@emnapi/runtime@npm:1.4.5"
-  dependencies:
-    tslib: ^2.4.0
-  checksum: 99ab25d55cf1ceeec12f83b60f48e744f8e1dfc8d52a2ed81b3b09bf15182e61ef55f25b69d51ec83044861bddaa4404e7c3285bf71dd518a7980867e41c2a10
   languageName: node
   linkType: hard
 
@@ -6855,29 +6839,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.2.0":
-  version: 8.2.0
-  resolution: "@metamask/base-controller@npm:8.2.0"
-  dependencies:
-    "@metamask/messenger": ^0.1.0
-    "@metamask/utils": ^11.4.2
-    immer: ^9.0.6
-  checksum: ebcbc59dd9c8296a492d40f43491c63cc14ff1d22cedbe2c05812e98a3e4e4f84b7c457b1bc21fcb3ff340f6dee88ba9cc784829dbe8011312ae8d0edbf798d9
-  languageName: node
-  linkType: hard
-
-"@metamask/base-controller@npm:^8.3.0":
-  version: 8.3.0
-  resolution: "@metamask/base-controller@npm:8.3.0"
-  dependencies:
-    "@metamask/messenger": ^0.2.0
-    "@metamask/utils": ^11.4.2
-    immer: ^9.0.6
-  checksum: 957528b7f52d16c401bc2c391b1723efdbeaa950c25c1cbcde7372309cdc1028a30efcef5c121cf1dc143f4da9539a4f5ec1470c6e5e0b4d7905ac6a9c780b71
-  languageName: node
-  linkType: hard
-
-"@metamask/base-controller@npm:^8.4.0":
+"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.2.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
   version: 8.4.0
   resolution: "@metamask/base-controller@npm:8.4.0"
   dependencies:
@@ -7008,28 +6970,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.10.0, @metamask/controller-utils@npm:^11.11.0, @metamask/controller-utils@npm:^11.12.0, @metamask/controller-utils@npm:^11.3.0, @metamask/controller-utils@npm:^11.5.0, @metamask/controller-utils@npm:^11.9.0":
-  version: 11.12.0
-  resolution: "@metamask/controller-utils@npm:11.12.0"
-  dependencies:
-    "@metamask/eth-query": ^4.0.0
-    "@metamask/ethjs-unit": ^0.3.0
-    "@metamask/utils": ^11.4.2
-    "@spruceid/siwe-parser": 2.1.0
-    "@types/bn.js": ^5.1.5
-    bignumber.js: ^9.1.2
-    bn.js: ^5.2.1
-    cockatiel: ^3.1.2
-    eth-ens-namehash: ^2.0.8
-    fast-deep-equal: ^3.1.3
-    lodash: ^4.17.21
-  peerDependencies:
-    "@babel/runtime": ^7.0.0
-  checksum: a96dea30d56676c3070d118d4e130f6f97c2ddeac1161d49a99f114af7ca6e9b87f955ea5a6a17c72410243cf9eafed5748474144013b548955b9edc7e97b409
-  languageName: node
-  linkType: hard
-
-"@metamask/controller-utils@npm:^11.14.0":
+"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.10.0, @metamask/controller-utils@npm:^11.11.0, @metamask/controller-utils@npm:^11.12.0, @metamask/controller-utils@npm:^11.14.0, @metamask/controller-utils@npm:^11.3.0, @metamask/controller-utils@npm:^11.5.0, @metamask/controller-utils@npm:^11.9.0":
   version: 11.14.0
   resolution: "@metamask/controller-utils@npm:11.14.0"
   dependencies:
@@ -7682,20 +7623,6 @@ __metadata:
   version: 1.1.2
   resolution: "@metamask/message-signing-snap@npm:1.1.2"
   checksum: bb33cb16c6744acf69356e42f43737f741b49c51d48e4a73608dfc06a94f3813f2de9a968d110682e650e8f99eb888efb4848e6373008717a046e593e50e3f06
-  languageName: node
-  linkType: hard
-
-"@metamask/messenger@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@metamask/messenger@npm:0.1.0"
-  checksum: 1d8c186f403ab3ce86b44df669e4295be5fdd62932989618174f57aded98a76d0a4029b866cbcf281ed34e92b1daafa1a07cca00b183681be99fdc65713b6c1d
-  languageName: node
-  linkType: hard
-
-"@metamask/messenger@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/messenger@npm:0.2.0"
-  checksum: fad113b3bdeda5c481c1bd121b9a6ca8d8f06dab3031550c5bc0da72844876dc3fe27241fe604c5b70e6b553be4bc6a63f07c48c6215ca60d554d9dafd7cc246
   languageName: node
   linkType: hard
 
@@ -8633,43 +8560,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^60.2.0":
-  version: 60.2.0
-  resolution: "@metamask/transaction-controller@npm:60.2.0"
-  dependencies:
-    "@ethereumjs/common": ^4.4.0
-    "@ethereumjs/tx": ^5.4.0
-    "@ethereumjs/util": ^9.1.0
-    "@ethersproject/abi": ^5.7.0
-    "@ethersproject/contracts": ^5.7.0
-    "@ethersproject/providers": ^5.7.0
-    "@ethersproject/wallet": ^5.7.0
-    "@metamask/base-controller": ^8.2.0
-    "@metamask/controller-utils": ^11.12.0
-    "@metamask/eth-query": ^4.0.0
-    "@metamask/metamask-eth-abis": ^3.1.1
-    "@metamask/nonce-tracker": ^6.0.0
-    "@metamask/rpc-errors": ^7.0.2
-    "@metamask/utils": ^11.4.2
-    async-mutex: ^0.5.0
-    bn.js: ^5.2.1
-    eth-method-registry: ^4.0.0
-    fast-json-patch: ^3.1.1
-    lodash: ^4.17.21
-    uuid: ^8.3.2
-  peerDependencies:
-    "@babel/runtime": ^7.0.0
-    "@metamask/accounts-controller": ^33.0.0
-    "@metamask/approval-controller": ^7.0.0
-    "@metamask/eth-block-tracker": ">=9"
-    "@metamask/gas-fee-controller": ^24.0.0
-    "@metamask/network-controller": ^24.0.0
-    "@metamask/remote-feature-flag-controller": ^1.5.0
-  checksum: 2e8b5e7b1981f2cdf198b520cf0bcdb86e73db16a47974ba5c27a6856046275c7ab95b1cc3ec7f51bdeee547b1ef33271dfd6fb6c2ac707fee276407e1e6caa1
-  languageName: node
-  linkType: hard
-
-"@metamask/transaction-controller@npm:^60.3.0":
+"@metamask/transaction-controller@npm:^60.2.0, @metamask/transaction-controller@npm:^60.3.0":
   version: 60.3.0
   resolution: "@metamask/transaction-controller@npm:60.3.0"
   dependencies:
@@ -8722,44 +8613,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.2.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2":
-  version: 11.4.2
-  resolution: "@metamask/utils@npm:11.4.2"
-  dependencies:
-    "@ethereumjs/tx": ^4.2.0
-    "@metamask/superstruct": ^3.1.0
-    "@noble/hashes": ^1.3.1
-    "@scure/base": ^1.1.3
-    "@types/debug": ^4.1.7
-    debug: ^4.3.4
-    lodash.memoize: ^4.1.2
-    pony-cause: ^2.1.10
-    semver: ^7.5.4
-    uuid: ^9.0.1
-  checksum: 11061a93f49684563a14caaaab2d8dbb969c907dbc24358cf188dd10ec00ac91e5d04369ef605e9d78e75f8ad53d9a0fbdb65f2325b12ef6c8db85bb46160dff
-  languageName: node
-  linkType: hard
-
-"@metamask/utils@npm:^11.7.0":
-  version: 11.7.0
-  resolution: "@metamask/utils@npm:11.7.0"
-  dependencies:
-    "@ethereumjs/tx": ^4.2.0
-    "@metamask/superstruct": ^3.1.0
-    "@noble/hashes": ^1.3.1
-    "@scure/base": ^1.1.3
-    "@types/debug": ^4.1.7
-    "@types/lodash": ^4.17.20
-    debug: ^4.3.4
-    lodash: ^4.17.21
-    pony-cause: ^2.1.10
-    semver: ^7.5.4
-    uuid: ^9.0.1
-  checksum: 8fb694d40f523c11e213c2a997db559bf6472d2181fc89d91167c8a8e3487da9c3f8336de74c7a8f9944222d7f1ddd8b89eea021a83db871dfeb4858bbdd1a47
-  languageName: node
-  linkType: hard
-
-"@metamask/utils@npm:^11.8.0":
+"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.2.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.7.0, @metamask/utils@npm:^11.8.0":
   version: 11.8.0
   resolution: "@metamask/utils@npm:11.8.0"
   dependencies:
@@ -17188,16 +17042,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.0.0":
-  version: 18.19.123
-  resolution: "@types/node@npm:18.19.123"
-  dependencies:
-    undici-types: ~5.26.4
-  checksum: a450556143df831703fc20a96a1eff485fa425e5a6e887331991d3e00ab2d33981d36e94d4320f4961e96d22c488ced740913fed6de161daea5caf39722c5f49
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.11.18":
+"@types/node@npm:^18.0.0, @types/node@npm:^18.11.18":
   version: 18.19.125
   resolution: "@types/node@npm:18.19.125"
   dependencies:
@@ -24412,15 +24257,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.2.0, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:^4.3.5":
-  version: 4.4.1
-  resolution: "debug@npm:4.4.1"
+"debug@npm:4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.2.0, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.4.0":
+  version: 4.4.3
+  resolution: "debug@npm:4.4.3"
   dependencies:
     ms: ^2.1.3
   peerDependenciesMeta:
     supports-color:
       optional: true
-  checksum: a43826a01cda685ee4cec00fb2d3322eaa90ccadbef60d9287debc2a886be3e835d9199c80070ede75a409ee57828c4c6cd80e4b154f2843f0dc95a570dc0729
+  checksum: 4805abd570e601acdca85b6aa3757186084a45cff9b2fa6eee1f3b173caa776b45f478b2a71a572d616d2010cea9211d0ac4a02a610e4c18ac4324bde3760834
   languageName: node
   linkType: hard
 
@@ -24466,18 +24311,6 @@ __metadata:
   dependencies:
     ms: ^2.1.1
   checksum: b3d8c5940799914d30314b7c3304a43305fd0715581a919dacb8b3176d024a782062368405b47491516d2091d6462d4d11f2f4974a405048094f8bfebfa3071c
-  languageName: node
-  linkType: hard
-
-"debug@npm:^4.4.0":
-  version: 4.4.3
-  resolution: "debug@npm:4.4.3"
-  dependencies:
-    ms: ^2.1.3
-  peerDependenciesMeta:
-    supports-color:
-      optional: true
-  checksum: 4805abd570e601acdca85b6aa3757186084a45cff9b2fa6eee1f3b173caa776b45f478b2a71a572d616d2010cea9211d0ac4a02a610e4c18ac4324bde3760834
   languageName: node
   linkType: hard
 
@@ -24944,14 +24777,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"detect-libc@npm:^2.0.0, detect-libc@npm:^2.0.2, detect-libc@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "detect-libc@npm:2.0.4"
-  checksum: 3d186b7d4e16965e10e21db596c78a4e131f9eee69c0081d13b85e6a61d7448d3ba23fe7997648022bdfa3b0eb4cc3c289a44c8188df949445a20852689abef6
-  languageName: node
-  linkType: hard
-
-"detect-libc@npm:^2.0.3":
+"detect-libc@npm:^2.0.0, detect-libc@npm:^2.0.2, detect-libc@npm:^2.0.3, detect-libc@npm:^2.0.4":
   version: 2.1.0
   resolution: "detect-libc@npm:2.1.0"
   checksum: a6430901d590bacc622e4304b9510fa99f5f8e71be7b5272d5dd03e07f361b9b5452da3416a8215125575946ec3c97c82bd6c51937a3923ab33405481a70e9ae
@@ -30275,19 +30101,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"import-local@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "import-local@npm:3.0.2"
-  dependencies:
-    pkg-dir: ^4.2.0
-    resolve-cwd: ^3.0.0
-  bin:
-    import-local-fixture: fixtures/cli.js
-  checksum: c74d9f9484c878cda1de3434613c7ff72d5dadcf20e5482542232d7c2575b713ff88701d6675fcf09a3684cb23fb407c8b333b9cbc59438712723d058d8e976c
-  languageName: node
-  linkType: hard
-
-"import-local@npm:^3.2.0":
+"import-local@npm:^3.0.2, import-local@npm:^3.2.0":
   version: 3.2.0
   resolution: "import-local@npm:3.2.0"
   dependencies:
@@ -33295,13 +33109,6 @@ __metadata:
   version: 4.0.6
   resolution: "lodash.isplainobject@npm:4.0.6"
   checksum: 29c6351f281e0d9a1d58f1a4c8f4400924b4c79f18dfc4613624d7d54784df07efaff97c1ff2659f3e085ecf4fff493300adc4837553104cef2634110b0d5337
-  languageName: node
-  linkType: hard
-
-"lodash.memoize@npm:^4.1.2":
-  version: 4.1.2
-  resolution: "lodash.memoize@npm:4.1.2"
-  checksum: 9ff3942feeccffa4f1fafa88d32f0d24fdc62fd15ded5a74a5f950ff5f0c6f61916157246744c620173dddf38d37095a92327d5fd3861e2063e736a5c207d089
   languageName: node
   linkType: hard
 
@@ -41457,18 +41264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"simple-git@npm:^3.25.0":
-  version: 3.25.0
-  resolution: "simple-git@npm:3.25.0"
-  dependencies:
-    "@kwsites/file-exists": ^1.1.1
-    "@kwsites/promise-deferred": ^1.1.1
-    debug: ^4.3.5
-  checksum: 0f54f03882f3b733fc5b61826935b3a6b1d2f8976fe74a488ef72d05baf1f8eb6f465867dcf72c1b7292b20843de23e900160c5c9b5d6933b3db2188cb79e1d2
-  languageName: node
-  linkType: hard
-
-"simple-git@npm:^3.27.0":
+"simple-git@npm:^3.25.0, simple-git@npm:^3.27.0":
   version: 3.28.0
   resolution: "simple-git@npm:3.28.0"
   dependencies:
