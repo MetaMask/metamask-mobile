@@ -57,6 +57,7 @@ import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
+import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 
 const defaultNumberOfWords = 12;
 
@@ -235,8 +236,23 @@ const ImportNewSecretRecoveryPhrase = () => {
         // no need to handle error here, password outdated state will trigger modal that force user to log out
         return;
       }
+
+      // In case state 2 is enabled, discoverAccounts will be 0 because accounts are synced and then discovered
+      // in a non-blocking way. So we rely on the callback to track the event when the discovery is done.
       const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
         secretRecoveryPhrase.join(' '),
+        undefined,
+        ({ discoveredAccountsCount }) => {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+            )
+              .addProperties({
+                number_of_solana_accounts_discovered: discoveredAccountsCount,
+              })
+              .build(),
+          );
+        },
       );
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
@@ -255,15 +271,19 @@ const ImportNewSecretRecoveryPhrase = () => {
       });
 
       fetchAccountsWithActivity();
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-        )
-          .addProperties({
-            number_of_solana_accounts_discovered: discoveredAccountsCount,
-          })
-          .build(),
-      );
+
+      if (!isMultichainAccountsState2Enabled()) {
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+          )
+            .addProperties({
+              number_of_solana_accounts_discovered: discoveredAccountsCount,
+            })
+            .build(),
+        );
+      }
+
       navigation.navigate('WalletView');
     } catch (e) {
       if (

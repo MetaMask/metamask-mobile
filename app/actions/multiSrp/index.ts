@@ -30,12 +30,18 @@ interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
 }
 
+interface ImportNewSecretRecoveryPhraseReturnType {
+  address: string;
+  discoveredAccountsCount: number;
+}
+
 export async function importNewSecretRecoveryPhrase(
   mnemonic: string,
   options: ImportNewSecretRecoveryPhraseOptions = {
     shouldSelectAccount: true,
   },
-) {
+  callback?: (options: ImportNewSecretRecoveryPhraseReturnType) => void,
+): Promise<ImportNewSecretRecoveryPhraseReturnType> {
   const { KeyringController } = Engine.context;
   const { shouldSelectAccount } = options;
 
@@ -133,14 +139,19 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  let discoveredAccountsCount: number;
+  let discoveredAccountsCount: number = 0;
   if (isMultichainAccountsState2Enabled()) {
     // Use try/catch here, add `addDiscoveredAccounts` also handles errors gracefully.
     try {
-      // We dispatch a full sync here since this is a new SRP
-      await Engine.context.AccountTreeController.syncWithUserStorage();
-
-      discoveredAccountsCount = await discoverAccounts(newKeyring.id);
+      // We use an IIFE to be able to use async/await but not block the main thread.
+      (async () => {
+        // We dispatch a full sync here since this is a new SRP
+        await Engine.context.AccountTreeController.syncWithUserStorage();
+        // Then we discover accounts
+        discoveredAccountsCount = await discoverAccounts(newKeyring.id);
+        // Then we trigger the callback with the results
+        callback?.({ address: newAccountAddress, discoveredAccountsCount });
+      })();
     } catch (error) {
       captureException(
         new Error(`Unable to discover and create accounts: ${error}`),
