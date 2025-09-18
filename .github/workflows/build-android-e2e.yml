@@ -60,8 +60,7 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      # Fingerprint-based build decision
-      # IMPORTANT: Generate fingerprint AFTER setup but BEFORE any build modifications
+      # Generate fingerprint AFTER setup but BEFORE any build modifications
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
@@ -69,31 +68,21 @@ jobs:
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT:0:16}..."
 
-      - name: Check for cached APK and decide build method
-        id: fingerprint-check
+      - name: Check and restore cached APKs
+        id: cache-restore
         uses: actions/cache@v4
         with:
           path: |
             android/app/build/outputs/apk/prod/release/app-prod-release.apk
             android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
-          key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          restore-keys: |
-            android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          lookup-only: true
-
-      - name: Restore cached APK for repacking
-        if: ${{ steps.fingerprint-check.outputs.cache-hit == 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            android/app/build/outputs/apk/prod/release/app-prod-release.apk
-            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+            sourcemaps/android/index.android.bundle.map
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Build Android E2E APKs
-        if: ${{ steps.fingerprint-check.outputs.cache-hit == 'false' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -137,41 +126,33 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Repack APK with JS updates
-        if: ${{ steps.fingerprint-check.outputs.cache-hit == 'true' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
           echo "📦 Repacking APK with updated JavaScript..."
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
 
-          # Ensure sourcemaps directory exists
-          mkdir -p sourcemaps/android
+          # Generate new JS bundle
+          yarn gen-bundle:android
 
-          # Generate bundle with sourcemap
-          yarn react-native bundle \
-            --platform android \
-            --dev false \
-            --entry-file index.js \
-            --bundle-output android/main.jsbundle \
-            --sourcemap-output sourcemaps/android/index.android.bundle.map
-
-          # Extract, replace bundle, and repackage
+          # Repack the APK with new bundle
           TEMP_DIR=$(mktemp -d)
           unzip -q "$APK_PATH" -d "$TEMP_DIR"
           cp android/main.jsbundle "$TEMP_DIR/assets/index.android.bundle"
           (cd "$TEMP_DIR" && zip -qr "$APK_PATH" .)
-
-          # Cleanup
           rm -rf "$TEMP_DIR" android/main.jsbundle
 
           echo "✅ APK repacked successfully"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
-        if: ${{ steps.fingerprint-check.outputs.cache-hit == 'false' }}
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/cache@v4
         with:
           path: |
             android/app/build/outputs/apk/prod/release/app-prod-release.apk
             android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+            sourcemaps/android/index.android.bundle.map
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
