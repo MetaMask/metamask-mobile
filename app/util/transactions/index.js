@@ -1539,8 +1539,8 @@ export const parseTransactionLegacy = (
  *
  * @param {object} transaction - Transaction object to validate
  * @param {string} rate - Rate to validate
- * @param {string} accounts - Map of accounts to information objects including balances
- * @returns {string} - Whether the balance is validated or not
+ * @param {{ [address: string]: { balance: string } }} accounts - Map of accounts to information objects including balances
+ * @returns {boolean} - Whether the balance is validated or not
  */
 export function validateTransactionActionBalance(transaction, rate, accounts) {
   try {

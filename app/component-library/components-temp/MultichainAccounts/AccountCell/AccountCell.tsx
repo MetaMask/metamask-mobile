@@ -29,6 +29,7 @@ interface AccountCellProps {
   avatarAccountType: AvatarAccountType;
   isSelected: boolean;
   hideMenu?: boolean;
+  startAccessory?: React.ReactNode;
 }
 
 const AccountCell = ({
@@ -36,6 +37,7 @@ const AccountCell = ({
   avatarAccountType,
   isSelected,
   hideMenu = false,
+  startAccessory,
 }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
@@ -79,6 +81,7 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
+      {startAccessory}
       <View style={styles.avatarWrapper}>
         <AvatarAccount
           accountAddress={evmAddress}
@@ -98,10 +101,11 @@ const AccountCell = ({
         >
           {accountGroup.metadata.name}
         </Text>
-        {isSelected && (
+        {!startAccessory && isSelected && (
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Md}
+            style={styles.checkIcon}
             color={TextColor.Primary}
           />
         )}
