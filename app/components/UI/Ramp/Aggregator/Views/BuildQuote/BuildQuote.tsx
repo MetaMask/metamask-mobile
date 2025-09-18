@@ -24,8 +24,6 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 
-import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
-import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
@@ -85,7 +83,6 @@ import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
-import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 // TODO: Replace "any" with type
@@ -233,32 +230,32 @@ const BuildQuote = () => {
     estimateRange: 'high',
   });
 
-  const assetForBalance = useMemo(
-    () =>
-      selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
-        ? {
-            address: selectedAsset.address,
-            symbol: selectedAsset.symbol,
-            decimals: selectedAsset.decimals,
-          }
-        : {
-            isETH: true,
-          },
-    [selectedAsset],
-  );
+  // const assetForBalance = useMemo(
+  //   () =>
+  //     selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
+  //       ? {
+  //           address: selectedAsset.address,
+  //           symbol: selectedAsset.symbol,
+  //           decimals: selectedAsset.decimals,
+  //         }
+  //       : {
+  //           isETH: true,
+  //         },
+  //   [selectedAsset],
+  // );
 
-  const addressForBalance = useMemo(
-    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
-    [selectedAddress],
-  );
+  // const addressForBalance = useMemo(
+  //   () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+  //   [selectedAddress],
+  // );
 
-  const { addressBalance } = useAddressBalance(
-    assetForBalance as Asset,
-    addressForBalance,
-    true,
-  );
+  // const { addressBalance } = useAddressBalance(
+  //   assetForBalance as Asset,
+  //   addressForBalance,
+  //   true,
+  // );
 
-  const { balanceFiat, balanceBN, balance } = useBalance(
+  const { balanceBN } = useBalance(
     selectedAsset
       ? {
           chainId: selectedAsset.network.chainId,
@@ -889,7 +886,7 @@ const BuildQuote = () => {
               assetName={selectedAsset?.name ?? ''}
               onPress={handleAssetSelectorPress}
             />
-            {addressBalance ? (
+            {/* {addressBalance ? (
               <Row>
                 <Text
                   variant={TextVariant.BodySM}
@@ -900,7 +897,8 @@ const BuildQuote = () => {
                   {balanceFiat ? ` ≈ ${balanceFiat}` : null}
                 </Text>
               </Row>
-            ) : null}
+            ) : null} */}
+            {/* TODO: Fix multichain balance display */}
 
             <AmountInput
               highlighted={amountFocused}
