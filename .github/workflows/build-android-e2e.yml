@@ -154,26 +154,38 @@ jobs:
           # CRITICAL: Re-sign the APK after modification
           # The zip update breaks the original signature
           echo "🔏 Re-signing APK after JavaScript update..."
-
+          
           # Remove old signature files
           zip -d "$APK_PATH" "META-INF/*.SF" "META-INF/*.RSA" "META-INF/*.DSA" 2>/dev/null || true
-
-          # Re-sign with the debug keystore (same as original build)
-          jarsigner -verbose \
-            -sigalg SHA256withRSA \
-            -digestalg SHA-256 \
-            -keystore android/app/debug.keystore \
-            -storepass android \
-            -keypass android \
-            "$APK_PATH" \
-            androiddebugkey
-
-          # Verify the signature
-          jarsigner -verify "$APK_PATH"
-
-          # Align the APK for optimal performance
-          zipalign -v 4 "$APK_PATH" "${APK_PATH}.aligned"
-          mv "${APK_PATH}.aligned" "$APK_PATH"
+          
+          # Re-sign with the debug keystore
+          # The keystore is set up by the setup-e2e-env action
+          KEYSTORE_PATH="${ANDROID_KEYSTORE_PATH:-android/app/debug.keystore}"
+          
+          if [ -f "$KEYSTORE_PATH" ]; then
+            echo "📝 Signing APK with keystore at: $KEYSTORE_PATH"
+            
+            # Sign the APK
+            jarsigner -verbose \
+              -sigalg SHA256withRSA \
+              -digestalg SHA-256 \
+              -keystore "$KEYSTORE_PATH" \
+              -storepass "${BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD:-android}" \
+              -keypass "${BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD:-android}" \
+              "$APK_PATH" \
+              "${BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS:-androiddebugkey}"
+            
+            # Verify the signature
+            echo "✅ Verifying APK signature..."
+            jarsigner -verify "$APK_PATH"
+            
+            echo "✅ APK successfully signed for E2E tests"
+            # Note: zipalign is an optimization tool, not required for E2E tests
+          else
+            echo "❌ Error: Keystore not found at $KEYSTORE_PATH"
+            echo "The APK cannot be signed and E2E tests will fail"
+            exit 1
+          fi
  
           # Cleanup
           rm -rf android/assets
