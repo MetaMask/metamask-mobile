@@ -103,4 +103,16 @@ describe('BridgeFeeRow', () => {
     expect(getByTestId('bridge-fee-row-skeleton')).toBeDefined();
     expect(getByTestId('metamask-fee-row-skeleton')).toBeDefined();
   });
+
+  it('does not render tooltip if no quotes', async () => {
+    const { queryByTestId } = render({ quotes: [] });
+    expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
+  });
+
+  it('does not render metamask fee if no quotes', async () => {
+    const { getByTestId, queryByTestId } = render({ quotes: [] });
+
+    expect(getByTestId('bridge-fee-row')).toBeDefined();
+    expect(queryByTestId('metamask-fee-row')).toBeNull();
+  });
 });
