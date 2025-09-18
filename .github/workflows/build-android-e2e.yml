@@ -138,27 +138,45 @@ jobs:
           fi
 
           # Generate new JS bundle with sourcemap
+          echo "🔄 Generating new JavaScript bundle..."
           mkdir -p sourcemaps/android
-          mkdir -p android/assets
           yarn react-native bundle \
             --platform android \
             --dev false \
             --entry-file index.js \
-            --bundle-output android/assets/index.android.bundle \
+            --bundle-output android/index.android.bundle \
             --sourcemap-output sourcemaps/android/index.android.bundle.map
 
-          # Update the JS bundle directly in the APK (similar to iOS approach)
-          # When we cd into android/, the relative path needs adjustment
-          (cd android && zip -u app/build/outputs/apk/prod/release/app-prod-release.apk assets/index.android.bundle)
+          # SAFER APPROACH: Extract, replace, and repackage to preserve APK structure
+          echo "📦 Extracting APK for safe repacking..."
+          TEMP_DIR=$(mktemp -d)
+          unzip -q "$APK_PATH" -d "$TEMP_DIR"
+          
+          # Replace the JavaScript bundle
+          echo "🔄 Replacing JavaScript bundle..."
+          cp android/index.android.bundle "$TEMP_DIR/assets/index.android.bundle"
+          
+          # Remove old signatures before repacking
+          echo "🧹 Removing old signatures..."
+          rm -rf "$TEMP_DIR/META-INF"
+          
+          # Repackage the APK preserving the structure
+          echo "📦 Repackaging APK..."
+          (cd "$TEMP_DIR" && zip -qr0 "../temp.apk" .)
+          
+          # Compress everything except native libraries and other uncompressed assets
+          (cd "$TEMP_DIR" && zip -qr9 "../temp.apk" . -x "*.so" "resources.arsc" "assets/*" "META-INF/*")
+          
+          # Move the repacked APK back
+          mv "${TEMP_DIR}/../temp.apk" "$APK_PATH"
+          
+          # Clean up temp directory
+          rm -rf "$TEMP_DIR" android/index.android.bundle
 
           # CRITICAL: Re-sign the APK after modification
-          # The zip update breaks the original signature
-          echo "🔏 Re-signing APK after JavaScript update..."
+          echo "🔏 Re-signing APK after repacking..."
           
-          # Remove old signature files
-          zip -d "$APK_PATH" "META-INF/*.SF" "META-INF/*.RSA" "META-INF/*.DSA" 2>/dev/null || true
-          
-          # Re-sign with the debug keystore
+          # Re-sign with the QA keystore
           # The keystore is set up by the setup-e2e-env action
           KEYSTORE_PATH="${ANDROID_KEYSTORE_PATH:-android/app/debug.keystore}"
           
@@ -177,19 +195,16 @@ jobs:
             
             # Verify the signature
             echo "✅ Verifying APK signature..."
-            jarsigner -verify "$APK_PATH"
+            jarsigner -verify -verbose "$APK_PATH"
             
-            echo "✅ APK successfully signed for E2E tests"
-            # Note: zipalign is an optimization tool, not required for E2E tests
+            echo "✅ APK successfully repacked and signed for E2E tests"
           else
             echo "❌ Error: Keystore not found at $KEYSTORE_PATH"
             echo "The APK cannot be signed and E2E tests will fail"
             exit 1
           fi
- 
-          # Cleanup
-          rm -rf android/assets
-          echo "✅ APK repacked and re-signed successfully"
+          
+          echo "✅ APK repacking complete"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
