@@ -66,12 +66,24 @@ jest.mock('rive-react-native', () => {
     { testID = 'mock-rive-animation', onLoad, onStop, onError, ...props },
     ref,
   ) => {
+    const playMock = jest.fn(() => {
+      if (onStop) {
+        onStop();
+      }
+    });
+
     React.useImperativeHandle(ref, () => ({
-      play: jest.fn(),
+      play: playMock,
       stop: jest.fn(),
       reset: jest.fn(),
       pause: jest.fn(),
     }));
+
+    React.useEffect(() => {
+      if (onLoad) {
+        onLoad();
+      }
+    }, [onLoad]);
 
     return React.createElement(View, { testID, ...props });
   };
