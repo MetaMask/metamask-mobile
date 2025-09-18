@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import Button, {
   ButtonSize,
@@ -35,7 +35,6 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import { useSelector } from 'react-redux';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { debounce } from 'lodash';
 
 /**
  * PerpsOpenOrderCard Component
@@ -76,8 +75,12 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  // Used to prevent rapid clicks on the cancel button before it has time to re-render.
+  const isLocallyCancellingRef = useRef(false);
+
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+
   const isEligible = useSelector(selectPerpsEligibility);
 
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
@@ -118,22 +121,30 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     order.filledSize,
   ]);
 
-  const debouncedHandleCancelPress = useMemo(
-    () =>
-      debounce(() => {
-        if (!isEligible) {
-          setIsEligibilityModalVisible(true);
-          return;
-        }
+  // Allows for retries if cancellation fails.
+  if (!isCancelling) {
+    isLocallyCancellingRef.current = false;
+  }
 
-        DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
-          orderId: order.orderId,
-        });
+  const handleCancelPress = useCallback(() => {
+    if (isLocallyCancellingRef.current) {
+      return;
+    }
 
-        onCancel?.(order);
-      }, 200),
-    [isEligible, onCancel, order],
-  );
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    // Set local state immediately to prevent rapid clicks
+    isLocallyCancellingRef.current = true;
+
+    DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
+      orderId: order.orderId,
+    });
+
+    onCancel?.(order);
+  }, [isEligible, onCancel, order]);
 
   const handleCardPress = useCallback(() => {
     if (onSelect && !disabled && !isCancelling) {
@@ -316,9 +327,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             size={ButtonSize.Md}
             width={ButtonWidthTypes.Full}
             label={strings('perps.order.cancel_order')}
-            onPress={debouncedHandleCancelPress}
-            isDisabled={disabled || isCancelling}
-            loading={isCancelling}
+            onPress={handleCancelPress}
+            isDisabled={isLocallyCancellingRef.current || disabled}
+            loading={isLocallyCancellingRef.current || disabled}
             style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />

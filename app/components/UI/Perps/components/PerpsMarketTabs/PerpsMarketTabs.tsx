@@ -336,6 +336,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       } catch (error) {
         DevLogger.log('Failed to cancel order:', error);
 
+        showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
+
         // Capture exception with order context
         captureException(
           error instanceof Error ? error : new Error(String(error)),
