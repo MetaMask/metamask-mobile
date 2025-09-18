@@ -431,7 +431,7 @@
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "3.37.0",
-    "react-native-scrollable-tab-view": "tommasini/react-native-scrollable-tab-view#1f3455141f552e44fcf7fa1198078090d7013537",
+    "react-native-scrollable-tab-view": "https://github.com/tommasini/react-native-scrollable-tab-view.git#1f3455141f552e44fcf7fa1198078090d7013537",
     "react-native-sensors": "5.3.0",
     "react-native-share": "7.3.7",
     "react-native-size-matters": "0.4.0",
