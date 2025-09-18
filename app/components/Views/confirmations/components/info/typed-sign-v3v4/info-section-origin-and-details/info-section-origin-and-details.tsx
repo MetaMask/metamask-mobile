@@ -30,9 +30,6 @@ import Text, {
 
 export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
-
-  // signatureRequest from SignatureController does not include the origin
-  // so we need to use approvalRequest
   const { approvalRequest } = useApprovalRequest();
   const origin = approvalRequest?.origin as string;
 
