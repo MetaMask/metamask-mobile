@@ -1011,6 +1011,7 @@
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
+      "estimated_points": "Est. Points",
       "market": "Market",
       "limit": "Limit",
       "open_orders": "Orders",
@@ -1189,7 +1190,8 @@
       "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
-      "below": "below"
+      "below": "below",
+      "dismiss_tpsl_keypad": "Dismiss"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1354,7 +1356,8 @@
         "content": "Trading fees are charged when you open or close a position.",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee",
-        "total": "Total fees"
+        "total": "Total fees",
+        "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
       },
       "closing_fees": {
         "title": "Closing Fees",
@@ -1408,6 +1411,10 @@
         "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
         "view_orders_button": "View orders",
         "got_it_button": "Got it"
+      },
+      "points": {
+        "title": "Points",
+        "content": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps."
       }
     },
     "connection": {
@@ -1508,7 +1515,11 @@
         "description": "Fund your perps account with any token and make your first trade in seconds."
       },
       "got_it": "Got it"
-    }
+    },
+    "points": "Points",
+    "unable_to_load": "Couldn't load",
+    "points_error": "We can't load points right now",
+    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later."
   },
   "receive": {
     "title": "Receive"
@@ -5347,6 +5358,8 @@
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
     "swap_to": "Swap to",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",

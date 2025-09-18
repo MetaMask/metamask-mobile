@@ -29,4 +29,5 @@ export const tooltipContentRegistry: ContentRegistry = {
   tp_sl: undefined,
   close_position_you_receive: undefined,
   tpsl_count_warning: TPSLCountWarningTooltipContent,
+  points: undefined,
 };
