@@ -31,7 +31,6 @@ jest.mock('@react-navigation/native', () => ({
 // Mock usePredictSell hook
 const mockPlaceSellOrder = jest.fn();
 const mockReset = jest.fn();
-const mockIsOutcomeLoading = jest.fn();
 let mockLoadingState = false;
 
 jest.mock('../../hooks/usePredictSell', () => ({
@@ -51,7 +50,6 @@ jest.mock('../../hooks/usePredictSell', () => ({
       },
       loading: mockLoadingState,
       reset: mockReset,
-      isOutcomeLoading: mockIsOutcomeLoading.mockReturnValue(false),
     };
   },
 }));
@@ -216,7 +214,6 @@ describe('PredictCashOut', () => {
     // Reset mock functions
     mockPlaceSellOrder.mockReset();
     mockReset.mockReset();
-    mockIsOutcomeLoading.mockReset();
     mockUseStyles.mockReturnValue({
       styles: {
         container: {},
@@ -345,14 +342,18 @@ describe('PredictCashOut', () => {
       mockLoadingState = false;
     });
 
-    it('shows loading state for specific outcome token', () => {
-      mockIsOutcomeLoading.mockReturnValue(true);
+    it('shows loading state when loading is true', () => {
+      mockLoadingState = true;
 
-      renderWithProvider(<PredictCashOut />, {
+      const { getByTestId } = renderWithProvider(<PredictCashOut />, {
         state: initialState,
       });
 
-      expect(mockIsOutcomeLoading).toHaveBeenCalledWith('outcome-token-789');
+      const cashOutButton = getByTestId('button-secondary');
+      expect(cashOutButton.props['data-disabled']).toBe(true);
+
+      // Reset loading state for other tests
+      mockLoadingState = false;
     });
 
     it('calls goBack when close button is pressed', () => {
