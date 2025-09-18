@@ -20,33 +20,30 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-describe(
-  SmokeWalletPlatform('Multi-SRP: Add new account to a specific SRP'),
-  () => {
-    it('adds an account to default SRP and one to the imported SRP', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-            .ensureMultichainIntroModalSuppressed()
-            .build(),
-          restartDevice: true,
-          testSpecificMock,
-        },
-        async () => {
-          await loginToApp();
-          await goToImportSrp();
-          await inputSrp(IDENTITY_TEAM_SEED_PHRASE);
-          await ImportSrpView.tapImportButton();
-          await Assertions.expectElementToHaveText(
-            WalletView.accountName,
-            IMPORTED_ACCOUNT_NAME,
-            {
-              description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME}`,
-            },
-          );
-        },
-      );
-    });
-  },
-);
+describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
+  it('should import account with SRP', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+          .ensureMultichainIntroModalSuppressed()
+          .build(),
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await loginToApp();
+        await goToImportSrp();
+        await inputSrp(IDENTITY_TEAM_SEED_PHRASE);
+        await ImportSrpView.tapImportButton();
+        await Assertions.expectElementToHaveText(
+          WalletView.accountName,
+          IMPORTED_ACCOUNT_NAME,
+          {
+            description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME}`,
+          },
+        );
+      },
+    );
+  });
+});
