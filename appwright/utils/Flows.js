@@ -77,13 +77,11 @@ export async function onboardingFlowImportSRP(device, srp, timeout = 10000) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
   //Dismiss any GTM modal
-  await dismissGTMModal(device);
-
   await dismissMultichainAccountsIntroModal(device);
+  await dismissGTMModal(device);
+  await dismissSystemDialogs(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
-
-  await dismissSystemDialogs(device);
 }
 
 export async function importSRPFlow(device, srp) {

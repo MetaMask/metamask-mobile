@@ -58,7 +58,6 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
     'Time since the user clicks on unlock button, until the app unlocks',
   );
   timer1.start();
-  await dismissMultichainAccountsIntroModal(device);
   await WalletMainScreen.isMainWalletViewVisible();
   timer1.stop();
   performanceTracker.addTimer(timer1);
