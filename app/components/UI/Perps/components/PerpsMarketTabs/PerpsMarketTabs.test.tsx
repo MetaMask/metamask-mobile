@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsMarketTabs from './PerpsMarketTabs';
 import { PerpsMarketTabsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
@@ -39,23 +39,105 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+// Mock Engine with PerpsController
+const mockCancelOrder = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PerpsHyperLiquidController: {},
+  __esModule: true,
+  default: {
+    context: {
+      PerpsController: {
+        cancelOrder: (...args: unknown[]) => mockCancelOrder(...args),
+      },
+    },
   },
+}));
+
+// Mock usePerpsToasts hook
+const mockShowToast = jest.fn();
+const mockPerpsToastOptions = {
+  orderManagement: {
+    shared: {
+      cancellationInProgress: jest.fn(() => ({
+        type: 'info',
+        message: 'mock-in-progress-toast',
+        title: 'Cancelling Order',
+      })),
+      cancellationSuccess: jest.fn(() => ({
+        type: 'success',
+        message: 'mock-success-toast',
+        title: 'Order Cancelled',
+      })),
+      cancellationFailed: {
+        type: 'error',
+        message: 'mock-error-toast',
+        title: 'Cancellation Failed',
+      },
+    },
+  },
+};
+
+jest.mock('../../hooks/usePerpsToasts', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    PerpsToastOptions: mockPerpsToastOptions,
+  }),
+}));
+
+// Mock getOrderDirection utility
+jest.mock('../../utils/orderUtils', () => ({
+  getOrderDirection: jest.fn(() => 'long'),
 }));
 
 // Mock child components using the same pattern as other tests
 jest.mock('../PerpsMarketStatisticsCard', () => 'PerpsMarketStatisticsCard');
 jest.mock('../PerpsPositionCard', () => 'PerpsPositionCard');
-jest.mock('../PerpsOpenOrderCard', () => 'PerpsOpenOrderCard');
 jest.mock('../PerpsBottomSheetTooltip', () => 'PerpsBottomSheetTooltip');
+
+// Mock PerpsOpenOrderCard to test cancel functionality
+jest.mock(
+  '../PerpsOpenOrderCard',
+  () =>
+    function MockPerpsOpenOrderCard({
+      order,
+      onCancel,
+      isCancelling,
+    }: {
+      order: unknown;
+      onCancel?: (order: unknown) => void;
+      isCancelling?: boolean;
+    }) {
+      const MockReact = jest.requireActual('react');
+      const { TouchableOpacity, Text } = jest.requireActual('react-native');
+
+      return MockReact.createElement(
+        TouchableOpacity,
+        {
+          testID: 'mock-perps-open-order-card',
+          onPress: () => {
+            if (onCancel) {
+              onCancel(order);
+            }
+          },
+          disabled: isCancelling,
+        },
+        MockReact.createElement(
+          Text,
+          null,
+          `Order ${(order as { orderId: string }).orderId}`,
+        ),
+      );
+    },
+);
 
 describe('PerpsMarketTabs', () => {
   // Use shared mocks from perpsHooksMocks
   const mockMarketStats = { ...defaultPerpsMarketStatsMock };
   const mockPosition = { ...defaultPerpsPositionMock };
-  const mockOrder = { ...defaultPerpsOrderMock };
+  const mockOrder = {
+    ...defaultPerpsOrderMock,
+    detailedOrderType: 'Limit Order', // Add missing property
+  };
 
   // Additional properties for PerpsMarketTabs
   const nextFundingTime = 1234567890;
@@ -63,6 +145,27 @@ describe('PerpsMarketTabs', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCancelOrder.mockReset();
+    mockShowToast.mockReset();
+    mockPerpsToastOptions.orderManagement.shared.cancellationInProgress.mockReset();
+    mockPerpsToastOptions.orderManagement.shared.cancellationSuccess.mockReset();
+
+    // Restore default mock implementations after reset
+    mockCancelOrder.mockResolvedValue({ success: true });
+    mockPerpsToastOptions.orderManagement.shared.cancellationInProgress.mockReturnValue(
+      {
+        type: 'info',
+        message: 'mock-in-progress-toast',
+        title: 'Cancelling Order',
+      },
+    );
+    mockPerpsToastOptions.orderManagement.shared.cancellationSuccess.mockReturnValue(
+      {
+        type: 'success',
+        message: 'mock-success-toast',
+        title: 'Order Cancelled',
+      },
+    );
   });
 
   describe('Rendering', () => {
@@ -472,6 +575,163 @@ describe('PerpsMarketTabs', () => {
         getByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
       ).toBeDefined();
       expect(onActiveTabChange).toHaveBeenCalledWith('position');
+    });
+  });
+
+  describe('Order Cancellation', () => {
+    const mockOnOrderCancelled = jest.fn();
+
+    beforeEach(() => {
+      mockOnOrderCancelled.mockReset();
+    });
+
+    it('displays in-progress toast then success toast when order cancellation succeeds', async () => {
+      // Arrange
+      mockCancelOrder.mockResolvedValue({ success: true });
+
+      const { getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          marketStats={mockMarketStats}
+          position={null}
+          isLoadingPosition={false}
+          unfilledOrders={[mockOrder]}
+          onActiveTabChange={jest.fn()}
+          onOrderCancelled={mockOnOrderCancelled}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      // Act - Click the cancel button on the mocked PerpsOpenOrderCard
+      const orderCard = getByTestId('mock-perps-open-order-card');
+      fireEvent.press(orderCard);
+
+      // Assert - Wait for async operations to complete
+      await waitFor(() => {
+        expect(mockCancelOrder).toHaveBeenCalledWith({
+          orderId: mockOrder.orderId,
+          coin: mockOrder.symbol,
+        });
+      });
+
+      // Verify toast sequence
+      expect(mockShowToast).toHaveBeenCalledTimes(2);
+
+      // Verify in-progress toast was called first
+      expect(
+        mockPerpsToastOptions.orderManagement.shared.cancellationInProgress,
+      ).toHaveBeenCalledWith(
+        'long',
+        mockOrder.remainingSize,
+        mockOrder.symbol,
+        mockOrder.detailedOrderType,
+      );
+
+      // Verify success toast was called second
+      expect(
+        mockPerpsToastOptions.orderManagement.shared.cancellationSuccess,
+      ).toHaveBeenCalled();
+
+      // Verify onOrderCancelled callback was called
+      expect(mockOnOrderCancelled).toHaveBeenCalledWith(mockOrder.orderId);
+    });
+
+    it('displays in-progress toast then error toast when order cancellation fails', async () => {
+      // Arrange
+      mockCancelOrder.mockResolvedValue({
+        success: false,
+        error: 'Order not found',
+      });
+
+      const { getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          marketStats={mockMarketStats}
+          position={null}
+          isLoadingPosition={false}
+          unfilledOrders={[mockOrder]}
+          onActiveTabChange={jest.fn()}
+          onOrderCancelled={mockOnOrderCancelled}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      // Act - Click the cancel button on the mocked PerpsOpenOrderCard
+      const orderCard = getByTestId('mock-perps-open-order-card');
+      fireEvent.press(orderCard);
+
+      // Assert - Wait for async operations to complete
+      await waitFor(() => {
+        expect(mockCancelOrder).toHaveBeenCalledWith({
+          orderId: mockOrder.orderId,
+          coin: mockOrder.symbol,
+        });
+      });
+
+      // Verify toast sequence: in-progress toast then error toast
+      expect(mockShowToast).toHaveBeenCalledTimes(2);
+      expect(mockShowToast).toHaveBeenNthCalledWith(1, {
+        type: 'info',
+        message: 'mock-in-progress-toast',
+        title: 'Cancelling Order',
+      });
+      expect(mockShowToast).toHaveBeenNthCalledWith(2, {
+        type: 'error',
+        message: 'mock-error-toast',
+        title: 'Cancellation Failed',
+      });
+
+      // In a failure case, onOrderCancelled should not be called
+      expect(mockOnOrderCancelled).not.toHaveBeenCalled();
+    });
+
+    it('displays in-progress toast then error toast when order cancellation throws exception', async () => {
+      // Arrange
+      mockCancelOrder.mockRejectedValue(new Error('Network error'));
+
+      const { getByTestId } = render(
+        <PerpsMarketTabs
+          symbol="BTC"
+          marketStats={mockMarketStats}
+          position={null}
+          isLoadingPosition={false}
+          unfilledOrders={[mockOrder]}
+          onActiveTabChange={jest.fn()}
+          onOrderCancelled={mockOnOrderCancelled}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
+        />,
+      );
+
+      // Act - Click the cancel button on the mocked PerpsOpenOrderCard
+      const orderCard = getByTestId('mock-perps-open-order-card');
+      fireEvent.press(orderCard);
+
+      // Assert - Wait for async operations to complete
+      await waitFor(() => {
+        expect(mockCancelOrder).toHaveBeenCalledWith({
+          orderId: mockOrder.orderId,
+          coin: mockOrder.symbol,
+        });
+      });
+
+      // Verify toast sequence: in-progress toast then error toast
+      expect(mockShowToast).toHaveBeenCalledTimes(2);
+      expect(mockShowToast).toHaveBeenNthCalledWith(1, {
+        type: 'info',
+        message: 'mock-in-progress-toast',
+        title: 'Cancelling Order',
+      });
+      expect(mockShowToast).toHaveBeenNthCalledWith(2, {
+        type: 'error',
+        message: 'mock-error-toast',
+        title: 'Cancellation Failed',
+      });
+
+      // In an exception case, onOrderCancelled should not be called
+      expect(mockOnOrderCancelled).not.toHaveBeenCalled();
     });
   });
 });
