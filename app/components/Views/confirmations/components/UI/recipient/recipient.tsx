@@ -55,7 +55,7 @@ export function Recipient({
       }
       style={({ pressed }) =>
         tw.style(
-          'w-full flex-row items-center justify-between h-18',
+          'w-full flex-row items-center justify-between h-18 rounded-none',
           pressed || isSelected ? 'bg-pressed' : 'bg-transparent',
         )
       }
