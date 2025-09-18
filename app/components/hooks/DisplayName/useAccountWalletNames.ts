@@ -11,7 +11,7 @@ import { UseDisplayNameRequest } from './useDisplayName';
 export function useAccountWalletNames(requests: UseDisplayNameRequest[]) {
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToWalletMap = useSelector(selectAccountToWalletMap);
-  const walletsMap = useSelector(selectWalletsMap);
+  const walletsMap = useSelector(selectWalletsMap) || {};
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
