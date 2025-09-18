@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 // External dependencies.
 import { Box } from '@metamask/design-system-react-native';
@@ -112,6 +113,86 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [activeIndex, onChangeTab, tabs],
     );
 
+    // Navigate to next/previous tab with swipe gestures
+    const navigateToTab = useCallback(
+      (direction: 'next' | 'previous') => {
+        if (tabs.length <= 1) return;
+
+        const currentIndex = activeIndex;
+        let targetIndex = -1;
+
+        if (direction === 'next') {
+          // Find next enabled tab
+          for (let i = currentIndex + 1; i < tabs.length; i++) {
+            if (!tabs[i]?.isDisabled) {
+              targetIndex = i;
+              break;
+            }
+          }
+        } else {
+          // Find previous enabled tab
+          for (let i = currentIndex - 1; i >= 0; i--) {
+            if (!tabs[i]?.isDisabled) {
+              targetIndex = i;
+              break;
+            }
+          }
+        }
+
+        if (targetIndex >= 0 && targetIndex !== activeIndex) {
+          setActiveIndex(targetIndex);
+
+          // Call the onChangeTab callback if provided
+          if (onChangeTab) {
+            onChangeTab({
+              i: targetIndex,
+              ref: tabs[targetIndex]?.content || null,
+            });
+          }
+        }
+      },
+      [activeIndex, tabs, onChangeTab],
+    );
+
+    // Create pan gesture for swipe navigation
+    const panGesture = useMemo(
+      () =>
+        Gesture.Pan()
+          .activeOffsetX([-10, 10]) // Only activate for horizontal movements
+          .failOffsetY([-5, 5]) // Fail if vertical movement is too small (allow scrolling)
+          .onEnd((event) => {
+            const { translationX, translationY, velocityX, velocityY } = event;
+            const swipeThreshold = 50; // Minimum distance to trigger swipe
+            const velocityThreshold = 500; // Minimum velocity to trigger swipe
+
+            // Only process if the gesture is primarily horizontal
+            const isHorizontalGesture =
+              Math.abs(translationX) > Math.abs(translationY);
+            const isHorizontalVelocity =
+              Math.abs(velocityX) > Math.abs(velocityY);
+
+            if (!isHorizontalGesture && !isHorizontalVelocity) {
+              return; // Let vertical scrolling pass through
+            }
+
+            // Determine swipe direction based on translation and velocity
+            const isSwipeLeft =
+              translationX < -swipeThreshold || velocityX < -velocityThreshold;
+            const isSwipeRight =
+              translationX > swipeThreshold || velocityX > velocityThreshold;
+
+            if (isSwipeLeft) {
+              // Swipe left = go to next tab
+              navigateToTab('next');
+            } else if (isSwipeRight) {
+              // Swipe right = go to previous tab
+              navigateToTab('previous');
+            }
+          })
+          .runOnJS(true),
+      [navigateToTab],
+    );
+
     // Expose methods via ref
     useImperativeHandle(
       ref,
@@ -119,14 +200,22 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         goToTabIndex: (tabIndex: number) => {
           if (tabIndex >= 0 && tabIndex < tabs.length) {
             const tab = tabs[tabIndex];
-            if (!tab?.isDisabled) {
+            if (!tab?.isDisabled && tabIndex !== activeIndex) {
               setActiveIndex(tabIndex);
+
+              // Call the onChangeTab callback if provided
+              if (onChangeTab) {
+                onChangeTab({
+                  i: tabIndex,
+                  ref: tabs[tabIndex]?.content || null,
+                });
+              }
             }
           }
         },
         getCurrentIndex: () => activeIndex,
       }),
-      [activeIndex, tabs],
+      [activeIndex, tabs, onChangeTab],
     );
 
     const currentContent = tabs[activeIndex]?.content || null;
@@ -143,8 +232,10 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         {/* Render default TabsBar */}
         <TabsBar {...tabBarProps} />
 
-        {/* Tab content with dynamic height */}
-        <Box twClassName="flex-1">{currentContent}</Box>
+        {/* Tab content with dynamic height and swipe gesture support */}
+        <GestureDetector gesture={panGesture}>
+          <Box twClassName="flex-1 mt-2">{currentContent}</Box>
+        </GestureDetector>
       </Box>
     );
   },

@@ -623,4 +623,95 @@ describe('useAccountGroupsForPermissions', () => {
       expect(groupIds).toContain(MOCK_GROUP_ID_2);
     });
   });
+
+  describe('selected account group prioritization', () => {
+    describe('when selected account group is supported', () => {
+      it('places selected account group first in supported groups when it supports requested chains', () => {
+        const emptyPermission = createEmptyPermission();
+        const requestedCaipAccountIds: CaipAccountId[] = [];
+        const requestedCaipChainIds: CaipChainId[] = [
+          'eip155:1' as CaipChainId,
+        ];
+        const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+        const { result } = renderHookWithStore(
+          emptyPermission,
+          requestedCaipAccountIds,
+          requestedCaipChainIds,
+          requestedNamespacesWithoutWallet,
+        );
+
+        expect(result.current.supportedAccountGroups).toHaveLength(2);
+        expect(result.current.supportedAccountGroups[0].id).toBe(
+          MOCK_GROUP_ID_1,
+        );
+      });
+
+      it('places selected account group first in supported groups when it supports requested namespaces', () => {
+        const emptyPermission = createEmptyPermission();
+        const requestedCaipAccountIds: CaipAccountId[] = [];
+        const requestedCaipChainIds: CaipChainId[] = [];
+        const requestedNamespacesWithoutWallet: CaipNamespace[] = [
+          'eip155' as CaipNamespace,
+        ];
+
+        const { result } = renderHookWithStore(
+          emptyPermission,
+          requestedCaipAccountIds,
+          requestedCaipChainIds,
+          requestedNamespacesWithoutWallet,
+        );
+
+        expect(result.current.supportedAccountGroups).toHaveLength(2);
+        expect(result.current.supportedAccountGroups[0].id).toBe(
+          MOCK_GROUP_ID_1,
+        );
+      });
+
+      it('places selected account group first in connected groups when it has connected accounts', () => {
+        const existingPermission = createPermissionWithEvmAccounts([
+          mockEvmAccount1.address,
+          mockEvmAccount2.address,
+        ]);
+        const requestedCaipAccountIds: CaipAccountId[] = [];
+        const requestedCaipChainIds: CaipChainId[] = [
+          'eip155:1' as CaipChainId,
+        ];
+        const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+        const { result } = renderHookWithStore(
+          existingPermission,
+          requestedCaipAccountIds,
+          requestedCaipChainIds,
+          requestedNamespacesWithoutWallet,
+        );
+
+        expect(result.current.connectedAccountGroups).toHaveLength(2);
+        expect(result.current.connectedAccountGroups[0].id).toBe(
+          MOCK_GROUP_ID_1,
+        );
+      });
+
+      it('places selected account group first when it fulfills requested account IDs', () => {
+        const emptyPermission = createEmptyPermission();
+        const requestedCaipAccountIds: CaipAccountId[] = [
+          `eip155:1:${mockEvmAccount1.address}` as CaipAccountId,
+        ];
+        const requestedCaipChainIds: CaipChainId[] = [];
+        const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+        const { result } = renderHookWithStore(
+          emptyPermission,
+          requestedCaipAccountIds,
+          requestedCaipChainIds,
+          requestedNamespacesWithoutWallet,
+        );
+
+        expect(result.current.supportedAccountGroups).toHaveLength(1);
+        expect(result.current.supportedAccountGroups[0].id).toBe(
+          MOCK_GROUP_ID_1,
+        );
+      });
+    });
+  });
 });

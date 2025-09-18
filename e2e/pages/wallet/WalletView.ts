@@ -192,6 +192,7 @@ class WalletView {
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
       elemDescription: 'Top Account Icon',
+      checkStability: true,
     });
   }
 
@@ -237,15 +238,6 @@ class WalletView {
     await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
       speed: 'fast',
       percentage: 0.7,
-    });
-  }
-
-  async pullToRefreshTokensList(): Promise<void> {
-    const tokensContainer = await this.getTokensInWallet();
-    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
-      speed: 'slow',
-      percentage: 0.8,
-      elemDescription: 'pull to refresh tokens list',
     });
   }
 
@@ -414,7 +406,9 @@ class WalletView {
    * @returns {Promise<void>} Resolves when the tap action is complete.
    */
   async tapCarouselSlide(id: string): Promise<void> {
-    await Gestures.tap(this.getCarouselSlide(id));
+    await Gestures.tap(this.getCarouselSlide(id), {
+      elemDescription: `tap carousel slide ${id}`,
+    });
   }
 
   get defiTab(): DetoxElement {
@@ -513,8 +507,8 @@ class WalletView {
   }
 
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletFundButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_FUND_BUTTON);
+  get walletBuyButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
   }
 
   get walletSwapButton(): DetoxElement {
@@ -535,9 +529,9 @@ class WalletView {
     );
   }
 
-  async tapWalletFundButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletFundButton, {
-      elemDescription: 'Wallet Fund Button',
+  async tapWalletBuyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletBuyButton, {
+      elemDescription: 'Wallet Buy Button',
     });
   }
 

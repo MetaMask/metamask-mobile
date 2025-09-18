@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, View } from 'react-native';
+import { Image, View, useColorScheme } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -16,12 +16,9 @@ import Text, {
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Fox from '../../../../../images/branding/fox.png';
+import Character from '../../../../../images/character_1.png';
 import StorageWrapper from '../../../../../store/storage-wrapper';
-import {
-  baseStyles,
-  colors as importedColors,
-} from '../../../../../styles/common';
+import { baseStyles } from '../../../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import { useTheme } from '../../../../../util/theme';
 import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
@@ -39,7 +36,9 @@ const PerpsGTMModal = () => {
   const { navigate } = useNavigation();
   const theme = useTheme();
 
-  const styles = createStyles(theme);
+  const isDarkMode = useColorScheme() === 'dark';
+
+  const styles = createStyles(theme, isDarkMode);
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
@@ -83,7 +82,7 @@ const PerpsGTMModal = () => {
     <View
       style={[
         baseStyles.flexGrow,
-        { backgroundColor: importedColors.gettingStartedPageBackgroundColor },
+        { backgroundColor: theme.colors.background.default },
       ]}
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
     >
@@ -103,10 +102,10 @@ const PerpsGTMModal = () => {
               {strings('perps.gtm_content.title_description')}
             </Text>
 
-            <View style={styles.largeFoxWrapper}>
+            <View style={styles.largeImageWrapper}>
               <Image
-                source={Fox}
-                style={styles.foxImage}
+                source={Character}
+                style={styles.image}
                 resizeMode="contain"
               />
             </View>

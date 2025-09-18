@@ -3,135 +3,232 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { RecipientList } from './recipient-list';
-import { RecipientType } from '../UI/recipient';
+import type { RecipientType } from '../UI/recipient';
 
 jest.mock('../../hooks/useAccountAvatarType', () => ({
   useAccountAvatarType: jest.fn(() => 'JazzIcon'),
 }));
 
 jest.mock('../../context/send-context/send-context', () => ({
-  useSendContext: jest.fn(() => ({
-    to: '0x1234567890123456789012345678901234567890',
-  })),
+  useSendContext: jest.fn(),
 }));
 
 jest.mock('../../hooks/send/useSendScope', () => ({
-  useSendScope: jest.fn(() => ({
-    isBIP44: false,
-    isSolanaOnly: false,
-    isEvmOnly: false,
-    account: undefined,
-  })),
+  useSendScope: jest.fn(),
 }));
 
-const mockOnRecipientSelected = jest.fn();
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const map: Record<string, string> = {
+      'send.accounts': 'Your Accounts',
+      'send.contacts': 'Contacts',
+    };
+    return map[key] ?? key;
+  }),
+}));
 
-describe('RecipientList', () => {
-  const mockRecipients: RecipientType[] = [
+// Mock child Recipient to keep tests deterministic and focused on grouping logic
+jest.mock('../UI/recipient', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Recipient: ({ recipient, isSelected, onPress }: any) => {
+    const { Pressable, Text, View } = jest.requireActual('react-native');
+    return (
+      <View>
+        <Pressable
+          testID={
+            isSelected
+              ? `selected-${recipient.address}`
+              : `recipient-${recipient.address}`
+          }
+          onPress={() => onPress?.(recipient)}
+        >
+          <Text>
+            {recipient.accountGroupName ||
+              recipient.accountName ||
+              recipient.contactName ||
+              recipient.address}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  },
+}));
+
+const { useSendScope } = jest.requireMock('../../hooks/send/useSendScope');
+const { useSendContext } = jest.requireMock(
+  '../../context/send-context/send-context',
+);
+
+describe('RecipientList - BIP44 grouping', () => {
+  const onRecipientSelected = jest.fn();
+
+  const data: RecipientType[] = [
     {
-      accountName: 'Alice',
-      address: '0x1234567890123456789012345678901234567890',
+      address: '0x1111111111111111111111111111111111111111',
+      walletName: 'Wallet A',
+      accountGroupName: 'Account Group 1',
     },
     {
-      accountName: 'Bob',
-      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+      address: '0x2222222222222222222222222222222222222222',
+      walletName: 'Wallet A',
+      accountGroupName: 'Account Group 2',
     },
     {
-      accountName: 'Charlie',
-      address: '0x9876543210987654321098765432109876543210',
+      address: '0x3333333333333333333333333333333333333333',
+      walletName: 'Wallet B',
+      accountGroupName: 'Account Group 3',
+    },
+    {
+      address: '0x4444444444444444444444444444444444444444',
+      // no walletName to trigger Unknown Wallet grouping
     },
   ];
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('when data is provided', () => {
-    it('renders list of recipients', () => {
-      const { getByText } = renderWithProvider(
-        <RecipientList
-          data={mockRecipients}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
-
-      expect(getByText('Accounts')).toBeOnTheScreen();
-      expect(getByText('Alice')).toBeOnTheScreen();
-      expect(getByText('Bob')).toBeOnTheScreen();
-      expect(getByText('Charlie')).toBeOnTheScreen();
-    });
-
-    it('marks selected recipient when address matches context', () => {
-      const { getByTestId } = renderWithProvider(
-        <RecipientList
-          data={mockRecipients}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
-
-      expect(
-        getByTestId('selected-0x1234567890123456789012345678901234567890'),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls onRecipientSelected when recipient is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <RecipientList
-          data={mockRecipients}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
-
-      fireEvent.press(
-        getByTestId('recipient-0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'),
-      );
-
-      expect(mockOnRecipientSelected).toHaveBeenCalledTimes(1);
-      expect(mockOnRecipientSelected).toHaveBeenCalledWith(mockRecipients[1]);
-    });
-
-    it('renders all recipient addresses correctly', () => {
-      const { getByTestId } = renderWithProvider(
-        <RecipientList
-          data={mockRecipients}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
-
-      mockRecipients.forEach((recipient) => {
-        expect(
-          getByTestId(`recipient-address-${recipient.address}`),
-        ).toBeOnTheScreen();
-      });
+    useSendScope.mockReturnValue({ isBIP44: true });
+    useSendContext.mockReturnValue({
+      to: '0x2222222222222222222222222222222222222222',
     });
   });
 
-  describe('when data is empty', () => {
-    it('renders empty message when provided', () => {
-      const emptyMessage = 'No recipients found';
+  it('renders group headers for each wallet and Unknown Wallet', () => {
+    const { getByText } = renderWithProvider(
+      <RecipientList data={data} onRecipientSelected={onRecipientSelected} />,
+    );
 
-      const { getByText, queryByText } = renderWithProvider(
-        <RecipientList
-          data={[]}
-          onRecipientSelected={mockOnRecipientSelected}
-          emptyMessage={emptyMessage}
-        />,
-      );
+    // Group headers
+    expect(getByText('Wallet A')).toBeOnTheScreen();
+    expect(getByText('Wallet B')).toBeOnTheScreen();
+    expect(getByText('Unknown Wallet')).toBeOnTheScreen();
+  });
 
-      expect(getByText(emptyMessage)).toBeOnTheScreen();
-      expect(queryByText('Accounts')).toBeNull();
+  it('marks the selected recipient based on `to` address', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList data={data} onRecipientSelected={onRecipientSelected} />,
+    );
+
+    expect(
+      getByTestId('selected-0x2222222222222222222222222222222222222222'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('recipient-0x1111111111111111111111111111111111111111'),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls onRecipientSelected when a recipient is pressed (enabled)', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList data={data} onRecipientSelected={onRecipientSelected} />,
+    );
+
+    fireEvent.press(
+      getByTestId('recipient-0x1111111111111111111111111111111111111111'),
+    );
+    expect(onRecipientSelected).toHaveBeenCalledTimes(1);
+    expect(onRecipientSelected).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0x1111111111111111111111111111111111111111',
+      }),
+    );
+  });
+
+  it('does not call onRecipientSelected when disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList
+        data={data}
+        onRecipientSelected={onRecipientSelected}
+        disabled
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId('recipient-0x1111111111111111111111111111111111111111'),
+    );
+    expect(onRecipientSelected).not.toHaveBeenCalled();
+  });
+});
+
+describe('RecipientList - non-BIP44 (flat list)', () => {
+  const onRecipientSelected = jest.fn();
+
+  const flatData: RecipientType[] = [
+    {
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      accountName: 'Account 1',
+    },
+    {
+      address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      accountName: 'Account 2',
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useSendScope.mockReturnValue({ isBIP44: false });
+    useSendContext.mockReturnValue({
+      to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
     });
+  });
 
-    it('renders empty container when no empty message provided', () => {
-      const { getByText, queryByText } = renderWithProvider(
-        <RecipientList
-          data={[]}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
+  it('renders accounts header and no wallet group headers', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+      />,
+    );
 
-      expect(getByText('Accounts')).toBeOnTheScreen();
-      expect(queryByText(/No recipients/)).toBeNull();
-    });
+    expect(getByText('Your Accounts')).toBeOnTheScreen();
+    expect(queryByText('Wallet A')).toBeNull();
+    expect(queryByText('Wallet B')).toBeNull();
+    expect(queryByText('Unknown Wallet')).toBeNull();
+  });
+
+  it('marks selection and calls onRecipientSelected on press', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+      />,
+    );
+
+    expect(
+      getByTestId('selected-0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId('recipient-0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+    );
+    expect(onRecipientSelected).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      }),
+    );
+  });
+
+  it('does not call onRecipientSelected when disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+        disabled
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId('recipient-0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+    );
+    expect(onRecipientSelected).not.toHaveBeenCalled();
+  });
+
+  it('renders empty state when data is empty and emptyMessage provided', () => {
+    const { getByText } = renderWithProvider(
+      <RecipientList
+        data={[]}
+        onRecipientSelected={onRecipientSelected}
+        emptyMessage="No recipients"
+      />,
+    );
+
+    expect(getByText('No recipients')).toBeOnTheScreen();
   });
 });

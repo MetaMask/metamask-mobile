@@ -6,8 +6,10 @@ import {
   calculateRoEForPrice,
   formatRoEPercentageDisplay,
   getStopLossErrorDirection,
+  getStopLossLiquidationErrorDirection,
   getTakeProfitErrorDirection,
   hasTPSLValuesChanged,
+  isStopLossSafeFromLiquidation,
   isValidStopLossPrice,
   isValidTakeProfitPrice,
   safeParseRoEPercentage,
@@ -19,6 +21,7 @@ import {
   PRICE_RANGES_POSITION_VIEW,
 } from '../utils/formatUtils';
 import { regex } from '../../../../util/regex';
+import { strings } from '../../../../../locales/i18n';
 
 interface UsePerpsTPSLFormParams {
   asset: string;
@@ -30,6 +33,7 @@ interface UsePerpsTPSLFormParams {
   leverage?: number;
   entryPrice?: number;
   isVisible?: boolean;
+  liquidationPrice?: string;
 }
 
 interface TPSLFormState {
@@ -74,6 +78,7 @@ interface TPSLFormValidation {
   hasChanges: boolean;
   takeProfitError: string;
   stopLossError: string;
+  stopLossLiquidationError: string;
 }
 
 interface TPSLFormDisplay {
@@ -109,6 +114,7 @@ export function usePerpsTPSLForm(
     leverage: propLeverage,
     entryPrice: propEntryPrice,
     isVisible = false,
+    liquidationPrice,
   } = params;
 
   // Initialize form state with raw values (no currency formatting for inputs)
@@ -729,6 +735,7 @@ export function usePerpsTPSLForm(
   const isValid = validateTPSLPrices(takeProfitPrice, stopLossPrice, {
     currentPrice: referencePrice,
     direction: actualDirection,
+    liquidationPrice,
   });
 
   const hasChanges = hasTPSLValuesChanged(
@@ -738,24 +745,39 @@ export function usePerpsTPSLForm(
     initialStopLossPrice,
   );
 
+  // Take Profit Errors
   const takeProfitError =
     !isValidTakeProfitPrice(takeProfitPrice, {
       currentPrice: referencePrice,
       direction: actualDirection,
     }) && takeProfitPrice
-      ? `Take profit must be ${getTakeProfitErrorDirection(
-          actualDirection,
-        )} ${priceType} price`
+      ? strings('perps.tpsl.take_profit_invalid_price', {
+          direction: getTakeProfitErrorDirection(actualDirection),
+          priceType,
+        })
       : '';
 
+  // Stop Loss Errors
   const stopLossError =
     !isValidStopLossPrice(stopLossPrice, {
       currentPrice: referencePrice,
       direction: actualDirection,
     }) && stopLossPrice
-      ? `Stop loss must be ${getStopLossErrorDirection(
-          actualDirection,
-        )} ${priceType} price`
+      ? strings('perps.tpsl.stop_loss_invalid_price', {
+          direction: getStopLossErrorDirection(actualDirection),
+          priceType,
+        })
+      : '';
+
+  const stopLossLiquidationError =
+    !isStopLossSafeFromLiquidation(
+      stopLossPrice,
+      liquidationPrice,
+      actualDirection,
+    ) && stopLossPrice
+      ? strings('perps.tpsl.stop_loss_beyond_liquidation_error', {
+          direction: getStopLossLiquidationErrorDirection(actualDirection),
+        })
       : '';
 
   // Display helpers
@@ -809,6 +831,7 @@ export function usePerpsTPSLForm(
       hasChanges,
       takeProfitError,
       stopLossError,
+      stopLossLiquidationError,
     },
     display: {
       formattedTakeProfitPercentage,

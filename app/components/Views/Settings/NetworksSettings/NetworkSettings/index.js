@@ -2454,7 +2454,7 @@ export class NetworkSettings extends PureComponent {
                             </View>
                           }
                           secondaryText={
-                            formattedName ? formatNetworkRpcUrl(rpcUrl) : ''
+                            formattedName ? formatNetworkRpcUrl(url) : ''
                           }
                           showSecondaryTextIcon={false}
                           isSelected={rpcUrl === url}
