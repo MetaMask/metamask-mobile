@@ -23,15 +23,12 @@ export function useRegions(): UseRegionsResult {
       let newSelectedRegion: DepositRegion | null = null;
 
       if (selectedRegion) {
-        // Find the previously selected region in fresh data and reapply it
         newSelectedRegion =
           regions.find((region) => region.isoCode === selectedRegion.isoCode) ||
           null;
       }
 
       if (!newSelectedRegion) {
-        // First time or previously selected region no longer available
-        // Priority: geolocated > US > first available
         newSelectedRegion =
           regions.find((region) => region.geolocated) ||
           regions.find((region) => region.isoCode === 'US') ||

@@ -26,7 +26,6 @@ export function usePaymentMethods() {
       let newSelectedPaymentMethod: DepositPaymentMethod | null = null;
 
       if (selectedPaymentMethod) {
-        // Find the previously selected payment method in fresh data and reapply it
         newSelectedPaymentMethod =
           paymentMethods.find(
             (method) => method.id === selectedPaymentMethod.id,
@@ -34,7 +33,6 @@ export function usePaymentMethods() {
       }
 
       if (!newSelectedPaymentMethod) {
-        // First time or previously selected method no longer available - use first
         newSelectedPaymentMethod = paymentMethods[0];
       }
 

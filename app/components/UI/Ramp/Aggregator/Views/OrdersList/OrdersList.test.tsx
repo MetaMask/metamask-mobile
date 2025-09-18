@@ -14,7 +14,10 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { MOCK_USDC_TOKEN, MOCK_USDT_TOKEN } from '../../../Deposit/testUtils/constants';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_USDT_TOKEN,
+} from '../../../Deposit/testUtils/constants';
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 
 const testOrders: DeepPartial<FiatOrder>[] = [

@@ -1,4 +1,7 @@
-import { useDepositSdkMethod, DepositSdkMethodQuery } from './useDepositSdkMethod';
+import {
+  useDepositSdkMethod,
+  DepositSdkMethodQuery,
+} from './useDepositSdkMethod';
 import { useDepositSDK } from '../sdk';
 import { useEffect } from 'react';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
@@ -24,7 +27,6 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
       let newSelectedCrypto: DepositCryptoCurrency | null = null;
 
       if (selectedCryptoCurrency) {
-        // Find the previously selected crypto in fresh data and reapply it
         newSelectedCrypto =
           cryptoCurrencies.find(
             (crypto) => crypto.assetId === selectedCryptoCurrency.assetId,
@@ -32,7 +34,6 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
       }
 
       if (!newSelectedCrypto) {
-        // Fallback to first available crypto currency if previous selection not found
         newSelectedCrypto = cryptoCurrencies[0];
       }
 

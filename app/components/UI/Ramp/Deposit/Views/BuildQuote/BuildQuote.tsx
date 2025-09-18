@@ -93,7 +93,6 @@ const BuildQuote = () => {
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
 
-  // Waterfall: fetch regions, crypto currencies, and payment methods
   const {
     regions,
     isFetching: isFetchingRegions,
