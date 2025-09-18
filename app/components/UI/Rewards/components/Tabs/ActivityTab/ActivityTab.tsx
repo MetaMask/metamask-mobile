@@ -114,7 +114,7 @@ export const ActivityTab: React.FC = () => {
   );
 
   const renderItem: ListRenderItem<PointsEventDto> = ({ item, index }) => (
-    <ActivityEventRow event={item} accountName={accountNames[index]} />
+    <ActivityEventRow event={item} accountName={accountNames?.[index]} />
   );
 
   const renderFooter = () => {
