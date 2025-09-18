@@ -11,15 +11,19 @@ import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { isRc } from '../../../util/test/utils';
 
-interface ProfilerManagerProps {
-  enabled?: boolean;
-}
+const ProfilerManager: React.FC = () => {
+  const shouldEnableProfiler = (() => {
+    switch (process.env.METAMASK_ENVIRONMENT) {
+      case 'rc':
+        return true;
+      case 'exp':
+        return true;
+      default:
+        return false;
+    }
+  })();
 
-const ProfilerManager: React.FC<ProfilerManagerProps> = ({
-  enabled = isRc,
-}) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -92,7 +96,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
     setIsVisible(false);
   }, []);
 
-  if (!enabled) {
+  if (!shouldEnableProfiler) {
     return null;
   }
 
