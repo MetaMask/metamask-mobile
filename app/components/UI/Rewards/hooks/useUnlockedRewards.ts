@@ -50,8 +50,6 @@ export const useUnlockedRewards = (): void => {
 
   // Listen for account linked events to trigger refetch
   useEffect(() => {
-    fetchUnlockedRewards();
-
     Engine.controllerMessenger.subscribe(
       'RewardsController:accountLinked',
       fetchUnlockedRewards,
@@ -67,8 +65,6 @@ export const useUnlockedRewards = (): void => {
 
   // Listen for reward claimed events to trigger refetch
   useEffect(() => {
-    fetchUnlockedRewards();
-
     Engine.controllerMessenger.subscribe(
       'RewardsController:rewardClaimed',
       fetchUnlockedRewards,

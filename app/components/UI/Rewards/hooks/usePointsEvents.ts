@@ -44,7 +44,7 @@ export const usePointsEvents = (
       }
 
       try {
-        if (!seasonId) return;
+        if (!seasonId || !subscriptionId) return;
         const pointsEventsData = await Engine.controllerMessenger.call(
           'RewardsController:getPointsEvents',
           {
@@ -120,24 +120,18 @@ export const usePointsEvents = (
 
   // Listen for reward claimed events to trigger refetch
   useEffect(() => {
-    const handleRewardClaimed = () => {
-      if (seasonId && subscriptionId) {
-        refresh();
-      }
-    };
-
     Engine.controllerMessenger.subscribe(
       'RewardsController:rewardClaimed',
-      handleRewardClaimed,
+      refresh,
     );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'RewardsController:rewardClaimed',
-        handleRewardClaimed,
+        refresh,
       );
     };
-  }, [seasonId, subscriptionId, refresh]);
+  }, [refresh]);
 
   return {
     pointsEvents,

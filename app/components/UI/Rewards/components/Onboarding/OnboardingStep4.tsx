@@ -201,7 +201,6 @@ const OnboardingStep4: React.FC = () => {
       nextButtonText={strings('rewards.onboarding.step4_confirm')}
       renderStepInfo={renderStepInfo}
       stepInfoContainerStyle="justify-center"
-      enableSwipeGestures={false}
       nextButtonAlternative={renderLegalDisclaimer}
     />
   );
