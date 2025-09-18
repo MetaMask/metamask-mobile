@@ -19,6 +19,10 @@ export const createStyles = (colors: Theme['colors']) =>
       marginBottom: 32,
       gap: 8,
     },
+    priceInfoContainerCondensed: {
+      marginBottom: 12,
+      gap: 8,
+    },
     priceInfoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -26,6 +30,9 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     section: {
       marginBottom: 24,
+    },
+    sectionCondensed: {
+      marginBottom: 0,
     },
     sectionTitle: {
       marginBottom: 8,
@@ -169,8 +176,7 @@ export const createStyles = (colors: Theme['colors']) =>
     keypadContainer: {
       paddingHorizontal: 16,
       paddingTop: 8,
-      borderWidth: 1,
-      borderColor: 'red',
+      backgroundColor: colors.background.default,
     },
     scrollContent: {
       flex: 1,

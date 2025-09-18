@@ -1,8 +1,6 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -228,14 +226,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     }
   }, [isVisible, startMeasure, endMeasure]);
 
-  // Scroll to bottom when keypad opens
-  // useEffect(() => {
-  //   if (focusedInput) {
-  //     // Small delay to ensure the keypad is rendered
-  //     scrollViewRef.current?.scrollToEnd({ animated: true });
-  //   }
-  // }, [focusedInput]);
-
   const handleConfirm = useCallback(() => {
     // Parse the formatted prices back to plain numbers for storage
     // Check for non-empty strings (empty strings should be treated as undefined)
@@ -386,8 +376,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   if (!isVisible) return null;
 
-  console.log('focusedInput', focusedInput);
-
   return (
     <>
       <BottomSheet
@@ -395,6 +383,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         shouldNavigateBack={false}
         onClose={handleClose}
         testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
+        isFullscreen
       >
         <BottomSheetHeader onClose={handleClose}>
           <Text variant={TextVariant.HeadingMD}>
@@ -422,16 +411,24 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             )}
 
             {/* Description text */}
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
-              style={styles.description}
-            >
-              {strings('perps.tpsl.description')}
-            </Text>
+            {!focusedInput && (
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                style={styles.description}
+              >
+                {strings('perps.tpsl.description')}
+              </Text>
+            )}
 
             {/* Current price and liquidation price info */}
-            <View style={styles.priceInfoContainer}>
+            <View
+              style={
+                focusedInput
+                  ? styles.priceInfoContainerCondensed
+                  : styles.priceInfoContainer
+              }
+            >
               <View style={styles.priceInfoRow}>
                 <Text
                   variant={TextVariant.BodyMD}
@@ -471,7 +468,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </View>
 
             {/* Take Profit Section */}
-            <View style={styles.section}>
+            <View
+              style={focusedInput ? styles.sectionCondensed : styles.section}
+            >
               <Text
                 variant={TextVariant.HeadingSM}
                 color={TextColor.Default}
@@ -508,7 +507,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
                       percentage,
                     )}
-                    disabled={!!focusedInput}
                   >
                     <Text
                       variant={TextVariant.BodySM}
@@ -547,7 +545,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     showSoftInputOnFocus={false}
                     editable
                     onFocus={() => {
-                      console.log('onFocus', 'takeProfitPrice');
                       handleInputFocus('takeProfitPrice');
                     }}
                     onBlur={() => {
@@ -613,7 +610,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </View>
 
             {/* Stop Loss Section */}
-            <View style={styles.section}>
+            <View
+              style={focusedInput ? styles.sectionCondensed : styles.section}
+            >
               <Text
                 variant={TextVariant.HeadingSM}
                 color={TextColor.Default}
@@ -650,7 +649,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
                       percentage,
                     )}
-                    disabled={!!focusedInput}
                   >
                     <Text
                       variant={TextVariant.BodySM}
@@ -755,9 +753,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             </View>
           </TouchableOpacity>
         </ScrollView>
-        {/* {console.log('focusedInput body', focusedInput)} */}
-        {/* Keypad Section - Show when input is focused */}
-        {/* </View> */}
 
         <View style={styles.keypadFooter}>
           <BottomSheetFooter
