@@ -323,7 +323,7 @@ const usePerpsToasts = (): {
           error: {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
-              strings('perps.deposit.error_toast'),
+              strings('perps.deposit.deposit_failed'),
               strings('perps.deposit.error_generic'),
             ),
           },
