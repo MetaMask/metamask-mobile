@@ -1,0 +1,94 @@
+import React from 'react';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  BoxBackgroundColor,
+  Button,
+  ButtonVariant,
+  Text,
+  TextVariant,
+  TextColor,
+  type ButtonProps,
+  type TextProps,
+  type BoxProps,
+} from '@metamask/design-system-react-native';
+
+export interface TabEmptyStateProps extends Omit<BoxProps, 'children'> {
+  /**
+   * The icon to display in the empty state
+   */
+  icon?: React.ReactNode;
+  /**
+   * The description to display in the empty state
+   */
+  description?: string;
+  /**
+   * The props to pass to the description Text component
+   */
+  descriptionProps?: Partial<TextProps>;
+  /**
+   * The text to display in the action button
+   */
+  actionButtonText?: string;
+  /**
+   * The props to pass to the action button
+   */
+  actionButtonProps?: Partial<ButtonProps>;
+  /**
+   * The function to call when the action button is clicked
+   */
+  onAction?: () => void;
+  /**
+   * Any additional children to display in the TabEmptyState
+   */
+  children?: React.ReactNode;
+}
+
+export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
+  icon,
+  description,
+  descriptionProps,
+  actionButtonText,
+  actionButtonProps,
+  onAction,
+  children,
+  style,
+  ...props
+}) => (
+  <Box
+    flexDirection={BoxFlexDirection.Column}
+    alignItems={BoxAlignItems.Center}
+    justifyContent={BoxJustifyContent.Center}
+    backgroundColor={BoxBackgroundColor.BackgroundDefault}
+    twClassName="max-w-56 p-4"
+    style={style}
+    {...props}
+  >
+    {icon && <Box twClassName="mb-4">{icon}</Box>}
+
+    {description && (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="text-center mb-2"
+        {...descriptionProps}
+      >
+        {description}
+      </Text>
+    )}
+
+    {actionButtonText && onAction && (
+      <Button
+        variant={ButtonVariant.Tertiary}
+        onPress={onAction}
+        {...actionButtonProps}
+      >
+        {actionButtonText}
+      </Button>
+    )}
+
+    {children}
+  </Box>
+);
