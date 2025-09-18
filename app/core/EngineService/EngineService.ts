@@ -66,9 +66,41 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
 
-    const state = isE2E
-      ? reduxState?.engine?.backgroundState
-      : persistedState?.backgroundState ?? {};
+    // DEBUG: Check isE2E flag and state sources
+    console.log(`🚨 [ENGINE DEBUG] Environment variables:`, {
+      IS_TEST: process.env.IS_TEST,
+      METAMASK_ENVIRONMENT: process.env.METAMASK_ENVIRONMENT,
+      METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE
+    });
+    console.log(`🚨 [ENGINE DEBUG] isE2E calculation: IS_TEST='${process.env.IS_TEST}' === 'true' (${process.env.IS_TEST === 'true'}) || METAMASK_ENVIRONMENT='${process.env.METAMASK_ENVIRONMENT}' === 'e2e' (${process.env.METAMASK_ENVIRONMENT === 'e2e'})`);
+    console.log(`🚨 [ENGINE DEBUG] isE2E flag: ${isE2E}`);
+    console.log(`🚨 [ENGINE DEBUG] persistedState keys:`, persistedState ? Object.keys(persistedState) : 'null');
+    console.log(`🚨 [ENGINE DEBUG] persistedState.backgroundState keys:`, persistedState?.backgroundState ? Object.keys(persistedState.backgroundState) : 'null/undefined');
+    console.log(`🚨 [ENGINE DEBUG] reduxState.engine:`, reduxState?.engine ? 'exists' : 'null/undefined');
+    console.log(`🚨 [ENGINE DEBUG] reduxState.engine.backgroundState:`, reduxState?.engine?.backgroundState ? Object.keys(reduxState.engine.backgroundState) : 'null/undefined');
+
+    // TEMPORARY FIX: Always use persisted state for testing
+    // Original problematic code:
+    // const state = isE2E
+    //   ? reduxState?.engine?.backgroundState
+    //   : persistedState?.backgroundState ?? {};
+    
+    const state = persistedState?.backgroundState ?? {};
+
+    console.log(`🚨 [ENGINE DEBUG] Final state chosen:`, isE2E ? 'Redux' : 'Persisted');
+    console.log(`🚨 [ENGINE DEBUG] Final state keys:`, Object.keys(state || {}));
+    console.log(`🚨 [ENGINE DEBUG] Final state has KeyringController:`, !!state?.KeyringController);
+    
+    // DEBUG: Check KeyringController vault data specifically
+    if (state?.KeyringController) {
+      console.log(`🔐 [KEYRING DEBUG] KeyringController state keys:`, Object.keys(state.KeyringController));
+      console.log(`🔐 [KEYRING DEBUG] Has vault:`, !!state.KeyringController.vault);
+      console.log(`🔐 [KEYRING DEBUG] Vault length:`, state.KeyringController.vault ? state.KeyringController.vault.length : 'no vault');
+      console.log(`🔐 [KEYRING DEBUG] isUnlocked:`, state.KeyringController.isUnlocked);
+      console.log(`🔐 [KEYRING DEBUG] keyrings length:`, state.KeyringController.keyrings ? state.KeyringController.keyrings.length : 'no keyrings');
+    } else {
+      console.log(`🔐 [KEYRING DEBUG] No KeyringController in state!`);
+    }
 
     const Engine = UntypedEngine;
     try {
