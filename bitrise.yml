@@ -570,54 +570,18 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
-                # Create completely clean environment by clearing all yarn-related env vars
-                unset YARN_CACHE_FOLDER
-                unset YARN_CACHE_DIR
-                unset YARN_GLOBAL_FOLDER
-                unset YARN_LINK_FOLDER
-                unset YARN_ENABLE_GLOBAL_CACHE
-                unset YARN_ENABLE_IMMUTABLE_INSTALLS
+                # Enable corepack to use the project's yarn version
+                corepack enable
                 
-                # Remove any legacy config files temporarily
-                if [ -f ".yarnrc" ]; then
-                  mv .yarnrc .yarnrc.temp_backup
-                fi
+                # Let corepack handle the yarn version from package.json
+                echo "Yarn version after corepack: $(yarn --version)"
                 
-                # Use bundled Yarn with completely clean environment
-                echo "Using bundled Yarn 3.8.7 with clean environment"
-                HOME=/tmp node .yarn/releases/yarn-3.8.7.cjs install --immutable
-                
-                # Restore legacy config if it existed
-                if [ -f ".yarnrc.temp_backup" ]; then
-                  mv .yarnrc.temp_backup .yarnrc
-                fi
+                # Run install with immutable flag for Yarn v3
+                yarn install --immutable
           title: Yarn Install
-      - script@1:
+      - yarn@0:
           inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -e
-                
-                # Clean environment for setup too
-                unset YARN_CACHE_FOLDER
-                unset YARN_CACHE_DIR
-                unset YARN_GLOBAL_FOLDER
-                unset YARN_LINK_FOLDER
-                unset YARN_ENABLE_GLOBAL_CACHE
-                unset YARN_ENABLE_IMMUTABLE_INSTALLS
-                
-                # Remove any legacy config files temporarily
-                if [ -f ".yarnrc" ]; then
-                  mv .yarnrc .yarnrc.temp_backup
-                fi
-                
-                # Run setup using bundled yarn with clean environment
-                HOME=/tmp node .yarn/releases/yarn-3.8.7.cjs setup
-                
-                # Restore legacy config if it existed
-                if [ -f ".yarnrc.temp_backup" ]; then
-                  mv .yarnrc.temp_backup .yarnrc
-                fi
+            - command: setup
           title: Yarn Setup
       - save-cache@1:
           title: Save Yarn cache
