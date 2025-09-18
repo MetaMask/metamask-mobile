@@ -14,6 +14,7 @@ interface UseRewardsIconAnimationParams {
   estimatedPoints: number | null;
   hasRewardsError: boolean;
   shouldShowRewardsRow: boolean;
+  isRefresh?: boolean;
 }
 
 interface UseRewardsIconAnimationResult {
@@ -25,6 +26,7 @@ export const useRewardsIconAnimation = ({
   estimatedPoints,
   hasRewardsError,
   shouldShowRewardsRow,
+  isRefresh = false,
 }: UseRewardsIconAnimationParams): UseRewardsIconAnimationResult => {
   const riveRef = useRef<RiveRef>(null);
   const previousPointsRef = useRef<number | null>(null);
@@ -53,6 +55,15 @@ export const useRewardsIconAnimation = ({
         return;
       }
 
+      if (isRefresh && currentPoints && currentPoints > 0) {
+        // Refresh state - trigger spin animation
+        riveRef.current.fireState(
+          STATE_MACHINE_NAME,
+          RewardsIconTriggers.Refresh,
+        );
+        return;
+      }
+
       if (currentPoints && currentPoints > 0) {
         // Has points - trigger Start
         riveRef.current.fireState(
@@ -71,6 +82,7 @@ export const useRewardsIconAnimation = ({
     hasRewardsError,
     isRewardsLoading,
     shouldShowRewardsRow,
+    isRefresh,
   ]);
 
   return {
