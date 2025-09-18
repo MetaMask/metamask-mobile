@@ -4,6 +4,7 @@ import {
   getRewardsControllerDefaultState,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
+import { deriveStateFromMetadata } from '@metamask/base-controller';
 import {
   RewardClaimStatus,
   type RewardsAccountState,
@@ -392,7 +393,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 5.0,
+        discountBips: 500,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
@@ -425,7 +426,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 8.5,
+        discountBips: 850,
       });
 
       // Act
@@ -435,7 +436,7 @@ describe('RewardsController', () => {
       const updatedAccountState = controller.state.accounts[CAIP_ACCOUNT_1];
       expect(updatedAccountState).toBeDefined();
       expect(updatedAccountState.hasOptedIn).toBe(true);
-      expect(updatedAccountState.perpsFeeDiscount).toBe(8.5);
+      expect(updatedAccountState.perpsFeeDiscount).toBe(850);
       expect(updatedAccountState.lastPerpsDiscountRateFetched).toBeGreaterThan(
         staleTime,
       );
@@ -444,7 +445,7 @@ describe('RewardsController', () => {
     it('should update store state when creating new account on first opt-in check', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 12.0,
+        discountBips: 1200,
       });
 
       // Act - check account that doesn't exist in state
@@ -456,7 +457,7 @@ describe('RewardsController', () => {
       expect(newAccountState).toBeDefined();
       expect(newAccountState.account).toBe(CAIP_ACCOUNT_2);
       expect(newAccountState.hasOptedIn).toBe(true);
-      expect(newAccountState.perpsFeeDiscount).toBe(12.0);
+      expect(newAccountState.perpsFeeDiscount).toBe(1200);
       expect(newAccountState.subscriptionId).toBeNull();
       expect(newAccountState.lastPerpsDiscountRateFetched).toBeLessThanOrEqual(
         Date.now(),
@@ -466,7 +467,7 @@ describe('RewardsController', () => {
     it('should call data service for unknown accounts', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discount: 5.0,
+        discountBips: 500,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
@@ -481,7 +482,7 @@ describe('RewardsController', () => {
     it('should return true when data service indicates opted in', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 10.0,
+        discountBips: 1000,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
@@ -522,7 +523,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 7.5,
+        discountBips: 750,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
@@ -756,7 +757,7 @@ describe('RewardsController', () => {
         hasOptedIn: false,
         subscriptionId: null,
         lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 7.5,
+        perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: recentTime,
       };
 
@@ -773,7 +774,7 @@ describe('RewardsController', () => {
         CAIP_ACCOUNT_1,
       );
 
-      expect(result).toBe(7.5);
+      expect(result).toBe(750);
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getPerpsDiscount',
         expect.anything(),
@@ -787,7 +788,7 @@ describe('RewardsController', () => {
         hasOptedIn: false,
         subscriptionId: null,
         lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 7.5,
+        perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: staleTime,
       };
 
@@ -802,7 +803,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discount: 10.0,
+        discountBips: 1000,
       });
 
       const result = await controller.getPerpsDiscountForAccount(
@@ -813,7 +814,7 @@ describe('RewardsController', () => {
         'RewardsDataService:getPerpsDiscount',
         { account: CAIP_ACCOUNT_1 },
       );
-      expect(result).toBe(10.0);
+      expect(result).toBe(1000);
     });
 
     it('should update store state with new discount value when fetching fresh data', async () => {
@@ -823,7 +824,7 @@ describe('RewardsController', () => {
         hasOptedIn: true,
         subscriptionId: 'test',
         lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 7.5,
+        perpsFeeDiscount: 750,
         lastPerpsDiscountRateFetched: staleTime,
       };
 
@@ -838,7 +839,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discount: 15.0,
+        discountBips: 1500,
       });
 
       // Act
@@ -847,10 +848,10 @@ describe('RewardsController', () => {
       );
 
       // Assert - verify state has been updated
-      expect(result).toBe(15.0);
+      expect(result).toBe(1500);
       const updatedAccountState = controller.state.accounts[CAIP_ACCOUNT_1];
       expect(updatedAccountState).toBeDefined();
-      expect(updatedAccountState.perpsFeeDiscount).toBe(15.0);
+      expect(updatedAccountState.perpsFeeDiscount).toBe(1500);
       expect(updatedAccountState.hasOptedIn).toBe(true);
       expect(updatedAccountState.lastPerpsDiscountRateFetched).toBeGreaterThan(
         staleTime,
@@ -860,7 +861,7 @@ describe('RewardsController', () => {
     it('should fetch discount for new accounts', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discount: 15.0,
+        discountBips: 1500,
       });
 
       const result = await controller.getPerpsDiscountForAccount(
@@ -871,13 +872,13 @@ describe('RewardsController', () => {
         'RewardsDataService:getPerpsDiscount',
         { account: CAIP_ACCOUNT_2 },
       );
-      expect(result).toBe(15.0);
+      expect(result).toBe(1500);
     });
 
     it('should update store state when creating new account on first discount check', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discount: 20.0,
+        discountBips: 2000,
       });
 
       // Act - check discount for account that doesn't exist in state
@@ -886,12 +887,12 @@ describe('RewardsController', () => {
       );
 
       // Assert - verify new account state was created with correct values
-      expect(result).toBe(20.0);
+      expect(result).toBe(2000);
       const newAccountState = controller.state.accounts[CAIP_ACCOUNT_3];
       expect(newAccountState).toBeDefined();
       expect(newAccountState.account).toBe(CAIP_ACCOUNT_3);
       expect(newAccountState.hasOptedIn).toBe(false);
-      expect(newAccountState.perpsFeeDiscount).toBe(20.0);
+      expect(newAccountState.perpsFeeDiscount).toBe(2000);
       expect(newAccountState.subscriptionId).toBeNull();
       expect(newAccountState.lastCheckedAuth).toBeGreaterThan(0);
       expect(newAccountState.lastPerpsDiscountRateFetched).toBeLessThanOrEqual(
@@ -4154,6 +4155,81 @@ describe('RewardsController', () => {
       );
       expect(result).toEqual(mockRewards);
       expect(result[0].seasonRewardId).toBe('current-season-reward');
+    });
+  });
+
+  describe('metadata', () => {
+    it('includes expected state in debug snapshots', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'anonymous',
+        ),
+      ).toMatchInlineSnapshot(`{}`);
+    });
+
+    it('includes expected state in state logs', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'includeInStateLogs',
+        ),
+      ).toMatchInlineSnapshot(`
+        {
+          "accounts": {},
+          "activeAccount": null,
+          "activeBoosts": {},
+          "seasonStatuses": {},
+          "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
+          "unlockedRewards": {},
+        }
+      `);
+    });
+
+    it('persists expected state', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'persist',
+        ),
+      ).toMatchInlineSnapshot(`
+        {
+          "accounts": {},
+          "activeAccount": null,
+          "activeBoosts": {},
+          "seasonStatuses": {},
+          "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
+          "unlockedRewards": {},
+        }
+      `);
+    });
+
+    it('exposes expected state to UI', () => {
+      expect(
+        deriveStateFromMetadata(
+          controller.state,
+          controller.metadata,
+          'usedInUi',
+        ),
+      ).toMatchInlineSnapshot(`
+        {
+          "accounts": {},
+          "activeAccount": null,
+          "activeBoosts": {},
+          "seasonStatuses": {},
+          "seasons": {},
+          "subscriptionReferralDetails": {},
+          "subscriptions": {},
+          "unlockedRewards": {},
+        }
+      `);
     });
   });
 });
