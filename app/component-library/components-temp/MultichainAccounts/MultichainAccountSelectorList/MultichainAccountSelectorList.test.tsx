@@ -1,13 +1,12 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import '@shopify/flash-list/jestSetup';
 import {
   AccountGroupObject,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
-import { FlashListRef } from '@shopify/flash-list';
-import { FlattenedMultichainAccountListItem } from './MultichainAccountSelectorList.types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
@@ -20,6 +19,7 @@ import {
   createMockInternalAccountsFromGroups,
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
+import { ReactTestInstance } from 'react-test-renderer';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -117,7 +117,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [wallet1, wallet2],
       internalAccounts,
-      [account1],
+      [],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -145,7 +145,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [srpWallet, snapWallet],
       internalAccounts,
-      [srpAccount],
+      [],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -173,7 +173,7 @@ describe('MultichainAccountSelectorList', () => {
     const { getByText } = renderComponentWithMockState(
       [srpWallet, ledgerWallet],
       internalAccounts,
-      [srpAccount],
+      [],
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -201,11 +201,15 @@ describe('MultichainAccountSelectorList', () => {
     const { getAllByTestId } = renderComponentWithMockState(
       [wallet1],
       internalAccounts,
-      [account2],
+      [],
     );
 
     const accountCells = getAllByTestId('multichain-account-cell-container');
-    fireEvent.press(accountCells[0]);
+    const account1Cell = accountCells.find((cell) =>
+      within(cell).queryByText('Account 1'),
+    );
+    expect(account1Cell).toBeTruthy();
+    fireEvent.press(account1Cell as ReactTestInstance);
 
     expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
   });
@@ -437,7 +441,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByTestId, queryByText } = renderComponentWithMockState(
         [wallet1, wallet2],
         internalAccounts,
-        [account1],
+        [],
       );
 
       // Initially all accounts should be visible
@@ -717,7 +721,7 @@ describe('MultichainAccountSelectorList', () => {
       expect(getByText('Create account')).toBeTruthy();
     });
 
-    it('scrolls to the first selected account', async () => {
+    it('positions the list so the first selected account is initially visible', () => {
       const account1 = createMockAccountGroup(
         'keyring:wallet1/group1',
         'Account 1',
@@ -735,57 +739,39 @@ describe('MultichainAccountSelectorList', () => {
         account1,
         account2,
       ]);
+      const { queryByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account2]}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
 
-      type TestFlashListRef = FlashListRef<FlattenedMultichainAccountListItem>;
-      const listRef = React.createRef<TestFlashListRef>();
+      expect(queryByText('Account 2')).toBeTruthy();
+    });
+    it('renders a far selected account in the initial viewport when provided as initial selection', () => {
+      // Create many accounts so the selected one is far enough to require initialScrollIndex
+      const total = 60;
+      const accounts = Array.from({ length: total }, (_, i) =>
+        createMockAccountGroup(
+          `keyring:wallet1/group${i + 1}`,
+          `Account ${i + 1}`,
+        ),
+      );
+      const selectedIdx = 36;
+      const selected = accounts[selectedIdx];
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', accounts);
 
-      // Mock RAF to queue callbacks so we can attach our mock ref before flushing
-      const rafCallbacks: FrameRequestCallback[] = [];
-      const rafSpy = jest
-        .spyOn(global, 'requestAnimationFrame')
-        .mockImplementation((cb: FrameRequestCallback) => {
-          rafCallbacks.push(cb);
-          return rafCallbacks.length as unknown as number;
-        });
+      const internalAccounts = createMockInternalAccountsFromGroups(accounts);
 
-      try {
-        renderWithProvider(
-          <MultichainAccountSelectorList
-            onSelectAccount={mockOnSelectAccount}
-            selectedAccountGroups={[account2]}
-            listRef={listRef}
-          />,
-          { state: createMockState([wallet1], internalAccounts) },
-        );
+      const { queryByText } = renderWithProvider(
+        <MultichainAccountSelectorList selectedAccountGroups={[selected]} />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
 
-        // Attach mock imperative methods after render, before running RAF
-        interface MinimalFlashListRef {
-          scrollToIndex: jest.Mock;
-          scrollToOffset: jest.Mock;
-          scrollToEnd: jest.Mock;
-        }
-        const mockRefImpl: MinimalFlashListRef = {
-          scrollToIndex: jest.fn(),
-          scrollToOffset: jest.fn(),
-          scrollToEnd: jest.fn(),
-        };
-        const mockRef = mockRefImpl as unknown as TestFlashListRef;
-        (listRef as unknown as { current: TestFlashListRef | null }).current =
-          mockRef;
-
-        // Flush queued RAF callbacks to trigger the scroll effect
-        rafCallbacks.forEach((cb) => cb(0));
-
-        await waitFor(() => {
-          expect(mockRefImpl.scrollToIndex).toHaveBeenCalledWith({
-            index: 2, // header (0), Account 1 (1), Account 2 (2), footer (3)
-            animated: true,
-            viewPosition: 0.5,
-          });
-        });
-      } finally {
-        rafSpy.mockRestore();
-      }
+      // Without initialScrollIndex, this would not be visible initially
+      expect(queryByText(`Account ${selectedIdx + 1}`)).toBeTruthy();
+      expect(queryByText('Account 1')).toBeFalsy();
     });
   });
 
