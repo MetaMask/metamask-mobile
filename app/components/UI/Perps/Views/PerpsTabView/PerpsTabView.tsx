@@ -3,6 +3,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import {
+  PerpsPositionsViewSelectorsIDs,
+  PerpsTabViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -21,7 +25,13 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -29,27 +39,14 @@ import {
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
-  usePerpsConnection,
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
-  usePerpsTrading,
-  usePerpsPerformance,
   usePerpsLivePositions,
+  usePerpsPerformance,
 } from '../../hooks';
-import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import PerpsCard from '../../components/PerpsCard';
-import styleSheet from './PerpsTabView.styles';
-import {
-  PerpsTabViewSelectorsIDs,
-  PerpsPositionsViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
+import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
@@ -61,11 +58,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     useState(false);
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
-    'eip155:1',
-  );
-  const { getAccountState } = usePerpsTrading();
-  const { isConnected, isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
   const { account } = usePerpsLiveAccount();
 
@@ -95,16 +87,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   useEffect(() => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
   }, [startMeasure]);
-
-  // Automatically load account state on mount and when network or account changes
-  useEffect(() => {
-    // Only load account state if we're connected, initialized, and have an EVM account
-    if (isConnected && isInitialized && selectedEvmAccount) {
-      // Fire and forget - errors are already handled in getAccountState
-      // and stored in the controller's state
-      getAccountState();
-    }
-  }, [getAccountState, isConnected, isInitialized, selectedEvmAccount]);
 
   // Track homescreen tab viewed - only once when positions and account are loaded
   useEffect(() => {
