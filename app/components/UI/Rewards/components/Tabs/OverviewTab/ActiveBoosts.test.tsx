@@ -127,8 +127,8 @@ const mockBoost: PointsBoostDto = {
   },
   boostBips: 500,
   seasonLong: false,
-  startDate: new Date('2024-01-01'),
-  endDate: new Date('2024-12-31'),
+  startDate: '2024-01-01',
+  endDate: '2024-12-31',
   backgroundColor: '#FF6B35',
 };
 
@@ -573,7 +573,7 @@ describe('ActiveBoosts', () => {
     it('should handle expired boost correctly', () => {
       const expiredBoost: PointsBoostDto = {
         ...mockBoost,
-        endDate: new Date('2020-01-01'), // Past date
+        endDate: '2020-01-01', // Past date
       };
 
       // Mock formatTimeRemaining to return null for expired dates
