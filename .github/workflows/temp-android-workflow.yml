@@ -1,0 +1,47 @@
+# Temporary workflow to monitor Android builds and E2E tests
+# 
+# Testing flags:
+# - Add label "test-android-workflow" to PR to force execution
+# - Use "workflow_dispatch" for manual testing
+# - Normal execution when Android files are changed
+
+name: TEMPORARY Android Workflow
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+  schedule:
+    - cron: '0 2-6 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+
+jobs:
+  needs_e2e_build:
+    name: "Detect Mobile Build Changes"
+    if: ${{ github.event_name != 'merge_group' }}
+    uses: ./.github/workflows/needs-e2e-build.yml
+
+  build-android-apps:
+    name: "Build Android Apps"
+    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.android_changed == 'true' || contains(github.event.pull_request.labels.*.name, 'test-android-workflow') || github.event_name == 'workflow_dispatch') }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    secrets: inherit
+  
+  e2e-smoke-tests-android:
+    name: "Android E2E Smoke Tests"
+    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.android_changed == 'true' || contains(github.event.pull_request.labels.*.name, 'test-android-workflow') || github.event_name == 'workflow_dispatch') }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-apps]
+    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    secrets: inherit
