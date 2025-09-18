@@ -39,13 +39,26 @@ export const ControllerStorage = {
     return null;
   },
 
-  async setItem(key: string, value: string) {
+  async setItem(key: string, value: any) {
     console.log(`💾 [CONTROLLER STORAGE DEBUG] setItem called for key: "${key}"`);
+    console.log(`📄 [CONTROLLER STORAGE DEBUG] Value type: ${typeof value}`);
     
-    // REALM ONLY: Write to Realm storage
+    // PURE OBJECT STORAGE: Pass objects directly to Realm
     console.log(`📝 [CONTROLLER STORAGE DEBUG] Writing to Realm for key: "${key}"`);
     try {
-      await RealmPersistentStorage.setItem(key, value);
+      // If value is a JSON string, parse it to object first
+      let dataToStore = value;
+      if (typeof value === 'string') {
+        try {
+          console.log(`🔄 [CONTROLLER STORAGE DEBUG] Parsing JSON string to object for key: "${key}"`);
+          dataToStore = JSON.parse(value);
+        } catch (parseError) {
+          console.log(`⚠️ [CONTROLLER STORAGE DEBUG] Failed to parse JSON for key: "${key}", storing as string`);
+          // Keep as string if parsing fails
+        }
+      }
+      
+      await RealmPersistentStorage.setItem(key, dataToStore);
       console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully wrote to Realm for key: "${key}"`);
     } catch (realmError) {
       console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to write to Realm for key: "${key}"`, realmError);
@@ -94,12 +107,33 @@ export const ControllerStorage = {
           const key = `persist:${controllerName}`;
           console.log(`🔄 [GET KEY DEBUG] Loading controller: ${controllerName}`);
           try {
-            // Use our ControllerStorage.getItem which now has Realm logic
+            // Use our ControllerStorage.getItem which now returns objects directly
             const data = await ControllerStorage.getItem(key);
             if (data) {
               console.log(`✅ [GET KEY DEBUG] Found data for ${controllerName}`);
-              // Parse the JSON data
-              const parsedData = JSON.parse(data);
+              console.log(`📄 [GET KEY DEBUG] Data type: ${typeof data}`);
+              
+              let parsedData;
+              
+              // Handle both object and string data (for backward compatibility)
+              if (typeof data === 'string') {
+                console.log(`🔄 [GET KEY DEBUG] Parsing JSON string for ${controllerName}`);
+                try {
+                  parsedData = JSON.parse(data);
+                } catch (parseError) {
+                  console.log(`❌ [GET KEY DEBUG] Failed to parse JSON for ${controllerName}:`, parseError);
+                  Logger.error(parseError as Error, {
+                    message: `Failed to parse JSON for ${controllerName}`,
+                  });
+                  return;
+                }
+              } else if (typeof data === 'object' && data !== null) {
+                console.log(`📦 [GET KEY DEBUG] Using object directly for ${controllerName}`);
+                parsedData = data;
+              } else {
+                console.log(`⚠️ [GET KEY DEBUG] Unexpected data type for ${controllerName}:`, typeof data);
+                return;
+              }
 
               // Ensure parsedData is an object to prevent destructuring errors
               if (
@@ -205,10 +239,10 @@ export const setupEnginePersistence = () => {
               );
 
               console.log(`💾 [CONTROLLER STATE CHANGE DEBUG] About to persist ${controllerName} state`);
-              // Save the filtered state to storage
+              // PURE OBJECT STORAGE: Pass object directly, no JSON.stringify!
               await ControllerStorage.setItem(
                 `persist:${controllerName}`,
-                JSON.stringify(filteredState),
+                filteredState,
               );
               console.log(`✅ [CONTROLLER STATE CHANGE DEBUG] ${controllerName} state persisted successfully`);
               Logger.log(`${controllerName} state persisted successfully`);

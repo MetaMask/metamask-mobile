@@ -46,8 +46,88 @@ const getRealmInstance = (): Realm => RealmSingleton.getInstance();
 // This replaces the FilesystemStorage pattern with Realm storage
 console.log('📦 [REALM DEBUG] RealmPersistentStorage object created');
 
+// Key transformation utilities for handling problematic characters in object keys
+const KeyTransformUtils = {
+  // Transform problematic keys to be Realm-safe
+  encodeObjectKeys(obj: any): any {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.encodeObjectKeys(item));
+    }
+    
+    const transformedObj: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Replace dots with __DOT__ and other problematic characters
+      const safeKey = key
+        .replace(/\./g, '__DOT__')
+        .replace(/:/g, '__COLON__')
+        .replace(/@/g, '__AT__')
+        .replace(/\//g, '__SLASH__');
+      
+      // Recursively transform nested objects
+      transformedObj[safeKey] = this.encodeObjectKeys(value);
+    }
+    
+    return transformedObj;
+  },
+  
+  // Restore original keys when reading from Realm
+  decodeObjectKeys(obj: any): any {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.decodeObjectKeys(item));
+    }
+    
+    const originalObj: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Restore original characters
+      const originalKey = key
+        .replace(/__DOT__/g, '.')
+        .replace(/__COLON__/g, ':')
+        .replace(/__AT__/g, '@')
+        .replace(/__SLASH__/g, '/');
+      
+      // Recursively restore nested objects
+      originalObj[originalKey] = this.decodeObjectKeys(value);
+    }
+    
+    return originalObj;
+  },
+  
+  // Check if object has problematic keys that need transformation
+  hasProblematicKeys(obj: any): boolean {
+    if (obj === null || typeof obj !== 'object') {
+      return false;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.some(item => this.hasProblematicKeys(item));
+    }
+    
+    for (const [key, value] of Object.entries(obj)) {
+      // Check for problematic characters in keys
+      if (key.includes('.') || key.includes(':') || key.includes('@') || key.includes('/')) {
+        return true;
+      }
+      
+      // Check nested objects recursively
+      if (this.hasProblematicKeys(value)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+};
+
 const RealmPersistentStorage = {
-  async getItem(key: string): Promise<string | null> {
+  async getItem(key: string): Promise<any> {
     console.log(`📖 [REALM PERSIST DEBUG] getItem called with key: "${key}"`);
     try {
       console.log(`🔧 [REALM PERSIST DEBUG] Getting realm instance for key: "${key}"`);
@@ -61,20 +141,28 @@ const RealmPersistentStorage = {
         
         const itemData = (persistedItem as any).data;
         
-        // Handle both object and string storage formats
-        let result;
-        if (typeof itemData === 'string') {
-          console.log(`📄 [REALM PERSIST DEBUG] Data stored as string for key: "${key}"`);
-          // Data was stored as string (for problematic controllers), return as-is
-          result = itemData;
-        } else {
+        // Convert managed Realm object to plain object first
+        let plainObject: any;
+        if (typeof itemData === 'object' && itemData !== null) {
           console.log(`📄 [REALM PERSIST DEBUG] Data stored as object for key: "${key}"`);
-          // Data was stored as object, stringify it
-          result = JSON.stringify(itemData);
+          plainObject = JSON.parse(JSON.stringify(itemData));
+          
+          // Check if this was a transformed object and decode if needed
+          if (key === 'persist:PermissionController' || key === 'persist:SnapController') {
+            console.log(`🔄 [REALM PERSIST DEBUG] Decoding transformed keys for: "${key}"`);
+            const decodedObject = KeyTransformUtils.decodeObjectKeys(plainObject);
+            console.log(`📤 [REALM PERSIST DEBUG] Returning decoded object for key: "${key}"`);
+            return decodedObject;
+          }
+          
+          console.log(`📤 [REALM PERSIST DEBUG] Returning plain object for key: "${key}"`);
+          return plainObject;
+        } else {
+          // Handle primitives (strings, numbers, booleans)
+          console.log(`📄 [REALM PERSIST DEBUG] Data stored as primitive for key: "${key}"`);
+          console.log(`📤 [REALM PERSIST DEBUG] Returning primitive value for key: "${key}"`);
+          return itemData;
         }
-        
-        console.log(`📤 [REALM PERSIST DEBUG] Returning data for key: "${key}", length: ${result.length}`);
-        return result;
       } else {
         console.log(`❌ [REALM PERSIST DEBUG] No item found for key: "${key}"`);
         return null;
@@ -88,27 +176,41 @@ const RealmPersistentStorage = {
     }
   },
 
-  async setItem(key: string, value: string): Promise<void> {
+  async setItem(key: string, value: any): Promise<void> {
     console.log(`✏️ [REALM PERSIST DEBUG] setItem called with key: "${key}"`);
+    console.log(`📄 [REALM PERSIST DEBUG] Value type: ${typeof value}`);
     try {
       const realm = getRealmInstance();
       
-      // For controllers with problematic data, store the JSON string directly
-      // instead of parsing it to avoid Realm's restrictions on object keys with dots
-      let dataToStore;
-      if (key === 'persist:PermissionController' || key === 'persist:SnapController') {
-        console.log(`📝 [REALM PERSIST DEBUG] Using string storage for problematic controller: "${key}"`);
-        // Store as string to avoid "key must not contain '.'" error
-        dataToStore = value;
-      } else {
+      // Parse string values to objects first if possible
+      let objectValue: any = value;
+      if (typeof value === 'string') {
         try {
-          // Parse the JSON string back to object for normal controllers
-          dataToStore = JSON.parse(value);
+          objectValue = JSON.parse(value);
+          console.log(`🔄 [REALM PERSIST DEBUG] Parsed JSON string to object for key: "${key}"`);
         } catch (parseError) {
-          console.log(`⚠️ [REALM PERSIST DEBUG] JSON parse failed for "${key}", storing as string`);
-          // If JSON parsing fails, store as string
-          dataToStore = value;
+          console.log(`⚠️ [REALM PERSIST DEBUG] Failed to parse JSON for key: "${key}", storing as primitive`);
+          objectValue = value; // Keep as string primitive
         }
+      }
+      
+      let dataToStore: any;
+      
+      // Handle objects with potential key transformation
+      if (typeof objectValue === 'object' && objectValue !== null) {
+        // Check for problematic controllers and apply key transformation
+        if ((key === 'persist:PermissionController' || key === 'persist:SnapController') && 
+            KeyTransformUtils.hasProblematicKeys(objectValue)) {
+          console.log(`🔧 [REALM PERSIST DEBUG] Transforming problematic keys for: "${key}"`);
+          dataToStore = KeyTransformUtils.encodeObjectKeys(objectValue);
+          console.log(`📦 [REALM PERSIST DEBUG] Storing transformed object for key: "${key}"`);
+        } else {
+          console.log(`📦 [REALM PERSIST DEBUG] Storing object directly for key: "${key}"`);
+          dataToStore = objectValue;
+        }
+      } else {
+        console.log(`📝 [REALM PERSIST DEBUG] Storing primitive value for key: "${key}"`);
+        dataToStore = objectValue;
       }
       
       realm.write(() => {
@@ -126,7 +228,7 @@ const RealmPersistentStorage = {
       Logger.error(error as Error, {
         message: `Failed to set persisted item with key ${key}`,
       });
-      throw error;  // Rethrow to maintain error handling consistency
+      throw error;
     }
   },
 
