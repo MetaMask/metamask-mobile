@@ -15781,6 +15781,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tommasini/react-native-scrollable-tab-view@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@tommasini/react-native-scrollable-tab-view@npm:1.1.1"
+  dependencies:
+    "@react-native-community/viewpager": 3.3.0
+    create-react-class: ^15.6.2
+    deprecated-react-native-prop-types: ^2.3.0
+    prop-types: ^15.6.0
+    react-timer-mixin: ^0.13.3
+  peerDependencies:
+    react-native: ">=0.20.0"
+  checksum: be50675aa992f24309ab429d868b5546e86b0eb0f272817724ec3512e6e605419d38750dfc7e806cb9d083c2ff34a72dd6c69a8e78e3c4471a38aa1413322679
+  languageName: node
+  linkType: hard
+
 "@tootallnate/quickjs-emscripten@npm:^0.23.0":
   version: 0.23.0
   resolution: "@tootallnate/quickjs-emscripten@npm:0.23.0"
@@ -34014,6 +34029,7 @@ __metadata:
     "@testing-library/react": 14.0.0
     "@testing-library/react-hooks": ^8.0.1
     "@testing-library/react-native": ^13.2.0
+    "@tommasini/react-native-scrollable-tab-view": ^1.1.1
     "@tradle/react-native-http": 2.0.1
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6"
     "@types/bnjs5": "npm:@types/bn.js@^5.1.6"
@@ -34220,7 +34236,6 @@ __metadata:
     react-native-render-html: ^6.3.4
     react-native-safe-area-context: ^5.4.0
     react-native-screens: 3.37.0
-    react-native-scrollable-tab-view: "https://github.com/tommasini/react-native-scrollable-tab-view.git#1f3455141f552e44fcf7fa1198078090d7013537"
     react-native-sensors: 5.3.0
     react-native-share: 7.3.7
     react-native-size-matters: 0.4.0
@@ -39029,21 +39044,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 84d1e4697ab7afccf42111d13b7c7e68d382b136f4f4d9cd8fd077b0984ada3114e8c7459a69159983a538fe35db1cf4296075e72fc8cb45341e0feb5080d3dc
-  languageName: node
-  linkType: hard
-
-"react-native-scrollable-tab-view@https://github.com/tommasini/react-native-scrollable-tab-view.git#1f3455141f552e44fcf7fa1198078090d7013537":
-  version: 1.1.0
-  resolution: "react-native-scrollable-tab-view@https://github.com/tommasini/react-native-scrollable-tab-view.git#commit=1f3455141f552e44fcf7fa1198078090d7013537"
-  dependencies:
-    "@react-native-community/viewpager": 3.3.0
-    create-react-class: ^15.6.2
-    deprecated-react-native-prop-types: ^2.3.0
-    prop-types: ^15.6.0
-    react-timer-mixin: ^0.13.3
-  peerDependencies:
-    react-native: ">=0.20.0"
-  checksum: 787cf79d8706a12bc0fc1c2ef3f4ca98f3a344d2cff258698070d5dca1e44360df4be64f8b2f1c42ac60ba85ab0a03797773032d1c38411a6f430deb0459e02b
   languageName: node
   linkType: hard
 
