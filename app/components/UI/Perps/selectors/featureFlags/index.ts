@@ -21,6 +21,7 @@ export const perpsRemoteFeatureFlag = (remoteFlag: PerpsLaunchDarklyFlag) => {
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    return true;
     const localFlag = process.env.MM_PERPS_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingEnabled as unknown as PerpsLaunchDarklyFlag;

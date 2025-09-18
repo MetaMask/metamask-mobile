@@ -242,9 +242,11 @@ interface WalletTokensTabViewProps {
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
   const isPerpsEnabled = useMemo(
-    () => isPerpsFlagEnabled && isEvmSelected,
-    [isPerpsFlagEnabled, isEvmSelected],
+    () =>
+      isPerpsFlagEnabled && (isEvmSelected || allEnabledNetworks.length !== 1),
+    [isPerpsFlagEnabled, isEvmSelected, allEnabledNetworks],
   );
 
   const {
@@ -480,7 +482,7 @@ const Wallet = ({
             isTestNet(network.chainId) || network.chainId === SolScope.Mainnet,
         );
       }
-      return true;
+      return false;
     }
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       return enabledNetworks.some((network) => isTestNet(network));
