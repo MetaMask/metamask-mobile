@@ -93,13 +93,13 @@ class LoginScreen {
     }
   }
 
-  async isLoginScreenVisible() {
+  async isLoginScreenVisible(timeout = 10000) {
     if (!this._device) {
       const element = await this.title;
       await element.waitForDisplayed();
     } else {
       const element = await this.title;
-      await appwrightExpect(element).toBeVisible();
+      await appwrightExpect(element).toBeVisible({ timeout });
 
     }
   }
@@ -123,14 +123,14 @@ class LoginScreen {
     }
   }
 
-  async typePassword(password) {
+  async typePassword(password, timeout = 10000) {
     if (!this._device) {
-      await this.isLoginScreenVisible();
+      await this.isLoginScreenVisible(timeout);
       await Gestures.typeText(this.passwordInput, password);
     } else {
       const screenTitle = await this.title
       const element = await this.getPasswordInputElement;
-      await element.fill(password);
+      await element.fill(password, { timeout });
       await screenTitle.tap()
     }
   }

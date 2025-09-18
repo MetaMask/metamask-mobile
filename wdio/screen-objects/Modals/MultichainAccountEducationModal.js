@@ -23,8 +23,8 @@ class MultichainAccountEducationModal {
     }
   }
 
-  async isVisible() {
-    await expect(await this.closeButton).toBeVisible();
+  async isVisible(timeout = 10000) {
+    await expect(await this.closeButton).toBeVisible({ timeout });
   }
 
   

@@ -38,7 +38,7 @@ export async function dismissSystemDialogs(device) {
   }
 }
 
-export async function onboardingFlowImportSRP(device, srp) {
+export async function onboardingFlowImportSRP(device, srp, timeout = 10000) {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -71,19 +71,16 @@ export async function onboardingFlowImportSRP(device, srp) {
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
-  await MetaMetricsScreen.isScreenTitleVisible();
+  await MetaMetricsScreen.isScreenTitleVisible(timeout);
   await MetaMetricsScreen.tapIAgreeButton();
 
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
   //Dismiss any GTM modal
-  const notNowButton = await AppwrightSelectors.getElementByText(
-    device,
-    'Not now',
-  );
-  if (await notNowButton.isVisible({ timeout: 2000 })) {
-    await notNowButton.tap();
-  }
+  await dismissGTMModal(device);
+
+  await dismissMultichainAccountsIntroModal(device);
+
   await WalletMainScreen.isMainWalletViewVisible();
 
   await dismissSystemDialogs(device);
@@ -135,40 +132,47 @@ export async function importSRPFlow(device, srp) {
   return timers;
 }
 
-export async function login(device, scenarioType) {
+export async function login(device, scenarioType, timeout = 10000) {
   LoginScreen.device = device;
 
   const password = getPasswordForScenario(scenarioType);
 
   // Type password and unlock
-  await LoginScreen.typePassword(password);
+  await LoginScreen.typePassword(password, timeout);
   await LoginScreen.tapUnlockButton();
-  // await tapPerpsBottomSheetGotItButton(device);
+
+  // Execute modals dismissal in parallel - they will resolve in order of appearance
+  await dismissMultichainAccountsIntroModal(device);
   await dismissGTMModal(device);
-  // Wait for app to settle after unlock
   await dismissSystemDialogs(device);
+
+  // Wait for app to settle after unlock
 }
 
-export async function dismissGTMModal(device) {
+export async function dismissGTMModal(device, timeout = 5000) {
   const notNowButton = await AppwrightSelectors.getElementByText(
     device,
     'Not now',
+    timeout,
   );
-  if (await notNowButton.isVisible({ timeout: 2000 })) {
+  if (await notNowButton.isVisible({ timeout })) {
     await notNowButton.tap();
   }
 }
-export async function dismissMultichainAccountsIntroModal(device) {
+export async function dismissMultichainAccountsIntroModal(
+  device,
+  timeout = 5000,
+) {
   const closeButton = await AppwrightSelectors.getElementByID(
     device,
     MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
   );
-  if (await closeButton.isVisible({ timeout: 2000 })) {
+  if (await closeButton.isVisible({ timeout })) {
     await closeButton.tap();
   }
 }
 
-export async function tapPerpsBottomSheetGotItButton(device) {
+export async function tapPerpsBottomSheetGotItButton(device, timeout = 5000) {
   // Only skip perps onboarding on Android devices
   if (!AppwrightSelectors.isAndroid(device)) {
     console.log('Skipping perps onboarding skip - not an Android device');
@@ -179,6 +183,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   const button = await AppwrightSelectors.getElementByID(
     device,
     PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
+    timeout,
   );
   await button.tap();
   console.log('Perps onboarding dismissed');

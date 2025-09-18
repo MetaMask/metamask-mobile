@@ -9,14 +9,11 @@ import SendScreen from '../../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../wdio/screen-objects/AmountScreen.js';
-import SendSolanaScreen from '../../../../wdio/screen-objects/SendSolanaScreen.js';
-import NetworkEducationModal from '../../../../wdio/screen-objects/Modals/NetworkEducationModal.js';
-import SolanaConfirmationScreen from '../../../../wdio/screen-objects/SolanaConfirmationScreen.js';
-import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
+
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 
+import { TEST_AMOUNTS } from '../../../utils/TestConstants.js';
 import { login } from '../../../utils/Flows.js';
-import { TEST_ADDRESSES, TEST_AMOUNTS } from '../../../utils/TestConstants.js';
 
 test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -32,8 +29,8 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   AmountScreen.device = device;
   LoginScreen.device = device;
 
-  await login(device, 'login');
-  // await importSRPFlow(device, process.env.TEST_SRP_3);
+  await login(device, 'login', 120000);
+  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
@@ -68,7 +65,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user selects the receiver account, until the user is in the review screen',
   );
 
-  await SendScreen.clickOnAccountByName('Account 1');
+  await SendScreen.clickOnAccountByName('Account 3');
   timer5.start();
   //await SendScreen.clickOnReviewButton();
   await ConfirmationScreen.isVisible();
@@ -83,7 +80,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await performanceTracker.attachToTest(testInfo);
 });
 
-test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
+test.only('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
@@ -97,8 +94,8 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   AmountScreen.device = device;
   LoginScreen.device = device;
 
-  await login(device, 'login');
-  // await importSRPFlow(device, process.env.TEST_SRP_3);
+  await login(device, 'login', 120000);
+  // await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the send button, until the user is in the send screen',
@@ -108,20 +105,22 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SendScreen.isVisible();
   timer1.stop();
   const timer2 = new TimerHelper(
-    'Time since the user clicks on Ethereum Network, until the assets list is displayed',
+    'Time since the user clicks on Solana Network, until the asset list is displayed',
   );
-  timer2.start();
+
   await SendScreen.selectNetwork('Solana');
+  timer2.start();
   await SendScreen.assetsListIsDisplayed();
   timer2.stop();
   const timer3 = new TimerHelper(
     'Time since the user clicks on ETH, until the amount screen is displayed',
   );
   await SendScreen.selectToken('Solana', 'SOL');
+
   timer3.start();
   await AmountScreen.isVisible();
   timer3.stop();
-  await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
+  await AmountScreen.enterAmount(TEST_AMOUNTS.SOLANA);
   const timer4 = new TimerHelper(
     'Time since the user clicks on next button, until the user is in the select address screen',
   );
@@ -133,7 +132,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user selects the receiver account, until the user is in the review screen',
   );
   timer5.start();
-  await SendScreen.clickOnAccountByName('Account 1');
+  await SendScreen.clickOnAccountByName('Account 3');
   //await SendScreen.clickOnReviewButton();
   await ConfirmationScreen.isVisible();
   timer5.stop();

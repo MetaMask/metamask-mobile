@@ -1,20 +1,20 @@
 export default class AppwrightSelectors {
   
   // The below three selectors are the primary selectors
-  static async getElementByID(device, id) {
-    return await device.getById(id,{ exact: true });
+  static async getElementByID(device, id, timeout = 10000) {
+    return await device.getById(id,{ exact: true, timeout });
   }
 
-  static async getElementByXpath(device, xpath) {
-    return await device.getByXpath(xpath);
+  static async getElementByXpath(device, xpath, timeout = 10000) {
+    return await device.getByXpath(xpath, { timeout });
   }
 
-  static async getElementByText(device, text) {
-    return await device.getByText(text);
+  static async getElementByText(device, text, timeout = 10000) {
+    return await device.getByText(text, { timeout });
   }
 
   // This is a catch-all xpath selector that works on both platforms. Needed to identify deeply nested elements
-  static async getElementByCatchAll(device, identifier) {
+  static async getElementByCatchAll(device, identifier, timeout = 10000) {
     const isAndroid = AppwrightSelectors.isAndroid(device);
     
     if (isAndroid) {
@@ -28,11 +28,16 @@ export default class AppwrightSelectors {
     }
   }
 
-  static async getElementByNameiOS(device, identifier) {
+  static async getElementByContentDesc(device, text, timeout = 10000) {
+    const xpath = `//*[@content-desc='${text}']`;
+    return await AppwrightSelectors.getElementByXpath(device, xpath, timeout);
+  }
+
+  static async getElementByNameiOS(device, identifier, timeout = 10000) {
     const isIOS = AppwrightSelectors.isIOS(device);
     if (isIOS) {
       const xpath = `//*[contains(@name,'${identifier}')][1]`;
-      return await AppwrightSelectors.getElementByXpath(device, xpath);
+      return await AppwrightSelectors.getElementByXpath(device, xpath, timeout);
     }
   }
 

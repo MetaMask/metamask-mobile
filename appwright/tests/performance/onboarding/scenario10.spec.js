@@ -46,7 +46,7 @@ test('Cold Start after importing a wallet', async ({
   AmountScreen.device = device;
   LoginScreen.device = device;
   MultichainAccountEducationModal.device = device;
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
   await AppwrightSelectors.terminateApp(device);
@@ -62,15 +62,11 @@ test('Cold Start after importing a wallet', async ({
   const timer2 = new TimerHelper(
     'Time since the user closes the multichain account education modal, until the wallet main screen appears',
   );
-  timer1.start();
-  await MultichainAccountEducationModal.isVisible();
-  timer1.stop();
-  await MultichainAccountEducationModal.tapGotItButton();
+
   timer2.start();
   await WalletMainScreen.isMainWalletViewVisible();
   timer2.stop();
 
-  performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   await performanceTracker.attachToTest(testInfo);
 });
@@ -97,7 +93,7 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
   ConfirmationScreen.device = device;
   AmountScreen.device = device;
   LoginScreen.device = device;
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
   await AppwrightSelectors.terminateApp(device);

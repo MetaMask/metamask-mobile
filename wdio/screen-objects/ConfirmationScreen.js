@@ -24,7 +24,7 @@ class ConfirmationScreen {
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByID(this._device, ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    return AppwrightSelectors.getElementByID(this._device, 'confirm-sign-and-send-transaction-confirm-snap-footer-button');
   }
 
   async isAccountSendToVisible() {

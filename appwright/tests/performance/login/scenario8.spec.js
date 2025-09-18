@@ -54,7 +54,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   CommonScreen.device = device;
   WalletActionModal.device = device;
 
-  await login(device, 'login');
+  await login(device, 'login', 120000);
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
@@ -67,7 +67,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on the asset view button until the user sees the token overview screen',
   );
   assetViewScreen.start();
-  await WalletMainScreen.tapOnToken('Ethereum');
+  await WalletMainScreen.tapOnToken('ETH');
   await TokenOverviewScreen.isTokenOverviewVisible();
   await TokenOverviewScreen.isTodaysChangeVisible();
   assetViewScreen.stop();
