@@ -29,6 +29,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -56,6 +57,7 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
+import RewardPointsDisplay from '../../components/RewardPointsDisplay';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -81,6 +83,7 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPerformance,
+  usePerpsRewards,
   usePerpsToasts,
   usePerpsTrading,
 } from '../../hooks';
@@ -202,13 +205,27 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
+
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
     amount: orderForm.amount,
     isMaker: false, // Conservative estimate for UI display
+    coin: orderForm.asset,
+    isClosing: false, // For now, we're always opening positions in this view
   });
   const estimatedFees = feeResults.totalFee;
+
+  // Simple boolean calculation - no need for expensive memoization
+  const hasValidAmount = parseFloat(orderForm.amount) > 0;
+
+  // Get rewards state using the new hook
+  const rewardsState = usePerpsRewards({
+    feeResults,
+    hasValidAmount,
+    isFeesLoading: feeResults.isLoadingMetamaskFee,
+    orderAmount: orderForm.amount,
+  });
 
   // Tracking refs for one-time events
   const hasTrackedTradingView = useRef(false);
@@ -1010,7 +1027,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {marginRequired ? formatPrice(marginRequired) : '--'}
+              {marginRequired
+                ? formatPrice(marginRequired)
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
 
@@ -1034,14 +1053,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {parseFloat(orderForm.amount) > 0
+              {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_DETAILED_VIEW,
                   })
-                : '--'}
+                : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
             </Text>
           </View>
-
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -1059,14 +1077,52 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {parseFloat(orderForm.amount) > 0
-                ? formatPerpsFiat(estimatedFees, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })
-                : '--'}
-            </Text>
+            <PerpsFeesDisplay
+              feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+              formatFeeText={
+                hasValidAmount
+                  ? formatPerpsFiat(estimatedFees, {
+                      ranges: PRICE_RANGES_MINIMAL_VIEW,
+                    })
+                  : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
+              }
+              variant={TextVariant.BodySM}
+            />
           </View>
+
+          {/* Rewards Points Estimation */}
+          {rewardsState.shouldShowRewardsRow && (
+            <View style={styles.infoRow}>
+              <View style={styles.detailLeft}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.points')}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => handleTooltipPress('points')}
+                  style={styles.infoIcon}
+                >
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.Muted}
+                  />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.pointsRightContainer}>
+                <RewardPointsDisplay
+                  estimatedPoints={rewardsState.estimatedPoints}
+                  bonusBips={rewardsState.bonusBips}
+                  isLoading={rewardsState.isLoading}
+                  hasError={rewardsState.hasError}
+                  shouldShow={rewardsState.shouldShowRewardsRow}
+                  isRefresh={rewardsState.isRefresh}
+                />
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}
@@ -1282,6 +1338,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
               ? {
                   metamaskFeeRate: feeResults.metamaskFeeRate,
                   protocolFeeRate: feeResults.protocolFeeRate,
+                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
                 }
               : undefined
           }

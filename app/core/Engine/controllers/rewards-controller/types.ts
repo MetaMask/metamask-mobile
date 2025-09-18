@@ -571,10 +571,10 @@ export interface PerpsDiscountData {
    */
   hasOptedIn: boolean;
   /**
-   * The discount percentage as a number
-   * @example 5.5
+   * The discount percentage in basis points
+   * @example 550
    */
-  discount: number;
+  discountBips: number;
 }
 
 /**
@@ -624,7 +624,7 @@ export interface RewardsControllerEstimatePointsAction {
 }
 
 /**
- * Action for getting perps fee discount for an account
+ * Action for getting perps fee discount in bips for an account
  */
 export interface RewardsControllerGetPerpsDiscountAction {
   type: 'RewardsController:getPerpsDiscountForAccount';
