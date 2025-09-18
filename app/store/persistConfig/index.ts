@@ -13,65 +13,152 @@ import { getPersistentState } from '../getPersistentState/getPersistentState';
 import { debounce } from 'lodash';
 import ReduxService from '../../core/redux';
 import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
-import { RealmControllerStorage, testRealmOperations } from './realmInstance';
+import { RealmControllerStorage, RealmPersistentStorage, testRealmOperations } from './realmInstance';
 
-console.log('🏪 [PERSIST DEBUG] persistConfig/index.ts loading...');
-console.log('🧪 [PERSIST DEBUG] About to explicitly call testRealmOperations...');
-testRealmOperations();
-console.log('✅ [PERSIST DEBUG] testRealmOperations call completed in persistConfig');
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
 
 export const ControllerStorage = {
   async getItem(key: string) {
+    console.log(`🔍 [CONTROLLER STORAGE DEBUG] getItem called for key: "${key}"`);
     try {
-      const res = await FilesystemStorage.getItem(key);
-      if (res) {
-        // Using new storage system
-        return res;
+      // HYBRID APPROACH: Try Realm first, fallback to FilesystemStorage
+      console.log(`📖 [CONTROLLER STORAGE DEBUG] Trying Realm first for key: "${key}"`);
+      const realmResult = await RealmPersistentStorage.getItem(key);
+      if (realmResult) {
+        console.log(`✅ [CONTROLLER STORAGE DEBUG] Found in Realm for key: "${key}"`);
+        return realmResult;
       }
+      console.log(`❌ [CONTROLLER STORAGE DEBUG] Not found in Realm for key: "${key}"`);
+
+      // Fallback to FilesystemStorage (for migration and backup)
+      console.log(`📁 [CONTROLLER STORAGE DEBUG] Trying FilesystemStorage for key: "${key}"`);
+      const filesystemResult = await FilesystemStorage.getItem(key);
+      if (filesystemResult) {
+        console.log(`✅ [CONTROLLER STORAGE DEBUG] Found in FilesystemStorage for key: "${key}"`);
+        // Auto-migrate to Realm when found in FilesystemStorage
+        try {
+          console.log(`🔄 [CONTROLLER STORAGE DEBUG] Migrating to Realm for key: "${key}"`);
+          await RealmPersistentStorage.setItem(key, filesystemResult);
+          Logger.log(`Migrated ${key} from FilesystemStorage to Realm`);
+          console.log(`✅ [CONTROLLER STORAGE DEBUG] Migration successful for key: "${key}"`);
+        } catch (migrationError) {
+          console.log(`❌ [CONTROLLER STORAGE DEBUG] Migration failed for key: "${key}"`, migrationError);
+          Logger.error(migrationError as Error, {
+            message: `Failed to migrate ${key} to Realm`,
+          });
+        }
+        return filesystemResult;
+      }
+      console.log(`❌ [CONTROLLER STORAGE DEBUG] Not found in FilesystemStorage for key: "${key}"`);
     } catch (error) {
+      console.log(`💥 [CONTROLLER STORAGE DEBUG] Error in getItem for key: "${key}"`, error);
       Logger.error(error as Error, {
         message: `Failed to get item for ${key}`,
       });
     }
+    console.log(`🚫 [CONTROLLER STORAGE DEBUG] Returning null for key: "${key}"`);
+    return null;
   },
+
   async setItem(key: string, value: string) {
+    console.log(`💾 [CONTROLLER STORAGE DEBUG] setItem called for key: "${key}"`);
+    const errors: Error[] = [];
+
+    // HYBRID APPROACH: Write to BOTH Realm and FilesystemStorage
+    console.log(`📝 [CONTROLLER STORAGE DEBUG] Writing to Realm for key: "${key}"`);
     try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to set item for ${key}`,
+      await RealmPersistentStorage.setItem(key, value);
+      console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully wrote to Realm for key: "${key}"`);
+    } catch (realmError) {
+      console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to write to Realm for key: "${key}"`, realmError);
+      errors.push(realmError as Error);
+      Logger.error(realmError as Error, {
+        message: `Failed to write ${key} to Realm`,
       });
     }
+
+    console.log(`📁 [CONTROLLER STORAGE DEBUG] Writing to FilesystemStorage for key: "${key}"`);
+    try {
+      await FilesystemStorage.setItem(key, value, Device.isIos());
+      console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully wrote to FilesystemStorage for key: "${key}"`);
+    } catch (filesystemError) {
+      console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to write to FilesystemStorage for key: "${key}"`, filesystemError);
+      errors.push(filesystemError as Error);
+      Logger.error(filesystemError as Error, {
+        message: `Failed to write ${key} to FilesystemStorage`,
+      });
+    }
+
+    // If both fail, throw the first error
+    if (errors.length === 2) {
+      console.log(`💥 [CONTROLLER STORAGE DEBUG] Both storage methods failed for key: "${key}"`);
+      throw errors[0];
+    }
+    console.log(`🎉 [CONTROLLER STORAGE DEBUG] setItem completed for key: "${key}"`);
   },
+
   async removeItem(key: string) {
+    console.log(`🗑️ [CONTROLLER STORAGE DEBUG] removeItem called for key: "${key}"`);
+    const errors: Error[] = [];
+
+    // HYBRID APPROACH: Remove from BOTH Realm and FilesystemStorage
+    console.log(`🗑️ [CONTROLLER STORAGE DEBUG] Removing from Realm for key: "${key}"`);
     try {
-      return await FilesystemStorage.removeItem(key);
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to remove item for ${key}`,
+      await RealmPersistentStorage.removeItem(key);
+      console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully removed from Realm for key: "${key}"`);
+    } catch (realmError) {
+      console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to remove from Realm for key: "${key}"`, realmError);
+      errors.push(realmError as Error);
+      Logger.error(realmError as Error, {
+        message: `Failed to remove ${key} from Realm`,
       });
     }
+
+    console.log(`🗑️ [CONTROLLER STORAGE DEBUG] Removing from FilesystemStorage for key: "${key}"`);
+    try {
+      await FilesystemStorage.removeItem(key);
+      console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully removed from FilesystemStorage for key: "${key}"`);
+    } catch (filesystemError) {
+      console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to remove from FilesystemStorage for key: "${key}"`, filesystemError);
+      errors.push(filesystemError as Error);
+      Logger.error(filesystemError as Error, {
+        message: `Failed to remove ${key} from FilesystemStorage`,
+      });
+    }
+
+    // If both fail, throw the first error
+    if (errors.length === 2) {
+      console.log(`💥 [CONTROLLER STORAGE DEBUG] Both storage removal methods failed for key: "${key}"`);
+      throw errors[0];
+    }
+    console.log(`🎉 [CONTROLLER STORAGE DEBUG] removeItem completed for key: "${key}"`);
   },
   async getKey(): Promise<Record<string, unknown>> {
+    console.log('🔑 [GET KEY DEBUG] getKey() called - loading all controller states');
     try {
       const backgroundState: Record<string, unknown> = {};
 
-      await Promise.all(
-        // Build runtime controller list from engine change event names
-        Array.from(
-          new Set(
-            Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES).map(
-              (eventName) => eventName.split(':')[0],
-            ),
+      // Build runtime controller list from engine change event names
+      const controllerNames = Array.from(
+        new Set(
+          Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES).map(
+            (eventName) => eventName.split(':')[0],
           ),
-        ).map(async (controllerName) => {
+        ),
+      );
+      console.log(`📋 [GET KEY DEBUG] Found ${controllerNames.length} unique controllers to load`);
+
+      await Promise.all(
+        controllerNames.map(async (controllerName) => {
           const key = `persist:${controllerName}`;
+          console.log(`🔄 [GET KEY DEBUG] Loading controller: ${controllerName}`);
           try {
-            const data = await FilesystemStorage.getItem(key);
+            // Use our ControllerStorage.getItem which now has Realm logic
+            const data = await ControllerStorage.getItem(key);
             if (data) {
+              console.log(`✅ [GET KEY DEBUG] Found data for ${controllerName}`);
               // Parse the JSON data
               const parsedData = JSON.parse(data);
 
@@ -81,6 +168,7 @@ export const ControllerStorage = {
                 typeof parsedData !== 'object' ||
                 Array.isArray(parsedData)
               ) {
+                console.log(`❌ [GET KEY DEBUG] Invalid data format for ${controllerName}`);
                 Logger.error(
                   new Error(
                     `Invalid persisted data for ${controllerName}: not an object`,
@@ -92,8 +180,12 @@ export const ControllerStorage = {
               const { _persist, ...controllerState } = parsedData;
 
               backgroundState[controllerName] = controllerState;
+              console.log(`✅ [GET KEY DEBUG] Successfully loaded ${controllerName} state`);
+            } else {
+              console.log(`⚠️ [GET KEY DEBUG] No data found for ${controllerName}`);
             }
           } catch (error) {
+            console.log(`💥 [GET KEY DEBUG] Error loading ${controllerName}:`, error);
             Logger.error(error as Error, {
               message: `Failed to get controller state for ${controllerName}`,
             });
@@ -102,8 +194,11 @@ export const ControllerStorage = {
         }),
       );
 
+      console.log(`🎉 [GET KEY DEBUG] Loaded ${Object.keys(backgroundState).length} controllers successfully`);
+      console.log(`📋 [GET KEY DEBUG] Loaded controllers:`, Object.keys(backgroundState));
       return { backgroundState };
     } catch (error) {
+      console.log('💥 [GET KEY DEBUG] Error in getKey():', error);
       Logger.error(error as Error, {
         message: 'Failed to gather controller states',
       });
@@ -159,16 +254,22 @@ const MigratedStorage = {
 };
 
 export const setupEnginePersistence = () => {
-  console.log('🚀 [ENGINE DEBUG] setupEnginePersistence function starting...');
+  console.log('🚀 [SETUP ENGINE PERSISTENCE DEBUG] setupEnginePersistence function starting...');
   try {
     if (Engine.controllerMessenger) {
+      console.log('✅ [SETUP ENGINE PERSISTENCE DEBUG] Engine.controllerMessenger exists');
+      console.log(`📋 [SETUP ENGINE PERSISTENCE DEBUG] Setting up ${BACKGROUND_STATE_CHANGE_EVENT_NAMES.length} event listeners`);
+      
       BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
         const controllerName = eventName.split(':')[0];
+        console.log(`🎧 [SETUP ENGINE PERSISTENCE DEBUG] Setting up listener for: ${eventName}`);
+        
         Engine.controllerMessenger.subscribe(
           eventName,
           // Debounce to prevent excessive filesystem writes during rapid state changes
           // WARNING: lodash.debounce with async functions can cause race conditions
           debounce(async (controllerState) => {
+            console.log(`🔔 [CONTROLLER STATE CHANGE DEBUG] ${eventName} triggered`);
             try {
               // Filter out non-persistent fields based on controller metadata
               const filteredState = getPersistentState(
@@ -177,11 +278,13 @@ export const setupEnginePersistence = () => {
                 Engine.context[controllerName as keyof EngineContext]?.metadata,
               );
 
-              // Save the filtered state to filesystem storage
+              console.log(`💾 [CONTROLLER STATE CHANGE DEBUG] About to persist ${controllerName} state`);
+              // Save the filtered state to storage
               await ControllerStorage.setItem(
                 `persist:${controllerName}`,
                 JSON.stringify(filteredState),
               );
+              console.log(`✅ [CONTROLLER STATE CHANGE DEBUG] ${controllerName} state persisted successfully`);
               Logger.log(`${controllerName} state persisted successfully`);
 
               // Notify Redux that this controller's state has been persisted
@@ -190,7 +293,9 @@ export const setupEnginePersistence = () => {
                 type: UPDATE_BG_STATE_KEY,
                 payload: { key: controllerName },
               });
+              console.log(`🔄 [CONTROLLER STATE CHANGE DEBUG] Redux updated for ${controllerName}`);
             } catch (error) {
+              console.log(`❌ [CONTROLLER STATE CHANGE DEBUG] Failed to persist ${controllerName} state:`, error);
               Logger.error(
                 error as Error,
                 `Failed to persist ${controllerName} state`,
@@ -199,16 +304,21 @@ export const setupEnginePersistence = () => {
           }, 200),
         );
       });
+      console.log('✅ [SETUP ENGINE PERSISTENCE DEBUG] All event listeners set up successfully');
       Logger.log(
         'Individual controller persistence and Redux update subscriptions set up successfully',
       );
+    } else {
+      console.log('❌ [SETUP ENGINE PERSISTENCE DEBUG] Engine.controllerMessenger does not exist!');
     }
   } catch (error) {
+    console.log('💥 [SETUP ENGINE PERSISTENCE DEBUG] Error setting up engine persistence:', error);
     Logger.error(
       error as Error,
       'Failed to set up Engine persistence subscription',
     );
   }
+  console.log('🏁 [SETUP ENGINE PERSISTENCE DEBUG] setupEnginePersistence function completed');
 };
 
 const persistUserTransform = createTransform(
@@ -255,6 +365,6 @@ const persistConfig = {
 };
 
 // Re-export Realm storage for easy access
-export { RealmControllerStorage };
+export { RealmControllerStorage, RealmPersistentStorage };
 
 export default persistConfig;
