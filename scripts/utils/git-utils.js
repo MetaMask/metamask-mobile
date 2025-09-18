@@ -25,24 +25,14 @@ function getPRChangedFiles() {
       .filter(file => !file.includes('.test.'));
 
   } catch (error) {
-    if (error.message.includes('gh: command not found') || error.message.includes('gh --version')) {
-      console.warn('⚠️  GitHub CLI (gh) not found. Install with: brew install gh');
-      console.log('Falling back to git diff...');
+    if (error.message.includes('gh: command not found')) {
+      console.error('❌ GitHub CLI (gh) is required for PR analysis.');
+      console.error('   Install with: brew install gh (macOS) or visit https://cli.github.com');
     } else {
-      console.log('Not in a PR or gh CLI issue, using git diff...');
+      console.error('❌ Unable to get PR files. Ensure you are in a PR branch and GitHub CLI is configured.');
+      console.error('   Run: gh auth login');
     }
-
-    // Fallback to git diff
-    const output = execSync('git diff --name-only HEAD~3...HEAD', {
-      encoding: 'utf8',
-      cwd: process.cwd()
-    });
-
-    return output
-      .split('\n')
-      .filter(Boolean)
-      .filter(file => /\.(ts|tsx|js|jsx)$/.test(file))
-      .filter(file => !file.includes('.test.'));
+    process.exit(1);
   }
 }
 
