@@ -28,7 +28,7 @@ jest.mock('../../utils', () => ({
 describe('DepositOrderContent Component', () => {
   const mockOrder = {
     id: 'test-order-id-123456',
-    provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+    provider: FIAT_ORDER_PROVIDERS.TRANSAK,
     createdAt: Date.now(),
     amount: '100',
     currency: 'USD',
@@ -146,7 +146,6 @@ describe('DepositOrderContent Component', () => {
         id: 'test-order-id-123456',
         providerOrderId: 'transak-provider-order-id-123456',
         status: 'PENDING',
-        // Explicitly omit statusDescription to test missing case
       } as DepositOrder,
     };
 

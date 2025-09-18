@@ -304,7 +304,6 @@ describe('DepositPhoneField', () => {
     });
 
     it('passes regions prop to region selector modal when flag is pressed', () => {
-      // Arrange
       const testRegions = [MOCK_US_REGION, MOCK_CA_REGION];
 
       (mockUseDepositSDK as jest.Mock).mockReturnValue({
@@ -316,11 +315,9 @@ describe('DepositPhoneField', () => {
         <DepositPhoneField {...defaultProps} regions={testRegions} />,
       );
 
-      // Act
       const flagButton = getByRole('button');
       fireEvent.press(flagButton);
 
-      // Assert
       expect(mockNavigation.navigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: {
