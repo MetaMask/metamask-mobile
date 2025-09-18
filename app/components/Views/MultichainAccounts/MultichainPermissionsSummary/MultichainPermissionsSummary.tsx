@@ -318,36 +318,6 @@ const MultichainPermissionsSummary = ({
     endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [onRevokeAllHandler, hostname, navigate]);
 
-  const getAccountLabel = useCallback(() => {
-    const firstAccountGroup = accountGroups.find((accountGroup) =>
-      selectedAccountGroupIds.includes(accountGroup.id),
-    );
-    if (isAlreadyConnected) {
-      if (selectedAccountGroupIds.length === 1) {
-        return `${strings('permissions.connected_to')} ${
-          firstAccountGroup?.metadata.name
-        }`;
-      }
-
-      return `${selectedAccountGroupIds.length} ${strings(
-        'accounts.accounts_connected',
-      )}`;
-    }
-
-    if (
-      selectedAccountGroupIds.length === 1 &&
-      selectedAccountGroupIds.length >= 1
-    ) {
-      return `${strings('permissions.requesting_for')}${
-        firstAccountGroup?.metadata.name
-      }`;
-    }
-
-    return strings('permissions.requesting_for_accounts', {
-      numberOfAccounts: selectedAccountGroupIds.length,
-    });
-  }, [accountGroups, selectedAccountGroupIds, isAlreadyConnected]);
-
   const getNetworkLabel = useCallback(() => {
     if (isAlreadyConnected) {
       return networkAvatars.length === 1
@@ -423,7 +393,7 @@ const MultichainPermissionsSummary = ({
                   ellipsizeMode="tail"
                 >
                   <TextComponent variant={TextVariant.BodySM}>
-                    {getAccountLabel()}
+                    {strings('permissions.requesting_for')}
                   </TextComponent>
                 </TextComponent>
               </View>
