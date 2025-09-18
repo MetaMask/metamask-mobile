@@ -243,6 +243,7 @@ import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
+import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1176,6 +1177,7 @@ export class Engine {
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
         RewardsController: rewardsControllerInit,
+        DelegationController: DelegationControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1193,6 +1195,7 @@ export class Engine {
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
     const rewardsController = controllersByName.RewardsController;
+    const delegationController = controllersByName.DelegationController;
 
     // Initialize and store RewardsDataService
     this.rewardsDataService = new RewardsDataService({
@@ -1583,6 +1586,7 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       RewardsController: rewardsController,
+      DelegationController: delegationController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2331,6 +2335,7 @@ export default {
       SeedlessOnboardingController,
       NetworkEnablementController,
       RewardsController,
+      DelegationController,
     } = instance.datamodel.state;
 
     return {
@@ -2388,6 +2393,7 @@ export default {
       SeedlessOnboardingController,
       NetworkEnablementController,
       RewardsController,
+      DelegationController,
     };
   },
 
