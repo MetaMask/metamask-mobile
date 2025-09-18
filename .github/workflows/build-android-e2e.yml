@@ -150,10 +150,34 @@ jobs:
           # Update the JS bundle directly in the APK (similar to iOS approach)
           # When we cd into android/, the relative path needs adjustment
           (cd android && zip -u app/build/outputs/apk/prod/release/app-prod-release.apk assets/index.android.bundle)
+
+          # CRITICAL: Re-sign the APK after modification
+          # The zip update breaks the original signature
+          echo "🔏 Re-signing APK after JavaScript update..."
+
+          # Remove old signature files
+          zip -d "$APK_PATH" "META-INF/*.SF" "META-INF/*.RSA" "META-INF/*.DSA" 2>/dev/null || true
+
+          # Re-sign with the debug keystore (same as original build)
+          jarsigner -verbose \
+            -sigalg SHA256withRSA \
+            -digestalg SHA-256 \
+            -keystore android/app/debug.keystore \
+            -storepass android \
+            -keypass android \
+            "$APK_PATH" \
+            androiddebugkey
+
+          # Verify the signature
+          jarsigner -verify "$APK_PATH"
+
+          # Align the APK for optimal performance
+          zipalign -v 4 "$APK_PATH" "${APK_PATH}.aligned"
+          mv "${APK_PATH}.aligned" "$APK_PATH"
  
           # Cleanup
           rm -rf android/assets
-          echo "✅ APK repacked successfully"
+          echo "✅ APK repacked and re-signed successfully"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
