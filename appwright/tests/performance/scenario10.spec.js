@@ -13,79 +13,97 @@ import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/Create
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import AppwrightSelectors from '../../../wdio/helpers/AppwrightSelectors.js';
 import PerpsTutorialScreen from '../../../wdio/screen-objects/PerpsTutorialScreen.js';
 import PerpsMarketListView from '../../../wdio/screen-objects/PerpsMarketListView.js';
 import PerpsTabView from '../../../wdio/screen-objects/PerpsTabView.js';
 import PerpsDepositScreen from '../../../wdio/screen-objects/PerpsDepositScreen.js';
 import { onboardingFlowImportSRP } from '../../utils/Flows.js';
 
+async function screensSetup(device) {
+  const screens = [
+    WelcomeScreen,
+    TermOfUseScreen,
+    OnboardingScreen,
+    CreateNewWalletScreen,
+    MetaMetricsScreen,
+    OnboardingSucessScreen,
+    OnboardingSheet,
+    ImportFromSeedScreen,
+    CreatePasswordScreen,
+    WalletMainScreen,
+    TabBarModal,
+    WalletActionModal,
+    PerpsTutorialScreen,
+    PerpsMarketListView,
+    PerpsTabView,
+    PerpsDepositScreen,
+  ];
+  screens.forEach((screen) => {
+    screen.device = device;
+  });
+}
+
 test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   device,
   performanceTracker,
 }, testInfo) => {
-  WelcomeScreen.device = device;
-  TermOfUseScreen.device = device;
-  OnboardingScreen.device = device;
-  CreateNewWalletScreen.device = device;
-  MetaMetricsScreen.device = device;
-  OnboardingSucessScreen.device = device;
-  OnboardingSheet.device = device;
-  ImportFromSeedScreen.device = device;
-  CreatePasswordScreen.device = device;
-  WalletMainScreen.device = device;
-  TabBarModal.device = device;
-  WalletActionModal.device = device;
-  PerpsTutorialScreen.device = device;
-  PerpsMarketListView.device = device;
-  PerpsTabView.device = device;
-  PerpsDepositScreen.device = device;
+  await screensSetup(device);
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
 
   await TabBarModal.tapActionButton();
 
-  const openPerpsTimer = new TimerHelper('Open Perps tab');
+  // Open Perps tab
+  await TimerHelper.withTimer(
+    performanceTracker,
+    'Open Perps tab',
+    async () => {
+      await PerpsTabView.tapPerpsTab();
+      await PerpsTutorialScreen.expectFirstScreenVisible();
+    },
+  );
 
-  openPerpsTimer.start();
-  await PerpsTabView.tapPerpsTab();
+  // Open Tutorial flow
+  await PerpsTutorialScreen.flowTapContinueTutorial(5);
 
-  openPerpsTimer.stop();
-  performanceTracker.addTimer(openPerpsTimer);
+  // Open Add Funds flow
+  await TimerHelper.withTimer(
+    performanceTracker,
+    'Open Add Funds',
+    async () => {
+      await PerpsTutorialScreen.tapAddFunds();
+      await PerpsDepositScreen.isAmountInputVisible();
+    },
+  );
 
-  const tutorialTimer = new TimerHelper('Tutorial flow');
+  // Select pay token
+  await TimerHelper.withTimer(
+    performanceTracker,
+    'Select pay token - 1 click USDC.arb',
+    async () => {
+      await PerpsDepositScreen.tapPayWith();
+      await PerpsDepositScreen.selectPayTokenByText('0xa4b1', 'USDC');
+    },
+  );
 
-  tutorialTimer.start();
-  // Ensure we are on the first tutorial screen
-  await PerpsTutorialScreen.expectFirstScreenVisible();
-  await PerpsTutorialScreen.tapContinueTutorial(5);
+  // Fill amount
+  await TimerHelper.withTimer(
+    performanceTracker,
+    'Fill amount - 10 USD',
+    async () => {
+      await PerpsDepositScreen.fillUsdAmount('10');
+      await PerpsDepositScreen.tapContinue();
+    },
+  );
 
-  // Tap Add Funds in the last tutorial slide
-  await PerpsTutorialScreen.tapAddFunds();
-
-  tutorialTimer.stop();
-  performanceTracker.addTimer(tutorialTimer);
-
-  const openAddFundsTimer = new TimerHelper('Add funds flow Total time');
-  openAddFundsTimer.start();
-
-  await PerpsDepositScreen.isAmountInputVisible();
-
-  const openPayWithTimer = new TimerHelper('Select pay token - 1 click');
-  openPayWithTimer.start();
-  await PerpsDepositScreen.openPayWith();
-
-  await PerpsDepositScreen.selectPayTokenByText('0xa4b1', 'USDC');
-  openPayWithTimer.stop();
-  performanceTracker.addTimer(openPayWithTimer);
-  await PerpsDepositScreen.fillUsdAmount('10');
-
-  await PerpsDepositScreen.tapContinue();
-
-  await PerpsDepositScreen.tapCancel();
-
-  openAddFundsTimer.stop();
-  performanceTracker.addTimer(openAddFundsTimer);
+  // Cancel
+  await TimerHelper.withTimer(
+    performanceTracker,
+    'Cancel - 1 click',
+    async () => {
+      await PerpsDepositScreen.tapCancel();
+    },
+  );
 
   await performanceTracker.attachToTest(testInfo);
 });

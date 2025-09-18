@@ -9,6 +9,18 @@ class PerpsTutorialScreen {
     this._device = device;
   }
 
+  async getAddFundsButton() {
+    return await AppwrightSelectors.getElementByID(
+      this._device,
+      'perps-tutorial-continue-button',
+    );
+  }
+
+  async tapAddFunds() {
+    const btn = await this.getAddFundsButton();
+    await btn.tap();
+}
+
   async tapSkip() {
     const btn = await AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-skip-button');
     await btn.tap();
@@ -22,29 +34,11 @@ class PerpsTutorialScreen {
     await title.isVisible({ timeout: 10000 });
   }
 
-  async tapContinueTutorial(times = 1) {
+  async flowTapContinueTutorial(times = 1) {
     const btn = await AppwrightSelectors.getElementByID(this._device, 'perps-tutorial-continue-button');
     for (let i = 0; i < times; i++) {
       await btn.tap();
     }
-  }
-
-  async tapAddFunds() {
-    // In the last slide, the Continue button label changes to "Add funds" but testID remains the same
-    let btn;
-    try {
-      btn = await AppwrightSelectors.getElementByID(
-        this._device,
-        'perps-tutorial-continue-button',
-      );
-    } catch {}
-    if (!btn) {
-      btn = await AppwrightSelectors.getElementByCatchAll(
-        this._device,
-        'Add funds',
-      );
-    }
-    await btn.tap();
   }
 }
 
