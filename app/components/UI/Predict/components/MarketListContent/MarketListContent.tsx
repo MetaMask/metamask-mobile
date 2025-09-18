@@ -41,9 +41,12 @@ const MarketListContent: React.FC<MarketListContentProps> = ({
   const listRef = useRef<FlashListRef<PredictMarketType>>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const renderItem = useCallback(({ item }: { item: PredictMarketType }) => {
-    return <PredictMarket key={item.id} market={item} />;
-  }, []);
+  const renderItem = useCallback(
+    ({ item }: { item: PredictMarketType }) => (
+      <PredictMarket key={item.id} market={item} />
+    ),
+    [],
+  );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
 
