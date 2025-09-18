@@ -559,16 +559,33 @@ workflows:
       - prep_environment
     steps:
       # - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore Yarn cache
+          inputs:
+            - key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
+            - fallback_key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
+                # For Yarn v3, the cache directory is .yarn/cache
+                envman add --key YARN_CACHE_DIR --value ".yarn/cache"
+          title: Set Yarn v3 cache directory
+      - yarn@0:
+          inputs:
+            - command: install --immutable
+          title: Yarn Install (Immutable)
       - yarn@0:
           inputs:
             - command: setup
           title: Yarn Setup
+      - save-cache@1:
+          title: Save Yarn cache
+          inputs:
+            - key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
+            - paths: |-
+                .yarn/cache
+                .yarn/unplugged
   prep_environment:
     steps:
       - restore-cache@2:
@@ -623,8 +640,10 @@ workflows:
 
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
-                echo "Corepack enabling $YARN_VERSION"
+                echo "Corepack enabling Yarn $YARN_VERSION"
                 corepack enable
+                # Ensure Yarn v3 is properly prepared
+                corepack prepare yarn@$YARN_VERSION --activate
       - save-cache@1:
           title: Save Node
           inputs:
