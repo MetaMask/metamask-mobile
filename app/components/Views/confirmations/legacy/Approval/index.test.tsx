@@ -33,9 +33,6 @@ jest.mock('../../../../../util/dappTransactions', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
   context: {
-    KeyringController: {
-      resetQRKeyringState: jest.fn(),
-    },
     GasFeeController: {
       getGasFeeEstimatesAndStartPolling: jest.fn().mockResolvedValue(null),
       stopPolling: jest.fn(),
