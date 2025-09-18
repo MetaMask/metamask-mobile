@@ -24,11 +24,6 @@ const styleSheet = (params: {
   const { theme, vars } = params;
   const { style, size, isDisabled } = vars;
 
-  // Placeholder text color based on state
-  const placeholderTextColor = isDisabled
-    ? theme.colors.text.muted
-    : theme.colors.text.alternative;
-
   const styles = StyleSheet.create({
     base: Object.assign(
       {
@@ -60,10 +55,7 @@ const styleSheet = (params: {
     },
   });
 
-  return {
-    ...styles,
-    placeholderTextColor,
-  };
+  return styles;
 };
 
 export default styleSheet;

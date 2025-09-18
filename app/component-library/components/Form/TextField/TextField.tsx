@@ -52,13 +52,18 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
       [],
     );
 
-    const { styles } = useStyles(styleSheet, {
+    const { styles, theme } = useStyles(styleSheet, {
       style,
       size,
       isError,
       isDisabled,
       isFocused,
     });
+
+    // Placeholder text color based on state
+    const placeholderTextColor = isDisabled
+      ? theme.colors.text.muted
+      : theme.colors.text.alternative;
 
     const onBlurHandler = useCallback(
       // TODO: Replace "any" with type
@@ -114,7 +119,7 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
               onFocus={onFocusHandler}
               testID={testID}
               style={styles.input}
-              placeholderTextColor={styles.placeholderTextColor}
+              placeholderTextColor={placeholderTextColor}
               {...props}
               ref={inputRef}
               isStateStylesDisabled
