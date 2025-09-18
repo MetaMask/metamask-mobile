@@ -36,7 +36,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
-        run: yarn setup:ci
+        run: yarn setup:github-ci
       - name: Require clean working directory
         shell: bash
         run: |
@@ -62,7 +62,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
-        run: yarn setup:ci --node
+        run: yarn setup:github-ci --node
       - name: Deduplicate dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -93,7 +93,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
-        run: yarn setup:ci --node
+        run: yarn setup:github-ci --node
       - name: Run @lavamoat/git-safe-dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -128,7 +128,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
-        run: yarn setup:ci --node
+        run: yarn setup:github-ci --node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -158,7 +158,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
-        run: yarn setup:ci --node
+        run: yarn setup:github-ci --node
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
@@ -199,7 +199,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
-        run: yarn setup:ci --node
+        run: yarn setup:github-ci --node
       - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
@@ -263,7 +263,7 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
-        run: yarn setup:ci --no-build-android
+        run: yarn setup:github-ci --no-build-android
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios

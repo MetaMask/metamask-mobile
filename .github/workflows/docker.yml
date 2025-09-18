@@ -39,6 +39,6 @@ jobs:
             --rm \
             -v "$(pwd):/app" -w /app \
             metamask-mobile-builder:latest \
-            bash -c 'yarn install --immutable && yarn setup:ci --build-ios --no-install-pods'
+            bash -c 'yarn install --immutable && yarn setup:github-ci --build-ios --no-install-pods'
             # restore ownership for cleanup
             sudo chown -R "$(id -u):$(id -g)" .
