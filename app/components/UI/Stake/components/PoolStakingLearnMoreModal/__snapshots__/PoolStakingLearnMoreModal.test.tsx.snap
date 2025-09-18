@@ -588,7 +588,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   }
                 }
               >
-                Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.
+                Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.
               </Text>
             </Text>
             <Text
