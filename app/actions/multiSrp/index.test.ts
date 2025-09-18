@@ -13,6 +13,7 @@ import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
+import { waitFor } from '@testing-library/react-native';
 
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
@@ -191,10 +192,16 @@ describe('MultiSRP Actions', () => {
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
       mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
-      // Act
-      const result = await importNewSecretRecoveryPhrase(testMnemonic);
+      const mockCallback = jest.fn();
 
-      // Assert
+      // Act
+      const result = await importNewSecretRecoveryPhrase(
+        testMnemonic,
+        undefined,
+        mockCallback,
+      );
+
+      // Assert synchronous return
       expect(mockAddNewKeyring).toHaveBeenCalledWith(ExtendedKeyringTypes.hd, {
         mnemonic: testMnemonic,
         numberOfAccounts: 1,
@@ -204,7 +211,15 @@ describe('MultiSRP Actions', () => {
       expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 5,
+        discoveredAccountsCount: 0, // Returns 0 immediately for multichain accounts state 2
+      });
+
+      // Assert callback receives the actual discovered accounts count
+      await waitFor(() => {
+        expect(mockCallback).toHaveBeenCalledWith({
+          address: testAddress,
+          discoveredAccountsCount: 5,
+        });
       });
     });
 
@@ -219,15 +234,29 @@ describe('MultiSRP Actions', () => {
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
       mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
-      // Act
-      const result = await importNewSecretRecoveryPhrase(testMnemonic);
+      const mockCallback = jest.fn();
 
-      // Assert
+      // Act
+      const result = await importNewSecretRecoveryPhrase(
+        testMnemonic,
+        undefined,
+        mockCallback,
+      );
+
+      // Assert synchronous return
       expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
       expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
       expect(result).toEqual({
         address: testAddress,
-        discoveredAccountsCount: 0, // Discovery has failed.
+        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+      });
+
+      // Assert callback receives 0 when discovery fails
+      await waitFor(() => {
+        expect(mockCallback).toHaveBeenCalledWith({
+          address: testAddress,
+          discoveredAccountsCount: 0, // Discovery has failed, so callback gets 0
+        });
       });
     });
 

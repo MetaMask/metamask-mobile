@@ -26,11 +26,11 @@ import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { captureException } from '@sentry/core';
 
-interface ImportNewSecretRecoveryPhraseOptions {
+export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
 }
 
-interface ImportNewSecretRecoveryPhraseReturnType {
+export interface ImportNewSecretRecoveryPhraseReturnType {
   address: string;
   discoveredAccountsCount: number;
 }
