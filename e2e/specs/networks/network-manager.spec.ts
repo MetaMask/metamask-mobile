@@ -183,7 +183,59 @@ const isRemoveGlobalNetworkSelectorEnabled =
       );
     });
 
-    it('should filter tokens by popular enabled networks', async () => {
+    it('should filter by Solana', async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withPopularNetworks()
+            .withNetworkEnabledMap({
+              eip155: { '0xaa36a7': false }, // Sepolia disabled
+            })
+            .build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
+
+          // Open network manager and verify initial state
+          await NetworkManager.openNetworkManager();
+          await NetworkManager.waitForNetworkManagerToLoad();
+          await NetworkManager.checkPopularNetworksContainerIsVisible();
+          await NetworkManager.checkTabIsSelected('Popular');
+
+          // Select Ethereum network
+          await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
+          // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
+          // as thee globally selected network in the useNetworkSelection hook. This is needed until we
+          // resolve BIP44 issues with network filtering
+          await NetworkEducationModal.tapGotItButton();
+          await NetworkManager.checkBaseControlBarText(
+            NetworkToCaipChainId.SOLANA,
+          );
+
+          // Verify tokens that should be visible on Ethereum
+          const expectedVisibleTokens = ['SOL'];
+          for (const token of expectedVisibleTokens) {
+            await NetworkManager.checkTokenIsVisible(token);
+          }
+
+          // Verify EVM tokens that should not be visible (from other networks)
+          const expectedHiddenTokens = [
+            'PALM',
+            'AVAX',
+            'BNB',
+            'ETH',
+            'USDC',
+            'DAI',
+          ];
+          for (const token of expectedHiddenTokens) {
+            await NetworkManager.checkTokenIsNotVisible(token);
+          }
+        },
+      );
+    });
+
+    it('should filter tokens by enabled popular networks', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
