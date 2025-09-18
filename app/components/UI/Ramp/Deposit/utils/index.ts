@@ -5,6 +5,9 @@ import {
   DepositCryptoCurrency,
   DepositFiatCurrency,
   DepositPaymentMethod,
+  ETH_TOKEN,
+  MUSD_LINEA_TOKEN,
+  MUSD_TOKEN,
   USDC_BASE_TOKEN,
   USDC_BSC_TOKEN,
   USDC_LINEA_TOKEN,
@@ -40,6 +43,9 @@ export const validateEmail = function (email: string) {
 };
 
 const TRANSAK_CRYPTO_IDS: Record<string, string> = {
+  [ETH_TOKEN.assetId]: 'ETH',
+  [MUSD_TOKEN.assetId]: 'MUSD',
+  [MUSD_LINEA_TOKEN.assetId]: 'MUSD',
   [USDC_TOKEN.assetId]: 'USDC',
   [USDC_LINEA_TOKEN.assetId]: 'USDC',
   [USDC_BASE_TOKEN.assetId]: 'USDC',
@@ -245,6 +251,9 @@ const TRANSAK_ID_TO_ASSET_ID: Record<
   `${string}/${string}`,
   CaipAssetReference
 > = {
+  'ethereum/eth': ETH_TOKEN.assetId,
+  'ethereum/musd': MUSD_TOKEN.assetId,
+  'linea/musd': MUSD_LINEA_TOKEN.assetId,
   'ethereum/usdc': USDC_TOKEN.assetId,
   'linea/usdc': USDC_LINEA_TOKEN.assetId,
   'base/usdc': USDC_BASE_TOKEN.assetId,

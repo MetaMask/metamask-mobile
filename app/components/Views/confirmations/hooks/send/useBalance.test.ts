@@ -1,23 +1,20 @@
+import BN from 'bnjs4';
+import { Hex } from '@metamask/utils';
+
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { AssetType } from '../../types/token';
 import {
+  ACCOUNT_ADDRESS_MOCK_1,
   evmSendStateMock,
   TOKEN_ADDRESS_MOCK_1,
 } from '../../__mocks__/send.mock';
-import {
-  getEvmBalance,
-  GetEvmBalanceArgs,
-  getNonEvmBalance,
-  useBalance,
-} from './useBalance';
+import { getBalance, GetBalanceArgs, useBalance } from './useBalance';
 
 const mockState = {
   state: evmSendStateMock,
 };
 
-const getEvmbalanceFnArguments = (params: Record<string, unknown>) => ({
-  accounts: { [TOKEN_ADDRESS_MOCK_1]: { balance: '0x3635C9ADC5DEA00000' } },
-  asset: {},
+const getBalanceFnArguments = (params: Record<string, unknown> = {}) => ({
+  asset: { rawBalance: '0x3635C9ADC5DEA00000', decimals: 18 },
   contractBalances: { '0x111': '0x3B9ACA00' },
   from: TOKEN_ADDRESS_MOCK_1,
   ...params,
@@ -26,70 +23,90 @@ const getEvmbalanceFnArguments = (params: Record<string, unknown>) => ({
 describe('getPercentageValueFn', () => {
   it('return default if no asset is passed', () => {
     expect(
-      getEvmBalance(
-        getEvmbalanceFnArguments({
+      getBalance(
+        getBalanceFnArguments({
           asset: undefined,
-        }) as unknown as GetEvmBalanceArgs,
+        }) as unknown as GetBalanceArgs,
       ),
-    ).toStrictEqual('0');
+    ).toStrictEqual({ balance: '0', decimals: 0, rawBalanceBN: new BN('0') });
   });
 
-  it('return correct value for native token', () => {
+  it('use asset.rawBalance to get balance if available', () => {
     expect(
-      getEvmBalance(
-        getEvmbalanceFnArguments({
-          asset: {
-            isNative: true,
-            chainId: '0x1',
-          },
-        }) as unknown as GetEvmBalanceArgs,
-      ),
-    ).toStrictEqual('1000');
+      getBalance(getBalanceFnArguments() as unknown as GetBalanceArgs),
+    ).toStrictEqual({
+      balance: '1000',
+      decimals: 18,
+      rawBalanceBN: new BN('3635c9adc5dea00000', 16),
+    });
   });
 
-  it('return correct value for ERC20 token', () => {
+  it('use value from accountsByChainId for native asset if asset.rawBalance is not available', () => {
     expect(
-      getEvmBalance(
-        getEvmbalanceFnArguments({
+      getBalance(
+        getBalanceFnArguments({
           asset: {
             address: '0x111',
+            chainId: '0x1',
             decimals: 2,
+            isNative: true,
           },
-        }) as unknown as GetEvmBalanceArgs,
+          chainId: '0x1',
+          accountsByChainId: {
+            ['0x1' as Hex]: {
+              [ACCOUNT_ADDRESS_MOCK_1]: {
+                balance: '0xDE0B6B3A7640000',
+              },
+            },
+          },
+          from: ACCOUNT_ADDRESS_MOCK_1,
+          isEvmSendType: true,
+        }) as unknown as GetBalanceArgs,
       ),
-    ).toStrictEqual('10000000');
-  });
-});
-
-describe('getNonEvmBalance', () => {
-  it('return default if no asset is passed', () => {
-    expect(getNonEvmBalance(undefined)).toStrictEqual('0');
+    ).toStrictEqual({
+      balance: '10000000000000000',
+      decimals: 2,
+      rawBalanceBN: new BN('de0b6b3a7640000', 16),
+    });
   });
 
-  it('return correct value for native token', () => {
+  it('use value from contractBalances for ERC20 asset if asset.rawBalance is not available', () => {
     expect(
-      getNonEvmBalance({
-        isNative: true,
-        chainId: '0x1',
-        balance: '0.0001',
-      } as AssetType),
-    ).toStrictEqual('0.0001');
+      getBalance(
+        getBalanceFnArguments({
+          asset: { address: '0x111', chainId: '0x1', decimals: 2 },
+          isEvmSendType: true,
+        }) as unknown as GetBalanceArgs,
+      ),
+    ).toStrictEqual({
+      balance: '10000000',
+      decimals: 2,
+      rawBalanceBN: new BN('3B9ACA00', 16),
+    });
   });
 
-  it('return correct value for non-native token', () => {
+  it('use asset.balance by default if available', () => {
     expect(
-      getNonEvmBalance({
-        address: '0x111',
-        decimals: 2,
-        balance: '10.05',
-      } as AssetType),
-    ).toStrictEqual('10.05');
+      getBalance(
+        getBalanceFnArguments({
+          asset: { balance: '1.0005', decimals: 5 },
+        }) as unknown as GetBalanceArgs,
+      ),
+    ).toStrictEqual({
+      balance: '1.0005',
+      decimals: 5,
+      rawBalanceBN: new BN('186d2', 16),
+    });
   });
 });
 
 describe('useBalance', () => {
   it('return balance of the user', () => {
     const { result } = renderHookWithProvider(() => useBalance(), mockState);
-    expect(result.current).toEqual({ balance: '0' });
+    expect(result.current).toEqual({
+      balance: '0',
+      decimals: 0,
+      rawBalanceBN: new BN('0'),
+    });
   });
 });

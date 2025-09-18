@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import type { OrderFormState } from '../types';
 import { calculateMarginRequired } from '../utils/orderCalculations';
-import { usePerpsAccount } from './usePerpsAccount';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
+import { usePerpsLiveAccount } from './stream';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -50,11 +51,11 @@ export function usePerpsOrderForm(
   } = params;
 
   const currentNetwork = usePerpsNetwork();
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
-  // Get available balance
+  // Get available balance from live account data
   const availableBalance = parseFloat(
-    cachedAccountState?.availableBalance?.toString() || '0',
+    account?.availableBalance?.toString() || '0',
   );
 
   // Determine default amount based on network
@@ -63,8 +64,20 @@ export function usePerpsOrderForm(
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
 
+  // Calculate the maximum possible amount based on available balance and leverage
+  const defaultLeverage = initialLeverage || TRADING_DEFAULTS.leverage;
+  const maxPossibleAmount = availableBalance * defaultLeverage;
+
+  // Use 0 as initial amount if the total balance times leverage is less than the default amount
+  const initialAmountValue =
+    initialAmount ||
+    (maxPossibleAmount < defaultAmount
+      ? maxPossibleAmount.toString()
+      : defaultAmount.toString());
+
   // Calculate initial balance percentage
-  const initialMarginRequired = defaultAmount / TRADING_DEFAULTS.leverage;
+  const initialMarginRequired =
+    parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
     availableBalance > 0
       ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
@@ -74,8 +87,8 @@ export function usePerpsOrderForm(
   const [orderForm, setOrderForm] = useState<OrderFormState>({
     asset: initialAsset,
     direction: initialDirection,
-    amount: initialAmount || defaultAmount.toString(),
-    leverage: initialLeverage || TRADING_DEFAULTS.leverage,
+    amount: initialAmountValue,
+    leverage: defaultLeverage,
     balancePercent: Math.round(initialBalancePercent * 100) / 100,
     takeProfitPrice: undefined,
     stopLossPrice: undefined,
@@ -106,15 +119,31 @@ export function usePerpsOrderForm(
   };
 
   const setTakeProfitPrice = (price?: string) => {
-    setOrderForm((prev) => ({ ...prev, takeProfitPrice: price }));
+    // Convert empty string to undefined for proper clearing
+    const cleanedPrice = price === '' || price === null ? undefined : price;
+    setOrderForm((prev) => ({ ...prev, takeProfitPrice: cleanedPrice }));
   };
 
   const setStopLossPrice = (price?: string) => {
-    setOrderForm((prev) => ({ ...prev, stopLossPrice: price }));
+    // Convert empty string to undefined for proper clearing
+    const cleanedPrice = price === '' || price === null ? undefined : price;
+    setOrderForm((prev) => {
+      const newState = { ...prev, stopLossPrice: cleanedPrice };
+      DevLogger.log('[Order Debug] setStopLossPrice state update:', {
+        previousStopLoss: prev.stopLossPrice,
+        newStopLoss: newState.stopLossPrice,
+        actualNewValue: cleanedPrice,
+        wasCleared: cleanedPrice === undefined,
+      });
+      return newState;
+    });
   };
 
   const setLimitPrice = (price?: string) => {
-    setOrderForm((prev) => ({ ...prev, limitPrice: price }));
+    setOrderForm((prev) => {
+      const newState = { ...prev, limitPrice: price };
+      return newState;
+    });
   };
 
   const setOrderType = (type: OrderType) => {
@@ -125,10 +154,12 @@ export function usePerpsOrderForm(
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
       if (availableBalance === 0) return;
-      const newAmount = Math.floor(availableBalance * percentage).toString();
+      const newAmount = Math.floor(
+        availableBalance * orderForm.leverage * percentage,
+      ).toString();
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
-    [availableBalance],
+    [availableBalance, orderForm.leverage],
   );
 
   // Handle max amount selection
@@ -136,7 +167,7 @@ export function usePerpsOrderForm(
     if (availableBalance === 0) return;
     setOrderForm((prev) => ({
       ...prev,
-      amount: Math.floor(availableBalance).toString(),
+      amount: Math.floor(availableBalance * prev.leverage).toString(),
     }));
   }, [availableBalance]);
 

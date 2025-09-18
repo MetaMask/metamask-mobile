@@ -15,6 +15,7 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { selectChainId } from '../../../../selectors/networkController';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
+import { View } from 'react-native';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
@@ -98,7 +99,7 @@ describe('CardSDK Context', () => {
     it('should render children without crashing', () => {
       setupMockUseSelector(mockCardFeatureFlag);
 
-      const TestComponent = () => <div>Test Child</div>;
+      const TestComponent = () => <View>Test Child</View>;
 
       render(
         <CardSDKProvider>
@@ -108,14 +109,13 @@ describe('CardSDK Context', () => {
 
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
-        rawChainId: '0xe708',
       });
     });
 
     it('should not initialize SDK when card feature flag is missing', () => {
       setupMockUseSelector(null);
 
-      const TestComponent = () => <div>Test Child</div>;
+      const TestComponent = () => <View>Test Child</View>;
 
       render(
         <CardSDKProvider>
@@ -136,7 +136,7 @@ describe('CardSDK Context', () => {
       const TestComponent = () => {
         const context = useCardSDK();
         expect(context).toEqual(providedValue);
-        return <div>Test Child</div>;
+        return <View>Test Child</View>;
       };
 
       render(
@@ -223,7 +223,7 @@ describe('CardSDK Context', () => {
     it('should handle undefined card feature flag gracefully', () => {
       setupMockUseSelector(undefined);
 
-      const TestComponent = () => <div>Test Child</div>;
+      const TestComponent = () => <View>Test Child</View>;
 
       render(
         <CardSDKProvider>
@@ -237,7 +237,7 @@ describe('CardSDK Context', () => {
     it('should handle empty card feature flag gracefully', () => {
       setupMockUseSelector({});
 
-      const TestComponent = () => <div>Test Child</div>;
+      const TestComponent = () => <View>Test Child</View>;
 
       render(
         <CardSDKProvider>
@@ -247,7 +247,6 @@ describe('CardSDK Context', () => {
 
       expect(MockedCardholderSDK).toHaveBeenCalledWith({
         cardFeatureFlag: {},
-        rawChainId: '0xe708',
       });
     });
   });

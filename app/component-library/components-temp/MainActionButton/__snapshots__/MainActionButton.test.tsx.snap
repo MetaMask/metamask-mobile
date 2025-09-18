@@ -51,7 +51,7 @@ exports[`MainActionButton should render correctly 1`] = `
           "borderRadius": 12,
           "justifyContent": "center",
           "opacity": 1,
-          "paddingHorizontal": 8,
+          "paddingHorizontal": 4,
           "paddingVertical": 16,
         },
         false,
@@ -64,6 +64,7 @@ exports[`MainActionButton should render correctly 1`] = `
         {
           "alignItems": "center",
           "justifyContent": "center",
+          "width": "100%",
         }
       }
     >
@@ -82,16 +83,20 @@ exports[`MainActionButton should render correctly 1`] = `
       />
       <Text
         accessibilityRole="text"
+        ellipsizeMode="tail"
         numberOfLines={1}
         style={
           {
             "color": "#121314",
+            "flexShrink": 0,
             "fontFamily": "Geist Medium",
             "fontSize": 14,
             "letterSpacing": 0,
             "lineHeight": 22,
             "marginTop": 2,
+            "minWidth": 0,
             "textAlign": "center",
+            "width": "100%",
           }
         }
       >

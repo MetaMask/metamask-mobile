@@ -4,6 +4,7 @@ import {
   screen,
   fireEvent,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
@@ -54,6 +55,17 @@ jest.mock('../../hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
+}));
+
+// Mock the selector module
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -109,6 +121,8 @@ const mockPositions: Position[] = [
     },
     takeProfitPrice: '2200',
     stopLossPrice: '1900',
+    takeProfitCount: 0,
+    stopLossCount: 0,
   },
   {
     coin: 'BTC',
@@ -129,6 +143,8 @@ const mockPositions: Position[] = [
       sinceOpen: '5',
       sinceChange: '2',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   },
 ];
 
@@ -164,6 +180,18 @@ describe('PerpsPositionsView', () => {
     (usePerpsLivePositions as jest.Mock).mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+    });
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
     });
 
     // Using real implementations of utility functions (calculateTotalPnL, formatPrice, formatPnl) to test actual behavior
@@ -205,10 +233,13 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
-        expect(screen.getByText('2 positions')).toBeOnTheScreen();
-        expect(screen.getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
-        expect(screen.getByText(/0\.5000[\s\S]*BTC/)).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('2 positions')).toBeOnTheScreen();
+        expect(within(section).getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
+        expect(
+          within(section).getByText(/0\.5000[\s\S]*BTC/),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -317,7 +348,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
       });
     });
 
@@ -327,7 +359,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
       });
     });
   });
@@ -428,10 +461,9 @@ describe('PerpsPositionsView', () => {
     });
 
     // The close position flow is integrated into the component through
-    // the handleClosePositionClick function which is passed to PerpsPositionCard
-    // as the onClose prop. This function sets the selected position and opens
-    // the PerpsClosePositionBottomSheet. The actual testing of this flow
-    // is covered by the PerpsClosePositionBottomSheet tests.
+    // the close button in PerpsPositionCard navigates to the close position screen.
+    // The navigation and close position flow is now handled by the
+    // PerpsClosePositionView screen.
 
     it('refreshes positions after successful close', async () => {
       // Mock successful close

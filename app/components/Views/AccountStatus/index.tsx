@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   View,
   Image,
@@ -74,12 +74,15 @@ const AccountStatus = ({
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
 
-  const track = (event: IMetaMetricsEvent) => {
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(event).build(),
-      saveOnboardingEvent,
-    );
-  };
+  const track = useCallback(
+    (event: IMetaMetricsEvent) => {
+      trackOnboarding(
+        MetricsEventBuilder.createEventBuilder(event).build(),
+        saveOnboardingEvent,
+      );
+    },
+    [saveOnboardingEvent],
+  );
 
   useEffect(() => {
     const traceName =
@@ -93,10 +96,17 @@ const AccountStatus = ({
       tags: getTraceTags(store.getState()),
       parentContext: onboardingTraceCtx,
     });
+
+    track(
+      type === 'found'
+        ? MetaMetricsEvents.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED
+        : MetaMetricsEvents.ACCOUNT_NOT_FOUND_PAGE_VIEWED,
+    );
+
     return () => {
       endTrace({ name: traceName });
     };
-  }, [onboardingTraceCtx, type]);
+  }, [onboardingTraceCtx, type, track]);
 
   const navigateNextScreen = (
     targetRoute: string,
@@ -143,7 +153,7 @@ const AccountStatus = ({
             </Text>
             <Image
               source={AccountStatusImg}
-              resizeMethod={'auto'}
+              resizeMode="contain"
               style={styles.walletReadyImage}
             />
             <View style={styles.descriptionWrapper}>

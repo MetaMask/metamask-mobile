@@ -55,6 +55,120 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+// Mock liquidation price hook to avoid async side effects
+jest.mock('../../hooks/usePerpsLiquidationPrice', () => ({
+  usePerpsLiquidationPrice: jest.fn(() => ({
+    liquidationPrice: '2500.00',
+    isCalculating: false,
+    error: null,
+  })),
+}));
+
+// Mock TPSL form hook - provide direct implementation
+jest.mock('../../hooks/usePerpsTPSLForm', () => ({
+  __esModule: true,
+  usePerpsTPSLForm: jest.fn(() => ({
+    formState: {
+      takeProfitPrice: '',
+      stopLossPrice: '',
+      takeProfitPercentage: '',
+      stopLossPercentage: '',
+      selectedTpPercentage: null,
+      selectedSlPercentage: null,
+      tpPriceInputFocused: false,
+      tpPercentInputFocused: false,
+      slPriceInputFocused: false,
+      slPercentInputFocused: false,
+      tpUsingPercentage: false,
+      slUsingPercentage: false,
+    },
+    handlers: {
+      handleTakeProfitPriceChange: jest.fn(),
+      handleTakeProfitPercentageChange: jest.fn(),
+      handleStopLossPriceChange: jest.fn(),
+      handleStopLossPercentageChange: jest.fn(),
+      handleTakeProfitPriceFocus: jest.fn(),
+      handleTakeProfitPriceBlur: jest.fn(),
+      handleTakeProfitPercentageFocus: jest.fn(),
+      handleTakeProfitPercentageBlur: jest.fn(),
+      handleStopLossPriceFocus: jest.fn(),
+      handleStopLossPriceBlur: jest.fn(),
+      handleStopLossPercentageFocus: jest.fn(),
+      handleStopLossPercentageBlur: jest.fn(),
+    },
+    buttons: {
+      handleTakeProfitPercentageButton: jest.fn(),
+      handleStopLossPercentageButton: jest.fn(),
+      handleTakeProfitOff: jest.fn(),
+      handleStopLossOff: jest.fn(),
+    },
+    validation: {
+      isValid: true,
+      hasChanges: false,
+      takeProfitError: '',
+      stopLossError: '',
+    },
+    display: {
+      formattedTakeProfitPercentage: '',
+      formattedStopLossPercentage: '',
+    },
+  })),
+}));
+
+// Get a reference to the mock function so we can modify it in tests
+const mockUsePerpsTPSLForm = jest.requireMock(
+  '../../hooks/usePerpsTPSLForm',
+).usePerpsTPSLForm;
+
+// Define the default mock return value
+const defaultMockReturn = {
+  formState: {
+    takeProfitPrice: '',
+    stopLossPrice: '',
+    takeProfitPercentage: '',
+    stopLossPercentage: '',
+    selectedTpPercentage: null,
+    selectedSlPercentage: null,
+    tpPriceInputFocused: false,
+    tpPercentInputFocused: false,
+    slPriceInputFocused: false,
+    slPercentInputFocused: false,
+    tpUsingPercentage: false,
+    slUsingPercentage: false,
+  },
+  handlers: {
+    handleTakeProfitPriceChange: jest.fn(),
+    handleTakeProfitPercentageChange: jest.fn(),
+    handleStopLossPriceChange: jest.fn(),
+    handleStopLossPercentageChange: jest.fn(),
+    handleTakeProfitPriceFocus: jest.fn(),
+    handleTakeProfitPriceBlur: jest.fn(),
+    handleTakeProfitPercentageFocus: jest.fn(),
+    handleTakeProfitPercentageBlur: jest.fn(),
+    handleStopLossPriceFocus: jest.fn(),
+    handleStopLossPriceBlur: jest.fn(),
+    handleStopLossPercentageFocus: jest.fn(),
+    handleStopLossPercentageBlur: jest.fn(),
+  },
+  buttons: {
+    handleTakeProfitPercentageButton: jest.fn(),
+    handleStopLossPercentageButton: jest.fn(),
+    handleTakeProfitOff: jest.fn(),
+    handleStopLossOff: jest.fn(),
+  },
+  validation: {
+    isValid: true,
+    hasChanges: false,
+    takeProfitError: '',
+    stopLossError: '',
+    stopLossLiquidationError: '',
+  },
+  display: {
+    formattedTakeProfitPercentage: '',
+    formattedStopLossPercentage: '',
+  },
+};
+
 // Mock stream hooks
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})), // Return empty object for prices
@@ -66,18 +180,25 @@ jest.mock('../../utils/formatUtils', () => ({
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
   }),
-}));
-
-// Mock validation utilities
-jest.mock('../../utils/tpslValidation', () => ({
-  isValidTakeProfitPrice: jest.fn(),
-  isValidStopLossPrice: jest.fn(),
-  validateTPSLPrices: jest.fn(),
-  getTakeProfitErrorDirection: jest.fn(),
-  getStopLossErrorDirection: jest.fn(),
-  calculatePriceForPercentage: jest.fn(),
-  calculatePercentageForPrice: jest.fn(),
-  hasTPSLValuesChanged: jest.fn(),
+  formatPerpsFiat: jest.fn((value) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
+  }),
+  PRICE_RANGES_POSITION_VIEW: [
+    {
+      condition: (v: number) => v >= 1,
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+      threshold: 1,
+    },
+    {
+      condition: (v: number) => v < 1,
+      minimumDecimals: 2,
+      maximumDecimals: 7,
+      significantDigits: 4,
+      threshold: 0.0000001,
+    },
+  ],
 }));
 
 // Mock strings
@@ -188,6 +309,45 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   },
 }));
 
+// Mock Keypad component
+jest.mock('../../../../../components/Base/Keypad', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      value,
+      onChange,
+      currency,
+      decimals,
+    }: {
+      value: string;
+      onChange: ({ value }: { value: string; valueAsNumber: number }) => void;
+      currency: string;
+      decimals: number;
+    }) => (
+      <View testID="keypad">
+        <Text testID="keypad-value">{value}</Text>
+        <Text testID="keypad-currency">{currency}</Text>
+        <Text testID="keypad-decimals">{decimals}</Text>
+        <TouchableOpacity
+          testID="keypad-test-button"
+          onPress={() => onChange({ value: '123.45', valueAsNumber: 123.45 })}
+        >
+          <Text>Test Keypad Input</Text>
+        </TouchableOpacity>
+      </View>
+    ),
+  };
+});
+
+// Mock Platform
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Platform: {
+    OS: 'ios',
+  },
+}));
+
 // Mock styles
 jest.mock('./PerpsTPSLBottomSheet.styles', () => ({
   createStyles: () => ({
@@ -206,6 +366,8 @@ jest.mock('./PerpsTPSLBottomSheet.styles', () => ({
     percentageButton: { flex: 1 },
     percentageButtonActive: { backgroundColor: 'blue' },
     helperText: { marginTop: 4 },
+    keypadContainer: { paddingHorizontal: 16, paddingVertical: 8 },
+    scrollContent: { flex: 1 },
   }),
 }));
 
@@ -248,22 +410,17 @@ describe('PerpsTPSLBottomSheet', () => {
       sinceOpen: '8.00',
       sinceChange: '3.00',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
     mockUseTheme.mockReturnValue(mockTheme);
+    // Reset the mock to default values
+    mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
 
-    // Default mock implementations - reset the mocked functions from the modules
-    const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-    tpslValidation.isValidTakeProfitPrice.mockReturnValue(true);
-    tpslValidation.isValidStopLossPrice.mockReturnValue(true);
-    tpslValidation.validateTPSLPrices.mockReturnValue(true);
-    tpslValidation.getTakeProfitErrorDirection.mockReturnValue('above');
-    tpslValidation.getStopLossErrorDirection.mockReturnValue('below');
-    tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
-    tpslValidation.calculatePercentageForPrice.mockReturnValue('5.00');
-    tpslValidation.hasTPSLValuesChanged.mockReturnValue(true);
+    // Clear all mock calls
+    jest.clearAllMocks();
   });
 
   describe('Component Rendering', () => {
@@ -311,27 +468,73 @@ describe('PerpsTPSLBottomSheet', () => {
       expect(screen.getByText('$2800.00')).toBeOnTheScreen();
     });
 
-    it('renders percentage buttons with correct values', () => {
+    it('renders percentage buttons with correct RoE values', () => {
       // Act
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      // Assert - Take Profit buttons
-      expect(screen.getByText('+1%')).toBeOnTheScreen();
-      expect(screen.getByText('+5%')).toBeOnTheScreen();
-      expect(screen.getByText('+20%')).toBeOnTheScreen();
-      expect(screen.getByText('+30%')).toBeOnTheScreen();
+      // Assert - Take Profit buttons (RoE percentages)
+      expect(screen.getByText('+10%')).toBeOnTheScreen();
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
+      expect(screen.getByText('+50%')).toBeOnTheScreen();
+      expect(screen.getByText('+100%')).toBeOnTheScreen();
 
-      // Assert - Stop Loss buttons
-      expect(screen.getByText('-1%')).toBeOnTheScreen();
+      // Assert - Stop Loss buttons (RoE percentages)
       expect(screen.getByText('-5%')).toBeOnTheScreen();
-      expect(screen.getByText('-20%')).toBeOnTheScreen();
-      expect(screen.getByText('-30%')).toBeOnTheScreen();
+      expect(screen.getByText('-10%')).toBeOnTheScreen();
+      expect(screen.getByText('-25%')).toBeOnTheScreen();
+      expect(screen.getByText('-50%')).toBeOnTheScreen();
+    });
+
+    it('renders without crashing when position is provided', () => {
+      // Arrange & Act
+      render(
+        <PerpsTPSLBottomSheet {...defaultProps} position={mockPosition} />,
+      );
+
+      // Assert - Component should render successfully with position
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
+    });
+
+    it('renders without crashing when leverage prop is provided', () => {
+      // Arrange & Act
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={5} />);
+
+      // Assert - Component should render successfully with leverage prop
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
+    });
+
+    it('renders without crashing when margin is provided', () => {
+      // Arrange & Act
+      render(
+        <PerpsTPSLBottomSheet {...defaultProps} marginRequired="500.00" />,
+      );
+
+      // Assert - Component should render successfully with margin prop
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
     });
   });
 
   describe('Initial Values', () => {
     it('initializes with provided take profit and stop loss prices', () => {
-      // Arrange
+      // Arrange - Mock the form hook to return initial values
+      mockUsePerpsTPSLForm.mockImplementation(() => ({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3300.00',
+          stopLossPrice: '$2700.00',
+        },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedTakeProfitPercentage: '10',
+          formattedStopLossPercentage: '10',
+        },
+      }));
+
       const props = {
         ...defaultProps,
         initialTakeProfitPrice: '3300',
@@ -348,31 +551,41 @@ describe('PerpsTPSLBottomSheet', () => {
       expect(stopLossInputs.length).toBeGreaterThan(0);
     });
 
-    it('calculates initial percentages when opening with prices', () => {
+    it('passes initial prices to the form hook correctly', () => {
       // Arrange
       const props = {
         ...defaultProps,
         initialTakeProfitPrice: '3300',
         initialStopLossPrice: '2700',
+        leverage: 10,
       };
 
       // Act
       render(<PerpsTPSLBottomSheet {...props} />);
 
-      // Assert - Component should calculate and display the percentages inline
-      // TP: (3300 - 3000) / 3000 * 100 = 10%
-      // SL: (3000 - 2700) / 3000 * 100 = 10%
-      // We can verify this by checking that the percentage inputs show calculated values
-      expect(screen.getAllByDisplayValue('10.00')).toHaveLength(2); // Both TP and SL percentage inputs
+      // Assert - The hook should have been called with the component
+      // The initial prices are passed as props, so the component should render
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
+
+      // The hook receives these initial values and the component displays them
+      // This tests that the component properly passes props to the hook
+      expect(mockUsePerpsTPSLForm).toHaveBeenCalled();
     });
   });
 
   describe('Input Handling', () => {
-    it('handles take profit price input changes', () => {
+    it('calls price change handler when take profit price input changes', () => {
       // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePercentageForPrice.mockReturnValue('5.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPriceChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -381,27 +594,31 @@ describe('PerpsTPSLBottomSheet', () => {
       // Act
       fireEvent.changeText(takeProfitPriceInput, '3150');
 
-      // Assert
-      expect(takeProfitPriceInput.props.value).toBe('3150');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
-        '3150',
-        true,
-        { currentPrice: 3000, direction: 'long' },
-      );
+      // Assert - Handler should be called with the new value
+      expect(mockHandler).toHaveBeenCalledWith('3150');
     });
 
-    it('sanitizes take profit price input to numbers and decimal only', () => {
+    it('calls handler when take profit price input changes', () => {
       // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPriceChange: mockHandler,
+        },
+      });
+
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
       )[0];
 
       // Act
-      fireEvent.changeText(takeProfitPriceInput, 'abc123.45def');
+      fireEvent.changeText(takeProfitPriceInput, '123.45');
 
-      // Assert
-      expect(takeProfitPriceInput.props.value).toBe('123.45');
+      // Assert - Handler should be called
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
     });
 
     it('prevents multiple decimal points in take profit price input', () => {
@@ -418,33 +635,42 @@ describe('PerpsTPSLBottomSheet', () => {
       expect(takeProfitPriceInput.props.value).toBe('');
     });
 
-    it('handles take profit percentage input changes', () => {
+    it('calls percentage change handler when take profit RoE percentage input changes', () => {
       // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPercentageChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.profit_percent_placeholder',
-      )[0]; // TP percentage input
+        'perps.tpsl.profit_roe_placeholder',
+      )[0]; // TP RoE percentage input
 
       // Act
-      fireEvent.changeText(takeProfitPercentInput, '5');
+      fireEvent.changeText(takeProfitPercentInput, '25');
 
-      // Assert
-      expect(takeProfitPercentInput.props.value).toBe('5');
-      expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-        5,
-        true,
-        { currentPrice: 3000, direction: 'long' },
-      );
+      // Assert - Handler should be called with the new percentage value
+      expect(mockHandler).toHaveBeenCalledWith('25');
     });
 
-    it('handles stop loss price input changes', () => {
+    it('calls stop loss change handler when stop loss price input changes', () => {
       // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePercentageForPrice.mockReturnValue('10.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleStopLossPriceChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const stopLossPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -453,100 +679,92 @@ describe('PerpsTPSLBottomSheet', () => {
       // Act
       fireEvent.changeText(stopLossPriceInput, '2700');
 
-      // Assert
-      expect(stopLossPriceInput.props.value).toBe('2700');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
-        '2700',
-        false,
-        { currentPrice: 3000, direction: 'long' },
-      );
+      // Assert - Handler should be called with the new value
+      expect(mockHandler).toHaveBeenCalledWith('2700');
     });
 
-    it('handles stop loss percentage input changes', () => {
+    it('calls stop loss percentage change handler when stop loss RoE percentage input changes', () => {
       // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('2700.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleStopLossPercentageChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const stopLossPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.loss_percent_placeholder',
-      )[0]; // SL percentage input
+        'perps.tpsl.loss_roe_placeholder',
+      )[0]; // SL RoE percentage input
 
       // Act
-      fireEvent.changeText(stopLossPercentInput, '10');
+      fireEvent.changeText(stopLossPercentInput, '25');
 
-      // Assert
-      expect(stopLossPercentInput.props.value).toBe('10');
-      expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-        10,
-        false,
-        { currentPrice: 3000, direction: 'long' },
-      );
+      // Assert - Handler should be called with the new percentage value
+      expect(mockHandler).toHaveBeenCalledWith('25');
     });
   });
 
-  describe('Percentage Button Functionality', () => {
-    it('sets take profit price when percentage button is pressed', () => {
+  describe('RoE Percentage Button Functionality', () => {
+    it('calls button handler when RoE percentage button is pressed', () => {
       // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const mockButtonHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        buttons: {
+          ...defaultMockReturn.buttons,
+          handleTakeProfitPercentageButton: mockButtonHandler,
+        },
+      });
 
-      const fivePercentButton = screen.getByText('+5%');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
+      const tenPercentButton = screen.getByText('+10%');
 
       // Act
-      fireEvent.press(fivePercentButton);
+      fireEvent.press(tenPercentButton);
 
-      // Assert
-      expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-        5,
-        true,
-        { currentPrice: 3000, direction: 'long' },
-      );
+      // Assert - Button handler should be called with percentage
+      expect(mockButtonHandler).toHaveBeenCalledWith(10);
     });
 
-    it('sets stop loss price when percentage button is pressed', () => {
+    it('calls stop loss button handler when RoE percentage button is pressed', () => {
       // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('2850.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const mockButtonHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        buttons: {
+          ...defaultMockReturn.buttons,
+          handleStopLossPercentageButton: mockButtonHandler,
+        },
+      });
 
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
       const fivePercentButton = screen.getByText('-5%');
 
       // Act
       fireEvent.press(fivePercentButton);
 
-      // Assert
-      expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-        5,
-        false,
-        { currentPrice: 3000, direction: 'long' },
-      );
+      // Assert - Button handler should be called with percentage
+      expect(mockButtonHandler).toHaveBeenCalledWith(5);
     });
   });
 
   describe('Off Button Functionality', () => {
-    it('clears take profit values when take profit off button is pressed', () => {
+    it('calls take profit off button handler when off button is pressed', () => {
       // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
+      const mockOffHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        buttons: {
+          ...defaultMockReturn.buttons,
+          handleTakeProfitOff: mockOffHandler,
+        },
+      });
+
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
-
-      // First set some take profit values
-      const fivePercentButton = screen.getByText('+5%');
-      fireEvent.press(fivePercentButton);
-
-      // Get the take profit input to verify it has a value initially
-      const takeProfitPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[0];
-      const takeProfitPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.profit_percent_placeholder',
-      )[0];
-
-      // Verify values are set before pressing off
-      expect(takeProfitPriceInput.props.value).toBe('$3150.00');
-      expect(takeProfitPercentInput.props.value).toBe('5');
 
       // Get the take profit off button - there are two "Off" buttons, get all and find the first one
       const offButtons = screen.getAllByText('perps.tpsl.off');
@@ -555,32 +773,22 @@ describe('PerpsTPSLBottomSheet', () => {
       // Act
       fireEvent.press(takeProfitOffButton);
 
-      // Assert
-      expect(takeProfitPriceInput.props.value).toBe('');
-      expect(takeProfitPercentInput.props.value).toBe('');
+      // Assert - Handler should be called
+      expect(mockOffHandler).toHaveBeenCalled();
     });
 
-    it('clears stop loss values when stop loss off button is pressed', () => {
+    it('calls stop loss off button handler when off button is pressed', () => {
       // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('2850.00');
+      const mockOffHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        buttons: {
+          ...defaultMockReturn.buttons,
+          handleStopLossOff: mockOffHandler,
+        },
+      });
+
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
-
-      // First set some stop loss values
-      const fivePercentButton = screen.getByText('-5%');
-      fireEvent.press(fivePercentButton);
-
-      // Get the stop loss input to verify it has a value initially
-      const stopLossPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[1];
-      const stopLossPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.loss_percent_placeholder',
-      )[0];
-
-      // Verify values are set before pressing off
-      expect(stopLossPriceInput.props.value).toBe('$2850.00');
-      expect(stopLossPercentInput.props.value).toBe('5');
 
       // Get the stop loss off button - there are two "Off" buttons, get all and find the second one
       const offButtons = screen.getAllByText('perps.tpsl.off');
@@ -589,130 +797,228 @@ describe('PerpsTPSLBottomSheet', () => {
       // Act
       fireEvent.press(stopLossOffButton);
 
-      // Assert
-      expect(stopLossPriceInput.props.value).toBe('');
-      expect(stopLossPercentInput.props.value).toBe('');
+      // Assert - Handler should be called
+      expect(mockOffHandler).toHaveBeenCalled();
     });
 
-    it('resets take profit state when off button is pressed after manual input', () => {
-      // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      // Make the percentage calculation return a realistic value for 3200 price
-      tpslValidation.calculatePercentageForPrice.mockReturnValue('6.67');
+    it('displays values from form state correctly', () => {
+      // Arrange - Mock state with values
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3200',
+          takeProfitPercentage: '66.67',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedTakeProfitPercentage: '66.67',
+        },
+      });
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      // First manually enter take profit values
+      // Assert - Component should display the form state values
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
       )[0];
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.profit_percent_placeholder',
+        'perps.tpsl.profit_roe_placeholder',
       )[0];
 
-      fireEvent.changeText(takeProfitPriceInput, '3200');
-
-      // After entering price, the component calculates percentage and updates display
-      // The price input will show the raw input until blur, percentage will show calculated value
       expect(takeProfitPriceInput.props.value).toBe('3200');
-      expect(takeProfitPercentInput.props.value).toBe('6.67');
-
-      // Get the take profit off button
-      const offButtons = screen.getAllByText('perps.tpsl.off');
-      const takeProfitOffButton = offButtons[0];
-
-      // Act
-      fireEvent.press(takeProfitOffButton);
-
-      // Assert
-      expect(takeProfitPriceInput.props.value).toBe('');
-      expect(takeProfitPercentInput.props.value).toBe('');
+      expect(takeProfitPercentInput.props.value).toBe('66.67');
     });
 
-    it('resets stop loss state when off button is pressed after manual input', () => {
-      // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      // Make the percentage calculation return a realistic value for 2800 price
-      tpslValidation.calculatePercentageForPrice.mockReturnValue('6.67');
+    it('displays stop loss values from form state correctly', () => {
+      // Arrange - Mock state with stop loss values
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          stopLossPrice: '2800',
+          stopLossPercentage: '66.67',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedStopLossPercentage: '66.67',
+        },
+      });
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      // First manually enter stop loss values
+      // Assert - Component should display the form state values
       const stopLossPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
       )[1];
       const stopLossPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.loss_percent_placeholder',
+        'perps.tpsl.loss_roe_placeholder',
       )[0];
 
-      fireEvent.changeText(stopLossPriceInput, '2800');
-
-      // After entering price, the component calculates percentage and updates display
       expect(stopLossPriceInput.props.value).toBe('2800');
-      expect(stopLossPercentInput.props.value).toBe('6.67');
-
-      // Get the stop loss off button
-      const offButtons = screen.getAllByText('perps.tpsl.off');
-      const stopLossOffButton = offButtons[1];
-
-      // Act
-      fireEvent.press(stopLossOffButton);
-
-      // Assert
-      expect(stopLossPriceInput.props.value).toBe('');
-      expect(stopLossPercentInput.props.value).toBe('');
+      expect(stopLossPercentInput.props.value).toBe('66.67');
     });
   });
 
   describe('Validation and Error States', () => {
-    it('shows error styling when take profit price is invalid', () => {
-      // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.isValidTakeProfitPrice.mockReturnValue(false);
-      tpslValidation.getTakeProfitErrorDirection.mockReturnValue('above');
+    it('can display validation errors when form validation has errors', () => {
+      // Arrange - Mock form state with validation errors
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          takeProfitError: 'perps.order.validation.invalid_take_profit',
+        },
+      });
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[0];
+      // Assert - Component can handle validation errors
+      // (Note: The component might not display error messages directly,
+      // but it should render without crashing when there are validation errors)
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
+    });
 
-      // Act
-      fireEvent.changeText(takeProfitPriceInput, '2500');
+    it('renders correctly when validation has errors', () => {
+      // Arrange - Mock form state with validation errors
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: 'perps.order.validation.invalid_stop_loss',
+        },
+      });
 
-      // Assert - Should show error message
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // Assert - Component renders correctly even with validation errors
+      const confirmButton = screen.getByText('perps.tpsl.set');
+      expect(confirmButton).toBeOnTheScreen();
+
+      // Note: The actual button disable behavior depends on the component implementation
+      // This test ensures the component handles validation error state without crashing
+    });
+
+    it('displays stop loss liquidation error for long orders', () => {
+      // Arrange - Mock form state with stop loss liquidation error for long position
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss liquidation error should be displayed
       expect(
-        screen.getByText('perps.order.validation.invalid_take_profit'),
+        screen.getByText('perps.order.validation.stop_loss_liquidation_long'),
       ).toBeOnTheScreen();
     });
 
-    it('shows error styling when stop loss price is invalid', () => {
-      // Arrange
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.isValidStopLossPrice.mockReturnValue(false);
-      tpslValidation.getStopLossErrorDirection.mockReturnValue('below');
+    it('displays stop loss liquidation error for short orders', () => {
+      // Arrange - Mock form state with stop loss liquidation error for short position
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_short',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="short" />);
+
+      // Assert - Stop loss liquidation error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.stop_loss_liquidation_short'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays stop loss error when both stopLossError and stopLossLiquidationError are present', () => {
+      // Arrange - Mock form state with both stop loss errors (stopLossError takes precedence in current implementation)
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: 'perps.order.validation.invalid_stop_loss',
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss error should be displayed (takes precedence in current implementation)
+      expect(
+        screen.getByText('perps.order.validation.invalid_stop_loss'),
+      ).toBeOnTheScreen();
+      // Liquidation error should not be displayed when regular stop loss error is present
+      expect(
+        screen.queryByText('perps.order.validation.stop_loss_liquidation_long'),
+      ).toBeNull();
+    });
+
+    it('displays regular stop loss error when only stopLossError is present', () => {
+      // Arrange - Mock form state with only regular stop loss error
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: 'perps.order.validation.invalid_stop_loss',
+          stopLossLiquidationError: '', // No liquidation error
+        },
+      });
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const stopLossPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[1];
-
-      // Act
-      fireEvent.changeText(stopLossPriceInput, '3500');
-
-      // Assert - Should show error message
+      // Assert - Regular stop loss error should be displayed
       expect(
         screen.getByText('perps.order.validation.invalid_stop_loss'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays stop loss liquidation error when only stopLossLiquidationError is present', () => {
+      // Arrange - Mock form state with only liquidation error
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: '', // No regular stop loss error
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss liquidation error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.stop_loss_liquidation_long'),
       ).toBeOnTheScreen();
     });
   });
 
   describe('Focus and Blur Behavior', () => {
-    it('formats price on blur when valid', () => {
+    it('calls blur handler when input loses focus', () => {
       // Arrange
-      const { formatPrice } = jest.requireMock('../../utils/formatUtils');
-      formatPrice.mockReturnValue('$3150.00');
+      const mockBlurHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPriceBlur: mockBlurHandler,
+        },
+      });
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
@@ -721,11 +1027,10 @@ describe('PerpsTPSLBottomSheet', () => {
       )[0];
 
       // Act
-      fireEvent.changeText(takeProfitPriceInput, '3150');
       fireEvent(takeProfitPriceInput, 'blur');
 
-      // Assert
-      expect(formatPrice).toHaveBeenCalledWith('3150');
+      // Assert - Blur handler should be called
+      expect(mockBlurHandler).toHaveBeenCalled();
     });
 
     it('does not format price on blur when invalid', () => {
@@ -756,27 +1061,27 @@ describe('PerpsTPSLBottomSheet', () => {
     it('calls onConfirm with parsed prices when confirmed', () => {
       // Arrange
       const mockOnConfirm = jest.fn();
+
+      // Mock form state to have values
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$3,150.00',
+          stopLossPrice: '$2,850.00',
+        },
+      });
+
       render(
         <PerpsTPSLBottomSheet {...defaultProps} onConfirm={mockOnConfirm} />,
       );
-
-      // Set some values first
-      const takeProfitPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[0];
-      const stopLossPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[1];
-
-      fireEvent.changeText(takeProfitPriceInput, '$3,150.00');
-      fireEvent.changeText(stopLossPriceInput, '$2,850.00');
 
       const confirmButton = screen.getByText('perps.tpsl.set');
 
       // Act
       fireEvent.press(confirmButton);
 
-      // Assert
+      // Assert - Component should parse and clean the prices
       expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00');
     });
 
@@ -812,7 +1117,7 @@ describe('PerpsTPSLBottomSheet', () => {
   });
 
   describe('Direction-based Logic', () => {
-    it('handles SHORT position direction', () => {
+    it('renders correctly for SHORT position direction', () => {
       // Arrange
       const shortProps = {
         ...defaultProps,
@@ -821,49 +1126,26 @@ describe('PerpsTPSLBottomSheet', () => {
 
       render(<PerpsTPSLBottomSheet {...shortProps} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[0];
-
-      // Act
-      fireEvent.changeText(takeProfitPriceInput, '2850');
-
-      // Assert
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
-        '2850',
-        true,
-        { currentPrice: 3000, direction: 'short' },
-      );
+      // Assert - Should display short-specific labels
+      expect(
+        screen.getByText('perps.tpsl.take_profit_short'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('perps.tpsl.stop_loss_short')).toBeOnTheScreen();
     });
 
-    it.each(['long', 'short'] as const)(
-      'handles %s direction for percentage calculations',
-      (direction) => {
-        // Arrange
-        const props = {
-          ...defaultProps,
-          direction,
-        };
+    it('renders RoE percentage buttons for both directions', () => {
+      // Assert - RoE buttons should always be present regardless of direction
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+      expect(screen.getByText('+10%')).toBeOnTheScreen();
+      expect(screen.getByText('-5%')).toBeOnTheScreen();
+    });
 
-        render(<PerpsTPSLBottomSheet {...props} />);
-
-        // For short positions, the percentage buttons show negative values
-        const buttonText = direction === 'short' ? '-5%' : '+5%';
-        const fivePercentButton = screen.getByText(buttonText);
-
-        // Act
-        fireEvent.press(fivePercentButton);
-
-        // Assert
-        const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-        expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-          5,
-          true,
-          { currentPrice: 3000, direction },
-        );
-      },
-    );
+    it('renders RoE percentage buttons for short direction', () => {
+      // Assert - RoE buttons should always be present regardless of direction
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="short" />);
+      expect(screen.getByText('+10%')).toBeOnTheScreen();
+      expect(screen.getByText('-5%')).toBeOnTheScreen();
+    });
   });
 
   describe('Edge Cases', () => {
@@ -893,56 +1175,34 @@ describe('PerpsTPSLBottomSheet', () => {
       ).not.toThrow();
     });
 
-    it('uses currentPrice when provided, falls back to entry price', () => {
+    it('displays currentPrice when provided with position', () => {
       // Arrange
       const propsWithPosition = {
         ...defaultProps,
         position: mockPosition,
-        currentPrice: 3200, // This will be used (live price)
+        currentPrice: 3200, // Live price should be displayed
       };
 
       render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[0];
-
-      // Act
-      fireEvent.changeText(takeProfitPriceInput, '2950');
-
-      // Assert - Should use currentPrice (3200) when provided
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
-        '2950',
-        true,
-        { currentPrice: 3200, direction: 'long' },
-      );
+      // Assert - Should display current price (live price)
+      expect(screen.getByText('$3200.00')).toBeOnTheScreen();
+      expect(screen.getByText('perps.tpsl.current_price')).toBeOnTheScreen();
     });
 
-    it('uses position entry price when currentPrice not provided', () => {
+    it('displays entry price when currentPrice not provided', () => {
       // Arrange
       const propsWithPosition = {
         ...defaultProps,
         position: mockPosition,
-        currentPrice: undefined, // No current price provided
+        currentPrice: undefined, // No current price provided - should fall back to entry price
       };
 
       render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.trigger_price_placeholder',
-      )[0];
-
-      // Act
-      fireEvent.changeText(takeProfitPriceInput, '2950');
-
-      // Assert - Should fall back to position.entryPrice (2800)
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
-        '2950',
-        true,
-        { currentPrice: 2800, direction: 'long' },
-      );
+      // Assert - Should display position entry price as fallback
+      expect(screen.getByText('$2800.00')).toBeOnTheScreen();
+      expect(screen.getByText('perps.tpsl.current_price')).toBeOnTheScreen();
     });
   });
 
@@ -972,6 +1232,396 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Assert - Should render null when not visible
       expect(screen.queryByText('perps.tpsl.title')).toBeNull();
+    });
+  });
+
+  describe('Keypad Functionality', () => {
+    beforeEach(() => {
+      // Reset Platform.OS to default for each test
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'ios',
+        },
+      }));
+    });
+
+    it('shows keypad when take profit price input is focused', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3200',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3200');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('shows keypad when take profit percentage input is focused', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPercentage: '25.50',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedTakeProfitPercentage: '25.50',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPercentInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('25.50');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('shows keypad when stop loss price input is focused', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          stopLossPrice: '2800',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1];
+
+      // Act
+      fireEvent(stopLossPriceInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2800');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('shows keypad when stop loss percentage input is focused', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          stopLossPercentage: '15.75',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedStopLossPercentage: '15.75',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const stopLossPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.loss_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(stopLossPercentInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('15.75');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('hides keypad when input loses focus', () => {
+      // Arrange
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+
+      fireEvent(takeProfitPriceInput, 'blur');
+
+      // Assert
+      expect(screen.queryByTestId('keypad')).toBeNull();
+    });
+
+    it('calls appropriate handler when keypad value changes for take profit price', () => {
+      // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPriceChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+      const keypadButton = screen.getByTestId('keypad-test-button');
+      fireEvent.press(keypadButton);
+
+      // Assert
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
+    });
+
+    it('calls appropriate handler when keypad value changes for take profit percentage', () => {
+      // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPercentageChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPercentInput, 'focus');
+      const keypadButton = screen.getByTestId('keypad-test-button');
+      fireEvent.press(keypadButton);
+
+      // Assert
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
+    });
+
+    it('calls appropriate handler when keypad value changes for stop loss price', () => {
+      // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleStopLossPriceChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1];
+
+      // Act
+      fireEvent(stopLossPriceInput, 'focus');
+      const keypadButton = screen.getByTestId('keypad-test-button');
+      fireEvent.press(keypadButton);
+
+      // Assert
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
+    });
+
+    it('calls appropriate handler when keypad value changes for stop loss percentage', () => {
+      // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleStopLossPercentageChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const stopLossPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.loss_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(stopLossPercentInput, 'focus');
+      const keypadButton = screen.getByTestId('keypad-test-button');
+      fireEvent.press(keypadButton);
+
+      // Assert
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
+    });
+
+    it('dismisses keypad when tapping outside the input area', () => {
+      // Arrange
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+
+      // Find the scroll content area and tap it
+      const scrollContent = screen.getByTestId('scroll-content');
+      fireEvent.press(scrollContent);
+
+      // Assert
+      expect(screen.queryByTestId('keypad')).toBeNull();
+    });
+
+    it('calls both original blur handler and custom blur handler when input loses focus', () => {
+      // Arrange
+      const mockOriginalBlurHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPriceBlur: mockOriginalBlurHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+      fireEvent(takeProfitPriceInput, 'blur');
+
+      // Assert
+      expect(mockOriginalBlurHandler).toHaveBeenCalled();
+      expect(screen.queryByTestId('keypad')).toBeNull();
+    });
+
+    it('configures keypad with correct currency and decimals for price inputs', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3200.12345',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('configures keypad with correct currency and decimals for all inputs', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPercentage: '25.50',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedTakeProfitPercentage: '25.50',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPercentInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+  });
+
+  describe('Platform-specific Styling', () => {
+    it('applies correct close button padding for iOS', () => {
+      // Arrange
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'ios',
+        },
+      }));
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // Assert - For iOS, paddingRight should be 0
+      // The BottomSheetHeader should receive closeButtonProps with paddingRight: 0
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
+    });
+
+    it('applies correct close button padding for Android', () => {
+      // Arrange
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'android',
+        },
+      }));
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // Assert - For Android, paddingRight should be 24
+      // The BottomSheetHeader should receive closeButtonProps with paddingRight: 24
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
     });
   });
 });

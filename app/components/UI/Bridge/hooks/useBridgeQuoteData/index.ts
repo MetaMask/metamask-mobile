@@ -13,7 +13,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import {
+  fromTokenMinimalUnit,
+  isNumberValue,
+} from '../../../../../util/number';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
@@ -29,6 +32,7 @@ import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatForm
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { BigNumber as EthersBigNumber } from 'ethers';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -111,7 +115,14 @@ export const useBridgeQuoteData = ({
 
     const { amount, valueInCurrency } = totalNetworkFee;
 
-    if (!amount || !valueInCurrency) return '-';
+    if (
+      amount == null ||
+      valueInCurrency == null ||
+      !isNumberValue(amount) ||
+      !isNumberValue(valueInCurrency)
+    ) {
+      return '-';
+    }
 
     const formattedAmount = `${formatAmount(
       locale,
@@ -138,15 +149,29 @@ export const useBridgeQuoteData = ({
       priceImpactPercentage = `${(Number(priceImpact) * 100).toFixed(2)}%`;
     }
 
+    // Formats quote rate to show an appropriate number of decimal places
+    // For numbers greater than 1, we show 2 decimal places. Example: 1.23456 -> 1.23
+    // For numbers less than 1, we show 3 significant digits. Example: 0.00012345 -> 0.000123
+    const quoteRateFormatter = getIntlNumberFormatter(locale, {
+      ...(quoteRate && quoteRate > 1
+        ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
+        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
+    });
+    const formattedQuoteRate = quoteRateFormatter.format(quoteRate ?? 0);
     const rate = quoteRate
-      ? `1 ${sourceToken?.symbol} = ${quoteRate.toFixed(1)} ${
-          destToken?.symbol
-        }`
+      ? `1 ${sourceToken?.symbol} = ${formattedQuoteRate} ${destToken?.symbol}`
       : '--';
 
     return {
       networkFee: getNetworkFee(),
-      estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
+      estimatedTime:
+        estimatedProcessingTimeInSeconds >= 60
+          ? `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`
+          : `${
+              estimatedProcessingTimeInSeconds >= 1
+                ? `${estimatedProcessingTimeInSeconds} seconds`
+                : '< 1 second'
+            }`,
       rate,
       priceImpact: priceImpactPercentage,
       slippage: slippage ? `${slippage}%` : 'Auto',
@@ -158,6 +183,7 @@ export const useBridgeQuoteData = ({
     destToken?.symbol,
     getNetworkFee,
     slippage,
+    locale,
   ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;

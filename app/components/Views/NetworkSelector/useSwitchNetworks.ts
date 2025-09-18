@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import {
   getDecimalChainId,
@@ -17,7 +17,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
@@ -44,8 +43,6 @@ import {
   NetworkType,
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { setTransactionSendFlowContextualChainId } from '../../../actions/sendFlow';
-import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -55,7 +52,6 @@ interface UseSwitchNetworksProps {
   dismissModal?: () => void;
   closeRpcModal?: () => void;
   parentSpan?: unknown;
-  source?: string;
 }
 
 interface UseSwitchNetworksReturn {
@@ -81,7 +77,6 @@ export function useSwitchNetworks({
   dismissModal,
   closeRpcModal,
   parentSpan,
-  source,
 }: UseSwitchNetworksProps): UseSwitchNetworksReturn {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const networkConfigurations = useSelector(
@@ -94,7 +89,6 @@ export function useSwitchNetworks({
   const { selectNetwork } = useNetworkSelection({
     networks,
   });
-  const dispatch = useDispatch();
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const isSolanaAccountAlreadyCreated = useSelector(
@@ -129,8 +123,7 @@ export function useSwitchNetworks({
     async (networkConfiguration: NetworkConfiguration) => {
       if (!networkConfiguration) return;
 
-      const { MultichainNetworkController, SelectedNetworkController } =
-        Engine.context;
+      const { SelectedNetworkController } = Engine.context;
       const {
         name: nickname,
         chainId,
@@ -146,26 +139,17 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
-        isPerDappSelectedNetworkEnabled() && dismissModal?.();
-      } else {
-        trace({
-          name: TraceName.SwitchCustomNetwork,
-          parentContext: parentSpan,
-          op: TraceOperation.SwitchCustomNetwork,
-        });
-        const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-        try {
-          if (source === NETWORK_SELECTOR_SOURCES.SEND_FLOW) {
-            dispatch(setTransactionSendFlowContextualChainId(chainId));
-          } else {
-            await MultichainNetworkController.setActiveNetwork(networkClientId);
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
           }
-        } catch (error) {
-          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
-        }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = networkConfigurationId;
+        });
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       }
-
-      setTokenNetworkFilter(chainId);
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
@@ -183,14 +167,10 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      setTokenNetworkFilter,
       selectedNetworkName,
       trackEvent,
       createEventBuilder,
-      parentSpan,
       dismissModal,
-      source,
-      dispatch,
     ],
   );
 
@@ -214,6 +194,15 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = type;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const networkConfiguration =
@@ -224,16 +213,8 @@ export function useSwitchNetworks({
             networkConfiguration.defaultRpcEndpointIndex
           ].networkClientId ?? type;
 
-        if (source !== NETWORK_SELECTOR_SOURCES.SEND_FLOW) {
-          setTokenNetworkFilter(networkConfiguration.chainId);
-          await MultichainNetworkController.setActiveNetwork(clientId);
-        } else {
-          dispatch(
-            setTransactionSendFlowContextualChainId(
-              networkConfiguration.chainId,
-            ),
-          );
-        }
+        setTokenNetworkFilter(networkConfiguration.chainId);
+        await MultichainNetworkController.setActiveNetwork(clientId);
 
         closeRpcModal?.();
         AccountTrackerController.refresh([clientId]);
@@ -270,8 +251,6 @@ export function useSwitchNetworks({
       parentSpan,
       dismissModal,
       closeRpcModal,
-      dispatch,
-      source,
     ],
   );
 

@@ -245,6 +245,16 @@ export const selectIsBridgeEnabledDest = createSelector(
   },
 );
 
+export const selectIsSwapsLive = createSelector(
+  [
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledSource(state, chainId),
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledDest(state, chainId),
+  ],
+  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
+);
+
 export const selectTopAssetsFromFeatureFlags = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
@@ -441,6 +451,17 @@ export const selectIsUnifiedSwapsEnabled = createSelector(
       return true;
     }
     return false;
+  },
+);
+
+export const selectIsGaslessSwapEnabled = createSelector(
+  selectIsSwap,
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (isSwap, bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const chainConfig = bridgeFeatureFlags.chains[caipChainId];
+    return isSwap && chainConfig?.isGaslessSwapEnabled === true;
   },
 );
 

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import type { Colors } from '../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
@@ -13,6 +13,7 @@ const createStyles = (colors: Colors) =>
     scrollViewContent: {
       flexGrow: 1,
       paddingBottom: 120, // Space for fixed button
+      paddingTop: 32,
     },
     fixedBottomContainer: {
       position: 'absolute',
@@ -22,20 +23,26 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: 32,
+      paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     },
     sliderSection: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 32,
+      paddingTop: 32,
       paddingBottom: 24,
     },
     detailsWrapper: {
       paddingHorizontal: 16,
-      gap: 2,
+      flex: 1,
+      flexGrow: 1,
+      gap: 1,
+    },
+    detailItemWrapper: {
+      paddingVertical: 12,
     },
     detailItem: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       overflow: 'hidden',
     },
     detailItemFirst: {
@@ -52,11 +59,15 @@ const createStyles = (colors: Colors) =>
       flex: 1,
     },
     infoIcon: {
-      marginLeft: 8,
+      marginLeft: 0,
+      padding: 10, // Increases touch target from 20x20 to 40x40 for better accessibility
+      marginRight: -6, // Compensate for padding to keep visual alignment
+      marginTop: -10, // Keep icon at same vertical position
+      marginBottom: -10, // Keep icon at same vertical position
     },
     infoSection: {
-      paddingHorizontal: 24,
-      paddingVertical: 16,
+      paddingHorizontal: 16,
+      borderRadius: 12,
     },
     infoRow: {
       flexDirection: 'row',
@@ -64,27 +75,33 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingVertical: 8,
     },
+    stopLossLiquidationWarning: {
+      paddingHorizontal: 8,
+      paddingTop: 8,
+    },
     validationContainer: {
       marginBottom: 12,
     },
     bottomSection: {
-      paddingHorizontal: 24,
       paddingVertical: 24,
     },
     percentageButtonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingBottom: 8,
+      paddingBottom: 12,
       gap: 8,
+      paddingHorizontal: 16,
     },
     percentageButton: {
       flex: 1,
-      minWidth: 0, // Ensures buttons can shrink properly
+      minWidth: 0,
     },
     keypad: {
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
+    },
+    pointsRightContainer: {
+      alignItems: 'flex-end',
     },
   });
 export default createStyles;

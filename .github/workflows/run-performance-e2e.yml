@@ -1,0 +1,292 @@
+name: Build Apps and Run Performance E2E Tests
+on:
+  schedule:
+    - cron: '0 3 * * 1-6'
+  workflow_dispatch:
+    inputs:
+      description:
+        description: 'Optional description for this test run'
+        required: false
+        type: string
+
+      browserstack_app_url_android_onboarding:
+        description: 'BrowserStack Android Onboarding App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_ios_onboarding:
+        description: 'BrowserStack iOS Onboarding App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_android_imported_wallet:
+        description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_ios_imported_wallet:
+        description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
+        required: false
+        type: string
+  push:
+    branches:
+      - 'release/*'
+
+permissions:
+  contents: read
+  id-token: write
+
+
+env:
+  BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+  BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+  MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
+  TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
+  TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
+  TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
+  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+  DISABLE_VIDEO_DOWNLOAD: true
+
+jobs:
+  check-metamaskbot-commit:
+    name: Check if Metamaskbot Version Bump
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    if: always()
+    steps:
+      - name: Check if metamaskbot version bump
+        id: check
+        env:
+          COMMIT_AUTHOR: ${{ github.event.head_commit.author.name || '' }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || '' }}
+        run: |
+          # Always run for schedule and workflow_dispatch events
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+            echo "Performance tests triggered by ${{ github.event_name }}"
+          # For push events, only run on metamaskbot version bumps
+          elif [[ "${{ github.event_name }}" == "push" && "$COMMIT_AUTHOR" == "metamaskbot" && "$COMMIT_MESSAGE" =~ "Bump version number" ]]; then
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+            echo "RC version bump detected from metamaskbot commit"
+          else
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+            echo "Not a valid trigger for performance tests"
+          fi
+
+  read-device-matrix:
+    name: Read Device Matrix
+    runs-on: ubuntu-latest
+    needs: [check-metamaskbot-commit]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true')
+    outputs:
+      android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
+      ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Read device matrix
+        id: read-matrix
+        run: |
+          echo "Reading device matrix from appwright/device-matrix.json"
+          # Extract Android devices
+          ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
+          # Extract iOS devices
+          IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
+          
+          {
+            echo "android_matrix=$ANDROID_MATRIX"
+            echo "ios_matrix=$IOS_MATRIX"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "Android matrix: $ANDROID_MATRIX"
+          echo "iOS matrix: $IOS_MATRIX"
+          
+          # Validate that we have devices
+          ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
+          IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
+          
+          echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices"
+          
+          if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
+            echo "Error: No devices found in device-matrix.json"
+            exit 1
+          fi
+
+  set-build-names:
+    name: Set Unified BrowserStack Build Names
+    runs-on: ubuntu-latest
+    needs: [check-metamaskbot-commit]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true')
+    outputs:
+      android_build_name: ${{ steps.set-builds.outputs.android_build_name }}
+      ios_build_name: ${{ steps.set-builds.outputs.ios_build_name }}
+    steps:
+      - name: Set unified build names
+        id: set-builds
+        run: |
+          echo "android_build_name=Android-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
+          echo "ios_build_name=iOS-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
+          echo "✅ Set unified build names:"
+          echo "  Android: Android-Performance-${{ github.ref_name }}-Branch"
+          echo "  iOS: iOS-Performance-${{ github.ref_name }}-Branch"
+
+  trigger-android-dual-versions:
+    name: Trigger Android Dual Versions and Extract BrowserStack URLs
+    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
+    needs: [check-metamaskbot-commit]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true') && (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
+    secrets: inherit
+
+  trigger-ios-dual-versions:
+    name: Trigger iOS Dual Versions and Extract BrowserStack URLs
+    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
+    needs: [check-metamaskbot-commit]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true') && (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
+    secrets: inherit
+
+
+  # =============================================================================
+  # PHASE 1: ONBOARDING TESTS (Run First)
+  # =============================================================================
+  
+  run-android-onboarding-tests:
+    name: Run Android Onboarding Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [check-metamaskbot-commit, read-device-matrix, trigger-android-dual-versions, set-build-names]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true') && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.result == 'success')
+    with:
+      platform: android
+      build_type: onboarding
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+      browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+    secrets: inherit
+
+  run-ios-onboarding-tests:
+    name: Run iOS Onboarding Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [check-metamaskbot-commit, read-device-matrix, trigger-ios-dual-versions, set-build-names]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true') && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.result == 'success')
+    with:
+      platform: ios
+      build_type: onboarding
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+      browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
+    secrets: inherit
+
+  # =============================================================================
+  # PHASE 2: IMPORTED WALLET TESTS (Run After Onboarding Complete)
+  # =============================================================================
+  
+  wait-for-onboarding-completion:
+    name: Wait for Onboarding Completion
+    runs-on: ubuntu-latest
+    needs: [check-metamaskbot-commit, run-android-onboarding-tests, run-ios-onboarding-tests]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true')
+    steps:
+      - name: Wait for onboarding tests to complete
+        run: |
+          echo "Onboarding tests have completed (success or failure)"
+          echo "Proceeding with imported wallet tests..."
+  
+  run-android-imported-wallet-tests:
+    name: Run Android Imported Wallet Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [check-metamaskbot-commit, read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true') && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
+    with:
+      platform: android
+      build_type: imported-wallet
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+      browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
+    secrets: inherit
+
+  run-ios-imported-wallet-tests:
+    name: Run iOS Imported Wallet Tests
+    uses: ./.github/workflows/performance-test-runner.yml
+    needs: [check-metamaskbot-commit, read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true') && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
+    with:
+      platform: ios
+      build_type: imported-wallet
+      device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
+      browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
+      app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      branch_name: ${{ github.ref_name }}
+      browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
+    secrets: inherit
+
+  aggregate-results:
+    name: Aggregate All Test Results
+    runs-on: ubuntu-latest
+    needs: [check-metamaskbot-commit, run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, wait-for-onboarding-completion]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download All Test Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-test-results-*"
+          path: ./test-results
+          merge-multiple: true
+      
+      - name: Run aggregation script
+        run: |
+          echo "Processing all test results..."
+          echo "Running aggregation script..."
+          node scripts/aggregate-performance-reports.mjs
+          echo "Aggregation completed"
+      
+      - name: Upload Final Combined Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: aggregated-reports
+          path: |
+            appwright/aggregated-reports/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  slack-notification:
+    name: Send Slack Notification
+    runs-on: ubuntu-latest
+    needs: [check-metamaskbot-commit, run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, aggregate-results]
+    if: always() && (needs.check-metamaskbot-commit.result == 'skipped' || needs.check-metamaskbot-commit.outputs.should-run == 'true')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download Aggregated Results
+        uses: actions/download-artifact@v4
+        with:
+          name: aggregated-reports
+          path: ./aggregated-reports
+      
+      - name: Generate Test Summary
+        id: summary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "summary<<EOF"
+            ./scripts/generate-slack-summary.sh aggregated-reports/summary.json
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "${{ steps.summary.outputs.summary }}"
+            }

@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
 import type { PerpsMarketData } from '../../controllers/types';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const { TouchableOpacity } = jest.requireActual('react-native');
@@ -23,12 +22,19 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
-  usePerpsAssetMetadata: jest.fn(),
-}));
-const mockUsePerpsAssetMetadata = usePerpsAssetMetadata as jest.MockedFunction<
-  typeof usePerpsAssetMetadata
->;
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPerpsTokenLogo({
+    symbol,
+    testID,
+  }: {
+    symbol: string;
+    testID?: string;
+  }) {
+    return <View testID={testID || 'perps-token-logo'} data-symbol={symbol} />;
+  };
+});
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})), // Return empty object - no live prices in tests
@@ -39,12 +45,11 @@ const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
   typeof usePerpsLivePrices
 >;
 
-jest.mock('../../../../Base/RemoteImage', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockRemoteImage({ source }: { source: { uri: string } }) {
-    return <View testID="remote-image" data-uri={source.uri} />;
-  };
-});
+// Mock react-redux for AvatarToken component
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false), // Mock selectIsIpfsGatewayEnabled to return false
+}));
 
 describe('PerpsMarketRowItem', () => {
   const mockMarketData: PerpsMarketData = {
@@ -59,11 +64,6 @@ describe('PerpsMarketRowItem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl: '',
-      error: null,
-      hasError: false,
-    });
   });
 
   describe('Component Rendering', () => {
@@ -73,7 +73,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.getByText('50x')).toBeOnTheScreen();
       expect(screen.getByText('$52,000.00')).toBeOnTheScreen();
-      expect(screen.getByText('+$2,000.00 (+4.00%)')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       expect(screen.getByText('$2.5B')).toBeOnTheScreen();
     });
 
@@ -86,18 +86,14 @@ describe('PerpsMarketRowItem', () => {
   });
 
   describe('Asset Image Handling', () => {
-    it('renders RemoteImage when assetUrl is available', () => {
-      mockUsePerpsAssetMetadata.mockReturnValue({
-        assetUrl: 'https://example.com/btc.png',
-        error: null,
-        hasError: false,
-      });
-
+    it('renders PerpsTokenLogo component', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      const remoteImage = screen.getByTestId('remote-image');
-      expect(remoteImage).toBeOnTheScreen();
-      expect(remoteImage.props['data-uri']).toBe('https://example.com/btc.png');
+      const tokenLogo = screen.getByTestId(
+        getPerpsMarketRowItemSelector.tokenLogo('BTC'),
+      );
+      expect(tokenLogo).toBeOnTheScreen();
+      expect(tokenLogo.props['data-symbol']).toBe('BTC');
     });
   });
 
@@ -190,7 +186,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={largePriceChangeMarket} />);
 
-      expect(screen.getByText('+$25,000.00 (+85.50%)')).toBeOnTheScreen();
+      expect(screen.getByText('+85.50%')).toBeOnTheScreen();
     });
   });
 
@@ -222,7 +218,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={specialCharMarket} />);
 
       expect(screen.getByText('BTC/USD')).toBeOnTheScreen();
-      expect(screen.getByText('+$1,000.00 (+2.50%)')).toBeOnTheScreen();
+      expect(screen.getByText('+2.50%')).toBeOnTheScreen();
     });
 
     it('handles unicode characters', () => {
@@ -259,9 +255,15 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={customMarket} />);
 
       const avatar = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('ETH'),
+        getPerpsMarketRowItemSelector.tokenLogo('ETH'),
       );
       expect(avatar).toBeOnTheScreen();
+
+      // Also assert the row container keeps its own testID
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('ETH'),
+      );
+      expect(rowItem).toBeOnTheScreen();
     });
   });
 
@@ -280,34 +282,6 @@ describe('PerpsMarketRowItem', () => {
 
       expect(mockOnPress).toHaveBeenCalledTimes(3);
       expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
-    });
-  });
-
-  describe('Asset Metadata Integration', () => {
-    it('calls usePerpsAssetMetadata with correct symbol', () => {
-      const customMarket = {
-        ...mockMarketData,
-        symbol: 'ETH',
-      };
-
-      render(<PerpsMarketRowItem market={customMarket} />);
-
-      expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('ETH');
-    });
-
-    it('handles different asset URLs correctly', () => {
-      mockUsePerpsAssetMetadata.mockReturnValue({
-        assetUrl: 'https://assets.metamask.io/eth.svg',
-        error: null,
-        hasError: false,
-      });
-
-      render(<PerpsMarketRowItem market={mockMarketData} />);
-
-      const remoteImage = screen.getByTestId('remote-image');
-      expect(remoteImage.props['data-uri']).toBe(
-        'https://assets.metamask.io/eth.svg',
-      );
     });
   });
 
@@ -339,8 +313,8 @@ describe('PerpsMarketRowItem', () => {
 
       // Should show the new live price
       expect(screen.getByText('$55,000.00')).toBeOnTheScreen();
-      // Should show updated volume
-      expect(screen.getByText('$3.0B')).toBeOnTheScreen();
+      // Should show updated volume (2 decimals with formatVolume)
+      expect(screen.getByText('$3.00B')).toBeOnTheScreen();
     });
 
     it('does not update when live price matches current price', () => {
@@ -356,7 +330,7 @@ describe('PerpsMarketRowItem', () => {
 
       // Should keep original data when price is the same
       expect(screen.getByText('$52,000.00')).toBeOnTheScreen();
-      expect(screen.getByText('+$2,000.00 (+4.00%)')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00%')).toBeOnTheScreen();
     });
 
     it('handles negative price changes correctly', () => {
@@ -398,39 +372,41 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      // Price and volume both show $0.00, so check for multiple instances
+      const zeroElements = screen.getAllByText('$0.00');
+      expect(zeroElements.length).toBeGreaterThanOrEqual(1);
     });
 
     it('formats different volume ranges correctly', () => {
-      // Test billions
+      // Test billions (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 5500000000 },
       });
       const { rerender } = render(
         <PerpsMarketRowItem market={mockMarketData} />,
       );
-      expect(screen.getByText('$5.5B')).toBeOnTheScreen();
+      expect(screen.getByText('$5.50B')).toBeOnTheScreen(); // B shows 2 decimals
 
-      // Test millions
+      // Test millions (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 750000000 },
       });
       rerender(<PerpsMarketRowItem market={mockMarketData} />);
-      expect(screen.getByText('$750.0M')).toBeOnTheScreen();
+      expect(screen.getByText('$750.00M')).toBeOnTheScreen(); // M shows 2 decimals
 
-      // Test thousands
+      // Test thousands (0 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 50000 },
       });
       rerender(<PerpsMarketRowItem market={mockMarketData} />);
-      expect(screen.getByText('$50.0K')).toBeOnTheScreen();
+      expect(screen.getByText('$50K')).toBeOnTheScreen(); // K shows no decimals
 
-      // Test small values
+      // Test small values (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 123.45 },
       });
       rerender(<PerpsMarketRowItem market={mockMarketData} />);
-      expect(screen.getByText('$123.45')).toBeOnTheScreen();
+      expect(screen.getByText('$123.45')).toBeOnTheScreen(); // Shows 2 decimals
     });
 
     it('handles missing live price fields gracefully', () => {
@@ -443,7 +419,7 @@ describe('PerpsMarketRowItem', () => {
 
       expect(screen.getByText('$53,000.00')).toBeOnTheScreen();
       // Should keep original change data when percentChange24h is missing
-      expect(screen.getByText('+$2,000.00 (+4.00%)')).toBeOnTheScreen();
+      expect(screen.getByText('+4.00%')).toBeOnTheScreen();
       // Should keep original volume when volume24h is missing
       expect(screen.getByText('$2.5B')).toBeOnTheScreen();
     });
@@ -513,7 +489,8 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('$0.0001')).toBeOnTheScreen();
+      // With PRICE_RANGES_DETAILED_VIEW, small prices preserve 3 significant digits
+      expect(screen.getByText('$0.000123')).toBeOnTheScreen();
     });
 
     it('handles very large price values', () => {

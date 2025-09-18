@@ -1,239 +1,280 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Animated, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { captureException } from '@sentry/react-native';
 
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import Icon, {
   IconColor,
-  IconName,
-  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { useStyles } from '../../../../../component-library/hooks';
+import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { Box } from '../../../../UI/Box/Box';
-import {
-  MAX_INPUT_LENGTH,
-  TokenInputArea,
-  TokenInputAreaType,
-  type TokenInputAreaRef,
-} from '../../../../UI/Bridge/components/TokenInputArea';
 import Keypad from '../../../../Base/Keypad';
-import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
-  METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
   USDC_DECIMALS,
   USDC_SYMBOL,
 } from '../../constants/hyperLiquidConfig';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
+  usePerpsAccount,
   usePerpsNetwork,
-  usePerpsTrading,
   usePerpsWithdrawQuote,
   useWithdrawTokens,
-  useWithdrawValidation,
-  usePerpsPerformance,
 } from '../../hooks';
-import createStyles from './PerpsWithdrawView.styles';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsPerformance } from '../../hooks/usePerpsPerformance';
+import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
+import type { PerpsNavigationParamList } from '../../types/navigation';
+import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
+
+import type { Hex } from '@metamask/utils';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
+import {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon/Icon.types';
+import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
+
+// Constants
+const MAX_INPUT_LENGTH = 20;
+const USDC_TOKEN_URL =
+  'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png';
 
 const PerpsWithdrawView: React.FC = () => {
-  const { styles } = useStyles(createStyles, {});
+  const tw = useTailwind();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   // State
-  const [withdrawAmount, setWithdrawAmount] = useState<string>('');
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  const [shouldBlur, setShouldBlur] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad
   const [isSubmittingTx, setIsSubmittingTx] = useState(false);
-
-  // Refs
-  const inputRef = useRef<TokenInputAreaRef>(null);
+  const [selectedTooltip, setSelectedTooltip] =
+    useState<PerpsTooltipContentKey | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(true); // Start with keypad open
+  const [showPercentageButtons, setShowPercentageButtons] = useState(true); // Show percentage buttons initially
   const hasTrackedWithdrawView = useRef(false);
+  const [withdrawAmountDetailed, setWithdrawAmountDetailed] =
+    useState<string>('');
 
   // Hooks
-  const { toastRef } = useContext(ToastContext);
-  const { withdraw } = usePerpsTrading();
+  const { track: trackEvent } = usePerpsEventTracking();
+  const { startMeasure, endMeasure } = usePerpsPerformance();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const cachedAccountState = usePerpsAccount();
+
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
-  const { track } = usePerpsEventTracking();
-  const { startMeasure, endMeasure } = usePerpsPerformance();
+
+  // Get withdrawal tokens from hook
+  const { destToken } = useWithdrawTokens();
+
+  // Parse available balance from perps account state
+  const availableBalance = useMemo(() => {
+    if (!cachedAccountState?.availableBalance) return 0;
+    // Use parseCurrencyString to properly parse formatted currency
+    return parseCurrencyString(cachedAccountState.availableBalance);
+  }, [cachedAccountState?.availableBalance]);
+
+  const formattedBalance = useMemo(
+    () => formatPerpsFiat(availableBalance),
+    [availableBalance],
+  );
+
+  const hasPositiveBalance = availableBalance > 0;
+
+  // Get withdrawal validation
+  const {
+    hasAmount,
+    isBelowMinimum,
+    hasInsufficientBalance,
+    getMinimumAmount,
+  } = useWithdrawValidation({ withdrawAmount: withdrawAmountDetailed });
+
+  // Check if inputs are valid
+  const hasValidInputs =
+    hasAmount &&
+    !isBelowMinimum &&
+    !hasInsufficientBalance &&
+    hasPositiveBalance;
+
+  // Get withdrawal quote
+  const { formattedQuoteData } = usePerpsWithdrawQuote({
+    amount: withdrawAmountDetailed,
+  });
+
+  // Calculate destination amount (for now, same as withdrawal amount minus fees)
+  const destAmount = useMemo(() => {
+    if (!withdrawAmountDetailed || !formattedQuoteData?.networkFee) return '';
+    const amount = parseFloat(withdrawAmountDetailed) || 0;
+    const fee = parseFloat(formattedQuoteData.networkFee.replace('$', '')) || 0;
+    const result = Math.max(0, amount - fee);
+    return result.toFixed(2);
+  }, [withdrawAmountDetailed, formattedQuoteData]);
 
   // Start measuring screen load time on mount
   useEffect(() => {
     startMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
   }, [startMeasure]);
 
-  // TODO: Get network names dynamically once we implement multiple protocol
-  const sourceNetworkName = useMemo(() => 'Hyperliquid', []);
-
   // Track screen load - only once
   useEffect(() => {
     if (!hasTrackedWithdrawView.current) {
       endMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
-
-      // Track withdrawal input viewed
-      track(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED, {
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-      });
-
+      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED);
       hasTrackedWithdrawView.current = true;
     }
-  }, [track, endMeasure]);
-  const destNetworkName = useMemo(
-    () => (isTestnet ? 'Arbitrum Sepolia' : 'Arbitrum'),
-    [isTestnet],
-  );
+  }, [trackEvent, endMeasure]);
 
-  // Custom hooks for business logic
-  const { sourceToken, destToken } = useWithdrawTokens();
-
-  const {
-    availableBalance,
-    hasInsufficientBalance,
-    isBelowMinimum,
-    hasAmount,
-    getButtonLabel,
-    getMinimumAmount,
-  } = useWithdrawValidation({ withdrawAmount });
-
-  const {
-    formattedQuoteData,
-    hasValidQuote,
-    error: quoteError,
-  } = usePerpsWithdrawQuote({
-    amount: withdrawAmount || '',
-  });
-
-  // UI Handlers (kept in component since they're view-specific)
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  useEffect(() => {
+    // Start blinking animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [fadeAnim]);
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
-      if (value.length >= MAX_INPUT_LENGTH) {
-        return;
+      // Limit total length
+      if (value.length > MAX_INPUT_LENGTH) return;
+
+      // Preserve trailing zeros by storing the raw string value
+      setWithdrawAmount(value);
+      setWithdrawAmountDetailed(value);
+      // Hide percentage buttons when user types a value > 0
+      const numValue = parseFloat(value) || 0;
+      if (numValue > 0) {
+        setShowPercentageButtons(false);
+      } else {
+        setShowPercentageButtons(true);
       }
-      setWithdrawAmount(value || '');
     },
     [],
   );
 
+  const handleAmountPress = useCallback(() => {
+    setIsInputFocused(true);
+  }, []);
+
   const handlePercentagePress = useCallback(
     (percentage: number) => {
-      if (!availableBalance || parseFloat(availableBalance) === 0) return;
+      if (!hasPositiveBalance) return;
 
-      const balanceNum = parseFloat(availableBalance);
-      const newAmount = (balanceNum * percentage).toFixed(USDC_DECIMALS);
-      setWithdrawAmount(newAmount);
+      const amount = availableBalance * percentage;
+      // Format to 2 or 6 decimal places for USDC
+      let formattedAmount = '0';
+      if (amount < 0.01) {
+        formattedAmount = amount.toFixed(6);
+      } else {
+        formattedAmount = amount.toFixed(2);
+      }
+      setWithdrawAmount(formattedAmount);
+      setWithdrawAmountDetailed(amount.toFixed(6));
+
+      // Hide percentage buttons after selection and show withdrawal button
+      if (amount > 0) {
+        setShowPercentageButtons(false);
+      }
+
+      // Log for debugging
+      DevLogger.log(
+        `Percentage selected: ${
+          percentage * 100
+        }%, Amount: ${formattedAmount}, Available Perps Balance: ${availableBalance}`,
+      );
     },
-    [availableBalance],
+    [availableBalance, hasPositiveBalance],
   );
 
   const handleMaxPress = useCallback(() => {
-    if (!availableBalance || parseFloat(availableBalance) === 0) return;
-    setWithdrawAmount(availableBalance);
-  }, [availableBalance]);
-
-  const handleDonePress = useCallback(() => {
-    setShouldBlur(true);
-    setIsInputFocused(false);
-    if (inputRef.current) {
-      inputRef.current.blur();
-    }
-    setTimeout(() => setShouldBlur(false), 100);
-  }, []);
+    handlePercentagePress(1);
+  }, [handlePercentagePress]);
 
   const handleContinue = useCallback(async () => {
-    if (!withdrawAmount || !hasValidQuote) return;
+    if (!hasValidInputs || isSubmittingTx) return;
 
-    // Additional validation
-    const withdrawAmountNum = parseFloat(withdrawAmount);
-    if (isNaN(withdrawAmountNum) || withdrawAmountNum <= 0) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('perps.withdrawal.error'),
-            isBold: true,
-          },
-          {
-            label: strings('perps.withdrawal.invalid_amount'),
-          },
-        ],
-      });
-      return;
-    }
+    setIsSubmittingTx(true);
+    trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
+      amount: withdrawAmountDetailed,
+    });
+
+    // Show processing toast immediately
+    showToast(
+      PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
+    );
+
+    // Navigate back immediately to close the withdrawal screen
+    navigation.goBack();
+
+    // Execute withdrawal asynchronously
+    // Get the correct assetId for USDC on Arbitrum (declare outside try block for error handling)
+    const assetId = isTestnet
+      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
 
     try {
-      setIsSubmittingTx(true);
+      // Execute withdrawal directly using controller
+      const controller = Engine.context.PerpsController;
 
-      // Track withdrawal initiated
-      track(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
-        [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(withdrawAmount),
-        [PerpsEventProperties.SOURCE_ASSET]: USDC_SYMBOL,
+      // Construct assetId in CAIP format: eip155:{chainId}/erc20:{tokenAddress}/default
+      // Convert hex chainId to decimal for CAIP format
+      const chainIdDecimal = parseInt(destToken.chainId, 16).toString();
+
+      DevLogger.log('Initiating withdrawal with params:', {
+        amount: withdrawAmountDetailed,
+        destination: destToken.address,
+        assetId,
+        chainId: destToken.chainId,
+        chainIdDecimal,
       });
 
-      // Show toast about withdrawal initiation
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('perps.withdrawal.initiated'),
-            isBold: true,
-          },
-          {
-            label: strings('perps.withdrawal.wait_time_message'),
-          },
-        ],
-      });
-
-      // Get the correct assetId for USDC on Arbitrum
-      const usdcAssetId = isTestnet
-        ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-        : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
-
-      DevLogger.log('🔍 PerpsWithdrawView: Withdrawal params', {
-        amount: withdrawAmount,
-        assetId: usdcAssetId,
-        isTestnet,
-      });
-
-      // Track withdrawal execution time
+      // Start performance measurements for transaction submission and confirmation
       startMeasure(
         PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED,
       );
@@ -241,10 +282,9 @@ const PerpsWithdrawView: React.FC = () => {
         PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
       );
 
-      // Initiate withdrawal with required assetId
-      const result = await withdraw({
-        amount: withdrawAmount,
-        assetId: usdcAssetId,
+      const result = await controller.withdraw({
+        amount: withdrawAmountDetailed,
+        assetId, // Required CAIP format for USDC withdrawal (with /default suffix)
       });
 
       // Measure withdrawal transaction submission
@@ -256,265 +296,446 @@ const PerpsWithdrawView: React.FC = () => {
           PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
         );
 
-        // Track withdrawal completed
-        track(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
-          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(withdrawAmount),
-          [PerpsEventProperties.COMPLETION_DURATION]: confirmationDuration,
+        // Track withdrawal completed with duration
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
+          amount: withdrawAmountDetailed,
+          completionDuration: confirmationDuration,
         });
 
-        // Show success toast - funds will arrive within 5 minutes
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.ArrowUp,
-          hasNoTimeout: false,
-          labelOptions: [
-            {
-              label: strings('perps.withdrawal.success_toast', {
-                amount: withdrawAmount,
-                symbol: 'USDC',
-              }),
-              isBold: false,
-            },
-            {
-              label: strings('perps.withdrawal.arrival_time'),
-              isBold: false,
-            },
-          ],
-        });
-
-        // Navigate back immediately - the toast will persist since it's rendered globally
-        navigation.goBack();
+        DevLogger.log('Withdrawal successful, duration:', confirmationDuration);
       } else {
+        // End confirmation measurement on failure too
+        endMeasure(
+          PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+        );
+
         // Track withdrawal failed
-        track(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
-          [PerpsEventProperties.ERROR_MESSAGE]: result.error || 'Unknown error',
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+          errorMessage: result.error || 'Unknown error',
         });
 
-        // Show error toast - do NOT navigate back on error
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          hasNoTimeout: false,
-          labelOptions: [
-            {
-              label: strings('perps.withdrawal.error'),
-              isBold: true,
-            },
-            {
-              label: result.error || strings('perps.withdrawal.error_generic'),
-            },
-          ],
-        });
+        DevLogger.log('Withdrawal failed:', result.error);
       }
+      // Success/error toast will be shown by usePerpsWithdrawStatus hook
     } catch (error) {
-      // Show error toast - do NOT navigate back on error
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('perps.withdrawal.error'),
-            isBold: true,
+      // End measurements on error
+      endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
+      endMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+      );
+
+      // Capture exception with withdrawal context
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tags: {
+            component: 'PerpsWithdrawView',
+            action: 'financial_withdrawal',
+            operation: 'financial_operations',
           },
-          {
-            label:
-              error instanceof Error
-                ? error.message
-                : strings('perps.withdrawal.error_generic'),
+          extra: {
+            withdrawalContext: {
+              amount: withdrawAmountDetailed,
+              assetId,
+              destination: destToken.address,
+              chainId: destToken.chainId,
+              isTestnet,
+            },
           },
-        ],
+        },
+      );
+
+      // Track withdrawal failed
+      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
       });
+
+      DevLogger.log('Error preparing withdrawal:', error);
     } finally {
       setIsSubmittingTx(false);
     }
   }, [
-    withdrawAmount,
-    hasValidQuote,
-    toastRef,
-    isTestnet,
-    withdraw,
+    hasValidInputs,
+    isSubmittingTx,
+    trackEvent,
+    showToast,
+    PerpsToastOptions.accountManagement.withdrawal.withdrawalInProgress,
     navigation,
-    track,
+    destToken.chainId,
+    destToken.address,
+    isTestnet,
     startMeasure,
     endMeasure,
+    withdrawAmountDetailed,
   ]);
 
-  // UI state calculations
-  const hasValidInputs =
-    hasAmount && !hasInsufficientBalance && !isBelowMinimum && hasValidQuote;
-  const shouldDisplayQuoteDetails = hasAmount && !quoteError;
-  const shouldShowPercentageButtons = isInputFocused || !hasAmount;
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
-  // Extract numeric value from formatted receiving amount
-  const destAmount = useMemo(() => {
-    if (formattedQuoteData.receivingAmount) {
-      const match = formattedQuoteData.receivingAmount.match(/^([\d.]+)/);
-      return match ? match[1] : '0';
+  const formatDisplayAmount = useMemo(() => {
+    if (!withdrawAmount || withdrawAmount === '0') {
+      return '$0';
     }
-    return '0';
-  }, [formattedQuoteData.receivingAmount]);
+    // Show full decimals when keypad is active, formatted when not
+    if (isInputFocused) {
+      return `$${withdrawAmount}`;
+    }
+    return formatPerpsFiat(withdrawAmount);
+  }, [withdrawAmount, isInputFocused]);
 
-  // Get network image for destination chain
-  const destNetworkImage = getNetworkImageSource({
-    chainId: destToken.chainId,
-  });
+  const formatReceiveAmount = useMemo(() => {
+    if (!destAmount) return '-';
+    const amount = parseFloat(destAmount);
+    if (isNaN(amount) || amount === 0) return '-';
+    return formatPerpsFiat(destAmount);
+  }, [destAmount]);
 
-  const { top } = useSafeAreaInsets();
+  // Tooltip handlers
+  const handleTooltipPress = useCallback(
+    (contentKey: PerpsTooltipContentKey) => {
+      setSelectedTooltip(contentKey);
+    },
+    [],
+  );
+
+  const handleTooltipClose = useCallback(() => {
+    setSelectedTooltip(null);
+  }, []);
 
   return (
-    <SafeAreaView style={[styles.screen, { marginTop: top }]}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            iconColor={IconColor.Default}
-            style={styles.backButton}
-            testID={PerpsWithdrawViewSelectorsIDs.BACK_BUTTON}
-          />
-          <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
+    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+      <Box twClassName="flex-1 bg-default">
+        {/* Header */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4"
+        >
+          <Box twClassName="w-10" />
+          <Text variant={TextVariant.HeadingMD}>
             {strings('perps.withdrawal.title')}
           </Text>
-          <View style={styles.placeholder} />
-        </View>
+          <Pressable
+            onPress={handleBack}
+            style={tw.style('p-2')}
+            testID={PerpsWithdrawViewSelectorsIDs.BACK_BUTTON}
+          >
+            <Icon name={IconName.Close} size={IconSize.Md} />
+          </Pressable>
+        </Box>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollViewContent,
-            isInputFocused && styles.scrollViewContentWithKeypad,
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          <Box style={styles.inputsContainer} gap={8}>
-            <TokenInputArea
-              ref={inputRef}
-              amount={withdrawAmount || undefined}
-              token={sourceToken}
-              tokenBalance={availableBalance}
-              networkImageSource={getNetworkImageSource({
-                chainId: sourceToken.chainId,
-              })}
-              networkName={sourceNetworkName}
-              testID={PerpsWithdrawViewSelectorsIDs.SOURCE_TOKEN_AREA}
-              tokenType={TokenInputAreaType.Source}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => {
-                if (shouldBlur) {
-                  setIsInputFocused(false);
-                }
-              }}
-              onInputPress={() => {
-                setIsInputFocused(true);
-              }}
-            />
-
-            <Box style={styles.arrowContainer}>
-              <Box style={styles.arrowCircle}>
-                <Icon name={IconName.Arrow2Down} size={IconSize.Xl} />
-              </Box>
-            </Box>
-
-            <TokenInputArea
-              amount={destAmount}
-              token={destToken}
-              networkImageSource={destNetworkImage}
-              networkName={destNetworkName}
-              testID={PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA}
-              tokenType={TokenInputAreaType.Destination}
-            />
-          </Box>
-
-          {shouldDisplayQuoteDetails && (
-            <Box style={styles.quoteContainer}>
-              <PerpsQuoteDetailsCard
-                networkFee={formattedQuoteData.networkFee}
-                estimatedTime={formattedQuoteData.estimatedTime}
-                rate={`1 ${USDC_SYMBOL} = 1 ${USDC_SYMBOL}`}
-                metamaskFee={METAMASK_WITHDRAWAL_FEE_PLACEHOLDER}
-                direction="withdrawal"
+        {/* Amount Display */}
+        <Pressable onPress={handleAmountPress}>
+          <Box alignItems={BoxAlignItems.Center} twClassName="py-12 px-4">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              marginBottom={2}
+            >
+              <Text
+                variant={TextVariant.DisplayMD}
+                style={tw.style(
+                  'text-[54px] leading-[70px] font-medium mb-2 text-default',
+                  withdrawAmount === '0' && 'text-alternative',
+                )}
+              >
+                {formatDisplayAmount}
+              </Text>
+              <Animated.View
+                testID="cursor"
+                style={[
+                  tw.style('w-0.5 h-14 bg-text-default ml-1'),
+                  {
+                    opacity: fadeAnim,
+                  },
+                ]}
               />
             </Box>
-          )}
-        </ScrollView>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.withdrawal.available_balance', {
+                amount: formattedBalance,
+              })}
+            </Text>
+          </Box>
+        </Pressable>
 
-        {isInputFocused && (
-          <View style={styles.floatingKeypadContainer}>
-            <Button
-              variant={ButtonVariants.Primary}
-              label={getButtonLabel()}
-              onPress={handleContinue}
-              style={styles.actionButton}
-              disabled={!hasValidInputs || isSubmittingTx}
-              loading={isSubmittingTx}
-              testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
-            />
+        {/* Receive Section */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          alignItems={BoxAlignItems.Center}
+          twClassName="px-5 py-2"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.withdrawal.receive')}
+            </Text>
+            <Pressable
+              onPress={() =>
+                handleTooltipPress('receive' as PerpsTooltipContentKey)
+              }
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Md}
+                color={IconColor.Alternative}
+              />
+            </Pressable>
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={NetworkBadgeSource(destToken.chainId as Hex)}
+                />
+              }
+            >
+              <AvatarToken
+                name={destToken.symbol}
+                // hardcoding usdc token image url until we support other withdrawal token types
+                imageSource={{ uri: USDC_TOKEN_URL }}
+                size={AvatarSize.Sm}
+              />
+            </BadgeWrapper>
+            <Text variant={TextVariant.BodyMD}>{USDC_SYMBOL}</Text>
+          </Box>
+        </Box>
 
-            {shouldShowPercentageButtons && (
-              <View style={styles.percentageButtonsRow}>
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Md}
-                  label={strings('perps.withdrawal.percentage_10')}
+        {/* Provider Fee */}
+        <Box twClassName="px-5 py-2">
+          <KeyValueRow
+            field={{
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-2"
+                >
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.withdrawal.provider_fee')}
+                  </Text>
+                  <Pressable
+                    onPress={() => handleTooltipPress('withdrawal_fees')}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Md}
+                      color={IconColor.Alternative}
+                    />
+                  </Pressable>
+                </Box>
+              ),
+            }}
+            value={{
+              label: {
+                text: formattedQuoteData?.networkFee || '$1.00',
+                variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
+              },
+            }}
+          />
+        </Box>
+
+        {/* Estimated Time */}
+        <Box twClassName="px-5 py-2">
+          <KeyValueRow
+            field={{
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-2"
+                >
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.withdrawal.estimated_time')}
+                  </Text>
+                </Box>
+              ),
+            }}
+            value={{
+              label: {
+                text: formattedQuoteData?.estimatedTime,
+                variant: TextVariant.BodyMD,
+                color: TextColor.Alternative,
+              },
+            }}
+          />
+        </Box>
+
+        {/* You'll Receive */}
+        <Box twClassName="px-5 py-2">
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('perps.withdrawal.you_will_receive'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+            value={{
+              label: {
+                text: formatReceiveAmount,
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        </Box>
+
+        {/* Spacer to push content to bottom */}
+        <Box twClassName="flex-1" />
+
+        {/* Bottom Section - Always at bottom */}
+        <Box twClassName="px-4 pb-6">
+          {/* Error Message - Always present, visibility controlled */}
+          <Box twClassName="mb-4">
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Error}
+              style={tw.style(
+                'text-center',
+                // Control visibility - opacity 0 when no error
+                !(
+                  (isBelowMinimum && hasAmount) ||
+                  (hasInsufficientBalance && hasAmount)
+                ) && 'opacity-0',
+              )}
+            >
+              {hasInsufficientBalance
+                ? strings('perps.withdrawal.insufficient_funds')
+                : strings('perps.withdrawal.minimum_amount_error', {
+                    amount: getMinimumAmount(),
+                  })}
+            </Text>
+          </Box>
+          {/* Dynamic action row - either percentage buttons or withdrawal button */}
+          <Box twClassName="mb-4">
+            {showPercentageButtons && isInputFocused ? (
+              /* Show percentage buttons */
+              <Box twClassName="flex-row justify-between gap-2 pt-1">
+                <Pressable
+                  style={({ pressed }) =>
+                    tw.style(
+                      'flex-1 h-11 rounded-lg justify-center items-center',
+                      pressed ? 'bg-pressed' : 'bg-muted',
+                    )
+                  }
                   onPress={() => handlePercentagePress(0.1)}
-                  style={styles.percentageButton}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Md}
-                  label={strings('perps.withdrawal.percentage_25')}
+                  disabled={!hasPositiveBalance}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={tw.style(!hasPositiveBalance && 'text-disabled')}
+                  >
+                    10%
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) =>
+                    tw.style(
+                      'flex-1 h-11 rounded-lg justify-center items-center',
+                      pressed ? 'bg-pressed' : 'bg-muted',
+                    )
+                  }
                   onPress={() => handlePercentagePress(0.25)}
-                  style={styles.percentageButton}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Md}
-                  label={strings('perps.withdrawal.max')}
+                  disabled={!hasPositiveBalance}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={tw.style(!hasPositiveBalance && 'text-disabled')}
+                  >
+                    25%
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) =>
+                    tw.style(
+                      'flex-1 h-11 rounded-lg justify-center items-center',
+                      pressed ? 'bg-pressed' : 'bg-muted',
+                    )
+                  }
+                  onPress={() => handlePercentagePress(0.5)}
+                  disabled={!hasPositiveBalance}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={tw.style(!hasPositiveBalance && 'text-disabled')}
+                  >
+                    50%
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) =>
+                    tw.style(
+                      'flex-1 h-11 rounded-lg justify-center items-center',
+                      pressed ? 'bg-pressed' : 'bg-muted',
+                    )
+                  }
                   onPress={handleMaxPress}
-                  style={styles.percentageButton}
-                />
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Md}
-                  label={strings('perps.withdrawal.done')}
-                  onPress={handleDonePress}
-                  style={styles.percentageButton}
-                />
-              </View>
+                  disabled={!hasPositiveBalance}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={tw.style(!hasPositiveBalance && 'text-disabled')}
+                  >
+                    Max
+                  </Text>
+                </Pressable>
+              </Box>
+            ) : (
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                label={strings('perps.withdrawal.withdraw')}
+                onPress={handleContinue}
+                loading={isSubmittingTx}
+                disabled={!hasValidInputs || isSubmittingTx}
+                testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
+                width={ButtonWidthTypes.Full}
+              />
             )}
+          </Box>
 
+          {/* Numeric Keypad - Always visible */}
+          {isInputFocused && (
             <Keypad
               value={withdrawAmount}
               onChange={handleKeypadChange}
               currency={USDC_SYMBOL}
               decimals={USDC_DECIMALS}
             />
-          </View>
-        )}
+          )}
+        </Box>
+      </Box>
 
-        {!isInputFocused && (
-          <View style={styles.fixedBottomContainer}>
-            {(quoteError || (isBelowMinimum && hasAmount)) && (
-              <Text style={styles.errorText} color={TextColor.Error}>
-                {quoteError ||
-                  strings('perps.withdrawal.minimum_amount_error', {
-                    amount: getMinimumAmount(),
-                  })}
-              </Text>
-            )}
-            <Button
-              variant={ButtonVariants.Primary}
-              label={getButtonLabel()}
-              onPress={handleContinue}
-              style={styles.actionButton}
-              disabled={!hasValidInputs || isSubmittingTx}
-              loading={isSubmittingTx}
-              testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
-            />
-          </View>
-        )}
-      </View>
+      {/* Tooltip Bottom Sheet */}
+      {selectedTooltip && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={handleTooltipClose}
+          contentKey={selectedTooltip}
+          testID={PerpsWithdrawViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+          key={selectedTooltip}
+        />
+      )}
     </SafeAreaView>
   );
 };

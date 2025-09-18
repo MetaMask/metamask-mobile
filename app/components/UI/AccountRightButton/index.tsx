@@ -11,9 +11,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import images from 'images/image-icons';
 import Device from '../../../util/device';
-import AvatarAccount, {
-  AvatarAccountType,
-} from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
 import Avatar, {
   AvatarVariant,
@@ -32,6 +30,7 @@ import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -65,11 +64,7 @@ const AccountRightButton = ({
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const avatarAccountType = useSelector(selectAvatarAccountType);
   /**
    * Current network
    */
@@ -156,13 +151,13 @@ const AccountRightButton = ({
   const currentUrl = route.params?.url;
   let hostname;
   if (currentUrl) {
-    hostname = new UrlParser(currentUrl)?.hostname;
+    hostname = new UrlParser(currentUrl)?.origin;
   }
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const renderAvatarAccount = () => (
-    <AvatarAccount type={accountAvatarType} accountAddress={selectedAddress} />
+    <AvatarAccount type={avatarAccountType} accountAddress={selectedAddress} />
   );
 
   return (

@@ -9,7 +9,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
-import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
@@ -105,6 +104,17 @@ jest.mock('../../../core/Engine', () => ({
         },
       },
     },
+    NetworkEnablementController: {
+      state: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x00': true,
+            '0x01': true,
+            '0x02': true,
+          },
+        },
+      },
+    },
   },
 }));
 
@@ -194,6 +204,13 @@ const initialState = {
           },
         },
       },
+      NetworkEnablementController: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+          },
+        },
+      },
     },
   },
   settings: {
@@ -251,6 +268,10 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
   }),
+  useNetworksByCustomNamespace: () => ({
+    areAllNetworksSelected: false,
+    totalEnabledNetworksCount: 2,
+  }),
   NetworkType: {
     Popular: 'popular',
     Custom: 'custom',
@@ -261,6 +282,7 @@ jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: () => ({
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
+    selectAllPopularNetworks: jest.fn(),
   }),
 }));
 
@@ -270,6 +292,9 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
     enabledNetworks: { '0x1': true },
     setEnabledNetwork: jest.fn(),
     setDisabledNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
   }),
 }));
 
@@ -282,6 +307,7 @@ jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
       chainId: '0x1',
     },
     getNetworkInfo: jest.fn(),
+    enabledNetworks: [{ chainId: '0x1' }],
   }),
 }));
 
@@ -491,16 +517,6 @@ describe('Tokens', () => {
     expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
-  it('triggers bottom sheet when sort controls are pressed', async () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    await fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
-
-    await waitFor(() => {
-      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
-    });
-  });
-
   it('calls onRefresh and updates state', async () => {
     const { getByTestId } = renderComponent(initialState);
 
@@ -532,16 +548,6 @@ describe('Tokens', () => {
     const { queryByText } = renderComponent(initialState);
 
     expect(queryByText('Link')).toBeNull(); // Zero balance token should not be visible
-  });
-
-  it('triggers sort controls when sort button is pressed', async () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
-
-    await waitFor(() => {
-      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
-    });
   });
 
   describe('Portfolio View', () => {
@@ -593,6 +599,16 @@ describe('Tokens', () => {
                 '0x89': false,
               },
             },
+            NetworkEnablementController: {
+              state: {
+                enabledNetworkMap: {
+                  eip155: {
+                    '0x1': true,
+                    '0x89': false,
+                  },
+                },
+              },
+            },
           },
           selectedAccountTokensChains: {
             '0x1': [
@@ -642,6 +658,15 @@ describe('Tokens', () => {
                   tokenSortConfig: { key: 'symbol', order: 'asc' },
                   tokenNetworkFilter: {
                     '0x1': true,
+                  },
+                },
+                NetworkEnablementController: {
+                  state: {
+                    enabledNetworkMap: {
+                      eip155: {
+                        '0x1': true,
+                      },
+                    },
                   },
                 },
                 TokenBalancesController: {
@@ -715,6 +740,16 @@ describe('Tokens', () => {
                   tokenNetworkFilter: {
                     '0x1': true,
                     '0xe705': true,
+                  },
+                },
+                NetworkEnablementController: {
+                  state: {
+                    enabledNetworkMap: {
+                      eip155: {
+                        '0x1': true,
+                        '0xe705': true,
+                      },
+                    },
                   },
                 },
                 TokenBalancesController: {
@@ -817,6 +852,16 @@ describe('Tokens', () => {
                 tokenNetworkFilter: {
                   '0x1': true,
                   '0xe705': true,
+                },
+              },
+              NetworkEnablementController: {
+                state: {
+                  enabledNetworkMap: {
+                    eip155: {
+                      '0x1': true,
+                      '0xe705': true,
+                    },
+                  },
                 },
               },
               TokenBalancesController: {

@@ -3,7 +3,6 @@ import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
@@ -12,8 +11,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useAccountName } from '../../../../../hooks/useAccountName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { createAccountSelectorNavDetails } from '../../../../../Views/AccountSelector';
-import { type RootState } from '../../../../../../reducers';
+import { createAddressSelectorNavDetails } from '../../../../../Views/AddressSelector/AddressSelector';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import Icon, {
   IconName,
@@ -21,6 +19,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import stylesheet from './AccountSelector.styles';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 interface AccountSelectorProps {
   isEvmOnly?: boolean;
@@ -36,11 +35,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const accountName = useAccountName();
   const { styles, theme } = useStyles(stylesheet, {});
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const selectedFormattedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -49,7 +44,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const openAccountSelector = useCallback(
     () =>
       navigation.navigate(
-        ...createAccountSelectorNavDetails({
+        ...createAddressSelectorNavDetails({
           disablePrivacyMode: true,
           isEvmOnly,
         }),

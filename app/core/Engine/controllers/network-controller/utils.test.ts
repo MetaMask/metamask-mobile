@@ -1,26 +1,50 @@
+// Jest tests run in Node, so this is okay.
+// eslint-disable-next-line import/no-nodejs-modules
+import assert from 'assert';
 import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
+import { QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME } from '../../../../util/networks/customNetworks';
 import {
-  getIsOurInfuraEndpointUrl,
+  KNOWN_CUSTOM_ENDPOINTS,
+  PRODUCTION_LIKE_ENVIRONMENTS,
   getIsQuicknodeEndpointUrl,
+  getIsMetaMaskInfuraEndpointUrl,
   shouldCreateRpcServiceEvents,
 } from './utils';
-import { QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME } from '../../../../util/networks/customNetworks';
 
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
+  // This is the name of the property that turns this into an ES module.
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   __esModule: true,
   generateDeterministicRandomNumber: jest.fn(),
 }));
+
+jest.mock('../../../../util/networks/customNetworks', () => {
+  // The network constants file relies on INFURA_PROJECT_ID already being set.
+  // If we set it in a test, then it's already too late.
+  // Therefore, we have to set it to a known value before loading the file.
+  const previousInfuraProjectId = process.env.MM_INFURA_PROJECT_ID;
+  // NOTE: This must match MOCK_METAMASK_INFURA_PROJECT_ID below.
+  process.env.MM_INFURA_PROJECT_ID = 'metamask-infura-project-id';
+  const mod = jest.requireActual('../../../../util/networks/customNetworks');
+  process.env.MM_INFURA_PROJECT_ID = previousInfuraProjectId;
+  return mod;
+});
 
 const generateDeterministicRandomNumberMock = jest.mocked(
   generateDeterministicRandomNumber,
 );
 
-describe('getIsOurInfuraEndpointUrl', () => {
+const MOCK_METAMASK_INFURA_PROJECT_ID = 'metamask-infura-project-id';
+
+const MOCK_METAMETRICS_ID =
+  '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420';
+
+describe('getIsMetaMaskInfuraEndpointUrl', () => {
   it('returns true if the URL has an Infura hostname with some subdomain whose path starts with the MetaMask API key', () => {
     expect(
-      getIsOurInfuraEndpointUrl(
+      getIsMetaMaskInfuraEndpointUrl(
         'https://some-subdomain.infura.io/v3/the-infura-project-id',
         'the-infura-project-id',
       ),
@@ -29,7 +53,7 @@ describe('getIsOurInfuraEndpointUrl', () => {
 
   it('returns false if the URL has an Infura hostname with some subdomain whose path does not start with the MetaMask API key', () => {
     expect(
-      getIsOurInfuraEndpointUrl(
+      getIsMetaMaskInfuraEndpointUrl(
         'https://some-subdomain.infura.io/v3/a-different-infura-project-id',
         'the-infura-project-id',
       ),
@@ -38,7 +62,7 @@ describe('getIsOurInfuraEndpointUrl', () => {
 
   it('returns false if the URL does match an Infura URL', () => {
     expect(
-      getIsOurInfuraEndpointUrl(
+      getIsMetaMaskInfuraEndpointUrl(
         'https://a-different-url.com',
         'the-infura-project-id',
       ),
@@ -52,24 +76,10 @@ describe('getIsQuicknodeEndpointUrl', () => {
   )) {
     it(`returns true when given the known Quicknode URL for the Infura network '${infuraNetwork}`, async () => {
       await withChangesToEnvironmentVariables(() => {
-        process.env.QUICKNODE_MAINNET_URL =
-          'https://example.quicknode.com/mainnet';
-        process.env.QUICKNODE_LINEA_MAINNET_URL =
-          'https://example.quicknode.com/linea-mainnet';
-        process.env.QUICKNODE_ARBITRUM_URL =
-          'https://example.quicknode.com/arbitrum';
-        process.env.QUICKNODE_AVALANCHE_URL =
-          'https://example.quicknode.com/avalanche';
-        process.env.QUICKNODE_OPTIMISM_URL =
-          'https://example.quicknode.com/optimism';
-        process.env.QUICKNODE_POLYGON_URL =
-          'https://example.quicknode.com/polygon';
-        process.env.QUICKNODE_BASE_URL = 'https://example.quicknode.com/base';
-        process.env.QUICKNODE_BSC_URL = 'https://example.quicknode.com/bsc';
+        setQuicknodeEnvironmentVariables();
 
-        // We can assume this is set.
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const endpointUrl = getQuicknodeEndpointUrl()!;
+        const endpointUrl = getQuicknodeEndpointUrl();
+        assert(endpointUrl);
 
         expect(getIsQuicknodeEndpointUrl(endpointUrl)).toBe(true);
       });
@@ -81,66 +91,328 @@ describe('getIsQuicknodeEndpointUrl', () => {
   });
 });
 
+const ENDPOINTS_TO_TEST: (readonly [string, () => string | undefined])[] = [
+  [
+    'an Infura endpoint using the MetaMask API key',
+    () => `https://mainnet.infura.io/v3/${MOCK_METAMASK_INFURA_PROJECT_ID}`,
+  ],
+  ...Object.entries(QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME).map(
+    ([infuraNetworkName, getUrl]) =>
+      [`the Quicknode endpoint URL for ${infuraNetworkName}`, getUrl] as const,
+  ),
+  ...KNOWN_CUSTOM_ENDPOINTS.map(
+    ({ name, url }) =>
+      [`the known custom network ${name} (${url})`, () => url] as const,
+  ),
+];
+
 describe('shouldCreateRpcServiceEvents', () => {
-  it('returns false if given no metaMetricsId', () => {
-    expect(shouldCreateRpcServiceEvents(undefined)).toBe(false);
+  describe('if not given an error', () => {
+    const error = undefined;
+
+    describe('if given a MetaMetrics ID', () => {
+      describe.each(PRODUCTION_LIKE_ENVIRONMENTS)(
+        'if the environment is %s',
+        (environment: string) => {
+          describe('if the user is in the MetaMetrics sample', () => {
+            const sampleUserRanking = 0.009999;
+
+            describe.each(ENDPOINTS_TO_TEST)(
+              'if the endpoint URL is %s',
+              (_description, getEndpointUrl) => {
+                it('returns true', async () => {
+                  await withChangesToEnvironmentVariables(() => {
+                    process.env.METAMASK_ENVIRONMENT = environment;
+                    setQuicknodeEnvironmentVariables();
+                    generateDeterministicRandomNumberMock.mockReturnValue(
+                      sampleUserRanking,
+                    );
+                    const endpointUrl = getEndpointUrl();
+                    assert(endpointUrl);
+
+                    expect(
+                      shouldCreateRpcServiceEvents({
+                        endpointUrl,
+                        error,
+                        infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+                        metaMetricsId: MOCK_METAMETRICS_ID,
+                      }),
+                    ).toBe(true);
+                  });
+                });
+              },
+            );
+          });
+
+          describe('if the user is not in the MetaMetrics sample', () => {
+            const sampleUserRanking = 0.2;
+
+            it('returns false', async () => {
+              await withChangesToEnvironmentVariables(() => {
+                process.env.METAMASK_ENVIRONMENT = environment;
+                generateDeterministicRandomNumberMock.mockReturnValue(
+                  sampleUserRanking,
+                );
+
+                expect(
+                  shouldCreateRpcServiceEvents({
+                    endpointUrl: 'https://example.com',
+                    error,
+                    infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+                    metaMetricsId: MOCK_METAMETRICS_ID,
+                  }),
+                ).toBe(false);
+              });
+            });
+          });
+        },
+      );
+
+      describe('if the environment is non-production', () => {
+        const environment = 'development';
+
+        describe.each(ENDPOINTS_TO_TEST)(
+          'if the endpoint URL is %s',
+          (_description, getEndpointUrl) => {
+            it('returns true', async () => {
+              await withChangesToEnvironmentVariables(() => {
+                process.env.METAMASK_ENVIRONMENT = environment;
+                setQuicknodeEnvironmentVariables();
+                const endpointUrl = getEndpointUrl();
+                assert(endpointUrl);
+
+                expect(
+                  shouldCreateRpcServiceEvents({
+                    endpointUrl,
+                    error,
+                    infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+                    metaMetricsId: MOCK_METAMETRICS_ID,
+                  }),
+                ).toBe(true);
+              });
+            });
+          },
+        );
+      });
+
+      describe('if the environment is not set', () => {
+        it('returns false', async () => {
+          await withChangesToEnvironmentVariables(() => {
+            delete process.env.METAMASK_ENVIRONMENT;
+
+            expect(
+              shouldCreateRpcServiceEvents({
+                endpointUrl: 'https://example.com',
+                error,
+                infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+                metaMetricsId: MOCK_METAMETRICS_ID,
+              }),
+            ).toBe(false);
+          });
+        });
+      });
+    });
+
+    describe('if the MetaMetrics ID is undefined', () => {
+      const metaMetricsId = undefined;
+
+      it('returns false', async () => {
+        expect(
+          shouldCreateRpcServiceEvents({
+            endpointUrl: 'https://example.com',
+            error: undefined,
+            infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+            metaMetricsId,
+          }),
+        ).toBe(false);
+      });
+    });
+
+    describe('if the MetaMetrics ID is null', () => {
+      const metaMetricsId = null;
+
+      it('returns false', async () => {
+        expect(
+          shouldCreateRpcServiceEvents({
+            endpointUrl: 'https://example.com',
+            error: undefined,
+            infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+            metaMetricsId,
+          }),
+        ).toBe(false);
+      });
+    });
   });
 
-  it('returns false if METAMASK_ENVIRONMENT is not set', async () => {
-    await withChangesToEnvironmentVariables(() => {
-      delete process.env.METAMASK_ENVIRONMENT;
+  describe('if given a non-connection error', () => {
+    const error = new Error('some error');
 
+    describe('if given a MetaMetrics ID', () => {
+      describe.each(PRODUCTION_LIKE_ENVIRONMENTS)(
+        'if the environment is %s',
+        (environment: string) => {
+          describe('if the user is in the MetaMetrics sample', () => {
+            const sampleUserRanking = 0.009999;
+
+            describe.each(ENDPOINTS_TO_TEST)(
+              'if the endpoint URL is %s',
+              (_description, getEndpointUrl) => {
+                it('returns true', async () => {
+                  await withChangesToEnvironmentVariables(() => {
+                    process.env.METAMASK_ENVIRONMENT = environment;
+                    setQuicknodeEnvironmentVariables();
+                    generateDeterministicRandomNumberMock.mockReturnValue(
+                      sampleUserRanking,
+                    );
+                    const endpointUrl = getEndpointUrl();
+                    assert(endpointUrl);
+
+                    expect(
+                      shouldCreateRpcServiceEvents({
+                        endpointUrl,
+                        error,
+                        infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+                        metaMetricsId: MOCK_METAMETRICS_ID,
+                      }),
+                    ).toBe(true);
+                  });
+                });
+              },
+            );
+          });
+
+          describe('if the user is not in the MetaMetrics sample', () => {
+            const sampleUserRanking = 0.2;
+
+            it('returns false', async () => {
+              await withChangesToEnvironmentVariables(() => {
+                process.env.METAMASK_ENVIRONMENT = environment;
+                generateDeterministicRandomNumberMock.mockReturnValue(
+                  sampleUserRanking,
+                );
+
+                expect(
+                  shouldCreateRpcServiceEvents({
+                    endpointUrl: 'https://example.com',
+                    error,
+                    infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+                    metaMetricsId: MOCK_METAMETRICS_ID,
+                  }),
+                ).toBe(false);
+              });
+            });
+          });
+        },
+      );
+
+      describe('if the environment is non-production', () => {
+        const environment = 'development';
+
+        describe.each(ENDPOINTS_TO_TEST)(
+          'if the endpoint URL is %s',
+          (_description, getEndpointUrl) => {
+            it('returns true', async () => {
+              await withChangesToEnvironmentVariables(() => {
+                process.env.METAMASK_ENVIRONMENT = environment;
+                setQuicknodeEnvironmentVariables();
+                const endpointUrl = getEndpointUrl();
+                assert(endpointUrl);
+
+                expect(
+                  shouldCreateRpcServiceEvents({
+                    endpointUrl,
+                    error,
+                    infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+                    metaMetricsId: MOCK_METAMETRICS_ID,
+                  }),
+                ).toBe(true);
+              });
+            });
+          },
+        );
+      });
+
+      describe('if the environment is not set', () => {
+        it('returns false', async () => {
+          await withChangesToEnvironmentVariables(() => {
+            delete process.env.METAMASK_ENVIRONMENT;
+
+            expect(
+              shouldCreateRpcServiceEvents({
+                endpointUrl: 'https://example.com',
+                error,
+                infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+                metaMetricsId: MOCK_METAMETRICS_ID,
+              }),
+            ).toBe(false);
+          });
+        });
+      });
+    });
+
+    describe('if the MetaMetrics ID is undefined', () => {
+      const metaMetricsId = undefined;
+
+      it('returns false', async () => {
+        expect(
+          shouldCreateRpcServiceEvents({
+            endpointUrl: 'https://example.com',
+            error: undefined,
+            infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+            metaMetricsId,
+          }),
+        ).toBe(false);
+      });
+    });
+
+    describe('if the MetaMetrics ID is null', () => {
+      const metaMetricsId = null;
+
+      it('returns false', async () => {
+        expect(
+          shouldCreateRpcServiceEvents({
+            endpointUrl: 'https://example.com',
+            error: undefined,
+            infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+            metaMetricsId,
+          }),
+        ).toBe(false);
+      });
+    });
+  });
+
+  describe('if given a connection error', () => {
+    const error = new TypeError('Failed to fetch');
+
+    it('returns false', async () => {
       expect(
-        shouldCreateRpcServiceEvents(
-          '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
-        ),
+        shouldCreateRpcServiceEvents({
+          endpointUrl: 'https://example.com',
+          error,
+          infuraProjectId: MOCK_METAMASK_INFURA_PROJECT_ID,
+          metaMetricsId: MOCK_METAMETRICS_ID,
+        }),
       ).toBe(false);
     });
   });
-
-  it('returns true if METAMASK_ENVIRONMENT is not "production" or "release-candidate"', async () => {
-    await withChangesToEnvironmentVariables(() => {
-      process.env.METAMASK_ENVIRONMENT = 'development';
-
-      expect(
-        shouldCreateRpcServiceEvents(
-          '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
-        ),
-      ).toBe(true);
-    });
-  });
-
-  describe.each(['production', 'pre-release', 'qa', 'beta', 'rc', 'exp'])(
-    'if METAMASK_ENVIRONMENT is "%s"',
-    (metamaskEnvironment: string) => {
-      it('returns false if the MetaMetrics user is not within the sample', async () => {
-        await withChangesToEnvironmentVariables(() => {
-          process.env.METAMASK_ENVIRONMENT = metamaskEnvironment;
-          generateDeterministicRandomNumberMock.mockReturnValue(0.7);
-
-          expect(
-            shouldCreateRpcServiceEvents(
-              '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
-            ),
-          ).toBe(false);
-        });
-      });
-
-      it('returns true if the MetaMetrics user is within the sample', async () => {
-        await withChangesToEnvironmentVariables(() => {
-          process.env.METAMASK_ENVIRONMENT = metamaskEnvironment;
-          generateDeterministicRandomNumberMock.mockReturnValue(0.09999);
-
-          expect(
-            shouldCreateRpcServiceEvents(
-              '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
-            ),
-          ).toBe(true);
-        });
-      });
-    },
-  );
 });
+
+/**
+ * Sets the environment variables that represent all networks that have
+ * Quicknode endpoints.
+ */
+function setQuicknodeEnvironmentVariables() {
+  process.env.QUICKNODE_MAINNET_URL = 'https://example.quicknode.com/mainnet';
+  process.env.QUICKNODE_LINEA_MAINNET_URL =
+    'https://example.quicknode.com/linea-mainnet';
+  process.env.QUICKNODE_ARBITRUM_URL = 'https://example.quicknode.com/arbitrum';
+  process.env.QUICKNODE_AVALANCHE_URL =
+    'https://example.quicknode.com/avalanche';
+  process.env.QUICKNODE_OPTIMISM_URL = 'https://example.quicknode.com/optimism';
+  process.env.QUICKNODE_POLYGON_URL = 'https://example.quicknode.com/polygon';
+  process.env.QUICKNODE_BASE_URL = 'https://example.quicknode.com/base';
+  process.env.QUICKNODE_BSC_URL = 'https://example.quicknode.com/bsc';
+}
 
 /**
  * Ensures that changes to `process.env` during a test get rolled back after a

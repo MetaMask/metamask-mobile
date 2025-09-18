@@ -1,30 +1,28 @@
 import React, { useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
-import styleSheet from './PerpsMarketRowItem.styles';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
-import { usePerpsLivePrices } from '../../hooks/stream';
-import type { PerpsMarketData } from '../../controllers/types';
-import {
-  formatPrice,
-  formatPercentage,
-  formatPnl,
-} from '../../utils/formatUtils';
+import { TouchableOpacity, View } from 'react-native';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import type { PerpsMarketData } from '../../controllers/types';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import {
+  formatPercentage,
+  formatPerpsFiat,
+  formatPnl,
+  formatVolume,
+  PRICE_RANGES_DETAILED_VIEW,
+} from '../../utils/formatUtils';
+import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import styleSheet from './PerpsMarketRowItem.styles';
+import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
@@ -39,12 +37,19 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
       return market;
     }
 
-    // Parse and format the price
+    // Parse and format the price with exactly 2 decimals for consistency
     const currentPrice = parseFloat(livePrice.price);
-    const formattedPrice = formatPrice(currentPrice);
+
+    const formattedPrice = formatPerpsFiat(currentPrice, {
+      ranges: PRICE_RANGES_DETAILED_VIEW,
+    });
+    const comparisonPrice = formatPerpsFiat(currentPrice, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
 
     // Only update if price actually changed
-    if (formattedPrice === market.price) {
+    if (comparisonPrice === market.price) {
       return market;
     }
 
@@ -70,17 +75,19 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     }
 
     // Update volume if available
-    if (livePrice.volume24h) {
+    if (livePrice.volume24h !== undefined) {
       const volume = livePrice.volume24h;
-      if (volume >= 1e9) {
-        updatedMarket.volume = `$${(volume / 1e9).toFixed(1)}B`;
-      } else if (volume >= 1e6) {
-        updatedMarket.volume = `$${(volume / 1e6).toFixed(1)}M`;
-      } else if (volume >= 1e3) {
-        updatedMarket.volume = `$${(volume / 1e3).toFixed(1)}K`;
+
+      // Use formatVolume with auto-determined decimals based on magnitude
+      if (volume > 0) {
+        updatedMarket.volume = formatVolume(volume);
       } else {
-        updatedMarket.volume = `$${volume.toFixed(2)}`;
+        // Only show $0 if volume is truly 0
+        updatedMarket.volume = '$0.00';
       }
+    } else if (!market.volume || market.volume === '$0') {
+      // Fallback: ensure volume field always has a value
+      updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
 
     return updatedMarket;
@@ -93,22 +100,21 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handlePress}
+      testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
+    >
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
-          {assetUrl ? (
-            <RemoteImage source={{ uri: assetUrl }} />
-          ) : (
-            <Avatar
-              variant={AvatarVariant.Network}
-              name={displayMarket.symbol}
-              size={AvatarSize.Lg}
-              testID={getPerpsMarketRowItemSelector.rowItem(
-                displayMarket.symbol,
-              )}
-              style={styles.networkAvatar}
-            />
-          )}
+          <PerpsTokenLogo
+            symbol={displayMarket.symbol}
+            size={32}
+            recyclingKey={displayMarket.symbol}
+            testID={getPerpsMarketRowItemSelector.tokenLogo(
+              displayMarket.symbol,
+            )}
+          />
         </View>
 
         <View style={styles.tokenInfo}>
@@ -116,15 +122,11 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {displayMarket.symbol}
             </Text>
-            <View style={styles.leverageContainer}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {displayMarket.maxLeverage}
-              </Text>
-            </View>
+            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
           <Text
             variant={TextVariant.BodySM}
-            color={TextColor.Muted}
+            color={TextColor.Alternative}
             style={styles.tokenVolume}
           >
             {displayMarket.volume}
@@ -146,7 +148,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             color={isPositiveChange ? TextColor.Success : TextColor.Error}
             style={styles.priceChange}
           >
-            {displayMarket.change24h} ({displayMarket.change24hPercent})
+            {displayMarket.change24hPercent}
           </Text>
         </View>
       </View>

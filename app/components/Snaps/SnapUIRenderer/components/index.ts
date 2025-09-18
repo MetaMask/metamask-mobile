@@ -26,6 +26,8 @@ import { addressInput } from './address-input';
 import { assetSelector } from './asset-selector';
 import { copyable } from './copyable';
 import { accountSelector } from './account-selector';
+import { dropdown } from './dropdown';
+import { radioGroup } from './radioGroup';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -56,4 +58,6 @@ export const COMPONENT_MAPPING = {
   AssetSelector: assetSelector,
   Copyable: copyable,
   AccountSelector: accountSelector,
+  Dropdown: dropdown,
+  RadioGroup: radioGroup,
 };

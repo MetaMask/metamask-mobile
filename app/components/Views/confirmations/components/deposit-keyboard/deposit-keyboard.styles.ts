@@ -5,11 +5,34 @@ const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     percentageButton: {
       borderRadius: 12,
-      backgroundColor: params.theme.colors.background.muted,
       height: 48,
       flexGrow: 1,
       fontSize: 20,
       marginBottom: 12,
+    },
+
+    alertContainer: {
+      borderRadius: 12,
+      height: 48,
+      flexGrow: 1,
+      fontSize: 20,
+      marginBottom: 12,
+      backgroundColor: params.theme.colors.error.muted,
+    },
+
+    alertText: {
+      color: params.theme.colors.error.default,
+      textAlign: 'center',
+      lineHeight: 48,
+      fontSize: 20,
+      fontWeight: '600',
+    },
+
+    skeletonButton: {
+      width: '100%',
+      height: 40,
+      borderRadius: 10,
+      flex: 1,
     },
   });
 

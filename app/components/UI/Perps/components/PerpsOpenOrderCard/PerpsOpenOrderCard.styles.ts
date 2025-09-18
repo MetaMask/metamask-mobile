@@ -8,13 +8,13 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     // Container styles for different states
     expandedContainer: {
-      backgroundColor: colors.background.alternative, // Darker contrasting background
+      backgroundColor: colors.background.section, // Darker contrasting background
       borderRadius: 12,
       padding: 16,
-      marginVertical: 6,
+      marginVertical: 8,
     },
     collapsedContainer: {
-      backgroundColor: colors.background.alternative, // Same darker contrasting background as expanded
+      backgroundColor: colors.background.section, // Same darker contrasting background as expanded
       borderRadius: 8,
       padding: 12,
       marginVertical: 4,
@@ -38,11 +38,6 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       overflow: 'hidden',
       backgroundColor: colors.background.alternative,
-    },
-    tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
     },
     headerLeft: {
       flex: 1,
@@ -68,7 +63,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
       paddingVertical: 16,
-      marginBottom: 16,
+      marginBottom: 4,
     },
     bodyRow: {
       flexDirection: 'row',
@@ -90,9 +85,6 @@ const styleSheet = (params: { theme: Theme }) => {
     footerButton: {
       flex: 1,
     },
-    footerButtonExpanded: {
-      borderColor: colors.border.default,
-    },
     fillBadge: {
       backgroundColor: colors.background.default,
       borderRadius: 8,
@@ -111,6 +103,29 @@ const styleSheet = (params: { theme: Theme }) => {
       height: 8,
       borderRadius: 4,
       marginRight: 4,
+    },
+
+    // Chart activity indicator styles
+    indicatorContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 6,
+      gap: 4,
+    },
+    activeChartIndicator: {
+      borderRadius: 16,
+      paddingHorizontal: 8,
+      paddingVertical: 0,
+    },
+    tpIndicator: {
+      backgroundColor: colors.success.default, // Light Green - matches chart TP line color
+    },
+    slIndicator: {
+      backgroundColor: colors.background.muted, // Dark Gray - matches chart SL line color
+    },
+    activeChartText: {
+      fontSize: 8,
+      fontWeight: '600',
     },
   });
 };

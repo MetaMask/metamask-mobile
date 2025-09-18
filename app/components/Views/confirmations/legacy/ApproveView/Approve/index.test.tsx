@@ -19,6 +19,7 @@ jest.mock('../../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
   selectPendingSmartTransactionsBySender: () => [],
+  selectPendingSmartTransactionsForSelectedAccountGroup: () => [],
 }));
 
 jest.mock('../../../../../../selectors/preferencesController', () => ({
@@ -70,7 +71,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       fetchTokenList: jest.fn(),
     },
     TokenBalancesController: {
-      updateBalancesByChainId: jest.fn(),
+      updateBalances: jest.fn(),
     },
   },
 }));

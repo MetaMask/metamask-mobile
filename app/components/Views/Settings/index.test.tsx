@@ -16,6 +16,7 @@ jest.mock('../../../core', () => ({
 
 // Import the mocked Authentication
 import { Authentication } from '../../../core';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
@@ -24,7 +25,7 @@ const initialState = {
   settings: {
     lockTime: 1000,
     searchEngine: 'Google',
-    useBlockieIcon: true,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState,
@@ -168,12 +169,12 @@ describe('Settings', () => {
 
   it('should call Authentication.lockApp with correct parameters when onPressLock is called', async () => {
     // Test the Authentication.lockApp function directly with the expected parameters
-    await Authentication.lockApp({ reset: false, locked: true });
+    await Authentication.lockApp({ reset: false, locked: false });
 
     // Verify that Authentication.lockApp was called with the correct parameters
     expect(Authentication.lockApp).toHaveBeenCalledWith({
       reset: false,
-      locked: true,
+      locked: false,
     });
     expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
   });

@@ -5,7 +5,6 @@ import NetworkEducationModal from './pages/Network/NetworkEducationModal';
 import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -22,16 +21,20 @@ import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
-import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 import Matchers from './utils/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
+import { createLogger } from './framework/logger';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
+
+const logger = createLogger({
+  name: 'ViewHelper',
+});
 
 /**
  * Accepts the terms of use modal.
@@ -67,25 +70,12 @@ export const closeOnboardingModals = async (fromResetWallet = false) => {
    * have to have all these workarounds in the tests
    */
 
-  try {
-    await Assertions.expectElementToBeVisible(ToastModal.container, {
-      description: 'Toast Modal should be visible',
-    });
-    await ToastModal.tapToastCloseButton();
-    await Assertions.expectElementToNotBeVisible(ToastModal.container, {
-      description: 'Toast Modal should not be visible',
-    });
-  } catch {
-    // eslint-disable-next-line no-console
-    console.log('The marketing toast is not visible');
-  }
+  // Nothing to do here
+  // We can add more logic here if we add more modals
+  // that need to be closed after onboarding
 
   if (!fromResetWallet) {
-    // Handle Solana New feature sheet
-    await Assertions.expectElementToBeVisible(
-      SolanaNewFeatureSheet.notNowButton,
-    );
-    await SolanaNewFeatureSheet.tapNotNowButton();
+    // Nothing to do here for now
   }
 };
 
@@ -106,10 +96,7 @@ export const skipNotificationsDeviceSettings = async () => {
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
   } catch {
-    // TODO: remove once the logger pr is merged
-    /* eslint-disable no-console */
-
-    console.log('The notification device alert modal is not visible');
+    logger.error('The notification device alert modal is not visible');
   }
 };
 
@@ -131,9 +118,7 @@ export const dismissProtectYourWalletModal: () => Promise<void> = async () => {
       ProtectYourWalletModal.collapseWalletModal,
     );
   } catch {
-    // TODO: remove once the logger pr is merged
-    // eslint-disable-next-line no-console
-    console.log('The protect your wallet modal is not visible');
+    logger.error('The protect your wallet modal is not visible');
   }
 };
 
@@ -162,16 +147,8 @@ export const importWalletWithRecoveryPhrase = async ({
 }) => {
   // tap on import seed phrase button
 
-  if (!fromResetWallet) {
-    await Assertions.expectElementToBeVisible(
-      OnboardingCarouselView.container,
-      {
-        description: 'Onboarding Carousel should be visible',
-      },
-    );
-    await OnboardingCarouselView.tapOnGetStartedButton();
-    await acceptTermOfUse();
-  }
+  // OnboardingCarousel has been removed from the navigation flow
+  // The app now starts directly with the Onboarding page
 
   await Assertions.expectElementToBeVisible(
     OnboardingView.existingWalletButton,
@@ -186,7 +163,6 @@ export const importWalletWithRecoveryPhrase = async ({
     await OnboardingSheet.tapImportSeedButton();
   }
   // should import wallet with secret recovery phrase
-  await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,
   );
@@ -213,10 +189,6 @@ export const importWalletWithRecoveryPhrase = async ({
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Enable device Notifications checks alert'
-  // await skipNotificationsDeviceSettings();
-
-  // dealing with flakiness on bitrise.
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -244,10 +216,6 @@ export const importWalletWithRecoveryPhrase = async ({
  */
 export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'should create new wallet'
-
-  // tap on import seed phrase button
-  await OnboardingCarouselView.tapOnGetStartedButton();
-  await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -288,14 +256,16 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
+  await device.disableSynchronization(); // Detox is hanging after wallet creation
+
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
+  await device.enableSynchronization();
 };
 
 /**
@@ -371,8 +341,7 @@ export const switchToSepoliaNetwork = async () => {
     await Assertions.expectElementToBeVisible(ToastModal.container);
     await Assertions.expectElementToNotBeVisible(ToastModal.container);
   } catch {
-    // eslint-disable-next-line no-console
-    console.log('Toast is not visible');
+    logger.error('Toast is not visible');
   }
 };
 
@@ -394,6 +363,11 @@ export const loginToApp = async (password?: string) => {
     description: 'Login View password input should be visible',
   });
   await LoginView.enterPassword(PASSWORD);
+
+  // Wait for wallet to load and perform pull-to-refresh to ensure token list is updated
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    description: 'Wallet container should be visible after login',
+  });
 };
 
 /**

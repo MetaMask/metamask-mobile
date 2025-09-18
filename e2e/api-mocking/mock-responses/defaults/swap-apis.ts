@@ -1,4 +1,5 @@
-import { TestSpecificMock } from '../../../framework';
+import { MockEventsObject } from '../../../framework';
+import { TOKEN_API_TOKENS_RESPONSE } from '../token-api-responses';
 
 export const SWAPS_FEATURE_FLAG_RESPONSE = {
   ethereum: {
@@ -170,7 +171,7 @@ export const SWAPS_FEATURE_FLAG_RESPONSE = {
  * Returns basic feature flags structure to prevent API failures.
  * For specific swap tests, add detailed mocks in the test files.
  */
-export const SWAP_API_MOCKS: TestSpecificMock = {
+export const SWAP_API_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint: 'https://swap.dev-api.cx.metamask.io/featureFlags',
@@ -181,6 +182,21 @@ export const SWAP_API_MOCKS: TestSpecificMock = {
       urlEndpoint: 'https://swap.api.cx.metamask.io/featureFlags',
       responseCode: 200,
       response: SWAPS_FEATURE_FLAG_RESPONSE,
+    },
+    {
+      urlEndpoint: 'https://swap.api.cx.metamask.io/networks/1/tokens',
+      responseCode: 200,
+      response: TOKEN_API_TOKENS_RESPONSE,
+    },
+    {
+      urlEndpoint: 'https://swap.api.cx.metamask.io/networks/56/tokens',
+      responseCode: 200,
+      response: TOKEN_API_TOKENS_RESPONSE,
+    },
+    {
+      urlEndpoint: 'https://swap.dev-api.cx.metamask.io/networks/1/tokens',
+      responseCode: 200,
+      response: TOKEN_API_TOKENS_RESPONSE,
     },
   ],
 };

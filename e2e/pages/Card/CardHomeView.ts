@@ -8,10 +8,6 @@ class CardHomeView {
     return Matchers.getElementByID(CardHomeSelectors.TRY_AGAIN_BUTTON);
   }
 
-  get loader(): DetoxElement {
-    return Matchers.getElementByID(CardHomeSelectors.LOADER);
-  }
-
   get privacyToggleButton(): DetoxElement {
     return Matchers.getElementByID(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON);
   }

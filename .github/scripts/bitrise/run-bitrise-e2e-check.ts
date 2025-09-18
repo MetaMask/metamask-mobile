@@ -33,7 +33,6 @@ async function main(): Promise<void> {
 
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
-  const antiLabel = process.env.NO_E2E_LABEL;
   const e2ePipeline = process.env.E2E_PIPELINE;
   const workflowName = process.env.WORKFLOW_NAME;
   const triggerAction = context.payload.action as PullRequestTriggerType;
@@ -42,7 +41,7 @@ async function main(): Promise<void> {
   owner = contextOwner;
   repo = contextRepo;
   
-  const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
+  const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger the iOS E2E smoke tests on Bitrise.`;
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
   const statusCheckName = process.env.STATUS_CHECK_NAME || 'Bitrise E2E Status';
@@ -61,11 +60,6 @@ async function main(): Promise<void> {
 
   if (!e2eLabel) {
     core.setFailed('E2E_LABEL not found');
-    process.exit(1);
-  }
-
-  if (!antiLabel) {
-    core.setFailed('NO_E2E_LABEL not found');
     process.exit(1);
   }
 
@@ -97,20 +91,10 @@ async function main(): Promise<void> {
   console.log(`Fork: ${flags.isFork}`);
   console.log(`Merge Queue: ${flags.isMQ}`);
   console.log(`Has smoke test label: ${flags.hasSmokeTestLabel}`);
-  console.log(`Anti label: ${flags.hasAntiLabel}`);
 
   const [shouldRun, reason] = shouldRunBitriseE2E(flags);
   console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
-  // One of these two labels must exist for pull_request type (unless it's a custom Flask workflow)
-  const isFlaskWorkflow = process.env.STATUS_CHECK_NAME && process.env.STATUS_CHECK_NAME !== 'Bitrise E2E Status';
-  if (!mergeQueue && !flags.hasSmokeTestLabel && !flags.hasAntiLabel && !isFlaskWorkflow) {
-
-    // Fail Status due to missing labels
-    await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed, 
-      CompletedConclusionType.Failure, `Failed due to missing labels. Please apply either ${e2eLabel} or ${antiLabel}.`);
-    return
-  }
 
   if (!shouldRun) {
     console.log(

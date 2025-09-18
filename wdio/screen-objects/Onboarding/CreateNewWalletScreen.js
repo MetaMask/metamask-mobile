@@ -6,58 +6,134 @@ import {
   REMIND_LATER_BUTTON_ID,
   SUBMIT_BUTTON,
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-} from '../testIDs/Screens/WalletSetupScreen.testIds';
-import Gestures from '../../helpers/Gestures';
-import Selectors from '../../helpers/Selectors';
+} from "../testIDs/Screens/WalletSetupScreen.testIds";
+import Gestures from "../../helpers/Gestures";
+import Selectors from "../../helpers/Selectors";
+import AppwrightSelectors from "../../helpers/AppwrightSelectors";
+import { expect } from "appwright";
 
 class CreateNewWalletScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get description() {
-    return Selectors.getXpathElementByResourceId(
-      WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        WALLET_SETUP_SCREEN_DESCRIPTION_ID,
+      );
+    } else {
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        WALLET_SETUP_SCREEN_DESCRIPTION_ID,
+      );
+    }
   }
 
   get secureWalletScreen() {
-    return Selectors.getXpathElementByResourceId(
-      PROTECT_YOUR_WALLET_CONTAINER_ID,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        PROTECT_YOUR_WALLET_CONTAINER_ID,
+      );
+    } else {
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        PROTECT_YOUR_WALLET_CONTAINER_ID,
+      );
+    }
   }
 
   get remindMeLaterButton() {
-    return Selectors.getXpathElementByResourceId(REMIND_LATER_BUTTON_ID);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(REMIND_LATER_BUTTON_ID);
+    } else {
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        REMIND_LATER_BUTTON_ID,
+      );
+    }
   }
 
   get newWalletPasswordField() {
-    return Selectors.getXpathElementByResourceId(
-      CREATE_PASSWORD_INPUT_FIRST_FIELD,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        CREATE_PASSWORD_INPUT_FIRST_FIELD,
+      );
+    } else {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(
+          this._device,
+          CREATE_PASSWORD_INPUT_FIRST_FIELD,
+        );
+      } else {
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');            
+      }
+    }
   }
 
   get newWalletPasswordConfirm() {
-    return Selectors.getXpathElementByResourceId(
-      CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
+      );
+    } else {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(
+          this._device,
+          CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
+        );
+      } else {
+        return  AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="create-password-second-input-field"]');
+      }
+    }
   }
 
   get termsAndConditionCheckBox() {
-    return Selectors.getXpathElementByResourceId(I_UNDERSTAND_BUTTON_ID);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(I_UNDERSTAND_BUTTON_ID);
+    } else {
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        I_UNDERSTAND_BUTTON_ID,
+      );
+    }
   }
 
   get newWalletSubmitButton() {
-    return Selectors.getXpathByContentDesc(SUBMIT_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathByContentDesc(SUBMIT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, SUBMIT_BUTTON);
+    }
   }
 
   async inputPasswordInFirstField(firstPassword) {
-    await Gestures.typeText(this.newWalletPasswordField, firstPassword);
+    if (!this._device) {
+      await Gestures.typeText(this.newWalletPasswordField, firstPassword);
+    } else {
+      const field = await this.newWalletPasswordField;
+      await field.fill(firstPassword);
+    }
   }
 
   async inputConfirmPasswordField(secondPassword) {
-    await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
-    await driver.hideKeyboard();
-    await Gestures.waitAndTap(this.termsAndConditionCheckBox);
-    // await Gestures.waitAndTap(this.screenTitle);
-    await driver.pause(2500);
-    // await Gestures.tap('Create password');
+    if (!this._device) {
+      await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword);
+      await driver.hideKeyboard();
+      await Gestures.waitAndTap(this.termsAndConditionCheckBox);
+      // await Gestures.waitAndTap(this.screenTitle);
+      await driver.pause(2500);
+      // await Gestures.tap('Create password');
+    } else {
+      const field = await this.newWalletPasswordConfirm;
+      await field.fill(secondPassword);
+      const checkbox = await this.termsAndConditionCheckBox;
+      await checkbox.tap();
+    }
   }
 
   async inputConfirmResetPasswordField(secondPassword) {
@@ -66,11 +142,21 @@ class CreateNewWalletScreen {
   }
 
   async tapSubmitButton() {
-    await Gestures.waitAndTap(this.newWalletSubmitButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.newWalletSubmitButton);
+    } else {
+      const button = await this.newWalletSubmitButton;
+      await button.tap();
+    }
   }
 
   async tapRemindMeLater() {
-    await Gestures.waitAndTap(this.remindMeLaterButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.remindMeLaterButton);
+    } else {
+      const button = await this.remindMeLaterButton;
+      await button.tap();
+    }
   }
 
   async isAccountCreated() {
@@ -79,7 +165,12 @@ class CreateNewWalletScreen {
   }
 
   async isNewAccountScreenFieldsVisible() {
-    await expect(this.newWalletPasswordField).toBeDisplayed();
+    if (!this._device) {
+      await expect(this.newWalletPasswordField).toBeVisible();
+    } else {
+      const element = await this.newWalletPasswordField;
+      await expect(element).toBeVisible();
+    }
   }
 
   async isNotVisible() {

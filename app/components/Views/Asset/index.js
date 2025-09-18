@@ -82,9 +82,12 @@ import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
-import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
+import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import {
+  selectIsUnifiedSwapsEnabled,
+  selectIsSwapsLive,
+} from '../../../core/redux/slices/bridge';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
@@ -602,7 +605,7 @@ class Asset extends PureComponent {
     const isRampAvailable = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
-    const displayFundButton = isDepositAvailable || isRampAvailable;
+    const displayBuyButton = isDepositAvailable || isRampAvailable;
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
@@ -617,7 +620,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayFundButton={displayFundButton}
+                  displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -643,7 +646,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayFundButton={displayFundButton}
+                  displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -778,7 +781,7 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    swapsIsLive: getSwapsIsLive(state, route.params.chainId),
+    swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
     swapsTokens: isPortfolioViewEnabled()
       ? swapsTokensMultiChainObjectSelector(state)
       : swapsTokensObjectSelector(state),

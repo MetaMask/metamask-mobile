@@ -1,3 +1,4 @@
+/* eslint-disable no-unsafe-finally */
 /* eslint-disable import/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
@@ -18,6 +19,7 @@ import {
   stopMockServer,
   validateLiveRequests,
 } from '../../api-mocking/mock-server';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -32,12 +34,7 @@ import {
   GanacheNodeOptions,
   TestSpecificMock,
 } from '../types';
-import {
-  TestDapps,
-  DappVariants,
-  defaultGanacheOptions,
-  DEFAULT_MOCKSERVER_PORT,
-} from '../Constants';
+import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
@@ -325,103 +322,33 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
-/**
- * Merges test-specific mocks with default mocks, prioritizing test-specific mocks
- * @param testSpecificMocks - Test-specific mock events organized by method
- * @returns Merged mock events with test-specific mocks taking priority
- */
-const mergeWithDefaultMocks = (
-  testSpecificMocks: TestSpecificMock | undefined,
-) => {
-  if (!testSpecificMocks) {
-    return DEFAULT_MOCKS;
-  }
-
-  const mergedMocks: TestSpecificMock = {};
-
-  // Get all HTTP methods from both test-specific and default mocks
-  const allMethods = new Set([
-    ...Object.keys(testSpecificMocks),
-    ...Object.keys(DEFAULT_MOCKS),
-  ]);
-
-  allMethods.forEach((method) => {
-    const testMocks = testSpecificMocks[method as keyof TestSpecificMock] || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const defaultMocks = (DEFAULT_MOCKS as any)[method] || [];
-
-    // Create a set of URLs that already exist in test-specific mocks
-    const testMockUrls = new Set(testMocks.map((mock) => mock.urlEndpoint));
-
-    // Filter out default mocks that have the same URL as test-specific mocks
-    const filteredDefaultMocks = defaultMocks.filter(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (defaultMock: any) => !testMockUrls.has(defaultMock.urlEndpoint),
-    );
-
-    // Merge test-specific mocks first, then append non-duplicate default mocks
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (mergedMocks as any)[method] = [...testMocks, ...filteredDefaultMocks];
-  });
-
-  return mergedMocks;
-};
-
 export const createMockAPIServer = async (
-  mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
   mockServer: Mockttp;
   mockServerPort: number;
 }> => {
-  // Handle mock server
-  let mockServer: Mockttp | undefined;
-  let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
+  const mockServerPort = getMockServerPort();
+  const mockServer = await startMockServer(
+    DEFAULT_MOCKS,
+    mockServerPort,
+    testSpecificMock, // Applied First, so any test-specific mocks take precedence
+  );
 
-  // Both
-  if (mockServerInstance && testSpecificMock) {
-    throw new Error(
-      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
-    );
-  }
-
-  // mockServerInstance only
-  if (mockServerInstance && !testSpecificMock) {
-    mockServer = mockServerInstance;
-    mockServerPort = mockServer.port;
+  if (testSpecificMock) {
     logger.debug(
-      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+      `Mock server started with testSpecificMock (priority) + defaults fallback on port ${mockServerPort}`,
     );
-  }
-
-  // testSpecificMock only
-  if (!mockServerInstance && testSpecificMock) {
-    mockServerPort = getMockServerPort();
-    const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
-    mockServer = await startMockServer(mergedMocks, mockServerPort);
-
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
-
-  // neither
-  if (!mockServerInstance && !testSpecificMock) {
-    mockServerPort = getMockServerPort();
-    const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
-    mockServer = await startMockServer(mergedMocks, mockServerPort);
-
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
-
-  if (!mockServer) {
-    throw new Error('Test setup failure, no mock server setup');
+  } else {
+    logger.debug(`Mock server started with defaults on port ${mockServerPort}`);
   }
 
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
+
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
@@ -460,7 +387,6 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
-    mockServerInstance,
     launchArgs,
     languageAndLocale,
     permissions = {},
@@ -471,7 +397,6 @@ export async function withFixtures(
   await TestHelpers.reverseServerPort();
 
   const { mockServer, mockServerPort } = await createMockAPIServer(
-    mockServerInstance,
     testSpecificMock,
   );
 
@@ -484,6 +409,8 @@ export async function withFixtures(
 
   const dappServer: http.Server[] = [];
   const fixtureServer = new FixtureServer();
+
+  let testError: Error | null = null;
 
   try {
     // Handle smart contracts
@@ -533,31 +460,95 @@ export async function withFixtures(
 
     await testSuite({ contractRegistry, mockServer, localNodes });
   } catch (error) {
+    testError = error as Error;
     logger.error('Error in withFixtures:', error);
-    throw error;
   } finally {
-    validateLiveRequests(mockServer);
+    const cleanupErrors: Error[] = [];
 
     if (endTestfn) {
-      // Pass the mockServer to the endTestfn if it exists as we may want
-      // to capture events before cleanup
-      await endTestfn({ mockServer });
+      try {
+        // Pass the mockServer to the endTestfn if it exists as we may want
+        // to capture events before cleanup
+        await endTestfn({ mockServer });
+      } catch (endTestError) {
+        logger.error('Error in endTestfn:', endTestError);
+        cleanupErrors.push(endTestError as Error);
+      }
     }
 
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
-      await handleLocalNodeCleanup(localNodes);
+      try {
+        await handleLocalNodeCleanup(localNodes);
+      } catch (cleanupError) {
+        logger.error('Error during local node cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (dapps && dapps.length > 0) {
-      await handleDappCleanup(dapps, dappServer);
+      try {
+        await handleDappCleanup(dapps, dappServer);
+      } catch (cleanupError) {
+        logger.error('Error during dapp cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     if (mockServer) {
-      await stopMockServer(mockServer);
+      try {
+        await stopMockServer(mockServer);
+      } catch (cleanupError) {
+        logger.error('Error during mock server cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
-    await stopFixtureServer(fixtureServer);
+    try {
+      await stopFixtureServer(fixtureServer);
+    } catch (cleanupError) {
+      logger.error('Error during fixture server cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    try {
+      // Force reload React Native to stop any lingering timers
+      await device.reloadReactNative();
+    } catch (cleanupError) {
+      logger.error('Error during React Native reload:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    try {
+      // Validate live requests
+      validateLiveRequests(mockServer);
+    } catch (cleanupError) {
+      logger.error('Error during live request validation:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
+    // Handle error reporting: prioritize test error over cleanup errors
+    if (testError && cleanupErrors.length > 0) {
+      // Both test and cleanup failed - report both but throw the test error
+      const cleanupErrorMessages = cleanupErrors
+        .map((err, index) => `${index + 1}. ${err.message}`)
+        .join('\n');
+      logger.error(
+        `Test failed AND cleanup failed with ${cleanupErrors.length} error(s):\n${cleanupErrorMessages}`,
+      );
+      throw testError; // Preserve original test failure
+    } else if (testError) {
+      // Only test failed - normal case
+      throw testError;
+    } else if (cleanupErrors.length > 0) {
+      // Only cleanup failed - throw cleanup error
+      const errorMessages = cleanupErrors
+        .map((err, index) => `${index + 1}. ${err.message}`)
+        .join('\n');
+      const errorMessage = `Test cleanup failed with ${cleanupErrors.length} error(s):\n${errorMessages}`;
+      throw new Error(errorMessage);
+    }
+    // No errors - test passed successfully
   }
 }
 

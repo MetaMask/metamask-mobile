@@ -11,7 +11,11 @@ import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { parseCaipChainId, CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { debounce } from 'lodash';
@@ -28,7 +32,7 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import Device from '../../../util/device/index.js';
-import { selectEvmChainId } from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -37,6 +41,7 @@ import {
   NetworkListItem,
   AdditionalNetworkSection,
   NetworkListItemType,
+  SelectAllNetworksListItem,
 } from './NetworkMultiSelectorList.types.ts';
 import styleSheet from './NetworkMultiSelectorList.styles';
 import {
@@ -45,7 +50,9 @@ import {
   ADDITIONAL_NETWORK_SECTION_ID,
   ITEM_TYPE_ADDITIONAL_SECTION,
   ITEM_TYPE_NETWORK,
+  SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -65,14 +72,17 @@ const NetworkMultiSelectList = ({
   isSelectionDisabled,
   isAutoScrollEnabled = true,
   additionalNetworksComponent,
+  selectAllNetworksComponent,
   openModal,
+  areAllNetworksSelected,
   ...props
 }: NetworkMultiSelectorListProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const networkListRef = useRef<any>(null);
   const networksLengthRef = useRef<number>(0);
   const safeAreaInsets = useSafeAreaInsets();
-  const selectedChainId = useSelector(selectEvmChainId);
+  const selectedChainId = useSelector(selectChainId);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
 
   const { styles } = useStyles(styleSheet, {});
@@ -82,9 +92,9 @@ const NetworkMultiSelectList = ({
       networks.map((network) => {
         const parsedCaipChainId = parseCaipChainId(network.caipChainId);
         const chainId =
-          parsedCaipChainId.namespace !== 'solana'
+          parsedCaipChainId.namespace === KnownCaipNamespace.Eip155
             ? toHex(parsedCaipChainId.reference)
-            : '';
+            : parsedCaipChainId.reference;
 
         return {
           ...network,
@@ -92,9 +102,10 @@ const NetworkMultiSelectList = ({
           namespace: parsedCaipChainId.namespace,
           isMainChain: MAIN_CHAIN_IDS.has(chainId),
           isTestNetwork: Boolean(chainId && isTestNet(chainId)),
+          isSelected: areAllNetworksSelected ? false : network.isSelected,
         };
       }),
-    [networks],
+    [areAllNetworksSelected, networks],
   );
 
   const combinedData: NetworkListItem[] = useMemo(() => {
@@ -107,6 +118,14 @@ const NetworkMultiSelectList = ({
       data.push(...filteredNetworks);
     }
 
+    if (selectAllNetworksComponent && isEvmSelected) {
+      data.unshift({
+        id: SELECT_ALL_NETWORKS_SECTION_ID,
+        type: NetworkListItemType.SelectAllNetworksListItem,
+        component: selectAllNetworksComponent,
+      } as SelectAllNetworksListItem);
+    }
+
     if (additionalNetworksComponent) {
       data.push({
         id: ADDITIONAL_NETWORK_SECTION_ID,
@@ -116,7 +135,12 @@ const NetworkMultiSelectList = ({
     }
 
     return data;
-  }, [processedNetworks, additionalNetworksComponent]);
+  }, [
+    processedNetworks,
+    additionalNetworksComponent,
+    selectAllNetworksComponent,
+    isEvmSelected,
+  ]);
 
   const contentContainerStyle = useMemo(
     () => ({
@@ -178,6 +202,13 @@ const NetworkMultiSelectList = ({
     [],
   );
 
+  const isSelectAllNetworksSection = useCallback(
+    (item: NetworkListItem): item is SelectAllNetworksListItem =>
+      'type' in item &&
+      item.type === NetworkListItemType.SelectAllNetworksListItem,
+    [],
+  );
+
   const createAvatarProps = useCallback(
     (network: ProcessedNetwork) => ({
       variant: AvatarVariant.Network as const,
@@ -210,6 +241,10 @@ const NetworkMultiSelectList = ({
         return <View>{item.component}</View>;
       }
 
+      if (isSelectAllNetworksSection(item)) {
+        return <View>{item.component}</View>;
+      }
+
       const network = item as ProcessedNetwork;
       const { caipChainId, name, isSelected, networkTypeOrRpcUrl } = network;
 
@@ -219,7 +254,7 @@ const NetworkMultiSelectList = ({
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell
-            variant={CellVariant.MultiSelectWithMenu}
+            variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
             title={name}
             onPress={() => debouncedSelectNetwork(caipChainId)}
@@ -242,6 +277,7 @@ const NetworkMultiSelectList = ({
       renderRightAccessory,
       createAvatarProps,
       createButtonProps,
+      isSelectAllNetworksSection,
     ],
   );
 

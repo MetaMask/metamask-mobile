@@ -1,12 +1,29 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  parseCaipChainId,
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  KnownCaipNamespace,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+import { selectInternalAccounts } from '../../../selectors/accountsController';
+import Routes from '../../../constants/navigation/Routes';
+import NavigationService from '../../../core/NavigationService';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+///: END:ONLY_INCLUDE_IF
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { SolScope } from '@metamask/keyring-api';
+import Engine from '../../../core/Engine';
 
 interface UseNetworkSelectionOptions {
   /**
@@ -25,9 +42,16 @@ interface UseNetworkSelectionOptions {
  * @returns Network selection methods and state
  * @example
  * ```tsx
- * const { selectNetwork, toggleAll } = useNetworkSelection({ networks });
- * selectNetwork('0x1'); // Select by hex or CAIP format
- * toggleAll(); // Toggle all networks
+ * const { selectNetwork, selectAllPopularNetworks } = useNetworkSelection({ networks });
+ *
+ * // Select with callback
+ * selectNetwork('0x1', () => navigation.goBack());
+ *
+ * // Select without callback
+ * selectNetwork('0x1');
+ *
+ * // Select all popular networks with callback
+ * selectAllPopularNetworks(() => navigation.goBack());
  * ```
  */
 export const useNetworkSelection = ({
@@ -37,13 +61,23 @@ export const useNetworkSelection = ({
     namespace,
     enableNetwork,
     disableNetwork,
-    toggleNetwork,
     enabledNetworksByNamespace,
+    enableAllPopularNetworks,
   } = useNetworkEnablement();
 
   const popularNetworkConfigurations = useSelector(
     selectPopularNetworkConfigurationsByCaipChainId,
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const internalAccounts = useSelector(selectInternalAccounts);
+  ///: END:ONLY_INCLUDE_IF
+
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
+  const { MultichainNetworkController, NetworkController } = Engine.context;
 
   const popularNetworkChainIds = useMemo(
     () =>
@@ -69,58 +103,172 @@ export const useNetworkSelection = ({
     [currentEnabledNetworks, popularNetworkChainIds],
   );
 
-  /** Disables all custom networks except the optionally specified one */
-  const resetCustomNetworks = useCallback(
-    (excludeChainId?: CaipChainId) => {
-      const networksToDisable = excludeChainId
-        ? customNetworksToReset.filter((chainId) => chainId !== excludeChainId)
-        : customNetworksToReset;
-
-      if (networksToDisable.length === 0) {
-        return;
-      }
-
-      networksToDisable.forEach((chainId) => {
-        disableNetwork(chainId as CaipChainId);
-      });
-    },
-    [customNetworksToReset, disableNetwork],
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const bitcoinInternalAccounts = useMemo(
+    () =>
+      internalAccounts.filter((account) =>
+        account.type.includes(KnownCaipNamespace.Bip122),
+      ),
+    [internalAccounts],
   );
+  ///: END:ONLY_INCLUDE_IF
 
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
-    (chainId: CaipChainId) => {
-      enableNetwork(chainId);
-      resetCustomNetworks(chainId);
+    async (chainId: CaipChainId, onComplete?: () => void) => {
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      const bitcoAccountInScope = bitcoinInternalAccounts.find((account) =>
+        account.scopes.includes(chainId),
+      );
+
+      if (chainId.includes(KnownCaipNamespace.Bip122)) {
+        // if the network is bitcoin and there is no bitcoin account in the scope
+        // create a new bitcoin account (Bitcoin accounts are different per network)
+        if (!bitcoAccountInScope) {
+          // TODO: I cannot cancel or go back from the add account screen
+          NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.ADD_ACCOUNT,
+            params: {
+              clientType: WalletClientType.Bitcoin,
+              scope: chainId,
+            },
+          });
+
+          return;
+        }
+        // if the network is bitcoin and there is a bitcoin account in the scope
+        // set the selected address to the bitcoin account
+        Engine.setSelectedAddress(bitcoAccountInScope.address);
+      }
+      ///: END:ONLY_INCLUDE_IF
+      await enableNetwork(chainId);
+      if (isMultichainAccountsState2Enabled) {
+        const { reference } = parseCaipChainId(chainId);
+        const clientId = NetworkController.findNetworkClientIdByChainId(
+          toHex(reference),
+        );
+        await MultichainNetworkController.setActiveNetwork(clientId);
+      }
+      onComplete?.();
     },
-    [enableNetwork, resetCustomNetworks],
+    [
+      enableNetwork,
+      MultichainNetworkController,
+      isMultichainAccountsState2Enabled,
+      NetworkController,
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      bitcoinInternalAccounts,
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
+    ],
+  );
+
+  const selectAllPopularNetworks = useCallback(
+    async (onComplete?: () => void) => {
+      await enableAllPopularNetworks();
+      onComplete?.();
+    },
+    [enableAllPopularNetworks],
   );
 
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
-    (chainId: CaipChainId) => {
-      toggleNetwork(chainId);
-      resetCustomNetworks();
+    async (chainId: CaipChainId, onComplete?: () => void) => {
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      if (chainId.includes(KnownCaipNamespace.Bip122)) {
+        const bitcoAccountInScope = bitcoinInternalAccounts.find((account) =>
+          account.scopes.includes(chainId),
+        );
+
+        if (bitcoAccountInScope) {
+          Engine.setSelectedAddress(bitcoAccountInScope.address);
+        }
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      await enableNetwork(chainId);
+      if (isMultichainAccountsState2Enabled && chainId === SolScope.Mainnet) {
+        try {
+          await MultichainNetworkController.setActiveNetwork(chainId);
+        } catch (error) {
+          console.warn(`Error setting active network: ${error}`);
+        }
+      }
+      if (isMultichainAccountsState2Enabled && chainId !== SolScope.Mainnet) {
+        const { reference } = parseCaipChainId(chainId);
+        const clientId = NetworkController.findNetworkClientIdByChainId(
+          toHex(reference),
+        );
+        await MultichainNetworkController.setActiveNetwork(clientId);
+      }
+      onComplete?.();
     },
-    [toggleNetwork, resetCustomNetworks],
+    [
+      enableNetwork,
+      isMultichainAccountsState2Enabled,
+      MultichainNetworkController,
+      NetworkController,
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      bitcoinInternalAccounts,
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
+    ],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */
   const selectNetwork = useCallback(
-    (hexOrCaipChainId: CaipChainId | `0x${string}` | Hex) => {
-      const inputString = String(hexOrCaipChainId);
-      const hexChainId = (
-        typeof hexOrCaipChainId === 'string' && inputString.includes(':')
-          ? toHex(inputString.split(':')[1])
-          : toHex(hexOrCaipChainId)
-      ) as `0x${string}`;
+    (
+      hexOrCaipChainId: CaipChainId | `0x${string}` | Hex,
+      onComplete?: () => void,
+    ) => {
+      const chainIdString = String(hexOrCaipChainId);
 
-      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
-      const caipChainId = formatChainIdToCaip(hexOrCaipChainId);
+      let isPopularNetwork = false;
+      let caipChainId: CaipChainId;
+
+      try {
+        // Handle different input formats
+        if (isCaipChainId(chainIdString)) {
+          // Already in CAIP format
+          caipChainId = chainIdString;
+
+          // Parse the CAIP chain ID to get namespace and reference
+          const { namespace: caipNamespace, reference } =
+            parseCaipChainId(caipChainId);
+
+          // For EVM networks, check if it's popular
+          if (caipNamespace === 'eip155') {
+            const hexChainId = toHex(reference);
+            isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
+          }
+          // For non-EVM networks (like Solana), treat as popular by default
+          // since they don't have custom network support yet
+          else {
+            isPopularNetwork = true;
+          }
+        } else {
+          // Convert hex chain ID to CAIP format
+          caipChainId = formatChainIdToCaip(hexOrCaipChainId);
+          const hexChainId = toHex(hexOrCaipChainId) as `0x${string}`;
+          isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
+        }
+      } catch (error) {
+        console.error('selectNetwork: Error processing chain ID:', error);
+        // Fallback: try to format as CAIP and treat as custom
+        try {
+          caipChainId = formatChainIdToCaip(hexOrCaipChainId);
+          isPopularNetwork = false;
+        } catch (fallbackError) {
+          console.error(
+            'selectNetwork: Fallback formatting failed:',
+            fallbackError,
+          );
+          return; // Exit early if we can't process the chain ID
+        }
+      }
+
       if (isPopularNetwork) {
-        selectPopularNetwork(caipChainId);
+        selectPopularNetwork(caipChainId, onComplete);
       } else {
-        selectCustomNetwork(caipChainId);
+        selectCustomNetwork(caipChainId, onComplete);
       }
     },
     [selectPopularNetwork, selectCustomNetwork],
@@ -135,26 +283,12 @@ export const useNetworkSelection = ({
     });
   }, [networks, disableNetwork]);
 
-  /** Toggles selection of all networks */
-  const toggleAll = useCallback(() => {
-    const areAllSelected = networks.every(({ isSelected }) => isSelected);
-    if (areAllSelected) {
-      deselectAll();
-    } else {
-      networks.forEach(({ caipChainId }) => {
-        enableNetwork(caipChainId);
-      });
-      resetCustomNetworks();
-    }
-  }, [networks, deselectAll, enableNetwork, resetCustomNetworks]);
-
   return {
     selectCustomNetwork,
     selectPopularNetwork,
     selectNetwork,
     deselectAll,
-    toggleAll,
-    resetCustomNetworks,
     customNetworksToReset,
+    selectAllPopularNetworks,
   };
 };

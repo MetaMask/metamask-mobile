@@ -143,9 +143,38 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               }
               testID="label"
             >
-              Create new password
+              Create password
             </Text>
             <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -178,7 +207,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholder="Enter a strong password"
                   placeholderTextColor="#b7bbc8"
                   returnKeyType="next"
                   secureTextEntry={true}
@@ -191,7 +219,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
-                      "height": 24,
+                      "height": 46,
                       "letterSpacing": 0,
                       "opacity": 1,
                       "paddingVertical": 0,
@@ -226,6 +254,20 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 />
               </View>
             </View>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 14,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Must be at least 8 characters
+            </Text>
           </View>
           <View
             style={
@@ -253,6 +295,35 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               Confirm password
             </Text>
             <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
               style={
                 {
                   "alignItems": "center",
@@ -286,7 +357,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholder="Re-enter your password"
                   placeholderTextColor="#b7bbc8"
                   returnKeyType="done"
                   secureTextEntry={true}
@@ -299,7 +369,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
-                      "height": 24,
+                      "height": 46,
                       "letterSpacing": 0,
                       "opacity": 1,
                       "paddingVertical": 0,
@@ -338,11 +408,14 @@ exports[`ChoosePassword render matches snapshot 1`] = `
             style={
               {
                 "alignItems": "flex-start",
+                "backgroundColor": "#f3f5f9",
+                "borderRadius": 8,
                 "flexDirection": "row",
                 "gap": 8,
                 "justifyContent": "flex-start",
                 "marginBottom": 16,
                 "marginTop": 8,
+                "padding": 16,
               }
             }
           >
@@ -395,6 +468,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "justifyContent": "flex-start",
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "marginTop": -6,
                   "width": "90%",
                 }
               }
@@ -407,28 +481,42 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Regular",
-                    "fontSize": 16,
+                    "fontSize": 14,
                     "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "lineHeight": 22,
                   }
                 }
               >
-                If I forget this password, MetaMask can't recover it for me.
                 <Text
                   accessibilityRole="text"
-                  onPress={[Function]}
                   style={
                     {
-                      "color": "#4459ff",
+                      "color": "#686e7d",
                       "fontFamily": "Geist Regular",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
-                  testID="learn-more-link"
                 >
-                   Learn more.
+                  If I lose this password, MetaMask can’t reset it.
+                  <Text
+                    accessibilityRole="text"
+                    onPress={[Function]}
+                    style={
+                      {
+                        "color": "#4459ff",
+                        "fontFamily": "Geist Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="learn-more-link"
+                  >
+                     
+                    Learn more.
+                  </Text>
                 </Text>
               </Text>
             </Text>
@@ -444,73 +532,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               }
             }
           >
-            <View
-              style={
-                {
-                  "width": "100%",
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#121314",
-                      "flex": 1,
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 18,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  Unlock with Face ID?
-                </Text>
-                <View
-                  style={
-                    {
-                      "marginLeft": 16,
-                    }
-                  }
-                >
-                  <RCTSwitch
-                    accessibilityRole="switch"
-                    onChange={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    onTintColor="#4459ff"
-                    style={
-                      [
-                        {
-                          "height": 31,
-                          "width": 51,
-                        },
-                        [
-                          {
-                            "alignSelf": "flex-start",
-                          },
-                          {
-                            "backgroundColor": "#b7bbc866",
-                            "borderRadius": 16,
-                          },
-                        ],
-                      ]
-                    }
-                    thumbTintColor="#ffffff"
-                    tintColor="#b7bbc866"
-                    value={true}
-                  />
-                </View>
-              </View>
-            </View>
             <TouchableOpacity
               accessibilityRole="button"
               accessible={true}

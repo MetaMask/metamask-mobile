@@ -3,25 +3,24 @@ import { Theme } from '../../../../../util/theme/models';
 
 export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
-    bottomSheet: {
-      backgroundColor: colors.background.alternative,
-    },
+    bottomSheet: {},
     container: {
       paddingHorizontal: 16,
       paddingBottom: 16,
-      backgroundColor: colors.background.alternative,
     },
     header: {
       paddingBottom: 8,
-      backgroundColor: colors.background.alternative,
     },
     footer: {
-      backgroundColor: colors.background.alternative,
       paddingBottom: 8,
     },
     priceInfoContainer: {
       marginTop: 16,
       marginBottom: 32,
+      gap: 8,
+    },
+    priceInfoContainerCondensed: {
+      marginBottom: 12,
       gap: 8,
     },
     priceInfoRow: {
@@ -31,6 +30,9 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     section: {
       marginBottom: 24,
+    },
+    sectionCondensed: {
+      marginBottom: 0,
     },
     sectionTitle: {
       marginBottom: 8,
@@ -81,12 +83,13 @@ export const createStyles = (colors: Theme['colors']) =>
     percentageButton: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 12,
+      paddingHorizontal: 8,
       backgroundColor: colors.background.pressed,
       borderRadius: 8,
       alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.border.muted,
+      minWidth: 50,
     },
     percentageButtonOff: {
       backgroundColor: colors.background.pressed,
@@ -95,11 +98,11 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     percentageButtonActiveTP: {
       borderWidth: 1,
-      borderColor: colors.success.default,
+      borderColor: colors.primary.default,
     },
     percentageButtonActiveSL: {
       borderWidth: 1,
-      borderColor: colors.error.default,
+      borderColor: colors.primary.default,
     },
     helperText: {
       marginTop: 4,
@@ -131,5 +134,59 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     loadingText: {
       marginTop: 12,
+    },
+    content: {
+      paddingHorizontal: 16,
+    },
+    description: {
+      marginBottom: 16,
+    },
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: colors.overlay.default,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+    positionHeader: {
+      marginTop: 16,
+      marginBottom: 24,
+      alignItems: 'center',
+    },
+    percentageButtonsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+      gap: 8,
+    },
+    inputError: {
+      borderColor: colors.error.default,
+    },
+    infoContainer: {
+      marginTop: 16,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+    },
+    keypadContainer: {
+      paddingHorizontal: 8,
+      paddingTop: 8,
+      backgroundColor: colors.background.default,
+    },
+    scrollContent: {
+      flex: 1,
+    },
+    keypadFooter: {
+      paddingHorizontal: 8,
+      width: '100%',
+    },
+    keypadDismissButton: {
+      width: '100%',
+      marginVertical: 12,
     },
   });

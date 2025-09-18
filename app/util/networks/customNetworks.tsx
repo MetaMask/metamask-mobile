@@ -94,17 +94,6 @@ export const PopularList = [
     },
   },
   {
-    chainId: toHex('999'),
-    nickname: 'Hyperliquid',
-    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
-    ticker: 'HYPE',
-    rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.hyperliquid.xyz',
-      imageUrl: 'HL',
-      imageSource: require('../../images/HL_symbol_mint_green.png'),
-    },
-  },
-  {
     chainId: toHex('11297108109'),
     nickname: 'Palm',
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -304,6 +293,7 @@ export const NETWORK_CHAIN_ID: {
   readonly OMNI: '0xa6';
   readonly XRPLEVM: '0x15f900';
   readonly FRAXTAL: '0xfc';
+  readonly XDC: '0x32';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -330,6 +320,7 @@ export const NETWORK_CHAIN_ID: {
   OMNI: '0xa6',
   XRPLEVM: '0x15f900',
   FRAXTAL: '0xfc',
+  XDC: '0x32',
   ...CHAIN_IDS,
 };
 
@@ -361,4 +352,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
+  [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
 };

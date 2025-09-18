@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+} from 'react';
 import Text, {
   TextVariant,
   TextColor,
@@ -10,9 +16,10 @@ import Icon, {
 import { View, Modal, TouchableOpacity, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
+import { captureException } from '@sentry/react-native';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
-import { PerpsMarketTabsProps } from './PerpsMarketTabs.types';
+import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -25,22 +32,111 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
+import { getOrderDirection } from '../../utils/orderUtils';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
+import { OrderDirection } from '../../types';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
+  symbol,
   marketStats,
   position,
   isLoadingPosition,
   unfilledOrders = [],
-  onPositionUpdate,
   onActiveTabChange,
+  initialTab,
   nextFundingTime,
   fundingIntervalHours,
+  onOrderSelect,
+  onOrderCancelled,
+  activeTPOrderId,
+  activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const hasUserInteracted = useRef(false);
+  const hasSetInitialTab = useRef(false);
+
+  // State to track which orders are being cancelled for UI display
+  const [cancellingOrderIds, setCancellingOrderIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  // State to track orders that were successfully cancelled but not yet removed from unfilledOrders
+  const [successfullyCancelledOrderIds, setSuccessfullyCancelledOrderIds] =
+    useState<Set<string>>(new Set());
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+
+  const sortedUnfilledOrders = useMemo(() => {
+    // Pre-compute current price to avoid repeated calculations
+    const currentPrice = marketStats.currentPrice || 0;
+
+    // Filter out successfully cancelled orders that haven't been removed by WebSocket yet
+    const filteredOrders = unfilledOrders.filter(
+      (order) => !successfullyCancelledOrderIds.has(order.orderId),
+    );
+
+    // Pre-compute order metadata for efficient sorting
+    const ordersWithMetadata = filteredOrders.map((order) => {
+      const orderType = order.detailedOrderType || order.orderType || 'Unknown';
+      const triggerPrice = parseFloat(
+        order.takeProfitPrice || order.stopLossPrice || order.price || '0',
+      );
+
+      // Calculate execution priority (distance to current price)
+      const executionPriority =
+        triggerPrice === 0 || currentPrice === 0
+          ? Infinity
+          : Math.abs(triggerPrice - currentPrice);
+
+      return {
+        order,
+        orderType,
+        executionPriority,
+      };
+    });
+
+    // Sort with pre-computed metadata
+    return ordersWithMetadata
+      .sort((a, b) => {
+        // Primary sort: by detailedOrderType (alphabetical for consistent grouping)
+        if (a.orderType !== b.orderType) {
+          return a.orderType.localeCompare(b.orderType);
+        }
+
+        // Secondary sort: by execution priority within same detailedOrderType
+        if (a.executionPriority !== b.executionPriority) {
+          return a.executionPriority - b.executionPriority;
+        }
+
+        // Final tiebreaker: order ID
+        return a.order.orderId.localeCompare(b.order.orderId);
+      })
+      .map((item) => item.order);
+  }, [marketStats.currentPrice, unfilledOrders, successfullyCancelledOrderIds]);
+
+  // Clean up successfully cancelled orders when they're actually removed from unfilledOrders
+  useEffect(() => {
+    if (successfullyCancelledOrderIds.size > 0) {
+      const currentOrderIds = new Set(
+        unfilledOrders.map((order) => order.orderId),
+      );
+      const orderIdsToCleanup = Array.from(
+        successfullyCancelledOrderIds,
+      ).filter((orderId) => !currentOrderIds.has(orderId));
+
+      if (orderIdsToCleanup.length > 0) {
+        setSuccessfullyCancelledOrderIds((prev) => {
+          const newSet = new Set(prev);
+          orderIdsToCleanup.forEach((orderId) => newSet.delete(orderId));
+          return newSet;
+        });
+      }
+    }
+  }, [unfilledOrders, successfullyCancelledOrderIds]);
 
   // Fade in animation when loading completes
   useEffect(() => {
@@ -53,28 +149,118 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     }
   }, [isLoadingPosition, fadeAnim]);
 
-  // Tab configuration
-  const tabs = [
-    {
-      id: 'position',
-      label: strings('perps.market.position'),
-    },
-    {
-      id: 'orders',
-      label: strings('perps.market.orders'),
-    },
-    {
+  const tabs = React.useMemo(() => {
+    const dynamicTabs = [];
+
+    // Always show statistics tab
+    dynamicTabs.push({
       id: 'statistics',
       label: strings('perps.market.statistics'),
-    },
-  ];
+    });
 
-  const [activeTabId, setActiveTabId] = useState(tabs[0].id);
+    // Only show position tab if there's a position
+    if (position) {
+      dynamicTabs.push({
+        id: 'position',
+        label: strings('perps.market.position'),
+      });
+    }
+
+    // Only show orders tab if there are orders
+    if (unfilledOrders.length > 0) {
+      dynamicTabs.push({
+        id: 'orders',
+        label: strings('perps.market.orders'),
+      });
+    }
+
+    return dynamicTabs;
+  }, [position, unfilledOrders.length]);
+
+  // Initialize with initialTab or statistics by default
+  const [activeTabId, setActiveTabId] = useState<PerpsTabId>(
+    initialTab || 'statistics',
+  );
+
+  // Handle initialTab when it becomes available after data loads
+  useEffect(() => {
+    if (initialTab && !hasUserInteracted.current && !hasSetInitialTab.current) {
+      const availableTabs = tabs.map((t) => t.id);
+      if (availableTabs.includes(initialTab)) {
+        setActiveTabId(initialTab as PerpsTabId);
+        onActiveTabChange?.(initialTab);
+        hasSetInitialTab.current = true;
+      }
+    }
+  }, [initialTab, tabs, onActiveTabChange]);
+
+  // Set initial tab based on data availability
+  // Now we can properly distinguish between loading and empty states
+  useEffect(() => {
+    // If user has interacted, respect their choice
+    if (hasUserInteracted.current) {
+      return;
+    }
+
+    // If we've already set the initial tab from props, don't override it
+    if (hasSetInitialTab.current) {
+      return;
+    }
+
+    // Wait until position data has loaded
+    // isLoadingPosition will be true until first WebSocket update
+    if (isLoadingPosition) {
+      return;
+    }
+
+    let targetTabId = 'statistics'; // Default fallback
+
+    // Priority 1: Position tab if position exists
+    if (position) {
+      targetTabId = 'position';
+    }
+    // Priority 2: Orders tab if orders exist but no position
+    else if (unfilledOrders && unfilledOrders.length > 0) {
+      targetTabId = 'orders';
+    }
+    // Priority 3: Statistics tab (already set)
+
+    // Only update if tab actually needs to change
+    if (activeTabId !== targetTabId) {
+      DevLogger.log('PerpsMarketTabs: Auto-selecting tab:', {
+        targetTabId,
+        hasPosition: !!position,
+        ordersCount: unfilledOrders?.length || 0,
+        previousTab: activeTabId,
+        isLoadingPosition,
+      });
+      setActiveTabId(targetTabId as PerpsTabId);
+      onActiveTabChange?.(targetTabId);
+    }
+  }, [
+    position,
+    unfilledOrders,
+    activeTabId,
+    onActiveTabChange,
+    isLoadingPosition,
+  ]);
+
+  // Update active tab if current tab is no longer available (but respect user interaction)
+  useEffect(() => {
+    const tabIds = tabs.map((t) => t.id);
+    if (!tabIds.includes(activeTabId)) {
+      // Switch to first available tab if current tab is hidden
+      const newTabId = tabs[0]?.id || 'statistics';
+      setActiveTabId(newTabId as PerpsTabId);
+      onActiveTabChange?.(newTabId);
+    }
+  }, [tabs, activeTabId, onActiveTabChange]);
 
   // Notify parent when tab changes
   const handleTabChange = useCallback(
     (tabId: string) => {
-      setActiveTabId(tabId);
+      hasUserInteracted.current = true; // Mark that user has interacted
+      setActiveTabId(tabId as PerpsTabId);
       onActiveTabChange?.(tabId);
     },
     [onActiveTabChange],
@@ -91,19 +277,105 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     setSelectedTooltip(null);
   }, []);
 
-  const handleOrderCancel = useCallback(async (orderToCancel: Order) => {
-    try {
-      DevLogger.log('Canceling order:', orderToCancel.orderId);
-      const controller = Engine.context.PerpsController;
-      await controller.cancelOrder({
-        orderId: orderToCancel.orderId,
-        coin: orderToCancel.symbol,
-      });
-      DevLogger.log('Order cancellation request sent');
-    } catch (error) {
-      DevLogger.log('Failed to cancel order:', error);
-    }
-  }, []);
+  const handleOrderCancel = useCallback(
+    async (orderToCancel: Order) => {
+      try {
+        // Update UI state to show loading spinner
+        setCancellingOrderIds((prev) =>
+          new Set(prev).add(orderToCancel.orderId),
+        );
+
+        DevLogger.log('Canceling order:', orderToCancel.orderId);
+
+        const controller = Engine.context.PerpsController;
+
+        const orderDirection = getOrderDirection(
+          orderToCancel.side,
+          position?.size,
+        );
+
+        showToast(
+          PerpsToastOptions.orderManagement.shared.cancellationInProgress(
+            orderDirection as OrderDirection,
+            orderToCancel.remainingSize,
+            orderToCancel.symbol,
+            orderToCancel.detailedOrderType,
+          ),
+        );
+
+        const result = await controller.cancelOrder({
+          orderId: orderToCancel.orderId,
+          coin: orderToCancel.symbol,
+        });
+
+        // Order cancellation successful
+        if (result.success) {
+          // Mark order as successfully cancelled to hide it from UI until WebSocket updates arrive
+          setSuccessfullyCancelledOrderIds((prev) =>
+            new Set(prev).add(orderToCancel.orderId),
+          );
+
+          showToast(
+            PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+              orderToCancel.reduceOnly,
+              orderToCancel.detailedOrderType,
+              orderDirection as OrderDirection,
+              orderToCancel.remainingSize,
+              orderToCancel.symbol,
+            ),
+          );
+
+          // Notify parent component that order was cancelled to update chart
+          onOrderCancelled?.(orderToCancel.orderId);
+
+          return;
+        }
+
+        // Order cancellation failed
+        showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
+      } catch (error) {
+        DevLogger.log('Failed to cancel order:', error);
+
+        showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
+
+        // Capture exception with order context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'PerpsMarketTabs',
+              action: 'order_cancellation',
+              operation: 'order_management',
+            },
+            extra: {
+              orderContext: {
+                orderId: orderToCancel.orderId,
+                symbol: orderToCancel.symbol,
+                side: orderToCancel.side,
+                orderType: orderToCancel.orderType,
+                size: orderToCancel.size,
+                price: orderToCancel.price,
+                reduceOnly: orderToCancel.reduceOnly,
+              },
+            },
+          },
+        );
+      } finally {
+        // Remove from UI loading state
+        setCancellingOrderIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(orderToCancel.orderId);
+          return newSet;
+        });
+      }
+    },
+    [
+      position?.size,
+      showToast,
+      PerpsToastOptions.orderManagement.shared,
+      onOrderCancelled,
+    ],
+  );
 
   const renderTooltipModal = useCallback(() => {
     if (!selectedTooltip) return null;
@@ -152,8 +424,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     );
   }
 
-  // If no position and no orders after loading, show just statistics
-  if (!position && unfilledOrders.length === 0) {
+  if (tabs.length === 1 && tabs[0].id === 'statistics') {
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
         <Text
@@ -166,6 +437,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         </Text>
 
         <PerpsMarketStatisticsCard
+          symbol={symbol}
           marketStats={marketStats}
           onTooltipPress={handleTooltipPress}
           nextFundingTime={nextFundingTime}
@@ -195,7 +467,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             testID={getTabTestId(tab.id)}
           >
             <Text
-              variant={TextVariant.BodyMDBold}
+              variant={TextVariant.BodyMD}
               color={isActive ? TextColor.Default : TextColor.Muted}
             >
               {tab.label}
@@ -221,7 +493,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               position={position}
               expanded
               showIcon
-              onPositionUpdate={onPositionUpdate}
+              onTooltipPress={handleTooltipPress}
+              onTpslCountPress={handleTabChange}
             />
           </View>
         );
@@ -233,6 +506,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             testID={PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT}
           >
             <PerpsMarketStatisticsCard
+              symbol={symbol}
               marketStats={marketStats}
               onTooltipPress={handleTooltipPress}
               nextFundingTime={nextFundingTime}
@@ -270,15 +544,36 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               </View>
             ) : (
               <>
-                {unfilledOrders.map((order) => (
-                  <PerpsOpenOrderCard
-                    key={order.orderId}
-                    order={order}
-                    expanded
-                    showIcon
-                    onCancel={handleOrderCancel}
-                  />
-                ))}
+                {sortedUnfilledOrders.map((order) => {
+                  // Determine if this order is currently active on the chart
+                  const isActiveTP = activeTPOrderId === order.orderId;
+                  const isActiveSL = activeSLOrderId === order.orderId;
+                  const isActive = isActiveTP || isActiveSL;
+
+                  // Determine active type - if both TP and SL are from same order, show 'BOTH'
+                  let activeType: 'TP' | 'SL' | 'BOTH' | undefined;
+                  if (isActiveTP && isActiveSL) {
+                    activeType = 'BOTH';
+                  } else if (isActiveTP) {
+                    activeType = 'TP';
+                  } else if (isActiveSL) {
+                    activeType = 'SL';
+                  }
+
+                  return (
+                    <PerpsOpenOrderCard
+                      key={order.orderId}
+                      order={order}
+                      expanded
+                      showIcon
+                      onCancel={handleOrderCancel}
+                      onSelect={onOrderSelect}
+                      isActiveOnChart={isActive}
+                      activeType={activeType}
+                      isCancelling={cancellingOrderIds.has(order.orderId)}
+                    />
+                  );
+                })}
               </>
             )}
           </View>

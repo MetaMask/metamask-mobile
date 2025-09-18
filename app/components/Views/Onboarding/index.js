@@ -41,6 +41,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
+import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
   TraceOperation,
@@ -61,6 +62,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
+import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 
 const createStyles = (colors) =>
@@ -205,6 +207,15 @@ const createStyles = (colors) =>
       borderColor: colors.border.muted,
       borderWidth: 1,
       color: colors.text.default,
+    },
+    blackButton: {
+      backgroundColor: importedColors.btnBlack,
+    },
+    blackButtonText: {
+      color: importedColors.btnBlackText,
+    },
+    inverseBlackButton: {
+      backgroundColor: importedColors.btnBlackInverse,
     },
   });
 
@@ -382,10 +393,12 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressCreate = () => {
+  onPressCreate = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       trace({
@@ -407,10 +420,12 @@ class Onboarding extends PureComponent {
     endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
-  onPressImport = () => {
+  onPressImport = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+
     const action = async () => {
       trace({
         name: TraceName.OnboardingExistingSrpImport,
@@ -490,7 +505,38 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
+    // check for internet connection
+    try {
+      const netState = await NetInfo.fetch();
+      if (!netState.isConnected || netState.isInternetReachable === false) {
+        this.props.navigation.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
+            descriptionAlign: 'left',
+            buttonLabel: strings(`error_sheet.no_internet_connection_button`),
+            primaryButtonLabel: strings(
+              `error_sheet.no_internet_connection_button`,
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          },
+        });
+        return;
+      }
+    } catch (error) {
+      console.warn('Network check failed:', error);
+    }
+
+    // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
+
+    // Enable metrics for OAuth users
+    await this.props.metrics.enableSocialLogin(true);
+    await setupSentry();
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -539,15 +585,6 @@ class Onboarding extends PureComponent {
     if (error instanceof OAuthError) {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
-        error.code !== OAuthErrorType.UserCancelled &&
-        error.code !== OAuthErrorType.UserDismissed &&
-        error.code !== OAuthErrorType.GoogleLoginError &&
-        error.code !== OAuthErrorType.AppleLoginError
-      ) {
-        this.handleOAuthLoginError(error);
-        return;
-      }
-      if (
         error.code === OAuthErrorType.UserCancelled ||
         error.code === OAuthErrorType.UserDismissed ||
         error.code === OAuthErrorType.GoogleLoginError ||
@@ -555,7 +592,27 @@ class Onboarding extends PureComponent {
       ) {
         // QA: do not show error sheet if user cancelled
         return;
+      } else if (
+        error.code === OAuthErrorType.GoogleLoginNoCredential ||
+        error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
+      ) {
+        // de-escalate google no credential error
+        const errorMessage = 'google_login_no_credential';
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.${errorMessage}_title`),
+            description: strings(`error_sheet.${errorMessage}_description`),
+            descriptionAlign: 'center',
+            buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+            type: 'error',
+          },
+        });
+        return;
       }
+      // unexpected oauth login error
+      this.handleOAuthLoginError(error);
+      return;
     }
 
     const errorMessage = 'oauth_error';
@@ -627,7 +684,7 @@ class Onboarding extends PureComponent {
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
-  handleCtaActions = (actionType) => {
+  handleCtaActions = async (actionType) => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ONBOARDING_SHEET,
@@ -641,9 +698,9 @@ class Onboarding extends PureComponent {
       });
       // else
     } else if (actionType === 'create') {
-      this.onPressCreate();
+      await this.onPressCreate();
     } else {
-      this.onPressImport();
+      await this.onPressImport();
     }
   };
 
@@ -664,7 +721,9 @@ class Onboarding extends PureComponent {
         </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
+          <Text style={styles.loadingText} color={importedColors.btnBlack}>
+            {this.props.loadingMsg}
+          </Text>
         </View>
       </View>
     );
@@ -701,9 +760,17 @@ class Onboarding extends PureComponent {
             variant={ButtonVariants.Primary}
             onPress={() => this.handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            label={strings('onboarding.start_exploring_now')}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={importedColors.btnBlackText}
+              >
+                {strings('onboarding.start_exploring_now')}
+              </Text>
+            }
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            style={styles.blackButton}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -721,6 +788,7 @@ class Onboarding extends PureComponent {
                   : strings('onboarding.import_using_srp')}
               </Text>
             }
+            style={styles.inverseBlackButton}
           />
         </View>
       </View>

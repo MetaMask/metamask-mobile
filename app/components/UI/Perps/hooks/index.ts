@@ -1,17 +1,21 @@
 // Core hooks (direct controller access)
-export { usePerpsDeposit } from './usePerpsDeposit';
-export { usePerpsDepositQuote } from './usePerpsDepositQuote';
 export { usePerpsMarkets } from './usePerpsMarkets';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
+export { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
+export { usePerpsDepositStatus } from './usePerpsDepositStatus';
+export { usePerpsWithdrawStatus } from './usePerpsWithdrawStatus';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
+export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 
 // State hooks (Redux selectors)
 export { usePerpsAccount } from './usePerpsAccount';
+// Portfolio balance hook (for wallet integration)
+export { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPositionData } from './usePerpsPositionData';
@@ -37,6 +41,7 @@ export { useColorPulseAnimation } from './useColorPulseAnimation';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
+export { usePerpsRewards } from './usePerpsRewards';
 export { useHasExistingPosition } from './useHasExistingPosition';
 export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
@@ -44,6 +49,8 @@ export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
+export { usePerpsTPSLForm } from './usePerpsTPSLForm';
+export { default as usePerpsToasts } from './usePerpsToasts';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
@@ -66,7 +73,6 @@ export { useStableArray } from './useStableArray';
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';
 
-// - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)
 // - usePerpsLivePositions (live position tracking)

@@ -7,41 +7,46 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 
-// todo-changes these ranges once values are provided by design team
-const getFontSizeForInputLength = (inputLength: number) => {
-  if (inputLength > 20) {
-    return 10;
+export const getFontSizeForInputLength = (contentLength: number) => {
+  if (contentLength <= 10) {
+    return 60;
   }
-  if (inputLength > 15) {
-    return 15;
+  if (contentLength <= 12) {
+    return 48;
   }
-  if (inputLength > 10) {
-    return 25;
+  if (contentLength <= 18) {
+    return 32;
   }
-  if (inputLength > 5) {
-    return 40;
+  if (contentLength <= 24) {
+    return 24;
   }
-  return 60;
+  if (contentLength <= 32) {
+    return 18;
+  }
+  return 12;
 };
 
 export const styleSheet = (params: {
   theme: Theme;
-  vars: { inputError: boolean; inputLength: number; isNFT: boolean };
+  vars: {
+    contentLength: number;
+    isNFT: boolean;
+  };
 }) => {
   const {
     theme,
-    vars: { inputError, inputLength, isNFT },
+    vars: { contentLength, isNFT },
   } = params;
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginTop: isNFT ? 120 : 140,
+      marginBottom: 40,
     },
     container: {
       backgroundColor: theme.colors.background.default,
       flexDirection: FlexDirection.Column,
       justifyContent: JustifyContent.spaceBetween,
-      height: '100%',
+      minHeight: '100%',
     },
     currencyTag: {
       alignSelf: 'center',
@@ -52,26 +57,21 @@ export const styleSheet = (params: {
       marginTop: 8,
       minWidth: 100,
     },
-    input: {
-      alignItems: AlignItems.center,
-      borderWidth: 0,
-      color: inputError
-        ? theme.colors.error.default
-        : theme.colors.text.default,
-      height: 50,
-      fontSize: getFontSizeForInputLength(inputLength),
-      width: '100%',
-    },
     inputSection: {
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
-      marginTop: isNFT ? 0 : 100,
+      marginTop: isNFT ? 0 : 80,
+      width: '100%',
+    },
+    inputText: {
+      fontSize: getFontSizeForInputLength(contentLength),
+      lineHeight: 75,
+      fontWeight: '500',
     },
     inputWrapper: {
-      alignItems: AlignItems.center,
-      flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.flexEnd,
-      width: '45%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
     },
     nftImage: { alignSelf: 'center', height: 100, width: 100 },
     nftImageWrapper: {
@@ -79,13 +79,9 @@ export const styleSheet = (params: {
       marginTop: 32,
       width: '100%',
     },
-    tokenSymbol: {
-      alignItems: AlignItems.center,
-      fontSize: getFontSizeForInputLength(inputLength),
-      lineHeight: 75,
-      paddingLeft: 2,
-      textAlign: 'left',
-      width: '40%',
+    tokenSymbolWrapper: {
+      justifyContent: JustifyContent.flexStart,
+      width: '50%',
     },
     topSection: {
       paddingHorizontal: 8,

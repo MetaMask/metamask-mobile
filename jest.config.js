@@ -8,7 +8,7 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.PORTFOLIO_VIEW = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
-process.env.MM_CONFIRMATION_INTENTS = 'true';
+process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR = 'true';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -20,6 +20,9 @@ process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = 'androidGoogleWebClientId';
 
 process.env.IOS_GOOGLE_CLIENT_ID = 'iosGoogleClientId';
 process.env.IOS_GOOGLE_REDIRECT_URI = 'iosGoogleRedirectUri';
+
+// When running Reassure perf tests we want to avoid Jest coverage to reduce memory usage
+const isReassureRun = process.env.REASSURE === 'true';
 
 const config = {
   preset: 'react-native',
@@ -35,12 +38,11 @@ const config = {
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: ['enzyme-to-json/serializer'],
-  // This is an environment variable that can be used to execute logic only in development
-  collectCoverage: process.env.NODE_ENV !== 'production',
-  collectCoverageFrom: [
-    '<rootDir>/app/**/*.{js,ts,tsx,jsx}',
-    '!<rootDir>/app/**/*.stories.tsx',
-  ],
+  // Disable coverage collection for Reassure runs to avoid OOM
+  collectCoverage: !isReassureRun && process.env.NODE_ENV !== 'production',
+  collectCoverageFrom: !isReassureRun
+    ? ['<rootDir>/app/**/*.{js,ts,tsx,jsx}', '!<rootDir>/app/**/*.stories.tsx']
+    : undefined,
   coveragePathIgnorePatterns: [
     '__mocks__/',
     '<rootDir>/app/util/test/',
@@ -63,6 +65,10 @@ const config = {
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
+    '^expo-haptics(/.*)?$': '<rootDir>/app/__mocks__/expo-haptics.js',
+    '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
+    '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
+      '<rootDir>/app/__mocks__/spinnerMock.js',
   },
   // Disable jest cache
   cache: false,

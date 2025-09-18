@@ -392,39 +392,39 @@ buildAndroidQaDev(){
 buildAndroidMainLocal(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
+	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
 # Builds and installs the QA APK for local development
 buildAndroidQALocal(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug' --device
+	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug' --device
 }
 
 # Builds and installs the Flask APK for local development
 buildAndroidFlaskLocal(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
-	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug' --device
+	yarn expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug' --device
 }
 
 # Builds and installs the Main iOS app for local development
 buildIosMainLocal(){
 	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device $IOS_SIMULATOR
 }
 
 # Builds and installs the Flask iOS app for local development
 buildIosFlaskLocal(){
 	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device $IOS_SIMULATOR
 }
 
 # Builds and installs the QA iOS app for local development
 buildIosQALocal(){
   	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device $IOS_SIMULATOR
+	yarn expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device $IOS_SIMULATOR
 }
 
 buildIosSimulatorE2E(){
@@ -673,10 +673,10 @@ startWatcher() {
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
 		#react-native start --port=$WATCHER_PORT -- --reset-cache
-		npx expo start --port $WATCHER_PORT --clear
+		yarn expo start --port $WATCHER_PORT --clear
 	else
 		#react-native start --port=$WATCHER_PORT
-		npx expo start --port $WATCHER_PORT
+		yarn expo start --port $WATCHER_PORT
 	fi
 }
 

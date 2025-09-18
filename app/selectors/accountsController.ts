@@ -10,7 +10,7 @@ import { selectFlattenedKeyringAccounts } from './keyringController';
 import {
   BtcMethod,
   EthMethod,
-  EthScope,
+  SolAccountType,
   SolMethod,
   isEvmAccountType,
 } from '@metamask/keyring-api';
@@ -19,13 +19,9 @@ import {
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
 } from '../core/Multichain/utils';
-import {
-  CaipAccountId,
-  CaipChainId,
-  KnownCaipNamespace,
-  parseCaipChainId,
-} from '@metamask/utils';
+import { CaipAccountId, CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
+import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -36,7 +32,7 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  * @param state - Root redux state
  * @returns - AccountsController state
  */
-const selectAccountsControllerState = (state: RootState) =>
+export const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
 /**
@@ -166,7 +162,7 @@ export const selectLastSelectedEvmAccount = createSelector(
 export const selectLastSelectedSolanaAccount = createSelector(
   selectOrderedInternalAccountsByLastSelected,
   (accounts) =>
-    accounts.find((account) => account.type === 'solana:data-account'),
+    accounts.find((account) => account.type === SolAccountType.DataAccount),
 );
 
 /**
@@ -225,7 +221,7 @@ export const selectCanSignTransactions = createSelector(
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
       selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
-      selectedAccount?.methods?.includes(BtcMethod.SendBitcoin)) ??
+      selectedAccount?.methods?.includes(BtcMethod.SignPsbt)) ??
     false,
 );
 
@@ -277,44 +273,30 @@ export const selectInternalAccountsByScope = createDeepEqualSelector(
       return [];
     }
 
-    // Parse the requested scope
-    let namespace: string;
-    let reference: string;
-    try {
-      const parsed = parseCaipChainId(scope);
-      namespace = parsed.namespace;
-      reference = parsed.reference;
-    } catch {
-      return [];
-    }
-
-    if (namespace === KnownCaipNamespace.Eip155) {
-      // If requesting eip155:0 (wildcard), include any account that has any EVM scope
-      if (reference === '0') {
-        return accounts.filter(
-          (account) =>
-            Array.isArray(account.scopes) &&
-            account.scopes.some((s) =>
-              s.startsWith(`${KnownCaipNamespace.Eip155}:`),
-            ),
-        );
-      }
-
-      // For a specific EVM chain, include accounts that either:
-      // - have the exact scope (e.g., eip155:1), or
-      // - have the wildcard scope (eip155:0)
-      return accounts.filter(
-        (account) =>
-          Array.isArray(account.scopes) &&
-          (account.scopes.includes(scope) ||
-            account.scopes.includes(EthScope.Eoa)),
-      );
-    }
-
-    // Non-EVM: exact scope match only
     return accounts.filter(
       (account) =>
-        Array.isArray(account.scopes) && account.scopes.includes(scope),
+        Array.isArray(account.scopes) && anyScopesMatch(account.scopes, scope),
     );
   },
+);
+
+/**
+ * Returns a function that takes an array of addresses and returns all internal accounts
+ * that match any of the provided addresses. Address matching is case-insensitive.
+ *
+ * @param _state - Redux state (unused; required for selector signature)
+ * @returns A function that, given an array of addresses, returns an array of InternalAccount objects that match
+ */
+export const selectInternalAccountByAddresses = createDeepEqualSelector(
+  [selectInternalAccountsById],
+  (accountsMap) =>
+    (addresses: string[]): InternalAccount[] => {
+      const accountsByLowerCaseAddress = new Map<string, InternalAccount>();
+      for (const account of Object.values(accountsMap)) {
+        accountsByLowerCaseAddress.set(account.address.toLowerCase(), account);
+      }
+      return addresses
+        .map((address) => accountsByLowerCaseAddress.get(address.toLowerCase())) // Normalize the input address
+        .filter((account): account is InternalAccount => account !== undefined);
+    },
 );

@@ -10,10 +10,8 @@ import { isMultichainWalletSnap } from '../../core/SnapKeyring/utils/snaps';
 import { sendMultichainTransaction } from '../../core/SnapKeyring/utils/sendMultichainTransaction';
 import Logger from '../../util/Logger';
 import { TokenI } from '../UI/Tokens/types';
-import {
-  handleSendPageNavigation,
-  isSendRedesignEnabled,
-} from '../Views/confirmations/utils/send';
+import { handleSendPageNavigation } from '../Views/confirmations/utils/send';
+import { selectSendRedesignFlags } from '../../selectors/featureFlagController/confirmations';
 
 interface UseSendNonEvmAssetParams {
   asset:
@@ -35,9 +33,22 @@ export function useSendNonEvmAsset({
 }: UseSendNonEvmAssetParams) {
   const navigation = useNavigation();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const { enabled: isSendRedesignEnabled } = useSelector(
+    selectSendRedesignFlags,
+  );
 
   const sendNonEvmAsset = useCallback(
     async (location: string): Promise<boolean> => {
+      if (isSendRedesignEnabled) {
+        handleSendPageNavigation(
+          navigation.navigate,
+          location,
+          true,
+          asset.address ? (asset as TokenI) : undefined,
+        );
+        return true;
+      }
+
       // Check if this is a non-EVM account
       if (!selectedAccount || isEvmAccountType(selectedAccount.type)) {
         return false; // Not a non-EVM account, let caller handle EVM logic
@@ -46,15 +57,6 @@ export function useSendNonEvmAsset({
       // Close modal if provided
       if (closeModal) {
         closeModal();
-      }
-
-      if (isSendRedesignEnabled()) {
-        handleSendPageNavigation(
-          navigation.navigate,
-          location,
-          asset.address ? (asset as TokenI) : undefined,
-        );
-        return true;
       }
 
       // Validate snap account
@@ -99,7 +101,7 @@ export function useSendNonEvmAsset({
 
       return true; // Successfully handled non-EVM case
     },
-    [selectedAccount, asset, closeModal, navigation],
+    [selectedAccount, asset, closeModal, navigation, isSendRedesignEnabled],
   );
 
   return {

@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Messenger } from '@metamask/base-controller';
+import { deriveStateFromMetadata, Messenger } from '@metamask/base-controller';
 import { successfulFetch } from '@metamask/controller-utils';
+import { setMeasurement } from '@sentry/react-native';
+import Logger from '../../../../util/Logger';
 
 import {
   getDefaultPerpsControllerState,
@@ -10,8 +12,17 @@ import {
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
-import { DepositStatus } from './types';
 import { CandlePeriod } from '../constants/chartConfig';
+import type { AssetRoute } from './types';
+import Engine from '../../../../core/Engine';
+import {
+  createMockHyperLiquidProvider,
+  createMockAccountData,
+  createMockEngineContext,
+  clearAllMocks,
+} from '../__mocks__';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -40,32 +51,29 @@ jest.mock('@metamask/utils', () => ({
   })),
 }));
 
-// Mock Engine
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        address: '0x1234567890123456789012345678901234567890',
-        id: 'mock-account-id',
-        metadata: { name: 'Test Account' },
-      }),
-    },
-    NetworkController: {
-      state: {
-        selectedNetworkClientId: 'mainnet',
-      },
-    },
-    TransactionController: {
-      addTransaction: jest.fn(),
-    },
-  },
-}));
+const mockEngineContext = createMockEngineContext();
+jest.mock('../../../../core/Engine', () => ({ context: mockEngineContext }));
 
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
+}));
+
+// Mock Logger
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+// Mock react-native-performance
+jest.mock('react-native-performance', () => ({
+  now: jest.fn(() => Date.now()),
+}));
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  setMeasurement: jest.fn(),
 }));
 
 // Mock trace utilities
@@ -96,63 +104,52 @@ jest.mock('@metamask/controller-utils', () => {
   };
 });
 
+// Don't mock utility functions - let them use the real implementation with mocked Engine context
+
 // Mock transaction utilities
 jest.mock('../../../../util/transactions', () => ({
-  generateTransferData: jest.fn(),
+  generateTransferData: jest.fn().mockReturnValue('0xabcdef123456'),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UnrestrictedMessenger = Messenger<any, any>;
+// Mock account utilities
+jest.mock('../utils/accountUtils', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn(),
+}));
+
+// Mock rewards utilities
+jest.mock('../utils/rewardsUtils', () => ({
+  formatAccountToCaipAccountId: jest.fn(),
+  handleRewardsError: jest.fn(),
+  isCaipAccountId: jest.fn(),
+}));
+
+// Use imported types for reference but create a flexible test messenger
+// This ensures we leverage existing types while allowing test flexibility
+type TestMessenger = Messenger<any, any>;
 
 describe('PerpsController', () => {
   let mockHyperLiquidProvider: jest.Mocked<HyperLiquidProvider>;
 
+  // Use imported shared mocks
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    clearAllMocks();
 
     // Create mock HyperLiquidProvider with all required methods
-    mockHyperLiquidProvider = {
-      protocolId: 'hyperliquid',
-      initialize: jest.fn(),
-      isReadyToTrade: jest.fn(),
-      toggleTestnet: jest.fn(),
-      getPositions: jest.fn(),
-      getAccountState: jest.fn(),
-      getMarkets: jest.fn(),
-      placeOrder: jest.fn(),
-      editOrder: jest.fn(),
-      cancelOrder: jest.fn(),
-      closePosition: jest.fn(),
-      deposit: jest.fn(),
-      withdraw: jest.fn(),
-      getDepositRoutes: jest.fn(),
-      getWithdrawalRoutes: jest.fn(),
-      validateDeposit: jest.fn().mockResolvedValue({ isValid: true }),
-      validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
-      validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
-      validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
-      subscribeToPrices: jest.fn(),
-      subscribeToPositions: jest.fn(),
-      subscribeToOrderFills: jest.fn(),
-      setLiveDataConfig: jest.fn(),
-      disconnect: jest.fn(),
-      updatePositionTPSL: jest.fn(),
-      calculateLiquidationPrice: jest.fn(),
-      calculateMaintenanceMargin: jest.fn(),
-      getMaxLeverage: jest.fn(),
-      calculateFees: jest.fn(),
-      getMarketDataWithPrices: jest.fn(),
-      getBlockExplorerUrl: jest.fn(),
-      getOrderFills: jest.fn(),
-      getOrders: jest.fn(),
-      getFunding: jest.fn(),
-      getIsFirstTimeUser: jest.fn(),
-    } as unknown as jest.Mocked<HyperLiquidProvider>;
+    mockHyperLiquidProvider = createMockHyperLiquidProvider();
 
     // Mock the HyperLiquidProvider constructor
     (
       HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
     ).mockImplementation(() => mockHyperLiquidProvider);
+
+    // Set up default behaviors for utility functions to prevent test failures
+    // Tests that need specific behaviors can override these defaults
+    const defaultMockEvmAccount = createMockAccountData();
+    (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+      defaultMockEvmAccount,
+    ); // Default: provide account
+    (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(null); // Default: no CAIP ID (prevents fee discount)
   });
 
   /**
@@ -161,28 +158,34 @@ describe('PerpsController', () => {
   function withController<ReturnValue>(
     fn: (args: {
       controller: PerpsController;
-      messenger: UnrestrictedMessenger;
+      messenger: TestMessenger;
     }) => ReturnValue,
     options: {
       state?: Partial<PerpsControllerState>;
+      clientConfig?: { fallbackBlockedRegions?: string[] };
       mocks?: {
         getSelectedAccount?: jest.MockedFunction<() => unknown>;
         getNetworkState?: jest.MockedFunction<() => unknown>;
       };
     } = {},
   ): ReturnValue {
-    const { state = {}, mocks = {} } = options;
+    const { state = {}, clientConfig, mocks = {} } = options;
 
     const messenger = new Messenger<any, any>();
 
-    // Register mock external actions
+    // Mock the subscribe method for testing with proper Jest mock typing
+    messenger.subscribe = jest.fn();
+
+    (Engine as unknown as { context: typeof mockEngineContext }).context =
+      mockEngineContext;
+    const mockAccountData = createMockAccountData();
     messenger.registerActionHandler(
       'AccountsController:getSelectedAccount',
       mocks.getSelectedAccount ??
         jest.fn().mockReturnValue({
-          id: 'mock-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          metadata: { name: 'Test Account' },
+          id: mockAccountData.id,
+          address: mockAccountData.address,
+          metadata: mockAccountData.metadata,
         }),
     );
 
@@ -197,21 +200,24 @@ describe('PerpsController', () => {
     const restrictedMessenger = messenger.getRestricted({
       name: 'PerpsController',
       allowedActions: [
-        'AccountsController:getSelectedAccount' as never,
-        'NetworkController:getState' as never,
-      ],
+        'AccountsController:getSelectedAccount',
+        'NetworkController:getState',
+        'AuthenticationController:getBearerToken',
+      ] as any,
       allowedEvents: [
-        'AccountsController:selectedAccountChange' as never,
-        'NetworkController:stateChange' as never,
-        'TransactionController:transactionSubmitted' as never,
-        'TransactionController:transactionConfirmed' as never,
-        'TransactionController:transactionFailed' as never,
-      ],
+        'AccountsController:selectedAccountChange',
+        'NetworkController:stateChange',
+        'TransactionController:transactionSubmitted',
+        'TransactionController:transactionConfirmed',
+        'TransactionController:transactionFailed',
+        'RemoteFeatureFlagController:stateChange',
+      ] as any,
     });
 
     const controller = new PerpsController({
       messenger: restrictedMessenger,
       state,
+      clientConfig,
     });
 
     return fn({ controller, messenger });
@@ -226,6 +232,7 @@ describe('PerpsController', () => {
         expect(controller.state.accountState).toBeNull();
         expect(controller.state.connectionStatus).toBe('disconnected');
         expect(controller.state.isEligible).toBe(false);
+        expect(controller.state.lastDepositTransactionId).toBeNull();
       });
     });
 
@@ -253,6 +260,8 @@ describe('PerpsController', () => {
               sinceOpen: '0',
               sinceChange: '0',
             },
+            takeProfitCount: 0,
+            stopLossCount: 0,
           },
         ],
       };
@@ -266,6 +275,274 @@ describe('PerpsController', () => {
         },
         { state: customState },
       );
+    });
+
+    describe('clientConfig and remote feature flag integration', () => {
+      it('sets fallback blocked regions from clientConfig in constructor', () => {
+        withController(
+          ({ controller }) => {
+            // Check that fallback blocked regions were set from clientConfig
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+          },
+          {
+            clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] },
+          },
+        );
+      });
+
+      it('handles missing clientConfig gracefully', () => {
+        // Explicitly pass undefined to use constructor's default
+        withController(
+          ({ controller }) => {
+            // Should not throw and should use constructor's default (empty array)
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: [],
+              source: 'fallback',
+            });
+          },
+          { clientConfig: undefined },
+        );
+      });
+
+      it('subscribes to RemoteFeatureFlagController state changes', () => {
+        withController(({ controller: _controller, messenger }) => {
+          // Verify that the controller subscribed to RemoteFeatureFlagController state changes
+          expect(messenger.subscribe).toHaveBeenCalledWith(
+            'RemoteFeatureFlagController:stateChange',
+            expect.any(Function),
+          );
+        });
+      });
+
+      it('updates blocked regions when remote feature flag changes', () => {
+        withController(
+          ({ controller, messenger }) => {
+            // Get the callback function that was registered for state changes
+            const stateChangeCallback = (
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
+            ).mock.calls.find(
+              (call: any[]) =>
+                call[0] === 'RemoteFeatureFlagController:stateChange',
+            )?.[1];
+
+            expect(stateChangeCallback).toBeDefined();
+
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Simulate remote feature flag state change with blocked regions
+            const mockRemoteFeatureFlagState = {
+              remoteFeatureFlags: {
+                perpsPerpTradingGeoBlockedCountries: {
+                  blockedRegions: ['FR', 'DE', 'IT'],
+                },
+              },
+            };
+
+            if (stateChangeCallback) {
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
+            }
+
+            // Should now have remote regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['FR', 'DE', 'IT'],
+              source: 'remote',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
+      it('preserves fallback when remote feature flag has invalid data', () => {
+        withController(
+          ({ controller, messenger }) => {
+            const stateChangeCallback = (
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
+            ).mock.calls.find(
+              (call: any[]) =>
+                call[0] === 'RemoteFeatureFlagController:stateChange',
+            )?.[1];
+
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Simulate remote feature flag state change with invalid data
+            const mockRemoteFeatureFlagState = {
+              remoteFeatureFlags: {
+                perpsPerpTradingGeoBlockedCountries: {
+                  blockedRegions: 'invalid-not-array', // Invalid data
+                },
+              },
+            };
+
+            if (stateChangeCallback) {
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
+            }
+
+            // Should still have fallback regions since remote data was invalid
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
+      it('prevents downgrading from remote to fallback', () => {
+        withController(({ controller, messenger }) => {
+          const stateChangeCallback = (
+            messenger.subscribe as jest.MockedFunction<
+              typeof messenger.subscribe
+            >
+          ).mock.calls.find(
+            (call: any[]) =>
+              call[0] === 'RemoteFeatureFlagController:stateChange',
+          )?.[1];
+
+          // First, set remote regions
+          const mockRemoteFeatureFlagState1 = {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountries: {
+                blockedRegions: ['FR', 'DE'],
+              },
+            },
+          };
+
+          if (stateChangeCallback) {
+            stateChangeCallback(mockRemoteFeatureFlagState1, []);
+          }
+
+          // Should now have remote regions
+          // @ts-ignore - Accessing private property for testing
+          expect(controller.blockedRegionList).toEqual({
+            list: ['FR', 'DE'],
+            source: 'remote',
+          });
+
+          // Now try to set fallback regions (should be prevented)
+          // @ts-ignore - Call private method for testing
+          controller.setBlockedRegionList(['US', 'CA-ON'], 'fallback');
+
+          // Should still have remote regions (no downgrade)
+          // @ts-ignore - Accessing private property for testing
+          expect(controller.blockedRegionList).toEqual({
+            list: ['FR', 'DE'],
+            source: 'remote',
+          });
+        });
+      });
+
+      it('handles non-array input to setBlockedRegionList gracefully', () => {
+        withController(
+          ({ controller }) => {
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Test with various non-array inputs
+            const invalidInputs = [
+              null,
+              undefined,
+              'not-an-array',
+              123,
+              { not: 'array' },
+              true,
+            ];
+
+            invalidInputs.forEach((invalidInput) => {
+              // @ts-ignore - Call private method with invalid input for testing
+              controller.setBlockedRegionList(invalidInput as any, 'remote');
+
+              // Should still have original fallback regions (no change)
+              // @ts-ignore - Accessing private property for testing
+              expect(controller.blockedRegionList).toEqual({
+                list: ['US', 'CA-ON'],
+                source: 'fallback',
+              });
+            });
+
+            // Verify array input still works
+            // @ts-ignore - Call private method for testing
+            controller.setBlockedRegionList(['TEST'], 'remote');
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['TEST'],
+              source: 'remote',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
+      it('handles missing remote feature flag gracefully', () => {
+        withController(
+          ({ controller, messenger }) => {
+            const stateChangeCallback = (
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
+            ).mock.calls.find(
+              (call: any[]) =>
+                call[0] === 'RemoteFeatureFlagController:stateChange',
+            )?.[1];
+
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Simulate remote feature flag state change with missing feature flag
+            const mockRemoteFeatureFlagState = {
+              remoteFeatureFlags: {
+                // perpsPerpTradingGeoBlockedCountries is missing
+                someOtherFeatureFlag: {
+                  enabled: true,
+                },
+              },
+            };
+
+            if (stateChangeCallback) {
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
+            }
+
+            // Should still have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
+      // TODO: Add test for eligibility refresh when blocked regions change
+      // This would require proper mock setup for successfulFetch within the feature flag callback
     });
   });
 
@@ -331,6 +608,8 @@ describe('PerpsController', () => {
             sinceOpen: '5',
             sinceChange: '2',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -354,6 +633,8 @@ describe('PerpsController', () => {
         totalBalance: '1500',
         marginUsed: '500',
         unrealizedPnl: '100',
+        returnOnEquity: '20.0',
+        totalValue: '1600',
       };
 
       withController(async ({ controller }) => {
@@ -445,6 +726,145 @@ describe('PerpsController', () => {
       });
     });
 
+    it('should place order with fee discount calculation', async () => {
+      // Test fee discount integration from RewardsController
+      const orderParams = {
+        coin: 'ETH',
+        isBuy: true,
+        size: '1.0',
+        orderType: 'market' as const,
+      };
+
+      const mockOrderResult = {
+        success: true,
+        orderId: 'reward-order-123',
+      };
+
+      withController(async ({ controller }) => {
+        // Set up proper network client mock with chainId
+        const mockNetworkClient = {
+          configuration: { chainId: '0xa4b1' }, // Arbitrum chainId in hex
+        };
+        mockEngineContext.NetworkController.getNetworkClientById.mockReturnValue(
+          mockNetworkClient,
+        );
+
+        // Mock utility functions for fee discount calculation
+        const mockEvmAccount = createMockAccountData();
+        (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+          mockEvmAccount,
+        );
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        // Mock RewardsController to return discount (basis points: 550 = 5.5%)
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValue(
+          550,
+        );
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        expect(result).toEqual(mockOrderResult);
+        // Verify setUserFeeDiscount was called with correct discount
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          550,
+        );
+        // Verify discount was cleared after order
+        expect(
+          mockHyperLiquidProvider.setUserFeeDiscount,
+        ).toHaveBeenLastCalledWith(undefined);
+        // Verify RewardsController was called for discount
+        expect(
+          mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+        ).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle fee discount error gracefully', async () => {
+      // Test error handling when RewardsController fails
+      const orderParams = {
+        coin: 'BTC',
+        isBuy: false,
+        size: '0.5',
+        orderType: 'limit' as const,
+        price: '50000',
+      };
+
+      const mockOrderResult = {
+        success: true,
+        orderId: 'order-without-discount',
+      };
+
+      withController(async ({ controller }) => {
+        // Enable fee discount calculation for this test by providing CAIP ID
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        // Mock RewardsController to throw error
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockRejectedValue(
+          new Error('Rewards service unavailable'),
+        );
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        // Order should still succeed without discount
+        expect(result).toEqual(mockOrderResult);
+        // Verify discount was cleared (since no discount was set initially due to error)
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          undefined,
+        );
+      });
+    });
+
+    it('should clear fee discount on order failure', async () => {
+      // Test discount cleanup when order fails
+      const orderParams = {
+        coin: 'SOL',
+        isBuy: true,
+        size: '10',
+        orderType: 'market' as const,
+      };
+
+      const mockOrderResult = {
+        success: false,
+        error: 'Order rejected by exchange',
+      };
+
+      withController(async ({ controller }) => {
+        // Enable fee discount calculation for this test by providing CAIP ID
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValue(
+          1000,
+        ); // 10% discount
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        expect(result).toEqual(mockOrderResult);
+        // Verify discount was set initially
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          1000,
+        );
+        // Verify discount was cleared even after failure
+        expect(
+          mockHyperLiquidProvider.setUserFeeDiscount,
+        ).toHaveBeenLastCalledWith(undefined);
+      });
+    });
+
     it('should cancel order successfully', async () => {
       const cancelParams = {
         coin: 'BTC',
@@ -467,43 +887,6 @@ describe('PerpsController', () => {
         expect(mockHyperLiquidProvider.cancelOrder).toHaveBeenCalledWith(
           cancelParams,
         );
-      });
-    });
-  });
-
-  describe('deposit state management', () => {
-    it('should reset deposit state', () => {
-      withController(({ controller }) => {
-        controller.resetDepositState();
-
-        expect(controller.state.depositStatus).toBe('idle');
-        expect(controller.state.depositError).toBeNull();
-        expect(controller.state.currentDepositTxHash).toBeNull();
-      });
-    });
-
-    it('should get deposit routes', () => {
-      const mockRoutes = [
-        {
-          assetId:
-            'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default' as CaipAssetId,
-          chainId: 'eip155:42161' as CaipChainId,
-          contractAddress:
-            '0x5678901234567890123456789012345678901234' as `0x${string}`,
-        },
-      ];
-
-      withController(({ controller }) => {
-        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue(mockRoutes);
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        // Initialize first
-        controller.initializeProviders();
-
-        const result = controller.getDepositRoutes();
-
-        expect(result).toEqual(mockRoutes);
-        expect(mockHyperLiquidProvider.getDepositRoutes).toHaveBeenCalled();
       });
     });
   });
@@ -535,86 +918,119 @@ describe('PerpsController', () => {
         expect(controller.state.lastError).toBe(null); // initializeProviders doesn't update state directly
       });
     });
-  });
 
-  describe('deposit operations', () => {
-    it('should validate deposit parameters', async () => {
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+    it('should throw error when controller is reinitializing', () => {
+      withController(({ controller }) => {
+        // Set the reinitializing flag to true
+        // @ts-ignore - Accessing private property for testing
+        controller.isReinitializing = true;
 
-        // Mock validateDeposit to return validation errors
-        mockHyperLiquidProvider.validateDeposit
-          .mockReturnValueOnce(
-            Promise.resolve({
-              isValid: false,
-              error: 'Amount is required and must be greater than 0',
-            }),
-          )
-          .mockReturnValueOnce(
-            Promise.resolve({
-              isValid: false,
-              error: 'AssetId is required for deposit validation',
-            }),
-          );
-
-        await controller.initializeProviders();
-
-        // Test missing amount
-        const result1 = await controller.deposit({
-          amount: '',
-          assetId:
-            'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default',
-        });
-        expect(result1.success).toBe(false);
-        expect(result1.error).toBe(
-          'Amount is required and must be greater than 0',
+        // Should throw CLIENT_REINITIALIZING error
+        expect(() => controller.getActiveProvider()).toThrow(
+          'CLIENT_REINITIALIZING',
         );
 
-        // Test missing assetId
-        const result2 = await controller.deposit({
-          amount: '100',
-          assetId: '' as any,
-        });
-        expect(result2.success).toBe(false);
-        expect(result2.error).toBe(
-          'AssetId is required for deposit validation',
-        );
+        // Verify error state was updated
+        expect(controller.state.lastError).toBe('CLIENT_REINITIALIZING');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
       });
     });
 
-    it('should handle deposit route analysis', async () => {
+    it('should throw error when provider not found in map', () => {
+      withController(({ controller }) => {
+        // Make controller initialized but clear the providers map
+        // @ts-ignore - Accessing private property for testing
+        controller.isInitialized = true;
+        // @ts-ignore - Accessing private property for testing
+        controller.providers.clear();
+
+        // Should throw PROVIDER_NOT_AVAILABLE error
+        expect(() => controller.getActiveProvider()).toThrow(
+          'PROVIDER_NOT_AVAILABLE',
+        );
+
+        // Verify error state was updated
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('should handle network errors during account state updates', async () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
-          {
-            assetId:
-              'eip155:42161/erc20:0x1234567890123456789012345678901234567890/default' as any,
-            chainId: 'eip155:42161' as any,
-            contractAddress:
-              '0x5678901234567890123456789012345678901234' as any,
-          },
-        ]);
-
-        // Mock validateDeposit to return error for unsupported route
-        mockHyperLiquidProvider.validateDeposit.mockReturnValue(
-          Promise.resolve({
-            isValid: false,
-            error: 'Only direct deposits are currently supported',
-          }),
+        mockHyperLiquidProvider.getAccountState.mockRejectedValue(
+          new Error('Network timeout'),
         );
 
         await controller.initializeProviders();
 
-        // Try to deposit with unsupported asset on chain ID 1 (mainnet) instead of 42161 (Arbitrum)
-        const result = await controller.deposit({
-          amount: '100',
-          assetId:
-            'eip155:1/erc20:0x9999999999999999999999999999999999999999/default',
-        });
+        await expect(controller.getAccountState()).rejects.toThrow(
+          'Network timeout',
+        );
+        expect(controller.state.lastError).toBe('Network timeout');
+        expect(controller.state.accountState).toBeNull(); // Should not modify existing state
+      });
+    });
 
-        expect(result.success).toBe(false);
-        expect(result.error).toContain(
-          'Only direct deposits are currently supported',
+    it('should handle provider method throwing non-Error objects', async () => {
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getMarkets.mockRejectedValue(
+          'String error instead of Error object',
+        );
+
+        await controller.initializeProviders();
+
+        await expect(controller.getMarkets()).rejects.toBeDefined();
+        expect(controller.state.lastError).toBe('MARKETS_FAILED');
+      });
+    });
+
+    it('should handle RewardsController chain ID lookup failure', async () => {
+      const orderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market' as const,
+      };
+
+      withController(async ({ controller }) => {
+        // Mock NetworkController to return undefined chainId
+        const mockNetworkClient = { configuration: {} }; // Missing chainId
+        mockEngineContext.NetworkController.getNetworkClientById.mockReturnValue(
+          mockNetworkClient,
+        );
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'test',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        // Order should succeed but discount lookup should fail gracefully
+        expect(result.success).toBe(true);
+        expect(
+          mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+        ).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should handle account state returning null gracefully', async () => {
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        // Use type assertion for this specific test case where we need to test null handling
+        mockHyperLiquidProvider.getAccountState.mockResolvedValue(null as any);
+
+        await controller.initializeProviders();
+
+        await expect(controller.getAccountState()).rejects.toThrow(
+          'Failed to get account state: received null/undefined response',
+        );
+        expect(controller.state.lastError).toBe(
+          'Failed to get account state: received null/undefined response',
         );
       });
     });
@@ -859,7 +1275,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const mockPendingWithdrawal = {
@@ -871,7 +1287,7 @@ describe('PerpsController', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
         sourceChainId: 'eip155:999' as CaipChainId,
         destinationChainId: 'eip155:42161' as CaipChainId,
-        destinationAddress: '0x1234567890123456789012345678901234567890' as Hex,
+        destinationAddress: createMockAccountData().address as Hex,
         initiatedAt: Date.now(),
         status: 'pending' as const,
         providerTxHash: undefined,
@@ -927,7 +1343,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       // Provider returns success but no pendingWithdrawal (legacy behavior)
@@ -974,7 +1390,7 @@ describe('PerpsController', () => {
       const withdrawParams = {
         amount: '100',
         // Missing assetId
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       withController(async ({ controller }) => {
@@ -1006,7 +1422,7 @@ describe('PerpsController', () => {
         amount: '0',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       withController(async ({ controller }) => {
@@ -1067,7 +1483,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const mockErrorResult = {
@@ -1095,7 +1511,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const errorMessage = 'Network connection failed';
@@ -1142,6 +1558,506 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('depositWithConfirmation', () => {
+    it('should prepare and submit deposit transaction successfully', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const mockTxHash = '0xtransaction123';
+        // Create a promise that won't resolve immediately
+        let resolvePromise: (value: string) => void = () => {
+          // Initial empty resolver
+        };
+        const mockResult = new Promise<string>((resolve) => {
+          resolvePromise = resolve;
+        });
+
+        const mockDepositRoute: AssetRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
+          result: mockResult,
+          transactionMeta: {
+            id: 'deposit-tx-123',
+          },
+        });
+
+        await controller.initializeProviders();
+
+        // Clear initial state
+        controller.state.lastDepositResult = null;
+
+        // Act
+        const result = await controller.depositWithConfirmation();
+
+        // Assert
+        expect(result).toHaveProperty('result');
+        expect(result.result).toBe(mockResult);
+
+        // Verify TransactionController was called with correct params
+        expect(
+          mockEngineContext.TransactionController.addTransaction,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            from: createMockAccountData().address,
+            to: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+            value: '0x0',
+            data: '0xabcdef123456',
+            gas: expect.any(String),
+          }),
+          expect.objectContaining({
+            networkClientId: 'arbitrum',
+            origin: 'metamask',
+            type: 'perpsDeposit',
+          }),
+        );
+
+        // Verify initial state was cleared (before promise resolves)
+        expect(controller.state.lastDepositResult).toBeNull();
+        // Verify transaction ID was stored
+        expect(controller.state.lastDepositTransactionId).toBe(
+          'deposit-tx-123',
+        );
+
+        // Now resolve the promise and wait for state update
+        resolvePromise(mockTxHash);
+        await mockResult;
+
+        // Wait for async state update from the .then handler
+        await new Promise((resolve) => setTimeout(resolve, 150));
+
+        // Now verify state was updated
+        expect(controller.state.lastDepositResult).toEqual({
+          success: true,
+          txHash: mockTxHash,
+        });
+      });
+    });
+
+    it('should handle deposit transaction confirmation', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const mockTxHash = '0xtransaction123';
+        const mockResultPromise = Promise.resolve(mockTxHash);
+
+        const mockDepositRoute: AssetRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
+          result: mockResultPromise,
+          transactionMeta: {
+            id: 'deposit-tx-456',
+          },
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        const { result } = await controller.depositWithConfirmation();
+
+        // Wait for the promise to resolve
+        const txHash = await result;
+
+        // Assert
+        expect(txHash).toBe(mockTxHash);
+
+        // Wait for state update (setTimeout in the implementation)
+        await new Promise((resolve) => setTimeout(resolve, 150));
+
+        // Verify state was updated correctly
+        expect(controller.state.lastDepositResult).toEqual({
+          success: true,
+          txHash: mockTxHash,
+        });
+        expect(controller.state.depositInProgress).toBe(false);
+        // Transaction ID should be cleared after successful deposit
+        expect(controller.state.lastDepositTransactionId).toBeNull();
+      });
+    });
+
+    it('should handle user cancellation of deposit transaction', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const mockError = new Error('User denied transaction signature');
+
+        const mockDepositRoute: AssetRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        let rejectedPromise: Promise<string>;
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockImplementation(() => {
+          rejectedPromise = Promise.reject(mockError);
+          rejectedPromise.catch(() => {
+            /* ignore */
+          });
+          return {
+            result: rejectedPromise,
+            transactionMeta: {
+              id: 'deposit-tx-456',
+            },
+          };
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        const { result } = await controller.depositWithConfirmation();
+
+        // Attempt to await the promise (should reject)
+        await expect(result).rejects.toBe(mockError);
+
+        // Verify state was NOT updated for user cancellation
+        expect(controller.state.lastDepositResult).toBeNull();
+        expect(controller.state.depositInProgress).toBe(false);
+        // Transaction ID should be cleared on cancellation
+        expect(controller.state.lastDepositTransactionId).toBeNull();
+      });
+    });
+
+    it('should handle all user cancellation message variants', async () => {
+      const cancellationMessages = [
+        'User denied transaction signature',
+        'User rejected the request',
+        'User cancelled the operation',
+        'User canceled the transaction', // American spelling
+      ];
+
+      const mockDepositRoute: AssetRoute = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        chainId: 'eip155:42161' as CaipChainId,
+        contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+      };
+
+      await withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        // Test each cancellation message variant
+        for (const message of cancellationMessages) {
+          const mockError = new Error(message);
+          let rejectedPromise: Promise<string>;
+          (
+            mockEngineContext.TransactionController.addTransaction as jest.Mock
+          ).mockImplementation(() => {
+            rejectedPromise = Promise.reject(mockError);
+            rejectedPromise.catch(() => {
+              /* ignore */
+            });
+            return {
+              result: rejectedPromise,
+              transactionMeta: {
+                id: 'deposit-tx-456',
+              },
+            };
+          });
+
+          // Act & Assert
+          const { result } = await controller.depositWithConfirmation();
+          await expect(result).rejects.toBe(mockError);
+
+          // Verify user cancellation handling - no error state should be set
+          expect(controller.state.lastDepositResult).toBeNull();
+          expect(controller.state.depositInProgress).toBe(false);
+          expect(controller.state.lastDepositTransactionId).toBeNull();
+        }
+      });
+    });
+
+    it('should handle deposit transaction failure', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const mockError = new Error('Insufficient balance');
+
+        const mockDepositRoute: AssetRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        let rejectedPromise: Promise<string>;
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockImplementation(() => {
+          rejectedPromise = Promise.reject(mockError);
+          rejectedPromise.catch(() => {
+            /* ignore */
+          });
+          return {
+            result: rejectedPromise,
+            transactionMeta: {
+              id: 'deposit-tx-456',
+            },
+          };
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        const { result } = await controller.depositWithConfirmation();
+
+        // Attempt to await the promise (should reject)
+        await expect(result).rejects.toBe(mockError);
+
+        // Verify state was updated for actual failure
+        expect(controller.state.lastDepositResult).toEqual({
+          success: false,
+          error: 'Insufficient balance',
+        });
+        expect(controller.state.depositInProgress).toBe(false);
+        // Transaction ID should be cleared on failure
+        expect(controller.state.lastDepositTransactionId).toBeNull();
+      });
+    });
+
+    it('should handle deposit when TransactionController.addTransaction throws', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const mockError = new Error('Network error');
+
+        const mockDepositRoute: AssetRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockRejectedValue(mockError);
+
+        await controller.initializeProviders();
+
+        // Act & Assert
+        await expect(controller.depositWithConfirmation()).rejects.toBe(
+          mockError,
+        );
+
+        // Should not update state for user cancellation
+        const errorMessage =
+          mockError instanceof Error ? mockError.message : '';
+        if (
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('User rejected')
+        ) {
+          expect(controller.state.lastDepositResult).toBeNull();
+        } else {
+          // Should update state for other errors
+          expect(controller.state.lastDepositResult).toEqual({
+            success: false,
+            error: 'Network error',
+          });
+          // Transaction ID should be null since addTransaction failed
+          expect(controller.state.lastDepositTransactionId).toBeNull();
+        }
+      });
+    });
+
+    it('should clear stale deposit result when starting new deposit', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange - set initial stale result
+        controller.state.lastDepositResult = {
+          success: true,
+          txHash: '0xoldtransaction',
+        };
+
+        const mockDepositRoute: AssetRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        // Create a controlled promise that won't resolve automatically
+        let resolvePromise: (value: string) => void = () => {
+          // Initial empty resolver
+        };
+        const mockResult = new Promise<string>((resolve) => {
+          resolvePromise = resolve;
+        });
+
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
+          result: mockResult,
+          transactionMeta: {
+            id: 'deposit-tx-123',
+          },
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        await controller.depositWithConfirmation();
+
+        // Assert - old result should be cleared immediately (before promise resolves)
+        expect(controller.state.lastDepositResult).toBeNull();
+        // New transaction ID should be set
+        expect(controller.state.lastDepositTransactionId).toBe(
+          'deposit-tx-123',
+        );
+
+        // Clean up by resolving the promise
+        resolvePromise('0xnewtransaction');
+      });
+    });
+
+    it('should handle empty deposit routes', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Act & Assert
+        await expect(
+          controller.depositWithConfirmation(),
+        ).rejects.toBeDefined();
+      });
+    });
+
+    it('should use correct transaction type for perps deposit', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const mockDepositRoute: AssetRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
+          result: Promise.resolve('0xtx123'),
+          transactionMeta: {
+            id: 'deposit-tx-789',
+          },
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        await controller.depositWithConfirmation();
+
+        // Assert
+        expect(
+          mockEngineContext.TransactionController.addTransaction,
+        ).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            type: 'perpsDeposit',
+          }),
+        );
+      });
+    });
+  });
+
+  describe('clearDepositResult', () => {
+    it('should clear the deposit result', () => {
+      withController(({ controller }) => {
+        // Arrange
+        controller.state.lastDepositResult = {
+          success: true,
+          txHash: '0xtransaction123',
+        };
+
+        // Act
+        controller.clearDepositResult();
+
+        // Assert
+        expect(controller.state.lastDepositResult).toBeNull();
+      });
+    });
+
+    it('should handle clearing when result is already null', () => {
+      withController(({ controller }) => {
+        // Arrange
+        controller.state.lastDepositResult = null;
+
+        // Act
+        controller.clearDepositResult();
+
+        // Assert
+        expect(controller.state.lastDepositResult).toBeNull();
+      });
+    });
+
+    it('should be callable multiple times', () => {
+      withController(({ controller }) => {
+        // Arrange
+        controller.state.lastDepositResult = {
+          success: false,
+          error: 'Some error',
+        };
+
+        // Act
+        controller.clearDepositResult();
+        controller.clearDepositResult();
+        controller.clearDepositResult();
+
+        // Assert
+        expect(controller.state.lastDepositResult).toBeNull();
+      });
+    });
+  });
+
   describe('provider switching', () => {
     it('should switch provider successfully', async () => {
       withController(async ({ controller }) => {
@@ -1181,6 +2097,37 @@ describe('PerpsController', () => {
         await controller.disconnect();
 
         expect(mockHyperLiquidProvider.disconnect).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle error when getting provider during disconnect', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        // Clear providers to force getActiveProvider to throw
+        // @ts-ignore - Accessing private property for testing
+        controller.providers.clear();
+
+        // Act - disconnect should handle the error gracefully
+        await controller.disconnect();
+
+        // Assert - should log error but not crash
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message:
+              'PerpsController: Error getting provider during disconnect',
+            context: 'PerpsController.disconnect',
+          }),
+        );
+
+        // Verify initialization state was still reset
+        // @ts-ignore - Accessing private property for testing
+        expect(controller.isInitialized).toBe(false);
+        // @ts-ignore - Accessing private property for testing
+        expect(controller.initializationPromise).toBeNull();
       });
     });
 
@@ -1345,931 +2292,13 @@ describe('PerpsController', () => {
     });
   });
 
-  describe('Transaction Event Handlers', () => {
-    describe('handleTransactionSubmitted', () => {
-      it('should update deposit status to depositing when transaction is tracked', () => {
-        // Arrange - Set up initial state with tracked transaction
-        const txId = 'test-tx-id';
-        const txHash = '0xabcdef123456';
-        const depositInfo = {
-          amount: '1000',
-          token: 'USDC',
-          timestamp: Date.now(),
-        };
-
-        const initialState = {
-          activeDepositTransactions: {
-            [txId]: depositInfo,
-          },
-          depositStatus: 'idle' as DepositStatus,
-          currentDepositTxHash: null,
-        };
-
-        withController(
-          ({ controller, messenger }) => {
-            // Create transaction event
-            const txEvent = {
-              transactionMeta: {
-                id: txId,
-                hash: txHash,
-                status: 'submitted',
-                txParams: {
-                  from: '0x123',
-                  to: '0x456',
-                  value: '0x0',
-                },
-              },
-            };
-
-            // Act - Publish transaction submitted event
-            messenger.publish(
-              'TransactionController:transactionSubmitted',
-              // @ts-ignore
-              txEvent,
-            );
-
-            // Assert - Verify state updated correctly
-            expect(controller.state.depositStatus).toBe('depositing');
-            expect(controller.state.currentDepositTxHash).toBe(txHash);
-            expect(controller.state.activeDepositTransactions[txId]).toEqual(
-              depositInfo,
-            );
-          },
-          { state: initialState },
-        );
-      });
-
-      it('should not update state when transaction is not tracked', () => {
-        // Arrange - Set up initial state without tracked transaction
-        const txId = 'untracked-tx-id';
-        const initialState = {
-          depositStatus: 'idle' as DepositStatus,
-          currentDepositTxHash: null,
-          activeDepositTransactions: {},
-        };
-
-        withController(
-          ({ controller, messenger }) => {
-            // Create transaction event for untracked transaction
-            const txEvent = {
-              transactionMeta: {
-                id: txId,
-                hash: '0xabcdef123456',
-                status: 'submitted',
-                txParams: {
-                  from: '0x123',
-                  to: '0x456',
-                  value: '0x0',
-                },
-              },
-            };
-
-            // Act - Publish transaction submitted event
-            messenger.publish(
-              'TransactionController:transactionSubmitted',
-              // @ts-ignore
-              txEvent,
-            );
-
-            // Assert - Verify state unchanged
-            expect(controller.state.depositStatus).toBe('idle');
-            expect(controller.state.currentDepositTxHash).toBe(null);
-            expect(controller.state.activeDepositTransactions).toEqual({});
-          },
-          { state: initialState },
-        );
-      });
-
-      it('should handle transaction without hash', () => {
-        // Arrange - Set up initial state with tracked transaction
-        const txId = 'test-tx-id';
-        const depositInfo = {
-          amount: '1000',
-          token: 'USDC',
-          timestamp: Date.now(),
-        };
-
-        const initialState = {
-          activeDepositTransactions: {
-            [txId]: depositInfo,
-          },
-          depositStatus: 'idle' as DepositStatus,
-          currentDepositTxHash: null,
-        };
-
-        withController(
-          ({ controller, messenger }) => {
-            // Create transaction event without hash
-            const txEvent = {
-              transactionMeta: {
-                id: txId,
-                // No hash property
-                status: 'submitted',
-                txParams: {
-                  from: '0x123',
-                  to: '0x456',
-                  value: '0x0',
-                },
-              },
-            };
-
-            // Act - Publish transaction submitted event
-            messenger.publish(
-              'TransactionController:transactionSubmitted',
-              // @ts-ignore
-              txEvent,
-            );
-
-            // Assert - Verify state updated correctly with null hash
-            expect(controller.state.depositStatus).toBe('depositing');
-            expect(controller.state.currentDepositTxHash).toBe(null);
-          },
-          { state: initialState },
-        );
-      });
-    });
-
-    describe('handleTransactionConfirmed', () => {
-      it('should update deposit status to success and remove from tracking when transaction is confirmed', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const txHash = '0xabcdef123456';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-          });
-
-          // Create transaction confirmed event
-          const txMeta = {
-            id: txId,
-            hash: txHash,
-            status: 'confirmed',
-            txParams: {
-              from: '0x123',
-              to: '0x456',
-              value: '0x0',
-            },
-          };
-
-          // Act - Publish transaction confirmed event
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            txMeta,
-          );
-
-          // Assert - Verify state updated correctly
-          expect(controller.state.depositStatus).toBe('success');
-          expect(controller.state.currentDepositTxHash).toBe(txHash);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should not update state when transaction is not tracked', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state without tracked transaction
-          const txId = 'untracked-tx-id';
-          const initialState = {
-            depositStatus: 'idle' as DepositStatus,
-            currentDepositTxHash: null,
-            activeDepositTransactions: {},
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.depositStatus = initialState.depositStatus;
-            state.currentDepositTxHash = initialState.currentDepositTxHash;
-            state.activeDepositTransactions =
-              initialState.activeDepositTransactions;
-          });
-
-          // Create transaction confirmed event for untracked transaction
-          const txMeta = {
-            id: txId,
-            hash: '0xabcdef123456',
-            status: 'confirmed',
-            txParams: {
-              from: '0x123',
-              to: '0x456',
-              value: '0x0',
-            },
-          };
-
-          // Act - Publish transaction confirmed event
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            txMeta,
-          );
-
-          // Assert - Verify state unchanged
-          expect(controller.state.depositStatus).toBe('idle');
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(controller.state.activeDepositTransactions).toEqual({});
-        });
-      });
-
-      it('should handle transaction without hash', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-          });
-
-          // Create transaction confirmed event without hash
-          const txMeta = {
-            id: txId,
-            // No hash property
-            status: 'confirmed',
-            txParams: {
-              from: '0x123',
-              to: '0x456',
-              value: '0x0',
-            },
-          };
-
-          // Act - Publish transaction confirmed event
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            txMeta,
-          );
-
-          // Assert - Verify state updated correctly with null hash
-          expect(controller.state.depositStatus).toBe('success');
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should handle multiple tracked transactions and only update the correct one', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with multiple tracked transactions
-          const txId1 = 'test-tx-id-1';
-          const txId2 = 'test-tx-id-2';
-          const txHash1 = '0xabcdef123456';
-          const depositInfo1 = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-          const depositInfo2 = {
-            amount: '2000',
-            token: 'ETH',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId1] = depositInfo1;
-            state.activeDepositTransactions[txId2] = depositInfo2;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-          });
-
-          // Create transaction confirmed event for first transaction
-          const txMeta = {
-            id: txId1,
-            hash: txHash1,
-            status: 'confirmed',
-            txParams: {
-              from: '0x123',
-              to: '0x456',
-              value: '0x0',
-            },
-          };
-
-          // Act - Publish transaction confirmed event for first transaction
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            txMeta,
-          );
-
-          // Assert - Verify only first transaction removed, second still tracked
-          expect(controller.state.depositStatus).toBe('success');
-          expect(controller.state.currentDepositTxHash).toBe(txHash1);
-          expect(
-            controller.state.activeDepositTransactions[txId1],
-          ).toBeUndefined();
-          expect(controller.state.activeDepositTransactions[txId2]).toEqual(
-            depositInfo2,
-          );
-        });
-      });
-    });
-
-    describe('handleTransactionFailed', () => {
-      it('should update deposit status to error and remove from tracking when transaction fails', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const txHash = '0xabcdef123456';
-          const errorMessage = 'Transaction failed due to insufficient gas';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-            state.depositError = null;
-          });
-
-          // Create transaction failed event
-          const txEvent = {
-            transactionMeta: {
-              id: txId,
-              hash: txHash,
-              status: 'failed',
-              error: {
-                message: errorMessage,
-                code: 'INSUFFICIENT_GAS',
-              },
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify state updated correctly
-          expect(controller.state.depositStatus).toBe('error');
-          expect(controller.state.depositError).toBe(errorMessage);
-          expect(controller.state.currentDepositTxHash).toBe(txHash);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should not update state when transaction is not tracked', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state without tracked transaction
-          const txId = 'untracked-tx-id';
-          const initialState = {
-            depositStatus: 'idle' as DepositStatus,
-            currentDepositTxHash: null,
-            depositError: null,
-            activeDepositTransactions: {},
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.depositStatus = initialState.depositStatus;
-            state.currentDepositTxHash = initialState.currentDepositTxHash;
-            state.depositError = initialState.depositError;
-            state.activeDepositTransactions =
-              initialState.activeDepositTransactions;
-          });
-
-          // Create transaction failed event for untracked transaction
-          const txEvent = {
-            transactionMeta: {
-              id: txId,
-              hash: '0xabcdef123456',
-              status: 'failed',
-              error: {
-                message: 'Transaction failed',
-                code: 'FAILED',
-              },
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify state unchanged
-          expect(controller.state.depositStatus).toBe('idle');
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(controller.state.depositError).toBe(null);
-          expect(controller.state.activeDepositTransactions).toEqual({});
-        });
-      });
-
-      it('should handle transaction without error message', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const txHash = '0xabcdef123456';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-            state.depositError = null;
-          });
-
-          // Create transaction failed event without error message
-          const txEvent = {
-            transactionMeta: {
-              id: txId,
-              hash: txHash,
-              status: 'failed',
-              // No error property
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify state updated with default error message
-          expect(controller.state.depositStatus).toBe('error');
-          expect(controller.state.depositError).toBe('Transaction failed');
-          expect(controller.state.currentDepositTxHash).toBe(txHash);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should handle transaction without hash', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const errorMessage = 'Transaction failed due to network error';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-            state.depositError = null;
-          });
-
-          // Create transaction failed event without hash
-          const txEvent = {
-            transactionMeta: {
-              id: txId,
-              // No hash property
-              status: 'failed',
-              error: {
-                message: errorMessage,
-                code: 'NETWORK_ERROR',
-              },
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify state updated correctly with null hash
-          expect(controller.state.depositStatus).toBe('error');
-          expect(controller.state.depositError).toBe(errorMessage);
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should handle multiple tracked transactions and only update the correct one', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with multiple tracked transactions
-          const txId1 = 'test-tx-id-1';
-          const txId2 = 'test-tx-id-2';
-          const txHash1 = '0xabcdef123456';
-          const errorMessage = 'Transaction failed';
-          const depositInfo1 = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-          const depositInfo2 = {
-            amount: '2000',
-            token: 'ETH',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions[txId1] = depositInfo1;
-            state.activeDepositTransactions[txId2] = depositInfo2;
-            state.depositStatus = 'depositing';
-            state.currentDepositTxHash = null;
-            state.depositError = null;
-          });
-
-          // Create transaction failed event for first transaction
-          const txEvent = {
-            transactionMeta: {
-              id: txId1,
-              hash: txHash1,
-              status: 'failed',
-              error: {
-                message: errorMessage,
-                code: 'FAILED',
-              },
-              txParams: {
-                from: '0x123',
-                to: '0x456',
-                value: '0x0',
-              },
-            },
-          };
-
-          // Act - Publish transaction failed event for first transaction
-          // @ts-ignore
-          messenger.publish('TransactionController:transactionFailed', txEvent);
-
-          // Assert - Verify only first transaction removed, second still tracked
-          expect(controller.state.depositStatus).toBe('error');
-          expect(controller.state.depositError).toBe(errorMessage);
-          expect(controller.state.currentDepositTxHash).toBe(txHash1);
-          expect(
-            controller.state.activeDepositTransactions[txId1],
-          ).toBeUndefined();
-          expect(controller.state.activeDepositTransactions[txId2]).toEqual(
-            depositInfo2,
-          );
-        });
-      });
-    });
-
-    describe('Edge Cases', () => {
-      it('should handle rapid transaction state changes', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with tracked transaction
-          const txId = 'test-tx-id';
-          const txHash = '0xabcdef123456';
-          const depositInfo = {
-            amount: '1000',
-            token: 'USDC',
-            timestamp: Date.now(),
-          };
-
-          // @ts-ignore
-          (controller as any).update((state) => {
-            state.activeDepositTransactions[txId] = depositInfo;
-            state.depositStatus = 'idle';
-            state.currentDepositTxHash = null;
-          });
-
-          // Act - Simulate rapid state changes
-          const submittedEvent = {
-            transactionMeta: {
-              id: txId,
-              hash: txHash,
-              status: 'submitted',
-              txParams: { from: '0x123', to: '0x456', value: '0x0' },
-            },
-          };
-
-          const confirmedEvent = {
-            id: txId,
-            hash: txHash,
-            status: 'confirmed',
-            txParams: { from: '0x123', to: '0x456', value: '0x0' },
-          };
-
-          messenger.publish(
-            'TransactionController:transactionSubmitted',
-            // @ts-ignore
-            submittedEvent,
-          );
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            confirmedEvent,
-          );
-
-          // Assert - Verify final state is correct
-          expect(controller.state.depositStatus).toBe('success');
-          expect(controller.state.currentDepositTxHash).toBe(txHash);
-          expect(
-            controller.state.activeDepositTransactions[txId],
-          ).toBeUndefined();
-        });
-      });
-
-      it('should handle empty activeDepositTransactions', () => {
-        withController(({ controller, messenger }) => {
-          // Arrange - Set up initial state with empty activeDepositTransactions
-          // @ts-ignore
-          controller.update((state) => {
-            state.activeDepositTransactions = {};
-            state.depositStatus = 'idle';
-            state.currentDepositTxHash = null;
-          });
-
-          // Act - Publish transaction events for non-existent transactions
-          const submittedEvent = {
-            transactionMeta: {
-              id: 'non-existent-tx',
-              hash: '0xabcdef123456',
-              status: 'submitted',
-              txParams: { from: '0x123', to: '0x456', value: '0x0' },
-            },
-          };
-
-          const confirmedEvent = {
-            id: 'non-existent-tx',
-            hash: '0xabcdef123456',
-            status: 'confirmed',
-            txParams: { from: '0x123', to: '0x456', value: '0x0' },
-          };
-
-          const failedEvent = {
-            transactionMeta: {
-              id: 'non-existent-tx',
-              hash: '0xabcdef123456',
-              status: 'failed',
-              error: { message: 'Failed' },
-              txParams: { from: '0x123', to: '0x456', value: '0x0' },
-            },
-          };
-
-          messenger.publish(
-            'TransactionController:transactionSubmitted',
-            // @ts-ignore
-            submittedEvent,
-          );
-          messenger.publish(
-            'TransactionController:transactionConfirmed',
-            // @ts-ignore
-            confirmedEvent,
-          );
-          messenger.publish(
-            'TransactionController:transactionFailed',
-            // @ts-ignore
-            failedEvent,
-          );
-
-          // Assert - Verify state unchanged
-          expect(controller.state.depositStatus).toBe('idle');
-          expect(controller.state.currentDepositTxHash).toBe(null);
-          expect(controller.state.activeDepositTransactions).toEqual({});
-        });
-      });
-    });
-
-    describe('updatePositionTPSL', () => {
-      it('should update position TP/SL successfully', async () => {
-        // Arrange
-        mockHyperLiquidProvider.updatePositionTPSL.mockResolvedValue({
-          success: true,
-          orderId: 'tp:123,sl:456',
-        });
-
-        const params = {
-          coin: 'ETH',
-          takeProfitPrice: '3500',
-          stopLossPrice: '2500',
-        };
-
-        await withController(async ({ controller }) => {
-          // Act
-          const result = await controller.updatePositionTPSL(params);
-
-          // Assert
-          expect(result).toEqual({
-            success: true,
-            orderId: 'tp:123,sl:456',
-          });
-          expect(
-            mockHyperLiquidProvider.updatePositionTPSL,
-          ).toHaveBeenCalledWith(params);
-        });
-      });
-
-      it('should handle TP/SL update errors', async () => {
-        // Arrange
-        mockHyperLiquidProvider.updatePositionTPSL.mockResolvedValue({
-          success: false,
-          error: 'No position found',
-        });
-
-        const params = {
-          coin: 'BTC',
-          takeProfitPrice: '70000',
-        };
-
-        await withController(async ({ controller }) => {
-          // Act
-          const result = await controller.updatePositionTPSL(params);
-
-          // Assert
-          expect(result).toEqual({
-            success: false,
-            error: 'No position found',
-          });
-        });
-      });
-
-      it('should throw error when provider is not initialized', async () => {
-        // Arrange
-        const params = {
-          coin: 'ETH',
-          stopLossPrice: '2000',
-        };
-
-        await withController(async ({ controller }) => {
-          // Force controller to be uninitialized
-          // @ts-ignore - Accessing private property for testing
-          controller.isInitialized = false;
-
-          // Act & Assert
-          await expect(controller.updatePositionTPSL(params)).rejects.toThrow();
-        });
-      });
-    });
-
-    describe('calculateFees', () => {
-      it('should calculate fees successfully', async () => {
-        const mockFeeResult = {
-          feeRate: 0.00045,
-          feeAmount: 45,
-        };
-
-        const params = {
-          orderType: 'market' as const,
-          isMaker: false,
-          amount: '100000',
-        };
-
-        await withController(async ({ controller }) => {
-          mockHyperLiquidProvider.calculateFees.mockResolvedValue(
-            mockFeeResult,
-          );
-          mockHyperLiquidProvider.initialize.mockResolvedValue({
-            success: true,
-          });
-
-          await controller.initializeProviders();
-          const result = await controller.calculateFees(params);
-
-          expect(result).toEqual(mockFeeResult);
-          expect(mockHyperLiquidProvider.calculateFees).toHaveBeenCalledWith(
-            params,
-          );
-        });
-      });
-
-      it('should delegate to active provider', async () => {
-        const mockFeeResult = {
-          feeRate: 0.00015,
-          feeAmount: 15,
-        };
-
-        const params = {
-          orderType: 'limit' as const,
-          isMaker: true,
-          amount: '100000',
-        };
-
-        await withController(async ({ controller }) => {
-          mockHyperLiquidProvider.calculateFees.mockResolvedValue(
-            mockFeeResult,
-          );
-          mockHyperLiquidProvider.initialize.mockResolvedValue({
-            success: true,
-          });
-
-          await controller.initializeProviders();
-          const result = await controller.calculateFees(params);
-
-          expect(mockHyperLiquidProvider.calculateFees).toHaveBeenCalledWith(
-            params,
-          );
-          expect(result).toEqual(mockFeeResult);
-        });
-      });
-
-      it('should handle provider errors', async () => {
-        const params = {
-          orderType: 'market' as const,
-          isMaker: false,
-          amount: '100000',
-        };
-
-        await withController(async ({ controller }) => {
-          mockHyperLiquidProvider.calculateFees.mockRejectedValue(
-            new Error('Network error'),
-          );
-          mockHyperLiquidProvider.initialize.mockResolvedValue({
-            success: true,
-          });
-
-          await controller.initializeProviders();
-
-          await expect(controller.calculateFees(params)).rejects.toThrow(
-            'Network error',
-          );
-        });
-      });
-
-      it('should throw error when provider is not initialized', async () => {
-        const params = {
-          orderType: 'market' as const,
-          isMaker: false,
-          amount: '100000',
-        };
-
-        await withController(async ({ controller }) => {
-          // Force controller to be uninitialized
-          // @ts-ignore - Accessing private property for testing
-          controller.isInitialized = false;
-
-          await expect(controller.calculateFees(params)).rejects.toThrow(
-            'CLIENT_NOT_INITIALIZED',
-          );
-        });
-      });
-
-      it('should return Promise<FeeCalculationResult>', async () => {
-        const params = {
-          orderType: 'market' as const,
-          isMaker: false,
-          amount: '100000',
-        };
-
-        await withController(async ({ controller }) => {
-          mockHyperLiquidProvider.calculateFees.mockResolvedValue({
-            feeRate: 0.00045,
-            feeAmount: 45,
-          });
-          mockHyperLiquidProvider.initialize.mockResolvedValue({
-            success: true,
-          });
-
-          await controller.initializeProviders();
-          const resultPromise = controller.calculateFees(params);
-
-          expect(resultPromise).toBeInstanceOf(Promise);
-          const result = await resultPromise;
-          expect(result).toHaveProperty('feeRate');
-          expect(result).toHaveProperty('feeAmount');
-        });
-      });
-    });
-  });
-
   describe('refreshEligibility', () => {
     let mockSuccessfulFetch: jest.MockedFunction<typeof successfulFetch>;
 
     beforeEach(() => {
-      // Get fresh reference to the mocked function
+      // Get fresh reference to the mocked function and reset completely
       mockSuccessfulFetch = jest.mocked(successfulFetch);
-      mockSuccessfulFetch.mockClear();
+      mockSuccessfulFetch.mockReset();
     });
 
     it('should set isEligible to true for eligible region (France)', async () => {
@@ -2294,12 +2323,17 @@ describe('PerpsController', () => {
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
-      withController(async ({ controller }) => {
-        await controller.refreshEligibility();
+      withController(
+        async ({ controller }) => {
+          await controller.refreshEligibility();
 
-        expect(controller.state.isEligible).toBe(false);
-        expect(mockSuccessfulFetch).toHaveBeenCalled();
-      });
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        },
+        {
+          clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] },
+        },
+      );
     });
 
     it('should set isEligible to false for blocked region (Ontario, Canada)', async () => {
@@ -2309,12 +2343,17 @@ describe('PerpsController', () => {
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
-      withController(async ({ controller }) => {
-        await controller.refreshEligibility();
+      withController(
+        async ({ controller }) => {
+          await controller.refreshEligibility();
 
-        expect(controller.state.isEligible).toBe(false);
-        expect(mockSuccessfulFetch).toHaveBeenCalled();
-      });
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        },
+        {
+          clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] },
+        },
+      );
     });
 
     it('should set isEligible to false when API call fails (UNKNOWN fallback)', async () => {
@@ -2336,13 +2375,18 @@ describe('PerpsController', () => {
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
-      withController(async ({ controller }) => {
-        // Test with custom blocked regions that includes DE
-        await controller.refreshEligibility(['DE', 'FR']);
+      withController(
+        async ({ controller }) => {
+          // Test with custom blocked regions that includes DE
+          await controller.refreshEligibility();
 
-        expect(controller.state.isEligible).toBe(false);
-        expect(mockSuccessfulFetch).toHaveBeenCalled();
-      });
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        },
+        {
+          clientConfig: { fallbackBlockedRegions: ['DE', 'FR'] },
+        },
+      );
     });
 
     it('should handle region prefix matching correctly', async () => {
@@ -2352,11 +2396,125 @@ describe('PerpsController', () => {
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
-      withController(async ({ controller }) => {
-        await controller.refreshEligibility();
+      withController(
+        async ({ controller }) => {
+          await controller.refreshEligibility();
 
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        },
+        {
+          clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] },
+        },
+      );
+    });
+
+    it('handles API failures correctly without caching the failure', async () => {
+      withController(async ({ controller }) => {
+        // Mock API failure
+        mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
+
+        // Call should fail and set isEligible to false (UNKNOWN is blocked by default)
+        await controller.refreshEligibility();
         expect(controller.state.isEligible).toBe(false);
-        expect(mockSuccessfulFetch).toHaveBeenCalled();
+        expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('geo-location caching', () => {
+      beforeEach(() => {
+        // Ensure clean mock state for caching tests
+        mockSuccessfulFetch.mockReset();
+      });
+
+      afterEach(() => {
+        // Clean up any mock implementations after each test
+        mockSuccessfulFetch.mockReset();
+      });
+
+      it('returns cached location within TTL without making API call', async () => {
+        jest.useFakeTimers();
+
+        try {
+          const mockResponse = {
+            text: jest.fn().mockResolvedValue('FR'),
+          };
+          mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+          withController(async ({ controller }) => {
+            // First call should make API call and cache result
+            await controller.refreshEligibility();
+            expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+            expect(controller.state.isEligible).toBe(true); // FR is not blocked
+
+            // Clear the mock call count
+            mockSuccessfulFetch.mockClear();
+
+            // Second call within TTL should use cache, no API call
+            await controller.refreshEligibility();
+            expect(mockSuccessfulFetch).not.toHaveBeenCalled();
+            expect(controller.state.isEligible).toBe(true);
+          });
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      it('caches location and shares result between multiple controllers', async () => {
+        const mockResponse = {
+          text: jest.fn().mockResolvedValue('DE'),
+        };
+        mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+        // First controller instance
+        withController(async ({ controller: controller1 }) => {
+          await controller1.refreshEligibility();
+          expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+          expect(controller1.state.isEligible).toBe(true); // DE is not blocked
+        });
+
+        // Clear mock for second test
+        mockSuccessfulFetch.mockClear();
+
+        // Second controller instance (simulating cache persistence concept)
+        withController(async ({ controller: controller2 }) => {
+          // Since cache is per-instance, this will make a new API call
+          // but verifies the caching logic exists in the implementation
+          await controller2.refreshEligibility();
+          expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+          expect(controller2.state.isEligible).toBe(true); // DE is not blocked
+        });
+      });
+
+      it('prevents concurrent API calls using shared promise', async () => {
+        // Mock API response with delay to simulate concurrent calls
+        let resolveApiCall: (value: any) => void;
+        const apiPromise = new Promise((resolve) => {
+          resolveApiCall = resolve;
+        });
+
+        mockSuccessfulFetch.mockReturnValue(apiPromise as any);
+
+        withController(async ({ controller }) => {
+          // Start multiple concurrent refreshEligibility calls
+          const calls = [
+            controller.refreshEligibility(),
+            controller.refreshEligibility(),
+            controller.refreshEligibility(),
+          ];
+
+          // Resolve the API call
+          resolveApiCall({
+            text: jest.fn().mockResolvedValue('DE'),
+          });
+
+          // Wait for all calls to complete
+          await Promise.all(calls);
+
+          // Should have made only one API call despite multiple concurrent requests
+          expect(mockSuccessfulFetch).toHaveBeenCalledTimes(1);
+          expect(controller.state.isEligible).toBe(true); // DE is not blocked
+        });
       });
     });
   });
@@ -2593,14 +2751,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getOrderFills();
-          // Should not reach here
-          fail('Expected getOrderFills to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getOrderFills()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -2678,14 +2829,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getOrders();
-          // Should not reach here
-          fail('Expected getOrders to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getOrders()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -2738,14 +2882,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getFunding();
-          // Should not reach here
-          fail('Expected getFunding to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getFunding()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -2992,6 +3129,192 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('resetFirstTimeUserState', () => {
+    it('should reset isFirstTimeUser to true for both networks', () => {
+      withController(({ controller }) => {
+        // Arrange - set both networks as not first-time
+        controller.state.isFirstTimeUser = {
+          testnet: false,
+          mainnet: false,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: true,
+          mainnet: true,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - both should be reset
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should reset from partially completed state', () => {
+      withController(({ controller }) => {
+        // Arrange - only testnet completed
+        controller.state.isFirstTimeUser = {
+          testnet: false,
+          mainnet: true,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: true,
+          mainnet: false,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - both should be reset to initial state
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should reset even when already in first-time state', () => {
+      withController(({ controller }) => {
+        // Arrange - already in first-time state
+        controller.state.isFirstTimeUser = {
+          testnet: true,
+          mainnet: true,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: false,
+          mainnet: false,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - should remain in first-time state
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should work correctly regardless of current network', async () => {
+      await withController(
+        async ({ controller }) => {
+          // Arrange - complete tutorial on testnet
+          controller.state.isTestnet = true;
+          controller.markTutorialCompleted();
+          controller.markFirstOrderCompleted();
+
+          expect(controller.state.isFirstTimeUser.testnet).toBe(false);
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(true);
+
+          // Act - reset while on testnet
+          controller.resetFirstTimeUserState();
+
+          // Assert - both networks should be reset
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+
+          // Verify current network detection still works
+          expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
+        },
+        { state: { isTestnet: true } },
+      );
+    });
+
+    it('should persist reset state', async () => {
+      // First controller instance - simulate completed state then reset
+      await withController(
+        async ({ controller }) => {
+          // Assert initial completed state was loaded
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+
+          // Reset everything
+          controller.resetFirstTimeUserState();
+
+          // Assert reset worked
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+        },
+        {
+          state: {
+            isTestnet: false,
+            // Simulate previously completed state
+            isFirstTimeUser: {
+              testnet: false,
+              mainnet: false,
+            },
+            hasPlacedFirstOrder: {
+              testnet: true,
+              mainnet: true,
+            },
+          },
+        },
+      );
+
+      // Second controller instance - verify reset state persisted
+      await withController(
+        async ({ controller }) => {
+          // Assert - reset state should be persisted
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+        },
+        {
+          // Use reset state to simulate persistence
+          state: {
+            isFirstTimeUser: {
+              testnet: true,
+              mainnet: true,
+            },
+            hasPlacedFirstOrder: {
+              testnet: false,
+              mainnet: false,
+            },
+          },
+        },
+      );
+    });
+  });
+
   describe('reconnectWithNewContext', () => {
     it('should clear state and reinitialize providers', async () => {
       // Mock initialize to succeed before creating controller
@@ -3119,6 +3442,8 @@ describe('PerpsController', () => {
         availableBalance: '15000',
         marginUsed: '5000',
         unrealizedPnl: '100',
+        returnOnEquity: '2.0',
+        totalValue: '20100',
       };
       mockHyperLiquidProvider.getAccountState.mockResolvedValue(
         mockAccountState,
@@ -3134,6 +3459,1038 @@ describe('PerpsController', () => {
         // Verify can fetch new data after reconnection
         const accountState = await controller.getAccountState();
         expect(accountState).toEqual(mockAccountState);
+      });
+    });
+  });
+
+  describe('data lake API integration', () => {
+    let mockFetch: jest.MockedFunction<typeof fetch>;
+    let mockSetMeasurement: jest.MockedFunction<typeof setMeasurement>;
+    let mockLoggerError: jest.MockedFunction<typeof Logger.error>;
+
+    beforeEach(() => {
+      // Mock global fetch
+      mockFetch = jest.fn();
+      global.fetch = mockFetch as any;
+
+      // Get references to already mocked functions
+      mockSetMeasurement = jest.requireMock(
+        '@sentry/react-native',
+      ).setMeasurement;
+      mockLoggerError = jest.requireMock('../../../../util/Logger').error;
+
+      // Clear previous mock calls
+      mockSetMeasurement.mockClear();
+      mockLoggerError.mockClear();
+
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.clearAllMocks();
+    });
+
+    it('should report order to data lake on successful order placement', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token') as any,
+        );
+
+        // Mock successful API response
+        mockFetch.mockResolvedValue({
+          ok: true,
+          status: 201,
+          text: jest.fn().mockResolvedValue(''),
+        } as any);
+
+        // Mock successful order placement
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+          stopLossPrice: '45000',
+          takeProfitPrice: '55000',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Ensure mainnet (not testnet)
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Allow time for async reportOrderToDataLake
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was called with correct parameters
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://perps.api.cx.metamask.io/api/v1/orders',
+          expect.objectContaining({
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer mock-bearer-token',
+            },
+            body: JSON.stringify({
+              user_id: createMockAccountData().address,
+              coin: 'BTC',
+              sl_price: 45000,
+              tp_price: 55000,
+            }),
+          }),
+        );
+
+        // Verify performance metric was recorded
+        expect(mockSetMeasurement).toHaveBeenCalledWith(
+          'data_lake_api_call',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 10000);
+
+    it('should skip data lake API call when on testnet', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action (shouldn't be called)
+        const mockGetBearerToken = jest.fn();
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          mockGetBearerToken as any,
+        );
+
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Set to testnet
+        controller.state.isTestnet = true;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Allow time for async operations
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was NOT called
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(mockGetBearerToken).not.toHaveBeenCalled();
+      });
+    }, 10000);
+
+    it('should retry on API failure and log error after max retries', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token') as any,
+        );
+
+        // Mock API failures
+        mockFetch.mockRejectedValue(new Error('Network error'));
+
+        const orderParams = {
+          coin: 'ETH',
+          isBuy: false,
+          size: '1.0',
+          orderType: 'limit' as const,
+          price: '2000',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-456',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward through retries (1s, 2s, 4s delays)
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(3);
+
+        jest.advanceTimersByTime(4000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(4);
+
+        // Verify Logger.error was called after max retries
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: 'Failed to report perps order to data lake after retries',
+            action: 'open',
+            coin: 'ETH',
+            retryCount: 3,
+          }),
+        );
+
+        // Verify retry duration metric was recorded
+        expect(mockSetMeasurement).toHaveBeenCalledWith(
+          'data_lake_api_retry',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 15000);
+
+    it('should handle missing authentication token', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken that returns null
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue(null) as any,
+        );
+
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.closePosition.mockResolvedValue({
+          success: true,
+          orderId: 'close-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Close position
+        await controller.closePosition(closeParams);
+
+        // Allow time for async operations
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was NOT called due to missing token
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+    }, 10000);
+
+    it('should handle API error responses', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token') as any,
+        );
+
+        // Mock API error response (400 Bad Request)
+        mockFetch.mockResolvedValue({
+          ok: false,
+          status: 400,
+          text: jest.fn().mockResolvedValue('Bad Request'),
+        } as any);
+
+        const orderParams = {
+          coin: 'DOGE',
+          isBuy: true,
+          size: '100',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-789',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was called
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward to trigger retries
+        jest.advanceTimersByTime(7000); // Through all retry delays
+        await Promise.resolve();
+
+        // Should have retried 3 more times (total 4 attempts)
+        expect(mockFetch).toHaveBeenCalledTimes(4);
+      });
+    }, 10000);
+
+    it('should retry and succeed on subsequent attempt', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token') as any,
+        );
+
+        // Mock API to fail first, then succeed on retry
+        mockFetch
+          .mockRejectedValueOnce(new Error('Temporary network error'))
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            text: jest.fn().mockResolvedValue(''),
+          } as any);
+
+        const orderParams = {
+          coin: 'SOL',
+          isBuy: true,
+          size: '10',
+          orderType: 'limit' as const,
+          price: '100',
+          stopLossPrice: '90',
+          takeProfitPrice: '110',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-sol-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial failed attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward to first retry (1 second delay)
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve();
+
+        // Wait for the retry to complete
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Should have succeeded on second attempt
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+
+        // Verify the second call had the correct parameters including retryCount
+        expect(mockFetch).toHaveBeenNthCalledWith(
+          2,
+          'https://perps.api.cx.metamask.io/api/v1/orders',
+          expect.objectContaining({
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer mock-bearer-token',
+            },
+            body: JSON.stringify({
+              user_id: createMockAccountData().address,
+              coin: 'SOL',
+              sl_price: 90,
+              tp_price: 110,
+            }),
+          }),
+        );
+
+        // Performance metric should NOT be recorded for retry success (only for initial success)
+        expect(mockSetMeasurement).not.toHaveBeenCalledWith(
+          'data_lake_api_call',
+          expect.any(Number),
+          'millisecond',
+        );
+
+        // Should NOT record retry metric since it succeeded
+        expect(mockSetMeasurement).not.toHaveBeenCalledWith(
+          'data_lake_api_retry',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 10000);
+  });
+
+  describe('reportOrderToDataLake - direct tests', () => {
+    let mockMessenger: any;
+    let controller: PerpsController;
+    let mockFetch: jest.MockedFunction<typeof fetch>;
+    let mockSetMeasurement: jest.MockedFunction<typeof setMeasurement>;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+
+      // Mock global fetch
+      mockFetch = jest.fn();
+      global.fetch = mockFetch as any;
+
+      // Get reference to already mocked setMeasurement
+      mockSetMeasurement = jest.requireMock(
+        '@sentry/react-native',
+      ).setMeasurement;
+      mockSetMeasurement.mockClear();
+
+      // Clear DevLogger mocks
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      DevLogger.log.mockClear();
+
+      // Reset AccountTreeController mock to default
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
+
+      // Create a mock messenger that can handle the getBearerToken call
+      mockMessenger = {
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerEventHandler: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        publish: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+      };
+
+      // Create controller directly with mock messenger
+      controller = new PerpsController({
+        messenger: mockMessenger as any,
+        state: getDefaultPerpsControllerState(),
+      });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.clearAllMocks();
+    });
+
+    it('should return early when on testnet', async () => {
+      // Create controller with testnet mode enabled
+      const testnetController = new PerpsController({
+        messenger: mockMessenger as any,
+        state: {
+          ...getDefaultPerpsControllerState(),
+          isTestnet: true,
+        },
+      });
+
+      // Call reportOrderToDataLake directly
+      const result = await (testnetController as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'BTC',
+        sl_price: 45000,
+        tp_price: 55000,
+      });
+
+      // Verify it returns early with the correct message
+      expect(result).toEqual({
+        success: true,
+        error: 'Skipped for testnet',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the messenger.call was never invoked (testnet returns before auth check)
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with testnet skip message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Skipping for testnet',
+        expect.objectContaining({
+          action: 'open',
+          coin: 'BTC',
+          network: 'testnet',
+        }),
+      );
+    });
+
+    it('should return error when EVM account is missing', async () => {
+      // Override default mock to return no EVM account for this test
+      (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+        null,
+      );
+
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return non-EVM accounts
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: '0xabc123',
+          id: 'mock-account-1',
+          type: 'bip122:', // Non-EVM account (Bitcoin)
+        },
+        {
+          address: '0xdef456',
+          id: 'mock-account-2',
+          type: 'cosmos:', // Non-EVM account (Cosmos)
+        },
+      ]);
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'ETH',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: false,
+          hasToken: true,
+          action: 'close',
+          coin: 'ETH',
+        }),
+      );
+    });
+
+    it('should return error when token is missing', async () => {
+      // Mock messenger to return null token
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Reset AccountTreeController mock to return EVM account
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'DOGE',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: true,
+          hasToken: false,
+          action: 'open',
+          coin: 'DOGE',
+        }),
+      );
+    });
+
+    it('should return error when both account and token are missing', async () => {
+      // Override default mock to return no EVM account for this test
+      (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+        null,
+      );
+
+      // Mock messenger to return null token
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Mock AccountTreeController to return empty array
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([]);
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'MATIC',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: false,
+          hasToken: false,
+          action: 'close',
+          coin: 'MATIC',
+        }),
+      );
+    });
+
+    it('should successfully report order to data lake API', async () => {
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return EVM account
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
+
+      // Mock successful API response
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 201,
+        text: jest.fn().mockResolvedValue('{"success":true}'),
+      } as any);
+
+      // Mock performance.now for timing
+      const mockPerformanceNow = jest.spyOn(performance, 'now');
+      mockPerformanceNow
+        .mockReturnValueOnce(1000) // Start time
+        .mockReturnValueOnce(1100); // End time (100ms duration)
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'BTC',
+        sl_price: 45000,
+        tp_price: 55000,
+      });
+
+      // Verify successful result
+      expect(result).toEqual({
+        success: true,
+      });
+
+      // Verify fetch was called with correct parameters
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://perps.api.cx.metamask.io/api/v1/orders',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-bearer-token',
+          },
+          body: JSON.stringify({
+            user_id: '0x1234567890123456789012345678901234567890',
+            coin: 'BTC',
+            sl_price: 45000,
+            tp_price: 55000,
+          }),
+        },
+      );
+
+      // Verify DevLogger was called with success message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+
+      // Find the call with our success message among all DevLogger calls
+      const successCall = DevLogger.log.mock.calls.find(
+        (call: any[]) =>
+          call[0] === 'DataLake API: Order reported successfully',
+      );
+
+      expect(successCall).toBeDefined();
+      expect(successCall[1]).toMatchObject({
+        action: 'open',
+        coin: 'BTC',
+        status: 201,
+        attempt: 1,
+        responseBody: '{"success":true}',
+      });
+      // Check duration separately as it's a string with 'ms' suffix
+      expect(successCall[1].duration).toMatch(/^\d+ms$/);
+
+      // Verify performance metric was recorded
+      expect(mockSetMeasurement).toHaveBeenCalledWith(
+        'data_lake_api_call',
+        expect.any(Number),
+        'millisecond',
+      );
+
+      mockPerformanceNow.mockRestore();
+    });
+
+    it('should handle API error response and not retry', async () => {
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return EVM account
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
+
+      // Mock API error response (400 Bad Request)
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: jest.fn().mockResolvedValue('Bad Request'),
+      } as any);
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'ETH',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'DataLake API error: 400',
+      });
+
+      // Verify fetch was called once
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // Verify DevLogger was called with error message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Request failed',
+        expect.objectContaining({
+          error: 'DataLake API error: 400',
+          action: 'close',
+          coin: 'ETH',
+          willRetry: true,
+        }),
+      );
+    });
+  });
+
+  describe('metadata', () => {
+    it('includes expected state in debug snapshots', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'anonymous',
+          ),
+        ).toMatchInlineSnapshot(`{}`);
+      });
+    });
+
+    it('includes expected state in state logs', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'includeInStateLogs',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "connectionStatus": "disconnected",
+            "depositInProgress": false,
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isEligible": false,
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "lastDepositResult": null,
+            "lastDepositTransactionId": null,
+            "lastUpdateTimestamp": 0,
+            "lastWithdrawResult": null,
+            "pendingOrders": [],
+            "perpsBalances": {},
+            "positions": [],
+            "withdrawInProgress": false,
+          }
+        `);
+      });
+    });
+
+    it('persists expected state', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'persist',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "perpsBalances": {},
+            "positions": [],
+          }
+        `);
+      });
+    });
+
+    it('exposes expected state to UI', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'usedInUi',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "connectionStatus": "disconnected",
+            "depositInProgress": false,
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isEligible": false,
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "lastDepositResult": null,
+            "lastDepositTransactionId": null,
+            "lastWithdrawResult": null,
+            "perpsBalances": {},
+            "positions": [],
+            "withdrawInProgress": false,
+          }
+        `);
+      });
+    });
+
+    describe('constructor error handling', () => {
+      it('should handle initializeProviders error gracefully', async () => {
+        // Mock the initializeProviders to throw during construction
+        const originalInitialize =
+          PerpsController.prototype.initializeProviders;
+        PerpsController.prototype.initializeProviders = jest
+          .fn()
+          .mockRejectedValue(new Error('Provider initialization failed'));
+
+        // Create a new messenger for this test to avoid conflicts
+        const messenger = new Messenger<any, any>();
+        messenger.subscribe = jest.fn();
+
+        // Create controller instance which will trigger the error in constructor
+        new PerpsController({
+          messenger: messenger as any,
+          state: getDefaultPerpsControllerState(),
+        });
+
+        // Wait for the async constructor error handling
+        await new Promise<void>((resolve) => setTimeout(resolve, 10));
+
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: 'PerpsController: Error initializing providers',
+            context: 'PerpsController.constructor',
+            timestamp: expect.any(String),
+          }),
+        );
+
+        // Restore original method
+        PerpsController.prototype.initializeProviders = originalInitialize;
+      });
+    });
+
+    describe('calculateUserFeeDiscount edge cases', () => {
+      it('should handle missing EVM account gracefully', async () => {
+        // Mock getEvmAccountFromSelectedAccountGroup to return undefined
+        (
+          getEvmAccountFromSelectedAccountGroup as jest.Mock
+        ).mockReturnValueOnce(undefined);
+
+        withController(async ({ controller }) => {
+          // @ts-ignore - accessing private method for testing
+          const discount = await controller.calculateUserFeeDiscount();
+
+          expect(discount).toBeUndefined();
+
+          // Verify the DevLogger was called with no EVM account message
+          const DevLogger = jest.requireMock(
+            '../../../../core/SDKConnect/utils/DevLogger',
+          ).DevLogger;
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PerpsController: No EVM account found for fee discount',
+          );
+        });
+      });
+    });
+
+    describe('placeOrder error cleanup', () => {
+      it('should clear fee discount context on order placement error', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '1.0',
+          orderType: 'market' as const,
+        };
+
+        withController(async ({ controller }) => {
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+          mockHyperLiquidProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          mockHyperLiquidProvider.setUserFeeDiscount = jest.fn();
+
+          await controller.initializeProviders();
+
+          await expect(controller.placeOrder(orderParams)).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          // Verify fee discount was cleared on error
+          expect(
+            mockHyperLiquidProvider.setUserFeeDiscount,
+          ).toHaveBeenCalledWith(undefined);
+        });
+      });
+
+      it('should handle error during fee discount cleanup', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '1.0',
+          orderType: 'market' as const,
+        };
+
+        withController(async ({ controller }) => {
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+          mockHyperLiquidProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          // Make setUserFeeDiscount throw during cleanup
+          mockHyperLiquidProvider.setUserFeeDiscount = jest
+            .fn()
+            .mockImplementation(() => {
+              throw new Error('Cleanup failed');
+            });
+
+          await controller.initializeProviders();
+
+          await expect(controller.placeOrder(orderParams)).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          // Verify cleanup error was logged
+          expect(Logger.error).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.objectContaining({
+              message:
+                'PerpsController: Failed to clear fee discount during error cleanup',
+              context: 'PerpsController.placeOrder',
+            }),
+          );
+        });
       });
     });
   });

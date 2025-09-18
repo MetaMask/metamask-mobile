@@ -1,12 +1,18 @@
 import React, { createContext, useContext } from 'react';
 import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import PerpsConnectionManager from '../services/PerpsConnectionManager';
 import type {
   PriceUpdate,
   Position,
   Order,
   OrderFill,
   AccountState,
+  PerpsMarketData,
 } from '../controllers/types';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -106,7 +112,7 @@ abstract class StreamChannel<T> {
   }
 
   protected getCachedData(): T | null {
-    // Override in subclasses
+    // Override in subclasses to return null for no cache, or actual data
     return null;
   }
 
@@ -142,6 +148,8 @@ abstract class StreamChannel<T> {
 // Specific channel for prices
 class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private symbols = new Set<string>();
+  private prewarmUnsubscribe?: () => void;
+  private allMarketSymbols: string[] = [];
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
@@ -150,8 +158,25 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return;
     }
 
+    // If we have a prewarm subscription, we're already subscribed to all markets
+    // No need to create another subscription
+    if (this.prewarmUnsubscribe) {
+      // Just notify subscribers with cached data
+      const cached = this.getCachedData();
+      if (cached) {
+        this.notifySubscribers(cached);
+      }
+      return;
+    }
+
     // Collect all unique symbols from subscribers
     const allSymbols = Array.from(this.symbols);
+
+    DevLogger.log(
+      `PriceStreamChannel: allSymbols len=`,
+      allSymbols.length,
+      allSymbols,
+    );
 
     if (allSymbols.length === 0) {
       return;
@@ -202,6 +227,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   public clearCache(): void {
     // Clear the price-specific cache
     this.priceCache.clear();
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
     // Call parent clearCache
     super.clearCache();
   }
@@ -211,18 +238,15 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     callback: (prices: Record<string, PriceUpdate>) => void;
     throttleMs?: number;
   }): () => void {
-    // Track new symbols
-    const newSymbols: string[] = [];
+    // Track symbols for filtering
     params.symbols.forEach((s) => {
-      if (!this.symbols.has(s)) {
-        newSymbols.push(s);
-      }
       this.symbols.add(s);
     });
 
-    // If we have new symbols and WebSocket is already connected, we need to reconnect
-    if (newSymbols.length > 0 && this.wsSubscription) {
-      this.disconnect();
+    // Ensure connection is established (allMids provides all symbols)
+    // No need to reconnect when new symbols are added since allMids
+    // already provides prices for all markets
+    if (!this.wsSubscription && !this.prewarmUnsubscribe) {
       this.connect();
     }
 
@@ -239,6 +263,84 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       },
       throttleMs: params.throttleMs,
     });
+  }
+
+  /**
+   * Pre-warm the channel by subscribing to all market prices
+   * This keeps a single WebSocket connection alive with all price updates
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public async prewarm(): Promise<() => void> {
+    if (this.prewarmUnsubscribe) {
+      DevLogger.log('PriceStreamChannel: Already pre-warmed');
+      return this.prewarmUnsubscribe;
+    }
+
+    try {
+      // Get all available market symbols
+      const controller = Engine.context.PerpsController;
+      const markets = await controller.getMarkets();
+      this.allMarketSymbols = markets.map((market) => market.name);
+
+      DevLogger.log('PriceStreamChannel: Pre-warming with all market symbols', {
+        symbolCount: this.allMarketSymbols.length,
+        symbols: this.allMarketSymbols.slice(0, 10), // Log first 10 for debugging
+      });
+
+      // Subscribe to all market prices
+      this.prewarmUnsubscribe = controller.subscribeToPrices({
+        symbols: this.allMarketSymbols,
+        callback: (updates: PriceUpdate[]) => {
+          // Update cache and build price map
+          const priceMap: Record<string, PriceUpdate> = {};
+          updates.forEach((update) => {
+            const priceUpdate: PriceUpdate = {
+              coin: update.coin,
+              price: update.price,
+              timestamp: Date.now(),
+              percentChange24h: update.percentChange24h,
+              bestBid: update.bestBid,
+              bestAsk: update.bestAsk,
+              spread: update.spread,
+              markPrice: update.markPrice,
+              funding: update.funding,
+              openInterest: update.openInterest,
+              volume24h: update.volume24h,
+            };
+            this.priceCache.set(update.coin, priceUpdate);
+            priceMap[update.coin] = priceUpdate;
+          });
+
+          // Notify any active subscribers with all updates
+          if (this.subscribers.size > 0) {
+            this.notifySubscribers(priceMap);
+          }
+        },
+      });
+
+      // Return a cleanup function that properly clears internal state
+      return () => {
+        DevLogger.log('PriceStreamChannel: Cleaning up prewarm subscription');
+        this.cleanupPrewarm();
+      };
+    } catch (error) {
+      DevLogger.log('PriceStreamChannel: Failed to prewarm prices', error);
+      // Return no-op cleanup function
+      return () => {
+        // No-op
+      };
+    }
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+      this.allMarketSymbols = [];
+    }
   }
 }
 
@@ -259,7 +361,9 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   }
 
   protected getCachedData() {
-    return this.cache.get('orders') || [];
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('orders');
+    return cached !== undefined ? cached : null;
   }
 
   protected getClearedData(): Order[] {
@@ -273,6 +377,7 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
    */
   public prewarm(): () => void {
     if (this.prewarmUnsubscribe) {
+      DevLogger.log('OrderStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
 
@@ -284,7 +389,11 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
       throttleMs: 0, // No throttle for pre-warm
     });
 
-    return this.prewarmUnsubscribe;
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('OrderStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
   }
 
   /**
@@ -295,6 +404,13 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
       this.prewarmUnsubscribe();
       this.prewarmUnsubscribe = undefined;
     }
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
   }
 }
 
@@ -315,7 +431,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
   }
 
   protected getCachedData() {
-    return this.cache.get('positions') || [];
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('positions');
+    return cached !== undefined ? cached : null;
   }
 
   protected getClearedData(): Position[] {
@@ -329,6 +447,7 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
    */
   public prewarm(): () => void {
     if (this.prewarmUnsubscribe) {
+      DevLogger.log('PositionStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
 
@@ -340,7 +459,18 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
       throttleMs: 0, // No throttle for pre-warm
     });
 
-    return this.prewarmUnsubscribe;
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('PositionStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
   }
 
   /**
@@ -404,6 +534,13 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     return null;
   }
 
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
+  }
+
   /**
    * Pre-warm the channel by creating a persistent subscription
    * This keeps the WebSocket connection alive and caches data continuously
@@ -411,6 +548,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
    */
   public prewarm(): () => void {
     if (this.prewarmUnsubscribe) {
+      DevLogger.log('AccountStreamChannel: Already pre-warmed');
       return this.prewarmUnsubscribe;
     }
 
@@ -422,7 +560,11 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       throttleMs: 0, // No throttle for pre-warm
     });
 
-    return this.prewarmUnsubscribe;
+    // Return cleanup function that clears internal state
+    return () => {
+      DevLogger.log('AccountStreamChannel: Cleaning up prewarm subscription');
+      this.cleanupPrewarm();
+    };
   }
 
   /**
@@ -436,6 +578,149 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 }
 
+// Market data channel for caching market list data
+class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
+  private lastFetchTime = 0;
+  private fetchPromise: Promise<void> | null = null;
+  private readonly CACHE_DURATION =
+    PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
+
+  protected async connect() {
+    // Wait for connection to complete if in progress
+    while (PerpsConnectionManager.isCurrentlyConnecting()) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    // Fetch if cache is stale or empty
+    const now = Date.now();
+    const cached = this.cache.get('markets');
+    const cacheAge = now - this.lastFetchTime;
+    if (!cached || cacheAge > this.CACHE_DURATION) {
+      DevLogger.log('PerpsStreamManager: Cache miss or stale', {
+        hasCached: !!cached,
+        cacheAgeMs: cached ? cacheAge : null,
+        cacheExpired: cacheAge > this.CACHE_DURATION,
+        cacheDurationMs: this.CACHE_DURATION,
+      });
+      // Don't await - just trigger the fetch and handle errors
+      this.fetchMarketData().catch((error) => {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'PerpsStreamManager: Failed to fetch market data',
+        );
+      });
+    } else {
+      DevLogger.log('PerpsStreamManager: Using cached market data', {
+        cacheAgeMs: cacheAge,
+        cacheAgeSeconds: Math.round(cacheAge / 1000),
+        marketCount: cached.length,
+        cacheValidForMs: this.CACHE_DURATION - cacheAge,
+      });
+      // Notify subscribers with cached data immediately
+      this.notifySubscribers(cached);
+    }
+  }
+
+  private async fetchMarketData(): Promise<void> {
+    // Prevent concurrent fetches
+    if (this.fetchPromise) {
+      await this.fetchPromise;
+      return;
+    }
+
+    this.fetchPromise = (async () => {
+      const fetchStartTime = Date.now();
+      try {
+        DevLogger.log(
+          'PerpsStreamManager: Fetching fresh market data from API',
+        );
+
+        const controller = Engine.context.PerpsController;
+        const provider = controller.getActiveProvider();
+        const data = await provider.getMarketDataWithPrices();
+        const fetchTime = Date.now() - fetchStartTime;
+
+        // Update cache
+        this.cache.set('markets', data);
+        this.lastFetchTime = Date.now();
+
+        // Notify all subscribers
+        this.notifySubscribers(data);
+
+        DevLogger.log('PerpsStreamManager: Market data fetched and cached', {
+          marketCount: data.length,
+          fetchTimeMs: fetchTime,
+          cacheValidUntil: new Date(
+            Date.now() + this.CACHE_DURATION,
+          ).toISOString(),
+        });
+      } catch (error) {
+        const fetchTime = Date.now() - fetchStartTime;
+        DevLogger.log('PerpsStreamManager: Failed to fetch market data', {
+          error,
+          fetchTimeMs: fetchTime,
+        });
+        // Keep existing cache if fetch fails
+        const existing = this.cache.get('markets');
+        if (existing) {
+          DevLogger.log(
+            'PerpsStreamManager: Using stale cache after fetch failure',
+            {
+              marketCount: existing.length,
+            },
+          );
+          this.notifySubscribers(existing);
+        }
+      } finally {
+        this.fetchPromise = null;
+      }
+    })();
+
+    await this.fetchPromise;
+  }
+
+  /**
+   * Force refresh market data
+   */
+  public async refresh(): Promise<void> {
+    this.lastFetchTime = 0; // Force cache to be considered stale
+    await this.fetchMarketData();
+  }
+
+  protected getCachedData(): PerpsMarketData[] | null {
+    return this.cache.get('markets') || null;
+  }
+
+  protected getClearedData(): PerpsMarketData[] {
+    return [];
+  }
+
+  /**
+   * Prewarm market data cache
+   * @returns Cleanup function (no-op for REST data)
+   */
+  public prewarm(): () => void {
+    // Fetch data immediately to populate cache
+    this.fetchMarketData().catch((error) => {
+      DevLogger.log('PerpsStreamManager: Failed to prewarm market data', error);
+    });
+
+    // No cleanup needed for REST data
+    return () => {
+      // No-op
+    };
+  }
+
+  /**
+   * Clear cache and reset fetch time
+   */
+  public clearCache(): void {
+    super.clearCache();
+    this.lastFetchTime = 0;
+    this.fetchPromise = null;
+  }
+}
+
 // Main manager class
 export class PerpsStreamManager {
   public readonly prices = new PriceStreamChannel();
@@ -443,6 +728,7 @@ export class PerpsStreamManager {
   public readonly positions = new PositionStreamChannel();
   public readonly fills = new FillStreamChannel();
   public readonly account = new AccountStreamChannel();
+  public readonly marketData = new MarketDataChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
@@ -462,11 +748,26 @@ const PerpsStreamContext = createContext<PerpsStreamManager | null>(null);
 export const PerpsStreamProvider: React.FC<{
   children: React.ReactNode;
   testStreamManager?: PerpsStreamManager; // Only for testing
-}> = ({ children, testStreamManager }) => (
-  <PerpsStreamContext.Provider value={testStreamManager || streamManager}>
-    {children}
-  </PerpsStreamContext.Provider>
-);
+}> = ({ children, testStreamManager }) => {
+  // Check for E2E mock stream manager
+  const e2eMockStreamManager =
+    getE2EMockStreamManager() as PerpsStreamManager | null;
+
+  const selectedManager: PerpsStreamManager =
+    testStreamManager || e2eMockStreamManager || streamManager;
+
+  DevLogger.log('PerpsStreamProvider: Using stream manager:', {
+    isTestManager: !!testStreamManager,
+    isE2EMockManager: !!e2eMockStreamManager,
+    isRealManager: selectedManager === streamManager,
+  });
+
+  return (
+    <PerpsStreamContext.Provider value={selectedManager}>
+      {children}
+    </PerpsStreamContext.Provider>
+  );
+};
 
 export const usePerpsStream = () => {
   const context = useContext(PerpsStreamContext);

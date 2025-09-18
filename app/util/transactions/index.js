@@ -192,6 +192,9 @@ const actionKeys = {
   [TransactionType.lendingWithdraw]: strings(
     'transactions.tx_review_lending_withdraw',
   ),
+  [TransactionType.perpsDeposit]: strings(
+    'transactions.tx_review_perps_deposit',
+  ),
 };
 
 /**
@@ -275,7 +278,7 @@ export function generateTransferData(type = undefined, opts = {}) {
  * @returns {string | undefined} The four-byte signature if data is provided, otherwise undefined.
  */
 export function getFourByteSignature(data) {
-  return data?.substring(0, 10);
+  return data?.substring(0, 10)?.toLowerCase();
 }
 
 /**
@@ -377,6 +380,15 @@ export function decodeTransferData(type, data) {
 }
 
 /**
+ * Normalizes a hexadecimal string to lowercase.
+ * @param {string} hexString - The hexadecimal string to normalize.
+ * @returns {string} - The normalized lowercase hexadecimal string.
+ */
+function normalizeHex(hexString) {
+  return hexString?.toLowerCase() || '';
+}
+
+/**
  * @typedef {Object} MethodData
  * @property {string} name - The method name
  */
@@ -389,20 +401,30 @@ export function decodeTransferData(type, data) {
  */
 export async function getMethodData(data, networkClientId) {
   if (data.length < 10) return {};
-  const fourByteSignature = getFourByteSignature(data);
-  if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
+
+  const fourByteSignature = normalizeHex(getFourByteSignature(data));
+
+  if (fourByteSignature === normalizeHex(TRANSFER_FUNCTION_SIGNATURE)) {
     return { name: TOKEN_METHOD_TRANSFER };
-  } else if (fourByteSignature === TRANSFER_FROM_FUNCTION_SIGNATURE) {
+  } else if (
+    fourByteSignature === normalizeHex(TRANSFER_FROM_FUNCTION_SIGNATURE)
+  ) {
     return { name: TOKEN_METHOD_TRANSFER_FROM };
-  } else if (fourByteSignature === APPROVE_FUNCTION_SIGNATURE) {
+  } else if (fourByteSignature === normalizeHex(APPROVE_FUNCTION_SIGNATURE)) {
     return { name: TOKEN_METHOD_APPROVE };
-  } else if (fourByteSignature === INCREASE_ALLOWANCE_SIGNATURE) {
+  } else if (fourByteSignature === normalizeHex(INCREASE_ALLOWANCE_SIGNATURE)) {
     return { name: TOKEN_METHOD_INCREASE_ALLOWANCE };
-  } else if (fourByteSignature === SET_APPROVAL_FOR_ALL_SIGNATURE) {
+  } else if (
+    fourByteSignature === normalizeHex(SET_APPROVAL_FOR_ALL_SIGNATURE)
+  ) {
     return { name: TOKEN_METHOD_SET_APPROVAL_FOR_ALL };
-  } else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
+  } else if (
+    normalizeHex(data.substr(0, 32)) ===
+    normalizeHex(CONTRACT_CREATION_SIGNATURE)
+  ) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
+
   // If it's a new method, use on-chain method registry
   try {
     const registryObject = await handleMethodData(
@@ -501,6 +523,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.stakingUnstake,
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
+      TransactionType.perpsDeposit,
     ].includes(type)
   ) {
     return type;
@@ -1516,8 +1539,8 @@ export const parseTransactionLegacy = (
  *
  * @param {object} transaction - Transaction object to validate
  * @param {string} rate - Rate to validate
- * @param {string} accounts - Map of accounts to information objects including balances
- * @returns {string} - Whether the balance is validated or not
+ * @param {{ [address: string]: { balance: string } }} accounts - Map of accounts to information objects including balances
+ * @returns {boolean} - Whether the balance is validated or not
  */
 export function validateTransactionActionBalance(transaction, rate, accounts) {
   try {
