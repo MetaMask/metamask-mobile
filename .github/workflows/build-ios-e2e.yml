@@ -122,21 +122,6 @@ jobs:
           restore-keys: |
             ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
-      - name: Verify cache restoration
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
-        run: |
-          echo "🔍 Verifying cache restoration..."
-          if [ -d "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" ]; then
-            echo "✅ MetaMask.app found"
-            ls -la ios/build/Build/Products/Release-iphonesimulator/
-          else
-            echo "❌ MetaMask.app not found after cache restore"
-            echo "Cache hit was reported but app doesn't exist"
-            echo "Directory contents:"
-            ls -la ios/build/Build/Products/ 2>/dev/null || echo "Build products directory doesn't exist"
-            exit 1
-          fi
-
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
@@ -179,8 +164,14 @@ jobs:
           echo "📦 Repacking iOS app with updated JavaScript..."
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
 
-          # Generate new JS bundle
-          yarn gen-bundle:ios
+          # Generate new JS bundle with sourcemap
+          mkdir -p sourcemaps/ios
+          yarn react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output ios/main.jsbundle \
+            --sourcemap-output sourcemaps/ios/index.js.map
 
           # Replace bundle in app
           cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
