@@ -129,7 +129,7 @@ class LoginScreen extends AppwrightGestures {
     } else {
       const screenTitle = await this.title
       const element = await this.getPasswordInputElement;
-      await element.fill(password);
+      await this.typeText(element, password); // Use inherited typeText method with retry logic
       await screenTitle.tap()
     }
   }

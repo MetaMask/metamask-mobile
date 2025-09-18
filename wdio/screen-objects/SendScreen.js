@@ -93,7 +93,7 @@ class SendScreen extends AppwrightGestures {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
       const element = await AppwrightSelectors.getElementByID(this._device, SEND_ADDRESS_INPUT_FIELD);
-      await element.fill(address);
+      await this.typeText(element, address); // Use inherited typeText method with retry logic
     }
   }
 

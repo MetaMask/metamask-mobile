@@ -1,12 +1,14 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../appwright/utils/AppwrightGestures.js';
 
-class PerpsTabView {
-  get device() {
-    return this._device;
+class PerpsTabView extends AppwrightGestures {
+  constructor() {
+    super();
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get perpsTabButton() {
@@ -22,19 +24,17 @@ class PerpsTabView {
   }
 
   async tapPerpsTab() {
-    const btn = await this.perpsTabButton;
-    await btn.tap();
+    await this.tap(this.perpsTabButton); // Use inherited tap method with retry logic
   }
 
   async tapAddFunds() {
-    const btn = await this.addFundsButton;
-    await btn.tap();
+    await this.tap(this.addFundsButton); // Use inherited tap method with retry logic
   }
 
   async tapOnboardingButton() {
     const button = await this.onboardingButton;
     await button.isVisible({ timeout: 5000 });
-    await button.tap();
+    await this.tap(button); // Use inherited tap method with retry logic
   }
 }
 

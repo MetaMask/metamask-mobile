@@ -52,6 +52,40 @@ export default class AppwrightGestures {
   }
 
   /**
+   * Type text into an element with retry logic
+   * @param {Object} element - The element to type into
+   * @param {string} text - The text to type
+   * @param {number} maxRetries - Maximum number of retry attempts (default: 1)
+   * @param {number} retryDelay - Delay between retries in ms (default: 1000)
+   */
+  async typeText(element, text, maxRetries = 1, retryDelay = 1000) {
+    let lastError;
+    const elementToType = await element;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await elementToType.fill(text);
+        return; // Success, exit early
+      } catch (error) {
+        lastError = error;
+
+        // Check if it's a "not found" error and we have retries left
+        if (error.message.includes('not found') && attempt < maxRetries) {
+          console.log(
+            `Element not found on type attempt ${
+              attempt + 1
+            }, retrying in ${retryDelay}ms...`,
+          );
+          await this.wait(retryDelay);
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw lastError;
+  }
+
+  /**
    * Utility method to wait for a specified amount of time
    * @param {number} ms - Time to wait in milliseconds
    */

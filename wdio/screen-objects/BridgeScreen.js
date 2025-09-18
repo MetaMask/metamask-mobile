@@ -1,16 +1,18 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../appwright/utils/AppwrightGestures.js';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
 
-class BridgeScreen {
-  get device() {
-    return this._device;
+class BridgeScreen extends AppwrightGestures {
+  constructor() {
+    super();
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
   get sourceTokenInput() {
     return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID);
@@ -77,7 +79,7 @@ class BridgeScreen {
       const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, network);
       await networkButton.tap();
       const tokenField = await AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
-      await tokenField.fill(token);
+      await this.typeText(tokenField, token); // Use inherited typeText method with retry logic
       let tokenNetworkId;
       if (network == 'Ethereum'){
         tokenNetworkId = `0x1`;
@@ -170,7 +172,7 @@ class BridgeScreen {
 
   async enterDestinationTokenAmount(amount) {
     const element = await this.destTokenInput;
-    await element.fill(amount);
+    await this.typeText(element, amount); // Use inherited typeText method with retry logic
   }
 
   async isVisible() {

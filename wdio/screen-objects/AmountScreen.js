@@ -1,4 +1,5 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../appwright/utils/AppwrightGestures.js';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
@@ -8,13 +9,14 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from './testIDs/Screens/AmountScreen.testIds';
 
-class AmountScreen {
-  get device() {
-    return this._device;
+class AmountScreen extends AppwrightGestures {
+  constructor() {
+    super();
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get amountInputField() {
@@ -51,7 +53,7 @@ class AmountScreen {
       await Gestures.typeText(this.amountInputField, text);
     } else {
       const element = await AppwrightSelectors.getElementByID(this._device, TRANSACTION_AMOUNT_INPUT);
-      await element.fill(text);
+      await this.typeText(element, text); // Use inherited typeText method with retry logic
     }
   }
 

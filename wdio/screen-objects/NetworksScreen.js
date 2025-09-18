@@ -233,7 +233,7 @@ class NetworksScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await element.fill(text);
+      await this.typeText(element, text); // Use inherited typeText method with retry logic
     }
   }
 
@@ -250,7 +250,7 @@ class NetworksScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await element.fill(text);
+      await this.typeText(element, text); // Use inherited typeText method with retry logic
     }
   }
 
@@ -269,7 +269,7 @@ class NetworksScreen extends AppwrightGestures {
     } else {
       await this._device.tap({ x: 399, y: 400 });
       const element = await this.inputChainIdField;
-      await element.fill(text);
+      await this.typeText(element, text); // Use inherited typeText method with retry logic
     }
   }
 
@@ -286,7 +286,7 @@ class NetworksScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.typeText(element, text);
     } else {
-      await element.fill(text);
+      await this.typeText(element, text); // Use inherited typeText method with retry logic
     }
   }
 
