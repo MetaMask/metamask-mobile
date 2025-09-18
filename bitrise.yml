@@ -582,7 +582,7 @@ workflows:
                 export YARN_ENABLE_IMMUTABLE_INSTALLS=false
                 
                 # Run install with immutable flag for Yarn v3
-                yarn install --immutable
+                yarn install 
           title: Yarn Install
       - yarn@0:
           inputs:
