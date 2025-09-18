@@ -131,15 +131,15 @@ describe('AccountCell', () => {
     const { getByTestId } = renderAccountCell();
     const menuButton = getByTestId('multichain-account-cell-menu');
     fireEvent.press(menuButton);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'MultichainAccountDetailActions',
-      {
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'MultichainAccountDetailActions',
+      params: {
         screen: 'MultichainAccountActions',
         params: {
           accountGroup: mockAccountGroup,
         },
       },
-    );
+    });
   });
 
   it('renders Maskicon AvatarAccount when avatarAccountType is Maskicon', () => {
