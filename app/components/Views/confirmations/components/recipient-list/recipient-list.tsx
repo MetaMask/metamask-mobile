@@ -72,6 +72,7 @@ export function RecipientList({
         accountAvatarType={accountAvatarType}
         to={to}
         isBIP44={isBIP44}
+        disabled={disabled}
       />
     </Box>
   );
@@ -114,12 +115,14 @@ function BIP44RecipientList({
   accountAvatarType,
   to,
   isBIP44,
+  disabled,
 }: {
   data: RecipientType[];
   onRecipientSelected: (recipient: RecipientType) => void;
   accountAvatarType: AvatarAccountType;
   to?: string;
   isBIP44?: boolean;
+  disabled?: boolean;
 }) {
   const groupedData = useMemo(
     () =>
@@ -153,7 +156,7 @@ function BIP44RecipientList({
               accountAvatarType={accountAvatarType}
               isSelected={to === recipient.address}
               isBIP44={isBIP44}
-              onPress={onRecipientSelected}
+              onPress={disabled ? undefined : onRecipientSelected}
             />
           ))}
         </Box>
