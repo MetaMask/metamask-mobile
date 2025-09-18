@@ -141,23 +141,23 @@ export async function importNewSecretRecoveryPhrase(
 
   let discoveredAccountsCount: number = 0;
   if (isMultichainAccountsState2Enabled()) {
-    // Use try/catch here, add `addDiscoveredAccounts` also handles errors gracefully.
-    try {
-      // We use an IIFE to be able to use async/await but not block the main thread.
-      (async () => {
-        // We dispatch a full sync here since this is a new SRP
+    // We use an IIFE to be able to use async/await but not block the main thread.
+    (async () => {
+      try {
+        // We need to dispatch a full sync here since this is a new SRP
         await Engine.context.AccountTreeController.syncWithUserStorage();
         // Then we discover accounts
         discoveredAccountsCount = await discoverAccounts(newKeyring.id);
-        // Then we trigger the callback with the results
+      } catch (error) {
+        captureException(
+          new Error(`Unable to sync, discover and create accounts: ${error}`),
+        );
+        discoveredAccountsCount = 0;
+      } finally {
+        // We trigger the callback with the results, even in case of error (0 discovered accounts)
         callback?.({ address: newAccountAddress, discoveredAccountsCount });
-      })();
-    } catch (error) {
-      captureException(
-        new Error(`Unable to discover and create accounts: ${error}`),
-      );
-      discoveredAccountsCount = 0;
-    }
+      }
+    })();
   } else {
     discoveredAccountsCount = (
       await Promise.all(
