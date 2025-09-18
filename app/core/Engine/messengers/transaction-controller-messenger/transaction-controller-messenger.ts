@@ -25,19 +25,25 @@ import {
   SmartTransactionsControllerSmartTransactionEvent,
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
 } from '@metamask/smart-transactions-controller';
-import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
+import {
+  KeyringControllerSignEip7702AuthorizationAction,
+  KeyringControllerSignTypedMessageAction,
+} from '@metamask/keyring-controller';
 import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
 } from '@metamask/bridge-status-controller';
+import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 
 type MessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
   | ApprovalControllerActions
   | BridgeStatusControllerActions
+  | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | KeyringControllerSignEip7702AuthorizationAction
+  | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction;
@@ -100,7 +106,10 @@ export function getTransactionControllerInitMessenger(
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
       'BridgeStatusController:submitTx',
+      'DelegationController:signDelegation',
       'NetworkController:getEIP1559Compatibility',
+      'KeyringController:signEip7702Authorization',
+      'KeyringController:signTypedMessage',
     ],
   });
 }
