@@ -17,11 +17,7 @@ export function useAccountWalletNames(requests: UseDisplayNameRequest[]) {
   );
   const haveMoreThanOneWallet = Object.keys(walletsMap).length > 1;
 
-  if (
-    isMultichainAccountsState2Enabled &&
-    walletsMap &&
-    haveMoreThanOneWallet
-  ) {
+  if (isMultichainAccountsState2Enabled && haveMoreThanOneWallet) {
     const accountWalletNames = Object.entries(accountToWalletMap).reduce(
       (acc, [accountId, walletId]) => {
         const account = internalAccountsById[accountId];
