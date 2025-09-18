@@ -7,7 +7,6 @@ import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks'
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { NetworkManagerSelectorIDs } from '../../../../../e2e/selectors/wallet/NetworkManager.selectors';
 
 // Mock the feature flag
 jest.mock('../../../../util/networks', () => ({
@@ -270,7 +269,7 @@ describe('TokenListControlBar', () => {
         const { getByTestId } = renderComponent();
 
         const filterButton = getByTestId(
-          NetworkManagerSelectorIDs.OPEN_NETWORK_MANAGER,
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
         );
         fireEvent.press(filterButton);
 

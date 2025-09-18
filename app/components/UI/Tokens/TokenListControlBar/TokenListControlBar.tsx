@@ -9,8 +9,6 @@ import ButtonIcon, {
 import BaseControlBar from '../../shared/BaseControlBar/BaseControlBar';
 import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../../shared/ControlBarStyles';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
-import { NetworkManagerSelectorIDs } from '../../../../../e2e/selectors/wallet/NetworkManager.selectors';
 
 interface TokenListControlBarProps {
   goToAddToken: () => void;
@@ -21,10 +19,6 @@ export const TokenListControlBar = ({
 }: TokenListControlBarProps) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-
-  const testId = isRemoveGlobalNetworkSelectorEnabled()
-    ? NetworkManagerSelectorIDs.OPEN_NETWORK_MANAGER
-    : WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER;
 
   const additionalButtons = (
     <ButtonIcon
@@ -40,7 +34,7 @@ export const TokenListControlBar = ({
 
   return (
     <BaseControlBar
-      networkFilterTestId={testId}
+      networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
       additionalButtons={additionalButtons}
       useEvmSelectionLogic={isEvmSelected}
       customWrapper="outer"

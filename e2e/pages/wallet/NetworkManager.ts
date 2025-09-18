@@ -7,15 +7,14 @@ import {
   NetworkManagerSelectorText,
 } from '../../selectors/wallet/NetworkManager.selectors';
 import TestHelpers from '../../helpers';
+import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
 
 class NetworkManager {
   /**
    * Button to open the network manager
    */
   get openNetworkManagerButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkManagerSelectorIDs.OPEN_NETWORK_MANAGER,
-    );
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
   /**
