@@ -147,10 +147,10 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   }, [isEligible, onCancel, order]);
 
   const handleCardPress = useCallback(() => {
-    if (onSelect && !disabled && !isCancelling) {
+    if (onSelect) {
       onSelect(order.orderId);
     }
-  }, [onSelect, disabled, isCancelling, order.orderId]);
+  }, [onSelect, order.orderId]);
 
   // Early return for non-open orders - this component only handles open orders
   if (order.status !== 'open') {
@@ -161,7 +161,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
-      disabled={disabled || isLocallyCancellingRef.current || isCancelling}
+      disabled={isLocallyCancellingRef.current || disabled}
       onPress={handleCardPress}
     >
       {/* Header - Always shown */}
@@ -329,7 +329,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
             isDisabled={isLocallyCancellingRef.current || disabled}
-            loading={isLocallyCancellingRef.current}
+            loading={isLocallyCancellingRef.current || disabled}
             style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
