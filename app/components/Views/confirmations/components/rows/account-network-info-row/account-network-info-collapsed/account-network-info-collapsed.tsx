@@ -3,10 +3,6 @@ import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import TagBase, {
-  TagSeverity,
-  TagShape,
-} from '../../../../../../../component-library/base-components/TagBase';
 import Avatar, {
   AvatarVariant,
 } from '../../../../../../../component-library/components/Avatars/Avatar';
@@ -26,8 +22,8 @@ import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import { getLabelTextByAddress } from '../../../../../../../util/address';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
+import { selectMultichainAccountsState2Enabled } from '../../../../../../../selectors/featureFlagController/multichainAccounts';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
@@ -36,37 +32,48 @@ import styleSheet from './account-network-info-collapsed.styles';
 
 const AccountNetworkInfoCollapsed = () => {
   const mockAvatarAccountType = useSelector(selectAvatarAccountType);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const { chainId, fromAddress } = useApprovalInfo() ?? {};
 
-  const { accountName } = useAccountInfo(fromAddress as string, chainId as Hex);
-  const accountLabel = getLabelTextByAddress(fromAddress as string);
-  const { styles } = useStyles(styleSheet, {
-    accountNameWide: Boolean(!accountLabel),
-  });
+  const { accountName, walletName, accountGroupName } = useAccountInfo(
+    fromAddress as string,
+    chainId as Hex,
+  );
+  const { styles } = useStyles(styleSheet, {});
 
   const { networkName, networkImage } = useNetworkInfo(chainId);
+
+  const avatarComponent = (
+    <Avatar
+      variant={AvatarVariant.Account}
+      type={mockAvatarAccountType}
+      accountAddress={fromAddress as string}
+    />
+  );
 
   return (
     <InfoSection>
       <View style={styles.container}>
         <View style={styles.accountContainer}>
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={networkImage}
-              />
-            }
-            style={styles.badgeWrapper}
-          >
-            <Avatar
-              variant={AvatarVariant.Account}
-              type={mockAvatarAccountType}
-              accountAddress={fromAddress as string}
-            />
-          </BadgeWrapper>
+          {isMultichainAccountsState2Enabled ? (
+            <View style={styles.badgeWrapper}>{avatarComponent}</View>
+          ) : (
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  name={networkName}
+                  imageSource={networkImage}
+                />
+              }
+              style={styles.badgeWrapper}
+            >
+              {avatarComponent}
+            </BadgeWrapper>
+          )}
           <View>
             <View style={styles.accountInfo}>
               <Text
@@ -74,20 +81,11 @@ const AccountNetworkInfoCollapsed = () => {
                 numberOfLines={1}
                 style={styles.accountName}
               >
-                {accountName}
+                {accountGroupName || accountName}
               </Text>
-              {accountLabel && (
-                <TagBase
-                  style={styles.accountLabel}
-                  severity={TagSeverity.Neutral}
-                  shape={TagShape.Rectangle}
-                >
-                  {accountLabel}
-                </TagBase>
-              )}
             </View>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {networkName}
+              {walletName || networkName}
             </Text>
           </View>
         </View>
