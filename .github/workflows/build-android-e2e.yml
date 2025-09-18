@@ -139,6 +139,7 @@ jobs:
           
           # Generate new JS bundle with sourcemap
           mkdir -p sourcemaps/android
+          mkdir -p android/assets
           yarn react-native bundle \
             --platform android \
             --dev false \
@@ -147,11 +148,8 @@ jobs:
             --sourcemap-output sourcemaps/android/index.android.bundle.map
           
           # Update the JS bundle directly in the APK (similar to iOS approach)
-          # Create the assets directory structure to match APK internal structure
-          mkdir -p android/assets
-          
-          # Use zip to update the file in-place (this updates the existing APK)
-          cd android && zip -u "$APK_PATH" assets/index.android.bundle && cd ..
+          # Use absolute path or adjust for the cd command
+          (cd android && zip -u "../$APK_PATH" assets/index.android.bundle)
           
           # Cleanup
           rm -rf android/assets
