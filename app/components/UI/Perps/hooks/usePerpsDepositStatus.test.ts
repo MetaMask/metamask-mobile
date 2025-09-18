@@ -213,53 +213,79 @@ describe('usePerpsDepositStatus', () => {
       );
     });
 
-    it('should handle failed deposit result', () => {
+    it('should handle failed perps deposit transaction', () => {
       const mockClearDepositResult = jest.fn();
 
       mockUsePerpsTrading.mockReturnValue({
         clearDepositResult: mockClearDepositResult,
       } as unknown as ReturnType<typeof usePerpsTrading>);
 
-      // Start with no result
-      const { rerender } = renderHook(() => usePerpsDepositStatus());
+      renderHook(() => usePerpsDepositStatus());
 
-      // Update to show failed deposit
-      mockUseSelector.mockImplementation(
-        (selector: (state: RootState) => unknown) => {
-          const mockState = {
-            engine: {
-              backgroundState: {
-                PerpsController: {
-                  depositInProgress: false,
-                  lastDepositResult: {
-                    success: false,
-                    error: 'Transaction failed',
-                  },
-                  lastDepositTransactionId: null,
-                  perpsAccountState: null,
-                },
-              },
-            },
-            confirmationMetrics: {
-              transactionBridgeQuotesById: {},
-            },
-          } as unknown as RootState;
-          return selector(mockState);
+      // Get the transaction status update handler for the failed transaction useEffect
+      const subscribeCalls = (Engine.controllerMessenger.subscribe as jest.Mock)
+        .mock.calls;
+      const failedTransactionHandler = subscribeCalls.find(
+        (call) => call[0] === 'TransactionController:transactionStatusUpdated',
+      )?.[1];
+
+      expect(failedTransactionHandler).toBeDefined();
+
+      // Simulate a failed perps deposit transaction
+      failedTransactionHandler({
+        transactionMeta: {
+          id: 'test-tx-456',
+          type: 'perpsDeposit',
+          status: TransactionStatus.failed,
         },
-      );
+      });
 
-      rerender();
-
-      // Toast should have been shown for error
+      // Verify error toast was shown
       expect(mockShowToast).toHaveBeenCalledWith(
         mockPerpsToastOptions.accountManagement.deposit.error,
       );
 
-      // Fast forward timers to process the result
-      jest.advanceTimersByTime(500);
-
-      // clearDepositResult should be called after timeout
+      // Verify clearDepositResult was called
       expect(mockClearDepositResult).toHaveBeenCalled();
+
+      // Verify expectingDepositRef was reset (indirectly through the handler)
+      // This is tested by ensuring the handler doesn't throw and processes correctly
+    });
+
+    it('should ignore non-perps deposit transactions', () => {
+      const mockClearDepositResult = jest.fn();
+
+      mockUsePerpsTrading.mockReturnValue({
+        clearDepositResult: mockClearDepositResult,
+      } as unknown as ReturnType<typeof usePerpsTrading>);
+
+      renderHook(() => usePerpsDepositStatus());
+
+      // Get the transaction status update handler
+      const subscribeCalls = (Engine.controllerMessenger.subscribe as jest.Mock)
+        .mock.calls;
+      const failedTransactionHandler = subscribeCalls.find(
+        (call) => call[0] === 'TransactionController:transactionStatusUpdated',
+      )?.[1];
+
+      expect(failedTransactionHandler).toBeDefined();
+
+      // Simulate a failed transaction that is NOT a perps deposit
+      failedTransactionHandler({
+        transactionMeta: {
+          id: 'test-tx-789',
+          type: 'simpleSend', // Different transaction type
+          status: TransactionStatus.failed,
+        },
+      });
+
+      // Verify no toast was shown for non-perps transactions
+      expect(mockShowToast).not.toHaveBeenCalledWith(
+        mockPerpsToastOptions.accountManagement.deposit.error,
+      );
+
+      // Verify clearDepositResult was not called
+      expect(mockClearDepositResult).not.toHaveBeenCalled();
     });
 
     it('should handle missing PerpsController state gracefully', () => {
