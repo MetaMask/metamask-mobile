@@ -65,6 +65,8 @@ import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -375,6 +377,23 @@ const MultichainPermissionsSummary = ({
     [accountGroups, selectedAccountGroupIds],
   );
 
+  const renderAccountAvatar = useCallback(
+    (accountGroup: AccountGroupObject) => {
+      const selectEvmAddress = useMemo(
+        () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
+        [accountGroup.id],
+      );
+      const evmAddress = useSelector(selectEvmAddress);
+
+      return {
+        variant: AvatarVariant.Account as const,
+        accountAddress: evmAddress,
+        size: AvatarSize.Xs,
+      };
+    },
+    [selectIconSeedAddressByAccountGroupId],
+  );
+
   function renderAccountPermissionsRequestInfoCard() {
     return (
       <TouchableOpacity onPress={handleEditAccountsButtonPress}>
@@ -410,13 +429,9 @@ const MultichainPermissionsSummary = ({
               </View>
               <View style={styles.avatarGroup}>
                 <AvatarGroup
-                  avatarPropsList={selectedAccountGroups.map(
-                    (accountGroup) => ({
-                      variant: AvatarVariant.Account,
-                      accountAddress: accountGroup.id,
-                      size: AvatarSize.Xs,
-                    }),
-                  )}
+                  avatarPropsList={selectedAccountGroups.map((accountGroup) => {
+                    return renderAccountAvatar(accountGroup);
+                  })}
                 />
               </View>
             </View>

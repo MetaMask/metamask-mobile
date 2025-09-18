@@ -174,12 +174,12 @@ describe('MultichainPermissionsSummary', () => {
     jest.clearAllMocks();
   });
 
-  it('renders with default props', () => {
+  it('displays connect button when rendering with default props', () => {
     const { getByTestId } = renderMultichainPermissionsSummary();
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeOnTheScreen();
   });
 
-  it('renders for already connected state', () => {
+  it('displays disconnect all button when already connected and disconnect is shown', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       isAlreadyConnected: true,
       isDisconnectAllShown: true,
@@ -188,38 +188,38 @@ describe('MultichainPermissionsSummary', () => {
       getByTestId(
         ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('renders for network switch scenario', () => {
+  it('displays connect button in network switch scenario', () => {
     const { getByTestId } = renderNetworkSwitchScenario();
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeOnTheScreen();
   });
 
-  it('renders for non-dapp network switch scenario', () => {
+  it('displays add network button in non-dapp network switch scenario', () => {
     const { getByTestId } = renderNonDappNetworkSwitchScenario();
     expect(
       getByTestId(
         NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('renders with correct initial tab based on tabIndex prop', () => {
+  it('displays connect button when rendering with specific tab index', () => {
     const { getByTestId } = renderWithTabState(1);
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeOnTheScreen();
   });
 
-  it('renders only the account permissions card when showAccountsOnly is true', () => {
+  it('displays only account permissions card when showAccountsOnly is enabled', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       showAccountsOnly: true,
     });
     expect(
       getByTestId(PermissionSummaryBottomSheetSelectorsIDs.CONTAINER),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('renders only the network permissions card when showPermissionsOnly is true', () => {
+  it('displays only network permissions card when showPermissionsOnly is enabled', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       showPermissionsOnly: true,
     });
@@ -227,15 +227,15 @@ describe('MultichainPermissionsSummary', () => {
       getByTestId(
         ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('renders the tab view when both showAccountsOnly and showPermissionsOnly are false', () => {
+  it('displays tab view when both showAccountsOnly and showPermissionsOnly are disabled', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       showAccountsOnly: false,
       showPermissionsOnly: false,
     });
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeOnTheScreen();
   });
 
   it('calls onBack when back button is pressed', () => {
@@ -347,17 +347,19 @@ describe('MultichainPermissionsSummary', () => {
     ).toBeNull();
   });
 
-  it('shows disconnect all button when isAlreadyConnected and isDisconnectAllShown are true', () => {
+  it('displays disconnect all button when already connected and disconnect is enabled', () => {
+    // Given already connected state with disconnect enabled
     const { getByTestId } = renderMultichainPermissionsSummary({
       isAlreadyConnected: true,
       isDisconnectAllShown: true,
     });
 
+    // Then disconnect all button should be visible
     expect(
       getByTestId(
         ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('hides back button in non-dapp network switch scenario', () => {
@@ -370,11 +372,13 @@ describe('MultichainPermissionsSummary', () => {
     ).toBeNull();
   });
 
-  it('shows confirm button for network switch', () => {
+  it('displays confirm button for network switch', () => {
+    // Given network switch scenario
     const { getByTestId } = renderNetworkSwitchScenario();
 
+    // Then confirm button should be visible
     const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
-    expect(confirmButton).toBeTruthy();
+    expect(confirmButton).toBeOnTheScreen();
   });
 
   it('disables confirm button when no accounts or networks are selected', () => {
@@ -387,7 +391,7 @@ describe('MultichainPermissionsSummary', () => {
     expect(confirmButton.props.disabled).toBe(true);
   });
 
-  it('displays account label for single connected account', () => {
+  it('displays account permission container for single connected account', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       isAlreadyConnected: true,
       selectedAccountGroupIds: [MOCK_GROUP_ID_1],
@@ -396,10 +400,10 @@ describe('MultichainPermissionsSummary', () => {
     const accountPermissionContainer = getByTestId(
       PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER,
     );
-    expect(accountPermissionContainer).toBeTruthy();
+    expect(accountPermissionContainer).toBeOnTheScreen();
   });
 
-  it('displays account label for multiple connected accounts', () => {
+  it('displays account permission container for multiple connected accounts', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       isAlreadyConnected: true,
       selectedAccountGroupIds: [MOCK_GROUP_ID_1, MOCK_GROUP_ID_2],
@@ -408,21 +412,24 @@ describe('MultichainPermissionsSummary', () => {
     const accountPermissionContainer = getByTestId(
       PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER,
     );
-    expect(accountPermissionContainer).toBeTruthy();
+    expect(accountPermissionContainer).toBeOnTheScreen();
   });
 
-  it('displays network label for single network', () => {
+  it('displays edit networks button for single network', () => {
+    // Given single network
     const { getByTestId } = renderMultichainPermissionsSummary({
       networkAvatars: [MOCK_NETWORK_AVATARS[0]],
     });
+
+    // Then edit networks button should be visible
     expect(
       getByTestId(
         ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
-  it('displays network label for multiple networks', () => {
+  it('displays edit networks button for multiple networks', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       networkAvatars: MOCK_NETWORK_AVATARS,
     });
@@ -430,7 +437,7 @@ describe('MultichainPermissionsSummary', () => {
       getByTestId(
         ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('calls custom onRevokeAll when disconnect all button is pressed', () => {
@@ -448,9 +455,15 @@ describe('MultichainPermissionsSummary', () => {
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'RevokeAllAccountPermissions',
       params: expect.objectContaining({
+        hostInfo: expect.objectContaining({
+          metadata: expect.objectContaining({
+            origin: 'mock-dapp.example.com',
+          }),
+        }),
         onRevokeAll: expect.any(Function),
       }),
     });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to default revoke behavior when no custom onRevokeAll is provided', () => {
@@ -468,19 +481,25 @@ describe('MultichainPermissionsSummary', () => {
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'RevokeAllAccountPermissions',
       params: expect.objectContaining({
+        hostInfo: expect.objectContaining({
+          metadata: expect.objectContaining({
+            origin: 'mock-dapp.example.com',
+          }),
+        }),
         onRevokeAll: expect.any(Function),
       }),
     });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
-  it('renders with empty network avatars array', () => {
+  it('displays connect button with empty network avatars', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       networkAvatars: [],
     });
-    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeOnTheScreen();
   });
 
-  it('renders with single network avatar', () => {
+  it('displays edit networks button with single network avatar', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       networkAvatars: [MOCK_NETWORK_AVATARS[0]],
     });
@@ -488,7 +507,7 @@ describe('MultichainPermissionsSummary', () => {
       getByTestId(
         ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('disables confirm button when no account groups are selected', () => {
@@ -521,16 +540,15 @@ describe('MultichainPermissionsSummary', () => {
     expect(confirmButton.props.disabled).toBe(false);
   });
 
-  it('renders network avatars correctly', () => {
+  it('displays edit networks button with network avatars', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       networkAvatars: MOCK_NETWORK_AVATARS,
     });
 
-    // Verify the component renders with network information
     expect(
       getByTestId(
         ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 });
