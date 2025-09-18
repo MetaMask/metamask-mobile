@@ -1891,8 +1891,6 @@ export class PerpsController extends BaseController<
     }
   }
 
-  // updatePerpsBalances removed - portfolio balances now use live data via usePerpsLiveAccount
-
   /**
    * Configure live data throttling
    */
