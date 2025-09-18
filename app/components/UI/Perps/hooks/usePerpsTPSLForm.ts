@@ -731,7 +731,7 @@ export function usePerpsTPSLForm(
     orderType === 'market' ? currentPrice : entryPrice || currentPrice;
 
   // Determine what type of price we're comparing against for error messages
-  const priceType = orderType === 'limit' ? 'limit' : 'current';
+  const priceType = orderType === 'market' ? 'current' : 'entry';
 
   const isValid = validateTPSLPrices(takeProfitPrice, stopLossPrice, {
     currentPrice: referencePrice,
