@@ -144,8 +144,6 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
     navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER);
   };
 
-  const isV2OrGlobalDisconnect = isV2 || (!account && !channelId);
-
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
@@ -159,7 +157,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
           label={strings('sdk_disconnect_modal.disconnect_confirm')}
           style={styles.btn}
           variant={ButtonVariants.Primary}
-          onPress={isV2OrGlobalDisconnect ? onConfirmV2 : onConfirm}
+          onPress={isV2 ? onConfirmV2 : onConfirm}
         />
         <Button
           label={strings('sdk_disconnect_modal.cancel')}
