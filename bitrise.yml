@@ -562,113 +562,34 @@ workflows:
       - restore-cache@2:
           title: Restore Yarn cache
           inputs:
-            - key: yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
-            - fallback_key: yarn-cache-{{ .OS }}-{{ .Arch }}-
+            - key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
+            - fallback_key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
                 
-                # Detect Yarn version to ensure backward compatibility
-                YARN_VERSION=$(yarn --version)
-                echo "Detected Yarn version: $YARN_VERSION"
-                
-                # Check if this is a Yarn v3 project by looking for .yarnrc.yml
-                if [ -f ".yarnrc.yml" ]; then
-                  echo "Found .yarnrc.yml - this appears to be a Yarn v3 project"
-                  IS_YARN_V3=true
-                  
-                  # For Yarn v3, the cache directory is .yarn/cache
-                  envman add --key YARN_CACHE_DIR --value ".yarn/cache"
-                  
-                  # Check if project has bundled Yarn version
-                  if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
-                    echo "Found bundled Yarn 3.8.7, ensuring it's used"
-                    export PATH="$(pwd)/.yarn/releases:$PATH"
-                    # Re-check version after potentially switching to bundled version
-                    YARN_VERSION=$(yarn --version)
-                    echo "Using Yarn version: $YARN_VERSION"
-                  fi
-                  
-                  # Only clean up legacy configurations if we're actually using Yarn v3
-                  if [[ "$YARN_VERSION" =~ ^3\. ]]; then
-                    echo "Setting up isolated Yarn v3 environment..."
-                    
-                    # SAFER APPROACH: Instead of modifying global configs, 
-                    # create a temporary isolated environment for this build
-                    
-                    # Create a temporary Yarn config directory for this build
-                    export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
-                    export YARN_GLOBAL_FOLDER="$(pwd)/.yarn/global"
-                    export YARN_LINK_FOLDER="$(pwd)/.yarn/link"
-                    
-                    # Ensure the project's .yarnrc.yml takes precedence
-                    # The bundled yarn version should handle legacy config issues
-                    echo "Using project's .yarnrc.yml configuration with isolated environment"
-                    
-                    # Verify we're using the bundled version by checking the path
-                    YARN_PATH=$(which yarn)
-                    echo "Yarn executable path: $YARN_PATH"
-                  fi
-                  
-                  echo "Project .yarnrc.yml configuration:"
-                  cat .yarnrc.yml
-                else
-                  echo "No .yarnrc.yml found - assuming Yarn v1 project"
-                  IS_YARN_V3=false
-                  
-                  # For Yarn v1, use traditional cache directory detection
-                  YARN_CACHE_DIR_DETECTED=$(yarn cache dir 2>/dev/null || echo "$(yarn cache dir)")
-                  envman add --key YARN_CACHE_DIR --value "$YARN_CACHE_DIR_DETECTED"
-                  echo "Using Yarn v1 cache directory: $YARN_CACHE_DIR_DETECTED"
-                fi
-                
-                # Store version info for later steps
-                envman add --key IS_YARN_V3 --value "$IS_YARN_V3"
-                envman add --key DETECTED_YARN_VERSION --value "$YARN_VERSION"
-                
-                # Show current Yarn configuration for debugging
-                echo "Current Yarn configuration:"
-                if [[ "$YARN_VERSION" =~ ^3\. ]]; then
-                  yarn config -v || true
-                else
-                  yarn config list || true
-                fi
-          title: Setup Yarn configuration (version-aware)
-      - yarn@0:
-          inputs:
-            - command: |-
-                if [ "$IS_YARN_V3" = "true" ]; then
-                  echo "Running Yarn v3 install with --immutable"
-                  install --immutable
-                else
-                  echo "Running Yarn v1 install with --frozen-lockfile"
-                  install --frozen-lockfile
-                fi
-          title: Yarn Install (version-aware)
-      - yarn@0:
-          inputs:
-            - command: setup
-          title: Yarn Setup
+                # Simple: Just use the bundled Yarn directly
+                echo "Using bundled Yarn 3.8.7 directly to avoid all config issues"
+                node .yarn/releases/yarn-3.8.7.cjs install --immutable
+          title: Yarn Install
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                # Set cache paths based on Yarn version
-                if [ "$IS_YARN_V3" = "true" ]; then
-                  echo "Setting Yarn v3 cache paths"
-                  envman add --key YARN_CACHE_PATHS --value $'.yarn/cache\n.yarn/unplugged'
-                else
-                  echo "Setting Yarn v1 cache paths"
-                  envman add --key YARN_CACHE_PATHS --value "$YARN_CACHE_DIR"
-                fi
-          title: Set cache paths for Yarn version
+                set -e
+                
+                # Run setup using bundled yarn
+                node .yarn/releases/yarn-3.8.7.cjs setup
+          title: Yarn Setup
       - save-cache@1:
           title: Save Yarn cache
           inputs:
-            - key: yarn-cache-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
-            - paths: $YARN_CACHE_PATHS
+            - key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
+            - paths: |-
+                .yarn/cache
+                .yarn/unplugged
   prep_environment:
     steps:
       - restore-cache@2:
