@@ -45,7 +45,6 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
-  usePerpsAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
@@ -57,6 +56,7 @@ import {
   usePerpsTrading,
   usePerpsToasts,
 } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
   PerpsStreamManager,
   PerpsStreamProvider,
@@ -119,7 +119,6 @@ jest.mock('../../contexts/PerpsOrderContext', () => {
 
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetwork: jest.fn(),
   usePerpsPrices: jest.fn(),
@@ -260,6 +259,11 @@ jest.mock('../../hooks', () => ({
       },
     },
   })),
+}));
+
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(),
 }));
 
 // Mock Redux selectors
@@ -459,13 +463,15 @@ const defaultMockRoute = {
 };
 
 const defaultMockHooks = {
-  usePerpsAccount: {
-    balance: '1000',
-    availableBalance: '1000',
-    accountInfo: {
-      marginSummary: {
-        accountValue: 1000,
-        totalMarginUsed: 0,
+  usePerpsLiveAccount: {
+    account: {
+      balance: '1000',
+      availableBalance: '1000',
+      accountInfo: {
+        marginSummary: {
+          accountValue: 1000,
+          totalMarginUsed: 0,
+        },
       },
     },
   },
@@ -581,8 +587,8 @@ describe('PerpsOrderView', () => {
     (useRoute as jest.Mock).mockReturnValue(defaultMockRoute);
 
     // Set up default mock implementations
-    (usePerpsAccount as jest.Mock).mockReturnValue(
-      defaultMockHooks.usePerpsAccount,
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue(
+      defaultMockHooks.usePerpsLiveAccount,
     );
     (usePerpsTrading as jest.Mock).mockReturnValue(
       defaultMockHooks.usePerpsTrading,
@@ -1075,7 +1081,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('handles zero balance warning', async () => {
-    (usePerpsAccount as jest.Mock).mockReturnValue({
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '0',
       availableBalance: '0',
       accountInfo: {
@@ -1096,7 +1102,7 @@ describe('PerpsOrderView', () => {
 
   it('validates order before placement', async () => {
     // Mock insufficient balance
-    (usePerpsAccount as jest.Mock).mockReturnValue({
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '10',
       availableBalance: '10',
       accountInfo: {

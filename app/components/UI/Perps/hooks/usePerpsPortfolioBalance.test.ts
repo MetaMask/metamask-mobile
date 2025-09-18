@@ -228,7 +228,7 @@ describe('usePerpsPortfolioBalance', () => {
 
       mockGetAccountState.mockResolvedValue({} as AccountState);
 
-      renderHook(() => usePerpsPortfolioBalance({ fetchOnMount: true }));
+      renderHook(() => usePerpsPortfolioBalance());
 
       await waitFor(() => {
         expect(mockGetAccountState).toHaveBeenCalledTimes(1);
@@ -249,7 +249,7 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      renderHook(() => usePerpsPortfolioBalance({ fetchOnMount: false }));
+      renderHook(() => usePerpsPortfolioBalance());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -274,7 +274,7 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      renderHook(() => usePerpsPortfolioBalance({ fetchOnMount: true }));
+      renderHook(() => usePerpsPortfolioBalance());
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -299,9 +299,7 @@ describe('usePerpsPortfolioBalance', () => {
 
       mockGetAccountState.mockRejectedValue(new Error('Network error'));
 
-      const { result } = renderHook(() =>
-        usePerpsPortfolioBalance({ fetchOnMount: true }),
-      );
+      const { result } = renderHook(() => usePerpsPortfolioBalance());
 
       await waitFor(() => {
         // Should still return default values even if fetch fails
@@ -331,9 +329,7 @@ describe('usePerpsPortfolioBalance', () => {
 
       mockGetAccountState.mockResolvedValue({} as AccountState);
 
-      const { rerender } = renderHook(() =>
-        usePerpsPortfolioBalance({ fetchOnMount: true }),
-      );
+      const { rerender } = renderHook(() => usePerpsPortfolioBalance());
 
       await waitFor(() => {
         expect(mockGetAccountState).toHaveBeenCalledTimes(1);

@@ -14,8 +14,11 @@ jest.mock('../../../../core/Engine', () => ({
 
 // Mock other hooks
 jest.mock('./index', () => ({
-  usePerpsAccount: jest.fn(),
   usePerpsNetwork: jest.fn(),
+}));
+
+jest.mock('./stream', () => ({
+  usePerpsLiveAccount: jest.fn(),
 }));
 
 // Mock i18n
@@ -39,7 +42,8 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
-import { usePerpsAccount, usePerpsNetwork } from './index';
+import { usePerpsNetwork } from './index';
+import { usePerpsLiveAccount } from './stream';
 
 describe('useWithdrawValidation', () => {
   const mockRoute = {
@@ -57,8 +61,8 @@ describe('useWithdrawValidation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (usePerpsAccount as jest.Mock).mockReturnValue({
-      availableBalance: '$1000.00',
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
+      account: { availableBalance: '$1000.00' },
     });
     (usePerpsNetwork as jest.Mock).mockReturnValue('mainnet');
     (
@@ -75,8 +79,8 @@ describe('useWithdrawValidation', () => {
   });
 
   it('should handle empty balance', () => {
-    (usePerpsAccount as jest.Mock).mockReturnValue({
-      availableBalance: null,
+    (usePerpsLiveAccount as jest.Mock).mockReturnValue({
+      account: { availableBalance: null },
     });
 
     const { result } = renderHook(() =>

@@ -6,24 +6,12 @@ import { selectConversionRateBySymbol } from '../../../../selectors/currencyRate
 import { selectPerpsBalances } from '../selectors/perpsController';
 import { usePerpsLiveAccount } from './stream';
 
-interface UsePerpsPortfolioBalanceOptions {
-  /** Fetch balance on mount (for wallet view) */
-  fetchOnMount?: boolean;
-}
-
 /**
  * Hook for getting aggregated Perps balance using hybrid approach:
  * - Live data for current balances (fixes account switching)
  * - Redux data for historical balances (enables 24h percentage calculations)
- *
- * @param options - Configuration options (maintained for backward compatibility)
  */
-export function usePerpsPortfolioBalance(
-  options: UsePerpsPortfolioBalanceOptions = {},
-) {
-  // Extract options for backward compatibility (currently unused but maintained for API stability)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { fetchOnMount } = options;
+export function usePerpsPortfolioBalance() {
   // Get USD to display currency conversion rate
   const usdConversionRate = useSelector((state: RootState) =>
     selectConversionRateBySymbol(state, 'usd'),
@@ -91,7 +79,7 @@ export function usePerpsPortfolioBalance(
     unrealizedPnl: totalUnrealizedPnl,
     // Whether we have any perps data
     hasPerpsData: !!account,
-    // Raw balances per provider (maintained for backward compatibility)
+    // Raw balances per provider
     perpsBalances,
   };
 }
