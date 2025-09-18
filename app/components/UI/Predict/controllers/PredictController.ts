@@ -361,7 +361,6 @@ export class PredictController extends BaseController<
   private handleTransactionFailed(
     _event: TransactionControllerTransactionFailedEvent['payload'][0],
   ): void {
-    console.log('handleTransactionFailed', _event);
     const batchId = _event.transactionMeta.id;
     const txId = _event.transactionMeta.id;
 
@@ -383,27 +382,26 @@ export class PredictController extends BaseController<
   /**
    * Handle transaction rejected event
    */
-  private handleTransactionRejected(
-    _event: TransactionControllerTransactionRejectedEvent['payload'][0],
-  ): void {
-    console.log('handleTransactionFailed', _event);
-    const batchId = _event.transactionMeta.id;
-    const txId = _event.transactionMeta.id;
-
-    const id = batchId ?? txId;
-
-    if (!id) {
-      return;
-    }
-
-    // TODO: Implement transaction failure tracking
-    this.update((state) => {
-      if (state.activeOrders[id]) {
-        state.activeOrders[id].status = 'cancelled';
-        state.notifications.push({ orderId: id, status: 'cancelled' });
-      }
-    });
-  }
+  // TODO: Uncomment this when we have a way to handle transaction rejected events
+  // private handleTransactionRejected(
+  //   _event: TransactionControllerTransactionRejectedEvent['payload'][0],
+  // ): void {
+  //   const batchId = _event.transactionMeta.id;
+  //   const txId = _event.transactionMeta.id;
+  //
+  //   const id = batchId ?? txId;
+  //
+  //   if (!id) {
+  //     return;
+  //   }
+  //
+  //   this.update((state) => {
+  //     if (state.activeOrders[id]) {
+  //       state.activeOrders[id].status = 'cancelled';
+  //       state.notifications.push({ orderId: id, status: 'cancelled' });
+  //     }
+  //   });
+  // }
 
   /**
    * Initialize the PredictController providers

@@ -18,12 +18,6 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
-jest.mock('../../hooks/usePredictOrders', () => ({
-  usePredictOrders: jest.fn(() => ({
-    activeOrders: [],
-  })),
-}));
-
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
     styles: {
