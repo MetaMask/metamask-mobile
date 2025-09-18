@@ -412,7 +412,7 @@ describe('RewardsDataService', () => {
     it('should successfully get perps discount', async () => {
       const mockResponse = {
         ok: true,
-        text: jest.fn().mockResolvedValue('1,5.5'),
+        text: jest.fn().mockResolvedValue('1,550'),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
@@ -422,7 +422,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual({
         hasOptedIn: true,
-        discount: 5.5,
+        discountBips: 550,
       });
       expect(mockFetch).toHaveBeenCalledWith(
         `https://api.rewards.test/public/rewards/perps-fee-discount/${testAddress}`,
@@ -435,7 +435,7 @@ describe('RewardsDataService', () => {
     it('should parse not opted in response', async () => {
       const mockResponse = {
         ok: true,
-        text: jest.fn().mockResolvedValue('0,10.0'),
+        text: jest.fn().mockResolvedValue('0,1000'),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
@@ -445,7 +445,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual({
         hasOptedIn: false,
-        discount: 10.0,
+        discountBips: 1000,
       });
     });
 
