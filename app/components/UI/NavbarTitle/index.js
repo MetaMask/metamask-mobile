@@ -147,7 +147,7 @@ class NavbarTitle extends PureComponent {
         activeOpacity={this.props.disableNetwork ? 1 : 0.2}
       >
         {title ? (
-          <Text numberOfLines={1} variant={TextVariant.BodyMDBold}>
+          <Text numberOfLines={1} variant={TextVariant.HeadingMD}>
             {realTitle}
           </Text>
         ) : null}

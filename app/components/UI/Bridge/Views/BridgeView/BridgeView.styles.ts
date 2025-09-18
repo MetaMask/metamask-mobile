@@ -35,11 +35,11 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     arrowCircle: {
       position: 'absolute',
-      top: -16,
+      top: -22,
       backgroundColor: theme.colors.background.alternative,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -84,6 +84,9 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     disclaimerText: {
       textAlign: 'center',
+    },
+    destTokenArea: {
+      marginTop: 16,
     },
   });
 };

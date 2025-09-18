@@ -8,6 +8,7 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import Button, {
+  ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -49,7 +50,9 @@ import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -395,6 +398,7 @@ const BridgeView = () => {
           ) : null}
           <Button
             variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
@@ -450,10 +454,11 @@ const BridgeView = () => {
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
               <ButtonIcon
-                iconName={IconName.Arrow2Down}
+                iconName={IconName.SwapVertical}
                 onPress={handleSwitchTokens}
                 disabled={!destChainId || !destToken}
                 testID="arrow-button"
+                size={ButtonIconSizes.Lg}
               />
             </Box>
           </Box>
@@ -469,6 +474,7 @@ const BridgeView = () => {
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
             isLoading={isLoading}
+            style={styles.destTokenArea}
           />
         </Box>
 

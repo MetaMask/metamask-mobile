@@ -106,6 +106,8 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
   const fiatValue = token.balanceFiat;
+
+  // TODO format using intlFormatter
   const balanceWithSymbol = token.balance
     ? `${
         Number(token.balance) < 0.00001
@@ -182,20 +184,25 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           </Box>
 
           {/* Token balance and fiat value */}
-          <Box style={styles.balance}>
+          <Box style={styles.balance} gap={4}>
             {balance &&
               (balance === TOKEN_BALANCE_LOADING ||
               balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{balance}</Text>
+                <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>
               ))}
             {secondaryBalance ? (
               secondaryBalance === TOKEN_BALANCE_LOADING ||
               secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
-                <Text>{secondaryBalance}</Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {secondaryBalance}
+                </Text>
               )
             ) : null}
           </Box>

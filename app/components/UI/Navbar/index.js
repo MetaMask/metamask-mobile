@@ -1850,8 +1850,6 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  const leftAction = () => navigation.pop();
-
   return {
     headerTitle: () => (
       <NavbarTitle
@@ -1861,20 +1859,15 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         translate={false}
       />
     ),
-    headerLeft: () => (
-      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-        <Icon name={IconName.ArrowLeft} />
-      </TouchableOpacity>
-    ),
+    headerLeft: null,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => navigation.dangerouslyGetParent()?.pop()}
         style={styles.closeButton}
       >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
+        {/* TODO figure out why the Lg size makes the X disappear */}
+        <Icon name={IconName.Close} />
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,

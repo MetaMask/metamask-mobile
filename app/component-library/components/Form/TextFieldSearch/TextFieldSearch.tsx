@@ -5,7 +5,7 @@ import React, { useCallback } from 'react';
 
 // External dependencies.
 import ButtonIcon from '../../Buttons/ButtonIcon';
-import Icon from '../../Icons/Icon';
+import Icon, { IconColor } from '../../Icons/Icon';
 import TextField from '../TextField/TextField';
 
 // Internal dependencies.
@@ -29,6 +29,7 @@ const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
     <Icon
       name={DEFAULT_TEXTFIELDSEARCH_SEARCHICON_NAME}
       size={DEFAULT_TEXTFIELDSEARCH_SEARCHICON_SIZE}
+      color={IconColor.Alternative}
     />
   );
 

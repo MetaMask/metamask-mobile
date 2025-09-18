@@ -114,6 +114,7 @@ const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
               onFocus={onFocusHandler}
               testID={testID}
               style={styles.input}
+              placeholderTextColor={styles.placeholderTextColor}
               {...props}
               ref={inputRef}
               isStateStylesDisabled

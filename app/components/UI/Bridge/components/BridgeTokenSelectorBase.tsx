@@ -242,6 +242,8 @@ export const BridgeTokenSelectorBase: React.FC<
         ]}
       >
         <Box style={styles.notch} />
+
+        {/* Header */}
         <Box gap={4}>
           <BottomSheetHeader>
             <Box
@@ -259,8 +261,8 @@ export const BridgeTokenSelectorBase: React.FC<
                 >
                   <Icon
                     name={IconName.Close}
-                    size={IconSize.Sm}
                     color={theme.colors.icon.default}
+                    size={IconSize.Lg}
                   />
                 </TouchableOpacity>
               </Box>
@@ -268,7 +270,8 @@ export const BridgeTokenSelectorBase: React.FC<
           </BottomSheetHeader>
         </Box>
 
-        <Box style={styles.buttonContainer} gap={16}>
+        {/* Search + networks */}
+        <Box style={styles.buttonContainer} gap={20}>
           {networksBar}
 
           <TextFieldSearch
@@ -279,6 +282,9 @@ export const BridgeTokenSelectorBase: React.FC<
           />
         </Box>
 
+        {/* TODO put in 20 gap below as well, but it's not working */}
+
+        {/* Tokens */}
         <ListComponent
           data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
           renderItem={renderTokenItem}

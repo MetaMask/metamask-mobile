@@ -10,7 +10,7 @@ import { TextFieldSearchProps } from './TextFieldSearch.types';
 
 // Defaults
 export const DEFAULT_TEXTFIELDSEARCH_SEARCHICON_NAME = IconName.Search;
-export const DEFAULT_TEXTFIELDSEARCH_SEARCHICON_SIZE = IconSize.Sm;
+export const DEFAULT_TEXTFIELDSEARCH_SEARCHICON_SIZE = IconSize.Md;
 export const DEFAULT_TEXTFIELDSEARCH_CLOSEICON_NAME = IconName.Close;
 export const DEFAULT_TEXTFIELDSEARCH_CLOSEICON_SIZE = ButtonIconSizes.Sm;
 

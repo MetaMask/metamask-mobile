@@ -22,27 +22,23 @@ const styleSheet = (params: {
   vars: TextFieldStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style, size, isError, isDisabled, isFocused } = vars;
-  let borderColor = theme.colors.border.default;
-  if (isError) {
-    borderColor = theme.colors.error.default;
-  }
-  if (isFocused) {
-    borderColor = theme.colors.primary.default;
-  }
+  const { style, size, isDisabled } = vars;
 
-  return StyleSheet.create({
+  // Placeholder text color based on state
+  const placeholderTextColor = isDisabled
+    ? theme.colors.text.muted
+    : theme.colors.text.alternative;
+
+  const styles = StyleSheet.create({
     base: Object.assign(
       {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 8,
+        borderRadius: 12,
         height: Number(size),
-        borderWidth: BORDER_WIDTH,
-        borderColor,
         paddingHorizontal: 16,
         opacity: isDisabled ? 0.5 : 1,
-        backgroundColor: theme.colors.background.default,
+        backgroundColor: theme.colors.background.section,
       },
       StyleSheet.flatten(style),
     ) as ViewStyle,
@@ -63,6 +59,11 @@ const styleSheet = (params: {
       marginLeft: 8,
     },
   });
+
+  return {
+    ...styles,
+    placeholderTextColor,
+  };
 };
 
 export default styleSheet;

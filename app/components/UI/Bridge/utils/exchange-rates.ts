@@ -24,6 +24,8 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { SolScope } from '@metamask/keyring-api';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
+import I18n from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 
 interface GetDisplayCurrencyValueParams {
   token: BridgeToken | undefined;
@@ -95,11 +97,20 @@ export const getDisplayCurrencyValue = ({
     }
   }
 
-  if (currencyValue >= 0.01 || currencyValue === 0) {
-    return addCurrencySymbol(currencyValue, currentCurrency);
-  }
+  const locale = I18n.locale;
+  const intlNumberFormatter = getIntlNumberFormatter(locale, {
+    maximumFractionDigits: 3,
+  });
+  const formattedCurrencyValue = intlNumberFormatter.format(currencyValue);
+  return formattedCurrencyValue;
 
-  return `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+  // TODO figure out why add currency symbol is not working
+
+  // if (currencyValue >= 0.01 || currencyValue === 0) {
+  //   return addCurrencySymbol(currencyValue, currentCurrency);
+  // }
+
+  // return `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 };
 
 /**
