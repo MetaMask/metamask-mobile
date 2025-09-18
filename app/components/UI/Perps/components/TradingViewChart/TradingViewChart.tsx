@@ -18,6 +18,7 @@ import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -31,6 +32,7 @@ export type { TimeDuration } from '../../constants/chartConfig';
 export interface TradingViewChartRef {
   resetToDefault: () => void;
   zoomToLatestCandle: (candleCount?: number) => void;
+  clearTPSLLines: () => void;
 }
 
 interface TradingViewChartProps {
@@ -150,6 +152,16 @@ const TradingViewChart = React.forwardRef<
       },
       [isChartReady, visibleCandleCount],
     );
+
+    // Clear TPSL lines (except current price line)
+    const clearTPSLLines = useCallback(() => {
+      if (webViewRef.current && isChartReady) {
+        const message = {
+          type: 'CLEAR_TPSL_LINES',
+        };
+        webViewRef.current.postMessage(JSON.stringify(message));
+      }
+    }, [isChartReady]);
 
     // Handle messages from WebView
     const handleWebViewMessage = useCallback(
@@ -289,11 +301,19 @@ const TradingViewChart = React.forwardRef<
 
     // Update auxiliary lines when they change
     useEffect(() => {
-      if (isChartReady && tpslLines) {
-        sendMessage({
-          type: 'ADD_AUXILIARY_LINES',
-          lines: tpslLines,
-        });
+      if (isChartReady) {
+        if (tpslLines) {
+          // Update TPSL lines when they exist
+          sendMessage({
+            type: 'ADD_AUXILIARY_LINES',
+            lines: tpslLines,
+          });
+        } else {
+          // Clear TPSL lines when they don't exist (position closed)
+          sendMessage({
+            type: 'CLEAR_TPSL_LINES',
+          });
+        }
       }
     }, [tpslLines, isChartReady, sendMessage]);
 
@@ -303,8 +323,9 @@ const TradingViewChart = React.forwardRef<
       () => ({
         resetToDefault,
         zoomToLatestCandle,
+        clearTPSLLines,
       }),
-      [resetToDefault, zoomToLatestCandle],
+      [resetToDefault, zoomToLatestCandle, clearTPSLLines],
     );
 
     // Handle WebView errors
@@ -329,6 +350,23 @@ const TradingViewChart = React.forwardRef<
         </Box>
       );
     }
+
+    const webViewElement = (
+      <WebView
+        ref={webViewRef}
+        source={{ html: htmlContent }}
+        style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
+        onMessage={handleWebViewMessage}
+        onError={handleWebViewError}
+        onHttpError={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.error('TradingViewChart: HTTP Error:', nativeEvent);
+        }}
+        testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
+        {...(Platform.OS === 'android' ? { nestedScrollEnabled: true } : {})}
+        {...platformSpecificProps}
+      />
+    );
 
     return (
       <Box
@@ -356,21 +394,13 @@ const TradingViewChart = React.forwardRef<
               }-skeleton`}
             />
           )}
-          <WebView
-            ref={webViewRef}
-            source={{ html: htmlContent }}
-            style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
-            onMessage={handleWebViewMessage}
-            onError={handleWebViewError}
-            onHttpError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('TradingViewChart: HTTP Error:', nativeEvent);
-            }}
-            testID={`${
-              testID || TradingViewChartSelectorsIDs.CONTAINER
-            }-webview`}
-            {...platformSpecificProps}
-          />
+          {Platform.OS === 'android' ? (
+            <GestureDetector gesture={Gesture.Pinch()}>
+              {webViewElement}
+            </GestureDetector>
+          ) : (
+            webViewElement
+          )}
         </Box>
 
         {/* OHLC Legend */}

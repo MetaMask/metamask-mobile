@@ -1,4 +1,6 @@
 import { strings } from '../../../../../locales/i18n';
+import { OrderParams } from '../controllers/types';
+import { Position } from '../hooks';
 
 /**
  * Get the order direction based on the side and position size
@@ -25,4 +27,32 @@ export const getOrderDirection = (
   }
 
   return strings('perps.market.short');
+};
+
+export const willFlipPosition = (
+  currentPosition: Position,
+  orderParams: OrderParams,
+): boolean => {
+  const currentPositionSize = parseFloat(currentPosition.size);
+  const positionDirection = currentPositionSize > 0 ? 'long' : 'short';
+  const orderDirection = orderParams.isBuy ? 'long' : 'short';
+  const orderSize = parseFloat(orderParams.size);
+
+  if (orderParams.reduceOnly === true) {
+    return false;
+  }
+
+  if (orderParams.orderType !== 'market') {
+    return false;
+  }
+
+  if (positionDirection === orderDirection) {
+    return false;
+  }
+
+  if (orderSize > Math.abs(currentPositionSize)) {
+    return true;
+  }
+
+  return false;
 };

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Messenger } from '@metamask/base-controller';
+import { deriveStateFromMetadata, Messenger } from '@metamask/base-controller';
 import { successfulFetch } from '@metamask/controller-utils';
 import { setMeasurement } from '@sentry/react-native';
 import Logger from '../../../../util/Logger';
@@ -14,6 +14,15 @@ import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { CandlePeriod } from '../constants/chartConfig';
 import type { AssetRoute } from './types';
+import Engine from '../../../../core/Engine';
+import {
+  createMockHyperLiquidProvider,
+  createMockAccountData,
+  createMockEngineContext,
+  clearAllMocks,
+} from '../__mocks__';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -42,40 +51,8 @@ jest.mock('@metamask/utils', () => ({
   })),
 }));
 
-// Mock Engine
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        address: '0x1234567890123456789012345678901234567890',
-        id: 'mock-account-id',
-        metadata: { name: 'Test Account' },
-      }),
-    },
-    AccountTreeController: {
-      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-        {
-          address: '0x1234567890123456789012345678901234567890',
-          id: 'mock-account-id',
-          type: 'eip155:',
-          metadata: { name: 'Test Account' },
-        },
-      ]),
-    },
-    NetworkController: {
-      state: {
-        selectedNetworkClientId: 'mainnet',
-      },
-      findNetworkClientIdByChainId: jest.fn().mockReturnValue('arbitrum'),
-    },
-    TransactionController: {
-      addTransaction: jest.fn(),
-    },
-    PerpsController: {
-      clearDepositResult: jest.fn(),
-    },
-  },
-}));
+const mockEngineContext = createMockEngineContext();
+jest.mock('../../../../core/Engine', () => ({ context: mockEngineContext }));
 
 // Mock DevLogger
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -127,9 +104,23 @@ jest.mock('@metamask/controller-utils', () => {
   };
 });
 
+// Don't mock utility functions - let them use the real implementation with mocked Engine context
+
 // Mock transaction utilities
 jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn().mockReturnValue('0xabcdef123456'),
+}));
+
+// Mock account utilities
+jest.mock('../utils/accountUtils', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn(),
+}));
+
+// Mock rewards utilities
+jest.mock('../utils/rewardsUtils', () => ({
+  formatAccountToCaipAccountId: jest.fn(),
+  handleRewardsError: jest.fn(),
+  isCaipAccountId: jest.fn(),
 }));
 
 // Use imported types for reference but create a flexible test messenger
@@ -139,59 +130,26 @@ type TestMessenger = Messenger<any, any>;
 describe('PerpsController', () => {
   let mockHyperLiquidProvider: jest.Mocked<HyperLiquidProvider>;
 
+  // Use imported shared mocks
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    clearAllMocks();
 
     // Create mock HyperLiquidProvider with all required methods
-    mockHyperLiquidProvider = {
-      protocolId: 'hyperliquid',
-      initialize: jest.fn(),
-      isReadyToTrade: jest.fn(),
-      toggleTestnet: jest.fn(),
-      getPositions: jest.fn(),
-      getAccountState: jest.fn(),
-      getHistoricalPortfolio: jest.fn().mockResolvedValue({
-        totalBalance24hAgo: '10000',
-        totalBalance7dAgo: '9500',
-        totalBalance30dAgo: '9000',
-      }),
-      getMarkets: jest.fn(),
-      placeOrder: jest.fn(),
-      editOrder: jest.fn(),
-      cancelOrder: jest.fn(),
-      closePosition: jest.fn(),
-      withdraw: jest.fn(),
-      getDepositRoutes: jest.fn(),
-      getWithdrawalRoutes: jest.fn(),
-      validateDeposit: jest.fn().mockResolvedValue({ isValid: true }),
-      validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
-      validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
-      validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
-      subscribeToPrices: jest.fn(),
-      subscribeToPositions: jest.fn(),
-      subscribeToOrderFills: jest.fn(),
-      setLiveDataConfig: jest.fn(),
-      disconnect: jest.fn(),
-      updatePositionTPSL: jest.fn(),
-      calculateLiquidationPrice: jest.fn(),
-      calculateMaintenanceMargin: jest.fn(),
-      getMaxLeverage: jest.fn(),
-      calculateFees: jest.fn(),
-      getMarketDataWithPrices: jest.fn(),
-      getBlockExplorerUrl: jest.fn(),
-      getOrderFills: jest.fn(),
-      getOrders: jest.fn(),
-      getFunding: jest.fn(),
-      getIsFirstTimeUser: jest.fn(),
-      getOpenOrders: jest.fn(),
-      subscribeToOrders: jest.fn(),
-      subscribeToAccount: jest.fn(),
-    } as unknown as jest.Mocked<HyperLiquidProvider>;
+    mockHyperLiquidProvider = createMockHyperLiquidProvider();
 
     // Mock the HyperLiquidProvider constructor
     (
       HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
     ).mockImplementation(() => mockHyperLiquidProvider);
+
+    // Set up default behaviors for utility functions to prevent test failures
+    // Tests that need specific behaviors can override these defaults
+    const defaultMockEvmAccount = createMockAccountData();
+    (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+      defaultMockEvmAccount,
+    ); // Default: provide account
+    (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(null); // Default: no CAIP ID (prevents fee discount)
   });
 
   /**
@@ -218,14 +176,16 @@ describe('PerpsController', () => {
     // Mock the subscribe method for testing with proper Jest mock typing
     messenger.subscribe = jest.fn();
 
-    // Register mock external actions
+    (Engine as unknown as { context: typeof mockEngineContext }).context =
+      mockEngineContext;
+    const mockAccountData = createMockAccountData();
     messenger.registerActionHandler(
       'AccountsController:getSelectedAccount',
       mocks.getSelectedAccount ??
         jest.fn().mockReturnValue({
-          id: 'mock-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          metadata: { name: 'Test Account' },
+          id: mockAccountData.id,
+          address: mockAccountData.address,
+          metadata: mockAccountData.metadata,
         }),
     );
 
@@ -300,6 +260,8 @@ describe('PerpsController', () => {
               sinceOpen: '0',
               sinceChange: '0',
             },
+            takeProfitCount: 0,
+            stopLossCount: 0,
           },
         ],
       };
@@ -490,6 +452,51 @@ describe('PerpsController', () => {
         });
       });
 
+      it('handles non-array input to setBlockedRegionList gracefully', () => {
+        withController(
+          ({ controller }) => {
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Test with various non-array inputs
+            const invalidInputs = [
+              null,
+              undefined,
+              'not-an-array',
+              123,
+              { not: 'array' },
+              true,
+            ];
+
+            invalidInputs.forEach((invalidInput) => {
+              // @ts-ignore - Call private method with invalid input for testing
+              controller.setBlockedRegionList(invalidInput as any, 'remote');
+
+              // Should still have original fallback regions (no change)
+              // @ts-ignore - Accessing private property for testing
+              expect(controller.blockedRegionList).toEqual({
+                list: ['US', 'CA-ON'],
+                source: 'fallback',
+              });
+            });
+
+            // Verify array input still works
+            // @ts-ignore - Call private method for testing
+            controller.setBlockedRegionList(['TEST'], 'remote');
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['TEST'],
+              source: 'remote',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
       it('handles missing remote feature flag gracefully', () => {
         withController(
           ({ controller, messenger }) => {
@@ -601,6 +608,8 @@ describe('PerpsController', () => {
             sinceOpen: '5',
             sinceChange: '2',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
 
@@ -717,6 +726,145 @@ describe('PerpsController', () => {
       });
     });
 
+    it('should place order with fee discount calculation', async () => {
+      // Test fee discount integration from RewardsController
+      const orderParams = {
+        coin: 'ETH',
+        isBuy: true,
+        size: '1.0',
+        orderType: 'market' as const,
+      };
+
+      const mockOrderResult = {
+        success: true,
+        orderId: 'reward-order-123',
+      };
+
+      withController(async ({ controller }) => {
+        // Set up proper network client mock with chainId
+        const mockNetworkClient = {
+          configuration: { chainId: '0xa4b1' }, // Arbitrum chainId in hex
+        };
+        mockEngineContext.NetworkController.getNetworkClientById.mockReturnValue(
+          mockNetworkClient,
+        );
+
+        // Mock utility functions for fee discount calculation
+        const mockEvmAccount = createMockAccountData();
+        (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+          mockEvmAccount,
+        );
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        // Mock RewardsController to return discount (basis points: 550 = 5.5%)
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValue(
+          550,
+        );
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        expect(result).toEqual(mockOrderResult);
+        // Verify setUserFeeDiscount was called with correct discount
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          550,
+        );
+        // Verify discount was cleared after order
+        expect(
+          mockHyperLiquidProvider.setUserFeeDiscount,
+        ).toHaveBeenLastCalledWith(undefined);
+        // Verify RewardsController was called for discount
+        expect(
+          mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+        ).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle fee discount error gracefully', async () => {
+      // Test error handling when RewardsController fails
+      const orderParams = {
+        coin: 'BTC',
+        isBuy: false,
+        size: '0.5',
+        orderType: 'limit' as const,
+        price: '50000',
+      };
+
+      const mockOrderResult = {
+        success: true,
+        orderId: 'order-without-discount',
+      };
+
+      withController(async ({ controller }) => {
+        // Enable fee discount calculation for this test by providing CAIP ID
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        // Mock RewardsController to throw error
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockRejectedValue(
+          new Error('Rewards service unavailable'),
+        );
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        // Order should still succeed without discount
+        expect(result).toEqual(mockOrderResult);
+        // Verify discount was cleared (since no discount was set initially due to error)
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          undefined,
+        );
+      });
+    });
+
+    it('should clear fee discount on order failure', async () => {
+      // Test discount cleanup when order fails
+      const orderParams = {
+        coin: 'SOL',
+        isBuy: true,
+        size: '10',
+        orderType: 'market' as const,
+      };
+
+      const mockOrderResult = {
+        success: false,
+        error: 'Order rejected by exchange',
+      };
+
+      withController(async ({ controller }) => {
+        // Enable fee discount calculation for this test by providing CAIP ID
+        (formatAccountToCaipAccountId as jest.Mock).mockReturnValue(
+          'eip155:42161:0x1234567890123456789012345678901234567890',
+        );
+
+        mockEngineContext.RewardsController.getPerpsDiscountForAccount.mockResolvedValue(
+          1000,
+        ); // 10% discount
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        expect(result).toEqual(mockOrderResult);
+        // Verify discount was set initially
+        expect(mockHyperLiquidProvider.setUserFeeDiscount).toHaveBeenCalledWith(
+          1000,
+        );
+        // Verify discount was cleared even after failure
+        expect(
+          mockHyperLiquidProvider.setUserFeeDiscount,
+        ).toHaveBeenLastCalledWith(undefined);
+      });
+    });
+
     it('should cancel order successfully', async () => {
       const cancelParams = {
         coin: 'BTC',
@@ -804,6 +952,86 @@ describe('PerpsController', () => {
         // Verify error state was updated
         expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('should handle network errors during account state updates', async () => {
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getAccountState.mockRejectedValue(
+          new Error('Network timeout'),
+        );
+
+        await controller.initializeProviders();
+
+        await expect(controller.getAccountState()).rejects.toThrow(
+          'Network timeout',
+        );
+        expect(controller.state.lastError).toBe('Network timeout');
+        expect(controller.state.accountState).toBeNull(); // Should not modify existing state
+      });
+    });
+
+    it('should handle provider method throwing non-Error objects', async () => {
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        mockHyperLiquidProvider.getMarkets.mockRejectedValue(
+          'String error instead of Error object',
+        );
+
+        await controller.initializeProviders();
+
+        await expect(controller.getMarkets()).rejects.toBeDefined();
+        expect(controller.state.lastError).toBe('MARKETS_FAILED');
+      });
+    });
+
+    it('should handle RewardsController chain ID lookup failure', async () => {
+      const orderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market' as const,
+      };
+
+      withController(async ({ controller }) => {
+        // Mock NetworkController to return undefined chainId
+        const mockNetworkClient = { configuration: {} }; // Missing chainId
+        mockEngineContext.NetworkController.getNetworkClientById.mockReturnValue(
+          mockNetworkClient,
+        );
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'test',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        const result = await controller.placeOrder(orderParams);
+
+        // Order should succeed but discount lookup should fail gracefully
+        expect(result.success).toBe(true);
+        expect(
+          mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+        ).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should handle account state returning null gracefully', async () => {
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        // Use type assertion for this specific test case where we need to test null handling
+        mockHyperLiquidProvider.getAccountState.mockResolvedValue(null as any);
+
+        await controller.initializeProviders();
+
+        await expect(controller.getAccountState()).rejects.toThrow(
+          'Failed to get account state: received null/undefined response',
+        );
+        expect(controller.state.lastError).toBe(
+          'Failed to get account state: received null/undefined response',
+        );
       });
     });
   });
@@ -1047,7 +1275,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const mockPendingWithdrawal = {
@@ -1059,7 +1287,7 @@ describe('PerpsController', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
         sourceChainId: 'eip155:999' as CaipChainId,
         destinationChainId: 'eip155:42161' as CaipChainId,
-        destinationAddress: '0x1234567890123456789012345678901234567890' as Hex,
+        destinationAddress: createMockAccountData().address as Hex,
         initiatedAt: Date.now(),
         status: 'pending' as const,
         providerTxHash: undefined,
@@ -1115,7 +1343,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       // Provider returns success but no pendingWithdrawal (legacy behavior)
@@ -1162,7 +1390,7 @@ describe('PerpsController', () => {
       const withdrawParams = {
         amount: '100',
         // Missing assetId
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       withController(async ({ controller }) => {
@@ -1194,7 +1422,7 @@ describe('PerpsController', () => {
         amount: '0',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       withController(async ({ controller }) => {
@@ -1255,7 +1483,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const mockErrorResult = {
@@ -1283,7 +1511,7 @@ describe('PerpsController', () => {
         amount: '100',
         assetId:
           'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-        destination: '0x1234567890123456789012345678901234567890' as any,
+        destination: createMockAccountData().address as any,
       };
 
       const errorMessage = 'Network connection failed';
@@ -1355,8 +1583,9 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
           result: mockResult,
           transactionMeta: {
             id: 'deposit-tx-123',
@@ -1377,10 +1606,10 @@ describe('PerpsController', () => {
 
         // Verify TransactionController was called with correct params
         expect(
-          Engine.context.TransactionController.addTransaction,
+          mockEngineContext.TransactionController.addTransaction,
         ).toHaveBeenCalledWith(
           expect.objectContaining({
-            from: '0x1234567890123456789012345678901234567890',
+            from: createMockAccountData().address,
             to: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
             value: '0x0',
             data: '0xabcdef123456',
@@ -1433,8 +1662,9 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
           result: mockResultPromise,
           transactionMeta: {
             id: 'deposit-tx-456',
@@ -1472,7 +1702,6 @@ describe('PerpsController', () => {
       await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('User denied transaction signature');
-        const mockResultPromise = Promise.reject(mockError);
 
         const mockDepositRoute: AssetRoute = {
           assetId:
@@ -1486,12 +1715,20 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
-          result: mockResultPromise,
-          transactionMeta: {
-            id: 'deposit-tx-456',
-          },
+        let rejectedPromise: Promise<string>;
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockImplementation(() => {
+          rejectedPromise = Promise.reject(mockError);
+          rejectedPromise.catch(() => {
+            /* ignore */
+          });
+          return {
+            result: rejectedPromise,
+            transactionMeta: {
+              id: 'deposit-tx-456',
+            },
+          };
         });
 
         await controller.initializeProviders();
@@ -1500,17 +1737,64 @@ describe('PerpsController', () => {
         const { result } = await controller.depositWithConfirmation();
 
         // Attempt to await the promise (should reject)
-        try {
-          await result;
-          fail('Expected promise to reject');
-        } catch (error) {
-          // Assert
-          expect(error).toBe(mockError);
+        await expect(result).rejects.toBe(mockError);
 
-          // Verify state was NOT updated for user cancellation
+        // Verify state was NOT updated for user cancellation
+        expect(controller.state.lastDepositResult).toBeNull();
+        expect(controller.state.depositInProgress).toBe(false);
+        // Transaction ID should be cleared on cancellation
+        expect(controller.state.lastDepositTransactionId).toBeNull();
+      });
+    });
+
+    it('should handle all user cancellation message variants', async () => {
+      const cancellationMessages = [
+        'User denied transaction signature',
+        'User rejected the request',
+        'User cancelled the operation',
+        'User canceled the transaction', // American spelling
+      ];
+
+      const mockDepositRoute: AssetRoute = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        chainId: 'eip155:42161' as CaipChainId,
+        contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+      };
+
+      await withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        // Test each cancellation message variant
+        for (const message of cancellationMessages) {
+          const mockError = new Error(message);
+          let rejectedPromise: Promise<string>;
+          (
+            mockEngineContext.TransactionController.addTransaction as jest.Mock
+          ).mockImplementation(() => {
+            rejectedPromise = Promise.reject(mockError);
+            rejectedPromise.catch(() => {
+              /* ignore */
+            });
+            return {
+              result: rejectedPromise,
+              transactionMeta: {
+                id: 'deposit-tx-456',
+              },
+            };
+          });
+
+          // Act & Assert
+          const { result } = await controller.depositWithConfirmation();
+          await expect(result).rejects.toBe(mockError);
+
+          // Verify user cancellation handling - no error state should be set
           expect(controller.state.lastDepositResult).toBeNull();
           expect(controller.state.depositInProgress).toBe(false);
-          // Transaction ID should be cleared on cancellation
           expect(controller.state.lastDepositTransactionId).toBeNull();
         }
       });
@@ -1520,7 +1804,6 @@ describe('PerpsController', () => {
       await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('Insufficient balance');
-        const mockResultPromise = Promise.reject(mockError);
 
         const mockDepositRoute: AssetRoute = {
           assetId:
@@ -1534,12 +1817,20 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
-          result: mockResultPromise,
-          transactionMeta: {
-            id: 'deposit-tx-456',
-          },
+        let rejectedPromise: Promise<string>;
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockImplementation(() => {
+          rejectedPromise = Promise.reject(mockError);
+          rejectedPromise.catch(() => {
+            /* ignore */
+          });
+          return {
+            result: rejectedPromise,
+            transactionMeta: {
+              id: 'deposit-tx-456',
+            },
+          };
         });
 
         await controller.initializeProviders();
@@ -1548,22 +1839,16 @@ describe('PerpsController', () => {
         const { result } = await controller.depositWithConfirmation();
 
         // Attempt to await the promise (should reject)
-        try {
-          await result;
-          fail('Expected promise to reject');
-        } catch (error) {
-          // Assert
-          expect(error).toBe(mockError);
+        await expect(result).rejects.toBe(mockError);
 
-          // Verify state was updated for actual failure
-          expect(controller.state.lastDepositResult).toEqual({
-            success: false,
-            error: 'Insufficient balance',
-          });
-          expect(controller.state.depositInProgress).toBe(false);
-          // Transaction ID should be cleared on failure
-          expect(controller.state.lastDepositTransactionId).toBeNull();
-        }
+        // Verify state was updated for actual failure
+        expect(controller.state.lastDepositResult).toEqual({
+          success: false,
+          error: 'Insufficient balance',
+        });
+        expect(controller.state.depositInProgress).toBe(false);
+        // Transaction ID should be cleared on failure
+        expect(controller.state.lastDepositTransactionId).toBeNull();
       });
     });
 
@@ -1584,36 +1869,33 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockRejectedValue(
-          mockError,
-        );
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockRejectedValue(mockError);
 
         await controller.initializeProviders();
 
         // Act & Assert
-        try {
-          await controller.depositWithConfirmation();
-          fail('Expected depositWithConfirmation to throw');
-        } catch (error) {
-          expect(error).toBe(mockError);
+        await expect(controller.depositWithConfirmation()).rejects.toBe(
+          mockError,
+        );
 
-          // Should not update state for user cancellation
-          const errorMessage = error instanceof Error ? error.message : '';
-          if (
-            errorMessage.includes('User denied') ||
-            errorMessage.includes('User rejected')
-          ) {
-            expect(controller.state.lastDepositResult).toBeNull();
-          } else {
-            // Should update state for other errors
-            expect(controller.state.lastDepositResult).toEqual({
-              success: false,
-              error: 'Network error',
-            });
-            // Transaction ID should be null since addTransaction failed
-            expect(controller.state.lastDepositTransactionId).toBeNull();
-          }
+        // Should not update state for user cancellation
+        const errorMessage =
+          mockError instanceof Error ? mockError.message : '';
+        if (
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('User rejected')
+        ) {
+          expect(controller.state.lastDepositResult).toBeNull();
+        } else {
+          // Should update state for other errors
+          expect(controller.state.lastDepositResult).toEqual({
+            success: false,
+            error: 'Network error',
+          });
+          // Transaction ID should be null since addTransaction failed
+          expect(controller.state.lastDepositTransactionId).toBeNull();
         }
       });
     });
@@ -1646,8 +1928,9 @@ describe('PerpsController', () => {
           resolvePromise = resolve;
         });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
           result: mockResult,
           transactionMeta: {
             id: 'deposit-tx-123',
@@ -1680,12 +1963,9 @@ describe('PerpsController', () => {
         await controller.initializeProviders();
 
         // Act & Assert
-        try {
-          await controller.depositWithConfirmation();
-          fail('Expected depositWithConfirmation to throw');
-        } catch (error) {
-          expect(error).toBeDefined();
-        }
+        await expect(
+          controller.depositWithConfirmation(),
+        ).rejects.toBeDefined();
       });
     });
 
@@ -1704,8 +1984,9 @@ describe('PerpsController', () => {
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+        (
+          mockEngineContext.TransactionController.addTransaction as jest.Mock
+        ).mockResolvedValue({
           result: Promise.resolve('0xtx123'),
           transactionMeta: {
             id: 'deposit-tx-789',
@@ -1719,7 +2000,7 @@ describe('PerpsController', () => {
 
         // Assert
         expect(
-          Engine.context.TransactionController.addTransaction,
+          mockEngineContext.TransactionController.addTransaction,
         ).toHaveBeenCalledWith(
           expect.any(Object),
           expect.objectContaining({
@@ -1818,6 +2099,37 @@ describe('PerpsController', () => {
         await controller.disconnect();
 
         expect(mockHyperLiquidProvider.disconnect).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle error when getting provider during disconnect', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        // Clear providers to force getActiveProvider to throw
+        // @ts-ignore - Accessing private property for testing
+        controller.providers.clear();
+
+        // Act - disconnect should handle the error gracefully
+        await controller.disconnect();
+
+        // Assert - should log error but not crash
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message:
+              'PerpsController: Error getting provider during disconnect',
+            context: 'PerpsController.disconnect',
+          }),
+        );
+
+        // Verify initialization state was still reset
+        // @ts-ignore - Accessing private property for testing
+        expect(controller.isInitialized).toBe(false);
+        // @ts-ignore - Accessing private property for testing
+        expect(controller.initializationPromise).toBeNull();
       });
     });
 
@@ -2441,14 +2753,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getOrderFills();
-          // Should not reach here
-          fail('Expected getOrderFills to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getOrderFills()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -2526,14 +2831,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getOrders();
-          // Should not reach here
-          fail('Expected getOrders to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getOrders()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -2586,14 +2884,7 @@ describe('PerpsController', () => {
 
         await controller.initializeProviders();
 
-        try {
-          await controller.getFunding();
-          // Should not reach here
-          fail('Expected getFunding to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
+        await expect(controller.getFunding()).rejects.toThrow(errorMessage);
       });
     });
   });
@@ -3254,7 +3545,7 @@ describe('PerpsController', () => {
               Authorization: 'Bearer mock-bearer-token',
             },
             body: JSON.stringify({
-              user_id: '0x1234567890123456789012345678901234567890',
+              user_id: createMockAccountData().address,
               coin: 'BTC',
               sl_price: 45000,
               tp_price: 55000,
@@ -3524,7 +3815,7 @@ describe('PerpsController', () => {
               Authorization: 'Bearer mock-bearer-token',
             },
             body: JSON.stringify({
-              user_id: '0x1234567890123456789012345678901234567890',
+              user_id: createMockAccountData().address,
               coin: 'SOL',
               sl_price: 90,
               tp_price: 110,
@@ -3575,16 +3866,17 @@ describe('PerpsController', () => {
       DevLogger.log.mockClear();
 
       // Reset AccountTreeController mock to default
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:',
-          },
-        ],
-      );
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
 
       // Create a mock messenger that can handle the getBearerToken call
       mockMessenger = {
@@ -3654,25 +3946,30 @@ describe('PerpsController', () => {
     });
 
     it('should return error when EVM account is missing', async () => {
+      // Override default mock to return no EVM account for this test
+      (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+        null,
+      );
+
       // Mock messenger to return a token
       mockMessenger.call.mockResolvedValue('mock-bearer-token');
 
       // Mock AccountTreeController to return non-EVM accounts
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0xabc123',
-            id: 'mock-account-1',
-            type: 'bip122:', // Non-EVM account (Bitcoin)
-          },
-          {
-            address: '0xdef456',
-            id: 'mock-account-2',
-            type: 'cosmos:', // Non-EVM account (Cosmos)
-          },
-        ],
-      );
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: '0xabc123',
+          id: 'mock-account-1',
+          type: 'bip122:', // Non-EVM account (Bitcoin)
+        },
+        {
+          address: '0xdef456',
+          id: 'mock-account-2',
+          type: 'cosmos:', // Non-EVM account (Cosmos)
+        },
+      ]);
 
       controller.state.isTestnet = false;
 
@@ -3711,16 +4008,17 @@ describe('PerpsController', () => {
       mockMessenger.call.mockResolvedValue(null);
 
       // Reset AccountTreeController mock to return EVM account
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:',
-          },
-        ],
-      );
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
 
       controller.state.isTestnet = false;
 
@@ -3755,14 +4053,19 @@ describe('PerpsController', () => {
     });
 
     it('should return error when both account and token are missing', async () => {
+      // Override default mock to return no EVM account for this test
+      (getEvmAccountFromSelectedAccountGroup as jest.Mock).mockReturnValue(
+        null,
+      );
+
       // Mock messenger to return null token
       mockMessenger.call.mockResolvedValue(null);
 
       // Mock AccountTreeController to return empty array
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [],
-      );
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([]);
 
       controller.state.isTestnet = false;
 
@@ -3801,16 +4104,17 @@ describe('PerpsController', () => {
       mockMessenger.call.mockResolvedValue('mock-bearer-token');
 
       // Mock AccountTreeController to return EVM account
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:',
-          },
-        ],
-      );
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
 
       // Mock successful API response
       mockFetch.mockResolvedValue({
@@ -3895,16 +4199,17 @@ describe('PerpsController', () => {
       mockMessenger.call.mockResolvedValue('mock-bearer-token');
 
       // Mock AccountTreeController to return EVM account
-      const Engine = jest.requireMock('../../../../core/Engine');
-      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-        [
-          {
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:',
-          },
-        ],
-      );
+      const mockAccountData = createMockAccountData();
+      (
+        mockEngineContext.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([
+        {
+          address: mockAccountData.address,
+          id: mockAccountData.id,
+          type: 'eip155:',
+        },
+      ]);
 
       // Mock API error response (400 Bad Request)
       mockFetch.mockResolvedValue({
@@ -3943,6 +4248,252 @@ describe('PerpsController', () => {
           willRetry: true,
         }),
       );
+    });
+  });
+
+  describe('metadata', () => {
+    it('includes expected state in debug snapshots', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'anonymous',
+          ),
+        ).toMatchInlineSnapshot(`{}`);
+      });
+    });
+
+    it('includes expected state in state logs', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'includeInStateLogs',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "connectionStatus": "disconnected",
+            "depositInProgress": false,
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isEligible": false,
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "lastDepositResult": null,
+            "lastDepositTransactionId": null,
+            "lastUpdateTimestamp": 0,
+            "lastWithdrawResult": null,
+            "pendingOrders": [],
+            "perpsBalances": {},
+            "positions": [],
+            "withdrawInProgress": false,
+          }
+        `);
+      });
+    });
+
+    it('persists expected state', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'persist',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "perpsBalances": {},
+            "positions": [],
+          }
+        `);
+      });
+    });
+
+    it('exposes expected state to UI', () => {
+      withController(({ controller }) => {
+        expect(
+          deriveStateFromMetadata(
+            controller.state,
+            controller.metadata,
+            'usedInUi',
+          ),
+        ).toMatchInlineSnapshot(`
+          {
+            "accountState": null,
+            "activeProvider": "hyperliquid",
+            "connectionStatus": "disconnected",
+            "depositInProgress": false,
+            "hasPlacedFirstOrder": {
+              "mainnet": false,
+              "testnet": false,
+            },
+            "isEligible": false,
+            "isFirstTimeUser": {
+              "mainnet": true,
+              "testnet": true,
+            },
+            "isTestnet": false,
+            "lastDepositResult": null,
+            "lastDepositTransactionId": null,
+            "lastWithdrawResult": null,
+            "perpsBalances": {},
+            "positions": [],
+            "withdrawInProgress": false,
+          }
+        `);
+      });
+    });
+
+    describe('constructor error handling', () => {
+      it('should handle initializeProviders error gracefully', async () => {
+        // Mock the initializeProviders to throw during construction
+        const originalInitialize =
+          PerpsController.prototype.initializeProviders;
+        PerpsController.prototype.initializeProviders = jest
+          .fn()
+          .mockRejectedValue(new Error('Provider initialization failed'));
+
+        // Create a new messenger for this test to avoid conflicts
+        const messenger = new Messenger<any, any>();
+        messenger.subscribe = jest.fn();
+
+        // Create controller instance which will trigger the error in constructor
+        new PerpsController({
+          messenger: messenger as any,
+          state: getDefaultPerpsControllerState(),
+        });
+
+        // Wait for the async constructor error handling
+        await new Promise<void>((resolve) => setTimeout(resolve, 10));
+
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: 'PerpsController: Error initializing providers',
+            context: 'PerpsController.constructor',
+            timestamp: expect.any(String),
+          }),
+        );
+
+        // Restore original method
+        PerpsController.prototype.initializeProviders = originalInitialize;
+      });
+    });
+
+    describe('calculateUserFeeDiscount edge cases', () => {
+      it('should handle missing EVM account gracefully', async () => {
+        // Mock getEvmAccountFromSelectedAccountGroup to return undefined
+        (
+          getEvmAccountFromSelectedAccountGroup as jest.Mock
+        ).mockReturnValueOnce(undefined);
+
+        withController(async ({ controller }) => {
+          // @ts-ignore - accessing private method for testing
+          const discount = await controller.calculateUserFeeDiscount();
+
+          expect(discount).toBeUndefined();
+
+          // Verify the DevLogger was called with no EVM account message
+          const DevLogger = jest.requireMock(
+            '../../../../core/SDKConnect/utils/DevLogger',
+          ).DevLogger;
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PerpsController: No EVM account found for fee discount',
+          );
+        });
+      });
+    });
+
+    describe('placeOrder error cleanup', () => {
+      it('should clear fee discount context on order placement error', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '1.0',
+          orderType: 'market' as const,
+        };
+
+        withController(async ({ controller }) => {
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+          mockHyperLiquidProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          mockHyperLiquidProvider.setUserFeeDiscount = jest.fn();
+
+          await controller.initializeProviders();
+
+          await expect(controller.placeOrder(orderParams)).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          // Verify fee discount was cleared on error
+          expect(
+            mockHyperLiquidProvider.setUserFeeDiscount,
+          ).toHaveBeenCalledWith(undefined);
+        });
+      });
+
+      it('should handle error during fee discount cleanup', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '1.0',
+          orderType: 'market' as const,
+        };
+
+        withController(async ({ controller }) => {
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+          mockHyperLiquidProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          // Make setUserFeeDiscount throw during cleanup
+          mockHyperLiquidProvider.setUserFeeDiscount = jest
+            .fn()
+            .mockImplementation(() => {
+              throw new Error('Cleanup failed');
+            });
+
+          await controller.initializeProviders();
+
+          await expect(controller.placeOrder(orderParams)).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          // Verify cleanup error was logged
+          expect(Logger.error).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.objectContaining({
+              message:
+                'PerpsController: Failed to clear fee discount during error cleanup',
+              context: 'PerpsController.placeOrder',
+            }),
+          );
+        });
+      });
     });
   });
 });

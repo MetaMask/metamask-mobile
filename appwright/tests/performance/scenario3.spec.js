@@ -12,7 +12,12 @@ import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAc
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
-import { dismissSystemDialogs } from '../../utils/Flows.js';
+import { getPasswordForScenario } from '../../utils/TestConstants.js';
+
+import {
+  dismissSystemDialogs,
+  tapPerpsBottomSheetGotItButton,
+} from '../../utils/Flows.js';
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
   performanceTracker,
@@ -64,18 +69,6 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
     'Time since the user clicks on "Account list" button until the account list is visible',
   );
 
-  timer1.start();
-  /*await WelcomeScreen.clickGetStartedButton();
-  await TermOfUseScreen.isDisplayed();
-  timer1.stop();
-  await TermOfUseScreen.tapAgreeCheckBox();
-  await TermOfUseScreen.tapScrollEndButton();
-
-  timer2.start();
-  await TermOfUseScreen.tapAcceptButton();*/
-  await OnboardingScreen.isScreenTitleVisible();
-  timer2.stop();
-
   timer3.start();
   await OnboardingScreen.tapHaveAnExistingWallet();
   await OnboardingSheet.isVisible();
@@ -96,8 +89,8 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
 
   await CreatePasswordScreen.isVisible();
   timer5.stop();
-  await CreatePasswordScreen.enterPassword('123456789');
-  await CreatePasswordScreen.reEnterPassword('123456789');
+  await CreatePasswordScreen.enterPassword(getPasswordForScenario('import'));
+  await CreatePasswordScreen.reEnterPassword(getPasswordForScenario('import'));
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
@@ -114,6 +107,7 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   await OnboardingSucessScreen.tapDone();
   timer8.stop();
   timer9.start();
+  await tapPerpsBottomSheetGotItButton(device);
   await WalletMainScreen.isTokenVisible('Ethereum');
   timer9.stop();
   await dismissSystemDialogs(device);
