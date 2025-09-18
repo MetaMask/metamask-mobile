@@ -142,20 +142,10 @@ export const useNetworkSelection = ({
       }
       ///: END:ONLY_INCLUDE_IF
       await enableNetwork(chainId);
-      if (isMultichainAccountsState2Enabled) {
-        const { reference } = parseCaipChainId(chainId);
-        const clientId = NetworkController.findNetworkClientIdByChainId(
-          toHex(reference),
-        );
-        await MultichainNetworkController.setActiveNetwork(clientId);
-      }
       onComplete?.();
     },
     [
       enableNetwork,
-      MultichainNetworkController,
-      isMultichainAccountsState2Enabled,
-      NetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       bitcoinInternalAccounts,
       ///: END:ONLY_INCLUDE_IF(bitcoin)
