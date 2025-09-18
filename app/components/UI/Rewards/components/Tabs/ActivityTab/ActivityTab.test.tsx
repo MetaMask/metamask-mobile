@@ -192,7 +192,17 @@ describe('ActivityTab', () => {
       updatedAt: Date.now(),
     },
     tier: {
-      currentTier: { id: 'tier-1', name: 'Bronze', pointsNeeded: 0 },
+      currentTier: {
+        id: 'tier-1',
+        name: 'Bronze',
+        pointsNeeded: 0,
+        image: {
+          lightModeUrl: 'bronze-light',
+          darkModeUrl: 'bronze-dark',
+        },
+        levelNumber: '1',
+        rewards: [],
+      },
       nextTier: null,
       nextTierPointsNeeded: null,
     },
