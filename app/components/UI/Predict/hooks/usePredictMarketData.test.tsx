@@ -9,14 +9,12 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      initializeProviders: jest.fn(),
       getMarkets: jest.fn(),
     },
   },
 }));
 
 describe('usePredictMarketData', () => {
-  const mockInitializeProviders = jest.fn();
   const mockGetMarkets = jest.fn();
 
   const mockMarketData: PredictMarket[] = [
@@ -120,8 +118,6 @@ describe('usePredictMarketData', () => {
     jest.clearAllMocks();
 
     // Setup Engine mocks
-    (Engine.context.PredictController.initializeProviders as jest.Mock) =
-      mockInitializeProviders;
     (Engine.context.PredictController.getMarkets as jest.Mock) = mockGetMarkets;
 
     // Setup DevLogger mock
@@ -131,7 +127,6 @@ describe('usePredictMarketData', () => {
   });
 
   it.skip('should fetch market data successfully', async () => {
-    mockInitializeProviders.mockResolvedValue(undefined);
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -149,7 +144,6 @@ describe('usePredictMarketData', () => {
     expect(result.current.isFetching).toBe(false);
     expect(result.current.marketData).toEqual(mockMarketData);
     expect(result.current.error).toBe(null);
-    expect(mockInitializeProviders).toHaveBeenCalledTimes(1);
     expect(mockGetMarkets).toHaveBeenCalledTimes(1);
     expect(DevLogger.log).toHaveBeenCalledWith(
       'Fetching market data for category:',
@@ -168,7 +162,6 @@ describe('usePredictMarketData', () => {
   });
 
   it('should handle null market data', async () => {
-    mockInitializeProviders.mockResolvedValue(undefined);
     mockGetMarkets.mockResolvedValue(null);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -183,7 +176,6 @@ describe('usePredictMarketData', () => {
   });
 
   it('should handle empty market data array', async () => {
-    mockInitializeProviders.mockResolvedValue(undefined);
     mockGetMarkets.mockResolvedValue([]);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -198,7 +190,6 @@ describe('usePredictMarketData', () => {
   });
 
   it('should refetch data when calling refetch', async () => {
-    mockInitializeProviders.mockResolvedValue(undefined);
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -218,7 +209,6 @@ describe('usePredictMarketData', () => {
   });
 
   it('should maintain stable refetch function reference', () => {
-    mockInitializeProviders.mockResolvedValue(undefined);
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, rerender } = renderHook(() => usePredictMarketData());

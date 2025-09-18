@@ -8,7 +8,7 @@ const basePosition: PredictPositionType = {
   providerId: 'polymarket',
   marketId: 'market-1',
   outcomeId: 'outcome-1',
-  outcomeTokenId: 0,
+  outcomeTokenId: '0',
   conditionId: 'cond-1',
   icon: 'https://example.com/icon.png',
   title: 'Will ETF be approved?',
