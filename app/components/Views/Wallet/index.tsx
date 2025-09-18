@@ -241,6 +241,7 @@ interface WalletTokensTabViewProps {
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+
   const isPerpsEnabled = useMemo(
     () => isPerpsFlagEnabled,
     [isPerpsFlagEnabled],
@@ -471,13 +472,19 @@ const Wallet = ({
     selectMultichainAccountsState2Enabled,
   );
 
+  const enabledNetworksIsSolana = useMemo(() => {
+    if (allEnabledNetworks.length === 1) {
+      return allEnabledNetworks.some(
+        (network) => network.chainId === SolScope.Mainnet,
+      );
+    }
+    return false;
+  }, [allEnabledNetworks]);
+
   const enabledNetworksHasTestNet = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
       if (allEnabledNetworks.length === 1) {
-        return allEnabledNetworks.some(
-          (network) =>
-            isTestNet(network.chainId) || network.chainId === SolScope.Mainnet,
-        );
+        return allEnabledNetworks.some((network) => isTestNet(network.chainId));
       }
       return false;
     }
@@ -601,11 +608,6 @@ const Wallet = ({
 
   const collectiblesEnabled = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
-      // if (allEnabledNetworks.length === 1) {
-      //   return allEnabledNetworks.some(
-      //     (network) => network.chainId !== SolScope.Mainnet,
-      //   );
-      // }
       return true;
     }
     return isEvmSelected;
@@ -1163,6 +1165,7 @@ const Wallet = ({
 
   const defiEnabled =
     !enabledNetworksHasTestNet &&
+    !enabledNetworksIsSolana &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
@@ -1220,7 +1223,9 @@ const Wallet = ({
             navigation={navigation}
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
+            collectiblesEnabled={
+              collectiblesEnabled && !enabledNetworksIsSolana
+            }
             navigationParams={route.params}
           />
         </>
@@ -1248,6 +1253,7 @@ const Wallet = ({
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
+      enabledNetworksIsSolana,
     ],
   );
   const renderLoader = useCallback(

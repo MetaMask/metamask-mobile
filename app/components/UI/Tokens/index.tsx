@@ -34,6 +34,7 @@ import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import Loader from '../../../component-library/components-temp/Loader';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -239,7 +240,7 @@ const Tokens = memo(() => {
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
-      {/* <AssetPollingProvider /> */}
+      <AssetPollingProvider />
       <TokenListControlBar goToAddToken={goToAddToken} />
       {!isTokensLoading &&
       renderedTokenKeys.length === 0 &&
