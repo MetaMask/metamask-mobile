@@ -21,8 +21,6 @@ import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 
 interface UseNetworkSelectionOptions {
@@ -72,12 +70,6 @@ export const useNetworkSelection = ({
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const internalAccounts = useSelector(selectInternalAccounts);
   ///: END:ONLY_INCLUDE_IF
-
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
-  const { MultichainNetworkController, NetworkController } = Engine.context;
 
   const popularNetworkChainIds = useMemo(
     () =>
@@ -176,27 +168,10 @@ export const useNetworkSelection = ({
       ///: END:ONLY_INCLUDE_IF
 
       await enableNetwork(chainId);
-      if (isMultichainAccountsState2Enabled && chainId === SolScope.Mainnet) {
-        try {
-          await MultichainNetworkController.setActiveNetwork(chainId);
-        } catch (error) {
-          console.warn(`Error setting active network: ${error}`);
-        }
-      }
-      if (isMultichainAccountsState2Enabled && chainId !== SolScope.Mainnet) {
-        const { reference } = parseCaipChainId(chainId);
-        const clientId = NetworkController.findNetworkClientIdByChainId(
-          toHex(reference),
-        );
-        await MultichainNetworkController.setActiveNetwork(clientId);
-      }
       onComplete?.();
     },
     [
       enableNetwork,
-      isMultichainAccountsState2Enabled,
-      MultichainNetworkController,
-      NetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       bitcoinInternalAccounts,
       ///: END:ONLY_INCLUDE_IF(bitcoin)
