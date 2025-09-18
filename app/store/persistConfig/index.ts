@@ -1,11 +1,9 @@
 import { createMigrate, createTransform } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
-import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import Engine, { EngineContext } from '../../core/Engine';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
@@ -13,7 +11,7 @@ import { getPersistentState } from '../getPersistentState/getPersistentState';
 import { debounce } from 'lodash';
 import ReduxService from '../../core/redux';
 import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
-import { RealmControllerStorage, RealmPersistentStorage, testRealmOperations } from './realmInstance';
+import { RealmPersistentStorage, RealmVerification } from './realmInstance';
 
 
 const TIMEOUT = 40000;
@@ -23,35 +21,14 @@ export const ControllerStorage = {
   async getItem(key: string) {
     console.log(`🔍 [CONTROLLER STORAGE DEBUG] getItem called for key: "${key}"`);
     try {
-      // HYBRID APPROACH: Try Realm first, fallback to FilesystemStorage
-      console.log(`📖 [CONTROLLER STORAGE DEBUG] Trying Realm first for key: "${key}"`);
+      // REALM ONLY: Get data from Realm storage
+      console.log(`📖 [CONTROLLER STORAGE DEBUG] Getting from Realm for key: "${key}"`);
       const realmResult = await RealmPersistentStorage.getItem(key);
       if (realmResult) {
         console.log(`✅ [CONTROLLER STORAGE DEBUG] Found in Realm for key: "${key}"`);
         return realmResult;
       }
       console.log(`❌ [CONTROLLER STORAGE DEBUG] Not found in Realm for key: "${key}"`);
-
-      // Fallback to FilesystemStorage (for migration and backup)
-      console.log(`📁 [CONTROLLER STORAGE DEBUG] Trying FilesystemStorage for key: "${key}"`);
-      const filesystemResult = await FilesystemStorage.getItem(key);
-      if (filesystemResult) {
-        console.log(`✅ [CONTROLLER STORAGE DEBUG] Found in FilesystemStorage for key: "${key}"`);
-        // Auto-migrate to Realm when found in FilesystemStorage
-        try {
-          console.log(`🔄 [CONTROLLER STORAGE DEBUG] Migrating to Realm for key: "${key}"`);
-          await RealmPersistentStorage.setItem(key, filesystemResult);
-          Logger.log(`Migrated ${key} from FilesystemStorage to Realm`);
-          console.log(`✅ [CONTROLLER STORAGE DEBUG] Migration successful for key: "${key}"`);
-        } catch (migrationError) {
-          console.log(`❌ [CONTROLLER STORAGE DEBUG] Migration failed for key: "${key}"`, migrationError);
-          Logger.error(migrationError as Error, {
-            message: `Failed to migrate ${key} to Realm`,
-          });
-        }
-        return filesystemResult;
-      }
-      console.log(`❌ [CONTROLLER STORAGE DEBUG] Not found in FilesystemStorage for key: "${key}"`);
     } catch (error) {
       console.log(`💥 [CONTROLLER STORAGE DEBUG] Error in getItem for key: "${key}"`, error);
       Logger.error(error as Error, {
@@ -64,74 +41,36 @@ export const ControllerStorage = {
 
   async setItem(key: string, value: string) {
     console.log(`💾 [CONTROLLER STORAGE DEBUG] setItem called for key: "${key}"`);
-    const errors: Error[] = [];
-
-    // HYBRID APPROACH: Write to BOTH Realm and FilesystemStorage
+    
+    // REALM ONLY: Write to Realm storage
     console.log(`📝 [CONTROLLER STORAGE DEBUG] Writing to Realm for key: "${key}"`);
     try {
       await RealmPersistentStorage.setItem(key, value);
       console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully wrote to Realm for key: "${key}"`);
     } catch (realmError) {
       console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to write to Realm for key: "${key}"`, realmError);
-      errors.push(realmError as Error);
       Logger.error(realmError as Error, {
         message: `Failed to write ${key} to Realm`,
       });
-    }
-
-    console.log(`📁 [CONTROLLER STORAGE DEBUG] Writing to FilesystemStorage for key: "${key}"`);
-    try {
-      await FilesystemStorage.setItem(key, value, Device.isIos());
-      console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully wrote to FilesystemStorage for key: "${key}"`);
-    } catch (filesystemError) {
-      console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to write to FilesystemStorage for key: "${key}"`, filesystemError);
-      errors.push(filesystemError as Error);
-      Logger.error(filesystemError as Error, {
-        message: `Failed to write ${key} to FilesystemStorage`,
-      });
-    }
-
-    // If both fail, throw the first error
-    if (errors.length === 2) {
-      console.log(`💥 [CONTROLLER STORAGE DEBUG] Both storage methods failed for key: "${key}"`);
-      throw errors[0];
+      throw realmError;
     }
     console.log(`🎉 [CONTROLLER STORAGE DEBUG] setItem completed for key: "${key}"`);
   },
 
   async removeItem(key: string) {
     console.log(`🗑️ [CONTROLLER STORAGE DEBUG] removeItem called for key: "${key}"`);
-    const errors: Error[] = [];
-
-    // HYBRID APPROACH: Remove from BOTH Realm and FilesystemStorage
+    
+    // REALM ONLY: Remove from Realm storage
     console.log(`🗑️ [CONTROLLER STORAGE DEBUG] Removing from Realm for key: "${key}"`);
     try {
       await RealmPersistentStorage.removeItem(key);
       console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully removed from Realm for key: "${key}"`);
     } catch (realmError) {
       console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to remove from Realm for key: "${key}"`, realmError);
-      errors.push(realmError as Error);
       Logger.error(realmError as Error, {
         message: `Failed to remove ${key} from Realm`,
       });
-    }
-
-    console.log(`🗑️ [CONTROLLER STORAGE DEBUG] Removing from FilesystemStorage for key: "${key}"`);
-    try {
-      await FilesystemStorage.removeItem(key);
-      console.log(`✅ [CONTROLLER STORAGE DEBUG] Successfully removed from FilesystemStorage for key: "${key}"`);
-    } catch (filesystemError) {
-      console.log(`❌ [CONTROLLER STORAGE DEBUG] Failed to remove from FilesystemStorage for key: "${key}"`, filesystemError);
-      errors.push(filesystemError as Error);
-      Logger.error(filesystemError as Error, {
-        message: `Failed to remove ${key} from FilesystemStorage`,
-      });
-    }
-
-    // If both fail, throw the first error
-    if (errors.length === 2) {
-      console.log(`💥 [CONTROLLER STORAGE DEBUG] Both storage removal methods failed for key: "${key}"`);
-      throw errors[0];
+      throw realmError;
     }
     console.log(`🎉 [CONTROLLER STORAGE DEBUG] removeItem completed for key: "${key}"`);
   },
@@ -207,35 +146,22 @@ export const ControllerStorage = {
   },
 };
 
-const MigratedStorage = {
+// Simplified storage for Redux store (non-Engine data)
+// Uses AsyncStorage directly since we've removed FilesystemStorage dependency
+const ReduxAsyncStorage = {
   async getItem(key: string) {
     try {
-      const res = await FilesystemStorage.getItem(key);
-      if (res) {
-        // Using new storage system
-        return res;
-      }
+      return await AsyncStorage.getItem(key);
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to get item for ${key}`,
       });
-    }
-
-    // Using old storage system, should only happen once
-    try {
-      const res = await AsyncStorage.getItem(key);
-      if (res) {
-        // Using old storage system
-        return res;
-      }
-    } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to run migration' });
-      throw new Error('Failed async storage storage fetch.');
+      return null;
     }
   },
   async setItem(key: string, value: string) {
     try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
+      return await AsyncStorage.setItem(key, value);
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to set item for ${key}`,
@@ -244,7 +170,7 @@ const MigratedStorage = {
   },
   async removeItem(key: string) {
     try {
-      return await FilesystemStorage.removeItem(key);
+      return await AsyncStorage.removeItem(key);
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to remove item for ${key}`,
@@ -352,7 +278,7 @@ const persistConfig = {
     'alert',
     'engine',
   ],
-  storage: MigratedStorage,
+  storage: ReduxAsyncStorage,
   transforms: [persistUserTransform, persistOnboardingTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {
@@ -364,7 +290,117 @@ const persistConfig = {
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails
 };
 
+// === REALM VERIFICATION METHODS ===
+// These methods help us verify that controller data is being stored and retrieved correctly
+
+export const verifyRealmData = async () => {
+  console.log('🔍 [VERIFICATION] Starting comprehensive Realm data verification...');
+  
+  try {
+    // 1. Show all stored controllers
+    await RealmVerification.showAllStoredControllers();
+    
+    // 2. Show storage statistics
+    await RealmVerification.getStorageStats();
+    
+    // 3. Test data integrity
+    const integrityPassed = await RealmVerification.testDataIntegrity();
+    console.log(`🧪 [VERIFICATION] Data integrity test: ${integrityPassed ? '✅ PASSED' : '❌ FAILED'}`);
+    
+    // 4. Compare key controllers between Realm and FileSystem
+    const criticalControllers = ['KeyringController', 'TransactionController', 'PreferencesController'];
+    for (const controller of criticalControllers) {
+      await RealmVerification.compareControllerData(controller);
+    }
+    
+  } catch (error) {
+    console.log('💥 [VERIFICATION] Error during verification:', error);
+  }
+  
+  console.log('🏁 [VERIFICATION] Verification completed');
+};
+
+// Method to check specific controller's data quality
+export const checkControllerData = async (controllerName: string) => {
+  console.log(`🔍 [VERIFICATION] Checking ${controllerName} data quality...`);
+  
+  try {
+    const key = `persist:${controllerName}`;
+    const data = await RealmPersistentStorage.getItem(key);
+    
+    if (!data) {
+      console.log(`❌ [VERIFICATION] ${controllerName} not found in Realm`);
+      return false;
+    }
+    
+    console.log(`✅ [VERIFICATION] ${controllerName} found in Realm (${data.length} chars)`);
+    
+    // Try to parse and validate structure
+    try {
+      const parsed = JSON.parse(data);
+      const keys = Object.keys(parsed);
+      console.log(`📊 [VERIFICATION] ${controllerName} has ${keys.length} keys: ${keys.slice(0, 10).join(', ')}${keys.length > 10 ? '...' : ''}`);
+      
+      // Check for common expected properties
+      if (controllerName === 'KeyringController' && !parsed.vault) {
+        console.log(`⚠️ [VERIFICATION] ${controllerName} missing 'vault' property!`);
+        return false;
+      }
+      
+      if (controllerName === 'TransactionController' && !parsed.transactions) {
+        console.log(`⚠️ [VERIFICATION] ${controllerName} missing 'transactions' property!`);
+        return false;
+      }
+      
+      console.log(`✅ [VERIFICATION] ${controllerName} structure looks valid`);
+      return true;
+      
+    } catch (parseError) {
+      console.log(`❌ [VERIFICATION] ${controllerName} data is not valid JSON:`, parseError);
+      return false;
+    }
+    
+  } catch (error) {
+    console.log(`💥 [VERIFICATION] Error checking ${controllerName}:`, error);
+    return false;
+  }
+};
+
+// Quick check to see if critical controllers are working
+export const quickHealthCheck = async () => {
+  console.log('🩺 [HEALTH CHECK] Running quick Realm health check...');
+  
+  const results = {
+    KeyringController: await checkControllerData('KeyringController'),
+    TransactionController: await checkControllerData('TransactionController'),
+    PreferencesController: await checkControllerData('PreferencesController'),
+  };
+  
+  const allHealthy = Object.values(results).every(Boolean);
+  console.log(`🩺 [HEALTH CHECK] Overall health: ${allHealthy ? '✅ HEALTHY' : '❌ ISSUES DETECTED'}`);
+  console.log(`🩺 [HEALTH CHECK] Results:`, results);
+  
+  return results;
+};
+
 // Re-export Realm storage for easy access
-export { RealmControllerStorage, RealmPersistentStorage };
+export { RealmPersistentStorage, RealmVerification };
 
 export default persistConfig;
+
+// === AUTO VERIFICATION (DEVELOPMENT ONLY) ===
+// Automatically run verification when this module loads to help with debugging
+// TODO: Remove this in production or make it conditional
+
+console.log('🚀 [PERSIST CONFIG] Module loaded, will run verification in 3 seconds...');
+
+// Delay verification to ensure Realm is initialized
+setTimeout(async () => {
+  try {
+    console.log('🔍 [AUTO VERIFICATION] Starting automatic verification...');
+    await quickHealthCheck();
+    console.log('✅ [AUTO VERIFICATION] Automatic verification completed');
+  } catch (error) {
+    console.log('❌ [AUTO VERIFICATION] Automatic verification failed:', error);
+  }
+}, 3000);

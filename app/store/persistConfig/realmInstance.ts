@@ -1,5 +1,5 @@
 import Realm from 'realm';
-import { Controller, PersistedState } from '../../core/Engine/EngineTask';
+import { PersistedState } from '../../core/Engine/EngineTask';
 import Logger from '../../util/Logger';
 
 console.log('🚀 [REALM DEBUG] realmInstance.ts module loading...');
@@ -16,9 +16,9 @@ class RealmSingleton {
       console.log('🔧 [REALM DEBUG] Creating new Realm instance...');
       try {
         RealmSingleton.instance = new Realm({
-          schema: [Controller, PersistedState],  // Include both schemas
+          schema: [PersistedState],  // Only use PersistedState schema
           path: 'metamask-engine.realm',  // Use specific path to avoid conflicts
-          schemaVersion: 2,  // Bump version due to schema addition
+          schemaVersion: 3,  // Bump version due to schema removal
         });
         console.log('✅ [REALM DEBUG] Realm instance created successfully!');
       } catch (error) {
@@ -41,104 +41,8 @@ class RealmSingleton {
 
 const getRealmInstance = (): Realm => RealmSingleton.getInstance();
 
-// Realm Read/Write methods for Controller objects
-console.log('📦 [REALM DEBUG] RealmControllerStorage object created');
 
-export const RealmControllerStorage = {
-  writeController(key: string, value: string, isActive: boolean = true): Controller | null {
-    console.log(`✏️ [REALM DEBUG] writeController called with key: "${key}"`);
-    try {
-      console.log('📥 [REALM DEBUG] Getting realm instance for write...');
-      const realm = getRealmInstance();
-      
-      const newController = realm.write(() => {
-        return realm.create('Controller', {
-          key,
-          value,
-          isActive,
-        }, Realm.UpdateMode.Modified);
-      });
-      
-      // Return a plain object copy
-      return {
-        key: newController.key,
-        value: newController.value,
-        isActive: newController.isActive,
-      } as Controller;
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to write controller with key ${key}`,
-      });
-      return null;
-    }
-  },
-
-  readController(key: string): Controller | null {
-    console.log(`📖 [REALM DEBUG] readController called with key: "${key}"`);
-    try {
-      console.log('📤 [REALM DEBUG] Getting realm instance for read...');
-      const realm = getRealmInstance();
-      const controller = realm.objectForPrimaryKey('Controller', key);
-      
-      if (controller) {
-        // Return a plain object copy
-        return {
-          key: controller.key,
-          value: controller.value,
-          isActive: controller.isActive,
-        } as Controller;
-      }
-      
-      return null;
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to read controller with key ${key}`,
-      });
-      return null;
-    }
-  },
-
-  removeController(key: string): boolean {
-    try {
-      const realm = getRealmInstance();
-      
-      return realm.write(() => {
-        const controller = realm.objectForPrimaryKey('Controller', key);
-        if (controller) {
-          realm.delete(controller);
-          return true;
-        }
-        return false;
-      });
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: `Failed to remove controller with key ${key}`,
-      });
-      return false;
-    }
-  },
-
-  getAllControllers(): Controller[] {
-    try {
-      const realm = getRealmInstance();
-      const controllers = realm.objects('Controller');
-      
-      // Return plain object copies
-      return Array.from(controllers).map(controller => ({
-        key: controller.key,
-        value: controller.value,
-        isActive: controller.isActive,
-      } as Controller));
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: 'Failed to get all controllers',
-      });
-      return [];
-    }
-  },
-};
-
-// NEW: Controller Storage interface using PersistedState schema
+// Controller Storage interface using PersistedState schema
 // This replaces the FilesystemStorage pattern with Realm storage
 console.log('📦 [REALM DEBUG] RealmPersistentStorage object created');
 
@@ -270,40 +174,167 @@ const RealmPersistentStorage = {
   }
 };
 
-// Test function to verify read/write operations
-function testRealmOperations() {
-  console.log('🧪 [REALM DEBUG] testRealmOperations function starting...');
-  try {
-    // 1. Write a test controller to the database
-    console.log('🔄 Writing test controller to Realm database...');
-    const testController = RealmControllerStorage.writeController(
-      'test-controller-key',
-      JSON.stringify({ testData: 'Hello Realm!', timestamp: Date.now() }),
-      true
-    );
-    console.log('✅ Controller written successfully:', testController);
-
-    // 2. Read the controller back from the database
-    console.log('🔄 Reading test controller from Realm database...');
-    const readController = RealmControllerStorage.readController('test-controller-key');
-    console.log('✅ Controller read successfully:', readController);
-
-    // 3. Verify the data matches
-    if (readController && readController.key === 'test-controller-key') {
-      console.log('🎉 Realm read/write operations successful!');
-      console.log('📄 Stored value:', readController.value);
-      console.log('🔘 Is active:', readController.isActive);
-    } else {
-      console.log('❌ Data mismatch or read failed');
+// Verification methods to check Realm data integrity
+const RealmVerification = {
+  // Show all controllers stored in Realm with their data preview
+  async showAllStoredControllers(): Promise<void> {
+    console.log('📊 [REALM VERIFICATION] === REALM CONTROLLER INVENTORY ===');
+    try {
+      const keys = await RealmPersistentStorage.getAllControllerKeys();
+      console.log(`📋 [REALM VERIFICATION] Found ${keys.length} controllers in Realm:`);
+      
+      for (const key of keys) {
+        const data = await RealmPersistentStorage.getItem(key);
+        if (data) {
+          console.log(`  ✅ ${key}:`);
+          console.log(`     📄 Data length: ${data.length} chars`);
+          console.log(`     📝 Preview: ${data.substring(0, 100)}...`);
+          console.log(`     🔍 Type: ${typeof data}`);
+          
+          // Try to parse and show structure
+          try {
+            const parsed = JSON.parse(data);
+            const keys = Object.keys(parsed);
+            console.log(`     🗂️  Has ${keys.length} top-level keys: [${keys.slice(0, 5).join(', ')}${keys.length > 5 ? '...' : ''}]`);
+          } catch {
+            console.log(`     ⚠️  Not valid JSON or stored as string`);
+          }
+        } else {
+          console.log(`  ❌ ${key}: No data found`);
+        }
+      }
+    } catch (error) {
+      console.log('💥 [REALM VERIFICATION] Error showing stored controllers:', error);
     }
-  } catch (error) {
-    console.log('❌ Test failed:', error);
+    console.log('📊 [REALM VERIFICATION] === END INVENTORY ===');
+  },
+
+  // Test data integrity by writing and reading back
+  async testDataIntegrity(testKey: string = 'test-data-integrity'): Promise<boolean> {
+    console.log('🧪 [REALM VERIFICATION] Testing data integrity...');
+    try {
+      const testData = {
+        string: 'test string',
+        number: 12345,
+        boolean: true,
+        array: [1, 2, 3],
+        object: { nested: 'value', dots: { 'key.with.dots': 'should work in string mode' } },
+        timestamp: new Date().toISOString()
+      };
+      
+      const testDataString = JSON.stringify(testData);
+      console.log(`📝 [REALM VERIFICATION] Writing test data (${testDataString.length} chars)`);
+      
+      // Write data
+      await RealmPersistentStorage.setItem(testKey, testDataString);
+      
+      // Read it back
+      const retrievedData = await RealmPersistentStorage.getItem(testKey);
+      
+      if (!retrievedData) {
+        console.log('❌ [REALM VERIFICATION] No data retrieved');
+        return false;
+      }
+      
+      // Compare
+      const isMatching = retrievedData === testDataString;
+      const retrievedParsed = JSON.parse(retrievedData);
+      
+      console.log(`✅ [REALM VERIFICATION] Data integrity test ${isMatching ? 'PASSED' : 'FAILED'}`);
+      console.log(`📊 [REALM VERIFICATION] Original: ${testDataString.length} chars`);
+      console.log(`📊 [REALM VERIFICATION] Retrieved: ${retrievedData.length} chars`);
+      console.log(`🔍 [REALM VERIFICATION] Data matches exactly: ${isMatching}`);
+      console.log(`🔍 [REALM VERIFICATION] Parsed object keys: ${Object.keys(retrievedParsed).join(', ')}`);
+      
+      // Clean up
+      await RealmPersistentStorage.removeItem(testKey);
+      
+      return isMatching;
+    } catch (error) {
+      console.log('💥 [REALM VERIFICATION] Data integrity test failed:', error);
+      return false;
+    }
+  },
+
+  // Show storage statistics
+  async getStorageStats(): Promise<void> {
+    console.log('📈 [REALM VERIFICATION] === STORAGE STATISTICS ===');
+    try {
+      const realm = getRealmInstance();
+      
+      // Count all PersistedState objects
+      const allItems = realm.objects('PersistedState');
+      const totalCount = allItems.length;
+      
+      // Count by controller type
+      const controllerCounts: Record<string, number> = {};
+      let totalDataSize = 0;
+      
+      Array.from(allItems).forEach((item: any) => {
+        const key = item.key as string;
+        if (key.startsWith('persist:')) {
+          const controllerName = key.replace('persist:', '');
+          controllerCounts[controllerName] = (controllerCounts[controllerName] || 0) + 1;
+          
+          // Estimate data size
+          if (typeof item.data === 'string') {
+            totalDataSize += item.data.length;
+          } else {
+            totalDataSize += JSON.stringify(item.data).length;
+          }
+        }
+      });
+      
+      console.log(`📊 [REALM VERIFICATION] Total stored items: ${totalCount}`);
+      console.log(`📊 [REALM VERIFICATION] Total data size: ~${Math.round(totalDataSize / 1024)}KB`);
+      console.log(`📊 [REALM VERIFICATION] Controllers by type:`);
+      
+      Object.entries(controllerCounts).forEach(([name, count]) => {
+        console.log(`  📋 ${name}: ${count} entries`);
+      });
+      
+    } catch (error) {
+      console.log('💥 [REALM VERIFICATION] Error getting storage stats:', error);
+    }
+    console.log('📈 [REALM VERIFICATION] === END STATISTICS ===');
+  },
+
+  // Compare specific controller between Realm and FileSystem
+  async compareControllerData(controllerName: string): Promise<void> {
+    console.log(`🔍 [REALM VERIFICATION] Comparing ${controllerName} between Realm and FileSystem...`);
+    try {
+      const key = `persist:${controllerName}`;
+      
+      // Get from Realm
+      const realmData = await RealmPersistentStorage.getItem(key);
+      
+      // Get from FileSystem (import here to avoid circular dependencies)
+      const FilesystemStorage = require('redux-persist-filesystem-storage').default;
+      const filesystemData = await FilesystemStorage.getItem(key);
+      
+      console.log(`📊 [REALM VERIFICATION] ${controllerName} comparison:`);
+      console.log(`  🗄️  Realm: ${realmData ? `${realmData.length} chars` : 'NOT FOUND'}`);
+      console.log(`  📁 FileSystem: ${filesystemData ? `${filesystemData.length} chars` : 'NOT FOUND'}`);
+      
+      if (realmData && filesystemData) {
+        const matches = realmData === filesystemData;
+        console.log(`  🔍 Data matches: ${matches ? '✅ YES' : '❌ NO'}`);
+        
+        if (!matches) {
+          console.log(`  🔍 Realm preview: ${realmData.substring(0, 200)}...`);
+          console.log(`  🔍 FileSystem preview: ${filesystemData.substring(0, 200)}...`);
+        }
+      }
+      
+    } catch (error) {
+      console.log(`💥 [REALM VERIFICATION] Error comparing ${controllerName}:`, error);
+    }
   }
-  console.log('🏁 [REALM DEBUG] testRealmOperations function completed');
-}
+};
+
 
 // Export for external access
-export { RealmSingleton, getRealmInstance, testRealmOperations, RealmPersistentStorage };
+export { RealmSingleton, getRealmInstance, RealmPersistentStorage, RealmVerification };
 
 // Module finished loading - test function available for manual testing
 console.log('🎭 [REALM DEBUG] realmInstance.ts module finished loading - ready for use');
