@@ -331,6 +331,71 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
+const MultichainAccountDetailsActions = () => {
+  const route = useRoute();
+  const nestedParams =
+    (route?.params as { params?: unknown })?.params || route?.params;
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: { opacity: 0 },
+        }),
+      }}
+    >
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
+        component={MultichainAccountActions}
+        initialParams={nestedParams}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
+        component={EditMultichainAccountName}
+        initialParams={nestedParams}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME}
+        component={LegacyEditMultichainAccountName}
+        initialParams={nestedParams}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
+        component={ShareAddress}
+        initialParams={nestedParams}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR}
+        component={ShareAddressQR}
+        initialParams={nestedParams}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
+        component={DeleteAccount}
+        initialParams={nestedParams}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ}
+        component={SRPQuiz}
+        initialParams={nestedParams}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateKey}
+        initialParams={nestedParams}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
+        component={RevealSRP}
+        initialParams={nestedParams}
+      />
+    </Stack.Navigator>
+  );
+};
+
 interface RootModalFlowProps {
   route: {
     params: Record<string, unknown>;
@@ -546,6 +611,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
+      component={MultichainAccountDetailsActions}
+    />
   </Stack.Navigator>
 );
 
@@ -659,83 +728,6 @@ const MultichainAccountGroupDetails = () => {
           headerShown: false,
           animationEnabled: true,
         }}
-      />
-    </Stack.Navigator>
-  );
-};
-
-const MultichainAccountDetailsActions = () => {
-  const route = useRoute();
-
-  // Configure transparent background to show AccountDetails screen beneath modal overlays
-  const commonScreenOptions = {
-    //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-    cardStyle: { backgroundColor: importedColors.transparent },
-    cardStyleInterpolator: () => ({
-      overlayStyle: {
-        opacity: 0,
-      },
-    }),
-  };
-
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animationEnabled: false,
-      }}
-    >
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
-        component={MultichainAccountActions}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={EditMultichainAccountName}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME}
-        component={LegacyEditMultichainAccountName}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
-        component={ShareAddress}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR}
-        component={ShareAddressQR}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
-        component={DeleteAccount}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ}
-        component={SRPQuiz}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateKey}
-        initialParams={route?.params}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
-        component={RevealSRP}
-        initialParams={route?.params}
       />
     </Stack.Navigator>
   );
@@ -926,10 +918,6 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
           component={MultichainAccountActions}
-        />
-        <Stack.Screen
-          name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
-          component={MultichainAccountDetailsActions}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
