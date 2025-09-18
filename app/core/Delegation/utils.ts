@@ -249,4 +249,5 @@ function hashSignature(fn: string) {
  * const selector = toFunctionSelector('function ownerOf(uint256 tokenId)')
  * // 0x6352211e
  */
-export const toFunctionSelector = (fn: string): Hex => toHex(hashSignature(fn).subarray(0, 4));
+export const toFunctionSelector = (fn: string): Hex =>
+  toHex(hashSignature(fn).subarray(0, 4));
