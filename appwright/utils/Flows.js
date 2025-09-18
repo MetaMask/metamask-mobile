@@ -14,6 +14,7 @@ import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
 import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
+import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../app/components/Views/MultichainAccounts/IntroModal/MultichainAccountsIntroModal.testIds.ts';
 
 /**
  * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
@@ -155,6 +156,15 @@ export async function dismissGTMModal(device) {
   );
   if (await notNowButton.isVisible({ timeout: 2000 })) {
     await notNowButton.tap();
+  }
+}
+export async function dismissMultichainAccountsIntroModal(device) {
+  const closeButton = await AppwrightSelectors.getElementByID(
+    device,
+    MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
+  );
+  if (await closeButton.isVisible({ timeout: 2000 })) {
+    await closeButton.tap();
   }
 }
 
