@@ -10,6 +10,7 @@ import Engine from '../../../../core/Engine';
 import type { PointsBoostDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Logger from '../../../../util/Logger';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 /**
  * Custom hook to fetch and manage active points boosts data from the rewards API
@@ -72,33 +73,9 @@ export const useActivePointsBoosts = (): void => {
     fetchActivePointsBoosts();
   }, [fetchActivePointsBoosts]);
 
-  // Listen for account linked events to trigger refetch
-  useEffect(() => {
-    Engine.controllerMessenger.subscribe(
-      'RewardsController:accountLinked',
-      fetchActivePointsBoosts,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'RewardsController:accountLinked',
-        fetchActivePointsBoosts,
-      );
-    };
-  }, [fetchActivePointsBoosts]);
-
-  // Listen for reward claimed events to trigger refetch
-  useEffect(() => {
-    Engine.controllerMessenger.subscribe(
-      'RewardsController:rewardClaimed',
-      fetchActivePointsBoosts,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'RewardsController:rewardClaimed',
-        fetchActivePointsBoosts,
-      );
-    };
-  }, [fetchActivePointsBoosts]);
+  // Listen for events that should trigger a refetch of active boosts
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    fetchActivePointsBoosts,
+  );
 };

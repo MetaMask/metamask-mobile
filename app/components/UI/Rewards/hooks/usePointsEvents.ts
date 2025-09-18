@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine/Engine';
 import { PointsEventDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 export interface UsePointsEventsOptions {
   seasonId: string | undefined;
@@ -103,35 +104,11 @@ export const usePointsEvents = (
     }
   }, [seasonId, subscriptionId, fetchPointsEvents]);
 
-  // Listen for account linked events to trigger refetch
-  useEffect(() => {
-    Engine.controllerMessenger.subscribe(
-      'RewardsController:accountLinked',
-      refresh,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'RewardsController:accountLinked',
-        refresh,
-      );
-    };
-  }, [seasonId, subscriptionId, refresh]);
-
   // Listen for reward claimed events to trigger refetch
-  useEffect(() => {
-    Engine.controllerMessenger.subscribe(
-      'RewardsController:rewardClaimed',
-      refresh,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'RewardsController:rewardClaimed',
-        refresh,
-      );
-    };
-  }, [refresh]);
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    refresh,
+  );
 
   return {
     pointsEvents,

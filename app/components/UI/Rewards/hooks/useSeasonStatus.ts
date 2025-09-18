@@ -6,6 +6,7 @@ import { setSeasonStatusLoading } from '../../../../reducers/rewards';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 /**
  * Custom hook to fetch and manage season status data from the rewards API
@@ -47,33 +48,8 @@ export const useSeasonStatus = (): void => {
     fetchSeasonStatus();
   }, [fetchSeasonStatus]);
 
-  // Listen for account linked events to trigger refetch
-  useEffect(() => {
-    Engine.controllerMessenger.subscribe(
-      'RewardsController:accountLinked',
-      fetchSeasonStatus,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'RewardsController:accountLinked',
-        fetchSeasonStatus,
-      );
-    };
-  }, [fetchSeasonStatus]);
-
-  // Listen for reward claimed events to trigger refetch
-  useEffect(() => {
-    Engine.controllerMessenger.subscribe(
-      'RewardsController:rewardClaimed',
-      fetchSeasonStatus,
-    );
-
-    return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'RewardsController:rewardClaimed',
-        fetchSeasonStatus,
-      );
-    };
-  }, [fetchSeasonStatus]);
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    fetchSeasonStatus,
+  );
 };
