@@ -7,7 +7,7 @@ import { useSendType } from './useSendType';
 
 export const useContacts = () => {
   const addressBook = useSelector(selectAddressBook);
-  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { isEvmSendType, isSolanaSendType, isBitcoinSendType } = useSendType();
 
   const contacts = useMemo(() => {
     const flattenedContacts: RecipientType[] = [];
@@ -38,9 +38,21 @@ export const useContacts = () => {
           !contact.address.startsWith('0x') && contact.address.length >= 32
         );
       }
+      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      if (isBitcoinSendType) {
+        return contact.address.startsWith('bc');
+      }
+      /// END:ONLY_INCLUDE_IF
       return true;
     });
-  }, [addressBook, isEvmSendType, isSolanaSendType]);
+  }, [
+    addressBook,
+    isEvmSendType,
+    isSolanaSendType,
+    /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    isBitcoinSendType,
+    /// END:ONLY_INCLUDE_IF
+  ]);
 
   return contacts;
 };

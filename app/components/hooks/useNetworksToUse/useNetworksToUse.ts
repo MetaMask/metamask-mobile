@@ -1,11 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { KnownCaipNamespace } from '@metamask/utils';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
-import { SolScope } from '@metamask/keyring-api';
 import {
   useNetworksByCustomNamespace,
   NetworkType,
@@ -23,8 +19,6 @@ interface UseNetworksToUseReturn {
   evmNetworks: ProcessedNetwork[];
   solanaNetworks: ProcessedNetwork[];
   isMultichainAccountsState2Enabled: boolean;
-  selectedEvmAccount: InternalAccount | null;
-  selectedSolanaAccount: InternalAccount | null;
   areAllNetworksSelectedCombined: boolean;
   areAllEvmNetworksSelected: boolean;
   areAllSolanaNetworksSelected: boolean;
@@ -47,12 +41,6 @@ export const useNetworksToUse = ({
     selectMultichainAccountsState2Enabled,
   );
 
-  const selectedEvmAccount =
-    useSelector(selectSelectedInternalAccountByScope)(EVM_SCOPE) || null;
-
-  const selectedSolanaAccount =
-    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
-
   const {
     networks: evmNetworks,
     areAllNetworksSelected: areAllEvmNetworksSelected = false,
@@ -69,53 +57,58 @@ export const useNetworksToUse = ({
     namespace: KnownCaipNamespace.Solana,
   });
 
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const {
+    networks: bitcoinNetworks,
+    areAllNetworksSelected: areAllBitcoinNetworksSelected = false,
+  } = useNetworksByCustomNamespace({
+    networkType,
+    namespace: KnownCaipNamespace.Bip122,
+  });
+  ///: END:ONLY_INCLUDE_IF
+
   const networksToUse = useMemo(() => {
-    if (isMultichainAccountsState2Enabled) {
-      if (selectedEvmAccount && selectedSolanaAccount) {
-        if (evmNetworks && solanaNetworks) {
-          return [...evmNetworks, ...solanaNetworks];
-        } else if (evmNetworks) {
-          return evmNetworks;
-        } else if (solanaNetworks) {
-          return solanaNetworks;
-        }
-        return networks;
-      } else if (selectedEvmAccount) {
-        return evmNetworks || networks;
-      } else if (selectedSolanaAccount) {
-        return solanaNetworks || networks;
-      }
+    if (!isMultichainAccountsState2Enabled) {
       return networks;
     }
-    return networks;
+
+    return [
+      ...evmNetworks,
+      ...solanaNetworks,
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      ...bitcoinNetworks,
+      ///: END:ONLY_INCLUDE_IF
+    ];
   }, [
     isMultichainAccountsState2Enabled,
-    selectedEvmAccount,
-    selectedSolanaAccount,
     evmNetworks,
     solanaNetworks,
     networks,
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    bitcoinNetworks,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   const areAllNetworksSelectedCombined = useMemo(() => {
-    if (isMultichainAccountsState2Enabled) {
-      if (selectedEvmAccount && selectedSolanaAccount) {
-        return areAllEvmNetworksSelected && areAllSolanaNetworksSelected;
-      } else if (selectedEvmAccount) {
-        return areAllEvmNetworksSelected;
-      } else if (selectedSolanaAccount) {
-        return areAllSolanaNetworksSelected;
-      }
+    if (!isMultichainAccountsState2Enabled) {
       return areAllNetworksSelected || false;
     }
-    return areAllNetworksSelected || false;
+
+    return (
+      areAllEvmNetworksSelected &&
+      areAllSolanaNetworksSelected &&
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      areAllBitcoinNetworksSelected
+      ///: END:ONLY_INCLUDE_IF
+    );
   }, [
     isMultichainAccountsState2Enabled,
-    selectedEvmAccount,
-    selectedSolanaAccount,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
     areAllNetworksSelected,
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    areAllBitcoinNetworksSelected,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   return {
@@ -123,8 +116,6 @@ export const useNetworksToUse = ({
     evmNetworks,
     solanaNetworks,
     isMultichainAccountsState2Enabled,
-    selectedEvmAccount,
-    selectedSolanaAccount,
     areAllNetworksSelectedCombined,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
