@@ -4827,7 +4827,7 @@
     "earn_eth_rewards": "Kumita ng mga ETH reward.",
     "earn_eth_rewards_description": "Simulang kumita sa sandaling mag-stake ka. Awtomatikong dumadagdag ang mga reward.",
     "flexible_unstaking": "Flexible na pag-unstake.",
-    "flexible_unstaking_description": "Mag-unstake anumang oras. Karaniwang wala pang 3 araw ang itinatagal nito, pero maaaring abutin nang hanggang 11 araw para maproseso.",
+    "flexible_unstaking_description": "Mag-unstake anumang oras. Karaniwang wala pang 3 araw ang itinatagal nito, pero maaaring abutin nang hanggang 44 araw para maproseso.",
     "disclaimer": "Hindi iginagarantiya sa pag-stake ang mga reward, at may kasangkot na panganib kabilang ang pagkalugi ng mga pondo.",
     "learn_more": "Matuto pa",
     "got_it": "Nakuha ko",
@@ -4863,7 +4863,7 @@
       "geo_blocked": "Nasa isang rehiyon ka kung saan hindi pinahihintulutan ang pag-unstake o pag-stake.",
       "approximately": "humigit-kumulang"
     },
-    "unstake_input_banner_description": "Sa karaniwan, wala pang 3 araw para i-claim ang na-unstake na ETH, ngunit maaaring tumagal nang hanggang 11 araw.",
+    "unstake_input_banner_description": "Sa karaniwan, wala pang 3 araw para i-claim ang na-unstake na ETH, ngunit maaaring tumagal nang hanggang 44 araw.",
     "max": "Pinakamataas",
     "staking_from": "Pag-stake mula sa/kay",
     "advanced_details": "Advanced na mga detalye",
@@ -4887,7 +4887,7 @@
       }
     },
     "use_max": "Gamitin ang max",
-    "estimated_unstaking_time": "1 hanggang 11 araw",
+    "estimated_unstaking_time": "1 hanggang 44 araw",
     "proceed_anyway": "Magpatuloy pa rin",
     "gas_cost_impact": "Epekto ng gastos sa gas",
     "select_a_token_to_deposit": "Pumili ng token na idedeposito",

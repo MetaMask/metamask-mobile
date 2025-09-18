@@ -4827,7 +4827,7 @@
     "earn_eth_rewards": "Ganhe recompensas em ETH.",
     "earn_eth_rewards_description": "Comece a ganhar assim que fizer staking. As recompensas são automáticas e compostas.",
     "flexible_unstaking": "Retirada flexível de staking.",
-    "flexible_unstaking_description": "Retire do staking quando quiser. Normalmente, leva menos de 3 dias, mas pode levar até 11 dias para processar.",
+    "flexible_unstaking_description": "Retire do staking quando quiser. Normalmente, leva menos de 3 dias, mas pode levar até 44 dias para processar.",
     "disclaimer": "O staking não garante recompensas e envolve riscos, incluindo perda de fundos.",
     "learn_more": "Saiba mais",
     "got_it": "Entendi",
@@ -4863,7 +4863,7 @@
       "geo_blocked": "Você está localizado em uma região onde não é permitido retirar ou fazer staking.",
       "approximately": "aproximadamente"
     },
-    "unstake_input_banner_description": "Em média, leva menos de 3 dias para o ETH retirado de staking se tornar exigível, mas pode levar até 11 dias.",
+    "unstake_input_banner_description": "Em média, leva menos de 3 dias para o ETH retirado de staking se tornar exigível, mas pode levar até 44 dias.",
     "max": "Máx.",
     "staking_from": "Staking de",
     "advanced_details": "Detalhes avançados",
@@ -4887,7 +4887,7 @@
       }
     },
     "use_max": "Usar o máximo",
-    "estimated_unstaking_time": "1 a 11 dias",
+    "estimated_unstaking_time": "1 a 44 dias",
     "proceed_anyway": "Prosseguir mesmo assim",
     "gas_cost_impact": "Impacto no custo do gás",
     "select_a_token_to_deposit": "Selecione um token para depositar",

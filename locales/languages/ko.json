@@ -4827,7 +4827,7 @@
     "earn_eth_rewards": "ETH 보상 획득.",
     "earn_eth_rewards_description": "스테이킹하는 즉시 적립을 시작하세요. 보상은 복리로 자동 적립됩니다.",
     "flexible_unstaking": "유연한 언스테이킹.",
-    "flexible_unstaking_description": "언제든지 언스테이킹할 수 있습니다. 보통 3일 이내에 처리되지만, 최대 11일까지 소요될 수 있습니다.",
+    "flexible_unstaking_description": "언제든지 언스테이킹할 수 있습니다. 보통 3일 이내에 처리되지만, 최대 44일까지 소요될 수 있습니다.",
     "disclaimer": "스테이킹은 보상을 보장하지 않으며 자금 손실 등의 위험이 있습니다.",
     "learn_more": "더 보기",
     "got_it": "컨펌",
@@ -4863,7 +4863,7 @@
       "geo_blocked": "언스테이킹 또는 스테이킹이 허용되지 않는 지역에 거주하고 있습니다.",
       "approximately": "대략"
     },
-    "unstake_input_banner_description": "평균적으로 언스테이킹한 ETH를 받는 데는 3일 미만이 소요되지만, 최대 11일이 걸릴 수도 있습니다.",
+    "unstake_input_banner_description": "평균적으로 언스테이킹한 ETH를 받는 데는 3일 미만이 소요되지만, 최대 44일이 걸릴 수도 있습니다.",
     "max": "최대",
     "staking_from": "스테이킹 출처:",
     "advanced_details": "고급 세부 정보",
@@ -4887,7 +4887,7 @@
       }
     },
     "use_max": "최대 사용",
-    "estimated_unstaking_time": "1~11일",
+    "estimated_unstaking_time": "1~44일",
     "proceed_anyway": "계속 진행",
     "gas_cost_impact": "가스 비용 영향",
     "select_a_token_to_deposit": "예치할 토큰 선택",
