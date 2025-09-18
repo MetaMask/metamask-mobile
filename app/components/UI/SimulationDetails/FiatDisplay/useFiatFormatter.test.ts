@@ -40,6 +40,8 @@ describe('useFiatFormatter', () => {
     expect(formatFiat(new BigNumber(1000))).toBe('$1,000');
     expect(formatFiat(new BigNumber(500.5))).toBe('$500.50');
     expect(formatFiat(new BigNumber(0))).toBe('$0');
+    expect(formatFiat(new BigNumber(0.005))).toBe('<$0.01');
+    expect(formatFiat(new BigNumber(0.0049))).toBe('<$0.01');
   });
 
   it('should use the current locale and currency from the mocked functions', () => {
