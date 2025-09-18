@@ -38,7 +38,7 @@ class CreatePasswordScreen extends AppwrightGestures {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Enter a strong password"]');
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
       }
     }
   }
@@ -52,7 +52,7 @@ class CreatePasswordScreen extends AppwrightGestures {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Re-enter your password"]');
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');
       }
     }
   }
@@ -82,7 +82,7 @@ class CreatePasswordScreen extends AppwrightGestures {
       await Gestures.setValueWithoutTap(this.newPasswordInput, password);
     } else {
       const element = await this.newPasswordInput;
-      await element.fill(password);
+      await this.typeText(element, password); // Use inherited typeText method with retry logic
     }
   }
 
@@ -91,7 +91,7 @@ class CreatePasswordScreen extends AppwrightGestures {
       await Gestures.setValueWithoutTap(this.confirmPasswordInput, password);
     } else {
       const element = await this.confirmPasswordInput;
-      await element.fill(password);
+      await this.typeText(element, password); // Use inherited typeText method with retry logic
     }
   }
 

@@ -65,7 +65,7 @@ class AddAccountModal extends AppwrightGestures {
       const newAccountButton = await this.newAccountButton;
       await newAccountButton.waitForExist({ reverse: true });
     } else {
-      await this.tapElement(this.newAccountButton); // Use inherited tapElement method with retry logic
+      await this.tap(this.newAccountButton); // Use inherited tap method with retry logic
     }
   }
 
@@ -73,7 +73,7 @@ class AddAccountModal extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.importAccountButton);
     } else {
-      await this.tapElement(this.importAccountButton); // Use inherited tapElement method with retry logic
+      await this.tap(this.importAccountButton); // Use inherited tap method with retry logic
     }
   }
 
@@ -81,7 +81,7 @@ class AddAccountModal extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.importSrpButton);
     } else {
-      await this.tapElement(this.importSrpButton); // Use inherited tapElement method with retry logic
+      await this.tap(this.importSrpButton); // Use inherited tap method with retry logic
     }
   }
 
@@ -89,7 +89,7 @@ class AddAccountModal extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.createSolanaAccountButton);
     } else {
-      await this.tapElement(this.createSolanaAccountButton); // Use inherited tapElement method with retry logic
+      await this.tap(this.createSolanaAccountButton); // Use inherited tap method with retry logic
     }
   }
 
@@ -97,7 +97,7 @@ class AddAccountModal extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.createEthereumAccountButton);
     } else {
-      await this.tapElement(this.createEthereumAccountButton); // Use inherited tapElement method with retry logic
+      await this.tap(this.createEthereumAccountButton); // Use inherited tap method with retry logic
     }
   }
 
