@@ -30,7 +30,10 @@ import {
 import type { CandleData } from '../types';
 import { CandlePeriod } from '../constants/chartConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
+import {
+  DATA_LAKE_API_CONFIG,
+  PERPS_CONSTANTS,
+} from '../constants/perpsConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -73,6 +76,10 @@ import type {
 import { getEnvironment } from './utils';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { RemoteFeatureFlagControllerStateChangeEvent } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.d.cts';
+
+// Simple wait utility
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Error codes for PerpsController
@@ -670,6 +677,9 @@ export class PerpsController extends BaseController<
     // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
     // - Some might use different wallet patterns: new GMXProvider({ signer })
     // - Some might not need auth at all: new DydxProvider()
+
+    // Wait for WebSocket transport to be ready before marking as initialized
+    await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
 
     this.isInitialized = true;
     DevLogger.log('PerpsController: Providers initialized successfully', {
@@ -2338,5 +2348,13 @@ export class PerpsController extends BaseController<
 
       return { success: false, error: errorMessage };
     }
+  }
+
+  /**
+   * Check if the controller is currently reinitializing
+   * @returns true if providers are being reinitialized
+   */
+  public isCurrentlyReinitializing(): boolean {
+    return this.isReinitializing;
   }
 }
