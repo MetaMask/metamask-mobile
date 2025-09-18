@@ -11,11 +11,41 @@ declare module 'react-native-fast-crypto';
 declare module 'react-native-minimizer';
 
 declare module 'xhr2';
-declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
+declare module '@tommasini/react-native-scrollable-tab-view/DefaultTabBar' {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const content: React.FC<any>;
   export default content;
+}
+import { Component } from 'react';
+declare module '@tommasini/react-native-scrollable-tab-view' {
+  import { ViewStyle, Animated } from 'react-native';
+
+  interface TabBarProps {
+    tabs: string[];
+    activeTab: number;
+    goToPage: (page: number) => void;
+    scrollValue: Animated.Value;
+    containerWidth: number;
+    [key: string]: unknown;
+  }
+
+  interface ScrollableTabViewProps {
+    renderTabBar?: (props: TabBarProps) => React.ReactNode;
+    initialPage?: number;
+    onChangeTab?: (tab: ChangeTabProperties) => void;
+    children?: React.ReactNode;
+    contentProps?: unknown;
+    style?: ViewStyle;
+  }
+
+  export default class ScrollableTabView extends Component<ScrollableTabViewProps> {}
+
+  export interface ChangeTabProperties {
+    i: number;
+    ref: { props: { tabLabel: string } };
+    from?: number;
+  }
 }
 
 declare module '*.svg' {
@@ -30,7 +60,6 @@ declare module 'images/image-icons' {
 }
 
 declare module '*.png' {
-  import { ImageSourcePropType } from 'react-native';
   const content: ImageSourcePropType;
   export default content;
 }
@@ -293,9 +322,9 @@ declare module '@metamask/react-native-search-api';
 
 declare module 'react-native-progress/Bar' {
   import { BarPropTypes } from 'react-native-progress';
-  import React from 'react';
 
-  export default class ProgressBar extends React.Component<BarPropTypes> {}
+  const ProgressBar: typeof Component<BarPropTypes>;
+  export default ProgressBar;
 }
 
 /**

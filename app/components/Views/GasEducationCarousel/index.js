@@ -12,7 +12,8 @@ import StyledButton from '../../UI/StyledButton';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Text from '../../Base/Text';

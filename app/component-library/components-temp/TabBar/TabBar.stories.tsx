@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 
 // External dependencies.
 import TextComponent from '../../components/Texts/Text';

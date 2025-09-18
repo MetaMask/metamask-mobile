@@ -100,7 +100,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockOnChangeTab = jest.fn();
-jest.mock('react-native-scrollable-tab-view', () => ({
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({
     children,

@@ -12,7 +12,7 @@ import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
 import ScrollableTabView, {
   TabBarProps,
-} from 'react-native-scrollable-tab-view';
+} from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import {

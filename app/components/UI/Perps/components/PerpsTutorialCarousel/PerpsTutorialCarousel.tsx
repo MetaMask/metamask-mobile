@@ -7,7 +7,8 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,

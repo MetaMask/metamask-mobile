@@ -525,7 +525,6 @@
     "@types/react-native-background-timer": "^2.0.0",
     "@types/react-native-elevated-view": "^0.0.4",
     "@types/react-native-material-textfield": "^0.16.5",
-    "@types/react-native-scrollable-tab-view": "^0.10.3",
     "@types/react-native-svg-charts": "^5.0.12",
     "@types/react-native-vector-icons": "^6.4.13",
     "@types/react-native-video": "^5.0.14",

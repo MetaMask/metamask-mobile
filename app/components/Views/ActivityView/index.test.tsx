@@ -12,7 +12,7 @@ import * as networkManagerUtils from '../../UI/NetworkManager';
 import * as tokenBottomSheetUtils from '../../UI/Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 
-jest.mock('react-native-scrollable-tab-view', () => {
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
   const MockScrollableTabView = (props: {
     children?: unknown;
     [key: string]: unknown;

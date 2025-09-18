@@ -17348,16 +17348,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-native-scrollable-tab-view@npm:^0.10.3":
-  version: 0.10.3
-  resolution: "@types/react-native-scrollable-tab-view@npm:0.10.3"
-  dependencies:
-    "@types/react": "*"
-    "@types/react-native": "*"
-  checksum: 135d28e79bf9c4de9865ea6f7e89d027a0f4b400e13f7c535872950b26b64d1cd7b19d46ae8f93981637125e853a0450a9e7d41bc9f26e125cac0effa3b5d4d4
-  languageName: node
-  linkType: hard
-
 "@types/react-native-svg-charts@npm:^5.0.12":
   version: 5.0.12
   resolution: "@types/react-native-svg-charts@npm:5.0.12"
@@ -34049,7 +34039,6 @@ __metadata:
     "@types/react-native-background-timer": ^2.0.0
     "@types/react-native-elevated-view": ^0.0.4
     "@types/react-native-material-textfield": ^0.16.5
-    "@types/react-native-scrollable-tab-view": ^0.10.3
     "@types/react-native-svg-charts": ^5.0.12
     "@types/react-native-vector-icons": ^6.4.13
     "@types/react-native-video": ^5.0.14

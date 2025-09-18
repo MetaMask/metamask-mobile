@@ -2,7 +2,8 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 
 // External dependencies.
 import TextComponent from '../../components/Texts/Text';
@@ -10,8 +11,8 @@ import TextComponent from '../../components/Texts/Text';
 // Internal dependencies.
 import TabBar from './TabBar';
 
-// Mock react-native-scrollable-tab-view
-jest.mock('react-native-scrollable-tab-view', () => ({
+// Mock @tommasini/react-native-scrollable-tab-view
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({
     children,

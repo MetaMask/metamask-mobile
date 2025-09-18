@@ -1,5 +1,6 @@
 import { ImageSourcePropType } from 'react-native';
-import { TabBarProps } from 'react-native-scrollable-tab-view';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { TabBarProps } from '@tommasini/react-native-scrollable-tab-view';
 
 export interface Network {
   chainId: string;
