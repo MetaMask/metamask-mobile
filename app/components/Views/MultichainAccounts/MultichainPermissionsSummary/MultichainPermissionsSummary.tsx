@@ -66,7 +66,8 @@ import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
+import { RootState } from '../../../../reducers';
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -347,21 +348,17 @@ const MultichainPermissionsSummary = ({
     [accountGroups, selectedAccountGroupIds],
   );
 
-  const renderAccountAvatar = useCallback(
-    (accountGroup: AccountGroupObject) => {
-      const selectEvmAddress = useMemo(
-        () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
-        [accountGroup.id],
-      );
-      const evmAddress = useSelector(selectEvmAddress);
+  const iconSeedAddresses = useSelector((state: RootState) =>
+    selectIconSeedAddressesByAccountGroupIds(state, selectedAccountGroupIds),
+  );
 
-      return {
-        variant: AvatarVariant.Account as const,
-        accountAddress: evmAddress,
-        size: AvatarSize.Xs,
-      };
-    },
-    [selectIconSeedAddressByAccountGroupId],
+  const renderAccountAvatar = useCallback(
+    (accountGroup: AccountGroupObject) => ({
+      variant: AvatarVariant.Account as const,
+      accountAddress: iconSeedAddresses[accountGroup.id],
+      size: AvatarSize.Xs,
+    }),
+    [iconSeedAddresses],
   );
 
   function renderAccountPermissionsRequestInfoCard() {
@@ -399,9 +396,9 @@ const MultichainPermissionsSummary = ({
               </View>
               <View style={styles.avatarGroup}>
                 <AvatarGroup
-                  avatarPropsList={selectedAccountGroups.map((accountGroup) => {
-                    return renderAccountAvatar(accountGroup);
-                  })}
+                  avatarPropsList={selectedAccountGroups.map((accountGroup) =>
+                    renderAccountAvatar(accountGroup),
+                  )}
                 />
               </View>
             </View>
