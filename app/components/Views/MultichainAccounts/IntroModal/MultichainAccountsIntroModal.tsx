@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, View, StatusBar } from 'react-native';
 import {
   Text,
@@ -21,22 +21,48 @@ import { useStyles } from '../../../../component-library/hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import styleSheet from './MultichainAccountsIntroModal.styles';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './MultichainAccountsIntroModal.testIds';
+import Logger from '../../../../util/Logger';
+import Engine from '../../../../core/Engine';
 
 const MultichainAccountsIntroModal = () => {
   const { styles } = useStyles(styleSheet, { theme: useTheme() });
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [isAligning, setIsAligning] = useState(false);
 
   const handleClose = useCallback(() => {
     dispatch(setMultichainAccountsIntroModalSeen(true));
     navigation.goBack();
   }, [navigation, dispatch]);
 
-  const handleViewAccounts = useCallback(() => {
-    dispatch(setMultichainAccountsIntroModalSeen(true));
-    navigation.goBack();
-    navigation.navigate(...createAccountSelectorNavDetails({}));
-  }, [navigation, dispatch]);
+  const handleViewAccounts = useCallback(async () => {
+    if (isAligning) return;
+
+    setIsAligning(true);
+
+    try {
+      const timeoutPromise = new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), 2000);
+      });
+
+      const alignWalletsPromise =
+        Engine.context.MultichainAccountService.alignWallets();
+
+      // Use Promise.all to wait for both the alignment and the minimum timeout
+      await Promise.all([alignWalletsPromise, timeoutPromise]);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Error aligning wallet in multichain accounts intro modal',
+      );
+      // Still proceed to accounts even if alignment fails
+    } finally {
+      dispatch(setMultichainAccountsIntroModalSeen(true));
+      navigation.goBack();
+      navigation.navigate(...createAccountSelectorNavDetails({}));
+      setIsAligning(false);
+    }
+  }, [navigation, dispatch, isAligning]);
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -122,6 +148,8 @@ const MultichainAccountsIntroModal = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             onPress={handleViewAccounts}
+            loading={isAligning}
+            disabled={isAligning}
             testID={
               MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON
             }
