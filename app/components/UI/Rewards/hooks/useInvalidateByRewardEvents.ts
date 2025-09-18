@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import Engine from '../../../../core/Engine/Engine';
 
 // Define a generic type for reward events to ensure type safety
@@ -15,32 +15,20 @@ export const useInvalidateByRewardEvents = (
   events: RewardEvent[],
   callback: () => void,
 ): void => {
-  // Use refs to maintain stable references to events and callback
-  const eventsRef = useRef(events);
-  const callbackRef = useRef(callback);
-
-  // Update refs when props change
+  // Subscribe to events and clean up on unmount or when events change
   useEffect(() => {
-    eventsRef.current = events;
-    callbackRef.current = callback;
-  });
-
-  useEffect(() => {
-    const currentEvents = eventsRef.current;
-    const currentCallback = callbackRef.current;
-
     // Subscribe to each event in the provided array
-    currentEvents.forEach((event) => {
+    events.forEach((event) => {
       // @ts-expect-error - The event type is not assignable to the expected type
-      Engine.controllerMessenger.subscribe(event, currentCallback);
+      Engine.controllerMessenger.subscribe(event, callback);
     });
 
-    // Return a cleanup function to unsubscribe from all events when the component unmounts
+    // Return a cleanup function to unsubscribe from all events
     return () => {
-      currentEvents.forEach((event) => {
+      events.forEach((event) => {
         // @ts-expect-error - The event type is not assignable to the expected type
-        Engine.controllerMessenger.unsubscribe(event, currentCallback);
+        Engine.controllerMessenger.unsubscribe(event, callback);
       });
     };
-  }, []); // Empty dependency array means this effect runs only once
+  }, [events, callback]);
 };
