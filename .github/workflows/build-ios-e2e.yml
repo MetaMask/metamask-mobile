@@ -111,7 +111,7 @@ jobs:
         run: |
           FINGERPRINT=$(yarn -s fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: ${FINGERPRINT:0:16}..."
+          echo "Current fingerprint: ${FINGERPRINT}"
 
       - name: Check and restore cached app
         id: cache-restore
