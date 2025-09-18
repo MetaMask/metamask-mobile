@@ -223,6 +223,9 @@ jobs:
       id-token: write
     needs: [needs_e2e_build]
     uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'qa'
     secrets: inherit
 
   e2e-smoke-tests-android:

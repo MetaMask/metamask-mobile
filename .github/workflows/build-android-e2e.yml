@@ -15,6 +15,17 @@ on:
       sourcemap-uploaded:
         description: 'Whether the sourcemap was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
+    inputs:
+      build_type:
+        description: 'The type of build to perform'
+        required: true
+        default: 'main'
+        type: string
+      metamask_environment:
+        description: 'The environment to build for'
+        required: true
+        default: 'e2e'
+        type: string
 
 jobs:
   build-android-apks:
@@ -37,7 +48,7 @@ jobs:
           platform: android
           setup-simulator: false
           configure-keystores: true
-          target: qa
+          target: ${{ inputs.metamask_environment }}
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -60,17 +71,17 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      - name: Build Android E2E APKs
+      - name: Build Android ${inputs.build_type} APKs
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
-          yarn build:android:main:e2e
+          yarn build:android:${{ inputs.build_type }}:e2e
         shell: bash
         env:
           PLATFORM: android
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           IS_TEST: true
           E2E: "true"
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -89,16 +100,25 @@ jobs:
           FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
           FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_WRITE_KEY_FLASK: ${{ secrets.SEGMENT_WRITE_KEY_FLASK }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_PROXY_URL_FLASK: ${{ secrets.SEGMENT_PROXY_URL_FLASK }}
           SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_FLASK: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_FLASK }}
           SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_FLASK: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_FLASK }}
           MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
           MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
           MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_IOS_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_IOS_GOOGLE_CLIENT_ID_PROD }}
           MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          FLASK_IOS_GOOGLE_REDIRECT_URI_PROD: ${{ secrets.FLASK_IOS_GOOGLE_REDIRECT_URI_PROD }}
           MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_APPLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_APPLE_CLIENT_ID_PROD }}
           MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_CLIENT_ID_PROD }}
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD: ${{ secrets.FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
@@ -108,8 +128,8 @@ jobs:
         id: upload-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release.apk
-          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: android/app/build/outputs/apk/**/release/*.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -117,8 +137,8 @@ jobs:
         id: upload-test-apk
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release-androidTest.apk
-          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/**/*-androidTest.apk
           retention-days: 7
           if-no-files-found: error
 
@@ -126,8 +146,8 @@ jobs:
         id: upload-aab
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release.aab
-          path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.aab
+          path: android/app/build/outputs/bundle/*/*.aab
           retention-days: 7
           if-no-files-found: warn
         continue-on-error: true
