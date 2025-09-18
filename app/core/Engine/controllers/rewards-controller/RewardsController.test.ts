@@ -393,7 +393,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discountBips: 5.0,
+        discountBips: 500,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
@@ -445,7 +445,7 @@ describe('RewardsController', () => {
     it('should update store state when creating new account on first opt-in check', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discountBips: 12.0,
+        discountBips: 1200,
       });
 
       // Act - check account that doesn't exist in state
@@ -457,7 +457,7 @@ describe('RewardsController', () => {
       expect(newAccountState).toBeDefined();
       expect(newAccountState.account).toBe(CAIP_ACCOUNT_2);
       expect(newAccountState.hasOptedIn).toBe(true);
-      expect(newAccountState.perpsFeeDiscount).toBe(12.0);
+      expect(newAccountState.perpsFeeDiscount).toBe(1200);
       expect(newAccountState.subscriptionId).toBeNull();
       expect(newAccountState.lastPerpsDiscountRateFetched).toBeLessThanOrEqual(
         Date.now(),
@@ -467,7 +467,7 @@ describe('RewardsController', () => {
     it('should call data service for unknown accounts', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discountBips: 5.0,
+        discountBips: 500,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
@@ -482,7 +482,7 @@ describe('RewardsController', () => {
     it('should return true when data service indicates opted in', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discountBips: 10.0,
+        discountBips: 1000,
       });
 
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
@@ -803,7 +803,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discountBips: 10,
+        discountBips: 1000,
       });
 
       const result = await controller.getPerpsDiscountForAccount(
@@ -814,7 +814,7 @@ describe('RewardsController', () => {
         'RewardsDataService:getPerpsDiscount',
         { account: CAIP_ACCOUNT_1 },
       );
-      expect(result).toBe(10);
+      expect(result).toBe(1000);
     });
 
     it('should update store state with new discount value when fetching fresh data', async () => {
@@ -839,7 +839,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: true,
-        discountBips: 15.0,
+        discountBips: 1500,
       });
 
       // Act
@@ -848,10 +848,10 @@ describe('RewardsController', () => {
       );
 
       // Assert - verify state has been updated
-      expect(result).toBe(15.0);
+      expect(result).toBe(1500);
       const updatedAccountState = controller.state.accounts[CAIP_ACCOUNT_1];
       expect(updatedAccountState).toBeDefined();
-      expect(updatedAccountState.perpsFeeDiscount).toBe(15.0);
+      expect(updatedAccountState.perpsFeeDiscount).toBe(1500);
       expect(updatedAccountState.hasOptedIn).toBe(true);
       expect(updatedAccountState.lastPerpsDiscountRateFetched).toBeGreaterThan(
         staleTime,
@@ -861,7 +861,7 @@ describe('RewardsController', () => {
     it('should fetch discount for new accounts', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discountBips: 15.0,
+        discountBips: 1500,
       });
 
       const result = await controller.getPerpsDiscountForAccount(
@@ -872,13 +872,13 @@ describe('RewardsController', () => {
         'RewardsDataService:getPerpsDiscount',
         { account: CAIP_ACCOUNT_2 },
       );
-      expect(result).toBe(15.0);
+      expect(result).toBe(1500);
     });
 
     it('should update store state when creating new account on first discount check', async () => {
       mockMessenger.call.mockResolvedValue({
         hasOptedIn: false,
-        discountBips: 20.0,
+        discountBips: 2000,
       });
 
       // Act - check discount for account that doesn't exist in state
@@ -887,12 +887,12 @@ describe('RewardsController', () => {
       );
 
       // Assert - verify new account state was created with correct values
-      expect(result).toBe(20.0);
+      expect(result).toBe(2000);
       const newAccountState = controller.state.accounts[CAIP_ACCOUNT_3];
       expect(newAccountState).toBeDefined();
       expect(newAccountState.account).toBe(CAIP_ACCOUNT_3);
       expect(newAccountState.hasOptedIn).toBe(false);
-      expect(newAccountState.perpsFeeDiscount).toBe(20.0);
+      expect(newAccountState.perpsFeeDiscount).toBe(2000);
       expect(newAccountState.subscriptionId).toBeNull();
       expect(newAccountState.lastCheckedAuth).toBeGreaterThan(0);
       expect(newAccountState.lastPerpsDiscountRateFetched).toBeLessThanOrEqual(
