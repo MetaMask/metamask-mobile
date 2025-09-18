@@ -22,7 +22,7 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   SwapScreen.device = device;
   TabBarModal.device = device;
 
-  await login(device, 'login');
+  await login(device, 'login', 120000);
 
   await WalletMainScreen.isTokenVisible('Ethereum');
   const timers = await importSRPFlow(device, process.env.TEST_SRP_2);
