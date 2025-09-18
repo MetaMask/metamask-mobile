@@ -5898,13 +5898,13 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^18.4.0":
-  version "18.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-18.4.0.tgz#480daabce79b993a7d8e4c46af154d37218f75d3"
-  integrity sha512-mhtlt+yg2hu2BhENS5pwhB5ZwnFTcS/PdeivBUBKMyeZkMfVDU+xwQWnd66pjTbCz5mIlu6EjSuKd0vntqSBdQ==
+"@metamask/preferences-controller@^19.0.0":
+  version "19.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-19.0.0.tgz#3df75108bf7dabea2842a91992e52df20ad1d1e6"
+  integrity sha512-bYPxrd9VsUDe71qJCbnBX9VnaH45A3tIzmKp+vdHR1qTEi3Mxm5oYCZaonYUk9lqu2E+P1mF7Ia4LrswKKsjqw==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.10.0"
+    "@metamask/base-controller" "^8.1.0"
+    "@metamask/controller-utils" "^11.12.0"
 
 "@metamask/preinstalled-example-snap@^0.7.1":
   version "0.7.1"

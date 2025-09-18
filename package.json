@@ -275,7 +275,7 @@
     "@metamask/phishing-controller": "^13.1.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/ppom-validator": "^0.38.0",
-    "@metamask/preferences-controller": "^18.4.0",
+    "@metamask/preferences-controller": "^19.0.0",
     "@metamask/preinstalled-example-snap": "^0.7.1",
     "@metamask/profile-sync-controller": "^25.0.0",
     "@metamask/react-native-acm": "^1.0.1",
