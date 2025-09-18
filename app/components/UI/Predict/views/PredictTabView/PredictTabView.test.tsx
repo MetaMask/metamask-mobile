@@ -18,6 +18,10 @@ jest.mock('../../hooks/usePredictPositions', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictNotifications', () => ({
+  usePredictNotifications: jest.fn(() => ({})),
+}));
+
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
     styles: {
