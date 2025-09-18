@@ -2,9 +2,13 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
 import { expect as appwrightExpect } from 'appwright';
 
-class TermOfUseScreen {
+class TermOfUseScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
 
   get device() {
     return this._device;
@@ -12,6 +16,7 @@ class TermOfUseScreen {
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get container() {
@@ -80,7 +85,7 @@ class TermOfUseScreen {
       await Gestures.waitAndTap(this.checkbox);
     } else {
       const cb = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
-      await cb.tap();
+      await this.tap(cb); // Use inherited tap method with retry logic
     }
   }
 
@@ -89,7 +94,7 @@ class TermOfUseScreen {
       await Gestures.waitAndTap(this.scrollEndArrowButton);
     } else {
       const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
-      await button.tap();
+      await this.tap(button); // Use inherited tap method with retry logic
     }
   }
 
@@ -108,7 +113,7 @@ class TermOfUseScreen {
       await Gestures.tap(this.acceptButton);
     } else {
       const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
-      await button.tap();
+      await this.tap(button); // Use inherited tap method with retry logic
     }
   }
 }

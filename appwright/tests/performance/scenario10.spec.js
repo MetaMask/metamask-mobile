@@ -1,12 +1,8 @@
 import { test } from '../../fixtures/performance-test.js';
 
 import TimerHelper from '../../utils/TimersHelper.js';
-import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
-import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
-import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
-import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
-import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
+import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+
 import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
@@ -17,16 +13,11 @@ import PerpsTutorialScreen from '../../../wdio/screen-objects/PerpsTutorialScree
 import PerpsMarketListView from '../../../wdio/screen-objects/PerpsMarketListView.js';
 import PerpsTabView from '../../../wdio/screen-objects/PerpsTabView.js';
 import PerpsDepositScreen from '../../../wdio/screen-objects/PerpsDepositScreen.js';
-import { onboardingFlowImportSRP } from '../../utils/Flows.js';
+import { login } from '../../utils/Flows.js';
 
 async function screensSetup(device) {
   const screens = [
-    WelcomeScreen,
-    TermOfUseScreen,
-    OnboardingScreen,
-    CreateNewWalletScreen,
-    MetaMetricsScreen,
-    OnboardingSucessScreen,
+    LoginScreen,
     OnboardingSheet,
     ImportFromSeedScreen,
     CreatePasswordScreen,
@@ -49,7 +40,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
 }, testInfo) => {
   await screensSetup(device);
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
+  await login(device, 'login');
 
   await TabBarModal.tapActionButton();
 

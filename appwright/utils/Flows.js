@@ -15,28 +15,6 @@ import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
 import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
 
-/**
- * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
- * @param {Object} device - The device object from Appwright
- */
-export async function dismissSystemDialogs(device) {
-  if (!AppwrightSelectors.isAndroid(device)) {
-    console.log('system alerts are accepted as expected on android');
-    return;
-  }
-  try {
-    await AppwrightSelectors.dismissAlert(device);
-  } catch (error) {
-    // Ignore "no such alert" errors - this is normal when no dialogs are present
-    if (
-      !error.message.includes('no such alert') &&
-      !error.message.includes('modal dialog when one was not open')
-    ) {
-      console.log(`Alert dismissal error: ${error.message}`);
-    }
-  }
-}
-
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -79,7 +57,6 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSheet.tapNotNow();
 
   await WalletMainScreen.isMainWalletViewVisible();
-  await dismissSystemDialogs(device);
 }
 
 export async function importSRPFlow(device, srp) {
@@ -138,7 +115,6 @@ export async function login(device, scenarioType) {
   await LoginScreen.tapUnlockButton();
   await tapPerpsBottomSheetGotItButton(device);
   // Wait for app to settle after unlock
-  await dismissSystemDialogs(device);
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
   // Only skip perps onboarding on Android devices

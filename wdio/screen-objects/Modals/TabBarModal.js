@@ -1,17 +1,23 @@
 import Selectors from '../../helpers/Selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
 import { TabBarSelectorIDs } from '../../../e2e/selectors/wallet/TabBar.selectors';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
 import { expect as appwrightExpect } from 'appwright';
 
-class TabBarModal {
+class TabBarModal extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get walletButton() {
@@ -71,8 +77,8 @@ class TabBarModal {
       const walletIcon = await this.walletButton;
       await appwrightExpect(walletIcon).toBeVisible();
 
-      // For Appwright, we'll use a simpler approach
-      await walletIcon.tap();
+      // Use inherited tap method with retry logic
+      await this.tap(walletIcon);
     }
   }
 
@@ -81,7 +87,7 @@ class TabBarModal {
       await Gestures.waitAndTap(this.browserButton);
     } else {
       const browserIcon = await this.browserButton;
-      await browserIcon.tap();
+      await this.tap(browserIcon); // Use inherited tap method with retry logic
     }
   }
 
@@ -94,7 +100,7 @@ class TabBarModal {
     } else {
       const actionButton = await this.actionButton;
       await appwrightExpect(actionButton).toBeVisible();
-      await actionButton.tap();
+      await this.tap(actionButton); // Use inherited tap method with retry logic
     }
   }
 
@@ -104,7 +110,7 @@ class TabBarModal {
       await Gestures.waitAndTap(this.settingsButton);
     } else {
       const settingsButton = await this.settingsButton;
-      await settingsButton.tap();
+      await this.tap(settingsButton); // Use inherited tap method with retry logic
     }
   }
 
@@ -113,7 +119,7 @@ class TabBarModal {
       await Gestures.waitAndTap(this.activityButton);
     } else {
       const activityButton = await this.activityButton;
-      await activityButton.tap();
+      await this.tap(activityButton); // Use inherited tap method with retry logic
     }
   }
 }

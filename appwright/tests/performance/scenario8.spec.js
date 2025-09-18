@@ -20,7 +20,7 @@ import CommonScreen from '../../../wdio/screen-objects/CommonScreen.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import { login, dismissSystemDialogs } from '../../utils/Flows.js';
+import { login } from '../../utils/Flows.js';
 
 test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   device,
