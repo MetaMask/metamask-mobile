@@ -129,9 +129,10 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
       // Case: Global disconnect all from V2 context.
       else if (!account && !channelId) {
         const v2ConnectionIds = Object.keys(v2Connections || {});
-        for (const connId of v2ConnectionIds) {
-          await SDKConnectV2.disconnect(connId);
-        }
+        const promises = v2ConnectionIds.map((connId) =>
+          SDKConnectV2.disconnect(connId),
+        );
+        await Promise.all(promises);
       }
     } catch (error) {
       DevLogger.log('Failed to perform V2 disconnect action', error);

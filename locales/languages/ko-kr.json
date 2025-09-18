@@ -1576,5 +1576,15 @@
     "title": "KO KR CC",
     "language": "ko-kr",
     "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-ko-kr.vtt?raw=true"
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
+    }
   }
 }

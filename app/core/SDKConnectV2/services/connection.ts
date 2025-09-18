@@ -13,6 +13,7 @@ import { KVStore } from '../store/kv-store';
 import { Metadata } from '../types/metadata';
 import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
+import logger from './logger';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -30,18 +31,12 @@ export class Connection {
     this.bridge = new RPCBridgeAdapter(this);
 
     this.client.on('message', (payload) => {
-      console.warn(
-        `[SDKConnectV2] [Connection:${this.id}] Received message:`,
-        JSON.stringify(payload),
-      );
+      logger.debug('Received message:', this.id, payload);
       this.bridge.send(payload);
     });
 
     this.bridge.on('response', (payload) => {
-      console.warn(
-        `[SDKConnectV2] [Connection:${this.id}] Sending message:`,
-        JSON.stringify(payload),
-      );
+      logger.debug('Sending message:', this.id, payload);
       this.client.sendResponse(payload);
     });
   }
@@ -80,7 +75,6 @@ export class Connection {
    */
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
-    console.warn(`[SDKConnectV2] [Connection:${this.id}] Connected to dApp.`);
   }
 
   /**
@@ -88,9 +82,6 @@ export class Connection {
    */
   public async resume(): Promise<void> {
     await this.client.resume(this.id);
-    console.warn(
-      `[SDKConnectV2] [Connection:${this.id}] Resumed connection to dApp.`,
-    );
   }
 
   /**
@@ -99,6 +90,5 @@ export class Connection {
   public async disconnect(): Promise<void> {
     this.bridge.dispose();
     await this.client.disconnect();
-    console.warn(`[SDKConnectV2] [Connection:${this.id}] Disconnected.`);
   }
 }

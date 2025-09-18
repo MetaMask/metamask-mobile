@@ -1391,5 +1391,15 @@
   },
   "whats_new": {
     "title": "了解新功能"
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
+    }
   }
 }

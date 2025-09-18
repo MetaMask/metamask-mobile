@@ -5489,5 +5489,15 @@
   "time": {
     "minutes_format": "{{count}} minute",
     "minutes_format_plural": "{{count}} minutes"
+  },
+  "sdk_connect_v2": {
+    "show_loading": {
+      "title": "Connecting to dApp",
+      "description": "Establishing connection with {{dappName}}..."
+    },
+    "show_error": {
+      "title": "Connection Error",
+      "description": "Failed to establish connection. Please try again."
+    }
   }
 }

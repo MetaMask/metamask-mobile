@@ -8,6 +8,7 @@ import {
 import { IConnectionStore } from '../types/connection-store';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { Connection } from './connection';
+import logger from './logger';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -48,10 +49,6 @@ export class ConnectionRegistry {
    * One-time initialization to resume all persisted connections on app cold start.
    */
   private async initialize(): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] Initializing and resuming persisted connections...',
-    );
-
     const persisted = await this.store.list().catch(() => []);
 
     const promises = persisted.map(async (c) => {
@@ -63,11 +60,9 @@ export class ConnectionRegistry {
         );
         await conn.resume();
         this.connections.set(conn.id, conn);
+        logger.debug('Connection resumed', c.id);
       } catch (error) {
-        console.error(
-          `[SDKConnectV2] Failed to resume connection ${c.id}.`,
-          error,
-        );
+        logger.error('Failed to resume connection', c.id, error);
       }
     });
 
@@ -89,28 +84,26 @@ export class ConnectionRegistry {
   public handleConnectDeeplink: (url: string) => void;
 
   private async _handleConnectDeeplink(url: string): Promise<void> {
+    logger.debug('Handling connect deeplink: ', url);
+
     let conn: Connection | undefined;
+    let connreq: ConnectionRequest | undefined;
 
     try {
       const connreq = this.parseConnectionRequest(url);
-      this.hostapp.showLoading();
+      this.hostapp.showConnectionLoading(connreq);
       conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
       await conn.connect(connreq.sessionRequest);
       this.connections.set(conn.id, conn);
       await this.store.save({ id: conn.id, metadata: connreq.metadata });
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
-      console.warn(
-        `[SDKConnectV2] Connection with ${connreq.metadata.dapp.name} successfully established.`,
-      );
+      logger.debug('Handled connect deeplink.');
     } catch (error) {
-      console.error('[SDKConnectV2] Connection handshake failed:', error);
+      logger.error('Failed to handle connect deeplink:', error, url);
+      this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
-      this.hostapp.showAlert(
-        'Connection Error', // TODO use localizable strings
-        'The connection request failed. Please try again.', // TODO use localizable strings
-      );
     } finally {
-      this.hostapp.hideLoading();
+      if (connreq) this.hostapp.hideConnectionLoading(connreq);
     }
   }
 
@@ -125,6 +118,7 @@ export class ConnectionRegistry {
     this.connections.delete(id);
     this.hostapp.revokePermissions(id);
     this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+    logger.debug('Connection disconnected:', id);
   }
 
   /**
@@ -139,17 +133,17 @@ export class ConnectionRegistry {
 
     const payload = parsed.searchParams.get('p');
     if (!payload) {
-      throw new Error('[SDKConnectV2] No payload found in URL.');
+      throw new Error('No payload found in URL.');
     }
 
     if (payload.length > 1024 * 1024) {
-      throw new Error('[SDKConnectV2] Payload too large (max 1MB).');
+      throw new Error('Payload too large (max 1MB).');
     }
 
     const connreq: unknown = JSON.parse(payload);
 
     if (!isConnectionRequest(connreq)) {
-      throw new Error('[SDKConnectV2] Invalid connection request structure.');
+      throw new Error('Invalid connection request structure.');
     }
 
     return connreq;
@@ -191,11 +185,9 @@ export class ConnectionRegistry {
     const promises = connections.map((conn) =>
       conn.client
         .reconnect()
+        .then(() => logger.debug('Connection reconnected:', conn.id))
         .catch((err: Error) =>
-          console.error(
-            `[SDKConnectV2] Failed to reconnect connection ${conn.id}`,
-            err,
-          ),
+          logger.error('Failed to reconnect connection:', err, conn.id),
         ),
     );
 
