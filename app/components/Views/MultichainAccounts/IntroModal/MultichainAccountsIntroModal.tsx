@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, View, StatusBar } from 'react-native';
+import { ScrollView, View, StatusBar, ActivityIndicator } from 'react-native';
 import {
   Text,
   ButtonIcon,
@@ -25,10 +25,29 @@ import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 
 const MultichainAccountsIntroModal = () => {
-  const { styles } = useStyles(styleSheet, { theme: useTheme() });
+  const { styles, theme } = useStyles(styleSheet, { theme: useTheme() });
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [isAligning, setIsAligning] = useState(false);
+
+  // Custom label component that shows both text and loading spinner
+  const renderButtonLabel = () => {
+    if (isAligning) {
+      return (
+        <View style={styles.loadingButtonLabel}>
+          <ActivityIndicator
+            size="small"
+            color={theme.colors.info.inverse}
+            style={styles.loadingSpinner}
+          />
+          <Text variant={TextVariant.BodyMd} color={TextColor.InfoInverse}>
+            {strings('multichain_accounts.intro.setting_up_accounts')}
+          </Text>
+        </View>
+      );
+    }
+    return strings('multichain_accounts.intro.view_accounts_button');
+  };
 
   const handleClose = useCallback(() => {
     dispatch(setMultichainAccountsIntroModalSeen(true));
@@ -144,12 +163,11 @@ const MultichainAccountsIntroModal = () => {
         <View style={styles.buttonsContainer}>
           <Button
             variant={ButtonVariants.Primary}
-            label={strings('multichain_accounts.intro.view_accounts_button')}
+            label={renderButtonLabel()}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             onPress={handleViewAccounts}
-            loading={isAligning}
-            disabled={isAligning}
+            isDisabled={isAligning}
             testID={
               MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON
             }

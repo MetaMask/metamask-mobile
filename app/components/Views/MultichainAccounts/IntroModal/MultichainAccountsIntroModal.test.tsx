@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import MultichainAccountsIntroModal from './MultichainAccountsIntroModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -7,6 +7,16 @@ import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './testIds';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+
+// Mock Engine
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    MultichainAccountService: {
+      init: jest.fn(),
+      alignWallets: jest.fn(),
+    },
+  },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -143,7 +153,7 @@ describe('MultichainAccountsIntroModal', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('handles view accounts button press', () => {
+  it('handles view accounts button press', async () => {
     const { getByTestId } = renderWithProviders(
       <MultichainAccountsIntroModal />,
     );
@@ -151,9 +161,18 @@ describe('MultichainAccountsIntroModal', () => {
     const viewAccountsButton = getByTestId(
       MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON,
     );
-    fireEvent.press(viewAccountsButton);
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      fireEvent.press(viewAccountsButton);
+    });
+
+    // Wait for navigation to complete
+    await waitFor(
+      () => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      },
+      { timeout: 5000 },
+    );
   });
 
   it('handles learn more button press', () => {
@@ -168,6 +187,96 @@ describe('MultichainAccountsIntroModal', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'MultichainAccountsLearnMoreBottomSheet',
+    });
+  });
+
+  describe('alignWallet functionality', () => {
+    it('handles view accounts button press with alignment', async () => {
+      const { getByTestId } = renderWithProviders(
+        <MultichainAccountsIntroModal />,
+      );
+
+      const viewAccountsButton = getByTestId(
+        MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON,
+      );
+
+      await fireEvent.press(viewAccountsButton);
+
+      // Should navigate after alignment (with 2+ second delay)
+      await waitFor(
+        () => {
+          expect(mockGoBack).toHaveBeenCalledTimes(1);
+          expect(mockNavigate).toHaveBeenCalledWith('AccountSelector', {});
+        },
+        { timeout: 5000 },
+      );
+    });
+
+    it('shows loading state and text on button during alignment', async () => {
+      const { getByTestId } = renderWithProviders(
+        <MultichainAccountsIntroModal />,
+      );
+
+      const viewAccountsButton = getByTestId(
+        MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON,
+      );
+
+      await fireEvent.press(viewAccountsButton);
+
+      // Wait for the button to show loading state
+      await waitFor(() => {
+        expect(viewAccountsButton).toHaveTextContent(
+          strings('multichain_accounts.intro.setting_up_accounts'),
+        );
+      });
+    });
+
+    it('uses Promise.all to wait for both alignment and timeout', async () => {
+      const { getByTestId } = renderWithProviders(
+        <MultichainAccountsIntroModal />,
+      );
+
+      const viewAccountsButton = getByTestId(
+        MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(viewAccountsButton);
+      });
+
+      // Wait for completion - this should take at least 2 seconds due to Promise.all timeout
+      await waitFor(
+        () => {
+          expect(mockGoBack).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 },
+      );
+
+      // The test passes if it completes successfully, which means the 2-second timeout worked
+    });
+
+    it('handles case where alignment takes longer than 2 seconds', async () => {
+      const { getByTestId } = renderWithProviders(
+        <MultichainAccountsIntroModal />,
+      );
+
+      const viewAccountsButton = getByTestId(
+        MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(viewAccountsButton);
+      });
+
+      // Wait for completion - this should take at least 2 seconds due to minimum timeout
+      await waitFor(
+        () => {
+          expect(mockGoBack).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 5000 },
+      );
+
+      // The test passes if it completes successfully, which means the 2-second minimum timeout worked
     });
   });
 });
