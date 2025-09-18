@@ -54,7 +54,6 @@ function parseSelector(selector: MethodSelector) {
   } catch (rootError: unknown) {
     throw new Error(
       'Invalid selector: must be a 4 byte hex string or abi function signature',
-      { cause: rootError },
     );
   }
 }

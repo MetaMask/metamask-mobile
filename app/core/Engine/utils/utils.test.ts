@@ -66,6 +66,7 @@ import { multichainAccountServiceInit } from '../controllers/multichain-account-
 import { networkEnablementControllerInit } from '../controllers/network-enablement-controller/network-enablement-controller-init';
 import { rewardsControllerInit } from '../controllers/rewards-controller';
 import { RewardsController } from '../controllers/rewards-controller/RewardsController';
+import { DelegationControllerInit } from '../controllers/delegation/delegation-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -164,6 +165,7 @@ describe('initModularizedControllers', () => {
     networkEnablementControllerInit,
   );
   const mockRewardsControllerInit = jest.mocked(rewardsControllerInit);
+  const mockDelegationControllerInit = jest.mocked(DelegationControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -205,6 +207,7 @@ describe('initModularizedControllers', () => {
           BridgeController: mockBridgeControllerInit,
           BridgeStatusController: mockBridgeStatusControllerInit,
           RewardsController: mockRewardsControllerInit,
+          DelegationController: mockDelegationControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
