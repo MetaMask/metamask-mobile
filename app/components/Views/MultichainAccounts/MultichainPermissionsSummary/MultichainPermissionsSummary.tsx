@@ -355,7 +355,7 @@ const MultichainPermissionsSummary = ({
   const renderAccountAvatar = useCallback(
     (accountGroup: AccountGroupObject) => ({
       variant: AvatarVariant.Account as const,
-      accountAddress: iconSeedAddresses[accountGroup.id],
+      accountAddress: iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
       size: AvatarSize.Xs,
     }),
     [iconSeedAddresses],
