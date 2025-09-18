@@ -19,6 +19,23 @@ const mockDismissModal = jest.fn();
 const mockOnOpenBottomSheet = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 
+// Mock keyring API dependencies first to prevent import errors
+jest.mock('@metamask/keyring-utils', () => ({
+  definePattern: jest.fn(),
+}));
+
+jest.mock('@metamask/keyring-api', () => ({
+  BtcScope: {
+    Mainnet: 'btc:mainnet',
+    Testnet: 'btc:testnet',
+  },
+  SolScope: {
+    Mainnet: 'solana:mainnet',
+    Testnet: 'solana:testnet',
+    Devnet: 'solana:devnet',
+  },
+}));
+
 // Mock external dependencies
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');

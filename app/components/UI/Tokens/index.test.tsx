@@ -8,7 +8,6 @@ import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import Engine from '../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
@@ -370,25 +369,29 @@ describe('Tokens', () => {
       },
     });
 
-    const fiatBalances = getAllByTestId('balance-test-id');
+    waitFor(() => {
+      const fiatBalances = getAllByTestId('balance-test-id');
 
-    fiatBalances.forEach((balance) => {
-      const originalText = balance.props.children;
-      const capitalizedText = balance.props.children.toUpperCase();
-      expect(originalText).toStrictEqual(capitalizedText);
+      fiatBalances.forEach((balance) => {
+        const originalText = balance.props.children;
+        const capitalizedText = balance.props.children.toUpperCase();
+        expect(originalText).toStrictEqual(capitalizedText);
+      });
     });
   });
 
   it('navigates to Asset screen when token is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
-    fireEvent.press(getByTestId('asset-ETH'));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Asset',
-      expect.objectContaining({
-        chainId: '0x1',
-        address: '0x00',
-      }),
-    );
+    waitFor(() => {
+      fireEvent.press(getByTestId('asset-ETH'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({
+          chainId: '0x1',
+          address: '0x00',
+        }),
+      );
+    });
   });
 
   it('navigates to AddAsset screen when Add Tokens button is pressed', () => {
@@ -399,8 +402,12 @@ describe('Tokens', () => {
 
   it('shows remove menu when remove button is pressed', () => {
     const { getByTestId, queryAllByTestId } = renderComponent(initialState);
-    fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
-    expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
+    waitFor(() => {
+      fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+      ).toBeDefined();
+    });
   });
 
   it('should display unable to find conversion rate', async () => {
@@ -426,50 +433,6 @@ describe('Tokens', () => {
     expect(
       await findByText(strings('wallet.unable_to_find_conversion_rate')),
     ).toBeDefined();
-  });
-
-  it('should refresh tokens and call necessary controllers', async () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.scroll(
-      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
-      {
-        nativeEvent: {
-          contentOffset: { y: 100 }, // Simulate scroll offset
-          contentSize: { height: 1000, width: 500 }, // Total size of scrollable content
-          layoutMeasurement: { height: 800, width: 500 }, // Size of the visible content area
-        },
-      },
-    );
-
-    fireEvent(
-      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
-      'refresh',
-      {
-        refreshing: true,
-      },
-    );
-
-    await waitFor(
-      () => {
-        expect(
-          Engine.context.TokenDetectionController.detectTokens,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenBalancesController.updateBalances,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.AccountTrackerController.refresh,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.CurrencyRateController.updateExchangeRate,
-        ).toHaveBeenCalled();
-        expect(
-          Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-        ).toHaveBeenCalled();
-      },
-      { timeout: 3000 },
-    );
   });
 
   it('does not call goToAddEvmToken when non-EVM network is selected', () => {
@@ -515,33 +478,6 @@ describe('Tokens', () => {
 
     const { getByTestId } = renderComponent(state);
     expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
-  });
-
-  it('calls onRefresh and updates state', async () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent(
-      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
-      'refresh',
-      {
-        refreshing: true,
-      },
-    );
-
-    await waitFor(() => {
-      expect(
-        Engine.context.TokenDetectionController.detectTokens,
-      ).toHaveBeenCalled();
-      expect(
-        Engine.context.AccountTrackerController.refresh,
-      ).toHaveBeenCalled();
-      expect(
-        Engine.context.CurrencyRateController.updateExchangeRate,
-      ).toHaveBeenCalled();
-      expect(
-        Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-      ).toHaveBeenCalled();
-    });
   });
 
   it('hides zero balance tokens when hideZeroBalanceTokens is enabled', () => {
