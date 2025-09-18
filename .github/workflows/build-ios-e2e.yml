@@ -117,12 +117,25 @@ jobs:
         id: cache-restore
         uses: actions/cache@v4
         with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-            sourcemaps/ios/index.js.map
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
+
+      - name: Verify cache restoration
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          echo "🔍 Verifying cache restoration..."
+          if [ -d "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" ]; then
+            echo "✅ MetaMask.app found"
+            ls -la ios/build/Build/Products/Release-iphonesimulator/
+          else
+            echo "❌ MetaMask.app not found after cache restore"
+            echo "Cache hit was reported but app doesn't exist"
+            echo "Directory contents:"
+            ls -la ios/build/Build/Products/ 2>/dev/null || echo "Build products directory doesn't exist"
+            exit 1
+          fi
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
@@ -180,9 +193,7 @@ jobs:
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         uses: actions/cache@v4
         with:
-          path: |
-            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-            sourcemaps/ios/index.js.map
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       # Upload the iOS .app file that works in simulators
@@ -204,7 +215,7 @@ jobs:
           name: index.js.map
           path: sourcemaps/ios/index.js.map
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
         continue-on-error: true
 
       # Generate artifact download URL and display upload status summary

@@ -75,11 +75,32 @@ jobs:
           path: |
             android/app/build/outputs/apk/prod/release/app-prod-release.apk
             android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
-            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
-            sourcemaps/android/index.android.bundle.map
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
+            
+      - name: Log cache status
+        run: |
+          echo "🔍 Cache debugging info:"
+          echo "Cache hit: ${{ steps.cache-restore.outputs.cache-hit }}"
+          echo "Cache key used: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}"
+          echo "Fingerprint: ${{ steps.generate-fingerprint.outputs.fingerprint }}"
+          echo "PR number: ${{ github.event.pull_request.number || 'main' }}"
+
+      - name: Verify cache restoration
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          echo "🔍 Verifying cache restoration..."
+          if [ -f "android/app/build/outputs/apk/prod/release/app-prod-release.apk" ]; then
+            echo "✅ Main APK found"
+            ls -la android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          else
+            echo "❌ Main APK not found after cache restore"
+            echo "Cache hit was reported but file doesn't exist"
+            echo "Directory contents:"
+            ls -la android/app/build/outputs/ 2>/dev/null || echo "Build outputs directory doesn't exist"
+            exit 1
+          fi
 
       - name: Build Android E2E APKs
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
@@ -130,18 +151,60 @@ jobs:
         run: |
           echo "📦 Repacking APK with updated JavaScript..."
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
+          
+          # Verify APK exists and is readable
+          if [ ! -f "$APK_PATH" ]; then
+            echo "❌ Error: APK not found at $APK_PATH"
+            echo "Directory contents:"
+            ls -la android/app/build/outputs/ 2>/dev/null || echo "outputs dir doesn't exist"
+            exit 1
+          fi
+          
+          echo "📊 APK info before repacking:"
+          ls -la "$APK_PATH"
+          file "$APK_PATH"
 
           # Generate new JS bundle
           yarn gen-bundle:android
 
-          # Repack the APK with new bundle
+          # Create temp directory for repacking
           TEMP_DIR=$(mktemp -d)
-          unzip -q "$APK_PATH" -d "$TEMP_DIR"
+          echo "📁 Using temp directory: $TEMP_DIR"
+          
+          # Extract APK to temp directory
+          echo "📂 Extracting APK..."
+          unzip -q "$APK_PATH" -d "$TEMP_DIR" || {
+            echo "❌ Failed to extract APK"
+            exit 1
+          }
+          
+          # Replace the bundle
+          echo "📝 Replacing JavaScript bundle..."
           cp android/main.jsbundle "$TEMP_DIR/assets/index.android.bundle"
-          (cd "$TEMP_DIR" && zip -qr "$APK_PATH" .)
+          
+          # Create new APK (write to temp location first)
+          echo "📦 Creating new APK..."
+          NEW_APK="${TEMP_DIR}/repacked.apk"
+          (cd "$TEMP_DIR" && zip -qr "$NEW_APK" .) || {
+            echo "❌ Failed to create new APK"
+            exit 1
+          }
+          
+          # Move the new APK to replace the old one
+          echo "🔄 Replacing original APK..."
+          mv "$NEW_APK" "$APK_PATH" || {
+            echo "❌ Failed to replace APK"
+            echo "Check permissions on: $(dirname "$APK_PATH")"
+            ls -la "$(dirname "$APK_PATH")"
+            exit 1
+          }
+          
+          # Cleanup
           rm -rf "$TEMP_DIR" android/main.jsbundle
-
+          
           echo "✅ APK repacked successfully"
+          echo "📊 APK info after repacking:"
+          ls -la "$APK_PATH"
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
@@ -151,8 +214,6 @@ jobs:
           path: |
             android/app/build/outputs/apk/prod/release/app-prod-release.apk
             android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
-            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
-            sourcemaps/android/index.android.bundle.map
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
