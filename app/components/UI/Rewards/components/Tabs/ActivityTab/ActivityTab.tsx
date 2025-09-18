@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FlatList, ListRenderItem, ActivityIndicator } from 'react-native';
 import {
@@ -105,13 +105,17 @@ export const ActivityTab: React.FC = () => {
     seasonId: seasonId ?? undefined,
     subscriptionId: subscriptionId || '',
   });
-  const accountNames = useAccountNames(
-    pointsEvents.map((event) => ({
-      type: NameType.EthereumAddress,
-      value: event.accountAddress ?? '',
-      variation: '',
-    })),
+  const accountNameRequests = useMemo(
+    () =>
+      pointsEvents.map((event) => ({
+        type: NameType.EthereumAddress,
+        value: event.accountAddress ?? '',
+        variation: '',
+      })),
+    [pointsEvents],
   );
+
+  const accountNames = useAccountNames(accountNameRequests);
 
   const renderItem: ListRenderItem<PointsEventDto> = ({ item, index }) => (
     <ActivityEventRow event={item} accountName={accountNames?.[index]} />
