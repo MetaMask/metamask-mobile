@@ -74,7 +74,6 @@ import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import CardButton from '../Card/components/CardButton';
-import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -1867,7 +1866,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         onPress={() => navigation.dangerouslyGetParent()?.pop()}
         style={styles.closeButton}
       >
-        <Icon name={IconName.Close} size={ButtonIconSizes.Lg} />
+        <Icon name={IconName.Close} size={IconSize.Lg} />
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
