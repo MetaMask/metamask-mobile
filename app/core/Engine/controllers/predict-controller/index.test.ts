@@ -8,18 +8,21 @@ import {
 } from '../../../../components/UI/Predict/controllers/PredictController';
 import { predictControllerInit } from '.';
 
-jest.mock('../../../../components/UI/Predict/controllers', () => {
-  const actualPredictController = jest.requireActual(
-    '../../../../components/UI/Predict/controllers',
-  );
+jest.mock(
+  '../../../../components/UI/Predict/controllers/PredictController',
+  () => {
+    const actualPredictController = jest.requireActual(
+      '../../../../components/UI/Predict/controllers/PredictController',
+    );
 
-  return {
-    controllerName: actualPredictController.controllerName,
-    getDefaultPredictControllerState:
-      actualPredictController.getDefaultPredictControllerState,
-    PredictController: jest.fn(),
-  };
-});
+    return {
+      controllerName: actualPredictController.controllerName,
+      getDefaultPredictControllerState:
+        actualPredictController.getDefaultPredictControllerState,
+      PredictController: jest.fn(),
+    };
+  },
+);
 
 describe('predict controller init', () => {
   const predictControllerClassMock = jest.mocked(PredictController);
@@ -42,7 +45,9 @@ describe('predict controller init', () => {
 
   it('controller state should be default state when no initial state is passed in', () => {
     const defaultPredictControllerState = jest
-      .requireActual('../../../../components/UI/Predict/controllers')
+      .requireActual(
+        '../../../../components/UI/Predict/controllers/PredictController',
+      )
       .getDefaultPredictControllerState();
 
     predictControllerInit(initRequestMock);
