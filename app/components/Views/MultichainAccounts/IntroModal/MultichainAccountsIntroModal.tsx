@@ -77,9 +77,9 @@ const MultichainAccountsIntroModal = () => {
       // Still proceed to accounts even if alignment fails
     } finally {
       dispatch(setMultichainAccountsIntroModalSeen(true));
+      setIsAligning(false);
       navigation.goBack();
       navigation.navigate(...createAccountSelectorNavDetails({}));
-      setIsAligning(false);
     }
   }, [navigation, dispatch, isAligning]);
 

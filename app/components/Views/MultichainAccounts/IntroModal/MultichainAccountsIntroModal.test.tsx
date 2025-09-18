@@ -229,6 +229,14 @@ describe('MultichainAccountsIntroModal', () => {
           strings('multichain_accounts.intro.setting_up_accounts'),
         );
       });
+
+      // Wait for the operation to complete to avoid interfering with other tests
+      await waitFor(
+        () => {
+          expect(mockGoBack).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 3000 },
+      );
     });
 
     it('uses Promise.all to wait for both alignment and timeout', async () => {
