@@ -133,7 +133,6 @@ export type PerpsControllerState = {
 
   // Simple deposit state (transient, for UI feedback)
   depositInProgress: boolean;
-  // TODO: Update tests
   // Internal transaction id for the deposit transaction
   // We use this to fetch the bridge quotes and get the estimated time.
   lastDepositTransactionId: string | null;
