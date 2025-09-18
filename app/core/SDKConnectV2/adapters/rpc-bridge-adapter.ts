@@ -71,7 +71,7 @@ export class RPCBridgeAdapter
       const request = this.queue.shift();
 
       this.client.onMessage({
-        name: 'metamask-provider',
+        name: 'metamask-multichain-provider',
         data: request,
       });
     }
