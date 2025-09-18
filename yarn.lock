@@ -34199,7 +34199,7 @@ __metadata:
     react-native-render-html: ^6.3.4
     react-native-safe-area-context: ^5.4.0
     react-native-screens: 3.37.0
-    react-native-scrollable-tab-view: "ptomasroos/react-native-scrollable-tab-view#583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6"
+    react-native-scrollable-tab-view: "tommasini/react-native-scrollable-tab-view#1f3455141f552e44fcf7fa1198078090d7013537"
     react-native-sensors: 5.3.0
     react-native-share: 7.3.7
     react-native-size-matters: 0.4.0
@@ -39011,9 +39011,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-scrollable-tab-view@ptomasroos/react-native-scrollable-tab-view#583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6":
+"react-native-scrollable-tab-view@tommasini/react-native-scrollable-tab-view#1f3455141f552e44fcf7fa1198078090d7013537":
   version: 1.1.0
-  resolution: "react-native-scrollable-tab-view@https://github.com/ptomasroos/react-native-scrollable-tab-view.git#commit=583a66f7fd3eb2cac1a05c71d7167d78a8ad9de6"
+  resolution: "react-native-scrollable-tab-view@https://github.com/tommasini/react-native-scrollable-tab-view.git#commit=1f3455141f552e44fcf7fa1198078090d7013537"
   dependencies:
     "@react-native-community/viewpager": 3.3.0
     create-react-class: ^15.6.2
@@ -39022,7 +39022,7 @@ __metadata:
     react-timer-mixin: ^0.13.3
   peerDependencies:
     react-native: ">=0.20.0"
-  checksum: 46861cb3a175e984a9429c312ceee44e141c72219f21fd3f138acb955a93ad12043caef9f29ea519b397c4e80ac9da802456f627ba2784e657f33f1e4510f1c2
+  checksum: 787cf79d8706a12bc0fc1c2ef3f4ca98f3a344d2cff258698070d5dca1e44360df4be64f8b2f1c42ac60ba85ab0a03797773032d1c38411a6f430deb0459e02b
   languageName: node
   linkType: hard
 
