@@ -4948,7 +4948,7 @@
     "earn_eth_rewards": "ETHの報酬を獲得。",
     "earn_eth_rewards_description": "ステーキングすればすぐに収益が得られます。報酬は自動的に複利で支払われます。",
     "flexible_unstaking": "柔軟にステーキングを解除可能.",
-    "flexible_unstaking_description": "いつでもステーキングを解除できます。処理は通常3日以内で完了しますが、最大11日かかる場合もあります。",
+    "flexible_unstaking_description": "いつでもステーキングを解除できます。処理は通常3日以内で完了しますが、最大44日かかる場合もあります。",
     "disclaimer": "ステーキングは報酬を保証するものではなく、資金の喪失を含むリスクを伴います。",
     "learn_more": "詳細",
     "got_it": "了解",
