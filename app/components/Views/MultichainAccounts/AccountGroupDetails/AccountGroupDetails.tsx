@@ -181,6 +181,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
             size={AvatarSize.Xl}
             accountAddress={iconSeedAddress}
             type={accountAvatarType}
+            testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR}
           />
         </Box>
         <TouchableOpacity
