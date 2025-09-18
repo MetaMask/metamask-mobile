@@ -39,12 +39,9 @@ exports[`InfoAddress should match snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "center",
-          "backgroundColor": "#4459ff1a",
           "borderRadius": 99,
           "flexDirection": "row",
           "gap": 5,
-          "paddingLeft": 8,
-          "paddingRight": 8,
           "paddingVertical": 4,
         },
         undefined,
@@ -108,23 +105,31 @@ exports[`InfoAddress should match snapshot 1`] = `
         />
       </View>
     </View>
-    <Text
-      accessibilityRole="text"
-      ellipsizeMode="tail"
-      numberOfLines={1}
+    <View
       style={
         {
-          "color": "#4459ff",
-          "flexShrink": 1,
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "marginLeft": 4,
         }
       }
     >
-      Account 1
-    </Text>
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="tail"
+        numberOfLines={1}
+        style={
+          {
+            "color": "#121314",
+            "flexShrink": 1,
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Account 1
+      </Text>
+    </View>
   </View>
 </View>
 `;
