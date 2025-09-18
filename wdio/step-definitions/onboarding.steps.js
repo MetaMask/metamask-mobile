@@ -73,7 +73,8 @@ When(/^I tap "([^"]*)"/, async (text) => {
 
 Then(/^Wallet setup screen is displayed/, async () => {
   // await driver.pause(3000);
-  await OnboardingScreen.isScreenTitleVisible();
+  await expect(OnboardingScreen.createNewWalletButton).toBeDisplayed();
+  await expect(OnboardingScreen.existingWalletButton).toBeDisplayed();
 });
 
 When(/^I type (.*) in SRP field/, async (text) => {

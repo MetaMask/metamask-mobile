@@ -24,7 +24,6 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
@@ -367,7 +366,7 @@ class Onboarding extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { route, navigation } = this.props;
+    const { navigation } = this.props;
     navigation.setOptions({
       headerShown: false,
     });
@@ -815,9 +814,6 @@ class Onboarding extends PureComponent {
   renderContent() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const { existingUser } = this.state;
-    const { loading } = this.props;
-    const hasFooter = existingUser && !loading;
 
     return (
       <View style={styles.ctas}>
