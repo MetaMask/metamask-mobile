@@ -34,6 +34,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const pendingActiveIndex = useRef<number | null>(null);
+  const [hasValidDimensions, setHasValidDimensions] = useState(false);
+  const [isInitializedState, setIsInitializedState] = useState(false);
 
   // State for automatic overflow detection
   const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -43,8 +45,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
   useEffect(() => {
     tabLayouts.current = new Array(tabs.length);
     isInitialized.current = false;
+    setIsInitializedState(false);
     setScrollEnabled(false);
     setIsLayoutReady(false);
+    setHasValidDimensions(false);
     pendingActiveIndex.current = null;
     // Stop any ongoing animation when tabs change
     if (currentAnimation.current) {
@@ -56,8 +60,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
   // Improved animation function that handles race conditions
   const animateToTab = useCallback(
     (targetIndex: number) => {
-      // Animation optimized
-
       // Stop any ongoing animation
       if (currentAnimation.current) {
         currentAnimation.current.stop();
@@ -94,12 +96,23 @@ const TabsBar: React.FC<TabsBarProps> = ({
         underlineAnimated.setValue(activeTabLayout.x);
         underlineWidthAnimated.setValue(activeTabLayout.width);
         isInitialized.current = true;
+
+        // Use requestAnimationFrame to ensure state updates happen in the next frame
+        // This ensures the component re-renders with the updated state
+        requestAnimationFrame(() => {
+          setIsInitializedState(true);
+          setHasValidDimensions(true);
+          setIsLayoutReady(true);
+        });
       } else {
         // Cancel any existing animation immediately for rapid clicking
         if (currentAnimation.current) {
           (currentAnimation.current as Animated.CompositeAnimation).stop();
           currentAnimation.current = null;
         }
+
+        // Ensure hasValidDimensions is true for subsequent animations
+        setHasValidDimensions(true);
 
         // Always animate for subsequent tab changes, even if we're switching
         // to a tab that just got its layout measured
@@ -126,14 +139,19 @@ const TabsBar: React.FC<TabsBarProps> = ({
       }
 
       // Scroll to active tab if needed
-      if (scrollEnabled && scrollViewRef.current) {
+      if (scrollEnabled && scrollViewRef.current && containerWidth > 0) {
+        // Center the active tab in the visible area
+        const targetX = Math.max(
+          0,
+          activeTabLayout.x - containerWidth / 2 + activeTabLayout.width / 2,
+        );
         scrollViewRef.current.scrollTo({
-          x: Math.max(0, activeTabLayout.x - 50),
+          x: targetX,
           animated: true,
         });
       }
     },
-    [scrollEnabled, underlineAnimated, underlineWidthAnimated],
+    [scrollEnabled, underlineAnimated, underlineWidthAnimated, containerWidth],
   );
 
   // Force layout measurement after a short delay
@@ -173,6 +191,16 @@ const TabsBar: React.FC<TabsBarProps> = ({
     }
   }, [isLayoutReady, activeIndex, animateToTab]);
 
+  // Trigger animation when we have layout data
+  useEffect(() => {
+    if (activeIndex >= 0 && !isInitialized.current) {
+      // Check if we have layout data and trigger animation
+      if (tabLayouts.current[activeIndex]?.width > 0) {
+        animateToTab(activeIndex);
+      }
+    }
+  }, [activeIndex, animateToTab, tabs.length]);
+
   // Check if content overflows and update scroll state
   useEffect(() => {
     if (containerWidth > 0 && tabLayouts.current.length === tabs.length) {
@@ -208,12 +236,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
       // Validate input parameters
       if (typeof index !== 'number' || index < 0 || index >= tabs.length) {
-        // Invalid index parameters
         return;
       }
 
       if (typeof x !== 'number' || typeof width !== 'number' || width <= 0) {
-        // Invalid layout data
         return;
       }
 
@@ -224,7 +250,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
       // Store the wrapper dimensions directly
       tabLayouts.current[index] = { x, width };
-      // Stored layout for index
 
       // If this is the active tab, try to animate to it (handles both initialization and updates)
       if (index === activeIndex && activeIndex >= 0) {
@@ -320,8 +345,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
               />
             ))}
 
-            {/* Animated underline for scrollable tabs - only show if there's an active tab */}
-            {activeIndex >= 0 && (
+            {/* Animated underline for scrollable tabs - only show if there's an active tab and it's initialized */}
+            {activeIndex >= 0 && isInitializedState && hasValidDimensions && (
               <Animated.View
                 style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
                   width: underlineWidthAnimated,
@@ -349,8 +374,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
             />
           ))}
 
-          {/* Animated underline for non-scrollable tabs - only show if there's an active tab */}
-          {activeIndex >= 0 && (
+          {/* Animated underline for non-scrollable tabs - only show if there's an active tab and it's initialized */}
+          {activeIndex >= 0 && isInitializedState && hasValidDimensions && (
             <Animated.View
               style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
                 width: underlineWidthAnimated,

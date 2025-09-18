@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { Pressable, View } from 'react-native';
 
 // External dependencies.
@@ -27,30 +27,29 @@ const Tab: React.FC<TabProps> = ({
 
   // Tab rendering optimized
 
-  // Force layout measurement using requestAnimationFrame
-  useEffect(() => {
-    const forceLayout = () => {
-      if (viewRef.current && onLayout) {
-        viewRef.current.measure((x, y, width, height, _pageX, _pageY) => {
-          if (width > 0) {
-            const fakeLayoutEvent = {
-              nativeEvent: {
-                layout: { x, y, width, height },
-              },
-            } as Parameters<NonNullable<typeof onLayout>>[0];
-            onLayout(fakeLayoutEvent);
-          }
-        });
-      }
-    };
+  // Simple callback ref to store the view reference
+  const handleViewRef = useCallback((view: View | null) => {
+    // Store ref for other uses
+    if (viewRef.current !== view) {
+      Object.assign(viewRef, { current: view });
+    }
+  }, []);
 
-    // Use requestAnimationFrame instead of setTimeout
-    const frame = requestAnimationFrame(forceLayout);
-    return () => cancelAnimationFrame(frame);
-  }, [label, onLayout]);
+  const handleOnLayout = useCallback(
+    (layoutEvent: Parameters<NonNullable<typeof onLayout>>[0]) => {
+      if (onLayout) {
+        onLayout(layoutEvent);
+      }
+    },
+    [onLayout],
+  );
 
   return (
-    <View ref={viewRef} onLayout={onLayout} style={tw.style('flex-shrink-0')}>
+    <View
+      ref={handleViewRef}
+      onLayout={handleOnLayout}
+      style={tw.style('flex-shrink-0')}
+    >
       <Pressable
         style={tw.style(
           'px-0 py-1 flex-row items-center justify-center relative',
