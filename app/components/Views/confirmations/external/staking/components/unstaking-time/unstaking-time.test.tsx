@@ -7,6 +7,6 @@ describe('UnstakingTime', () => {
     const { getByText } = renderWithProvider(<UnstakingTime />);
 
     expect(getByText('Withdrawal time')).toBeDefined();
-    expect(getByText('1 to 11 days')).toBeDefined();
+    expect(getByText('1 to 44 days')).toBeDefined();
   });
 });
