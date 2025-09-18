@@ -21,6 +21,24 @@ const createStyles = (params: { theme: Theme }) =>
       borderTopWidth: 1,
       borderTopColor: params.theme.colors.border.muted,
     },
+    discountBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: params.theme.colors.warning.muted,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+      marginBottom: 12,
+      gap: 8,
+    },
+    feeValueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    strikethroughText: {
+      textDecorationLine: 'line-through',
+    },
   });
 
 export default createStyles;
