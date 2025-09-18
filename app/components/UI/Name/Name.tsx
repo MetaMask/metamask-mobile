@@ -9,6 +9,7 @@ import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
@@ -60,22 +61,23 @@ const UnknownEthereumAddress: React.FC<{
 
 const Name: React.FC<NameProperties> = ({
   preferContractSymbol,
+  style,
   type,
   value,
   variation,
-  style,
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
 
-  const { image, name, variant, isFirstPartyContractName } = useDisplayName({
-    preferContractSymbol,
-    type,
-    value,
-    variation,
-  });
+  const { accountWalletName, image, name, variant, isFirstPartyContractName } =
+    useDisplayName({
+      preferContractSymbol,
+      type,
+      value,
+      variation,
+    });
 
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: variant,
@@ -113,15 +115,27 @@ const Name: React.FC<NameProperties> = ({
             />
           ) : (
             <Identicon
+              avatarSize={AvatarSize.Md}
               address={value}
               diameter={16}
               imageUri={image}
               customStyle={styles.image}
             />
           )}
-          <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
-            {truncatedName}
-          </NameLabel>
+          <View style={styles.labelContainer}>
+            <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
+              {truncatedName}
+            </NameLabel>
+            {accountWalletName && (
+              <Text
+                numberOfLines={1}
+                color={TextColor.Alternative}
+                variant={TextVariant.BodySM}
+              >
+                {accountWalletName}
+              </Text>
+            )}
+          </View>
         </View>
       </Pressable>
       {isTooltipVisible && (

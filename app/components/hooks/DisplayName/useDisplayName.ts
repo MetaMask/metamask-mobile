@@ -4,6 +4,7 @@ import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useNftNames } from './useNftName';
 import { useAccountNames } from './useAccountNames';
+import { useAccountWalletNames } from './useAccountWalletNames';
 
 export interface UseDisplayNameRequest {
   preferContractSymbol?: boolean;
@@ -13,6 +14,7 @@ export interface UseDisplayNameRequest {
 }
 
 export interface UseDisplayNameResponse {
+  accountWalletName?: string;
   contractDisplayName?: string;
   image?: string;
   name?: string;
@@ -96,6 +98,7 @@ export function useDisplayNames(
   const erc20Tokens = useERC20Tokens(requests);
   const nftNames = useNftNames(requests);
   const accountNames = useAccountNames(requests);
+  const accountWalletNames = useAccountWalletNames(requests);
 
   return requests.map((_request, index) => {
     const watchedNftName = watchedNftNames[index];
@@ -104,6 +107,7 @@ export function useDisplayNames(
     const { name: nftCollectionName, image: nftCollectionImage } =
       nftNames[index] || {};
     const accountName = accountNames[index];
+    const accountWalletName = accountWalletNames[index];
 
     const name =
       accountName ||
@@ -118,6 +122,7 @@ export function useDisplayNames(
       firstPartyContractName !== undefined && firstPartyContractName !== null;
 
     return {
+      accountWalletName,
       contractDisplayName: erc20Token?.name,
       image,
       name,
