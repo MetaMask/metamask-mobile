@@ -79,7 +79,9 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
       : IconColor.Default;
   return (
     <Pressable
-      style={tw.style('items-center justify-center bg-transparent px-2 py-1')}
+      style={tw.style(
+        'items-center justify-center bg-transparent w-full px-2 py-1',
+      )}
       accessibilityLabel={label}
       accessible
       accessibilityRole="button"
@@ -109,8 +111,9 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
         <Text
           variant={TextVariant.BodyXSMedium}
           color={isActive ? TextColor.Default : TextColor.Alternative}
-          style={tw.style('mt-1')}
+          style={tw.style('mt-1 w-full flex-shrink-0 text-center min-w-0')}
           numberOfLines={1}
+          ellipsizeMode="tail"
         >
           {label}
         </Text>
