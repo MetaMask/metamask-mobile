@@ -564,32 +564,7 @@ class PerpsConnectionManagerClass {
     }
   }
 
-  /**
-   * Update persisted perps balances in controller state
-   * This is called when account or position data changes
-   */
-  private updatePerpsBalances(): void {
-    const now = Date.now();
-    // Throttle updates to prevent too frequent state changes
-    if (now - this.lastBalanceUpdateTime < this.balanceUpdateThrottleMs) {
-      return;
-    }
-
-    try {
-      const controller = Engine.context.PerpsController;
-      const currentAccount = controller.state.accountState;
-
-      if (currentAccount) {
-        // Update persisted balances
-        controller.updatePerpsBalances(currentAccount);
-        this.lastBalanceUpdateTime = now;
-
-        DevLogger.log('PerpsConnectionManager: Updated persisted balances');
-      }
-    } catch (error) {
-      DevLogger.log('PerpsConnectionManager: Failed to update balances', error);
-    }
-  }
+  // Balance persistence removed - portfolio balances now use live account data directly
 
   /**
    * Pre-load critical WebSocket subscriptions to populate cache
@@ -621,18 +596,9 @@ class PerpsConnectionManagerClass {
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
 
-      // Add subscriptions that update persisted balances for portfolio
-      // Account updates (includes totalValue and unrealizedPnl) - throttled
-      const balanceAccountCleanup = streamManager.account.subscribe({
-        callback: () => this.updatePerpsBalances(),
-        throttleMs: this.balanceUpdateThrottleMs,
-      });
+      // Portfolio balance updates are now handled by usePerpsPortfolioBalance via usePerpsLiveAccount
 
-      // Position updates (immediate, no throttling for actual position changes)
-      const balancePositionCleanup = streamManager.positions.subscribe({
-        callback: () => this.updatePerpsBalances(),
-        throttleMs: 0, // No throttling for position changes
-      });
+      // Position updates are no longer needed for balance persistence since we use live streams
       // Price channel prewarm is async and subscribes to all market prices
       const priceCleanup = await streamManager.prices.prewarm();
 
@@ -641,8 +607,6 @@ class PerpsConnectionManagerClass {
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
-        balanceAccountCleanup,
-        balancePositionCleanup,
         priceCleanup,
       );
 

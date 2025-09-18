@@ -113,10 +113,9 @@ export type PerpsControllerState = {
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Account data (persisted) - using HyperLiquid property names
-  positions: Position[];
   accountState: AccountState | null;
 
-  // Perps balances per provider for portfolio display
+  // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
     [provider: string]: {
       totalValue: string; // Current total account value (cash + positions) in USD
@@ -177,7 +176,6 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: __DEV__, // Default to testnet in dev
   connectionStatus: 'disconnected',
-  positions: [],
   accountState: null,
   perpsBalances: {},
   pendingOrders: [],
@@ -203,12 +201,6 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
  * State metadata for the PerpsController
  */
 const metadata = {
-  positions: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
   accountState: {
     includeInStateLogs: true,
     persist: true,
@@ -1187,22 +1179,6 @@ export class PerpsController extends BaseController<
 
       // Only update state if the provider call succeeded
       this.update((state) => {
-        state.positions = positions;
-        // Update perps balances if we have account state
-        if (state.accountState) {
-          const providerKey = this.state.activeProvider;
-          // Preserve existing historical data if available
-          const existingBalance = state.perpsBalances[providerKey];
-          state.perpsBalances[providerKey] = {
-            totalValue: state.accountState.totalValue || '0',
-            unrealizedPnl: state.accountState.unrealizedPnl || '0',
-            accountValue1dAgo:
-              existingBalance?.accountValue1dAgo ||
-              state.accountState.totalValue ||
-              '0',
-            lastUpdated: Date.now(),
-          };
-        }
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
@@ -1334,14 +1310,6 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.accountState = accountState;
-        // Update perps balances for the active provider
-        const providerKey = this.state.activeProvider;
-        state.perpsBalances[providerKey] = {
-          totalValue: accountState.totalValue || '0',
-          unrealizedPnl: accountState.unrealizedPnl || '0',
-          accountValue1dAgo: historicalPortfolioToUse.accountValue1dAgo || '0',
-          lastUpdated: Date.now(),
-        };
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
@@ -1805,30 +1773,7 @@ export class PerpsController extends BaseController<
     }
   }
 
-  /**
-   * Update perps balances for the current provider
-   * Called when account state changes
-   */
-  updatePerpsBalances(
-    accountState: AccountState,
-    accountValue1dAgo?: string,
-  ): void {
-    const providerKey = this.state.activeProvider;
-    this.update((state) => {
-      // Preserve existing historical data if not provided
-      const existingBalance = state.perpsBalances[providerKey];
-      state.perpsBalances[providerKey] = {
-        totalValue: accountState.totalValue || '0',
-        unrealizedPnl: accountState.unrealizedPnl || '0',
-        accountValue1dAgo:
-          accountValue1dAgo ||
-          existingBalance?.accountValue1dAgo ||
-          accountState.totalValue ||
-          '0',
-        lastUpdated: Date.now(),
-      };
-    });
-  }
+  // updatePerpsBalances removed - portfolio balances now use live data via usePerpsLiveAccount
 
   /**
    * Configure live data throttling
@@ -1917,7 +1862,6 @@ export class PerpsController extends BaseController<
 
       // Clear Redux state immediately to reset UI
       this.update((state) => {
-        state.positions = [];
         state.accountState = null;
         state.pendingOrders = [];
         state.lastError = null;

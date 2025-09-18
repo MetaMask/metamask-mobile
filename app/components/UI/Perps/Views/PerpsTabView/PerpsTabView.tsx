@@ -29,7 +29,6 @@ import {
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
-  usePerpsAccount,
   usePerpsConnection,
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
@@ -37,7 +36,7 @@ import {
   usePerpsPerformance,
   usePerpsLivePositions,
 } from '../../hooks';
-import { usePerpsLiveOrders } from '../../hooks/stream';
+import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
 import styleSheet from './PerpsTabView.styles';
@@ -68,7 +67,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { getAccountState } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   const hasTrackedHomescreen = useRef(false);
   const { startMeasure, endMeasure } = usePerpsPerformance();
@@ -113,7 +112,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       !hasTrackedHomescreen.current &&
       !isInitialLoading &&
       positions &&
-      cachedAccountState?.totalBalance !== undefined
+      account?.totalBalance !== undefined
     ) {
       // Track position data loaded performance
       endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
@@ -129,19 +128,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               : PerpsEventValues.DIRECTION.SHORT,
         })),
         [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: parseFloat(
-          cachedAccountState.totalBalance,
+          account.totalBalance,
         ),
       });
 
       hasTrackedHomescreen.current = true;
     }
-  }, [
-    isInitialLoading,
-    positions,
-    cachedAccountState?.totalBalance,
-    track,
-    endMeasure,
-  ]);
+  }, [isInitialLoading, positions, account?.totalBalance, track, endMeasure]);
 
   const handleManageBalancePress = useCallback(() => {
     if (!isEligible) {
