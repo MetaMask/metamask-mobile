@@ -73,7 +73,12 @@ const CheckoutWebView = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(navigation, {}, colors, handleCancelPress),
+      getFiatOnRampAggNavbar(
+        navigation,
+        { title: provider.name },
+        colors,
+        handleCancelPress,
+      ),
     );
   }, [navigation, colors, handleCancelPress, provider.name]);
 

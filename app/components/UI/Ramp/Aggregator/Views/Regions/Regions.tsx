@@ -90,6 +90,11 @@ const RegionsView = () => {
       getFiatOnRampAggNavbar(
         navigation,
         {
+          title: strings(
+            isBuy
+              ? 'fiat_on_ramp_aggregator.region.buy_crypto_tokens'
+              : 'fiat_on_ramp_aggregator.region.sell_crypto_tokens',
+          ),
           showBack: false,
         },
         colors,

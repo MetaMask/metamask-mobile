@@ -546,7 +546,12 @@ function Quotes() {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(navigation, {}, theme.colors, handleCancelPress),
+      getFiatOnRampAggNavbar(
+        navigation,
+        { title: strings('fiat_on_ramp_aggregator.select_a_quote') },
+        theme.colors,
+        handleCancelPress,
+      ),
     );
   }, [navigation, theme.colors, handleCancelPress]);
 
