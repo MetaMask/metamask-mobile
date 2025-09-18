@@ -452,6 +452,51 @@ describe('PerpsController', () => {
         });
       });
 
+      it('handles non-array input to setBlockedRegionList gracefully', () => {
+        withController(
+          ({ controller }) => {
+            // Initially should have fallback regions
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['US', 'CA-ON'],
+              source: 'fallback',
+            });
+
+            // Test with various non-array inputs
+            const invalidInputs = [
+              null,
+              undefined,
+              'not-an-array',
+              123,
+              { not: 'array' },
+              true,
+            ];
+
+            invalidInputs.forEach((invalidInput) => {
+              // @ts-ignore - Call private method with invalid input for testing
+              controller.setBlockedRegionList(invalidInput as any, 'remote');
+
+              // Should still have original fallback regions (no change)
+              // @ts-ignore - Accessing private property for testing
+              expect(controller.blockedRegionList).toEqual({
+                list: ['US', 'CA-ON'],
+                source: 'fallback',
+              });
+            });
+
+            // Verify array input still works
+            // @ts-ignore - Call private method for testing
+            controller.setBlockedRegionList(['TEST'], 'remote');
+            // @ts-ignore - Accessing private property for testing
+            expect(controller.blockedRegionList).toEqual({
+              list: ['TEST'],
+              source: 'remote',
+            });
+          },
+          { clientConfig: { fallbackBlockedRegions: ['US', 'CA-ON'] } },
+        );
+      });
+
       it('handles missing remote feature flag gracefully', () => {
         withController(
           ({ controller, messenger }) => {
@@ -1702,6 +1747,59 @@ describe('PerpsController', () => {
       });
     });
 
+    it('should handle all user cancellation message variants', async () => {
+      const cancellationMessages = [
+        'User denied transaction signature',
+        'User rejected the request',
+        'User cancelled the operation',
+        'User canceled the transaction', // American spelling
+      ];
+
+      const mockDepositRoute: AssetRoute = {
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+        chainId: 'eip155:42161' as CaipChainId,
+        contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+      };
+
+      await withController(async ({ controller }) => {
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        // Test each cancellation message variant
+        for (const message of cancellationMessages) {
+          const mockError = new Error(message);
+          let rejectedPromise: Promise<string>;
+          (
+            mockEngineContext.TransactionController.addTransaction as jest.Mock
+          ).mockImplementation(() => {
+            rejectedPromise = Promise.reject(mockError);
+            rejectedPromise.catch(() => {
+              /* ignore */
+            });
+            return {
+              result: rejectedPromise,
+              transactionMeta: {
+                id: 'deposit-tx-456',
+              },
+            };
+          });
+
+          // Act & Assert
+          const { result } = await controller.depositWithConfirmation();
+          await expect(result).rejects.toBe(mockError);
+
+          // Verify user cancellation handling - no error state should be set
+          expect(controller.state.lastDepositResult).toBeNull();
+          expect(controller.state.depositInProgress).toBe(false);
+          expect(controller.state.lastDepositTransactionId).toBeNull();
+        }
+      });
+    });
+
     it('should handle deposit transaction failure', async () => {
       await withController(async ({ controller }) => {
         // Arrange
@@ -2001,6 +2099,37 @@ describe('PerpsController', () => {
         await controller.disconnect();
 
         expect(mockHyperLiquidProvider.disconnect).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle error when getting provider during disconnect', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+        await controller.initializeProviders();
+
+        // Clear providers to force getActiveProvider to throw
+        // @ts-ignore - Accessing private property for testing
+        controller.providers.clear();
+
+        // Act - disconnect should handle the error gracefully
+        await controller.disconnect();
+
+        // Assert - should log error but not crash
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message:
+              'PerpsController: Error getting provider during disconnect',
+            context: 'PerpsController.disconnect',
+          }),
+        );
+
+        // Verify initialization state was still reset
+        // @ts-ignore - Accessing private property for testing
+        expect(controller.isInitialized).toBe(false);
+        // @ts-ignore - Accessing private property for testing
+        expect(controller.initializationPromise).toBeNull();
       });
     });
 
@@ -4232,6 +4361,138 @@ describe('PerpsController', () => {
             "withdrawInProgress": false,
           }
         `);
+      });
+    });
+
+    describe('constructor error handling', () => {
+      it('should handle initializeProviders error gracefully', async () => {
+        // Mock the initializeProviders to throw during construction
+        const originalInitialize =
+          PerpsController.prototype.initializeProviders;
+        PerpsController.prototype.initializeProviders = jest
+          .fn()
+          .mockRejectedValue(new Error('Provider initialization failed'));
+
+        // Create a new messenger for this test to avoid conflicts
+        const messenger = new Messenger<any, any>();
+        messenger.subscribe = jest.fn();
+
+        // Create controller instance which will trigger the error in constructor
+        new PerpsController({
+          messenger: messenger as any,
+          state: getDefaultPerpsControllerState(),
+        });
+
+        // Wait for the async constructor error handling
+        await new Promise<void>((resolve) => setTimeout(resolve, 10));
+
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: 'PerpsController: Error initializing providers',
+            context: 'PerpsController.constructor',
+            timestamp: expect.any(String),
+          }),
+        );
+
+        // Restore original method
+        PerpsController.prototype.initializeProviders = originalInitialize;
+      });
+    });
+
+    describe('calculateUserFeeDiscount edge cases', () => {
+      it('should handle missing EVM account gracefully', async () => {
+        // Mock getEvmAccountFromSelectedAccountGroup to return undefined
+        (
+          getEvmAccountFromSelectedAccountGroup as jest.Mock
+        ).mockReturnValueOnce(undefined);
+
+        withController(async ({ controller }) => {
+          // @ts-ignore - accessing private method for testing
+          const discount = await controller.calculateUserFeeDiscount();
+
+          expect(discount).toBeUndefined();
+
+          // Verify the DevLogger was called with no EVM account message
+          const DevLogger = jest.requireMock(
+            '../../../../core/SDKConnect/utils/DevLogger',
+          ).DevLogger;
+          expect(DevLogger.log).toHaveBeenCalledWith(
+            'PerpsController: No EVM account found for fee discount',
+          );
+        });
+      });
+    });
+
+    describe('placeOrder error cleanup', () => {
+      it('should clear fee discount context on order placement error', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '1.0',
+          orderType: 'market' as const,
+        };
+
+        withController(async ({ controller }) => {
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+          mockHyperLiquidProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          mockHyperLiquidProvider.setUserFeeDiscount = jest.fn();
+
+          await controller.initializeProviders();
+
+          await expect(controller.placeOrder(orderParams)).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          // Verify fee discount was cleared on error
+          expect(
+            mockHyperLiquidProvider.setUserFeeDiscount,
+          ).toHaveBeenCalledWith(undefined);
+        });
+      });
+
+      it('should handle error during fee discount cleanup', async () => {
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '1.0',
+          orderType: 'market' as const,
+        };
+
+        withController(async ({ controller }) => {
+          mockHyperLiquidProvider.initialize.mockResolvedValue({
+            success: true,
+          });
+          mockHyperLiquidProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          // Make setUserFeeDiscount throw during cleanup
+          mockHyperLiquidProvider.setUserFeeDiscount = jest
+            .fn()
+            .mockImplementation(() => {
+              throw new Error('Cleanup failed');
+            });
+
+          await controller.initializeProviders();
+
+          await expect(controller.placeOrder(orderParams)).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          // Verify cleanup error was logged
+          expect(Logger.error).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.objectContaining({
+              message:
+                'PerpsController: Failed to clear fee discount during error cleanup',
+              context: 'PerpsController.placeOrder',
+            }),
+          );
+        });
       });
     });
   });
