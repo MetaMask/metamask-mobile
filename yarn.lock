@@ -5141,15 +5141,6 @@
     "@metamask/base-controller" "^8.1.0"
     "@metamask/utils" "^11.4.2"
 
-"@metamask/delegation-core@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/delegation-core/-/delegation-core-0.2.0.tgz#94db8748983742e2db79a6d649e80d76c3c7d471"
-  integrity sha512-leP40qoxhTmexfeY/neZ9XkhmUiq8fHh3ax4wmmTB5CG6VuXStn2LzLz875RiBtjwU3c4IqaZljxvwC1dUuWVw==
-  dependencies:
-    "@metamask/abi-utils" "^3.0.0"
-    "@metamask/utils" "^11.4.0"
-    "@noble/hashes" "^1.8.0"
-
 "@metamask/delegation-deployments@^0.12.0":
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/@metamask/delegation-deployments/-/delegation-deployments-0.12.0.tgz#d2c33ca7901326df71382b340cc4017b38db7c73"
