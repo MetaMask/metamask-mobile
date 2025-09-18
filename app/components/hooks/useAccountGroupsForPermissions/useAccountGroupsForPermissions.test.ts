@@ -566,8 +566,14 @@ describe('useAccountGroupsForPermissions', () => {
       requestedNamespacesWithoutWallet,
     );
 
-    expect(result.current.connectedAccountGroups).toHaveLength(1);
-    expect(result.current.connectedAccountGroups[0].id).toBe(MOCK_GROUP_ID_2);
+    // When not connected but fulfills requested accounts, should be in supportedAccountGroups
+    expect(result.current.connectedAccountGroups).toHaveLength(0);
+    expect(result.current.supportedAccountGroups).toHaveLength(2);
+    expect(result.current.supportedAccountGroups[0].id).toBe(MOCK_GROUP_ID_2);
+    expect(result.current.updatedCaipAccountIdsToConnect).toHaveLength(1);
+    expect(result.current.updatedCaipAccountIdsToConnect[0]).toBe(
+      `eip155:1:${mockEvmAccount2.address}`,
+    );
   });
 
   it('includes account group when isConnected=true and fulfillsRequestedAccounts=true', () => {
@@ -625,9 +631,17 @@ describe('useAccountGroupsForPermissions', () => {
       requestedNamespacesWithoutWallet,
     );
 
-    expect(result.current.connectedAccountGroups).toHaveLength(2);
-    expect(result.current.connectedAccountGroups[0].id).toBe(MOCK_GROUP_ID_2);
-    expect(result.current.connectedAccountGroups[1].id).toBe(MOCK_GROUP_ID_1);
+    // Group 1 is connected (has existing permission), Group 2 fulfills requested accounts but isn't connected
+    expect(result.current.connectedAccountGroups).toHaveLength(1);
+    expect(result.current.connectedAccountGroups[0].id).toBe(MOCK_GROUP_ID_1);
+    expect(result.current.updatedCaipAccountIdsToConnect).toHaveLength(1);
+    expect(result.current.updatedCaipAccountIdsToConnect[0]).toBe(
+      `eip155:1:${mockEvmAccount2.address}`,
+    );
+
+    // Group 2 should be first in supported groups because it fulfills requested accounts
+    expect(result.current.supportedAccountGroups).toHaveLength(2);
+    expect(result.current.supportedAccountGroups[0].id).toBe(MOCK_GROUP_ID_2);
   });
 
   it('includes account group when isSupported=true and fulfillsRequestedAccounts=false', () => {

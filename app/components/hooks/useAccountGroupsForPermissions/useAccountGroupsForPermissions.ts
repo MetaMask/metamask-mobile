@@ -132,6 +132,8 @@ export const useAccountGroupsForPermissions = (
     // Priority groups are groups that fulfill the requested account IDs and should be shown first
     const priorityConnectedGroups: AccountGroupWithInternalAccounts[] = [];
     const prioritySupportedGroups: AccountGroupWithInternalAccounts[] = [];
+    const updatedAccountGroupsToConnect: AccountGroupWithInternalAccounts[] =
+      [];
 
     accountGroups.forEach((accountGroup) => {
       const isConnected = hasConnectedAccounts(
@@ -147,9 +149,10 @@ export const useAccountGroupsForPermissions = (
         requestedCaipAccountIds,
       );
 
-      if (isConnected || fulfillsRequestedAccounts) {
+      if (isConnected) {
         if (fulfillsRequestedAccounts) {
           priorityConnectedGroups.push(accountGroup);
+          updatedAccountGroupsToConnect.push(accountGroup);
         } else {
           connectedAccountGroups.push(accountGroup);
         }
@@ -157,6 +160,7 @@ export const useAccountGroupsForPermissions = (
       if (isSupported || fulfillsRequestedAccounts) {
         if (fulfillsRequestedAccounts) {
           prioritySupportedGroups.push(accountGroup);
+          updatedAccountGroupsToConnect.push(accountGroup);
         } else if (isSupported) {
           supportedAccountGroups.push(accountGroup);
         }
@@ -168,7 +172,7 @@ export const useAccountGroupsForPermissions = (
     const updatedCaipAccountIdsToConnect = Array.from(
       new Set([
         ...getCaip25AccountFromAccountGroupAndScope(
-          [...priorityConnectedGroups, ...connectedAccountGroups],
+          updatedAccountGroupsToConnect,
           requestedCaipChainIds,
         ),
       ]),
