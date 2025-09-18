@@ -5,7 +5,8 @@ import {
   FontWeight,
   Text,
   TextVariant,
- ButtonBase } from '@metamask/design-system-react-native';
+  ButtonBase,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Avatar, {
   AvatarSize,
@@ -60,7 +61,7 @@ export function Recipient({
       }
       onPress={handlePressRecipient}
     >
-      <Box twClassName="flex-row items-center h-12">
+      <Box twClassName="flex-row items-center">
         <Box twClassName="h-12 justify-center">
           <Avatar
             variant={AvatarVariant.Account}
