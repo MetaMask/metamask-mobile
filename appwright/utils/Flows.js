@@ -81,6 +81,8 @@ export async function onboardingFlowImportSRP(device, srp, timeout = 10000) {
 
   await dismissMultichainAccountsIntroModal(device);
 
+  await OnboardingSheet.tapNotNow();
+
   await WalletMainScreen.isMainWalletViewVisible();
 
   await dismissSystemDialogs(device);
