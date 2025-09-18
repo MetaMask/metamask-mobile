@@ -8,4 +8,5 @@ export const AccountActionsBottomSheetSelectorsIDs = {
   REMOVE_SNAP_ACCOUNT: 'remove-snap-account-action',
   SHOW_SECRET_RECOVERY_PHRASE: 'show-secret-recovery-phrase-action',
   MULTICHAIN_EDIT_NAME: 'multichain-account-actions-edit-name',
+  MULTICHAIN_ACCOUNT_DETAILS: 'multichain-account-actions-account-details',
 };

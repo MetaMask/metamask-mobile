@@ -50,11 +50,18 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Setup project dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🚀 Setting up project..."
+            yarn setup:github-ci --no-build-ios
+
       - name: Build Android E2E APKs
         run: |
-          echo "🚀 Setting up project..."
-          yarn setup:github-ci --no-build-ios
-          
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties

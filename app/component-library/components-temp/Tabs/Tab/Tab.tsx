@@ -27,7 +27,7 @@ const Tab: React.FC<TabProps> = ({
     <Pressable
       style={({ pressed }) =>
         tw.style(
-          'px-0 py-2 flex-row items-center justify-center relative',
+          'px-0 py-1 flex-row items-center justify-center relative',
           pressed && !isDisabled && 'opacity-70',
         )
       }

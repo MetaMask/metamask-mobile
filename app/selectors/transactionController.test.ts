@@ -6,12 +6,16 @@ import {
   selectSwapsTransactions,
   selectTransactionMetadataById,
   selectSortedTransactions,
+  selectSortedEVMTransactionsForSelectedAccountGroup,
 } from './transactionController';
 
 jest.mock('./smartTransactionsController', () => ({
   selectPendingSmartTransactionsBySender: (state: {
     pendingSmartTransactions: SmartTransaction[];
   }) => state.pendingSmartTransactions || [],
+  selectPendingSmartTransactionsForSelectedAccountGroup: (state: {
+    pendingSmartTransactionsForGroup: SmartTransaction[];
+  }) => state.pendingSmartTransactionsForGroup || [],
 }));
 
 describe('TransactionController Selectors', () => {
@@ -210,6 +214,95 @@ describe('TransactionController Selectors', () => {
       ];
 
       expect(selectSortedTransactions(state)).toStrictEqual(expectedSorted);
+    });
+  });
+
+  describe('selectSortedEVMTransactionsForSelectedAccountGroup', () => {
+    it('merges non-replaced transactions and pending smart transactions for selected group and sorts descending by time', () => {
+      const transactions = [
+        { id: '1', time: 100 },
+        { id: '2', time: 200, replacedBy: 'x', replacedById: 'y', hash: 'z' },
+        { id: '3', time: 50 },
+      ];
+
+      const pendingSmartTransactionsForGroup = [
+        { id: '4', time: 150 },
+        { id: '5', time: 250 },
+      ];
+
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+        pendingSmartTransactionsForGroup,
+      } as unknown as RootState;
+
+      const expectedSorted = [
+        { id: '5', time: 250 },
+        { id: '4', time: 150 },
+        { id: '1', time: 100 },
+        { id: '3', time: 50 },
+      ];
+
+      expect(
+        selectSortedEVMTransactionsForSelectedAccountGroup(state),
+      ).toStrictEqual(expectedSorted);
+    });
+
+    it('handles empty arrays correctly', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [],
+            },
+          },
+        },
+        pendingSmartTransactionsForGroup: [],
+      } as unknown as RootState;
+
+      expect(
+        selectSortedEVMTransactionsForSelectedAccountGroup(state),
+      ).toStrictEqual([]);
+    });
+
+    it('merges non-replaced transactions and pending smart for group when time is not present', () => {
+      const transactions = [
+        { id: '1' },
+        { id: '2', time: 50, replacedBy: 'x', replacedById: 'y', hash: 'z' },
+        { id: '3' },
+      ];
+
+      const pendingSmartTransactionsForGroup = [
+        { id: '4' },
+        { id: '5', time: 250 },
+      ];
+
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+        pendingSmartTransactionsForGroup,
+      } as unknown as RootState;
+
+      const expectedSorted = [
+        { id: '5', time: 250 },
+        { id: '1' },
+        { id: '3' },
+        { id: '4' },
+      ];
+
+      expect(
+        selectSortedEVMTransactionsForSelectedAccountGroup(state),
+      ).toStrictEqual(expectedSorted);
     });
   });
 });

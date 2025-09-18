@@ -1,4 +1,4 @@
-import { handlePerpsUrl, handlePerpsAssetUrl } from './handlePerpsUrl';
+import { handlePerpsUrl } from './handlePerpsUrl';
 import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
@@ -121,9 +121,9 @@ describe('handlePerpsUrl', () => {
     });
   });
 
-  describe('handlePerpsAssetUrl', () => {
+  describe('handlePerpsUrl - asset deeplinks', () => {
     it('should navigate to market details with valid symbol', async () => {
-      await handlePerpsAssetUrl({ assetPath: '?symbol=BTC' });
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
@@ -147,8 +147,8 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle symbol without question mark', async () => {
-      await handlePerpsAssetUrl({ assetPath: 'symbol=ETH' });
+    it('should handle asset screen with ETH symbol', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=ETH' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
@@ -162,7 +162,7 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should convert symbol to uppercase', async () => {
-      await handlePerpsAssetUrl({ assetPath: '?symbol=btc' });
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=btc' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
@@ -176,15 +176,15 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should navigate to markets list when no symbol provided', async () => {
-      await handlePerpsAssetUrl({ assetPath: '?' });
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
       });
     });
 
-    it('should navigate to markets list with empty assetPath', async () => {
-      await handlePerpsAssetUrl({ assetPath: '' });
+    it('should navigate to markets list with empty symbol', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=' });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
@@ -197,7 +197,7 @@ describe('handlePerpsUrl', () => {
         throw new Error('Navigation error');
       });
 
-      await handlePerpsAssetUrl({ assetPath: '?symbol=BTC' });
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenLastCalledWith(Routes.PERPS.ROOT, {
@@ -206,7 +206,9 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should handle malformed URL parameters gracefully', async () => {
-      await handlePerpsAssetUrl({ assetPath: '?invalid&params&here' });
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=asset&invalid&params&here',
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
@@ -214,18 +216,18 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should log debug messages during processing', async () => {
-      await handlePerpsAssetUrl({ assetPath: '?symbol=SOL' });
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=SOL' });
 
       expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsAssetUrl] Starting with assetPath:',
-        '?symbol=SOL',
+        '[handlePerpsUrl] Starting perps deeplink handling with path:',
+        'perps?screen=asset&symbol=SOL',
       );
       expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsAssetUrl] Parsed symbol:',
-        'SOL',
+        '[handlePerpsUrl] Parsed navigation parameters:',
+        { screen: 'asset', symbol: 'SOL' },
       );
       expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsAssetUrl] Navigating directly to market details for:',
+        '[handlePerpsUrl] Navigating to asset details for symbol:',
         'SOL',
       );
     });
@@ -297,6 +299,41 @@ describe('handlePerpsUrl', () => {
       expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
     });
 
+    it('should navigate to wallet tab when screen=tabs specified', async () => {
+      // Mock returning user
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=tabs' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+
+      // Fast-forward timer to trigger setParams
+      jest.runAllTimers();
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      });
+    });
+
+    it('should handle tab parameter for future extensibility', async () => {
+      // Mock returning user
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=tabs&tab=portfolio' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(selectIsFirstTimePerpsUser).toHaveBeenCalled();
+
+      // Fast-forward timer to trigger setParams
+      jest.runAllTimers();
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+        specificTab: 'portfolio',
+      });
+    });
+
     it('should log correct debug messages for parameter-based routing', async () => {
       // Test first-time user
       jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
@@ -308,7 +345,7 @@ describe('handlePerpsUrl', () => {
         'perps?screen=markets',
       );
       expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL',
+        '[handlePerpsUrl] First-time user, navigating to tutorial regardless of URL parameters',
       );
     });
 
@@ -319,7 +356,7 @@ describe('handlePerpsUrl', () => {
       await handlePerpsUrl({ perpsPath: 'perps?screen=markets' });
 
       expect(DevLogger.log).toHaveBeenCalledWith(
-        '[handlePerpsUrl] Returning user requesting markets, navigating directly to markets list',
+        '[handlePerpsUrl] Navigating to markets list',
       );
     });
   });

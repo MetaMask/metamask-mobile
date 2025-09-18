@@ -454,4 +454,198 @@ describe('PerpsOpenOrderCard', () => {
       expect(toJSON()).toBeNull();
     });
   });
+
+  describe('Additional Coverage Tests', () => {
+    const mockOnSelect = jest.fn();
+
+    beforeEach(() => {
+      mockOnSelect.mockClear();
+    });
+
+    it('calls onSelect when card is pressed and not disabled', () => {
+      render(<PerpsOpenOrderCard order={mockOrder} onSelect={mockOnSelect} />);
+
+      fireEvent.press(screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CARD));
+
+      expect(mockOnSelect).toHaveBeenCalledWith(mockOrder.orderId);
+    });
+
+    it('does not call onSelect when card is pressed and disabled', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          onSelect={mockOnSelect}
+          disabled
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CARD));
+
+      expect(mockOnSelect).not.toHaveBeenCalled();
+    });
+
+    it('renders chart activity indicators for TP', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          isActiveOnChart
+          activeType="TP"
+        />,
+      );
+
+      expect(screen.getByText('TP on Chart')).toBeOnTheScreen();
+    });
+
+    it('renders chart activity indicators for SL', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          isActiveOnChart
+          activeType="SL"
+        />,
+      );
+
+      expect(screen.getByText('SL on Chart')).toBeOnTheScreen();
+    });
+
+    it('renders chart activity indicators for BOTH', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          isActiveOnChart
+          activeType="BOTH"
+        />,
+      );
+
+      expect(screen.getByText('TP on Chart')).toBeOnTheScreen();
+      expect(screen.getByText('SL on Chart')).toBeOnTheScreen();
+    });
+
+    it('handles reduce-only sell order direction (Close Long)', () => {
+      const reduceOnlySellOrder = {
+        ...mockOrder,
+        side: 'sell' as const,
+        reduceOnly: true,
+        detailedOrderType: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={reduceOnlySellOrder} />);
+
+      expect(screen.getByText('Close Long')).toBeOnTheScreen();
+    });
+
+    it('handles reduce-only buy order direction (Close Short)', () => {
+      const reduceOnlyBuyOrder = {
+        ...mockOrder,
+        side: 'buy' as const,
+        reduceOnly: true,
+        detailedOrderType: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={reduceOnlyBuyOrder} />);
+
+      expect(screen.getByText('Close Short')).toBeOnTheScreen();
+    });
+
+    it('handles trigger order direction for sell (Close Long)', () => {
+      const triggerSellOrder = {
+        ...mockOrder,
+        side: 'sell' as const,
+        isTrigger: true,
+        detailedOrderType: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={triggerSellOrder} />);
+
+      expect(screen.getByText('Close Long')).toBeOnTheScreen();
+    });
+
+    it('handles trigger order direction for buy (Close Short)', () => {
+      const triggerBuyOrder = {
+        ...mockOrder,
+        side: 'buy' as const,
+        isTrigger: true,
+        detailedOrderType: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={triggerBuyOrder} />);
+
+      expect(screen.getByText('Close Short')).toBeOnTheScreen();
+    });
+
+    it('does not render chart indicators when isActiveOnChart is false', () => {
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          isActiveOnChart={false}
+          activeType="TP"
+        />,
+      );
+
+      expect(screen.queryByText('TP on Chart')).not.toBeOnTheScreen();
+    });
+
+    it('does not call onSelect when onSelect is not provided', () => {
+      render(<PerpsOpenOrderCard order={mockOrder} />);
+
+      // Should not throw when card is pressed without onSelect handler
+      expect(() => {
+        fireEvent.press(
+          screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CARD),
+        );
+      }).not.toThrow();
+    });
+  });
+
+  describe('Additional Coverage Tests', () => {
+    it('handles order without takeProfitPrice and stopLossPrice', () => {
+      const orderWithoutTPSL: Order = {
+        ...mockOrder,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      };
+
+      render(<PerpsOpenOrderCard order={orderWithoutTPSL} expanded />);
+
+      expect(screen.getByText('Limit Order')).toBeOnTheScreen();
+    });
+
+    it('handles trigger order', () => {
+      const triggerOrder: Order = {
+        ...mockOrder,
+        isTrigger: true,
+        detailedOrderType: 'Stop Market',
+      };
+
+      render(<PerpsOpenOrderCard order={triggerOrder} />);
+
+      expect(screen.getByText('Stop Market')).toBeOnTheScreen();
+    });
+
+    it('handles reduce-only order', () => {
+      const reduceOnlyOrder: Order = {
+        ...mockOrder,
+        reduceOnly: true,
+      };
+
+      render(<PerpsOpenOrderCard order={reduceOnlyOrder} />);
+
+      expect(screen.getByText('Limit Order')).toBeOnTheScreen();
+    });
+
+    it('handles order with right accessory', () => {
+      const RightAccessory = () => (
+        <Text testID="right-accessory">Accessory</Text>
+      );
+
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          rightAccessory={<RightAccessory />}
+        />,
+      );
+
+      expect(screen.getByTestId('right-accessory')).toBeOnTheScreen();
+    });
+  });
 });
