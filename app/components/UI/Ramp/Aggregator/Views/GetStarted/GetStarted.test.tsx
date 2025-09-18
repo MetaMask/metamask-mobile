@@ -39,7 +39,6 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   getStarted: false,
   setGetStarted: jest.fn(),
   sdkError: undefined,
-  selectedChainId: '1',
   selectedRegion: null,
   rampType: RampType.BUY,
   isBuy: true,

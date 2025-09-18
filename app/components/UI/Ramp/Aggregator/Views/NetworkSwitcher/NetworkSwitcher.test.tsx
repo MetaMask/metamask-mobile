@@ -180,7 +180,6 @@ jest.mock('../../hooks/useRampNetworksDetail', () =>
 );
 
 const mockuseRampSDKInitialValues: Partial<RampSDK> = {
-  selectedChainId: '56',
   isBuy: true,
   isSell: false,
   rampType: RampType.BUY,
