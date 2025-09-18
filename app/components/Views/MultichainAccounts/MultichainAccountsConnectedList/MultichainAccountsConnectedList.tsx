@@ -47,7 +47,6 @@ const MultichainAccountsConnectedList = ({
   const renderItem = useCallback(
     ({ item }: { item: AccountGroupObject }) => (
       <AccountListCell
-        isSelected
         accountGroup={item}
         onSelectAccount={handleSelectAccount}
         // @ts-expect-error - This is temporary because the account list cell is being updated in another PR.
