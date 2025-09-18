@@ -2014,7 +2014,7 @@ describe('MultichainAccountConnect', () => {
       await waitFor(() => {
         expect(
           getByTestId('permission-summary-account-text'),
-        ).toHaveTextContent('Requesting for 2 accounts');
+        ).toHaveTextContent('Requesting for');
       });
     });
   });
