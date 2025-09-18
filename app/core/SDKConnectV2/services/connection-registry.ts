@@ -86,7 +86,7 @@ export class ConnectionRegistry {
    * 5. Sync the connection list to the host application
    * 6. Hide loading indicator
    */
-  public handleConnectDeeplink: (url: string) => void;
+  public handleConnectDeeplink: (url: string) => Promise<void> | undefined;
 
   private async _handleConnectDeeplink(url: string): Promise<void> {
     let conn: Connection | undefined;
