@@ -74,6 +74,7 @@ import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import CardButton from '../Card/components/CardButton';
+import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -1866,8 +1867,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
         onPress={() => navigation.dangerouslyGetParent()?.pop()}
         style={styles.closeButton}
       >
-        {/* TODO figure out why the Lg size makes the X disappear */}
-        <Icon name={IconName.Close} />
+        <Icon name={IconName.Close} size={ButtonIconSizes.Lg} />
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,

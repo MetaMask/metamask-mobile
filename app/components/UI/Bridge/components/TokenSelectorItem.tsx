@@ -107,7 +107,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const { styles } = useStyles(createStyles, { isSelected });
   const fiatValue = token.balanceFiat;
 
-  // TODO format using intlFormatter
   const balanceWithSymbol = token.balance
     ? `${
         Number(token.balance) < 0.00001
