@@ -2,15 +2,21 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ImportFromSeedSelectorsIDs } from '../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect as appwrightExpect, ScrollDirection } from 'appwright';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
+import { expect as appwrightExpect } from 'appwright';
 
-class ImportFromSeedScreen {
+class ImportFromSeedScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get screenTitle() {
@@ -122,7 +128,7 @@ class ImportFromSeedScreen {
       } else {
         const element = await this.continueButton;
         await AppwrightSelectors.hideKeyboard(this.device);
-        await element.tap();
+        await this.tap(element); // Use inherited tap method with retry logic
       }
     } else {
       if (!this._device) {
@@ -131,10 +137,10 @@ class ImportFromSeedScreen {
         const isIOS = await AppwrightSelectors.isIOS(this.device);
         if (isIOS) {
           const element = await AppwrightSelectors.getElementByID(this.device, 'import-button');
-          await element.tap();
+          await this.tap(element); // Use inherited tap method with retry logic
         } else {
           const element = await AppwrightSelectors.getElementByText(this.device, 'Continue');
-          await element.tap();
+          await this.tap(element); // Use inherited tap method with retry logic
         }
       }
     }
@@ -146,14 +152,14 @@ class ImportFromSeedScreen {
           await Gestures.waitAndTap(this.screenTitle);
       } else {
         const element = await this.screenTitle;
-        await element.tap();
+        await this.tap(element); // Use inherited tap method with retry logic
       }
     } else {
       if (!this._device) {
         await Gestures.waitAndTap(this.screenTitle);
     } else {
       const element = await AppwrightSelectors.getElementByText(this.device, 'Import Secret Recovery Phrase');
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
     }
   }

@@ -14,10 +14,7 @@ import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/Create
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import { getPasswordForScenario } from '../../utils/TestConstants.js';
 
-import {
-  dismissSystemDialogs,
-  tapPerpsBottomSheetGotItButton,
-} from '../../utils/Flows.js';
+import { tapPerpsBottomSheetGotItButton } from '../../utils/Flows.js';
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
   performanceTracker,
@@ -110,7 +107,6 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   await tapPerpsBottomSheetGotItButton(device);
   await WalletMainScreen.isTokenVisible('Ethereum');
   timer9.stop();
-  await dismissSystemDialogs(device);
   timer10.start();
   await WalletMainScreen.tapIdenticon();
   timer10.stop();

@@ -1,15 +1,21 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 
-class WalletActionModal {
+class WalletActionModal extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get sendButton() {
@@ -52,8 +58,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.sendButton);
     } else {
-      const element = await this.sendButton;
-      await element.tap();
+      await this.tap(this.sendButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -65,8 +70,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.swapButton);
     } else {
-      const element = await this.swapButton;
-      await element.tap();
+      await this.tap(this.swapButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -74,8 +78,7 @@ class WalletActionModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.bridgeButton);
     } else {
-      const element = await this.bridgeButton;
-      await element.tap();
+      await this.tap(this.bridgeButton); // Use inherited tapElement method with retry logic
     }
   }
 

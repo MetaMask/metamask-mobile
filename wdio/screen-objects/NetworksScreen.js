@@ -1,5 +1,6 @@
 import Selectors from '../helpers/Selectors';
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../appwright/utils/AppwrightGestures.js';
 import Gestures from '../helpers/Gestures';
 import { expect as appwrightExpect } from 'appwright';
 import {
@@ -13,13 +14,18 @@ import {
 } from './testIDs/Screens/NetworksScreen.testids';
 import { NetworksViewSelectorsIDs } from '../../e2e/selectors/Settings/NetworksView.selectors';
 
-class NetworksScreen {
+class NetworksScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get container() {
@@ -192,7 +198,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -201,7 +207,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -210,7 +216,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -309,7 +315,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -326,7 +332,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -335,7 +341,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.tap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -427,7 +433,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -436,7 +442,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -445,7 +451,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -454,7 +460,7 @@ class NetworksScreen {
     if (!this._device) {
       await Gestures.waitAndTap(element);
     } else {
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 }

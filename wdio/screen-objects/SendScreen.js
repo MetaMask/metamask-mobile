@@ -11,17 +11,23 @@ import {
 } from './testIDs/Screens/SendScreen.testIds';
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../appwright/utils/AppwrightGestures.js';
 import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 import { expect as appwrightExpect } from 'appwright';
 import { NETWORK_SELECTOR_TEST_IDS } from '../../app/constants/networkSelector.js';
 
-class SendScreen {
+class SendScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get container() {
@@ -148,7 +154,7 @@ class SendScreen {
       await Gestures.tapTextByXpath(contactName);
     } else {
       const element = await AppwrightSelectors.getElementByText(this._device, contactName);
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 
@@ -157,7 +163,7 @@ class SendScreen {
       await Gestures.tapTextByXpath(NEXT_BUTTON);
     } else {
       const element = await AppwrightSelectors.getElementByID(this._device, SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON);
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
   }
 }

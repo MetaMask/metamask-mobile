@@ -1,16 +1,22 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../appwright/utils/AppwrightGestures.js';
 import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
 import { expect as appwrightExpect } from 'appwright';
 
-class LoginScreen {
+class LoginScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get loginScreen() {
@@ -112,8 +118,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.resetWalletButton);
     } else {
-      const element = await this.resetWalletButton;
-      await element.tap();
+      await this.tap(this.resetWalletButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -134,8 +139,7 @@ class LoginScreen {
       const element = await this.unlockButton;
       await element.click();
     } else {
-      const element = await this.unlockButton;
-      await element.tap();
+      await this.tap(this.unlockButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -143,8 +147,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.title);
     } else {
-      const element = await this.title;
-      await element.tap();
+      await this.tap(this.title); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -152,8 +155,7 @@ class LoginScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.rememberMeToggle);
     } else {
-      const element = await this.rememberMeToggle;
-      await element.tap();
+      await this.tap(this.rememberMeToggle); // Use inherited tapElement method with retry logic
     }
   }
 }

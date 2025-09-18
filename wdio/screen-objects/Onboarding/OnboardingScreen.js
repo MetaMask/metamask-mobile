@@ -2,17 +2,14 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
 import { expect as appwrightExpect } from 'appwright';
 
-class OnBoardingScreen {
-
-  get device() {
-    return this._device;
+class OnBoardingScreen extends AppwrightGestures {
+  constructor() {
+    super();
   }
 
-  set device(device) {
-    this._device = device;
-  }
 
   get title() {
     if (!this._device) {
@@ -61,8 +58,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.existingWalletButton);
     } else {
-      const button = await this.existingWalletButton;
-      await button.tap();
+      await this.tap(this.existingWalletButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -70,8 +66,7 @@ class OnBoardingScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.createNewWalletButton);
     } else {
-      const button = await this.createNewWalletButton;
-      await button.tap();
+      await this.tap(this.createNewWalletButton); // Use inherited tapElement method with retry logic
     }
   }
 }

@@ -7,9 +7,13 @@ import {
 import Selectors from '../../helpers/Selectors';
 import { MetaMetricsOptInSelectorsIDs } from '../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
 import { expect as appwrightExpect } from 'appwright';
 
-class MetaMetricsScreen{
+class MetaMetricsScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
 
   get device() {
     return this._device;
@@ -17,6 +21,7 @@ class MetaMetricsScreen{
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get screenTitle() {
@@ -65,8 +70,7 @@ class MetaMetricsScreen{
       await element.waitForEnabled();
       await Gestures.waitAndTap(this.iAgreeButton);
     } else {
-      const button = await this.iAgreeButton;
-      await button.tap();
+      await this.tap(this.iAgreeButton); // Use inherited tapElement method with retry logic
     }
   }
 

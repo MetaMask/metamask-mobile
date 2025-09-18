@@ -2,15 +2,21 @@ import Selectors from '../../helpers/Selectors';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
 import { expect as appwrightExpect } from 'appwright';
 
-class AddAccountModal {
+class AddAccountModal extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get importSrpButton() {
@@ -59,8 +65,7 @@ class AddAccountModal {
       const newAccountButton = await this.newAccountButton;
       await newAccountButton.waitForExist({ reverse: true });
     } else {
-      const element = await this.newAccountButton;
-      await element.tap();
+      await this.tapElement(this.newAccountButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -68,8 +73,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.importAccountButton);
     } else {
-      const element = await this.importAccountButton;
-      await element.tap();
+      await this.tapElement(this.importAccountButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -77,8 +81,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.importSrpButton);
     } else {
-      const element = await this.importSrpButton;
-      await element.tap();
+      await this.tapElement(this.importSrpButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -86,8 +89,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.createSolanaAccountButton);
     } else {
-      const element = await this.createSolanaAccountButton;
-      await element.tap();
+      await this.tapElement(this.createSolanaAccountButton); // Use inherited tapElement method with retry logic
     }
   }
 
@@ -95,8 +97,7 @@ class AddAccountModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.createEthereumAccountButton);
     } else {
-      const element = await this.createEthereumAccountButton;
-      await element.tap();
+      await this.tapElement(this.createEthereumAccountButton); // Use inherited tapElement method with retry logic
     }
   }
 
