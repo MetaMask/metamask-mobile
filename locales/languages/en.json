@@ -1180,7 +1180,8 @@
       "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
-      "below": "below"
+      "below": "below",
+      "dismiss_tpsl_keypad": "Dismiss"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
