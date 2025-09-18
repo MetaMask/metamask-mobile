@@ -284,8 +284,6 @@ export const BridgeTokenSelectorBase: React.FC<
           />
         </Box>
 
-        {/* TODO put in 20 gap below as well, but it's not working */}
-
         {/* Tokens */}
         <ListComponent
           style={styles.tokensList}
