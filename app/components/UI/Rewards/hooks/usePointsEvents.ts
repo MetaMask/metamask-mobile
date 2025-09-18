@@ -105,21 +105,15 @@ export const usePointsEvents = (
 
   // Listen for account linked events to trigger refetch
   useEffect(() => {
-    const handleAccountLinked = () => {
-      if (seasonId && subscriptionId) {
-        refresh();
-      }
-    };
-
     Engine.controllerMessenger.subscribe(
       'RewardsController:accountLinked',
-      handleAccountLinked,
+      refresh,
     );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'RewardsController:accountLinked',
-        handleAccountLinked,
+        refresh,
       );
     };
   }, [seasonId, subscriptionId, refresh]);

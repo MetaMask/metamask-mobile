@@ -38,10 +38,6 @@ interface OnboardingStepProps {
 
   // Container type customization
   backgroundImageSource?: ImageSourcePropType;
-
-  // Gesture settings
-  enableSwipeGestures?: boolean;
-  swipeThreshold?: number;
 }
 
 const OnboardingStep: React.FC<OnboardingStepProps> = ({

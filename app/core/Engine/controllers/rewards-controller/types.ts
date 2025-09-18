@@ -807,7 +807,6 @@ export type RewardsControllerActions =
   | RewardsControllerLinkAccountToSubscriptionAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
-  | RewardsControllerValidateReferralCodeAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerClaimRewardAction;

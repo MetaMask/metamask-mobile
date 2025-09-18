@@ -49,38 +49,30 @@ export const useSeasonStatus = (): void => {
 
   // Listen for account linked events to trigger refetch
   useEffect(() => {
-    const handleAccountLinked = () => {
-      fetchSeasonStatus();
-    };
-
     Engine.controllerMessenger.subscribe(
       'RewardsController:accountLinked',
-      handleAccountLinked,
+      fetchSeasonStatus,
     );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'RewardsController:accountLinked',
-        handleAccountLinked,
+        fetchSeasonStatus,
       );
     };
   }, [fetchSeasonStatus]);
 
   // Listen for reward claimed events to trigger refetch
   useEffect(() => {
-    const handleRewardClaimed = () => {
-      fetchSeasonStatus();
-    };
-
     Engine.controllerMessenger.subscribe(
       'RewardsController:rewardClaimed',
-      handleRewardClaimed,
+      fetchSeasonStatus,
     );
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'RewardsController:rewardClaimed',
-        handleRewardClaimed,
+        fetchSeasonStatus,
       );
     };
   }, [fetchSeasonStatus]);

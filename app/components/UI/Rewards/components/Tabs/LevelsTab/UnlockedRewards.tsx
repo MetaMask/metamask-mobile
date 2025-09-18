@@ -46,24 +46,6 @@ const UnlockedRewardItem: React.FC<UnlockedRewardItemProps> = ({
 const UnlockedRewards: React.FC = () => {
   const dispatch = useDispatch();
   const unlockedRewards = useSelector(selectUnlockedRewards);
-  /*   // use some mock data
-  const unlockedRewards = [
-    {
-      id: '1',
-      seasonRewardId: 'f9a281f5-500a-4c64-b2a5-2a828eb01463',
-      claimStatus: RewardClaimStatus.CLAIMED,
-    },
-    {
-      id: '2',
-      seasonRewardId: '5dfa42ab-58b9-4c53-b72f-7cf63e200284',
-      claimStatus: RewardClaimStatus.UNCLAIMED,
-    },
-    {
-      id: '3',
-      seasonRewardId: '2131c7e4-afbc-4ab6-8f69-02edfc9f8428',
-      claimStatus: RewardClaimStatus.UNCLAIMED,
-    },
-  ]; */
   const isLoading = useSelector(selectUnlockedRewardLoading);
   const tw = useTailwind();
 
