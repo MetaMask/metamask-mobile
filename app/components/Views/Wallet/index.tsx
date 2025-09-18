@@ -181,6 +181,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -256,9 +257,19 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   } = props;
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const tabsListRef = useRef<TabsListRef>(null);
+  const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
 
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const enabledNetworksIsSolana = useMemo(() => {
+    if (allEnabledNetworks.length === 1) {
+      return allEnabledNetworks.some(
+        (network) => network.chainId === SolScope.Mainnet,
+      );
+    }
+    return false;
+  }, [allEnabledNetworks]);
 
   // Track current tab index for Perps visibility
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
@@ -284,19 +295,25 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const defiPositionsTabProps = useMemo(
     () => ({
       key: 'defi-tab',
-      tabLabel: strings('wallet.defi'),
+      tabLabel:
+        enabledNetworksIsSolana || !defiEnabled ? ' ' : strings('wallet.defi'),
       navigation,
+      isDisabled: enabledNetworksIsSolana || !defiEnabled,
     }),
-    [navigation],
+    [navigation, enabledNetworksIsSolana, defiEnabled],
   );
 
   const collectibleContractsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
-      tabLabel: strings('wallet.collectibles'),
+      tabLabel:
+        enabledNetworksIsSolana || !collectiblesEnabled
+          ? ' '
+          : strings('wallet.collectibles'),
+      isDisabled: enabledNetworksIsSolana || !collectiblesEnabled,
       navigation,
     }),
-    [navigation],
+    [navigation, enabledNetworksIsSolana, collectiblesEnabled],
   );
 
   // Handle tab changes and track current index
@@ -376,23 +393,19 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (defiEnabled) {
-      tabs.push(
-        <DeFiPositionsList
-          {...defiPositionsTabProps}
-          key={defiPositionsTabProps.key}
-        />,
-      );
-    }
+    tabs.push(
+      <DeFiPositionsList
+        {...defiPositionsTabProps}
+        key={defiPositionsTabProps.key}
+      />,
+    );
 
-    if (collectiblesEnabled) {
-      tabs.push(
-        <CollectibleContracts
-          {...collectibleContractsTabProps}
-          key={collectibleContractsTabProps.key}
-        />,
-      );
-    }
+    tabs.push(
+      <CollectibleContracts
+        {...collectibleContractsTabProps}
+        key={collectibleContractsTabProps.key}
+      />,
+    );
 
     return tabs;
   }, [
@@ -400,9 +413,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsEnabled,
     perpsTabProps,
     isPerpsTabVisible,
-    defiEnabled,
     defiPositionsTabProps,
-    collectiblesEnabled,
     collectibleContractsTabProps,
   ]);
 
@@ -471,15 +482,6 @@ const Wallet = ({
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
-
-  const enabledNetworksIsSolana = useMemo(() => {
-    if (allEnabledNetworks.length === 1) {
-      return allEnabledNetworks.some(
-        (network) => network.chainId === SolScope.Mainnet,
-      );
-    }
-    return false;
-  }, [allEnabledNetworks]);
 
   const enabledNetworksHasTestNet = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
@@ -1165,7 +1167,6 @@ const Wallet = ({
 
   const defiEnabled =
     !enabledNetworksHasTestNet &&
-    !enabledNetworksIsSolana &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
@@ -1175,6 +1176,7 @@ const Wallet = ({
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
+        <AssetPollingProvider />
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
@@ -1223,9 +1225,7 @@ const Wallet = ({
             navigation={navigation}
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
-            collectiblesEnabled={
-              collectiblesEnabled && !enabledNetworksIsSolana
-            }
+            collectiblesEnabled={collectiblesEnabled}
             navigationParams={route.params}
           />
         </>
@@ -1253,7 +1253,7 @@ const Wallet = ({
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
-      enabledNetworksIsSolana,
+      // enabledNetworksIsSolana,
     ],
   );
   const renderLoader = useCallback(
