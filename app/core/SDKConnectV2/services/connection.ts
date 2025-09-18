@@ -30,12 +30,18 @@ export class Connection {
     this.bridge = new RPCBridgeAdapter(this);
 
     this.client.on('message', (payload) => {
-      console.warn(`[SDKConnectV2] [Connection:${this.id}] Received message:`, JSON.stringify(payload));
+      console.warn(
+        `[SDKConnectV2] [Connection:${this.id}] Received message:`,
+        JSON.stringify(payload),
+      );
       this.bridge.send(payload);
     });
 
     this.bridge.on('response', (payload) => {
-      console.warn(`[SDKConnectV2] [Connection:${this.id}] Sending message:`, JSON.stringify(payload));
+      console.warn(
+        `[SDKConnectV2] [Connection:${this.id}] Sending message:`,
+        JSON.stringify(payload),
+      );
       this.client.sendResponse(payload);
     });
   }
@@ -82,7 +88,9 @@ export class Connection {
    */
   public async resume(): Promise<void> {
     await this.client.resume(this.id);
-    console.warn(`[SDKConnectV2] [Connection:${this.id}] Resumed connection to dApp.`);
+    console.warn(
+      `[SDKConnectV2] [Connection:${this.id}] Resumed connection to dApp.`,
+    );
   }
 
   /**

@@ -35,7 +35,7 @@ export class ConnectionRegistry {
     this.ready = this.initialize();
     this.setupAppStateListener();
 
-    // Throttled function to prevent failure due to rapid, 
+    // Throttled function to prevent failure due to rapid,
     // duplicate calls from the host app.
     this.handleConnectDeeplink = throttle(
       this._handleConnectDeeplink.bind(this),

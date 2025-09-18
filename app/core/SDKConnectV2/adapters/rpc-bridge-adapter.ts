@@ -10,67 +10,80 @@ import { whenEngineReady } from '../utils/is-engine-ready';
 
 export class RPCBridgeAdapter
   extends EventEmitter
-  implements IRPCBridgeAdapter {
-  private initialized = false;
+  implements IRPCBridgeAdapter
+{
+  private readonly connection: Connection;
+  private client: BackgroundBridge | null = null;
+  private messenger: BaseControllerMessenger | null = null;
+  private initialized: Promise<void> | null = null;
   private processing = false;
   private queue: unknown[] = [];
-  private client: BackgroundBridge | null = null;
-  private connection: Connection;
-  private messenger: BaseControllerMessenger | null = null;
 
   constructor(connection: Connection) {
     super();
     this.connection = connection;
-    this.initialize();
+    this.processQueue = this.processQueue.bind(this);
   }
 
   /**
-   * Sends an rpc request to the background bridge.
+   * Sends an RPC request to the background bridge.
    */
   public send(request: unknown): void {
     this.queue.push(request);
-    this.processQueue(); // Attempt to process the request immediately
+    this.processQueue();
   }
 
   /**
-   * Disposes of the RPC bridge adapter.
+   * Disposes of the adapter, cleaning up listeners and connections.
    */
   public dispose(): void {
-    this.messenger?.tryUnsubscribe('KeyringController:unlock', this.processQueue);
+    this.messenger?.tryUnsubscribe(
+      'KeyringController:unlock',
+      this.processQueue,
+    );
     this.client?.onDisconnect();
     this.removeAllListeners();
+    this.queue = [];
   }
 
   /**
-   * Asynchronously sets up listeners for wallet unlock changes.
-   * When the wallet is unlocked, the processQueue will be called.
+   * Lazily initializes the adapter. On the first call, it waits for the engine,
+   * creates the background bridge client, and subscribes to wallet events.
+   * This method is idempotent.
    */
-  private async initialize() {
-    await whenEngineReady();
-    this.messenger = Engine.controllerMessenger;
-    this.messenger.subscribe('KeyringController:unlock', this.processQueue);
-    this.initialized = true;
+  private ensureInitialized(): Promise<void> {
+    if (this.initialized) return this.initialized;
+
+    this.initialized = (async () => {
+      await whenEngineReady();
+      this.messenger = Engine.controllerMessenger;
+      this.messenger.subscribe('KeyringController:unlock', this.processQueue);
+      this.client = this.createClient();
+    })();
+
+    return this.initialized;
+  }
+
+  private isUnlocked(): boolean {
+    return Engine.context.KeyringController.isUnlocked();
   }
 
   /**
-   * The processQueue will process the queue of requests in a FIFO manner.
+   * Processes the queued requests.
+   * Is triggered when new messages are received or the keyring is unlocked.
    */
   private async processQueue(): Promise<void> {
-    // Don't run if 1) not initialized 2) already processing 3) queue is empty
-    if (!this.initialized || this.processing || this.queue.length === 0) return;
+    await this.ensureInitialized();
+
+    if (this.processing || this.queue.length === 0 || !this.isUnlocked()) {
+      return;
+    }
 
     this.processing = true;
 
-    if (!this.client) {
-      this.client = this.createClient(); // Lazy create the client if it doesn't exist
-    }
-
     while (this.queue.length > 0) {
-      if (!Engine.context.KeyringController.isUnlocked()) return;
-
       const request = this.queue.shift();
-
-      this.client.onMessage({
+      this.client?.onMessage({
         name: 'metamask-multichain-provider',
         data: request,
       });
@@ -98,6 +111,7 @@ export class RPCBridgeAdapter
       getRpcMethodMiddleware: ({
         getProviderState,
       }: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
