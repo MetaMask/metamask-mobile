@@ -411,6 +411,31 @@ export interface RewardDto {
   id: string;
   seasonRewardId: string;
   claimStatus: RewardClaimStatus;
+  claim?: RewardClaim;
+}
+
+export type RewardClaimData =
+  | PointsBoostRewardData
+  | AlphaFoxInviteRewardData
+  | null;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PointsBoostRewardData = {
+  seasonPointsBonusId: string;
+  activeUntil: string; // reward expiration date
+  activeFrom: string; // claim date
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type AlphaFoxInviteRewardData = {
+  telegramHandle: string;
+};
+
+export interface RewardClaim {
+  id: string;
+  rewardId: string;
+  accountId: string;
+  data: RewardClaimData;
 }
 
 export enum RewardClaimStatus {
@@ -516,6 +541,12 @@ export type UnlockedRewardsState = {
     id: string;
     seasonRewardId: string;
     claimStatus: RewardClaimStatus;
+    claim?: {
+      id: string;
+      rewardId: string;
+      accountId: string; // Changed from bigint to string for JSON serialization
+      data: RewardClaimData;
+    };
   }[];
   lastFetched: number;
 };

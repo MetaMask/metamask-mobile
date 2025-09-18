@@ -45,7 +45,6 @@ export const useClaimReward = (): UseClaimRewardResult => {
         setIsClaimingReward(true);
         setClaimRewardError(undefined);
 
-        // Call the RewardsController method directly since the action handler is not registered yet
         await Engine.controllerMessenger.call(
           'RewardsController:claimReward',
           rewardId,

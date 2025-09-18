@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-
 // Mock dependencies
 import RewardsClaimBottomSheetModal from './RewardsClaimBottomSheetModal';
 import { SeasonRewardType } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import { IconName } from '@metamask/design-system-react-native';
+import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 
 // Mock useClaimReward hook
 const mockClaimReward = jest.fn();
@@ -37,6 +38,18 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
+// Mock Linking
+jest.mock('react-native', () => {
+  const reactNative = jest.requireActual('react-native');
+  return {
+    ...reactNative,
+    Linking: {
+      ...reactNative.Linking,
+      openURL: jest.fn(),
+    },
+  };
+});
+
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -49,73 +62,240 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock RewardsBottomSheetModal
-jest.mock('../../RewardsBottomSheetModal', () => {
-  const React = jest.requireActual('react');
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+// Mock BottomSheet component
+jest.mock(
+  '../../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const React = jest.requireActual('react');
+    return React.forwardRef(({ children }: { children: React.ReactNode }) =>
+      React.createElement('View', { testID: 'bottom-sheet' }, children),
+    );
+  },
+);
 
-  return ({ route }: { route: { params: Record<string, unknown> } }) => {
-    const { confirmAction, error } = route.params;
-    const action = confirmAction as {
-      label: string;
-      onPress: () => void;
-      disabled?: boolean;
+// Mock TextField component
+jest.mock(
+  '../../../../../../component-library/components/Form/TextField',
+  () => {
+    const React = jest.requireActual('react');
+    const TextFieldComponent = ({
+      placeholder,
+      onChangeText,
+      value,
+    }: {
+      placeholder: string;
+      onChangeText: (text: string) => void;
+      value: string;
+    }) =>
+      React.createElement('TextInput', {
+        testID: 'text-field',
+        placeholder,
+        onChangeText,
+        value,
+      });
+
+    TextFieldComponent.Size = {
+      Lg: 'lg',
     };
 
-    return React.createElement(
-      View,
-      { testID: 'rewards-bottom-sheet-modal' },
+    return {
+      __esModule: true,
+      default: TextFieldComponent,
+      TextFieldSize: {
+        Lg: 'lg',
+      },
+    };
+  },
+);
+
+// Mock BannerAlert component
+jest.mock(
+  '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert',
+  () => {
+    const React = jest.requireActual('react');
+    return ({
+      severity,
+      description,
+      style,
+      testID,
+    }: {
+      severity: string;
+      description: string;
+      style: unknown;
+      testID: string;
+    }) => {
+      const { View, Text } = jest.requireActual('react-native');
+      return React.createElement(
+        View,
+        {
+          testID,
+          'data-severity': severity,
+          style,
+        },
+        React.createElement(Text, {}, description),
+      );
+    };
+  },
+);
+
+// Mock design system components
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = jest.requireActual('react');
+  const {
+    View,
+    Text: RNText,
+    TouchableOpacity,
+  } = jest.requireActual('react-native');
+  return {
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+    },
+    ButtonSize: {
+      Lg: 'lg',
+    },
+    BoxFlexDirection: {
+      Column: 'column',
+    },
+    BoxAlignItems: {
+      Center: 'center',
+    },
+    BoxJustifyContent: {
+      Center: 'center',
+    },
+    TextVariant: {
+      HeadingLg: 'headingLg',
+      BodyMd: 'bodyMd',
+      BodySm: 'bodySm',
+    },
+    IconName: {
+      Lock: 'lock',
+      Export: 'export',
+    },
+    IconSize: {
+      Lg: 'lg',
+      Sm: 'sm',
+    },
+    Box: ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode;
+      [key: string]: unknown;
+    }) => React.createElement(View, props, children),
+    Button: ({
+      children,
+      onPress,
+      disabled,
+      testID,
+    }: {
+      children: React.ReactNode;
+      onPress: () => void;
+      disabled: boolean;
+      testID: string;
+    }) =>
       React.createElement(
         TouchableOpacity,
         {
-          testID: 'confirm-button',
-          onPress: () => action.onPress(),
-          disabled: action.disabled,
+          testID,
+          onPress,
+          disabled,
+          accessibilityState: disabled ? { disabled: true } : undefined,
         },
-        React.createElement(Text, {}, action.label),
+        React.createElement(RNText, {}, children),
       ),
-      error &&
-        React.createElement(Text, { testID: 'error-message' }, error as string),
-    );
+    Text: ({ children, ...props }: { children: React.ReactNode }) =>
+      React.createElement(RNText, props, children),
+    Icon: ({ name, ...props }: { name: string }) =>
+      React.createElement(View, {
+        testID: `icon-${name}`,
+        ...props,
+      }),
   };
 });
 
-// Mock ButtonVariant
-jest.mock('@metamask/design-system-react-native', () => ({
-  ButtonVariant: {
-    Primary: 'primary',
-    Secondary: 'secondary',
-  },
+// Mock useTailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn().mockImplementation((...args) => ({ ...args })),
+  }),
 }));
-
-const mockConfirmAction = {
-  label: 'Test Action',
-  onPress: jest.fn(),
-};
 
 interface TestRouteParams {
   title: string;
   description: string;
-  confirmAction: { label: string; onPress: () => void };
   rewardId: string;
   rewardType: SeasonRewardType;
   isLocked: boolean;
+  hasClaimed: boolean;
+  icon: IconName;
+  claimUrl?: string;
+  showInput?: boolean;
+  inputPlaceholder?: string;
 }
 
 const defaultRoute: { params: TestRouteParams } = {
   params: {
     title: 'Test Reward',
     description: 'Test Description',
-    confirmAction: mockConfirmAction,
     rewardId: 'reward-123',
     rewardType: SeasonRewardType.GENERIC,
     isLocked: false,
+    hasClaimed: false,
+    icon: IconName.Lock,
+    showInput: false,
+  },
+};
+
+// Routes for different reward types
+const routeWithGenericReward = {
+  ...defaultRoute,
+  params: {
+    ...defaultRoute.params,
+    rewardType: SeasonRewardType.GENERIC,
+  },
+};
+
+const routeWithPerpsDiscountReward = {
+  ...defaultRoute,
+  params: {
+    ...defaultRoute.params,
+    rewardType: SeasonRewardType.PERPS_DISCOUNT,
+    claimUrl: 'https://example.com',
+  },
+};
+
+const routeWithPointsBoostReward = {
+  ...defaultRoute,
+  params: {
+    ...defaultRoute.params,
+    rewardType: SeasonRewardType.POINTS_BOOST,
+  },
+};
+
+const routeWithAlphaFoxInviteReward = {
+  ...defaultRoute,
+  params: {
+    ...defaultRoute.params,
+    rewardType: SeasonRewardType.ALPHA_FOX_INVITE,
+    showInput: true,
+    inputPlaceholder: 'Enter your Telegram handle',
+  },
+};
+
+const routeWithClaimedReward = {
+  ...defaultRoute,
+  params: {
+    ...defaultRoute.params,
+    hasClaimed: true,
   },
 };
 
 describe('RewardsClaimBottomSheetModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseClaimRewardState.isClaimingReward = false;
+    mockUseClaimRewardState.claimRewardError = undefined;
   });
 
   it('should render correctly with minimal required props', () => {
@@ -124,12 +304,31 @@ describe('RewardsClaimBottomSheetModal', () => {
     ).not.toThrow();
   });
 
-  it('should render the underlying RewardsBottomSheetModal', () => {
+  it('should render the bottom sheet', () => {
     const { getByTestId } = render(
       <RewardsClaimBottomSheetModal route={defaultRoute} />,
     );
 
-    expect(getByTestId('rewards-bottom-sheet-modal')).toBeOnTheScreen();
+    expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+  });
+
+  it('should render the reward icon', () => {
+    const { getByTestId } = render(
+      <RewardsClaimBottomSheetModal route={defaultRoute} />,
+    );
+
+    expect(
+      getByTestId(REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON),
+    ).toBeOnTheScreen();
+  });
+
+  it('should render the correct title and description', () => {
+    const { getByText } = render(
+      <RewardsClaimBottomSheetModal route={defaultRoute} />,
+    );
+
+    expect(getByText('Test Reward')).toBeOnTheScreen();
+    expect(getByText('Test Description')).toBeOnTheScreen();
   });
 
   describe('Locked rewards', () => {
@@ -162,285 +361,194 @@ describe('RewardsClaimBottomSheetModal', () => {
         <RewardsClaimBottomSheetModal route={lockedRoute} />,
       );
 
-      const confirmButton = getByTestId('confirm-button');
+      const confirmButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
       fireEvent.press(confirmButton);
 
       expect(mockGoBack).toHaveBeenCalled();
     });
   });
 
-  describe('Generic reward type', () => {
-    it('should show "Got it" button for generic rewards', () => {
-      const genericRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.GENERIC,
-          isLocked: false,
-        },
-      };
-
-      const { getByText } = render(
-        <RewardsClaimBottomSheetModal route={genericRoute} />,
-      );
-
-      expect(getByText('Got it')).toBeOnTheScreen();
-    });
-
-    it('should call navigation.goBack when button is pressed for generic rewards', () => {
-      const genericRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.GENERIC,
-          isLocked: false,
-        },
-      };
-
-      const { getByTestId } = render(
-        <RewardsClaimBottomSheetModal route={genericRoute} />,
-      );
-
-      const confirmButton = getByTestId('confirm-button');
-      fireEvent.press(confirmButton);
-
-      expect(mockGoBack).toHaveBeenCalled();
-    });
-  });
-
-  describe('Perps discount reward type', () => {
-    it('should show "Got it" button for perps discount rewards', () => {
-      const perpsRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.PERPS_DISCOUNT,
-          isLocked: false,
-        },
-      };
-
-      const { getByText } = render(
-        <RewardsClaimBottomSheetModal route={perpsRoute} />,
-      );
-
-      expect(getByText('Got it')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Points boost reward type', () => {
-    it('should show "Claim Reward" button for points boost rewards', () => {
-      const pointsBoostRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.POINTS_BOOST,
-          isLocked: false,
-        },
-      };
-
-      const { getByText } = render(
-        <RewardsClaimBottomSheetModal route={pointsBoostRoute} />,
-      );
-
-      expect(getByText('Claim Reward')).toBeOnTheScreen();
-    });
-
-    it('should call claimReward when button is pressed for points boost rewards', async () => {
-      const pointsBoostRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.POINTS_BOOST,
-          isLocked: false,
-        },
-      };
-
-      mockClaimReward.mockResolvedValue(undefined);
-
-      const { getByTestId } = render(
-        <RewardsClaimBottomSheetModal route={pointsBoostRoute} />,
-      );
-
-      const confirmButton = getByTestId('confirm-button');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockClaimReward).toHaveBeenCalledWith('reward-123', {});
-      });
-    });
-
-    it('should close modal after successful claim for points boost rewards', async () => {
-      const pointsBoostRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.POINTS_BOOST,
-          isLocked: false,
-        },
-      };
-
-      mockClaimReward.mockResolvedValue(undefined);
-
-      const { getByTestId } = render(
-        <RewardsClaimBottomSheetModal route={pointsBoostRoute} />,
-      );
-
-      const confirmButton = getByTestId('confirm-button');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('Alpha Fox invite reward type', () => {
-    it('should show "Request Invite" button for Alpha Fox invite rewards', () => {
-      const alphaFoxRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.ALPHA_FOX_INVITE,
-          isLocked: false,
-        },
-      };
-
-      const { getByText } = render(
-        <RewardsClaimBottomSheetModal route={alphaFoxRoute} />,
-      );
-
-      expect(getByText('Request Invite')).toBeOnTheScreen();
-    });
-
-    it('should call claimReward for Alpha Fox invite rewards', async () => {
-      const alphaFoxRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.ALPHA_FOX_INVITE,
-          isLocked: false,
-        },
-      };
-
-      mockClaimReward.mockResolvedValue(undefined);
-
-      const { getByTestId } = render(
-        <RewardsClaimBottomSheetModal route={alphaFoxRoute} />,
-      );
-
-      const confirmButton = getByTestId('confirm-button');
-      fireEvent.press(confirmButton);
-
-      await waitFor(() => {
-        expect(mockClaimReward).toHaveBeenCalledWith('reward-123', {});
-      });
-    });
-  });
-
-  describe('Loading states', () => {
-    it('should disable button when claiming reward is in progress', () => {
-      // Set loading state
-      mockUseClaimRewardState.isClaimingReward = true;
-
-      const pointsBoostRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.POINTS_BOOST,
-          isLocked: false,
-        },
-      };
-
-      const { getByTestId } = render(
-        <RewardsClaimBottomSheetModal route={pointsBoostRoute} />,
-      );
-
-      const confirmButton = getByTestId('confirm-button');
-      expect(confirmButton.props.disabled).toBe(true);
-
-      // Reset state
-      mockUseClaimRewardState.isClaimingReward = false;
-    });
-  });
-
-  describe('Error handling', () => {
-    it('should display error message when claim fails', () => {
-      // Set error state
-      mockUseClaimRewardState.claimRewardError = 'Failed to claim reward';
-
+  describe('Unlocked rewards', () => {
+    it('should render the claim button when the reward is not locked and not claimed', () => {
       const { getByTestId } = render(
         <RewardsClaimBottomSheetModal route={defaultRoute} />,
       );
 
-      expect(getByTestId('error-message')).toBeOnTheScreen();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+    });
 
-      // Reset state
+    it('should handle generic reward type correctly', () => {
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithGenericReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).toBeOnTheScreen();
+
+      fireEvent.press(claimButton);
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('should handle perps discount reward type correctly', () => {
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithPerpsDiscountReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).toBeOnTheScreen();
+
+      fireEvent.press(claimButton);
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('should handle points boost reward type correctly', () => {
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithPointsBoostReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).toBeOnTheScreen();
+
+      fireEvent.press(claimButton);
+
+      expect(mockClaimReward).toHaveBeenCalledWith('reward-123', {});
+    });
+
+    it('should handle alpha fox invite reward type correctly', () => {
+      const { getByTestId, getByPlaceholderText } = render(
+        <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
+      );
+
+      const inputField = getByPlaceholderText('Enter your Telegram handle');
+      fireEvent.changeText(inputField, '@user123');
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).toBeOnTheScreen();
+
+      fireEvent.press(claimButton);
+
+      expect(mockClaimReward).toHaveBeenCalledWith('reward-123', {
+        data: { telegramHandle: '@user123' },
+      });
+    });
+  });
+
+  describe('Loading and error states', () => {
+    it('should disable the button when claiming reward', () => {
+      mockUseClaimRewardState.isClaimingReward = true;
+
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithPointsBoostReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).toBeDisabled();
+
+      mockUseClaimRewardState.isClaimingReward = false;
+    });
+
+    it('should show error message when claim fails', () => {
+      mockUseClaimRewardState.claimRewardError = 'Claim failed';
+
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithPointsBoostReward} />,
+      );
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL_ERROR_MESSAGE),
+      ).toBeOnTheScreen();
+
       mockUseClaimRewardState.claimRewardError = undefined;
     });
 
     it('should keep modal open when claim fails', async () => {
-      const pointsBoostRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: SeasonRewardType.POINTS_BOOST,
-          isLocked: false,
-        },
-      };
-
-      mockClaimReward.mockRejectedValue(new Error('Claim failed'));
+      mockClaimReward.mockRejectedValue('Claim failed');
 
       const { getByTestId } = render(
-        <RewardsClaimBottomSheetModal route={pointsBoostRoute} />,
+        <RewardsClaimBottomSheetModal route={routeWithPointsBoostReward} />,
       );
 
-      const confirmButton = getByTestId('confirm-button');
-      fireEvent.press(confirmButton);
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      fireEvent.press(claimButton);
 
       await waitFor(() => {
-        expect(mockClaimReward).toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
       });
 
-      // Modal should remain open (goBack should not be called)
-      expect(mockGoBack).not.toHaveBeenCalled();
+      mockClaimReward.mockReset();
+    });
+  });
+
+  describe('Claimed rewards', () => {
+    it('should show view button for claimed rewards', () => {
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithClaimedReward} />,
+      );
+
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
   describe('Default reward type', () => {
-    it('should show "Got it" button for unknown reward types', () => {
-      const unknownRoute = {
-        ...defaultRoute,
-        params: {
-          ...defaultRoute.params,
-          rewardType: 'UNKNOWN_TYPE' as SeasonRewardType,
-          isLocked: false,
-        },
-      };
-
-      const { getByText } = render(
-        <RewardsClaimBottomSheetModal route={unknownRoute} />,
+    it('should show claim button for unknown reward types', () => {
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal
+          route={{
+            ...defaultRoute,
+            params: {
+              ...defaultRoute.params,
+              rewardType: 'unknown' as SeasonRewardType,
+            },
+          }}
+        />,
       );
 
-      expect(getByText('Got it')).toBeOnTheScreen();
+      const button = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(button).toBeTruthy();
     });
   });
 
   describe('Route params passing', () => {
-    it('should pass through all route params to RewardsBottomSheetModal', () => {
+    it('should pass title, description and icon from route params', () => {
       const routeWithExtraParams = {
         ...defaultRoute,
         params: {
           ...defaultRoute.params,
           title: 'Custom Title',
           description: 'Custom Description',
-          showIcon: true,
+          icon: IconName.Lock,
           showInput: false,
         },
       };
 
-      expect(() =>
-        render(<RewardsClaimBottomSheetModal route={routeWithExtraParams} />),
-      ).not.toThrow();
+      const { getByText } = render(
+        <RewardsClaimBottomSheetModal route={routeWithExtraParams} />,
+      );
+
+      expect(getByText('Custom Title')).toBeOnTheScreen();
+      expect(getByText('Custom Description')).toBeOnTheScreen();
     });
 
     it('should override confirmAction and error in route params', () => {

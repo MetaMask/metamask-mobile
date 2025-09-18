@@ -5872,7 +5872,9 @@
       "see_ways_to_earn": "See ways to earn",
       "cta_label": "Claim now",
       "cta_request_invite": "Request invite",
-      "claim_label": "Claim"
+      "claim_label": "Claim",
+      "claimed_label": "Claimed",
+      "expired": "Expired"
     }
   },
   "time": {

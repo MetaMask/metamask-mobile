@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 
 // Mock dependencies
 import RewardsBottomSheetModal, { ModalType } from './RewardsBottomSheetModal';
@@ -66,70 +65,6 @@ interface IconProps {
   [key: string]: unknown;
 }
 
-// Mock TextField
-jest.mock('../../../../component-library/components/Form/TextField', () => {
-  const React = jest.requireActual('react');
-  const { TextInput } = jest.requireActual('react-native');
-
-  const TextField = React.forwardRef(
-    (
-      props: {
-        placeholder?: string;
-        onChangeText?: (text: string) => void;
-        value?: string;
-      },
-      _ref: React.Ref<unknown>,
-    ) =>
-      React.createElement(TextInput, {
-        testID: 'text-field',
-        placeholder: props.placeholder,
-        onChangeText: props.onChangeText,
-        value: props.value,
-        ...props,
-      }),
-  );
-
-  return {
-    __esModule: true,
-    default: TextField,
-    TextFieldSize: {
-      Lg: 'lg',
-    },
-  };
-});
-
-// Mock BannerAlert
-jest.mock(
-  '../../../../component-library/components/Banners/Banner/variants/BannerAlert',
-  () => {
-    const React = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-
-    return ({ description, ...props }: { description: string }) =>
-      React.createElement(
-        View,
-        { testID: 'banner-alert', ...props },
-        React.createElement(Text, {}, description),
-      );
-  },
-);
-
-// Mock Linking
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    Linking: {
-      openURL: jest.fn(),
-    },
-  };
-});
-
-// Mock formatUrl
-jest.mock('../utils/formatUtils', () => ({
-  formatUrl: jest.fn((url: string) => url.replace(/^https?:\/\//, '')),
-}));
-
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
@@ -185,7 +120,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     BoxAlignItems: {
       Center: 'center',
-      Start: 'start',
     },
     BoxJustifyContent: {
       Center: 'center',
@@ -204,11 +138,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     IconName: {
       Danger: 'danger',
       Question: 'question',
-      Export: 'export',
     },
     IconSize: {
       Xl: 'xl',
-      Sm: 'sm',
     },
   };
 });
@@ -442,198 +374,5 @@ describe('RewardsBottomSheetModal', () => {
 
     const confirmButton = getByText('Confirm');
     expect(confirmButton.props.isDanger).toBe(false);
-  });
-
-  it('should hide icon when showIcon is false', () => {
-    const routeWithoutIcon = {
-      params: {
-        title: 'Test Title',
-        description: 'Test Description',
-        confirmAction: mockConfirmAction,
-        showIcon: false,
-      },
-    };
-
-    const { queryByTestId } = render(
-      <RewardsBottomSheetModal route={routeWithoutIcon} />,
-    );
-
-    expect(queryByTestId('icon-danger')).not.toBeOnTheScreen();
-    expect(queryByTestId('icon-question')).not.toBeOnTheScreen();
-  });
-
-  it('should render input field when showInput is true', () => {
-    const routeWithInput = {
-      params: {
-        title: 'Test Title',
-        description: 'Test Description',
-        confirmAction: mockConfirmAction,
-        showInput: true,
-        inputPlaceholder: 'Enter value',
-      },
-    };
-
-    const { getByTestId } = render(
-      <RewardsBottomSheetModal route={routeWithInput} />,
-    );
-
-    const textField = getByTestId('text-field');
-    expect(textField).toBeOnTheScreen();
-    expect(textField.props.placeholder).toBe('Enter value');
-  });
-
-  it('should disable confirm button when showInput is true and input is empty', () => {
-    const routeWithInput = {
-      params: {
-        title: 'Test Title',
-        description: 'Test Description',
-        confirmAction: mockConfirmAction,
-        showInput: true,
-      },
-    };
-
-    const { getByText } = render(
-      <RewardsBottomSheetModal route={routeWithInput} />,
-    );
-
-    const confirmButton = getByText('Confirm');
-    expect(confirmButton).toBeDisabled();
-  });
-
-  it('should enable confirm button when input has value', () => {
-    const routeWithInput = {
-      params: {
-        title: 'Test Title',
-        description: 'Test Description',
-        confirmAction: mockConfirmAction,
-        showInput: true,
-      },
-    };
-
-    const { getByText, getByTestId } = render(
-      <RewardsBottomSheetModal route={routeWithInput} />,
-    );
-
-    const textField = getByTestId('text-field');
-    fireEvent.changeText(textField, 'test input');
-
-    const confirmButton = getByText('Confirm');
-    expect(confirmButton).not.toBeDisabled();
-  });
-
-  it('should pass input value to confirmAction.onPress', () => {
-    const routeWithInput = {
-      params: {
-        title: 'Test Title',
-        description: 'Test Description',
-        confirmAction: mockConfirmAction,
-        showInput: true,
-      },
-    };
-
-    const { getByText, getByTestId } = render(
-      <RewardsBottomSheetModal route={routeWithInput} />,
-    );
-
-    const textField = getByTestId('text-field');
-    fireEvent.changeText(textField, 'test input');
-
-    const confirmButton = getByText('Confirm');
-    fireEvent.press(confirmButton);
-
-    expect(mockConfirmAction.onPress).toHaveBeenCalledWith('test input');
-  });
-
-  it('should render error banner when error is provided', () => {
-    const routeWithError = {
-      params: {
-        title: 'Test Title',
-        description: 'Test Description',
-        confirmAction: mockConfirmAction,
-        error: 'Something went wrong',
-      },
-    };
-
-    const { getByTestId, getByText } = render(
-      <RewardsBottomSheetModal route={routeWithError} />,
-    );
-
-    expect(getByTestId('banner-alert')).toBeOnTheScreen();
-    expect(getByText('Something went wrong')).toBeOnTheScreen();
-  });
-
-  it('should render claim URL link when claimUrl is provided', () => {
-    const routeWithClaimUrl = {
-      params: {
-        title: 'Test Title',
-        description: 'Test Description',
-        confirmAction: mockConfirmAction,
-        claimUrl: 'https://example.com/claim',
-      },
-    };
-
-    const { getByText, getByTestId } = render(
-      <RewardsBottomSheetModal route={routeWithClaimUrl} />,
-    );
-
-    expect(getByText('example.com/claim')).toBeOnTheScreen();
-    expect(getByTestId('icon-export')).toBeOnTheScreen();
-
-    const linkButton = getByText('example.com/claim');
-    fireEvent.press(linkButton);
-
-    expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/claim');
-  });
-
-  it('should render React node title correctly', () => {
-    const CustomTitle = () => {
-      const React = jest.requireActual('react');
-      const { Text } = jest.requireActual('react-native');
-      return React.createElement(
-        Text,
-        { testID: 'custom-title' },
-        'Custom Title Node',
-      );
-    };
-
-    const routeWithNodeTitle = {
-      params: {
-        title: React.createElement(CustomTitle),
-        description: 'Test Description',
-        confirmAction: mockConfirmAction,
-      },
-    };
-
-    const { getByTestId } = render(
-      <RewardsBottomSheetModal route={routeWithNodeTitle} />,
-    );
-
-    expect(getByTestId('custom-title')).toBeOnTheScreen();
-  });
-
-  it('should render React node description correctly', () => {
-    const CustomDescription = () => {
-      const React = jest.requireActual('react');
-      const { Text } = jest.requireActual('react-native');
-      return React.createElement(
-        Text,
-        { testID: 'custom-description' },
-        'Custom Description Node',
-      );
-    };
-
-    const routeWithNodeDescription = {
-      params: {
-        title: 'Test Title',
-        description: React.createElement(CustomDescription),
-        confirmAction: mockConfirmAction,
-      },
-    };
-
-    const { getByTestId } = render(
-      <RewardsBottomSheetModal route={routeWithNodeDescription} />,
-    );
-
-    expect(getByTestId('custom-description')).toBeOnTheScreen();
   });
 });

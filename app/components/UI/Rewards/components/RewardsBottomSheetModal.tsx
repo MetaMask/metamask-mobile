@@ -1,6 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Linking, TouchableOpacity } from 'react-native';
+import React, { useCallback, useRef } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 
@@ -21,12 +20,6 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BannerAlert from '../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner';
-import TextField, {
-  TextFieldSize,
-} from '../../../../component-library/components/Form/TextField';
-import { formatUrl } from '../utils/formatUtils';
 
 export enum ModalType {
   Danger = 'danger',
@@ -35,17 +28,16 @@ export enum ModalType {
 
 export interface ModalAction {
   label: string;
-  onPress: (inputValue?: string) => void;
+  onPress: () => void;
   variant?: ButtonVariant;
   disabled?: boolean;
 }
 
-export interface RewardsBottomSheetModalProps {
+interface RewardsBottomSheetModalProps {
   route: {
     params: {
       title: string | React.ReactNode;
       description: string | React.ReactNode;
-      claimUrl?: string;
       // Enhanced props for generic usage
       type?: ModalType;
       confirmAction: ModalAction;
@@ -53,9 +45,6 @@ export interface RewardsBottomSheetModalProps {
       cancelLabel?: string;
       showCancelButton?: boolean;
       showIcon?: boolean;
-      showInput?: boolean;
-      inputPlaceholder?: string;
-      error?: string;
     };
   };
 }
@@ -64,26 +53,16 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const [inputValue, setInputValue] = useState('');
   const {
     title,
     description,
-    claimUrl,
     type = ModalType.Danger,
     confirmAction,
     onCancel,
     cancelLabel = 'Cancel',
     showCancelButton = false,
     showIcon = true,
-    showInput = false,
-    inputPlaceholder,
-    error,
   } = route.params;
-
-  const buttonDisabled = useMemo(
-    () => confirmAction.disabled || (showInput && !inputValue.trim()),
-    [confirmAction.disabled, showInput, inputValue],
-  );
 
   const handleDismiss = useCallback(() => {
     navigation.goBack();
@@ -150,7 +129,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
           ? BoxAlignItems.Center
           : BoxAlignItems.Start
       }
-      twClassName="mb-4 w-full"
+      twClassName="mb-6 w-full"
     >
       {typeof description === 'string' ? (
         <Text
@@ -161,24 +140,6 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         </Text>
       ) : (
         description
-      )}
-      {claimUrl && (
-        <TouchableOpacity
-          onPress={() => Linking.openURL(claimUrl)}
-          style={tw.style('mt-2 flex-row items-center justify-center')}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            style={tw.style('text-primary-default underline mr-1')}
-          >
-            {formatUrl(claimUrl)}
-          </Text>
-          <Icon
-            name={IconName.Export}
-            size={IconSize.Sm}
-            style={tw.style('text-primary-default')}
-          />
-        </TouchableOpacity>
       )}
     </Box>
   );
@@ -205,11 +166,10 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
             <Button
               variant={confirmAction.variant || ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              onPress={() => confirmAction.onPress(inputValue)}
-              disabled={buttonDisabled}
+              onPress={confirmAction.onPress}
+              disabled={confirmAction.disabled}
               isDanger={type === ModalType.Danger}
               twClassName="w-full"
-              style={tw.style(buttonDisabled && 'opacity-50')}
             >
               {confirmAction.label}
             </Button>
@@ -224,44 +184,15 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         <Button
           variant={confirmAction.variant || ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={() => confirmAction.onPress(inputValue)}
-          disabled={buttonDisabled}
+          onPress={confirmAction.onPress}
+          disabled={confirmAction.disabled}
           isDanger={type === ModalType.Danger}
           twClassName="w-full"
-          style={tw.style(buttonDisabled && 'opacity-50')}
         >
           {confirmAction.label}
         </Button>
       </Box>
     );
-  };
-
-  const renderError = () => {
-    if (error) {
-      return (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          description={error}
-          style={tw.style('my-4')}
-        />
-      );
-    }
-    return null;
-  };
-
-  const renderInput = () => {
-    if (showInput) {
-      return (
-        <TextField
-          placeholder={inputPlaceholder}
-          onChangeText={setInputValue}
-          value={inputValue}
-          size={TextFieldSize.Lg}
-          style={tw.style('bg-background-pressed my-4')}
-        />
-      );
-    }
-    return null;
   };
 
   return (
@@ -275,8 +206,6 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         {showIcon && renderIcon()}
         {renderTitle()}
         {renderDescription()}
-        {renderInput()}
-        {renderError()}
         {renderActions()}
       </Box>
     </BottomSheet>

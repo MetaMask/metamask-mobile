@@ -21,7 +21,13 @@ export const REWARDS_VIEW_SELECTORS = {
   TIER_REWARD_ICON: 'rewards-view-tier-reward-icon',
   TIER_REWARD_NAME: 'rewards-view-tier-reward-name',
   TIER_REWARD_DESCRIPTION: 'rewards-view-tier-reward-description',
+  TIER_REWARD_CLAIM_BUTTON: 'rewards-view-tier-reward-claim-button',
+  TIER_REWARD_CLAIMED_BUTTON: 'rewards-view-tier-reward-claimed-button',
   UNLOCKED_REWARDS: 'rewards-view-unlocked-rewards',
   UNLOCKED_REWARDS_EMPTY: 'rewards-view-unlocked-rewards-empty',
+  UNLOCKED_REWARDS_EMPTY_CTA: 'rewards-view-unlocked-rewards-empty-cta',
   NOT_OPTED_IN_OVERLAY: 'rewards-view-not-opted-in-overlay',
+  CLAIM_MODAL: 'rewards-view-claim-modal',
+  CLAIM_MODAL_CONFIRM_BUTTON: 'rewards-view-claim-modal-confirm-button',
+  CLAIM_MODAL_ERROR_MESSAGE: 'rewards-view-claim-modal-error-message',
 } as const;

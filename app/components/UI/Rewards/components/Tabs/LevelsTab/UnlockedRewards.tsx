@@ -11,9 +11,9 @@ import { RewardDto } from '../../../../../../core/Engine/controllers/rewards-con
 import { strings } from '../../../../../../../locales/i18n';
 import UnlockedRewardsPlaceholder from '../../../../../../images/rewards/rewards-placeholder.svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { RewardItem } from './UpcomingRewards';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { setActiveTab } from '../../../../../../actions/rewards';
+import RewardItem from './RewardItem';
 
 interface UnlockedRewardItemProps {
   reward: RewardDto;
@@ -82,6 +82,7 @@ const UnlockedRewards: React.FC = () => {
           style={({ pressed }) => ({
             opacity: pressed ? 0.7 : 1,
           })}
+          testID={REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS_EMPTY_CTA}
         >
           <Text
             variant={TextVariant.BodyMd}
