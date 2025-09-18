@@ -3,14 +3,8 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../../styles/common';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { accountNameWide: boolean };
-}) => {
-  const {
-    theme,
-    vars: { accountNameWide },
-  } = params;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
 
   return StyleSheet.create({
     container: {
@@ -34,7 +28,6 @@ const styleSheet = (params: {
     },
     accountName: {
       color: theme.colors.text.default,
-      width: accountNameWide ? '86%' : '40%',
       ...fontStyles.bold,
     },
     accountLabel: {
