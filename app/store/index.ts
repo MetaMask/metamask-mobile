@@ -10,6 +10,9 @@ import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
+
+console.log('🏬 [STORE DEBUG] store/index.ts loading...');
+console.log('🏬 [STORE DEBUG] persistConfig imported:', !!persistConfig);
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';

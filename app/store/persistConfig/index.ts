@@ -9,6 +9,12 @@ import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
+import { RealmControllerStorage, testRealmOperations } from './realmInstance';
+
+console.log('🏪 [PERSIST DEBUG] persistConfig/index.ts loading...');
+console.log('🧪 [PERSIST DEBUG] About to explicitly call testRealmOperations...');
+testRealmOperations();
+console.log('✅ [PERSIST DEBUG] testRealmOperations call completed in persistConfig');
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -200,5 +206,8 @@ const persistConfig = {
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }),
 };
+
+// Re-export Realm storage for easy access
+export { RealmControllerStorage };
 
 export default persistConfig;

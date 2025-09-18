@@ -1,6 +1,7 @@
 module.exports = {
   name: 'MetaMask',
   displayName: 'MetaMask',
+  scheme: 'app-with-realm',
   experiments: {
     reactCompiler: {
       enabled: true,
