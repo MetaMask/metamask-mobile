@@ -33,6 +33,8 @@ const styleSheet = ({
     },
     textInput: {
       flex: 1,
+      height: 44,
+      paddingVertical: 0,
       margin: 0,
       paddingLeft: isUrlBarFocused ? 16 : 0,
       ...fontStyles.normal,

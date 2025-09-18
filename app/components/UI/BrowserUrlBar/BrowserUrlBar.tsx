@@ -34,6 +34,7 @@ import URLParse from 'url-parse';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import { hasProperty } from '@metamask/utils';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -83,9 +84,11 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
       focus: () => inputRef?.current?.focus(),
-      setNativeProps: (props: { text?: string }) => {
-        if (props.text) {
-          inputValueRef.current = props.text;
+      setNativeProps: (props: object) => {
+        const inputText = hasProperty(props, 'text') && props.text;
+
+        if (typeof inputText === 'string') {
+          inputValueRef.current = inputText;
         }
         inputRef?.current?.setNativeProps(props);
       },
