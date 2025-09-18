@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Mật khẩu này sẽ chỉ mở khóa ví MetaMask của bạn trên thiết bị này.",
-    "password": "Tạo mật khẩu mới",
+    "password": "Create password",
     "confirm_password": "Xác nhận mật khẩu",
     "create_button": "Tạo mật khẩu",
     "import_with_seed_phrase": "Nhập bằng Cụm từ khôi phục bí mật",
@@ -404,7 +404,7 @@
     "show": "Hiển thị",
     "hide": "Ẩn",
     "seed_phrase": "Cụm từ khôi phục bí mật",
-    "must_be_at_least": "Mật khẩu phải có ít nhất {{number}} ký tự",
+    "must_be_at_least": "Phải dài ít nhất {{number}} ký tự",
     "remember_me": "Ghi nhớ",
     "security_alert_title": "Cảnh báo bảo mật",
     "security_alert_message": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trong thiết bị của bạn (FaceID, TouchID hoặc Vân tay)",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Nếu tôi quên mật khẩu này, tôi sẽ vĩnh viễn mất quyền truy cập vào ví. MetaMask không thể đặt lại mật khẩu cho tôi.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "Thử lại"
   },
   "import_from_seed": {
     "title": "Nhập ví",
     "seed_phrase_placeholder": "Nhập Cụm từ khôi phục bí mật của bạn",
-    "create_new_password": "Tạo mật khẩu mới",
+    "create_new_password": "Create password",
     "confirm_password": "Xác nhận mật khẩu",
     "import_button": "NHẬP",
     "cancel_button": "Hủy",
@@ -491,7 +491,7 @@
     "srp": "của bạn",
     "srp_placeholder": "Thêm dấu cách giữa mỗi từ và đảm bảo không có ai đang nhìn.",
     "learn_more_link": "Tìm hiểu thêm",
-    "create_password_cta": "Tạo mật khẩu",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Tiếp tục với Flow",
     "steps": "Bước {{currentStep}}/{{totalSteps}}",
     "password_error": "Mật khẩu không khớp. Vui lòng thử lại.",
@@ -507,6 +507,7 @@
     "home": "Trang chủ",
     "browser": "Trình duyệt",
     "activity": "Hoạt động",
+    "trade": "Trade",
     "settings": "Cài đặt",
     "rewards": "Phần thưởng"
   },
@@ -1075,7 +1076,7 @@
         "limit_price_below": "Limit price is below current price"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "Đòn bẩy",
         "confirm": "Xác nhận",
         "entry_price": "Giá vào lệnh",
         "current_price": "Giá hiện tại",
@@ -3936,14 +3937,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "mua",
     "sell": "bán",
-    "orders": "Lệnh",
+    "orders": "Transfers",
     "All": "Tất cả",
     "Buy": "Mua",
     "Sell": "Bán",
     "token_marketplace": "Thị trường token",
     "Purchased": "Đã mua",
     "Sold": "Đã bán",
-    "empty_orders_list": "Bạn không có bất kỳ lệnh nào",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "Bạn không có bất kỳ lệnh mua nào",
     "empty_sell_orders_list": "Bạn không có bất kỳ lệnh bán nào",
     "purchased_currency": "Đã mua {{currency}}",
@@ -5782,6 +5783,28 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
       "actions": {
         "share_referral_link": "Giới thiệu bạn bè",
@@ -5791,7 +5814,9 @@
         "title": "Chia sẻ mã của bạn để nhận thêm điểm",
         "description": "Bạn bè của bạn nhận điểm thưởng và bạn nhận 20% phần thưởng của họ."
       }
-    }
+    },
+    "active_boosts_title": "Active Boosts",
+    "season_1": "Season 1"
   },
   "time": {
     "minutes_format": "{{count}} phút",
