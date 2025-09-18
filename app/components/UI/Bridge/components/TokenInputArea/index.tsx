@@ -28,7 +28,9 @@ import {
   selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
+  selectIsGaslessSwapEnabled,
 } from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -154,6 +156,9 @@ export const TokenInputArea = forwardRef<
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+    const isGaslessSwapEnabled = useSelector((state: RootState) =>
+      token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
+    );
 
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
@@ -314,7 +319,8 @@ export const TokenInputArea = forwardRef<
                   tokenType === TokenInputAreaType.Source &&
                   tokenBalance &&
                   onMaxPress &&
-                  !isNativeAsset ? (
+                  (!isNativeAsset ||
+                    (isNativeAsset && isGaslessSwapEnabled)) ? (
                     <Box flexDirection={FlexDirection.Row} gap={4}>
                       <Text
                         color={
