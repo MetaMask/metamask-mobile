@@ -34,6 +34,10 @@ class OnboardingSheet {
     }
   }
 
+  get notNowButton() {
+    return AppwrightSelectors.getElementByCatchAll(this._device, 'Not now');
+  }
+
   async tapGoogleLoginButton() {
     await Gestures.waitAndTap(this.googleLoginButton);
   }
@@ -54,6 +58,12 @@ class OnboardingSheet {
   async isVisible() {
     const element = await this.importSeedButton;
     await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+  }
+
+  async tapNotNow() {
+    const notNowByButton = await this.notNowButton;
+    await notNowByButton.isVisible({ timeout: 2000 });
+    await notNowByButton.tap();
   }
 }
 

@@ -1,0 +1,36 @@
+diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs b/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
+index f3d64eb..beb4ab6 100644
+--- a/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
++++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
+@@ -1204,6 +1204,7 @@ _KeyringController_controllerOperationMutex = new WeakMap(), _KeyringController_
+     this.messagingSystem.registerActionHandler(`${name}:signUserOperation`, this.signUserOperation.bind(this));
+     this.messagingSystem.registerActionHandler(`${name}:addNewAccount`, this.addNewAccount.bind(this));
+     this.messagingSystem.registerActionHandler(`${name}:withKeyring`, this.withKeyring.bind(this));
++    this.messagingSystem.registerActionHandler(`${name}:addNewKeyring`, this.addNewKeyring.bind(this));
+ }, _KeyringController_getKeyringById = function _KeyringController_getKeyringById(keyringId) {
+     return __classPrivateFieldGet(this, _KeyringController_keyrings, "f").find(({ metadata }) => metadata.id === keyringId)
+         ?.keyring;
+diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.cts b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.cts
+index ed58f0c..2315ae4 100644
+--- a/node_modules/@metamask/keyring-controller/dist/KeyringController.d.cts
++++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.d.cts
+@@ -124,6 +124,10 @@ export type KeyringControllerWithKeyringAction = {
+     type: `${typeof name}:withKeyring`;
+     handler: KeyringController['withKeyring'];
+ };
++export type KeyringControllerAddNewKeyringAction = {
++    type: `${typeof name}:addNewKeyring`;
++    handler: KeyringController['addNewKeyring'];
++};
+ export type KeyringControllerStateChangeEvent = {
+     type: `${typeof name}:stateChange`;
+     payload: [KeyringControllerState, Patch[]];
+@@ -144,7 +148,7 @@ export type KeyringControllerQRKeyringStateChangeEvent = {
+     type: `${typeof name}:qrKeyringStateChange`;
+     payload: [ReturnType<IQRKeyringState['getState']>];
+ };
+-export type KeyringControllerActions = KeyringControllerGetStateAction | KeyringControllerSignMessageAction | KeyringControllerSignEip7702AuthorizationAction | KeyringControllerSignPersonalMessageAction | KeyringControllerSignTypedMessageAction | KeyringControllerDecryptMessageAction | KeyringControllerGetEncryptionPublicKeyAction | KeyringControllerGetAccountsAction | KeyringControllerGetKeyringsByTypeAction | KeyringControllerGetKeyringForAccountAction | KeyringControllerPersistAllKeyringsAction | KeyringControllerPrepareUserOperationAction | KeyringControllerPatchUserOperationAction | KeyringControllerSignUserOperationAction | KeyringControllerAddNewAccountAction | KeyringControllerWithKeyringAction;
++export type KeyringControllerActions = KeyringControllerGetStateAction | KeyringControllerSignMessageAction | KeyringControllerSignEip7702AuthorizationAction | KeyringControllerSignPersonalMessageAction | KeyringControllerSignTypedMessageAction | KeyringControllerDecryptMessageAction | KeyringControllerGetEncryptionPublicKeyAction | KeyringControllerGetAccountsAction | KeyringControllerGetKeyringsByTypeAction | KeyringControllerGetKeyringForAccountAction | KeyringControllerPersistAllKeyringsAction | KeyringControllerPrepareUserOperationAction | KeyringControllerPatchUserOperationAction | KeyringControllerSignUserOperationAction | KeyringControllerAddNewAccountAction | KeyringControllerWithKeyringAction | KeyringControllerAddNewKeyringAction;
+ export type KeyringControllerEvents = KeyringControllerStateChangeEvent | KeyringControllerLockEvent | KeyringControllerUnlockEvent | KeyringControllerAccountRemovedEvent | KeyringControllerQRKeyringStateChangeEvent;
+ export type KeyringControllerMessenger = RestrictedMessenger<typeof name, KeyringControllerActions, KeyringControllerEvents, never, never>;
+ export type KeyringControllerOptions = {

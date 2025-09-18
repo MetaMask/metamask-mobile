@@ -729,7 +729,7 @@ export class RewardsController extends BaseController<
       );
       return {
         hasOptedIn: !!accountState.hasOptedIn,
-        discount: accountState.perpsFeeDiscount,
+        discountBips: accountState.perpsFeeDiscount,
       };
     }
 
@@ -752,7 +752,7 @@ export class RewardsController extends BaseController<
             subscriptionId: null,
             lastCheckedAuth: Date.now(),
             lastCheckedAuthError: false,
-            perpsFeeDiscount: perpsDiscountData.discount ?? 0,
+            perpsFeeDiscount: perpsDiscountData.discountBips ?? 0,
             lastPerpsDiscountRateFetched: Date.now(),
           };
         } else {
@@ -762,7 +762,7 @@ export class RewardsController extends BaseController<
             state.accounts[account].subscriptionId = null;
           }
           state.accounts[account].perpsFeeDiscount =
-            perpsDiscountData.discount ?? 0;
+            perpsDiscountData.discountBips ?? 0;
           state.accounts[account].lastPerpsDiscountRateFetched = Date.now();
         }
       });
@@ -821,13 +821,13 @@ export class RewardsController extends BaseController<
   /**
    * Get perps fee discount for an account with caching and threshold logic
    * @param account - The account address in CAIP-10 format
-   * @returns Promise<number> - The discount number value
+   * @returns Promise<number> - The discount in basis points
    */
   async getPerpsDiscountForAccount(account: CaipAccountId): Promise<number> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) return 0;
     const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
-    return perpsDiscountData?.discount || 0;
+    return perpsDiscountData?.discountBips || 0;
   }
 
   /**
