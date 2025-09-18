@@ -1,4 +1,5 @@
 export default class AppwrightSelectors {
+  
   // The below three selectors are the primary selectors
   static async getElementByID(device, id) {
     return await device.getById(id,{ exact: true });
@@ -44,10 +45,63 @@ export default class AppwrightSelectors {
     return device.webDriverClient.capabilities.platformName === 'android' || device.webDriverClient.capabilities.platformName === 'Android';
   }
 
+  static async terminateApp(device) {
+    let retries = 3;
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask'; 
+    while (retries > 0) {
+      try {
+        await device.terminateApp(packageId);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        retries--;
+      } catch (error) {
+        console.log('Error terminating app, retrying...', error);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        retries--;
+      }
+    }
+  }
+
+  static async activateApp(device) {
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask';
+    return await device.activateApp(packageId);
+  }
+
   static async hideKeyboard(device) {
     if (AppwrightSelectors.isAndroid(device)) await device.webDriverClient.hideKeyboard(); // only needed for Android
   }
 
+
+  static async backgroundApp(device, time) {
+    const driver = device.webDriverClient;
+    await driver.background(time);
+  }
+
+  static async scrollToElement(device, element) {
+    const maxScrolls = 10; 
+    let scrollCount = 0;
+    let isVisible = await element.isVisible({ timeout: 500 });
+    const driver = device.webDriverClient;
+    while (!(isVisible) && scrollCount < maxScrolls) {
+        await driver.executeScript("mobile: swipeGesture", [
+            {
+                left: 100, 
+                top: 500,
+                width: 200,
+                height: 500, 
+                direction: "up", 
+                percent: 0.60
+            }
+        ]);
+        isVisible = await element.isVisible({ timeout: 500 });
+        if (isVisible) {
+          console.log('Element found and visible, returning element');
+          return element;
+        }
+        console.log('Element not found or not visible, continuing scrolling');
+        scrollCount++;
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  }
 
   static async dismissAlert(device) {
     // Simple wrapper that uses appropriate timeout for platform
@@ -55,19 +109,20 @@ export default class AppwrightSelectors {
     const timeout = isIOS ? 8000 : 2000; // 8 seconds for iOS, 2 for Android
     await device.waitForTimeout(timeout);
     return await device.webDriverClient.dismissAlert();
-
   }
 
   static async scrollIntoView(device, element) {
     for (let i = 0; i < 20; i++) {
       try {
-        const isVisible = await element.isVisible({ timeout: 2000 });
+        const isVisible = await element.isVisible({ timeout: 10000 });
         
         if (isVisible) {
+          console.log('Element found and visible, returning element');
           return element;
         }
       } catch (error) {
         // Element not found or not visible, continue scrolling
+        console.log('Element not found or not visible, continuing scrolling');
       }
       const driver = device.webDriverClient;
       // Perform a scroll action

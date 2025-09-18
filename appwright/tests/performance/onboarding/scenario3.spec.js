@@ -1,23 +1,23 @@
-import { test, expect } from '../../fixtures/performance-test.js';
-import TimerHelper from '../../utils/TimersHelper.js';
-import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
-import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
-import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
-import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
-import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
-import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
-import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
-import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
-import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
-import { getPasswordForScenario } from '../../utils/TestConstants.js';
+import { test } from '../../../fixtures/performance-test.js';
+import TimerHelper from '../../../utils/TimersHelper.js';
+import WelcomeScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
+import TermOfUseScreen from '../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
+import OnboardingScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
+import CreateNewWalletScreen from '../../../../wdio/screen-objects/Onboarding/CreateNewWalletScreen.js';
+import MetaMetricsScreen from '../../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
+import OnboardingSucessScreen from '../../../../wdio/screen-objects/OnboardingSucessScreen.js';
+import OnboardingSheet from '../../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
+import WalletAccountModal from '../../../../wdio/screen-objects/Modals/WalletAccountModal.js';
+import SkipAccountSecurityModal from '../../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
+import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
+import CreatePasswordScreen from '../../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
+import ImportFromSeedScreen from '../../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
+import { getPasswordForScenario } from '../../../utils/TestConstants.js';
 
 import {
   dismissSystemDialogs,
   tapPerpsBottomSheetGotItButton,
-} from '../../utils/Flows.js';
+} from '../../../utils/Flows.js';
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
   performanceTracker,

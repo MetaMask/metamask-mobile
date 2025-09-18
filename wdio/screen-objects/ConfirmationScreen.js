@@ -52,6 +52,11 @@ class ConfirmationScreen {
     console.log('confirmButton', confirmButton);
     //await confirmButton.tap();
   }
+
+  async isVisible() {
+    const confirmButton = await this.confirmButton;
+    await appwrightExpect(confirmButton).toBeVisible();
+  }
 }
 
 export default new ConfirmationScreen();

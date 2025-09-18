@@ -79,6 +79,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSheet.tapNotNow();
 
   await WalletMainScreen.isMainWalletViewVisible();
+
   await dismissSystemDialogs(device);
 }
 
@@ -108,7 +109,7 @@ export async function importSRPFlow(device, srp) {
   timer.stop();
 
   timer2.start();
-  await AccountListComponent.tapAddAccountButton();
+  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 
@@ -136,10 +137,22 @@ export async function login(device, scenarioType) {
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  await tapPerpsBottomSheetGotItButton(device);
+  // await tapPerpsBottomSheetGotItButton(device);
+  await dismissGTMModal(device);
   // Wait for app to settle after unlock
   await dismissSystemDialogs(device);
 }
+
+export async function dismissGTMModal(device) {
+  const notNowButton = await AppwrightSelectors.getElementByText(
+    device,
+    'Not now',
+  );
+  if (await notNowButton.isVisible({ timeout: 2000 })) {
+    await notNowButton.tap();
+  }
+}
+
 export async function tapPerpsBottomSheetGotItButton(device) {
   // Only skip perps onboarding on Android devices
   if (!AppwrightSelectors.isAndroid(device)) {

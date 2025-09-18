@@ -17,7 +17,7 @@ class LoginScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.CONTAINER);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, LoginViewSelectors.CONTAINER);
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.CONTAINER);
     }
   }
 
@@ -38,9 +38,17 @@ class LoginScreen {
   get passwordInput() {
     // Always return the same selector for backward compatibility
     // The actual element resolution will be handled in async methods
+    if (!this._device) {
     return Selectors.getXpathElementByResourceId(
-      LoginViewSelectors.PASSWORD_INPUT,
-    );
+        LoginViewSelectors.PASSWORD_INPUT,
+      );
+    } else {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.PASSWORD_INPUT);
+      } else {
+        return AppwrightSelectors.getElementByNameiOS(this._device, "textfield");
+      }
+    }
   }
 
   get getPasswordInputElement() {
@@ -86,7 +94,6 @@ class LoginScreen {
   }
 
   async isLoginScreenVisible() {
-
     if (!this._device) {
       const element = await this.title;
       await element.waitForDisplayed();
@@ -99,12 +106,11 @@ class LoginScreen {
 
   async waitForScreenToDisplay() {
     if (!this._device) {
-      const element = await this.title;
+      const element = await this.loginScreen;
       await element.waitForDisplayed({ interval: 100 });
     } else {
-      const element = await this.title;
-      await appwrightExpect(element).toBeVisible();
-
+      const element = await this.loginScreen;
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
   }
 
@@ -118,8 +124,8 @@ class LoginScreen {
   }
 
   async typePassword(password) {
-    await this.isLoginScreenVisible();
     if (!this._device) {
+      await this.isLoginScreenVisible();
       await Gestures.typeText(this.passwordInput, password);
     } else {
       const screenTitle = await this.title
