@@ -9,23 +9,27 @@ class PerpsDepositScreen {
     this._device = device;
   }
 
-  async getContinueButton() {
-    return await AppwrightSelectors.getElementByID(this._device, 'deposit-keyboard-done-button')
+  get continueButton() {
+    return AppwrightSelectors.getElementByID(this._device, 'deposit-keyboard-done-button')
   }
 
   get cancelButton() {
     return AppwrightSelectors.getElementByID(this._device, 'cancel-button');
   }
 
-  async getPayWithButton() {
-    return await AppwrightSelectors.getElementByCatchAll(
+  get amountInput() {
+    return AppwrightSelectors.getElementByID(this._device, 'edit-amount-input');
+  }
+
+  get payWithButton() {
+    return AppwrightSelectors.getElementByCatchAll(
       this._device,
       'Pay with',
     );
   }
 
   async isAmountInputVisible() {
-    const input = await AppwrightSelectors.getElementByID(this._device, 'edit-amount-input');
+    const input = await this.amountInput;
     await input.isVisible({ timeout: 15000 });
   }
 
@@ -34,19 +38,18 @@ class PerpsDepositScreen {
     await networkButton.tap();
   }
 
-
   async fillUsdAmount(amount) {
-    const input = await AppwrightSelectors.getElementByID(this._device, 'edit-amount-input');
+    const input = await this.amountInput;
     await input.fill(String(amount));
   }
 
   async tapPayWith() {
-    const btn = await this.getPayWithButton();
+    const btn = await this.payWithButton;
     await btn.tap();
   }
 
   async tapContinue() {
-    const btn = await this.getContinueButton();
+    const btn = await this.continueButton;
     await btn.tap();
   }
 
