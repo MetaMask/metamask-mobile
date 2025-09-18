@@ -18,7 +18,7 @@ async function _discoverAccounts(
   entropySource: EntropySourceId,
 ): Promise<number> {
   // HACK: Force Snap keyring instantiation.
-  await Engine.getSnapKeyring();
+  await Engine.getSnapKeyring?.();
 
   // Ensure the account tree is synced with user storage before discovering accounts.
   await Engine.context.AccountTreeController.syncWithUserStorageAtLeastOnce();
