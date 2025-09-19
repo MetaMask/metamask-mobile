@@ -51,8 +51,10 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
+              "height": 44,
               "margin": 0,
               "paddingLeft": 16,
+              "paddingVertical": 0,
             },
             false,
           ]
@@ -252,8 +254,10 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
               "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
+              "height": 44,
               "margin": 0,
               "paddingLeft": 0,
+              "paddingVertical": 0,
             },
             {
               "opacity": 0,
