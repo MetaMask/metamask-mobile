@@ -1,3 +1,4 @@
+import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -91,6 +92,7 @@ import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
 } from '../../../selectors/tokensController';
+import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
@@ -181,6 +183,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -468,6 +471,8 @@ const Wallet = ({
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
+  const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
+
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
@@ -531,10 +536,21 @@ const Wallet = ({
     isBridgeAllowed(chainId);
 
   const onReceive = useCallback(() => {
-    navigate(Routes.QR_TAB_SWITCHER, {
-      initialScreen: QRTabSwitcherScreens.Receive,
-    });
-  }, [navigate]);
+    if (isMultichainAccountsState2Enabled) {
+      navigate(
+        ...createAddressListNavigationDetails({
+          groupId: selectedAccountGroupId as AccountGroupId,
+          title: `${strings(
+            'multichain_accounts.address_list.receiving_address',
+          )}`,
+        }),
+      );
+    } else {
+      navigate(Routes.QR_TAB_SWITCHER, {
+        initialScreen: QRTabSwitcherScreens.Receive,
+      });
+    }
+  }, [isMultichainAccountsState2Enabled, navigate, selectedAccountGroupId]);
 
   const onSend = useCallback(async () => {
     try {
