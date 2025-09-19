@@ -52,6 +52,10 @@ jobs:
       total-splits: ${{ steps.ai-analysis.outputs.total_splits }}
       matrix-splits: ${{ steps.ai-analysis.outputs.matrix_splits }}
       should-run-tests: ${{ steps.ai-analysis.outputs.run_tests }}
+      risk-level: ${{ steps.ai-analysis.outputs.risk_level }}
+      reasoning: ${{ steps.ai-analysis.outputs.reasoning }}
+      confidence: ${{ steps.ai-analysis.outputs.confidence }}
+      breakdown: ${{ steps.ai-analysis.outputs.breakdown }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -173,6 +177,10 @@ jobs:
           echo "strategy=dynamic-$TAG_COUNT-tags" >> "$GITHUB_OUTPUT"
           echo "total_splits=$TOTAL_SPLITS" >> "$GITHUB_OUTPUT"
           echo "matrix_splits=$MATRIX_ARRAY" >> "$GITHUB_OUTPUT"
+          echo "risk_level=$RISK_LEVEL" >> "$GITHUB_OUTPUT"
+          echo "reasoning=$REASONING" >> "$GITHUB_OUTPUT"
+          echo "confidence=$CONFIDENCE" >> "$GITHUB_OUTPUT"
+          echo "breakdown=$BREAKDOWN" >> "$GITHUB_OUTPUT"
 
           # Only run tests if we have tags selected and splits > 0
           if [ "$TAG_COUNT" -eq 0 ]; then
@@ -220,8 +228,14 @@ jobs:
             echo "$BREAKDOWN" >> $GITHUB_STEP_SUMMARY
           fi
 
+  # Step 2: Post AI analysis to PR
+  post-pr-comment:
+    name: 'Post AI Analysis to PR'
+    needs: [analyze-and-plan]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
       - name: Post AI analysis to PR
-        if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -229,17 +243,17 @@ jobs:
           cat > pr_comment.md << EOF
           ## 🤖 Smart E2E Test Analysis
 
-          **Risk Level:** $RISK_LEVEL | **Selected Tags:** $TAG_DISPLAY
+          **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
 
           **AI Analysis:**
-          > $REASONING
+          > ${{ needs.analyze-and-plan.outputs.reasoning }}
 
           **Test Plan:**
-          - **Total Splits:** $TOTAL_SPLITS per platform (optimized for actual test files)
-          - **Confidence:** ${CONFIDENCE}%
+          - **Total Splits:** ${{ needs.analyze-and-plan.outputs.total-splits }} per platform (optimized for actual test files)
+          - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
 
           **Test File Breakdown:**
-          $BREAKDOWN
+          ${{ needs.analyze-and-plan.outputs.breakdown }}
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
           EOF
@@ -255,8 +269,7 @@ jobs:
             gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
           fi
 
-
-  # Step 2: Determine platform conditions
+  # Step 3: Determine platform conditions
   platform-conditions:
     name: 'Platform Conditions'
     needs: [analyze-and-plan]
