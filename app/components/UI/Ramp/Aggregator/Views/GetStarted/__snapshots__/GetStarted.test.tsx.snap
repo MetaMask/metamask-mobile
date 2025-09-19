@@ -145,7 +145,7 @@ exports[`GetStarted renders correctly 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -804,7 +804,7 @@ exports[`GetStarted renders correctly 2`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1463,7 +1463,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1898,7 +1898,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }

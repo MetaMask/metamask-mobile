@@ -409,7 +409,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -2271,7 +2271,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -4133,7 +4133,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -6034,7 +6034,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -7896,7 +7896,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -9758,7 +9758,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -11659,7 +11659,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -12189,7 +12189,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -14051,7 +14051,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -15913,7 +15913,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Bold",
-                    "fontSize": 16,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
