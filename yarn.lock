@@ -6670,9 +6670,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^0.16.1":
-  version: 0.16.1
-  resolution: "@metamask/account-tree-controller@npm:0.16.1"
+"@metamask/account-tree-controller@npm:^0.18.0":
+  version: 0.18.0
+  resolution: "@metamask/account-tree-controller@npm:0.18.0"
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/snaps-sdk": ^9.0.0
@@ -6690,7 +6690,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 8f9f248468ceb7cab54ac0d7c9b44633175764c7b32b4bf7a064c077cbf1e94ab3b38d1203cd6f1704d036620f756d9bbffd3f25600f897c7b5fe6f8c17869c7
+  checksum: 999b4d1020619cd25e406091f7fc67aef7ae210c5773a5dfc53deea7c9b6aa5938a54f8f59f9c2e34cb425e6b61d4d39dd620f407df3fedbf0e465ca24083039
   languageName: node
   linkType: hard
 
@@ -6839,7 +6839,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.2.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
+"@metamask/base-controller@npm:^8.0.0, @metamask/base-controller@npm:^8.0.1, @metamask/base-controller@npm:^8.0.3, @metamask/base-controller@npm:^8.1.0, @metamask/base-controller@npm:^8.2.0, @metamask/base-controller@npm:^8.3.0, @metamask/base-controller@npm:^8.4.0":
   version: 8.4.0
   resolution: "@metamask/base-controller@npm:8.4.0"
   dependencies:
@@ -7647,7 +7647,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mobile-wallet-protocol-core@npm:^0.1.0, @metamask/mobile-wallet-protocol-core@npm:^0.1.1":
+"@metamask/mobile-wallet-protocol-core@npm:^0.1.1":
   version: 0.1.1
   resolution: "@metamask/mobile-wallet-protocol-core@npm:0.1.1"
   dependencies:
@@ -7658,7 +7658,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mobile-wallet-protocol-wallet-client@npm:^0.1.0":
+"@metamask/mobile-wallet-protocol-wallet-client@npm:^0.1.1":
   version: 0.1.1
   resolution: "@metamask/mobile-wallet-protocol-wallet-client@npm:0.1.1"
   dependencies:
@@ -7669,10 +7669,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^0.9.0":
-  version: 0.9.0
-  resolution: "@metamask/multichain-account-service@npm:0.9.0"
+"@metamask/multichain-account-service@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "@metamask/multichain-account-service@npm:0.10.0"
   dependencies:
+    "@ethereumjs/util": ^9.1.0
     "@metamask/base-controller": ^8.4.0
     "@metamask/eth-snap-keyring": ^17.0.0
     "@metamask/key-tree": ^10.1.1
@@ -7692,7 +7693,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 6ffb01e1ac86a3d7c46d679c109e4c02318e090d4d0c893f7284cc00a4f19e48add7741e61a3a0a8046afbe6f64874ee684d2cf476d8dca7cb48f0303b200b7e
+  checksum: 2e25658d1a713091ab45a7a1c9f54b88393b61c29994dba01f83f90bb26e461163b819e721e346e058ba74025912fa00512c23cbc455317188248ea35c87bdf9
   languageName: node
   linkType: hard
 
@@ -8435,10 +8436,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.3.8":
-  version: 2.3.8
-  resolution: "@metamask/solana-wallet-snap@npm:2.3.8"
-  checksum: fefb60d186db223929b2136b40fef12185b635a97d328c3f2cab19134c1a2f54d93aad09292897051390e8cde9d2ae3b5206d3aa38ae06bfdd170325c925fb8c
+"@metamask/solana-wallet-snap@npm:^2.3.10":
+  version: 2.3.10
+  resolution: "@metamask/solana-wallet-snap@npm:2.3.10"
+  checksum: 2d425dadd05cb9c3d4376af80cbce7e9bd49402c562da424b99689b686d3c503d0f12f9177480d1d2426b635bb20b79269f33e4625c3cbcfbdefe69763b6c655
   languageName: node
   linkType: hard
 
@@ -8477,13 +8478,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/swaps-controller@npm:^13.3.0":
-  version: 13.3.0
-  resolution: "@metamask/swaps-controller@npm:13.3.0"
+"@metamask/swaps-controller@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "@metamask/swaps-controller@npm:14.0.0"
   dependencies:
     "@ethersproject/contracts": ^5.7.0
     "@ethersproject/providers": ^5.7.0
-    "@metamask/base-controller": ^7.0.1
+    "@metamask/base-controller": ^8.0.3
     "@metamask/controller-utils": ^11.3.0
     "@metamask/eth-query": ^4.0.0
     "@metamask/utils": ^10.0.0
@@ -8492,9 +8493,9 @@ __metadata:
     bn.js: ^5.2.1
     human-standard-token-abi: ^2.0.0
   peerDependencies:
-    "@metamask/gas-fee-controller": ^22.0.0
-    "@metamask/network-controller": ^22.0.0
-  checksum: 8b5d97080ab78e44921e1b2845e9ac422846a3ce8c25ec6b5ef445295a251fcdaaffa7d138c653c35555bd008da33988938174003c3f58e2c8aff0dadd81dcdc
+    "@metamask/gas-fee-controller": ^24.0.0
+    "@metamask/network-controller": ^24.0.0
+  checksum: 61e8ba01ba0c6f27bb7cf70c27bf9ab508bd4c3ceb17dca4f4cbe0d4e1479013de82ed7be5a96cee6526a9c268d27d08be55ec12d4487bc78364c04639911367
   languageName: node
   linkType: hard
 
@@ -33681,7 +33682,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": ^0.0.2
     "@ledgerhq/react-native-hw-transport-ble": ^6.34.1
     "@metamask/account-api": ^0.12.0
-    "@metamask/account-tree-controller": ^0.16.1
+    "@metamask/account-tree-controller": ^0.18.0
     "@metamask/accounts-controller": ^33.1.0
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
@@ -33729,9 +33730,9 @@ __metadata:
     "@metamask/message-signing-snap": ^1.1.2
     "@metamask/metamask-eth-abis": 3.1.1
     "@metamask/mobile-provider": ^3.0.0
-    "@metamask/mobile-wallet-protocol-core": ^0.1.0
-    "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.0
-    "@metamask/multichain-account-service": ^0.9.0
+    "@metamask/mobile-wallet-protocol-core": ^0.1.1
+    "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.1
+    "@metamask/multichain-account-service": ^0.10.0
     "@metamask/multichain-api-client": ^0.6.5
     "@metamask/multichain-api-middleware": ^1.0.0
     "@metamask/multichain-network-controller": ^0.10.0
@@ -33769,11 +33770,11 @@ __metadata:
     "@metamask/snaps-rpc-methods": ^13.5.0
     "@metamask/snaps-sdk": ^9.3.0
     "@metamask/snaps-utils": ^11.5.0
-    "@metamask/solana-wallet-snap": ^2.3.8
+    "@metamask/solana-wallet-snap": ^2.3.10
     "@metamask/solana-wallet-standard": ^0.5.1
     "@metamask/stake-sdk": ^3.2.0
     "@metamask/swappable-obj-proxy": ^2.1.0
-    "@metamask/swaps-controller": ^13.3.0
+    "@metamask/swaps-controller": ^14.0.0
     "@metamask/test-dapp": 9.5.0
     "@metamask/test-dapp-multichain": ^0.17.1
     "@metamask/test-dapp-solana": ^0.3.0

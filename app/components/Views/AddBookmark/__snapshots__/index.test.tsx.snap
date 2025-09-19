@@ -93,8 +93,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                 }
               }
             >
@@ -112,8 +111,7 @@ exports[`AddBookmark should render correctly 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "black",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                   "padding": 16,
                 }
               }
@@ -124,8 +122,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "red",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                 }
               }
             />
@@ -141,8 +138,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                 }
               }
             >
@@ -159,8 +155,7 @@ exports[`AddBookmark should render correctly 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "black",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                   "padding": 16,
                 }
               }
@@ -171,8 +166,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "red",
-                  "fontFamily": "CentraNo1-Book",
-                  "fontWeight": "400",
+                  "fontFamily": "Geist Regular",
                 }
               }
             />
