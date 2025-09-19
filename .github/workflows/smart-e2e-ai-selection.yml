@@ -413,7 +413,7 @@ jobs:
         include: ${{ fromJson(needs.analyze-and-plan.outputs.test-matrix) }}
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: 'Smart-iOS-E2E-${{ matrix.tag }}-Split-${{ matrix.split }}-of-${{ matrix.totalSplits }}'
+      test-suite-name: 'iOS-${{ matrix.tag }}-Split-${{ matrix.split }}-of-${{ matrix.totalSplits }}'
       platform: 'ios'
       test_suite_tag: '${{ matrix.tag }}'
       split_number: ${{ matrix.split }}
@@ -423,20 +423,20 @@ jobs:
 
   # Step 6: Dynamic Android E2E Tests using reusable workflow
   android-smart-tests:
-    needs: [analyze-and-plan, platform-conditions]
-    if: needs.platform-conditions.outputs.should-test-android
+    needs: [analyze-and-plan, platform-conditions, build-android]
+    if: needs.platform-conditions.outputs.should-test-android == 'true' && needs.build-android.result == 'success'
     strategy:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.analyze-and-plan.outputs.test-matrix) }}
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: 'Smart-Android-E2E-${{ matrix.tag }}-Split-${{ matrix.split }}-of-${{ matrix.totalSplits }}'
+      test-suite-name: 'Android-${{ matrix.tag }}-Split-${{ matrix.split }}-of-${{ matrix.totalSplits }}'
       platform: 'android'
       test_suite_tag: '${{ matrix.tag }}'
       split_number: ${{ matrix.split }}
       total_splits: ${{ matrix.totalSplits }}
-      test-timeout-minutes: 120
+      test-timeout-minutes: 60
     secrets: inherit
 
   # Step 7: Report iOS Test Results
