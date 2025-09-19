@@ -303,7 +303,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
   });
 
-  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import (state 2)', async () => {
+  it('(state 2) - tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event on successful import', async () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
     const { getByTestId } = await renderSRPImportComponentAndPasteSRP(
       valid24WordMnemonic,

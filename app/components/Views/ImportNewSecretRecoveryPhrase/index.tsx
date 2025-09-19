@@ -242,7 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
         secretRecoveryPhrase.join(' '),
         undefined,
-        ({ discoveredAccountsCount }) => {
+        async ({ discoveredAccountsCount }) => {
           trackEvent(
             createEventBuilder(
               MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,

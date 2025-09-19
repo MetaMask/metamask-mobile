@@ -40,7 +40,9 @@ export async function importNewSecretRecoveryPhrase(
   options: ImportNewSecretRecoveryPhraseOptions = {
     shouldSelectAccount: true,
   },
-  callback?: (options: ImportNewSecretRecoveryPhraseReturnType) => void,
+  callback?: (
+    options: ImportNewSecretRecoveryPhraseReturnType & { error?: Error },
+  ) => Promise<void>,
 ): Promise<ImportNewSecretRecoveryPhraseReturnType> {
   const { KeyringController } = Engine.context;
   const { shouldSelectAccount } = options;
@@ -139,23 +141,33 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
+  // If state 2 is enabled, this function will return 0 discovered account
+  // immediately, so we have to use the `callback` instead to get this
+  // information.
   let discoveredAccountsCount: number = 0;
   if (isMultichainAccountsState2Enabled()) {
     // We use an IIFE to be able to use async/await but not block the main thread.
     (async () => {
+      let capturedError;
       try {
         // We need to dispatch a full sync here since this is a new SRP
         await Engine.context.AccountTreeController.syncWithUserStorage();
         // Then we discover accounts
         discoveredAccountsCount = await discoverAccounts(newKeyring.id);
       } catch (error) {
-        captureException(
-          new Error(`Unable to sync, discover and create accounts: ${error}`),
+        capturedError = new Error(
+          `Unable to sync, discover and create accounts: ${error}`,
         );
         discoveredAccountsCount = 0;
+
+        captureException(capturedError);
       } finally {
         // We trigger the callback with the results, even in case of error (0 discovered accounts)
-        callback?.({ address: newAccountAddress, discoveredAccountsCount });
+        await callback?.({
+          address: newAccountAddress,
+          discoveredAccountsCount,
+          error: capturedError,
+        });
       }
     })();
   } else {

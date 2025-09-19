@@ -256,6 +256,7 @@ describe('MultiSRP Actions', () => {
         expect(mockCallback).toHaveBeenCalledWith({
           address: testAddress,
           discoveredAccountsCount: 0, // Discovery has failed, so callback gets 0
+          error: expect.any(Error),
         });
       });
     });
