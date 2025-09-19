@@ -25,17 +25,3 @@ export const createMockNavigation = () => ({
   mockSetNavigationOptions: jest.fn(),
   mockSetParams: jest.fn(),
 });
-
-export const createMockInteractionManager = () => ({
-  runAfterInteractions: jest.fn((callback) => callback()),
-});
-
-export const createDepositUtilsMock = () => ({
-  formatCurrency: jest.fn((amount, currency) => {
-    if (currency === 'USD') {
-      return `$${parseFloat(amount).toFixed(2)}`;
-    }
-    return `${currency} ${amount}`;
-  }),
-  hasDepositOrderField: jest.fn(() => true),
-});

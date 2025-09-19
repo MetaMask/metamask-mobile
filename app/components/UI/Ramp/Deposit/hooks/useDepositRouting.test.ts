@@ -78,62 +78,63 @@ const verifyPopToBuildQuoteCalled = () => {
   );
 };
 
+const wrapParams = (customParams: unknown[], params: unknown[]) =>
+  customParams.length > 0 ? customParams : params;
+
 jest.mock('./useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config, ...params) => {
     if (config?.method === 'getKycRequirement') {
-      const wrappedGetKyc = (...customParams: unknown[]) => {
-        const finalParams = customParams.length > 0 ? customParams : params;
-        return mockGetKycRequirement(...finalParams);
-      };
-      return [mockUseDepositSdkMethodInitialState, wrappedGetKyc];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockGetKycRequirement(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'getAdditionalRequirements') {
-      const wrappedGetAdditional = (...customParams: unknown[]) => {
-        const finalParams = customParams.length > 0 ? customParams : params;
-        return mockGetAdditionalRequirements(...finalParams);
-      };
-      return [mockUseDepositSdkMethodInitialState, wrappedGetAdditional];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockGetAdditionalRequirements(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'getUserDetails') {
-      const wrappedFetchUser = (...customParams: unknown[]) => {
-        const finalParams = customParams.length > 0 ? customParams : params;
-        return mockFetchUserDetails(...finalParams);
-      };
-      return [mockUseDepositSdkMethodInitialState, wrappedFetchUser];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockFetchUserDetails(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'createOrder') {
-      const wrappedCreateOrder = (...customParams: unknown[]) => {
-        const finalParams = customParams.length > 0 ? customParams : params;
-        return mockCreateOrder(...finalParams);
-      };
-      return [mockUseDepositSdkMethodInitialState, wrappedCreateOrder];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockCreateOrder(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'submitPurposeOfUsageForm') {
-      const wrappedSubmitPurpose = (...customParams: unknown[]) => {
-        const finalParams = customParams.length > 0 ? customParams : params;
-        return mockSubmitPurposeOfUsage(...finalParams);
-      };
-      return [mockUseDepositSdkMethodInitialState, wrappedSubmitPurpose];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockSubmitPurposeOfUsage(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'requestOtt') {
-      const wrappedRequestOtt = (...customParams: unknown[]) => {
-        const finalParams = customParams.length > 0 ? customParams : params;
-        return mockRequestOtt(...finalParams);
-      };
-      return [mockUseDepositSdkMethodInitialState, wrappedRequestOtt];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockRequestOtt(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'generatePaymentWidgetUrl') {
-      const wrappedGeneratePayment = (...customParams: unknown[]) => {
-        const finalParams = customParams.length > 0 ? customParams : params;
-        return mockGeneratePaymentUrl(...finalParams);
-      };
-      return [mockUseDepositSdkMethodInitialState, wrappedGeneratePayment];
+      return [
+        mockUseDepositSdkMethodInitialState,
+        (...customParams: unknown[]) =>
+          mockGeneratePaymentUrl(...wrapParams(customParams, params)),
+      ];
     }
     if (config?.method === 'getOrder') {
-      const wrappedGetOrder = (...customParams: unknown[]) => {
-        const finalParams = customParams.length > 0 ? customParams : params;
-        return mockGetOrder(...finalParams);
-      };
+      const wrappedGetOrder = (...customParams: unknown[]) =>
+        mockGetOrder(...wrapParams(customParams, params));
       return [mockUseDepositSdkMethodInitialState, wrappedGetOrder];
     }
     return [mockUseDepositSdkMethodInitialState, jest.fn()];
@@ -142,7 +143,7 @@ jest.mock('./useDepositSdkMethod', () => ({
 
 const mockLogoutFromProvider = jest.fn();
 const mockSelectedRegion = { isoCode: 'US' };
-let mockSelectedPaymentMethod = { isManualBankTransfer: true };
+let mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
 jest.mock('../sdk', () => ({
   useDepositSDK: jest.fn(() => ({
@@ -202,8 +203,7 @@ describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Reset payment method to manual bank transfer by default
-    mockSelectedPaymentMethod = { isManualBankTransfer: true };
+    mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
     mockGetKycRequirement = jest.fn().mockResolvedValue({ status: 'APPROVED' });
     mockGetAdditionalRequirements = jest
@@ -273,6 +273,8 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'sepa_bank_transfer',
       };
 
+      mockSelectedPaymentMethod = { isManualBankTransfer: true };
+
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
       await expect(
@@ -305,7 +307,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'sepa_bank_transfer',
       };
 
-      // Ensure we're testing a manual bank transfer payment method
       mockSelectedPaymentMethod = { isManualBankTransfer: true };
       mockCreateOrder = jest.fn().mockResolvedValue(null);
 
@@ -324,9 +325,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -367,9 +365,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
       const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
       mockEndTrace.mockClear();
 
@@ -404,9 +399,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
@@ -433,9 +425,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
@@ -464,9 +453,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
@@ -493,9 +479,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       mockGetKycRequirement = jest
         .fn()
@@ -543,9 +526,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
       });
@@ -590,9 +570,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
       });
@@ -614,9 +591,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
@@ -645,9 +619,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
@@ -674,10 +645,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
-      // Always return the unsubmitted form, so recursion hits the depth limit
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
       });
@@ -692,7 +659,6 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      // The function should log an error but not throw
       expect(mockSubmitPurposeOfUsage).toHaveBeenCalledTimes(5);
     });
   });
@@ -704,9 +670,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
@@ -734,8 +697,7 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
+
       mockFetchUserDetails = jest.fn().mockResolvedValue(null);
       const { result } = renderHook(() => useDepositRouting(mockParams));
       await expect(
@@ -749,9 +711,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       mockGetKycRequirement = jest
         .fn()
@@ -771,9 +730,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
       mockGeneratePaymentUrl = jest.fn().mockResolvedValue(null);
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -789,9 +745,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       mockRequestOtt = jest.fn().mockResolvedValue(null);
 
@@ -809,7 +762,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'sepa_bank_transfer',
       };
 
-      // Ensure we're testing a manual bank transfer payment method
       mockSelectedPaymentMethod = { isManualBankTransfer: true };
       mockCreateOrder = jest.fn().mockResolvedValue(null);
 
@@ -827,7 +779,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'sepa_bank_transfer',
       };
 
-      // Ensure we're testing a manual bank transfer payment method
       mockSelectedPaymentMethod = { isManualBankTransfer: true };
       mockCreateOrder = jest
         .fn()
@@ -847,8 +798,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       mockRequestOtt = jest
         .fn()
         .mockRejectedValue(new Error('OTT request failed'));
@@ -867,8 +816,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       mockGeneratePaymentUrl = jest
         .fn()
         .mockRejectedValue(new Error('Payment URL generation failed'));
@@ -887,8 +834,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       mockFetchUserDetails = jest
         .fn()
         .mockRejectedValue(new Error('User details fetch failed'));
@@ -909,8 +854,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       mockGetKycRequirement = jest.fn().mockImplementation(() => {
         const error = new Error('Unauthorized');
         (error as AxiosError).status = 401;
@@ -934,7 +877,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
       // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -968,8 +910,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1031,8 +971,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       const mockHandleNewOrder = jest
         .fn()
         .mockRejectedValue(new Error('Processing failed'));
@@ -1068,8 +1006,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -1099,8 +1035,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -1128,8 +1062,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1165,8 +1097,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -1205,8 +1135,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -1226,8 +1154,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -1259,9 +1185,6 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
-
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
@@ -1286,9 +1209,6 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-
-      // Set payment method to non-manual bank transfer
-      mockSelectedPaymentMethod = { isManualBankTransfer: false };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'APPROVED',

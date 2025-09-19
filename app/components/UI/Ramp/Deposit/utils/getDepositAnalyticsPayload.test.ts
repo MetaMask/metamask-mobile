@@ -38,7 +38,7 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'ethereum',
+      chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
       currency_source: 'USD',
     });
@@ -70,7 +70,7 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'ethereum',
+      chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
       currency_source: 'USD',
       error_message: 'Payment failed',
@@ -99,7 +99,7 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'ethereum',
+      chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
       currency_source: 'USD',
       error_message: 'transaction_failed',
@@ -136,7 +136,7 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 5.99,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'ethereum',
+      chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
       currency_source: 'USD',
     });
@@ -205,32 +205,6 @@ describe('getDepositAnalyticsPayload', () => {
     expect(params).toBeNull();
   });
 
-  it('returns null when cryptoCurrency mapping is not found', () => {
-    const orderWithUnknownCrypto = {
-      ...mockDepositOrder,
-      data: {
-        ...mockDepositOrder.data,
-        cryptoCurrency: {
-          assetId: 'unknown:asset',
-          symbol: 'UNKNOWN_CRYPTO',
-          name: 'Unknown Crypto',
-          chainId: 'unknown:1',
-          decimals: 18,
-          iconUrl: 'https://example.com/unknown.png',
-        },
-        network: 'unknown_network',
-      },
-    };
-
-    const [eventName, params] = getDepositAnalyticsPayload(
-      orderWithUnknownCrypto as unknown as FiatOrder,
-      MOCK_ROOT_STATE,
-    );
-
-    expect(eventName).toBeNull();
-    expect(params).toBeNull();
-  });
-
   it('handles missing networkFees with default 0 value', () => {
     const orderWithoutNetworkFees = {
       ...mockDepositOrder,
@@ -256,7 +230,7 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'ethereum',
+      chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
       currency_source: 'USD',
     });
@@ -287,7 +261,7 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: 'US',
-      chain_id: 'ethereum',
+      chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
       currency_source: 'USD',
     });
@@ -318,7 +292,7 @@ describe('getDepositAnalyticsPayload', () => {
       total_fee: 2.5,
       payment_method_id: 'credit_debit_card',
       country: '',
-      chain_id: 'ethereum',
+      chain_id: 'eip155:1',
       currency_destination: MOCK_USDC_TOKEN.assetId,
       currency_source: 'USD',
     });

@@ -32,6 +32,7 @@ export function usePaymentMethods() {
           ) || null;
       }
 
+      // auto-select the first payment method if there is no current one
       if (!newSelectedPaymentMethod) {
         newSelectedPaymentMethod = paymentMethods[0];
       }

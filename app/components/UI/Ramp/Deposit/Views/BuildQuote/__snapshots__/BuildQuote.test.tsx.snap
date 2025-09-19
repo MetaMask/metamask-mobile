@@ -936,6 +936,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       >
                                         <Text
                                           accessibilityRole="text"
+                                          ellipsizeMode="tail"
+                                          numberOfLines={2}
+                                          onTextLayout={[Function]}
                                           style={
                                             {
                                               "color": "#121314",
@@ -2813,6 +2816,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       >
                                         <Text
                                           accessibilityRole="text"
+                                          ellipsizeMode="tail"
+                                          numberOfLines={2}
+                                          onTextLayout={[Function]}
                                           style={
                                             {
                                               "color": "#121314",
@@ -4690,6 +4696,9 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                       >
                                         <Text
                                           accessibilityRole="text"
+                                          ellipsizeMode="tail"
+                                          numberOfLines={2}
+                                          onTextLayout={[Function]}
                                           style={
                                             {
                                               "color": "#121314",
@@ -10131,7 +10140,7 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               </TouchableOpacity>
                             </View>
                             <TouchableOpacity
-                              disabled={false}
+                              disabled={true}
                               onPress={[Function]}
                               style={
                                 {
@@ -11936,9 +11945,102 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                                   />
                                 </View>
                               </TouchableOpacity>
+                              <View
+                                style={
+                                  {
+                                    "backgroundColor": "#ca35421a",
+                                    "borderColor": "#ca3542",
+                                    "borderLeftWidth": 4,
+                                    "borderRadius": 4,
+                                    "flexDirection": "row",
+                                    "padding": 12,
+                                    "paddingLeft": 8,
+                                  }
+                                }
+                                testID="banneralert"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "marginRight": 8,
+                                    }
+                                  }
+                                >
+                                  <SvgMock
+                                    color="#ca3542"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Danger"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    There was an issue fetching the payment methods.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="link"
+                                    accessible={true}
+                                    isDisabled={false}
+                                    loading={false}
+                                    onPress={[MockFunction]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
+                                    style={
+                                      {
+                                        "backgroundColor": "transparent",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    suppressHighlighting={true}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#4459ff",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Try Again
+                                    </Text>
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
                             <TouchableOpacity
-                              disabled={false}
+                              disabled={true}
                               onPress={[Function]}
                               style={
                                 {
@@ -17075,7 +17177,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                disabled={false}
+                                disabled={true}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -18882,7 +18984,7 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
-                                disabled={false}
+                                disabled={true}
                                 onPress={[Function]}
                                 style={
                                   {
@@ -19164,6 +19266,99 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                                   />
                                 </View>
                               </TouchableOpacity>
+                              <View
+                                style={
+                                  {
+                                    "backgroundColor": "#ca35421a",
+                                    "borderColor": "#ca3542",
+                                    "borderLeftWidth": 4,
+                                    "borderRadius": 4,
+                                    "flexDirection": "row",
+                                    "padding": 12,
+                                    "paddingLeft": 8,
+                                  }
+                                }
+                                testID="banneralert"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "marginRight": 8,
+                                    }
+                                  }
+                                >
+                                  <SvgMock
+                                    color="#ca3542"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Danger"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    There was an issue fetching the regions.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="link"
+                                    accessible={true}
+                                    isDisabled={false}
+                                    loading={false}
+                                    onPress={[MockFunction]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
+                                    style={
+                                      {
+                                        "backgroundColor": "transparent",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    suppressHighlighting={true}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#4459ff",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Try Again
+                                    </Text>
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
                             <TouchableOpacity
                               disabled={false}
@@ -20797,13 +20992,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     }
                                   }
                                 >
-                                  0
                                    
-                                  USDC
                                 </Text>
                               </View>
                               <TouchableOpacity
-                                disabled={false}
+                                disabled={true}
                                 onPress={[Function]}
                               >
                                 <View
@@ -22604,13 +22797,11 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                     }
                                   }
                                 >
-                                  0
                                    
-                                  USDC
                                 </Text>
                               </View>
                               <TouchableOpacity
-                                disabled={false}
+                                disabled={true}
                                 onPress={[Function]}
                               >
                                 <View
@@ -22778,6 +22969,99 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                                   />
                                 </View>
                               </TouchableOpacity>
+                              <View
+                                style={
+                                  {
+                                    "backgroundColor": "#ca35421a",
+                                    "borderColor": "#ca3542",
+                                    "borderLeftWidth": 4,
+                                    "borderRadius": 4,
+                                    "flexDirection": "row",
+                                    "padding": 12,
+                                    "paddingLeft": 8,
+                                  }
+                                }
+                                testID="banneralert"
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "marginRight": 8,
+                                    }
+                                  }
+                                >
+                                  <SvgMock
+                                    color="#ca3542"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Danger"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    There was an issue fetching the tokens.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="link"
+                                    accessible={true}
+                                    isDisabled={false}
+                                    loading={false}
+                                    onPress={[MockFunction]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
+                                    style={
+                                      {
+                                        "backgroundColor": "transparent",
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                    suppressHighlighting={true}
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#4459ff",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Try Again
+                                    </Text>
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
                             <TouchableOpacity
                               disabled={false}

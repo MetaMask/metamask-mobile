@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { NativeSyntheticEvent, View , TextLayoutEventData } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
@@ -23,16 +23,14 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const [isTruncated, setIsTruncated] = useState(false);
 
-  const screenWidth = Dimensions.get('window').width;
-  const availableWidth = screenWidth - 64;
-  const maxCharactersPerLine = Math.floor(availableWidth / 8);
-  const maxCharacters = Math.max(50, maxLines * maxCharactersPerLine - 50);
-
-  const shouldTruncate = error.length > maxCharacters;
-  const displayError = shouldTruncate
-    ? `${error.substring(0, maxCharacters)}...`
-    : error;
+  const handleTextLayout = (
+    event: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    const { lines } = event.nativeEvent;
+    setIsTruncated(lines.length > maxLines);
+  };
 
   const handleSeeMore = () => {
     navigation.navigate(
@@ -45,10 +43,16 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
       <BannerAlert
         description={
           <View style={styles.textContainer}>
-            <Text variant={TextVariant.BodySM} style={styles.errorText}>
-              {displayError}
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.errorText}
+              numberOfLines={maxLines}
+              ellipsizeMode="tail"
+              onTextLayout={handleTextLayout}
+            >
+              {error}
             </Text>
-            {shouldTruncate && (
+            {isTruncated && (
               <Text
                 variant={TextVariant.BodySM}
                 color={TextColor.Primary}

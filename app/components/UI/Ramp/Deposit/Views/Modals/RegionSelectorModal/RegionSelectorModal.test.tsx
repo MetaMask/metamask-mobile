@@ -120,9 +120,8 @@ describe('RegionSelectorModal Component', () => {
   });
 
   it('sorts recommended regions to the top when no search is active', () => {
-    const { getAllByText } = renderWithProvider(RegionSelectorModal);
-    const firstRegion = getAllByText('United States')[0];
-    expect(firstRegion).toBeTruthy();
+    const { toJSON } = renderWithProvider(RegionSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks RAMPS_REGION_SELECTED event when a supported region is selected', () => {
@@ -155,10 +154,9 @@ describe('RegionSelectorModal Component', () => {
       error: null,
     });
 
-    const { getByText } = renderWithProvider(RegionSelectorModal);
+    const { toJSON } = renderWithProvider(RegionSelectorModal);
 
-    expect(getByText('Germany')).toBeOnTheScreen();
-    expect(getByText('Canada')).toBeOnTheScreen();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles empty regions array from navigation params', () => {

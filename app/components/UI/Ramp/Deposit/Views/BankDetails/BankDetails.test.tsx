@@ -4,6 +4,7 @@ import type { AxiosError } from 'axios';
 import BankDetails from './BankDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
+import { MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD } from '../../testUtils';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { StackActions } from '@react-navigation/native';
@@ -114,11 +115,7 @@ jest.mock('../../sdk', () => ({
       sdkMethod: jest.fn(),
     },
     logoutFromProvider: mockLogoutFromProvider,
-    selectedPaymentMethod: {
-      name: 'SEPA',
-      id: 'sepa_bank_transfer',
-      shortName: 'SEPA',
-    },
+    selectedPaymentMethod: MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
   })),
 }));
 

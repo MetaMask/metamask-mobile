@@ -800,7 +800,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                             color="var(--color-icon-default)"
                                             fill="currentColor"
                                             height={20}
-                                            name="Card"
+                                            name="Apple"
                                             style={
                                               {
                                                 "height": 20,

@@ -7,6 +7,9 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { trace, endTrace } from '../../../../../../util/trace';
+import { useRegions } from '../../hooks/useRegions';
+import { useCryptoCurrencies } from '../../hooks/useCryptoCurrencies';
+import { usePaymentMethods } from '../../hooks/usePaymentMethods';
 import {
   createMockSDKReturn,
   MOCK_USE_REGIONS_ERROR,
@@ -22,29 +25,16 @@ import {
   MOCK_EUR_REGION,
   MOCK_USDC_TOKEN,
   MOCK_CREDIT_DEBIT_CARD,
+  MOCK_USE_REGIONS_RETURN,
+  MOCK_USE_CRYPTOCURRENCIES_RETURN,
+  MOCK_USE_PAYMENT_METHODS_RETURN,
+  MOCK_CRYPTOCURRENCIES,
+  MOCK_PAYMENT_METHODS,
 } from '../../testUtils';
 
-// Local mock helper
 const createMockInteractionManager = () => ({
   runAfterInteractions: jest.fn((callback) => callback()),
 });
-
-// Mock hooks - will be set up in beforeEach
-const mockUseRegions = jest.fn();
-const mockUseCryptoCurrencies = jest.fn();
-const mockUsePaymentMethods = jest.fn();
-
-jest.mock('../../hooks/useRegions', () => ({
-  useRegions: () => mockUseRegions(),
-}));
-
-jest.mock('../../hooks/useCryptoCurrencies', () => ({
-  useCryptoCurrencies: () => mockUseCryptoCurrencies(),
-}));
-
-jest.mock('../../hooks/usePaymentMethods', () => ({
-  usePaymentMethods: () => mockUsePaymentMethods(),
-}));
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -117,83 +107,17 @@ jest.mock('../../hooks/useDepositRouting', () => ({
 }));
 
 jest.mock('../../hooks/usePaymentMethods', () => ({
-  usePaymentMethods: jest.fn().mockReturnValue({
-    paymentMethods: [
-      {
-        id: 'credit_debit_card',
-        name: 'Credit/Debit Card',
-        iconName: 'card',
-        duration: '2-5 minutes',
-        fees: '3.99% + network fees',
-      },
-      {
-        id: 'debit_card',
-        name: 'Debit Card',
-        iconName: 'card',
-        duration: 'Instant',
-        fees: '3.99% + network fees',
-      },
-    ],
-    error: null,
-    isFetching: false,
-    retryFetchPaymentMethods: jest.fn(),
-  }),
+  usePaymentMethods: jest.fn(),
 }));
 
 jest.mock('../../hooks/useRegions', () => ({
-  useRegions: jest.fn().mockReturnValue({
-    regions: [
-      {
-        isoCode: 'US',
-        flag: '🇺🇸',
-        name: 'United States',
-        currency: 'USD',
-        phone: {
-          prefix: '+1',
-          placeholder: '(555) 123-4567',
-          template: '(###) ###-####',
-        },
-        supported: true,
-      },
-      {
-        isoCode: 'DE',
-        flag: '🇩🇪',
-        name: 'Germany',
-        currency: 'EUR',
-        phone: {
-          prefix: '+49',
-          placeholder: '30 12345678',
-          template: '## ########',
-        },
-        supported: true,
-      },
-    ],
-    error: null,
-    isFetching: false,
-    retryFetchRegions: jest.fn(),
-  }),
+  useRegions: jest.fn(),
 }));
 
 jest.mock('../../hooks/useCryptoCurrencies', () => ({
-  useCryptoCurrencies: jest.fn().mockReturnValue({
-    cryptoCurrencies: [
-      {
-        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        chainId: 'eip155:1',
-        name: 'USD Coin',
-        symbol: 'USDC',
-        decimals: 6,
-        iconUrl:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-      },
-    ],
-    error: null,
-    isFetching: false,
-    retryFetchCryptoCurrencies: jest.fn(),
-  }),
+  useCryptoCurrencies: jest.fn(),
 }));
 
-// Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../../../util/trace', () => ({
@@ -237,6 +161,14 @@ describe('BuildQuote Component', () => {
     });
     mockUseAccountTokenCompatible.mockReturnValue(true);
     mockUseRoute.mockReturnValue({ params: {} });
+
+    jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_RETURN);
+    jest
+      .mocked(useCryptoCurrencies)
+      .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_RETURN);
+    jest
+      .mocked(usePaymentMethods)
+      .mockReturnValue(MOCK_USE_PAYMENT_METHODS_RETURN);
 
     mockTrackEvent.mockClear();
     (trace as jest.MockedFunction<typeof trace>).mockClear();
@@ -289,6 +221,7 @@ describe('BuildQuote Component', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({
           selectedRegion: {
+            ...MOCK_US_REGION,
             isoCode: 'XX',
             flag: '🏳️',
             name: 'Unsupported Region',
@@ -308,16 +241,12 @@ describe('BuildQuote Component', () => {
     });
 
     it('does not open region modal when regions error occurs', () => {
-      // Arrange - Mock the useRegions hook to return error state
-      jest.mocked(mockUseRegions).mockReturnValue(MOCK_USE_REGIONS_ERROR);
+      jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_ERROR);
 
-      // Act
       render(BuildQuote);
 
-      // Assert - Component should render with error state (snapshot test)
       expect(screen.toJSON()).toMatchSnapshot();
 
-      // Verify navigation was not called
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: expect.any(Object),
@@ -325,16 +254,12 @@ describe('BuildQuote Component', () => {
     });
 
     it('does not open region modal when regions array is empty', () => {
-      // Arrange - Mock the useRegions hook to return empty state
-      jest.mocked(mockUseRegions).mockReturnValue(MOCK_USE_REGIONS_EMPTY);
+      jest.mocked(useRegions).mockReturnValue(MOCK_USE_REGIONS_EMPTY);
 
-      // Act
       render(BuildQuote);
 
-      // Assert - Component should render with empty state (snapshot test)
       expect(screen.toJSON()).toMatchSnapshot();
 
-      // Verify navigation was not called
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositRegionSelectorModal',
         params: expect.any(Object),
@@ -350,39 +275,20 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
         params: {
-          paymentMethods: [
-            {
-              id: 'credit_debit_card',
-              name: 'Credit/Debit Card',
-              iconName: 'card',
-              duration: '2-5 minutes',
-              fees: '3.99% + network fees',
-            },
-            {
-              id: 'debit_card',
-              name: 'Debit Card',
-              iconName: 'card',
-              duration: 'Instant',
-              fees: '3.99% + network fees',
-            },
-          ],
+          paymentMethods: MOCK_PAYMENT_METHODS,
         },
       });
     });
 
     it('does not open payment method modal when payment methods error occurs', () => {
-      // Arrange - Mock the usePaymentMethods hook to return error state
       jest
-        .mocked(mockUsePaymentMethods)
+        .mocked(usePaymentMethods)
         .mockReturnValue(MOCK_USE_PAYMENT_METHODS_ERROR);
 
-      // Act
       render(BuildQuote);
 
-      // Assert - Component should render with error state (snapshot test)
       expect(screen.toJSON()).toMatchSnapshot();
 
-      // Verify navigation was not called
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
         params: expect.any(Object),
@@ -390,18 +296,14 @@ describe('BuildQuote Component', () => {
     });
 
     it('does not open payment method modal when payment methods array is empty', () => {
-      // Arrange - Mock the usePaymentMethods hook to return empty state
       jest
-        .mocked(mockUsePaymentMethods)
+        .mocked(usePaymentMethods)
         .mockReturnValue(MOCK_USE_PAYMENT_METHODS_EMPTY);
 
-      // Act
       render(BuildQuote);
 
-      // Assert - Component should render with empty state (snapshot test)
       expect(screen.toJSON()).toMatchSnapshot();
 
-      // Verify navigation was not called
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
         params: expect.any(Object),
@@ -417,35 +319,20 @@ describe('BuildQuote Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
         params: {
-          cryptoCurrencies: [
-            {
-              assetId:
-                'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              chainId: 'eip155:1',
-              name: 'USD Coin',
-              symbol: 'USDC',
-              decimals: 6,
-              iconUrl:
-                'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-            },
-          ],
+          cryptoCurrencies: MOCK_CRYPTOCURRENCIES,
         },
       });
     });
 
     it('does not open token modal when crypto currencies error occurs', () => {
-      // Arrange - Mock the useCryptoCurrencies hook to return error state
       jest
-        .mocked(mockUseCryptoCurrencies)
+        .mocked(useCryptoCurrencies)
         .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_ERROR);
 
-      // Act
       render(BuildQuote);
 
-      // Assert - Component should render with error state (snapshot test)
       expect(screen.toJSON()).toMatchSnapshot();
 
-      // Verify navigation was not called
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
         params: expect.any(Object),
@@ -453,18 +340,14 @@ describe('BuildQuote Component', () => {
     });
 
     it('does not open token modal when crypto currencies array is empty', () => {
-      // Arrange - Mock the useCryptoCurrencies hook to return empty state
       jest
-        .mocked(mockUseCryptoCurrencies)
+        .mocked(useCryptoCurrencies)
         .mockReturnValue(MOCK_USE_CRYPTOCURRENCIES_EMPTY);
 
-      // Act
       render(BuildQuote);
 
-      // Assert - Component should render with empty state (snapshot test)
       expect(screen.toJSON()).toMatchSnapshot();
 
-      // Verify navigation was not called
       expect(mockNavigate).not.toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
         params: expect.any(Object),
@@ -506,7 +389,6 @@ describe('BuildQuote Component', () => {
       fireEvent.press(continueButton);
 
       await waitFor(() => {
-        // Verify that getQuote was called (component calls getQuote() with no args)
         expect(mockGetQuote).toHaveBeenCalled();
       });
     });
@@ -793,7 +675,6 @@ describe('BuildQuote Component', () => {
       render(BuildQuote);
 
       await waitFor(() => {
-        // Verify that getQuote was called (component calls getQuote() with no args)
         expect(mockGetQuote).toHaveBeenCalled();
       });
     });

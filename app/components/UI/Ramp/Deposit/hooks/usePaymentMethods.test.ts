@@ -1,22 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePaymentMethods } from './usePaymentMethods';
-
-const mockPaymentMethods = [
-  {
-    id: 'credit_debit_card',
-    name: 'Credit/Debit Card',
-    iconName: 'card',
-    duration: '2-5 minutes',
-    fees: '3.99% + network fees',
-  },
-  {
-    id: 'bank_transfer',
-    name: 'Wire Transfer',
-    iconName: 'bank',
-    duration: '1-3 business days',
-    fees: 'Network fees only',
-  },
-];
+import {
+  MOCK_PAYMENT_METHODS,
+  MOCK_US_REGION,
+  MOCK_USDC_TOKEN,
+  createMockSDKReturn,
+} from '../testUtils/constants';
 
 const mockUseDepositSdkMethod = jest.fn();
 jest.mock('./useDepositSdkMethod', () => ({
@@ -32,22 +21,24 @@ describe('usePaymentMethods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseDepositSDK.mockReturnValue({
-      selectedRegion: { isoCode: 'US', currency: 'USD' },
-      selectedCryptoCurrency: { assetId: 'test-asset' },
-      setSelectedPaymentMethod: jest.fn(),
-      selectedPaymentMethod: null,
-    });
+    mockUseDepositSDK.mockReturnValue(
+      createMockSDKReturn({
+        selectedRegion: MOCK_US_REGION,
+        selectedCryptoCurrency: MOCK_USDC_TOKEN,
+        setSelectedPaymentMethod: jest.fn(),
+        selectedPaymentMethod: null,
+      }),
+    );
 
     mockUseDepositSdkMethod.mockReturnValue([
-      { data: mockPaymentMethods, error: null, isFetching: false },
+      { data: MOCK_PAYMENT_METHODS, error: null, isFetching: false },
       jest.fn(),
     ]);
   });
 
   it('returns payment methods from API', () => {
     const { result } = renderHook(() => usePaymentMethods());
-    expect(result.current.paymentMethods).toEqual(mockPaymentMethods);
+    expect(result.current.paymentMethods).toEqual(MOCK_PAYMENT_METHODS);
     expect(result.current.error).toBeNull();
     expect(result.current.isFetching).toBe(false);
   });

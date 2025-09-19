@@ -26,7 +26,6 @@ function validMethodParams<T extends keyof NativeRampsSdk>(
   const parameters: {
     required: boolean;
   }[] = ServicesSignatures.NativeRampsSdk[method].parameters;
-
   return parameters.every(({ required }, index) => {
     if (!required) return true;
 
@@ -144,7 +143,6 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
           const methodParams = abortController
             ? [...queryParams, abortController]
             : queryParams;
-
           // @ts-expect-error spreading params error
           const response = (await sdk[method](...methodParams)) as Awaited<
             ReturnType<NativeRampsSdk[T]>
@@ -170,11 +168,11 @@ export function useDepositSdkMethod<T extends keyof NativeRampsSdk>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [method, throws, stringifiedParams, sdk],
   );
+
   useEffect(() => {
     if (onMount) {
       query();
     }
-
     return () => {
       abortControllerRef.current?.abort();
     };

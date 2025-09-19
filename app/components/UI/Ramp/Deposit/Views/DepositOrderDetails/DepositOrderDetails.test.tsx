@@ -11,12 +11,7 @@ import {
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { getOrderById, FiatOrder } from '../../../../../../reducers/fiatOrders';
 import AppConstants from '../../../../../../core/AppConstants';
-import {
-  MOCK_DEPOSIT_ORDER,
-  MOCK_USDC_TOKEN,
-  MOCK_CREDIT_DEBIT_CARD,
-  MOCK_US_REGION,
-} from '../../testUtils';
+import { MOCK_DEPOSIT_ORDER, MOCK_US_REGION } from '../../testUtils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -94,24 +89,14 @@ describe('DepositOrderDetails Component', () => {
       ...MOCK_DEPOSIT_ORDER,
       id: 'test-deposit-order-1',
       provider: 'transak',
-      cryptoAmount: 98.5,
-      fiatAmount: 100,
-      cryptoCurrency: MOCK_USDC_TOKEN,
-      fiatCurrency: 'USD',
       providerOrderId: 'transak_123',
       providerOrderLink: 'https://transak.com/order/123',
       createdAt: Date.now(),
-      paymentMethod: MOCK_CREDIT_DEBIT_CARD,
-      totalFeesFiat: 2.5,
-      txHash: '0x123abc',
-      walletAddress: '0x1234567890123456789012345678901234567890',
-      network: 'ethereum',
       status: 'COMPLETED',
       timeDescriptionPending: '1-2 days',
       fiatAmountInUsd: 100,
       feesInUsd: 2.5,
       region: MOCK_US_REGION,
-      orderType: DepositOrderType.Deposit,
       paymentDetails: [],
     } as DepositOrder,
   };

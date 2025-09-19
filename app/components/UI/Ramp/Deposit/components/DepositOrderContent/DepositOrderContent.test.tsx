@@ -217,7 +217,7 @@ describe('DepositOrderContent Component', () => {
       data: {
         ...mockOrder.data,
         paymentMethod: MOCK_BANK_DETAILS_ORDER.data.paymentMethod,
-        statusDescription: 'Bank transfer initiated',
+        statusDescription: undefined, // Bank transfer orders may not have statusDescription
       },
     };
 
@@ -229,7 +229,8 @@ describe('DepositOrderContent Component', () => {
       },
     });
 
-    expect(screen.getByText('Bank transfer initiated')).toBeOnTheScreen();
+    // Bank transfer orders without statusDescription should not show any subtitle
+    expect(screen.queryByText('Bank transfer initiated')).toBeNull();
     expect(screen.toJSON()).toMatchSnapshot();
   });
 

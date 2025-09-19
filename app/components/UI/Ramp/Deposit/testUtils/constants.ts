@@ -151,6 +151,14 @@ export const MOCK_CREDIT_DEBIT_CARD: DepositPaymentMethod = {
   icon: IconName.Card,
 };
 
+export const MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD: DepositPaymentMethod = {
+  id: 'sepa_bank_transfer',
+  name: 'SEPA Bank Transfer',
+  shortName: 'SEPA',
+  duration: DepositPaymentMethodDuration.oneToTwoDays,
+  icon: IconName.Bank,
+};
+
 export const MOCK_APPLE_PAY: DepositPaymentMethod = {
   id: 'apple_pay',
   name: 'Apple Pay',
@@ -316,7 +324,7 @@ export const MOCK_ANALYTICS_DEPOSIT_ORDER = {
   network: 'eip155:1',
   data: {
     cryptoCurrency: MOCK_USDC_TOKEN,
-    network: 'ethereum',
+    network: 'eip155:1',
     fiatAmount: '100',
     exchangeRate: '2000',
     totalFeesFiat: '2.50',
