@@ -49,16 +49,15 @@ test('Cold Start after importing a wallet', async ({
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-  await AppwrightSelectors.backgroundApp(device, 30);
+  await AppwrightSelectors.terminateApp(device);
+  await device.waitForTimeout(30000);
+
   await AppwrightSelectors.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
   await LoginScreen.typePassword('123456789');
   await LoginScreen.tapTitle();
   await LoginScreen.tapUnlockButton();
 
-  const timer1 = new TimerHelper(
-    'Time since the user clicks on unlock button, until the app unlocks',
-  );
   const timer2 = new TimerHelper(
     'Time since the user closes the multichain account education modal, until the wallet main screen appears',
   );
@@ -96,7 +95,8 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-  await AppwrightSelectors.backgroundApp(device, 30);
+  await AppwrightSelectors.terminateApp(device);
+  await device.waitForTimeout(30000);
   await AppwrightSelectors.activateApp(device);
   const timer1 = new TimerHelper(
     'Time since the the app is launched, until login screen appears',

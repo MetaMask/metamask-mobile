@@ -8,7 +8,7 @@ import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
-import { expect as appwrightExpect } from 'appwright';
+import { expect as appwrightExpect, expect } from 'appwright';
 
 class WalletMainScreen {
   get device() {
@@ -172,10 +172,10 @@ class WalletMainScreen {
     const isAndroid = AppwrightSelectors.isAndroid(this._device);
     if (isAndroid) {
       const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
-      await tokenName.isVisible();
+      expect(await tokenName).toBeVisible();
     } else {
       const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token);
-      await tokenName.isVisible();
+      expect(await tokenName).toBeVisible();
     }
   }
 
@@ -243,7 +243,6 @@ class WalletMainScreen {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
-      await element.waitFor('visible',{ timeout });
       await appwrightExpect(element).toBeVisible();
     }
   }

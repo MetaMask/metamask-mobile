@@ -12,15 +12,13 @@ import WalletAccountModal from '../../../../wdio/screen-objects/Modals/WalletAcc
 import SkipAccountSecurityModal from '../../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
 import { getPasswordForScenario } from '../../../utils/TestConstants.js';
+import GTMModal from '../../../../wdio/screen-objects/Modals/GTMModal.js';
+import AccountListComponent from '../../../../wdio/screen-objects/AccountListComponent.js';
 
-test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
+test('Account creation after fresh install', async ({
   device,
   performanceTracker,
 }, testInfo) => {
-  const screen1Timer = new TimerHelper(
-    'Time until the user clicks on the "Get Started" button',
-  );
-  screen1Timer.start();
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -31,70 +29,67 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
   WalletMainScreen.device = device;
+  GTMModal.device = device;
+  AccountListComponent.device = device;
 
-  const timer1 = new TimerHelper(
-    'Time since the user clicks on "Get Started" button until the Term of Use screen is visible',
-  );
-  const timer2 = new TimerHelper(
-    'Time since the user clicks on "Aggree to T&C" button until the Onboarding screen is visible',
-  );
-  const timer3 = new TimerHelper(
-    'Time since the user clicks on "Create new wallet" button until "continue with SRP" button is visible',
-  );
-  const timer4 = new TimerHelper(
-    'Time since the user clicks on "Continue with SRP" button until password fields are visible',
-  );
-  const timer5 = new TimerHelper(
-    'Time since the user clicks on "Create Password" button until "Remind me later" shows up',
-  );
-  const timer6 = new TimerHelper(
-    'Time since the user clicks on "Proceed without wallet secure" button until Metrics screen is displayed',
-  );
-  const timer7 = new TimerHelper(
-    'Time since the user clicks on "Aggree" button on Metrics screen until Onboarding Success screen is visible',
-  );
-  const timer8 = new TimerHelper(
-    'Time since the user clicks on "Done" button until Solana feature sheet is visible',
-  );
-
-  timer3.start();
   await OnboardingScreen.tapCreateNewWalletButton();
   await OnboardingSheet.isVisible();
-  timer3.stop();
-  timer4.start();
+
   await OnboardingSheet.tapImportSeedButton();
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
-  timer4.stop();
+
   await CreateNewWalletScreen.inputPasswordInFirstField(
     getPasswordForScenario('onboarding'),
   );
   await CreateNewWalletScreen.inputConfirmPasswordField(
     getPasswordForScenario('onboarding'),
   );
-  timer5.start();
+
   await CreateNewWalletScreen.tapSubmitButton();
   await CreateNewWalletScreen.tapRemindMeLater();
   await SkipAccountSecurityModal.isVisible();
-  timer5.stop();
-  timer6.start();
+
   await SkipAccountSecurityModal.proceedWithoutWalletSecure();
   await MetaMetricsScreen.isScreenTitleVisible();
-  timer6.stop();
-  timer7.start();
+
   await MetaMetricsScreen.tapIAgreeButton();
   await OnboardingSucessScreen.isVisible();
-  timer7.stop();
-  timer8.start();
-  await OnboardingSucessScreen.tapDone();
-  timer8.stop();
 
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
-  performanceTracker.addTimer(timer3);
-  performanceTracker.addTimer(timer4);
-  performanceTracker.addTimer(timer5);
-  performanceTracker.addTimer(timer6);
-  performanceTracker.addTimer(timer7);
-  performanceTracker.addTimer(timer8);
+  await OnboardingSucessScreen.tapDone();
+  await GTMModal.isVisible();
+
+  await GTMModal.tapNotNow();
+
+  await WalletMainScreen.isMainWalletViewVisible();
+
+  await WalletMainScreen.isTokenVisible('SOL');
+
+  const screen1Timer = new TimerHelper(
+    'Time since the user clicks on "Account list" button until the account list is visible',
+  );
+  const screen2Timer = new TimerHelper(
+    'Time since the user clicks on "Create account" button until the account is in the account list',
+  );
+  const screen3Timer = new TimerHelper(
+    'Time since the user clicks on new account created until the Token list is visible',
+  );
+  screen1Timer.start();
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentDisplayed();
+  screen1Timer.stop();
+
+  await AccountListComponent.tapCreateAccountButton();
+  screen2Timer.start();
+  await AccountListComponent.isAccountDisplayed('Account 2');
+  screen2Timer.stop();
+  await AccountListComponent.tapOnAccountByName('Account 2');
+
+  screen3Timer.start();
+  await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.isTokenVisible('SOL');
+  screen3Timer.stop();
+  performanceTracker.addTimer(screen1Timer);
+  performanceTracker.addTimer(screen2Timer);
+  performanceTracker.addTimer(screen3Timer);
   await performanceTracker.attachToTest(testInfo);
 });

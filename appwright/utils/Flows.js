@@ -139,7 +139,7 @@ export async function login(device, scenarioType, timeout = 10000) {
   await LoginScreen.typePassword(password, timeout);
   await LoginScreen.tapUnlockButton();
 
-  // Execute modals dismissal in parallel - they will resolve in order of appearance
+  await device.waitForTimeout(5000);
   await dismissMultichainAccountsIntroModal(device);
   await dismissGTMModal(device);
   await dismissSystemDialogs(device);
