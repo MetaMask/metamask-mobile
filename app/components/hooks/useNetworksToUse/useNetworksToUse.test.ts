@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { useNetworksToUse } from './useNetworksToUse';
 import {
   useNetworksByCustomNamespace,
@@ -44,6 +44,9 @@ jest.mock('../../UI/Earn/constants/networks', () => ({
 jest.mock('@metamask/keyring-api', () => ({
   SolScope: {
     Mainnet: 'solana:mainnet',
+  },
+  BtcScope: {
+    Mainnet: 'bip122:mainnet',
   },
 }));
 
@@ -88,9 +91,21 @@ describe('useNetworksToUse', () => {
     },
   ];
 
+  const mockBitcoinNetworks: ProcessedNetwork[] = [
+    {
+      id: 'bip122:mainnet',
+      name: 'Bitcoin Mainnet',
+      caipChainId: 'bip122:mainnet',
+      isSelected: true,
+      imageSource: { uri: 'bitcoin.png' },
+      networkTypeOrRpcUrl: 'mainnet',
+    },
+  ];
+
   const mockDefaultNetworks: ProcessedNetwork[] = [
     ...mockEvmNetworks,
     ...mockSolanaNetworks,
+    ...mockBitcoinNetworks,
   ];
 
   const mockEvmAccount: InternalAccount = {
@@ -106,6 +121,15 @@ describe('useNetworksToUse', () => {
     id: 'solana-account-id',
     address: 'Sol123',
     type: 'solana:data-account',
+    methods: [],
+    options: {},
+    metadata: {},
+  } as unknown as InternalAccount;
+
+  const mockBitcoinAccount: InternalAccount = {
+    id: 'bitcoin-account-id',
+    address: '123',
+    type: 'bip122:data-account',
     methods: [],
     options: {},
     metadata: {},
@@ -185,6 +209,9 @@ describe('useNetworksToUse', () => {
             if (scope === SolScope.Mainnet) {
               return mockSolanaAccount;
             }
+            if (scope === BtcScope.Mainnet) {
+              return mockBitcoinAccount;
+            }
             return null;
           };
         }
@@ -209,10 +236,19 @@ describe('useNetworksToUse', () => {
           areAnyNetworksSelected: true,
           networkCount: 1,
           totalEnabledNetworksCount: 1,
+        })
+        .mockReturnValueOnce({
+          networks: mockBitcoinNetworks,
+          selectedNetworks: [mockBitcoinNetworks[0]],
+          selectedCount: 1,
+          areAllNetworksSelected: true,
+          areAnyNetworksSelected: true,
+          networkCount: 1,
+          totalEnabledNetworksCount: 1,
         });
     });
 
-    it('calls useNetworksByCustomNamespace for both EVM and Solana networks', () => {
+    it('calls useNetworksByCustomNamespace for both EVM, Solana and Bitcoin networks', () => {
       // Arrange
       const props = {
         networks: mockDefaultNetworks,
@@ -224,7 +260,7 @@ describe('useNetworksToUse', () => {
       renderHook(() => useNetworksToUse(props));
 
       // Assert
-      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledTimes(2);
+      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledTimes(3);
       expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledWith({
         networkType: NetworkType.Popular,
         namespace: KnownCaipNamespace.Eip155,
@@ -233,9 +269,13 @@ describe('useNetworksToUse', () => {
         networkType: NetworkType.Popular,
         namespace: KnownCaipNamespace.Solana,
       });
+      expect(mockUseNetworksByCustomNamespace).toHaveBeenCalledWith({
+        networkType: NetworkType.Popular,
+        namespace: KnownCaipNamespace.Bip122,
+      });
     });
 
-    it('combines EVM and Solana networks when both accounts are selected', () => {
+    it('combines EVM, Solana and Bitcoin networks when all accounts are selected', () => {
       // Arrange
       const props = {
         networks: mockDefaultNetworks,
@@ -250,9 +290,11 @@ describe('useNetworksToUse', () => {
       expect(result.current.networksToUse).toEqual([
         ...mockEvmNetworks,
         ...mockSolanaNetworks,
+        ...mockBitcoinNetworks,
       ]);
       expect(result.current.selectedEvmAccount).toEqual(mockEvmAccount);
       expect(result.current.selectedSolanaAccount).toEqual(mockSolanaAccount);
+      expect(result.current.selectedBitcoinAccount).toEqual(mockBitcoinAccount);
     });
 
     it('returns EVM networks only when only EVM account is selected', () => {
@@ -285,6 +327,7 @@ describe('useNetworksToUse', () => {
       expect(result.current.networksToUse).toEqual(mockEvmNetworks);
       expect(result.current.selectedEvmAccount).toEqual(mockEvmAccount);
       expect(result.current.selectedSolanaAccount).toBeNull();
+      expect(result.current.selectedBitcoinAccount).toBeNull();
     });
 
     it('returns Solana networks only when only Solana account is selected', () => {
@@ -298,7 +341,7 @@ describe('useNetworksToUse', () => {
             if (scope === SolScope.Mainnet) {
               return mockSolanaAccount;
             }
-            return null; // No EVM account
+            return null; // No EVM or Bitcoin account
           };
         }
         return undefined;
@@ -344,6 +387,7 @@ describe('useNetworksToUse', () => {
       expect(result.current.networksToUse).toEqual(mockDefaultNetworks);
       expect(result.current.selectedEvmAccount).toBeNull();
       expect(result.current.selectedSolanaAccount).toBeNull();
+      expect(result.current.selectedBitcoinAccount).toBeNull();
     });
 
     it('falls back to default networks when EVM networks are not available', () => {
@@ -360,6 +404,15 @@ describe('useNetworksToUse', () => {
         })
         .mockReturnValueOnce({
           networks: [], // No Solana networks either
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        })
+        .mockReturnValueOnce({
+          networks: [], // No Bitcoin networks
           selectedNetworks: [],
           selectedCount: 0,
           areAllNetworksSelected: false,
@@ -397,6 +450,9 @@ describe('useNetworksToUse', () => {
             if (scope === SolScope.Mainnet) {
               return mockSolanaAccount;
             }
+            if (scope === BtcScope.Mainnet) {
+              return mockBitcoinAccount;
+            }
             return null;
           };
         }
@@ -416,7 +472,16 @@ describe('useNetworksToUse', () => {
           totalEnabledNetworksCount: 2,
         })
         .mockReturnValueOnce({
-          networks: undefined as unknown as ProcessedNetwork[], // No Solana networks
+          networks: [], // No Solana networks
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        })
+        .mockReturnValueOnce({
+          networks: [], // No Bitcoin networks
           selectedNetworks: [],
           selectedCount: 0,
           areAllNetworksSelected: false,
@@ -440,6 +505,7 @@ describe('useNetworksToUse', () => {
       expect(result.current.networksToUse).toEqual(mockEvmNetworks);
       expect(result.current.selectedEvmAccount).toEqual(mockEvmAccount);
       expect(result.current.selectedSolanaAccount).toEqual(mockSolanaAccount);
+      expect(result.current.selectedBitcoinAccount).toEqual(mockBitcoinAccount);
     });
 
     it('returns Solana networks when both accounts are selected but only Solana networks are available', () => {
@@ -455,6 +521,9 @@ describe('useNetworksToUse', () => {
             }
             if (scope === SolScope.Mainnet) {
               return mockSolanaAccount;
+            }
+            if (scope === BtcScope.Mainnet) {
+              return mockBitcoinAccount;
             }
             return null;
           };
@@ -482,6 +551,15 @@ describe('useNetworksToUse', () => {
           areAnyNetworksSelected: false,
           networkCount: 1,
           totalEnabledNetworksCount: 1,
+        })
+        .mockReturnValueOnce({
+          networks: [], // No Bitcoin networks
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
         });
 
       const props = {
@@ -501,7 +579,7 @@ describe('useNetworksToUse', () => {
       expect(result.current.selectedSolanaAccount).toEqual(mockSolanaAccount);
     });
 
-    it('falls back to default networks when both accounts are selected but no networks are available', () => {
+    it('falls back to default networks when all accounts are selected but no networks are available', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
@@ -514,6 +592,9 @@ describe('useNetworksToUse', () => {
             }
             if (scope === SolScope.Mainnet) {
               return mockSolanaAccount;
+            }
+            if (scope === BtcScope.Mainnet) {
+              return mockBitcoinAccount;
             }
             return null;
           };
@@ -541,6 +622,15 @@ describe('useNetworksToUse', () => {
           areAnyNetworksSelected: false,
           networkCount: 0,
           totalEnabledNetworksCount: 0,
+        })
+        .mockReturnValueOnce({
+          networks: undefined as unknown as ProcessedNetwork[], // No Bitcoin networks
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
         });
 
       const props = {
@@ -558,11 +648,12 @@ describe('useNetworksToUse', () => {
       expect(result.current.networksToUse).toEqual(mockDefaultNetworks);
       expect(result.current.selectedEvmAccount).toEqual(mockEvmAccount);
       expect(result.current.selectedSolanaAccount).toEqual(mockSolanaAccount);
+      expect(result.current.selectedBitcoinAccount).toEqual(mockBitcoinAccount);
     });
   });
 
   describe('areAllNetworksSelectedCombined logic', () => {
-    it('returns true when both EVM and Solana networks are all selected', () => {
+    it('returns true when both EVM, Solana and Bitcoin networks are all selected', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
@@ -575,6 +666,9 @@ describe('useNetworksToUse', () => {
             }
             if (scope === SolScope.Mainnet) {
               return mockSolanaAccount;
+            }
+            if (scope === BtcScope.Mainnet) {
+              return mockBitcoinAccount;
             }
             return null;
           };
@@ -599,6 +693,15 @@ describe('useNetworksToUse', () => {
           selectedNetworks: mockSolanaNetworks,
           selectedCount: 1,
           areAllNetworksSelected: true, // All Solana networks selected
+          areAnyNetworksSelected: true,
+          networkCount: 1,
+          totalEnabledNetworksCount: 1,
+        })
+        .mockReturnValueOnce({
+          networks: mockBitcoinNetworks,
+          selectedNetworks: mockBitcoinNetworks,
+          selectedCount: 1,
+          areAllNetworksSelected: true, // All Bitcoin networks selected
           areAnyNetworksSelected: true,
           networkCount: 1,
           totalEnabledNetworksCount: 1,
@@ -632,6 +735,9 @@ describe('useNetworksToUse', () => {
             if (scope === SolScope.Mainnet) {
               return mockSolanaAccount;
             }
+            if (scope === BtcScope.Mainnet) {
+              return mockBitcoinAccount;
+            }
             return null;
           };
         }
@@ -658,6 +764,15 @@ describe('useNetworksToUse', () => {
           areAnyNetworksSelected: false,
           networkCount: 1,
           totalEnabledNetworksCount: 1,
+        })
+        .mockReturnValueOnce({
+          networks: mockBitcoinNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
         });
 
       const props = {
@@ -712,6 +827,15 @@ describe('useNetworksToUse', () => {
           areAnyNetworksSelected: false,
           networkCount: 1,
           totalEnabledNetworksCount: 1,
+        })
+        .mockReturnValueOnce({
+          networks: mockBitcoinNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
         });
 
       const props = {
@@ -765,6 +889,15 @@ describe('useNetworksToUse', () => {
           areAnyNetworksSelected: true,
           networkCount: 1,
           totalEnabledNetworksCount: 1,
+        })
+        .mockReturnValueOnce({
+          networks: mockBitcoinNetworks,
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: false,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
         });
 
       const props = {
