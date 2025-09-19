@@ -189,7 +189,7 @@ const OnboardingIntroStep: React.FC = () => {
    * Renders the intro image section
    */
   const renderImage = () => (
-    <Box twClassName="flex-1 justify-center items-center">
+    <Box twClassName="flex-1 justify-center items-center py-2">
       <Image
         source={intro}
         resizeMode="contain"
@@ -212,7 +212,9 @@ const OnboardingIntroStep: React.FC = () => {
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
       >
-        {strings('rewards.onboarding.intro_confirm')}
+        <Text twClassName="text-white">
+          {strings('rewards.onboarding.intro_confirm')}
+        </Text>
       </Button>
       <Button
         variant={ButtonVariant.Tertiary}
@@ -232,7 +234,7 @@ const OnboardingIntroStep: React.FC = () => {
     <Box twClassName="flex-grow min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-1 p-4')}
+        style={tw.style('flex-1 pb-4')}
         resizeMode="cover"
       >
         {/* Spacer */}

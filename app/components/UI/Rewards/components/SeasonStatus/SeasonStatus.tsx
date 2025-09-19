@@ -4,6 +4,7 @@ import {
   BoxFlexDirection,
   TextVariant,
   Text,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import ProgressBar from 'react-native-progress/Bar';
 import { strings } from '../../../../../../locales/i18n';
@@ -23,8 +24,10 @@ import {
   selectNextTier,
 } from '../../../../../reducers/rewards/selectors';
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const SeasonStatus: React.FC = () => {
+  const tw = useTailwind();
   const currentTier = useSelector(selectCurrentTier);
   const nextTier = useSelector(selectNextTier);
   const nextTierPointsNeeded = useSelector(selectNextTierPointsNeeded);
@@ -154,20 +157,21 @@ const SeasonStatus: React.FC = () => {
       {/* Bottom Row - Points Summary */}
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="gap-2 justify-between items-center -mt-2"
+        twClassName="gap-2 justify-between items-center -mt-1"
       >
-        <Box twClassName="flex-row items-center gap-2">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
           <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
 
-          <Box twClassName="flex-row items-center gap-1">
-            <Text variant={TextVariant.HeadingLg} twClassName="text-default">
+          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+            <Text
+              variant={TextVariant.BodyLg}
+              fontWeight={FontWeight.Bold}
+              style={tw.style({ fontSize: 22 })}
+            >
               {formatNumber(balanceTotal)}
             </Text>
 
-            <Text
-              variant={TextVariant.HeadingSm}
-              twClassName="text-default text-left -mb-1"
-            >
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
               {!balanceTotal || balanceTotal > 1
                 ? strings('rewards.points').toLowerCase()
                 : strings('rewards.point').toLowerCase()}
