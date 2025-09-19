@@ -7,7 +7,7 @@ import type { AccountState } from '../controllers/types';
 import { usePerpsAccount } from './usePerpsAccount';
 
 // Mock i18n
-jest.mock('../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
