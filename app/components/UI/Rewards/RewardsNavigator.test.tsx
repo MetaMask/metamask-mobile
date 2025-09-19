@@ -150,14 +150,6 @@ jest.mock('../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock selectors
-jest.mock('../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: () => ({
-    id: 'test-account-id',
-    address: '0x123',
-  }),
-}));
-
 jest.mock('../../../selectors/rewards', () => ({
   selectRewardsActiveAccountHasOptedIn: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
@@ -186,10 +178,7 @@ jest.mock('./hooks/useCandidateSubscriptionId', () => ({
 }));
 
 // Import mocked selectors for setup
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const mockSelectRewardsActiveAccountHasOptedIn =
   selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<

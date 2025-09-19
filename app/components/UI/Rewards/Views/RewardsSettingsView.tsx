@@ -6,20 +6,14 @@ import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
-import { useSelector } from 'react-redux';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import Banner, {
-  BannerVariant,
-} from '../../../../component-library/components/Banners/Banner';
-import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
-import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
+import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
 import { useOptout } from '../hooks/useOptout';
 
 interface RewardsSettingsViewRouteParams {
@@ -34,7 +28,6 @@ const RewardsSettingsView: React.FC = () => {
     | RewardsSettingsViewRouteParams
     | undefined;
   const { colors } = useTheme();
-  const hasAccountOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const toastRef = useRef<ToastRef>(null);
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout(toastRef);
 
@@ -57,13 +50,10 @@ const RewardsSettingsView: React.FC = () => {
     if (routeParams?.focusUnlinkedTab) {
       return 1;
     }
-    // If current account is not opted in, start with unlinked tab (index 1)
-    if (hasAccountOptedIn === false) {
-      return 1;
-    }
+
     // Otherwise, start with linked tab (index 0)
     return 0;
-  }, [hasAccountOptedIn, routeParams?.focusUnlinkedTab]);
+  }, [routeParams?.focusUnlinkedTab]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
@@ -78,22 +68,8 @@ const RewardsSettingsView: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Current Account Not Opted In Banner */}
-          {hasAccountOptedIn === false && (
-            <Box twClassName="-mx-4">
-              <Banner
-                variant={BannerVariant.Alert}
-                severity={BannerAlertSeverity.Info}
-                title={strings('rewards.unlinked_account_info.title')}
-                description={strings(
-                  'rewards.unlinked_account_info.description',
-                )}
-              />
-            </Box>
-          )}
-
           {/* Section 2: Account Tabs */}
-          <RewardSettingsTabs initialTabIndex={initialTabIndex} />
+          <RewardSettingsAccountGroupList initialTabIndex={initialTabIndex} />
 
           {/* Section 3: Opt Out */}
           <Box twClassName="gap-4 flex-col mb-4">

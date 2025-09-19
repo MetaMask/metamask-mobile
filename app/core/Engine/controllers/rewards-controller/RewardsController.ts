@@ -42,6 +42,9 @@ import {
   parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
+import { signSolanaRewardsMessage } from './utils/solana-snap';
+import { isNonEvmAddress } from '../../../Multichain/utils';
+import { base58 } from 'ethers/lib/utils';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -102,6 +105,12 @@ const metadata = {
     anonymous: false,
     usedInUi: true,
   },
+  perpsFeeDiscounts: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
   seasonStatuses: {
     includeInStateLogs: true,
     persist: true,
@@ -130,6 +139,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   subscriptions: {},
   seasons: {},
   subscriptionReferralDetails: {},
+  perpsFeeDiscounts: {},
   seasonStatuses: {},
   activeBoosts: {},
   unlockedRewards: {},
@@ -332,8 +342,8 @@ export class RewardsController extends BaseController<
   #initializeEventSubscriptions(): void {
     // Subscribe to account changes for silent authentication
     this.messagingSystem.subscribe(
-      'AccountsController:selectedAccountChange',
-      () => this.#handleAuthenticationTrigger('Account changed'),
+      'AccountTreeController:selectedAccountGroupChange',
+      () => this.#handleAuthenticationTrigger('Account Group changed'),
     );
 
     // Subscribe to KeyringController unlock events to retry silent auth
@@ -423,21 +433,34 @@ export class RewardsController extends BaseController<
   ): Promise<string> {
     const message = `rewards,${account.address},${timestamp}`;
 
-    return await this.#signEvmMessage(account, message);
+    if (isSolanaAddress(account.address)) {
+      const result = await signSolanaRewardsMessage(
+        account.address,
+        Buffer.from(message, 'utf8').toString('base64'),
+      );
+      return `0x${Buffer.from(base58.decode(result.signature)).toString(
+        'hex',
+      )}`;
+    } else if (!isNonEvmAddress(account.address)) {
+      const result = await this.#signEvmMessage(
+        account,
+        '0x' + Buffer.from(message, 'utf8').toString('hex'),
+      );
+      return result;
+    }
+
+    throw new Error('Unsupported account type for signing rewards message');
   }
 
   async #signEvmMessage(
     account: InternalAccount,
     message: string,
   ): Promise<string> {
-    // Convert message to hex format for signing
-    const hexMessage = '0x' + Buffer.from(message, 'utf8').toString('hex');
-
     // Use KeyringController to sign the message
     const signature = await this.messagingSystem.call(
       'KeyringController:signPersonalMessage',
       {
-        data: hexMessage,
+        data: message,
         from: account.address,
       },
     );
@@ -455,15 +478,46 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
 
     if (!rewardsEnabled) {
+      await this.#performSilentAuth({
+        internalAccount: null,
+        shouldBeNewActive: true,
+      });
       return;
     }
+
     Logger.log('RewardsController: handleAuthenticationTrigger', reason);
 
     try {
-      const selectedAccount = this.messagingSystem.call(
-        'AccountsController:getSelectedMultichainAccount',
+      const accounts = this.messagingSystem.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
       );
-      await this.#performSilentAuth(selectedAccount);
+
+      if (!accounts || accounts.length === 0) {
+        await this.#performSilentAuth({
+          internalAccount: null,
+          shouldBeNewActive: true,
+        });
+      } else {
+        const sortedAccounts = this.#sortAccounts(accounts);
+
+        // Try silent auth on each account until one succeeds
+        let success = false;
+        for (const account of sortedAccounts) {
+          try {
+            const subscriptionId = await this.#performSilentAuth({
+              internalAccount: account,
+              shouldBeNewActive: true,
+            });
+            success = !!subscriptionId;
+            break; // Stop on first success
+          } catch {
+            // Continue to next account
+          }
+        }
+        if (!success && sortedAccounts.length > 1) {
+          throw new Error('Silent auth failed for all accounts');
+        }
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -476,12 +530,19 @@ export class RewardsController extends BaseController<
     }
   }
 
+  #isSilentAuthCompatible(address: string): boolean {
+    return (
+      !isHardwareAccount(address) &&
+      (!isNonEvmAddress(address) || isSolanaAddress(address))
+    );
+  }
+
   /**
    * Check if silent authentication should be skipped
    */
   #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
-    // Skip for hardware and Solana accounts
-    if (isHardwareAccount(address) || isSolanaAddress(address)) return true;
+    // Skip for hardware accounts
+    if (!this.#isSilentAuthCompatible(address)) return true;
 
     const now = Date.now();
 
@@ -514,14 +575,31 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Sort accounts by type, prioritizing EIP155 accounts first
+   */
+  #sortAccounts(accounts: InternalAccount[]): InternalAccount[] {
+    return [...accounts].sort((a, b) => {
+      const aIsEvm = a.type.startsWith('eip155:');
+      const bIsEvm = b.type.startsWith('eip155:');
+
+      if (aIsEvm && !bIsEvm) return -1; // a comes first
+      if (!aIsEvm && bIsEvm) return 1; // b comes first
+      return 0; // maintain original order for same type
+    });
+  }
+
+  /**
    * Perform silent authentication for the given address
    */
-  async #performSilentAuth(
-    internalAccount?: InternalAccount | null,
-    shouldBecomeActiveAccount = true,
-  ): Promise<string | null> {
+  async #performSilentAuth({
+    internalAccount,
+    shouldBeNewActive,
+  }: {
+    internalAccount?: InternalAccount | null;
+    shouldBeNewActive?: boolean;
+  }): Promise<string | null> {
     if (!internalAccount) {
-      if (shouldBecomeActiveAccount) {
+      if (shouldBeNewActive) {
         this.update((state: RewardsControllerState) => {
           state.activeAccount = null;
         });
@@ -542,7 +620,7 @@ export class RewardsController extends BaseController<
       if (accountState) {
         // Update last authenticated account
         this.update((state: RewardsControllerState) => {
-          if (shouldBecomeActiveAccount) {
+          if (shouldBeNewActive) {
             state.activeAccount = accountState;
           }
         });
@@ -554,13 +632,11 @@ export class RewardsController extends BaseController<
           subscriptionId: null,
           lastCheckedAuth: Date.now(),
           lastCheckedAuthError: false,
-          perpsFeeDiscount: null, // Default value, will be updated when fetched
-          lastPerpsDiscountRateFetched: null,
         };
         this.update((state: RewardsControllerState) => {
           state.accounts[account as CaipAccountId] =
             accountState as RewardsAccountState;
-          if (shouldBecomeActiveAccount) {
+          if (shouldBeNewActive) {
             state.activeAccount = accountState;
           }
         });
@@ -651,11 +727,9 @@ export class RewardsController extends BaseController<
           subscriptionId: subscription?.id || null,
           lastCheckedAuth: Date.now(),
           lastCheckedAuthError: authUnexpectedError,
-          perpsFeeDiscount: null, // Default value, will be updated when fetched
-          lastPerpsDiscountRateFetched: null,
         };
         state.accounts[account] = accountState;
-        if (shouldBecomeActiveAccount) {
+        if (shouldBeNewActive) {
           state.activeAccount = accountState;
         }
 
@@ -677,23 +751,30 @@ export class RewardsController extends BaseController<
   ): Promise<PerpsDiscountData | null> {
     const accountState = this.#getAccountState(account);
 
-    // Check if we have a cached discount and if threshold hasn't been reached
-    if (
-      accountState &&
-      accountState.perpsFeeDiscount !== null &&
-      accountState.lastPerpsDiscountRateFetched !== null &&
-      Date.now() - accountState.lastPerpsDiscountRateFetched <
-        PERPS_DISCOUNT_CACHE_THRESHOLD_MS
-    ) {
-      Logger.log(
-        'RewardsController: Using cached perps discount data for',
-        account,
-        accountState.perpsFeeDiscount,
-      );
-      return {
-        hasOptedIn: !!accountState.hasOptedIn,
-        discountBips: accountState.perpsFeeDiscount,
-      };
+    // Check if we have cached discount in subscription-based cache
+    if (accountState?.subscriptionId) {
+      const cachedPerpsFeeDiscount =
+        this.state.perpsFeeDiscounts[accountState.subscriptionId];
+      if (
+        cachedPerpsFeeDiscount?.lastFetched &&
+        Date.now() - cachedPerpsFeeDiscount.lastFetched <
+          PERPS_DISCOUNT_CACHE_THRESHOLD_MS
+      ) {
+        Logger.log(
+          'RewardsController: Using cached perps discount data for',
+          account,
+          'subscription:',
+          accountState.subscriptionId,
+          'discount:',
+          cachedPerpsFeeDiscount.discountBips,
+        );
+        return {
+          hasOptedIn: !!accountState.hasOptedIn,
+          discountBips: cachedPerpsFeeDiscount.discountBips
+            ? cachedPerpsFeeDiscount.discountBips / 100
+            : 0,
+        };
+      }
     }
 
     try {
@@ -715,8 +796,6 @@ export class RewardsController extends BaseController<
             subscriptionId: null,
             lastCheckedAuth: Date.now(),
             lastCheckedAuthError: false,
-            perpsFeeDiscount: perpsDiscountData.discountBips ?? 0,
-            lastPerpsDiscountRateFetched: Date.now(),
           };
         } else {
           // Update account state
@@ -724,9 +803,17 @@ export class RewardsController extends BaseController<
           if (!perpsDiscountData.hasOptedIn) {
             state.accounts[account].subscriptionId = null;
           }
-          state.accounts[account].perpsFeeDiscount =
-            perpsDiscountData.discountBips ?? 0;
-          state.accounts[account].lastPerpsDiscountRateFetched = Date.now();
+        }
+
+        // Store perps fee discount data in subscription-based cache if we have a subscriptionId
+        const currentAccountState = state.accounts[account];
+        if (currentAccountState?.subscriptionId) {
+          state.perpsFeeDiscounts[currentAccountState.subscriptionId] = {
+            discountBips: perpsDiscountData.discountBips
+              ? Math.round(perpsDiscountData.discountBips * 100)
+              : null,
+            lastFetched: Date.now(),
+          };
         }
       });
       return perpsDiscountData;
@@ -768,10 +855,112 @@ export class RewardsController extends BaseController<
     }
 
     try {
-      return await this.messagingSystem.call(
-        'RewardsDataService:getOptInStatus',
-        params,
+      // Get all internal accounts to convert addresses to CAIP format
+      const allAccounts = this.messagingSystem.call(
+        'AccountsController:listMultichainAccounts',
       );
+
+      // Create a map of address to internal account for quick lookup
+      const addressToAccountMap = new Map<string, InternalAccount>();
+      for (const account of allAccounts) {
+        addressToAccountMap.set(account.address.toLowerCase(), account);
+      }
+
+      // Arrays to track cached vs fresh data needed
+      const cachedResults: (boolean | null)[] = new Array(
+        params.addresses.length,
+      ).fill(null);
+      const addressesNeedingFresh: string[] = [];
+      const freshIndexMap: Map<string, number> = new Map();
+
+      // Check storage state for each address
+      for (let i = 0; i < params.addresses.length; i++) {
+        const address = params.addresses[i];
+        const internalAccount = addressToAccountMap.get(address.toLowerCase());
+
+        if (internalAccount) {
+          const caipAccount =
+            this.convertInternalAccountToCaipAccountId(internalAccount);
+          if (caipAccount) {
+            const accountState = this.#getAccountState(caipAccount);
+            if (accountState?.hasOptedIn !== undefined) {
+              // Use cached data
+              cachedResults[i] = accountState.hasOptedIn;
+              continue;
+            }
+          }
+        }
+
+        // No cached data found, need fresh API call
+        addressesNeedingFresh.push(address);
+        freshIndexMap.set(address, i);
+      }
+
+      // Make fresh API call only for addresses without cached data
+      let freshResults: boolean[] = [];
+      if (addressesNeedingFresh.length > 0) {
+        Logger.log(
+          'RewardsController: Making fresh API call for addresses without cached data',
+          {
+            count: addressesNeedingFresh.length,
+            total: params.addresses.length,
+          },
+        );
+
+        const freshResponse = await this.messagingSystem.call(
+          'RewardsDataService:getOptInStatus',
+          { addresses: addressesNeedingFresh },
+        );
+        freshResults = freshResponse.ois;
+
+        // Update state with fresh results for future caching
+        for (let i = 0; i < addressesNeedingFresh.length; i++) {
+          const address = addressesNeedingFresh[i];
+          const hasOptedIn = freshResults[i];
+          const internalAccount = addressToAccountMap.get(
+            address.toLowerCase(),
+          );
+
+          if (internalAccount) {
+            const caipAccount =
+              this.convertInternalAccountToCaipAccountId(internalAccount);
+            if (caipAccount) {
+              this.update((state: RewardsControllerState) => {
+                // Update or create account state with fresh opt-in status
+                if (!state.accounts[caipAccount]) {
+                  state.accounts[caipAccount] = {
+                    account: caipAccount,
+                    hasOptedIn,
+                    subscriptionId: null,
+                    lastCheckedAuth: Date.now(),
+                    lastCheckedAuthError: false,
+                  };
+                } else {
+                  state.accounts[caipAccount].hasOptedIn = hasOptedIn;
+                  state.accounts[caipAccount].lastCheckedAuth = Date.now();
+                }
+              });
+            }
+          }
+        }
+      }
+
+      // Combine cached and fresh results in the correct order
+      const finalResults: boolean[] = [];
+      let freshIndex = 0;
+
+      for (let i = 0; i < params.addresses.length; i++) {
+        if (cachedResults[i] !== null) {
+          // Use cached result
+          finalResults[i] = cachedResults[i] as boolean;
+        } else {
+          // Use fresh result
+          finalResults[i] = freshResults[freshIndex];
+          freshIndex++;
+        }
+      }
+
+      return { ois: finalResults };
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get opt-in status:',
@@ -987,100 +1176,206 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Private method to perform opt-in for a single internal account
+   * @param account - The internal account to opt in
+   * @param referralCode - Optional referral code
+   * @returns Promise with subscription data or null if failed
+   */
+  async #optIn(
+    account: InternalAccount,
+    referralCode?: string,
+  ): Promise<{ subscription: SubscriptionDto; sessionId: string } | null> {
+    try {
+      Logger.log(
+        'RewardsController: Attempting opt-in for account',
+        account.address,
+      );
+
+      const challengeResponse = await this.messagingSystem.call(
+        'RewardsDataService:generateChallenge',
+        {
+          address: account.address,
+        },
+      );
+
+      // Try different encoding approaches to handle potential character issues
+      let hexMessage;
+      try {
+        // First try: direct toHex conversion
+        hexMessage = toHex(challengeResponse.message);
+      } catch (error) {
+        // Fallback: use Buffer to convert to hex if toHex fails
+        hexMessage =
+          '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
+      }
+
+      // Use KeyringController for silent signature
+      const signature = await this.messagingSystem.call(
+        'KeyringController:signPersonalMessage',
+        {
+          data: hexMessage,
+          from: account.address,
+        },
+      );
+
+      Logger.log(
+        'RewardsController: Submitting optin with signature for',
+        account.address,
+      );
+      const optinResponse = await this.messagingSystem.call(
+        'RewardsDataService:optin',
+        {
+          challengeId: challengeResponse.id,
+          signature,
+          referralCode,
+        },
+      );
+
+      Logger.log(
+        'RewardsController: Optin successful for account, updating controller state...',
+        account.address,
+      );
+
+      // Store the subscription token for authenticated requests
+      if (optinResponse.subscription?.id && optinResponse.sessionId) {
+        await storeSubscriptionToken(
+          optinResponse.subscription.id,
+          optinResponse.sessionId,
+        ).catch((error) => {
+          Logger.log(
+            'RewardsController: Failed to store subscription token:',
+            error,
+          );
+        });
+      }
+
+      // Update state with opt-in response data
+      this.update((state) => {
+        const caipAccount: CaipAccountId | null =
+          this.convertInternalAccountToCaipAccountId(account);
+        if (!caipAccount) {
+          return;
+        }
+        state.activeAccount = {
+          account: caipAccount,
+          hasOptedIn: true,
+          subscriptionId: optinResponse.subscription.id,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+        };
+        state.accounts[caipAccount] = state.activeAccount;
+        state.subscriptions[optinResponse.subscription.id] =
+          optinResponse.subscription;
+      });
+
+      return {
+        subscription: optinResponse.subscription,
+        sessionId: optinResponse.sessionId,
+      };
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Opt-in failed for account',
+        account.address,
+        error instanceof Error ? error.message : String(error),
+      );
+      return null;
+    }
+  }
+
+  /**
    * Perform the complete opt-in process for rewards
-   * @param account - The account to opt in
    * @param referralCode - Optional referral code
    */
-  async optIn(account: InternalAccount, referralCode?: string): Promise<void> {
+  async optIn(referralCode?: string): Promise<void> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       Logger.log(
         'RewardsController: Rewards feature is disabled, skipping optin',
-        {
-          account: account.address,
-        },
       );
       return;
     }
 
-    Logger.log('RewardsController: Starting optin process', {
-      account: account.address,
-    });
-
-    const challengeResponse = await this.messagingSystem.call(
-      'RewardsDataService:generateChallenge',
-      {
-        address: account.address,
-      },
+    const accounts = await this.messagingSystem.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
 
-    // Try different encoding approaches to handle potential character issues
-    let hexMessage;
-    try {
-      // First try: direct toHex conversion
-      hexMessage = toHex(challengeResponse.message);
-    } catch (error) {
-      // Fallback: use Buffer to convert to hex if toHex fails
-      hexMessage =
-        '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
+    if (!accounts || accounts.length === 0) {
+      Logger.log(
+        'RewardsController: No accounts found in selected account group, skipping optin',
+      );
+      return;
     }
-
-    // Use KeyringController for silent signature
-    const signature = await this.messagingSystem.call(
-      'KeyringController:signPersonalMessage',
-      {
-        data: hexMessage,
-        from: account.address,
-      },
-    );
-
-    Logger.log('RewardsController: Submitting optin with signature...');
-    const optinResponse = await this.messagingSystem.call(
-      'RewardsDataService:optin',
-      {
-        challengeId: challengeResponse.id,
-        signature,
-        referralCode,
-      },
-    );
 
     Logger.log(
-      'RewardsController: Optin successful, updating controller state...',
+      'RewardsController: Starting optin process based on account group with {{accountCount}} accounts',
+      {
+        accountCount: accounts.length,
+      },
     );
 
-    // Store the subscription token for authenticated requests
-    if (optinResponse.subscription?.id && optinResponse.sessionId) {
-      await storeSubscriptionToken(
-        optinResponse.subscription.id,
-        optinResponse.sessionId,
-      ).catch((error) => {
+    // Sort accounts using private controller method
+    const sortedAccounts = this.#sortAccounts(accounts);
+
+    // Try to opt in iteratively
+    let successfulAccount: InternalAccount | null = null;
+    let optinResult: {
+      subscription: SubscriptionDto;
+      sessionId: string;
+    } | null = null;
+
+    for (const accountToTry of sortedAccounts) {
+      Logger.log(
+        'RewardsController: Trying opt-in for account',
+        accountToTry.address,
+      );
+
+      optinResult = await this.#optIn(accountToTry, referralCode);
+      if (optinResult) {
+        successfulAccount = accountToTry;
         Logger.log(
-          'RewardsController: Failed to store subscription token:',
-          error,
+          'RewardsController: Opt-in successful for account',
+          accountToTry.address,
         );
-      });
+        break;
+      }
     }
 
-    // Update state with opt-in response data
-    this.update((state) => {
-      const caipAccount: CaipAccountId | null =
-        this.convertInternalAccountToCaipAccountId(account);
-      if (!caipAccount) {
-        return;
+    if (!successfulAccount || !optinResult) {
+      throw new Error('Failed to opt in any account from the account group');
+    }
+
+    // Link all other accounts to the successful subscription
+    const remainingAccounts = sortedAccounts.filter(
+      (accountToFilter) =>
+        accountToFilter.address !== successfulAccount?.address,
+    );
+
+    if (remainingAccounts.length > 0) {
+      Logger.log(
+        'RewardsController: Linking remaining {{count}} accounts to subscription',
+        {
+          count: remainingAccounts.length,
+          subscriptionId: optinResult.subscription.id,
+        },
+      );
+
+      for (const accountToLink of remainingAccounts) {
+        try {
+          await this.linkAccountToSubscriptionCandidate(accountToLink);
+          Logger.log(
+            'RewardsController: Successfully linked account to subscription',
+            accountToLink.address,
+          );
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to link account to subscription',
+            accountToLink.address,
+            error instanceof Error ? error.message : String(error),
+          );
+          // Continue with other accounts even if one fails
+        }
       }
-      state.activeAccount = {
-        account: caipAccount,
-        hasOptedIn: true,
-        subscriptionId: optinResponse.subscription.id,
-        lastCheckedAuth: Date.now(),
-        lastCheckedAuthError: false,
-        perpsFeeDiscount: null,
-        lastPerpsDiscountRateFetched: null,
-      };
-      state.accounts[caipAccount] = state.activeAccount;
-      state.subscriptions[optinResponse.subscription.id] =
-        optinResponse.subscription;
-    });
+    }
   }
 
   /**
@@ -1280,10 +1575,10 @@ export class RewardsController extends BaseController<
         const account = allAccounts[i];
         if (!account) continue;
         try {
-          const subscriptionId = await this.#performSilentAuth(
-            account,
-            false, // shouldBecomeActiveAccount = false
-          );
+          const subscriptionId = await this.#performSilentAuth({
+            internalAccount: account,
+            shouldBeNewActive: false,
+          });
           if (subscriptionId) {
             return subscriptionId;
           }
@@ -1322,14 +1617,6 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       Logger.log('RewardsController: Rewards feature is disabled');
-      return false;
-    }
-
-    // Check if account is non-EVM (Solana) and throw error
-    if (isSolanaAddress?.(account.address)) {
-      Logger.log(
-        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
-      );
       return false;
     }
 
@@ -1388,8 +1675,6 @@ export class RewardsController extends BaseController<
           subscriptionId: updatedSubscription.id,
           lastCheckedAuth: Date.now(),
           lastCheckedAuthError: false,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
         };
         if (state.activeAccount?.account === caipAccount) {
           state.activeAccount = state.accounts[caipAccount];
@@ -1468,8 +1753,6 @@ export class RewardsController extends BaseController<
               subscriptionId: null,
               lastCheckedAuth: Date.now(),
               lastCheckedAuthError: false,
-              perpsFeeDiscount: null,
-              lastPerpsDiscountRateFetched: null,
             };
           }
         });

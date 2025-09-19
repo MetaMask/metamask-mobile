@@ -24,9 +24,12 @@ import {
 } from '../../controllers/rewards-controller/types';
 import {
   AccountsControllerGetSelectedMultichainAccountAction,
-  AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
+import type {
+  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
+  AccountTreeControllerSelectedAccountGroupChangeEvent,
+} from '@metamask/account-tree-controller';
 import {
   RewardsDataServiceGetOptInStatusAction,
   RewardsDataServiceGetPointsEventsAction,
@@ -41,6 +44,7 @@ const name = 'RewardsController';
 type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | AccountsControllerListMultichainAccountsAction
+  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -62,7 +66,7 @@ type AllowedActions =
 
 // Don't reexport as per guidelines
 type AllowedEvents =
-  | AccountsControllerSelectedAccountChangeEvent
+  | AccountTreeControllerSelectedAccountGroupChangeEvent
   | KeyringControllerUnlockEvent;
 
 export type RewardsControllerMessenger = RestrictedMessenger<
@@ -82,8 +86,8 @@ export function getRewardsControllerMessenger(
   return messenger.getRestricted({
     name,
     allowedActions: [
-      'AccountsController:getSelectedMultichainAccount',
       'AccountsController:listMultichainAccounts',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
       'RewardsDataService:getPointsEvents',
@@ -104,7 +108,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:claimReward',
     ],
     allowedEvents: [
-      'AccountsController:selectedAccountChange',
+      'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
     ],
   });

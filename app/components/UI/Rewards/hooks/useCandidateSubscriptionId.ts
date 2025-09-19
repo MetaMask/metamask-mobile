@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 
 /**
  * Hook to manage fetching candidate subscription ID and setting it in Redux state
@@ -11,8 +10,7 @@ import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewa
  */
 export const useCandidateSubscriptionId = () => {
   const dispatch = useDispatch();
-  const account = useSelector(selectSelectedInternalAccount);
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   useEffect(() => {
     const getCandidateId = async () => {
@@ -26,13 +24,10 @@ export const useCandidateSubscriptionId = () => {
       }
     };
 
-    if (
-      account &&
-      (hasAccountedOptedIn === false || hasAccountedOptedIn === null)
-    ) {
+    if (!subscriptionId) {
       // if this account has not opted in or we had an error while checking opt-in status, get the candidate subscription ID
       dispatch(setCandidateSubscriptionId('pending'));
       getCandidateId();
     }
-  }, [account, hasAccountedOptedIn, dispatch]);
+  }, [subscriptionId, dispatch]);
 };

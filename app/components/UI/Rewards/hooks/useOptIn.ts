@@ -1,6 +1,4 @@
 import { useCallback, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
 
@@ -25,23 +23,17 @@ export interface UseOptinResult {
 }
 
 export const useOptin = (): UseOptinResult => {
-  const account = useSelector(selectSelectedInternalAccount);
   const [optinError, setOptinError] = useState<string | null>(null);
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
 
   const handleOptin = useCallback(
     async ({ referralCode }: { referralCode?: string }) => {
-      if (!account) {
-        return;
-      }
-
       try {
         setOptinLoading(true);
         setOptinError(null);
 
         await Engine.controllerMessenger.call(
           'RewardsController:optIn',
-          account,
           referralCode || undefined,
         );
       } catch (error) {
@@ -51,7 +43,7 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(false);
       }
     },
-    [account],
+    [],
   );
 
   const clearOptinError = useCallback(() => setOptinError(null), []);

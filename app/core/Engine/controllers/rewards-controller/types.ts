@@ -459,6 +459,12 @@ export type SubscriptionReferralDetailsState = {
   lastFetched?: number;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsFeeDiscountState = {
+  discountBips: number | null;
+  lastFetched?: number;
+};
+
 // Serializable versions for state storage (Date objects converted to timestamps)
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonRewardDtoState = {
@@ -558,8 +564,6 @@ export type RewardsAccountState = {
   subscriptionId: string | null;
   lastCheckedAuth: number;
   lastCheckedAuthError: boolean;
-  perpsFeeDiscount: number | null;
-  lastPerpsDiscountRateFetched: number | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -570,6 +574,9 @@ export type RewardsControllerState = {
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
     [subscriptionId: string]: SubscriptionReferralDetailsState;
+  };
+  perpsFeeDiscounts: {
+    [subscriptionId: string]: PerpsFeeDiscountState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
@@ -627,7 +634,7 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (account: InternalAccount, referralCode?: string) => Promise<void>;
+  handler: (referralCode?: string) => Promise<void>;
 }
 
 /**
