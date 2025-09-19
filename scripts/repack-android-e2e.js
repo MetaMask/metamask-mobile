@@ -93,7 +93,8 @@ function prepareWorkingDirectory() {
 /**
  * Use @expo/repack-app to repack the APK with new bundle
  */
-function repackApk() {
+async function repackApk() {
+  const repackStartTime = Date.now();
   logger.info('Repacking APK with @expo/repack-app...');
 
   // Verify source APK exists
@@ -115,16 +116,48 @@ function repackApk() {
     '--verbose',
   ].join(' ');
 
+  logger.info('⏱️  Starting repack operation...');
+
   // Execute repack command
   execCommand(repackCommand);
 
-  // Verify repacked APK was created
+  const repackDuration = Math.round((Date.now() - repackStartTime) / 1000);
+  logger.info(`⏱️  Repack command completed in ${repackDuration}s`);
+
+  // Wait for file system operations to complete and verify repacked APK was created
+  logger.info('Verifying repacked APK exists...');
+
+  // Add retry logic for file system delays in CI environments
+  let retries = 0;
+  const maxRetries = 10;
+  const retryDelay = 1000; // 1 second
+
+  while (retries < maxRetries && !fileExists(CONFIG.outputApkPath)) {
+    logger.info(`Waiting for APK file... (attempt ${retries + 1}/${maxRetries})`);
+    await new Promise(resolve => setTimeout(resolve, retryDelay));
+    retries++;
+  }
+
   if (!fileExists(CONFIG.outputApkPath)) {
+    // Debug: List directory contents to understand what's happening
+    logger.error('APK not found after repack. Checking directory contents...');
+    try {
+      const apkDir = path.dirname(CONFIG.outputApkPath);
+      const files = require('fs').readdirSync(apkDir);
+      logger.error(`Files in ${apkDir}:`);
+      files.forEach(file => {
+        const filePath = path.join(apkDir, file);
+        const stats = require('fs').statSync(filePath);
+        logger.error(`  ${file} (${stats.size} bytes)`);
+      });
+    } catch (error) {
+      logger.error(`Could not list directory: ${error.message}`);
+    }
     throw new Error(`Repacked APK not found: ${CONFIG.outputApkPath}`);
   }
 
   logger.success(`APK repacked successfully: ${CONFIG.outputApkPath} (${getFileSize(CONFIG.outputApkPath)})`);
-  
+
   // Check if sourcemap was generated
   if (fileExists(CONFIG.sourcemapOutputPath)) {
     logger.success(`Sourcemap generated: ${CONFIG.sourcemapOutputPath} (${getFileSize(CONFIG.sourcemapOutputPath)})`);
@@ -138,7 +171,7 @@ function repackApk() {
  */
 function cleanup() {
   logger.info('Cleaning up temporary files...');
-  
+
   // @expo/repack-app handles its own temporary file cleanup
   // No manual cleanup needed
   logger.success('Cleanup completed');
@@ -160,7 +193,7 @@ async function main() {
     prepareWorkingDirectory();
 
     // Step 2: Repack APK using @expo/repack-app (handles bundle generation internally)
-    repackApk();
+    await repackApk();
 
     const duration = Math.round((Date.now() - startTime) / 1000);
     logger.success(`🎉 APK repack completed successfully in ${duration}s`);
