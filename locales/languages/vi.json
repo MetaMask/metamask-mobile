@@ -4827,7 +4827,7 @@
     "earn_eth_rewards": "Kiếm phần thưởng ETH.",
     "earn_eth_rewards_description": "Bắt đầu kiếm tiền ngay khi bạn ký gửi. Phần thưởng sẽ tự động cộng dồn.",
     "flexible_unstaking": "Hủy ký gửi linh hoạt.",
-    "flexible_unstaking_description": "Hủy ký gửi bất cứ lúc nào. Thường mất ít hơn 3 ngày, nhưng có thể mất đến 11 ngày để xử lý.",
+    "flexible_unstaking_description": "Hủy ký gửi bất cứ lúc nào. Thường mất ít hơn 3 ngày, nhưng có thể mất đến 44 ngày để xử lý.",
     "disclaimer": "Việc ký gửi không đảm bảo bạn sẽ nhận được phần thưởng và đi kèm với nhiều rủi ro, bao gồm cả mất tiền.",
     "learn_more": "Tìm hiểu thêm",
     "got_it": "Đã hiểu",
@@ -4863,7 +4863,7 @@
       "geo_blocked": "Bạn đang ở trong khu vực không được phép ký gửi hoặc hủy ký gửi.",
       "approximately": "khoảng"
     },
-    "unstake_input_banner_description": "Trung bình, mất chưa đến 3 ngày để bạn có thể nhận ETH đã hủy ký gửi, nhưng có thể mất đến 11 ngày.",
+    "unstake_input_banner_description": "Trung bình, mất chưa đến 3 ngày để bạn có thể nhận ETH đã hủy ký gửi, nhưng có thể mất đến 44 ngày.",
     "max": "Tối đa",
     "staking_from": "Ký gửi từ",
     "advanced_details": "Chi tiết nâng cao",
@@ -4887,7 +4887,7 @@
       }
     },
     "use_max": "Dùng tối đa",
-    "estimated_unstaking_time": "1 đến 11 ngày",
+    "estimated_unstaking_time": "1 đến 44 ngày",
     "proceed_anyway": "Vẫn tiếp tục",
     "gas_cost_impact": "Tác động của chi phí gas",
     "select_a_token_to_deposit": "Chọn token để nạp",

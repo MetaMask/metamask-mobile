@@ -4827,7 +4827,7 @@
     "earn_eth_rewards": "Obtenez des ETH en récompense.",
     "earn_eth_rewards_description": "Commencez à dégager des bénéfices dès que vous stakez. Les récompenses s’accumulent automatiquement.",
     "flexible_unstaking": "Déstaking flexible.",
-    "flexible_unstaking_description": "Déstakez à tout moment. Le traitement des demandes de déstaking prend généralement moins de 3 jours, mais peut prendre jusqu’à 11 jours.",
+    "flexible_unstaking_description": "Déstakez à tout moment. Le traitement des demandes de déstaking prend généralement moins de 3 jours, mais peut prendre jusqu'à 44 jours.",
     "disclaimer": "Le staking comporte des risques et peut entrainer la perte de fonds. De plus, les récompenses liées au staking ne sont pas garanties.",
     "learn_more": "En savoir plus",
     "got_it": "J’ai compris",
@@ -4863,7 +4863,7 @@
       "geo_blocked": "Vous vous trouvez dans une région où l’unstaking ou le staking n’est pas autorisé.",
       "approximately": "environ"
     },
-    "unstake_input_banner_description": "En moyenne, il faut moins de 3 jours pour que les ETH déstakés puissent être réclamés, mais cela peut prendre parfois jusqu’à 11 jours.",
+    "unstake_input_banner_description": "En moyenne, il faut moins de 3 jours pour que les ETH déstakés puissent être réclamés, mais cela peut prendre parfois jusqu'à 44 jours.",
     "max": "Max",
     "staking_from": "Staking à partir de",
     "advanced_details": "Détails avancés",
@@ -4887,7 +4887,7 @@
       }
     },
     "use_max": "Utiliser max",
-    "estimated_unstaking_time": "1 à 11 jours",
+    "estimated_unstaking_time": "1 à 44 jours",
     "proceed_anyway": "Continuer quand même",
     "gas_cost_impact": "Impact du coût du gaz",
     "select_a_token_to_deposit": "Sélectionnez un jeton pour effectuer un dépôt",
