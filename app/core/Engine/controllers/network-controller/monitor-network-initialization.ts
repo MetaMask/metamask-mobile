@@ -45,7 +45,7 @@ export function monitorNetworkInitialization({
   const eip155Networks =
     networkEnablementControllerState?.enabledNetworkMap?.[
       KnownCaipNamespace.Eip155
-    ];
+    ] ?? {};
 
   // Track networkClientIds that we're looking up
   const lookupNetworkClientIds: string[] = [];
