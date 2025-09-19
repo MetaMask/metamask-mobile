@@ -26,8 +26,13 @@ import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { captureException } from '@sentry/core';
 
-interface ImportNewSecretRecoveryPhraseOptions {
+export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
+}
+
+export interface ImportNewSecretRecoveryPhraseReturnType {
+  address: string;
+  discoveredAccountsCount: number;
 }
 
 export async function importNewSecretRecoveryPhrase(
@@ -35,7 +40,10 @@ export async function importNewSecretRecoveryPhrase(
   options: ImportNewSecretRecoveryPhraseOptions = {
     shouldSelectAccount: true,
   },
-) {
+  callback?: (
+    options: ImportNewSecretRecoveryPhraseReturnType & { error?: Error },
+  ) => Promise<void>,
+): Promise<ImportNewSecretRecoveryPhraseReturnType> {
   const { KeyringController } = Engine.context;
   const { shouldSelectAccount } = options;
 
@@ -133,20 +141,35 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  let discoveredAccountsCount: number;
+  // If state 2 is enabled, this function will return 0 discovered account
+  // immediately, so we have to use the `callback` instead to get this
+  // information.
+  let discoveredAccountsCount: number = 0;
   if (isMultichainAccountsState2Enabled()) {
-    // Use try/catch here, add `addDiscoveredAccounts` also handles errors gracefully.
-    try {
-      // We dispatch a full sync here since this is a new SRP
-      await Engine.context.AccountTreeController.syncWithUserStorage();
+    // We use an IIFE to be able to use async/await but not block the main thread.
+    (async () => {
+      let capturedError;
+      try {
+        // We need to dispatch a full sync here since this is a new SRP
+        await Engine.context.AccountTreeController.syncWithUserStorage();
+        // Then we discover accounts
+        discoveredAccountsCount = await discoverAccounts(newKeyring.id);
+      } catch (error) {
+        capturedError = new Error(
+          `Unable to sync, discover and create accounts: ${error}`,
+        );
+        discoveredAccountsCount = 0;
 
-      discoveredAccountsCount = await discoverAccounts(newKeyring.id);
-    } catch (error) {
-      captureException(
-        new Error(`Unable to discover and create accounts: ${error}`),
-      );
-      discoveredAccountsCount = 0;
-    }
+        captureException(capturedError);
+      } finally {
+        // We trigger the callback with the results, even in case of error (0 discovered accounts)
+        await callback?.({
+          address: newAccountAddress,
+          discoveredAccountsCount,
+          error: capturedError,
+        });
+      }
+    })();
   } else {
     discoveredAccountsCount = (
       await Promise.all(
