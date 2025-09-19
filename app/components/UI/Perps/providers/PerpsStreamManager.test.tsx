@@ -84,6 +84,7 @@ describe('PerpsStreamManager', () => {
       subscribeToOrders: mockSubscribeToOrders,
       subscribeToPositions: mockSubscribeToPositions,
       subscribeToAccount: mockSubscribeToAccount,
+      isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
     } as unknown as typeof mockEngine.context.PerpsController;
 
     mockDevLogger.log = jest.fn();
