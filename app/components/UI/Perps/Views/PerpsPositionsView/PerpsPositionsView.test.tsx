@@ -9,12 +9,12 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
 import {
+  usePerpsAccount,
   usePerpsTrading,
   usePerpsTPSLUpdate,
   usePerpsClosePosition,
   usePerpsLivePositions,
 } from '../../hooks';
-import { usePerpsLiveAccount } from '../../hooks/stream';
 import type { Position } from '../../controllers/types';
 
 // Mock component types
@@ -34,6 +34,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../providers/PerpsStreamManager');
 
 jest.mock('../../hooks', () => ({
+  usePerpsAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsTPSLUpdate: jest.fn(() => ({
     handleUpdateTPSL: jest.fn(),
@@ -54,11 +55,6 @@ jest.mock('../../hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
-}));
-
-// Mock stream hooks
-jest.mock('../../hooks/stream', () => ({
-  usePerpsLiveAccount: jest.fn(),
 }));
 
 // Mock the selector module
@@ -153,11 +149,9 @@ const mockPositions: Position[] = [
 ];
 
 const mockAccountState = {
-  account: {
-    totalBalance: '10000',
-    availableBalance: '4700',
-    marginUsed: '5300',
-  },
+  totalBalance: '10000',
+  availableBalance: '4700',
+  marginUsed: '5300',
 };
 
 // Mock implementations (stable across renders)
@@ -174,7 +168,7 @@ describe('PerpsPositionsView', () => {
 
     // Setup default mocks with stable references
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (usePerpsLiveAccount as jest.Mock).mockReturnValue(mockAccountState);
+    (usePerpsAccount as jest.Mock).mockReturnValue(mockAccountState);
     (usePerpsTrading as jest.Mock).mockReturnValue({
       getPositions: jest.fn(),
     });
@@ -374,12 +368,10 @@ describe('PerpsPositionsView', () => {
   describe('Account Summary Calculations', () => {
     it('handles missing account state values', async () => {
       // Arrange
-      (usePerpsLiveAccount as jest.Mock).mockReturnValue({
-        account: {
-          totalBalance: null,
-          availableBalance: undefined,
-          marginUsed: '',
-        },
+      (usePerpsAccount as jest.Mock).mockReturnValue({
+        totalBalance: null,
+        availableBalance: undefined,
+        marginUsed: '',
       });
 
       // Act
