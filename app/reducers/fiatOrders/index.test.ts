@@ -4,7 +4,10 @@ import {
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
 import { toHex } from '@metamask/controller-utils';
-import { MOCK_CREDIT_DEBIT_CARD } from '../../components/UI/Ramp/Deposit/testUtils/constants';
+import {
+  MOCK_CREDIT_DEBIT_CARD,
+  MOCK_USDC_TOKEN,
+} from '../../components/UI/Ramp/Deposit/testUtils/constants';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
@@ -59,7 +62,6 @@ import { CustomIdData, Action, FiatOrder, Region } from './types';
 import initialRootState from '../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
-import { MOCK_USDC_TOKEN } from '../../components/UI/Ramp/Deposit/testUtils/constants';
 
 const MOCK_ADDRESS_1 = '0x4567';
 const MOCK_ADDRESS_2 = '0x1234';

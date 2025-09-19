@@ -1,8 +1,8 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/Aggregator/types';
-import { DepositRegion } from '@consensys/native-ramps-sdk';
 import type {
+  DepositRegion,
   DepositCryptoCurrency,
   DepositPaymentMethod,
 } from '@consensys/native-ramps-sdk';
