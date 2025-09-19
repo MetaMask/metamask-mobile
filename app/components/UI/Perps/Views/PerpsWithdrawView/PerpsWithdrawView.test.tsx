@@ -48,19 +48,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   })),
 }));
 
-// Mock stream hooks
-jest.mock('../../hooks/stream', () => ({
-  usePerpsLiveAccount: jest.fn(() => ({
-    account: {
-      availableBalance: '$1000.00',
-    },
-    isLoading: false,
-    error: null,
-  })),
-}));
-
 // Mock hooks
 jest.mock('../../hooks', () => ({
+  usePerpsAccount: jest.fn(() => ({
+    availableBalance: '$1000.00',
+  })),
   usePerpsWithdrawQuote: jest.fn(() => ({
     formattedQuoteData: {
       networkFee: '$1.00',
