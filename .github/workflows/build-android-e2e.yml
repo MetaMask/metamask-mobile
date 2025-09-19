@@ -128,26 +128,20 @@ jobs:
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
-          
+
           # Use the optimized repack script which uses @expo/repack-app
           yarn repack:android
-          
+
           # Verify the repacked APK exists
           APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
           if [ ! -f "$APK_PATH" ]; then
             echo "❌ Error: APK not found at $APK_PATH after repack"
             exit 1
           fi
-          
+
           echo "✅ APK successfully repacked with @expo/repack-app"
           echo "📦 Final APK size: $(du -h "$APK_PATH" | cut -f1)"
-          
-          # Log improvement information
-          echo "🚀 Benefits of @expo/repack-app over custom Gradle approach:"
-          echo "   • Faster repacking process (optimized for JS-only changes)"
-          echo "   • Better asset handling and bundle compression"
-          echo "   • Maintains APK signatures when configured"
-          echo "   • Purpose-built tool vs. generic Gradle reassembly"
+
         env:
           # Pass the same environment variables as the original build
           PLATFORM: android

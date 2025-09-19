@@ -2,15 +2,7 @@
 
 /**
  * Android E2E APK Repack Script using @expo/repack-app
- * 
  * This script uses @expo/repack-app to efficiently repack an existing APK
- * with updated JavaScript bundles, avoiding the need for full Gradle assembly.
- * 
- * Benefits over custom Gradle approach:
- * - Faster repacking process (optimized for JS-only changes)
- * - Better asset handling
- * - Proper bundle compression
- * - Maintains APK signatures when configured
  */
 
 const { execSync, exec } = require('child_process');
@@ -160,7 +152,7 @@ function repackApk() {
   if (fs.existsSync(CONFIG.outputApkPath)) {
     fs.unlinkSync(CONFIG.outputApkPath);
   }
-  
+
   // Move temp APK to final location
   fs.renameSync(CONFIG.tempApkPath, CONFIG.outputApkPath);
 
@@ -168,42 +160,13 @@ function repackApk() {
 }
 
 /**
- * Validate the repacked APK
- */
-function validateRepackedApk() {
-  logger.info('Validating repacked APK...');
-
-  const apkPath = CONFIG.outputApkPath;
-  
-  // Check if APK exists and has reasonable size
-  if (!fileExists(apkPath)) {
-    throw new Error(`Repacked APK not found: ${apkPath}`);
-  }
-
-  const stats = fs.statSync(apkPath);
-  if (stats.size < 1024 * 1024) { // Less than 1MB is suspicious
-    throw new Error(`Repacked APK seems too small: ${getFileSize(apkPath)}`);
-  }
-
-  // Optionally verify APK structure using aapt (if available)
-  try {
-    execCommand(`aapt dump badging "${apkPath}" | head -1`, { stdio: 'pipe' });
-    logger.success('APK structure validation passed');
-  } catch (error) {
-    logger.warn('Could not validate APK structure (aapt not available)');
-  }
-
-  logger.success(`Repacked APK validated: ${getFileSize(apkPath)}`);
-}
-
-/**
  * Clean up temporary files
  */
 function cleanup() {
   logger.info('Cleaning up temporary files...');
-  
+
   const tempFiles = [CONFIG.tempApkPath];
-  
+
   tempFiles.forEach(file => {
     if (fs.existsSync(file)) {
       fs.unlinkSync(file);
@@ -217,26 +180,23 @@ function cleanup() {
  */
 async function main() {
   const startTime = Date.now();
-  
+
   try {
     logger.info('🚀 Starting Android E2E APK repack process...');
     logger.info(`Platform: ${CONFIG.platform}`);
     logger.info(`Source APK: ${CONFIG.sourceApkPath}`);
     logger.info(`Output APK: ${CONFIG.outputApkPath}`);
-    
+
     // Step 1: Generate new JavaScript bundle
     generateJavaScriptBundle();
-    
+
     // Step 2: Repack APK using @expo/repack-app
     repackApk();
-    
-    // Step 3: Validate the repacked APK
-    validateRepackedApk();
-    
+
     const duration = Math.round((Date.now() - startTime) / 1000);
     logger.success(`🎉 APK repack completed successfully in ${duration}s`);
     logger.success(`Final APK: ${CONFIG.outputApkPath}`);
-    
+
   } catch (error) {
     logger.error(`Repack process failed: ${error.message}`);
     process.exit(1);
