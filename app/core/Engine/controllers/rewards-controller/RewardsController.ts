@@ -42,6 +42,9 @@ import {
   parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
+import { base58 } from 'ethers/lib/utils';
+import { isNonEvmAddress } from '../../../Multichain/utils';
+import { signSolanaRewardsMessage } from './utils/solana-snap';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -423,7 +426,23 @@ export class RewardsController extends BaseController<
   ): Promise<string> {
     const message = `rewards,${account.address},${timestamp}`;
 
-    return await this.#signEvmMessage(account, message);
+    if (isSolanaAddress(account.address)) {
+      const result = await signSolanaRewardsMessage(
+        account.address,
+        Buffer.from(message, 'utf8').toString('base64'),
+      );
+      return `0x${Buffer.from(base58.decode(result.signature)).toString(
+        'hex',
+      )}`;
+    } else if (!isNonEvmAddress(account.address)) {
+      const result = await this.#signEvmMessage(
+        account,
+        '0x' + Buffer.from(message, 'utf8').toString('hex'),
+      );
+      return result;
+    }
+
+    throw new Error('Unsupported account type for signing rewards message');
   }
 
   async #signEvmMessage(
