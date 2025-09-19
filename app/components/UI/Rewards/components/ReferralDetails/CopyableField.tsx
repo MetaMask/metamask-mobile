@@ -35,7 +35,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
       {valueLoading ? (
         <Skeleton height={24} width={75} />
       ) : (
-        <Text variant={TextVariant.BodyMd}>{value || '-'}</Text>
+        <Text variant={TextVariant.BodySm}>{value || '-'}</Text>
       )}
     </Box>
     <ButtonIcon

@@ -5846,6 +5846,8 @@
       }
     },
     "referral": {
+      "referral_code": "Referral code",
+      "referral_link": "Referral link",
       "actions": {
         "share_referral_link": "Refer a friend",
         "share_referral_subject": "Join MetaMask Rewards"
