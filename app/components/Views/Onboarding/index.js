@@ -540,7 +540,7 @@ class Onboarding extends PureComponent {
 
     // Enable metrics for OAuth users
     await this.props.metrics.enableSocialLogin(true);
-    await discardBufferedTraces();
+    discardBufferedTraces();
     await setupSentry();
 
     // use new trace instead of buffered trace for social login
