@@ -55,7 +55,7 @@ jq --arg semver "$semver" '[ .[] | select( .semver as $v | $semver | split(".") 
 # Select the highest lower: first in filtered list. If none found, fail.
 if [ "$(jq length filtered_versions.json)" -eq 0 ]; then
   echo "Error: No lower non-hotfix versions found; cannot determine previous-version-ref." >&2
-  echo "This likely indicates a missing prior minor release branch (e.g., Version-vX.(Y-1).0 or release/X.(Y-1).0)." >&2
+  echo "This likely indicates a missing prior minor release branch (e.g., release/X.(Y-1).0)." >&2
   exit 1
 else
   highest_lower="$(jq -r '.[0].semver' filtered_versions.json)"

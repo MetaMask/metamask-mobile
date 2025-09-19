@@ -76,14 +76,14 @@ jobs:
     name: Create Release Pull Request using Github Tools
     uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@6090afa85c94a6b64a79e992d94b11610d02181a
     with:
-      platform: extension
+      platform: mobile
       checkout-base-branch: ${{ needs.resolve-bases.outputs.checkout_base }}
       release-pr-base-branch: ${{ needs.resolve-bases.outputs.release_base }}
       semver-version: ${{ inputs.semver-version }}
       previous-version-ref: ${{ needs.resolve-previous-ref.outputs.previous_ref }}
       github-tools-version: 6090afa85c94a6b64a79e992d94b11610d02181a
     secrets:
-      # This token needs write permissions to metamask-extension & read permissions to metamask-planning
+      # This token needs write permissions to metamask-mobile & read permissions to metamask-planning
       # If called from auto-create-release-pr use the PR_TOKEN passed in as an input, if called manually use github secret token values
       # (this is due to github limitations on fetching secrets from called workflows).
       github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
