@@ -13,11 +13,8 @@ const path = require('path');
 const CONFIG = {
   platform: 'android',
   sourceApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-  outputApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk', // ← Fixed: overwrites original
-  tempApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release-temp.apk',
-  bundleOutputPath: 'android/app/build/generated/assets/createBundleProdRelease/index.android.bundle',
+  outputApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk', // Overwrites original
   sourcemapOutputPath: 'sourcemaps/android/index.android.bundle.map',
-  assetsPath: 'android/app/build/generated/res/createBundleProdRelease',
 };
 
 /**
@@ -78,44 +75,19 @@ function getFileSize(filePath) {
 }
 
 /**
- * Generate new JavaScript bundle with current environment
+ * Prepare working directory for repack operation
  */
-function generateJavaScriptBundle() {
-  logger.info('Generating new JavaScript bundle...');
+function prepareWorkingDirectory() {
+  logger.info('Preparing working directory for repack...');
 
-  // Ensure output directories exist
-  const bundleDir = path.dirname(CONFIG.bundleOutputPath);
+  // Ensure sourcemap output directory exists
   const sourcemapDir = path.dirname(CONFIG.sourcemapOutputPath);
-  const assetsDir = CONFIG.assetsPath;
-
-  [bundleDir, sourcemapDir, assetsDir].forEach(dir => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      logger.info(`Created directory: ${dir}`);
-    }
-  });
-
-  // Generate the bundle using React Native CLI
-  const bundleCommand = [
-    'yarn react-native bundle',
-    '--platform android',
-    '--dev false',
-    '--entry-file index.js',
-    `--bundle-output ${CONFIG.bundleOutputPath}`,
-    `--assets-dest ${CONFIG.assetsPath}`,
-    `--sourcemap-output ${CONFIG.sourcemapOutputPath}`,
-    '--minify true',
-  ].join(' ');
-
-  execCommand(bundleCommand);
-
-  // Verify bundle was created
-  if (!fileExists(CONFIG.bundleOutputPath)) {
-    throw new Error(`JavaScript bundle not found at: ${CONFIG.bundleOutputPath}`);
+  if (!fs.existsSync(sourcemapDir)) {
+    fs.mkdirSync(sourcemapDir, { recursive: true });
+    logger.info(`Created directory: ${sourcemapDir}`);
   }
 
-  logger.success(`Bundle generated: ${CONFIG.bundleOutputPath} (${getFileSize(CONFIG.bundleOutputPath)})`);
-  logger.success(`Sourcemap generated: ${CONFIG.sourcemapOutputPath} (${getFileSize(CONFIG.sourcemapOutputPath)})`);
+  logger.success('Working directory prepared');
 }
 
 /**
@@ -131,12 +103,15 @@ function repackApk() {
 
   logger.info(`Source APK: ${CONFIG.sourceApkPath} (${getFileSize(CONFIG.sourceApkPath)})`);
 
-  // Prepare repack command
+  // Prepare repack command with correct flags based on Expo documentation
   const repackCommand = [
     'npx @expo/repack-app',
     `--platform ${CONFIG.platform}`,
     `--source-app "${CONFIG.sourceApkPath}"`,
-    `--output "${CONFIG.tempApkPath}"`,
+    `--output "${CONFIG.outputApkPath}"`, // Output directly to final location
+    '--embed-bundle-assets', // Let repack-app generate fresh bundle internally
+    `--bundle-assets-sourcemap-output "${CONFIG.sourcemapOutputPath}"`, // Generate sourcemap
+    `--working-directory "${process.cwd()}"`, // Use project directory to avoid cross-device issues
     '--verbose',
   ].join(' ');
 
@@ -144,22 +119,18 @@ function repackApk() {
   execCommand(repackCommand);
 
   // Verify repacked APK was created
-  if (!fileExists(CONFIG.tempApkPath)) {
-    throw new Error(`Repacked APK not found: ${CONFIG.tempApkPath}`);
+  if (!fileExists(CONFIG.outputApkPath)) {
+    throw new Error(`Repacked APK not found: ${CONFIG.outputApkPath}`);
   }
-
-  // Replace original APK with repacked version
-  // Note: sourceApkPath and outputApkPath are the same, so we're overwriting the original
-  if (fs.existsSync(CONFIG.outputApkPath)) {
-    logger.info(`Replacing original APK with repacked version...`);
-    fs.unlinkSync(CONFIG.outputApkPath);
-  }
-
-  // Move temp APK to final location (overwrites original)
-  fs.renameSync(CONFIG.tempApkPath, CONFIG.outputApkPath);
 
   logger.success(`APK repacked successfully: ${CONFIG.outputApkPath} (${getFileSize(CONFIG.outputApkPath)})`);
-  logger.success(`Original APK has been replaced with repacked version`);
+  
+  // Check if sourcemap was generated
+  if (fileExists(CONFIG.sourcemapOutputPath)) {
+    logger.success(`Sourcemap generated: ${CONFIG.sourcemapOutputPath} (${getFileSize(CONFIG.sourcemapOutputPath)})`);
+  } else {
+    logger.warn('Sourcemap not found - this is expected for some repack operations');
+  }
 }
 
 /**
@@ -167,15 +138,10 @@ function repackApk() {
  */
 function cleanup() {
   logger.info('Cleaning up temporary files...');
-
-  const tempFiles = [CONFIG.tempApkPath];
-
-  tempFiles.forEach(file => {
-    if (fs.existsSync(file)) {
-      fs.unlinkSync(file);
-      logger.info(`Removed: ${file}`);
-    }
-  });
+  
+  // @expo/repack-app handles its own temporary file cleanup
+  // No manual cleanup needed
+  logger.success('Cleanup completed');
 }
 
 /**
@@ -190,10 +156,10 @@ async function main() {
     logger.info(`Source APK: ${CONFIG.sourceApkPath}`);
     logger.info(`Output APK: ${CONFIG.outputApkPath}`);
 
-    // Step 1: Generate new JavaScript bundle
-    generateJavaScriptBundle();
+    // Step 1: Prepare working directory
+    prepareWorkingDirectory();
 
-    // Step 2: Repack APK using @expo/repack-app
+    // Step 2: Repack APK using @expo/repack-app (handles bundle generation internally)
     repackApk();
 
     const duration = Math.round((Date.now() - startTime) / 1000);
