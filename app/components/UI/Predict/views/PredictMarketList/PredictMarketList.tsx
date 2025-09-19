@@ -16,17 +16,14 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 import TabBar from '../../../../Base/TabBar';
 import MarketListContent from '../../components/MarketListContent';
 import SearchBox from '../../components/SearchBox';
-import styleSheet from './PredictMarketList.styles';
 
 interface PredictMarketListProps {}
 
 const PredictMarketList: React.FC<PredictMarketListProps> = () => {
-  const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const tw = useTailwind();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -49,7 +46,11 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
     <SafeAreaView
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <View style={styles.wrapper}>
+      <View
+        style={tw.style(
+          'flex-1 flex-col justify-between items-start py-2 px-6 w-full',
+        )}
+      >
         {!isSearchVisible ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -77,10 +78,10 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
         {isSearchVisible && searchQuery.length > 0 && (
           <ScrollableTabView
             renderTabBar={false}
-            style={styles.tabView}
+            style={tw.style('flex-1 w-full')}
             initialPage={0}
           >
-            <View key="search" style={styles.tabContent}>
+            <View key="search" style={tw.style('flex-1 pt-4 w-full')}>
               <MarketListContent category="trending" q={searchQuery} />
             </View>
           </ScrollableTabView>
@@ -91,13 +92,13 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
             renderTabBar={() => (
               <TabBar textStyle={tw.style('text-base font-bold')} />
             )}
-            style={styles.tabView}
+            style={tw.style('flex-1 w-full')}
             initialPage={0}
           >
             <View
               key="trending"
               {...{ tabLabel: strings('predict.category.trending') }}
-              style={styles.tabContent}
+              style={tw.style('flex-1 pt-4 w-full')}
             >
               <MarketListContent category="trending" />
             </View>
@@ -105,7 +106,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
             <View
               key="new"
               {...{ tabLabel: strings('predict.category.new') }}
-              style={styles.tabContent}
+              style={tw.style('flex-1 pt-4 w-full')}
             >
               <MarketListContent category="new" />
             </View>
@@ -113,7 +114,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
             <View
               key="sports"
               {...{ tabLabel: strings('predict.category.sports') }}
-              style={styles.tabContent}
+              style={tw.style('flex-1 pt-4 w-full')}
             >
               <MarketListContent category="sports" />
             </View>
@@ -121,7 +122,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
             <View
               key="crypto"
               {...{ tabLabel: strings('predict.category.crypto') }}
-              style={styles.tabContent}
+              style={tw.style('flex-1 pt-4 w-full')}
             >
               <MarketListContent category="crypto" />
             </View>
@@ -129,7 +130,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
             <View
               key="politics"
               {...{ tabLabel: strings('predict.category.politics') }}
-              style={styles.tabContent}
+              style={tw.style('flex-1 pt-4 w-full')}
             >
               <MarketListContent category="politics" />
             </View>

@@ -14,8 +14,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
-import styleSheet from './SearchBox.styles';
-import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 
 interface SearchBoxProps {
@@ -29,8 +27,6 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   onCancel,
   onSearch,
 }) => {
-  const theme = useTheme();
-  const { styles } = useStyles(styleSheet, { colors: theme.colors });
   const tw = useTailwind();
   const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
@@ -85,6 +81,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 
   return (
     <Animated.View
+      testID="search-box-container"
       style={{
         opacity: fadeAnim,
         transform: [{ translateY: slideAnim }],
@@ -101,6 +98,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
           twClassName="flex-1 bg-muted rounded-lg px-3 py-2"
         >
           <Icon
+            testID="search-icon"
             name={IconName.Search}
             size={IconSize.Sm}
             color={colors.text.muted}
@@ -111,11 +109,11 @@ const SearchBox: React.FC<SearchBoxProps> = ({
             placeholderTextColor={colors.text.muted}
             value={searchQuery}
             onChangeText={handleSearch}
-            style={styles.input}
+            style={tw.style('flex-1 text-base text-default')}
             autoFocus
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery('')}>
+            <Pressable testID="clear-button" onPress={() => handleSearch('')}>
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Md}

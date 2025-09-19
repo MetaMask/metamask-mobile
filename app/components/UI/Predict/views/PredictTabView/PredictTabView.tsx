@@ -4,12 +4,12 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { default as React, useCallback, useRef } from 'react';
 import { RefreshControl, View } from 'react-native';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import MarketsWonCard from '../../components/MarketsWonCard';
 import PredictNewButton from '../../components/PredictNewButton';
@@ -19,12 +19,11 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictNotifications } from '../../hooks/usePredictNotifications';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import styleSheet from './PredictTabView.styles';
 
 interface PredictTabViewProps {}
 
 const PredictTabView: React.FC<PredictTabViewProps> = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const { positions, isRefreshing, loadPositions, isLoading, error } =
     usePredictPositions({
       loadOnMount: true,
@@ -86,42 +85,42 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   );
 
   const renderLoadingState = () => (
-    <Box style={styles.loadingContainer}>
+    <Box style={tw.style('flex-1 px-4 py-4')}>
       <Skeleton
         testID="skeleton-loading-1"
         height={40}
         width={'100%'}
-        style={styles.skeleton}
+        style={tw.style('mb-3 rounded-2xl')}
       />
       <Skeleton
         testID="skeleton-loading-1"
         height={40}
         width={'80%'}
-        style={styles.skeleton}
+        style={tw.style('mb-3 rounded-2xl')}
       />
       <Skeleton
         testID="skeleton-loading-2"
         height={40}
         width={'60%'}
-        style={styles.skeleton}
+        style={tw.style('mb-3 rounded-2xl')}
       />
       <Skeleton
         testID="skeleton-loading-3"
         height={40}
         width={'40%'}
-        style={styles.skeleton}
+        style={tw.style('mb-3 rounded-2xl')}
       />
       <Skeleton
         testID="skeleton-loading-4"
         height={40}
         width={'20%'}
-        style={styles.skeleton}
+        style={tw.style('mb-3 rounded-2xl')}
       />
     </Box>
   );
 
   const renderErrorState = () => (
-    <View style={styles.errorContainer}>
+    <View style={tw.style('flex-1 justify-center items-center px-6 py-12')}>
       <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
         {error}
       </Text>
@@ -129,15 +128,19 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   );
 
   if (isLoading || (isRefreshing && positions.length === 0)) {
-    return <View style={styles.wrapper}>{renderLoadingState()}</View>;
+    return (
+      <View style={tw.style('flex-1 bg-default')}>{renderLoadingState()}</View>
+    );
   }
 
   if (error) {
-    return <View style={styles.wrapper}>{renderErrorState()}</View>;
+    return (
+      <View style={tw.style('flex-1 bg-default')}>{renderErrorState()}</View>
+    );
   }
 
   return (
-    <View style={styles.wrapper}>
+    <View style={tw.style('flex-1 bg-default')}>
       <FlashList
         ref={listRef}
         data={positions}
