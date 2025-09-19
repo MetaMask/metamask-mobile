@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   LayoutAnimation,
+  Linking,
 } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
@@ -14,7 +15,6 @@ import { strings } from '../../../../locales/i18n';
 import ReviewManager from '../../../core/ReviewManager';
 import { createStyles } from './styles';
 import { useTheme } from '../../../util/theme';
-import { useSupportConsent } from '../../hooks/useSupportConsent';
 
 interface HelpOption {
   label: string;
@@ -70,10 +70,9 @@ const ReviewModal = () => {
     [navigation],
   );
 
-  const { openSupportWebPage } = useSupportConsent(
-    goToBrowserUrl,
-    strings('review_prompt.help_description_2'),
-  );
+  const openSupportWebPage = useCallback(() => {
+    Linking.openURL('https://support.metamask.io');
+  }, []);
 
   const renderReviewContent = () => (
     <View style={styles.contentContainer}>

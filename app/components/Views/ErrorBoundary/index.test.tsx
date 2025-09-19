@@ -10,7 +10,6 @@ import {
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
-import getSupportUrl from '../../../util/support';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
@@ -99,20 +98,6 @@ jest.mock(
     );
   },
 );
-
-// Mock useSupportConsent hook
-const mockOpenSupportWebPage = jest.fn();
-const mockHandleConsent = jest.fn();
-const mockHandleDecline = jest.fn();
-
-jest.mock('../../../components/hooks/useSupportConsent', () => ({
-  useSupportConsent: jest.fn(() => ({
-    showConsentSheet: false,
-    openSupportWebPage: mockOpenSupportWebPage,
-    handleConsent: mockHandleConsent,
-    handleDecline: mockHandleDecline,
-  })),
-}));
 
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
@@ -431,93 +416,6 @@ describe('ErrorBoundary', () => {
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [{ name: 'OnboardingRootNav' }],
       });
-    });
-  });
-
-  describe('Support Consent Sheet', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('shows support consent sheet when contact support is pressed', () => {
-      const { getByText } = renderWithProvider(
-        <ErrorBoundary view={'Root'}>
-          <MockThrowComponent />
-        </ErrorBoundary>,
-      );
-
-      const contactSupportButton = getByText(
-        strings('error_screen.contact_support'),
-      );
-      fireEvent.press(contactSupportButton);
-
-      expect(mockOpenSupportWebPage).toHaveBeenCalled();
-    });
-
-    it('consents to share information when consent button is pressed', async () => {
-      (getSupportUrl as jest.Mock).mockResolvedValue(
-        'https://support.metamask.io',
-      );
-
-      const { getByText } = renderWithProvider(
-        <ErrorBoundary view={'Root'}>
-          <MockThrowComponent />
-        </ErrorBoundary>,
-      );
-
-      // Trigger the modal
-      const contactSupportButton = getByText(
-        strings('error_screen.contact_support'),
-      );
-      fireEvent.press(contactSupportButton);
-
-      // Verify that openSupportWebPage was called
-      expect(mockOpenSupportWebPage).toHaveBeenCalled();
-    });
-
-    it('declines to share information when decline button is pressed', async () => {
-      (getSupportUrl as jest.Mock).mockResolvedValue(
-        'https://support.metamask.io',
-      );
-
-      const { getByText } = renderWithProvider(
-        <ErrorBoundary view={'Root'}>
-          <MockThrowComponent />
-        </ErrorBoundary>,
-      );
-
-      // Trigger the modal
-      const contactSupportButton = getByText(
-        strings('error_screen.contact_support'),
-      );
-      fireEvent.press(contactSupportButton);
-
-      // Verify that openSupportWebPage was called
-      expect(mockOpenSupportWebPage).toHaveBeenCalled();
-    });
-
-    it('falls back to base URL when consent request fails', async () => {
-      (getSupportUrl as jest.Mock).mockRejectedValueOnce(
-        new Error('Network error'),
-      );
-      (getSupportUrl as jest.Mock).mockResolvedValueOnce(
-        'https://support.metamask.io',
-      );
-
-      const { getByText } = renderWithProvider(
-        <ErrorBoundary view={'Root'}>
-          <MockThrowComponent />
-        </ErrorBoundary>,
-      );
-
-      // Trigger the modal
-      const contactSupportButton = getByText(
-        strings('error_screen.contact_support'),
-      );
-      fireEvent.press(contactSupportButton);
-
-      // Verify that openSupportWebPage was called
-      expect(mockOpenSupportWebPage).toHaveBeenCalled();
     });
   });
 });

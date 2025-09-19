@@ -40,7 +40,6 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { useSelector } from 'react-redux';
 import { isTest } from '../../../util/test/utils';
-import { useSupportConsent } from '../../hooks/useSupportConsent';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -150,16 +149,9 @@ export const Fallback = (props) => {
     setModalVisible(!modalVisible);
   };
 
-  const goToBrowserUrl = (url, title) => {
-    Linking.openURL(url);
+  const handleContactSupport = () => {
+    Linking.openURL('https://support.metamask.io');
   };
-
-  const { openSupportWebPage } = useSupportConsent(
-    goToBrowserUrl,
-    strings('error_screen.contact_support'),
-  );
-
-  const handleContactSupport = () => openSupportWebPage();
 
   const handleTryAgain = () => DevSettings.reload();
 

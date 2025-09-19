@@ -1205,7 +1205,7 @@ describe('Onboarding', () => {
       expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
     });
 
-    it('should disable social login metrics when non-OAuth user creates wallet', async () => {
+    it('should disable social login metrics when non-OAuth user creates wallet (metrics enabled before)', async () => {
       mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(true);
       mockEnableSocialLogin.mockClear();
 
@@ -1227,7 +1227,7 @@ describe('Onboarding', () => {
       expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
     });
 
-    it('should disable social login metrics when non-OAuth user imports wallet', async () => {
+    it('should disable social login metrics when non-OAuth user imports wallet (metrics enabled before)', async () => {
       mockOAuthService.getMetricStateBeforeOauth.mockReturnValue(true);
       mockEnableSocialLogin.mockClear();
 
