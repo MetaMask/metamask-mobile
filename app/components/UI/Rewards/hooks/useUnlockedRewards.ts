@@ -7,6 +7,7 @@ import {
 } from '../../../../reducers/rewards';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 /**
  * Custom hook to fetch and manage unlocked rewards data from the rewards API
@@ -47,4 +48,10 @@ export const useUnlockedRewards = (): void => {
   useEffect(() => {
     fetchUnlockedRewards();
   }, [fetchUnlockedRewards]);
+
+  // Listen for account linked events to trigger refetch
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    fetchUnlockedRewards,
+  );
 };
