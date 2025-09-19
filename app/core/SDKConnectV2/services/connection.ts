@@ -88,16 +88,6 @@ export class Connection {
    */
   public async resume(): Promise<void> {
     await this.client.resume(this.id);
-    console.warn(
-      `[SDKConnectV2] [Connection:${this.id}] Resumed connection to dApp.`,
-    );
-  }
-
-  /**
-   * Resumes a previously established session.
-   */
-  public async resume(): Promise<void> {
-    await this.client.resume(this.id);
     console.warn(`[Connection:${this.id}] Resumed connection to dApp.`);
   }
 
