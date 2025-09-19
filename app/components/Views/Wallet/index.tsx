@@ -285,10 +285,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const perpsTabProps = useMemo(
     () => ({
       key: 'perps-tab',
-      tabLabel: strings('wallet.perps'),
+      tabLabel: isPerpsEnabled ? strings('wallet.perps') : ' ',
+      isDisabled: !isPerpsEnabled,
       navigation,
     }),
-    [navigation],
+    [navigation, isPerpsEnabled],
   );
 
   const defiPositionsTabProps = useMemo(
@@ -379,18 +380,16 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const tabsToRender = useMemo(() => {
     const tabs = [<Tokens {...tokensTabProps} key={tokensTabProps.key} />];
 
-    if (isPerpsEnabled) {
-      tabs.push(
-        <PerpsTabView
-          {...perpsTabProps}
-          key={perpsTabProps.key}
-          isVisible={isPerpsTabVisible}
-          onVisibilityChange={(callback) => {
-            perpsVisibilityCallback.current = callback;
-          }}
-        />,
-      );
-    }
+    tabs.push(
+      <PerpsTabView
+        {...perpsTabProps}
+        key={perpsTabProps.key}
+        isVisible={isPerpsTabVisible}
+        onVisibilityChange={(callback) => {
+          perpsVisibilityCallback.current = callback;
+        }}
+      />,
+    );
 
     tabs.push(
       <DeFiPositionsList
@@ -409,7 +408,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     return tabs;
   }, [
     tokensTabProps,
-    isPerpsEnabled,
     perpsTabProps,
     isPerpsTabVisible,
     defiPositionsTabProps,
