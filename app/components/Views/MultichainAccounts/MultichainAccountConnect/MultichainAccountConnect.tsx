@@ -233,8 +233,19 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       };
     }
 
+    if (requestedCaipAccountIds.length === 0) {
+      const [defaultSelectedAccountGroup] = supportedAccountGroups;
+
+      return {
+        suggestedAccountGroups: [defaultSelectedAccountGroup],
+        suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
+          [defaultSelectedAccountGroup],
+          requestedCaipChainIdsWithDefaultSelectedChainIds,
+        ),
+      };
+    }
+
     const selectedAccountGroupExcludesRequestedAccounts =
-      requestedCaipAccountIds.length > 0 &&
       !selectedAccountGroupWithInternalAccounts?.accounts?.some((account) =>
         isInternalAccountInPermittedAccountIds(
           account,
