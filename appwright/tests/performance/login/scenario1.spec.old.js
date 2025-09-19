@@ -52,7 +52,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   //await AccountListComponent.tapOnAccountByName('Account 4');
 
   screen3Timer.start();
-  await WalletMainScreen.isTokenVisible('Ethereum');
+  await WalletMainScreen.isTokenVisible('ETH');
   screen3Timer.stop();
 
   performanceTracker.addTimer(screen1Timer);
