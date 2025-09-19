@@ -5522,6 +5522,7 @@
       },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "Account Details",
       "account_name": "Account Name",
