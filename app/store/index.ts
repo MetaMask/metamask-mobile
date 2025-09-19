@@ -15,9 +15,14 @@ console.log('🏬 [STORE DEBUG] store/index.ts loading...');
 console.log('🏬 [STORE DEBUG] persistConfig imported:', !!persistConfig);
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
-import { toggleBasicFunctionality } from '../actions/settings';
+import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from '../core/redux/slices/performance';
+import { PerformanceEventNames } from '../core/redux/slices/performance/constants';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -66,6 +71,10 @@ const createStoreAndPersistor = async () => {
    */
   const onPersistComplete = () => {
     endTrace({ name: TraceName.StoreInit });
+    // End Redux rehydration trace
+    store.dispatch(
+      endPerformanceTrace({ eventName: PerformanceEventNames.RehydrateStore }),
+    );
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
 
@@ -73,10 +82,14 @@ const createStoreAndPersistor = async () => {
 
     // This sets the basic functionality value from the persisted state when the app is restarted
     store.dispatch(
-      toggleBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
+      setBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
     );
   };
 
+  // Start Redux rehydration trace
+  store.dispatch(
+    startPerformanceTrace({ eventName: PerformanceEventNames.RehydrateStore }),
+  );
   persistor = persistStore(store, null, onPersistComplete);
 };
 
