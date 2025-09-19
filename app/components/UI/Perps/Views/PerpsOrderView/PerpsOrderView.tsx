@@ -379,9 +379,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
           [PerpsEventProperties.METAMASK_FEE]: feeResults?.metamaskFee,
           [PerpsEventProperties.METAMASK_FEE_RATE]: feeResults?.metamaskFeeRate,
-          [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-            feeResults?.feeDiscountPercentage,
-          [PerpsEventProperties.ESTIMATED_REWARDS]: feeResults?.estimatedPoints,
         });
 
         showToast(
