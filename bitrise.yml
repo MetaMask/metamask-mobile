@@ -570,19 +570,12 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
-                # Enable corepack and prepare the specific yarn version
-                corepack enable
-                corepack prepare yarn@3.8.7 --activate
-                
-                # Verify the yarn version
-                echo "Yarn version after corepack: $(yarn --version)"
+                # Verify the yarn version (should be v3 from prep_environment)
+                echo "Yarn version: $(yarn --version)"
                 echo "Which yarn: $(which yarn)"
                 
-                # Clear any potential yarn cache/config issues
-                export YARN_ENABLE_IMMUTABLE_INSTALLS=false
-                
                 # Run install with immutable flag for Yarn v3
-                yarn install 
+                yarn install --immutable
           title: Yarn Install
       - yarn@0:
           inputs:
@@ -653,6 +646,14 @@ workflows:
                 corepack enable
                 # Ensure Yarn v3 is properly prepared
                 corepack prepare yarn@$YARN_VERSION --activate
+                
+                # On macOS, Yarn is installed via brew and overrides corepack
+                # So we need to upgrade yarn via brew to get v3
+                echo "Upgrading Yarn via brew to get v3..."
+                brew upgrade yarn || brew install yarn@$YARN_VERSION || true
+                
+                # Verify final yarn version
+                echo "Final Yarn version: $(yarn --version)"
       - save-cache@1:
           title: Save Node
           inputs:
