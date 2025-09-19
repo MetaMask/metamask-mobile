@@ -65,11 +65,7 @@ describe('SearchBox', () => {
 
     it('renders search box when isVisible is true', () => {
       const { getByPlaceholderText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -82,11 +78,7 @@ describe('SearchBox', () => {
   describe('Search functionality', () => {
     it('calls onSearch when user types in input', () => {
       const { getByPlaceholderText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -98,11 +90,7 @@ describe('SearchBox', () => {
 
     it('updates input value when user types', () => {
       const { getByPlaceholderText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -114,11 +102,7 @@ describe('SearchBox', () => {
 
     it('calls onSearch with empty string when input is cleared', () => {
       const { getByPlaceholderText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -133,11 +117,7 @@ describe('SearchBox', () => {
   describe('Clear functionality', () => {
     it('shows clear button when input has text', () => {
       const { getByPlaceholderText, getByTestId } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -149,11 +129,7 @@ describe('SearchBox', () => {
 
     it('hides clear button when input is empty', () => {
       const { queryByTestId } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -163,11 +139,7 @@ describe('SearchBox', () => {
 
     it('clears input when clear button is pressed', () => {
       const { getByPlaceholderText, getByTestId } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -184,11 +156,7 @@ describe('SearchBox', () => {
   describe('Cancel functionality', () => {
     it('calls onCancel when cancel button is pressed', () => {
       const { getByText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -200,11 +168,7 @@ describe('SearchBox', () => {
 
     it('clears input when cancel button is pressed', () => {
       const { getByPlaceholderText, getByText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -220,11 +184,7 @@ describe('SearchBox', () => {
   describe('Accessibility and UI elements', () => {
     it('displays search icon', () => {
       const { getByTestId } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -233,11 +193,7 @@ describe('SearchBox', () => {
 
     it('displays cancel button text', () => {
       const { getByText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -246,11 +202,7 @@ describe('SearchBox', () => {
 
     it('has autoFocus enabled on input', () => {
       const { getByPlaceholderText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -262,11 +214,7 @@ describe('SearchBox', () => {
   describe('Component integration', () => {
     it('handles multiple search queries correctly', () => {
       const { getByPlaceholderText } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -283,11 +231,7 @@ describe('SearchBox', () => {
 
     it('maintains state correctly when visibility changes', () => {
       const { getByPlaceholderText, rerender } = renderWithProvider(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
         { state: initialState },
       );
 
@@ -303,11 +247,7 @@ describe('SearchBox', () => {
       );
 
       rerender(
-        <SearchBox
-          isVisible
-          onSearch={mockOnSearch}
-          onCancel={mockOnCancel}
-        />,
+        <SearchBox isVisible onSearch={mockOnSearch} onCancel={mockOnCancel} />,
       );
 
       const newInput = getByPlaceholderText('Search prediction markets');
