@@ -15,15 +15,26 @@ describe('onRpcEndpointUnavailable', () => {
     Parameters<typeof networkControllerUtilsModule.shouldCreateRpcServiceEvents>
   >;
 
+  let isPublicEndpointUrlMock: jest.SpyInstance<
+    ReturnType<typeof networkControllerUtilsModule.isPublicEndpointUrl>,
+    Parameters<typeof networkControllerUtilsModule.isPublicEndpointUrl>
+  >;
+
   beforeEach(() => {
     shouldCreateRpcServiceEventsMock = jest.spyOn(
       networkControllerUtilsModule,
       'shouldCreateRpcServiceEvents',
     );
+
+    isPublicEndpointUrlMock = jest.spyOn(
+      networkControllerUtilsModule,
+      'isPublicEndpointUrl',
+    );
   });
 
   it('calls shouldCreateRpcServiceEvents with the correct parameters', () => {
     shouldCreateRpcServiceEventsMock.mockReturnValue(true);
+    isPublicEndpointUrlMock.mockReturnValue(true);
     const trackEvent = jest.fn();
 
     onRpcEndpointUnavailable({
@@ -37,9 +48,7 @@ describe('onRpcEndpointUnavailable', () => {
     });
 
     expect(shouldCreateRpcServiceEventsMock).toHaveBeenCalledWith({
-      endpointUrl: 'https://example.com',
       error: new HttpError(420),
-      infuraProjectId: 'the-infura-project-id',
       metaMetricsId:
         '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
     });
@@ -48,6 +57,7 @@ describe('onRpcEndpointUnavailable', () => {
   describe('if the Segment event should be created', () => {
     it('calls trackEvent with the correct parameters', () => {
       shouldCreateRpcServiceEventsMock.mockReturnValue(true);
+      isPublicEndpointUrlMock.mockReturnValue(true);
       const trackEvent = jest.fn();
 
       onRpcEndpointUnavailable({
@@ -76,6 +86,7 @@ describe('onRpcEndpointUnavailable', () => {
 
     it('captures the HTTP status in the error if present', () => {
       shouldCreateRpcServiceEventsMock.mockReturnValue(true);
+      isPublicEndpointUrlMock.mockReturnValue(true);
       const trackEvent = jest.fn();
 
       onRpcEndpointUnavailable({
@@ -98,6 +109,35 @@ describe('onRpcEndpointUnavailable', () => {
           chain_id_caip: 'eip155:11155111',
           http_status: 420,
           rpc_endpoint_url: 'example.com',
+        },
+      });
+      /* eslint-enable @typescript-eslint/naming-convention */
+    });
+
+    it('anonymizes the endpoint URL if it is a custom endpoint', () => {
+      shouldCreateRpcServiceEventsMock.mockReturnValue(true);
+      isPublicEndpointUrlMock.mockReturnValue(false);
+      const trackEvent = jest.fn();
+
+      onRpcEndpointUnavailable({
+        chainId: '0xaa36a7',
+        endpointUrl: 'https://custom.com',
+        error: undefined,
+        infuraProjectId: 'the-infura-project-id',
+        trackEvent,
+        metaMetricsId:
+          '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
+      });
+
+      // The names of Segment properties have a particular case.
+      /* eslint-disable @typescript-eslint/naming-convention */
+      expect(trackEvent).toHaveBeenCalledWith({
+        event: {
+          category: 'RPC Service Unavailable',
+        },
+        properties: {
+          chain_id_caip: 'eip155:11155111',
+          rpc_endpoint_url: 'custom',
         },
       });
       /* eslint-enable @typescript-eslint/naming-convention */
@@ -132,15 +172,26 @@ describe('onRpcEndpointDegraded', () => {
     Parameters<typeof networkControllerUtilsModule.shouldCreateRpcServiceEvents>
   >;
 
+  let isPublicEndpointUrlMock: jest.SpyInstance<
+    ReturnType<typeof networkControllerUtilsModule.isPublicEndpointUrl>,
+    Parameters<typeof networkControllerUtilsModule.isPublicEndpointUrl>
+  >;
+
   beforeEach(() => {
     shouldCreateRpcServiceEventsMock = jest.spyOn(
       networkControllerUtilsModule,
       'shouldCreateRpcServiceEvents',
     );
+
+    isPublicEndpointUrlMock = jest.spyOn(
+      networkControllerUtilsModule,
+      'isPublicEndpointUrl',
+    );
   });
 
   it('calls shouldCreateRpcServiceEvents with the correct parameters', () => {
     shouldCreateRpcServiceEventsMock.mockReturnValue(true);
+    isPublicEndpointUrlMock.mockReturnValue(true);
     const trackEvent = jest.fn();
 
     onRpcEndpointDegraded({
@@ -154,9 +205,7 @@ describe('onRpcEndpointDegraded', () => {
     });
 
     expect(shouldCreateRpcServiceEventsMock).toHaveBeenCalledWith({
-      endpointUrl: 'https://example.com',
       error: new HttpError(420),
-      infuraProjectId: 'the-infura-project-id',
       metaMetricsId:
         '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
     });
@@ -165,6 +214,7 @@ describe('onRpcEndpointDegraded', () => {
   describe('if the Segment event should be created', () => {
     it('calls trackEvent with the correct parameters', () => {
       shouldCreateRpcServiceEventsMock.mockReturnValue(true);
+      isPublicEndpointUrlMock.mockReturnValue(true);
       const trackEvent = jest.fn();
 
       onRpcEndpointDegraded({
@@ -193,6 +243,7 @@ describe('onRpcEndpointDegraded', () => {
 
     it('captures the HTTP status in the error if present', () => {
       shouldCreateRpcServiceEventsMock.mockReturnValue(true);
+      isPublicEndpointUrlMock.mockReturnValue(true);
       const trackEvent = jest.fn();
 
       onRpcEndpointDegraded({
@@ -215,6 +266,35 @@ describe('onRpcEndpointDegraded', () => {
           chain_id_caip: 'eip155:11155111',
           http_status: 420,
           rpc_endpoint_url: 'example.com',
+        },
+      });
+      /* eslint-enable @typescript-eslint/naming-convention */
+    });
+
+    it('anonymizes the endpoint URL if it is a custom endpoint', () => {
+      shouldCreateRpcServiceEventsMock.mockReturnValue(true);
+      isPublicEndpointUrlMock.mockReturnValue(false);
+      const trackEvent = jest.fn();
+
+      onRpcEndpointDegraded({
+        chainId: '0xaa36a7',
+        endpointUrl: 'https://custom.com',
+        error: undefined,
+        infuraProjectId: 'the-infura-project-id',
+        trackEvent,
+        metaMetricsId:
+          '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
+      });
+
+      // The names of Segment properties have a particular case.
+      /* eslint-disable @typescript-eslint/naming-convention */
+      expect(trackEvent).toHaveBeenCalledWith({
+        event: {
+          category: 'RPC Service Degraded',
+        },
+        properties: {
+          chain_id_caip: 'eip155:11155111',
+          rpc_endpoint_url: 'custom',
         },
       });
       /* eslint-enable @typescript-eslint/naming-convention */
