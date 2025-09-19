@@ -26,6 +26,7 @@ import { View, StyleSheet } from 'react-native';
 export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
 };
+
 export interface PerpsToastOptionsConfig {
   accountManagement: {
     deposit: {
@@ -59,6 +60,22 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       creationFailed: (error?: string) => PerpsToastOptions;
     };
+    shared: {
+      cancellationInProgress: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+        detailedOrderType?: string,
+      ) => PerpsToastOptions;
+      cancellationSuccess: (
+        isReduceOnly?: boolean,
+        detailedOrderType?: string,
+        direction?: OrderDirection,
+        amount?: string,
+        assetSymbol?: string,
+      ) => PerpsToastOptions;
+      cancellationFailed: PerpsToastOptions;
+    };
     limit: {
       submitted: (
         direction: OrderDirection,
@@ -71,17 +88,6 @@ export interface PerpsToastOptionsConfig {
         assetSymbol: string,
       ) => PerpsToastOptions;
       creationFailed: (error?: string) => PerpsToastOptions;
-      cancellationInProgress: (
-        direction: OrderDirection,
-        amount: string,
-        assetSymbol: string,
-      ) => PerpsToastOptions;
-      cancellationSuccess: PerpsToastOptions;
-      cancellationFailed: PerpsToastOptions;
-      reduceOnlyClose: {
-        cancellationSuccess: PerpsToastOptions;
-        cancellationFailed: PerpsToastOptions;
-      };
     };
   };
   positionManagement: {
@@ -94,6 +100,7 @@ export interface PerpsToastOptionsConfig {
             assetSymbol: string,
           ) => PerpsToastOptions;
           closeFullPositionSuccess: PerpsToastOptions;
+          closeFullPositionFailed: PerpsToastOptions;
         };
         partial: {
           closePartialPositionInProgress: (
@@ -101,6 +108,8 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          closePartialPositionSuccess: PerpsToastOptions;
+          closePartialPositionFailed: PerpsToastOptions;
         };
       };
       limitClose: {
@@ -120,6 +129,10 @@ export interface PerpsToastOptionsConfig {
           switchToMarketOrderMissingLimitPrice: PerpsToastOptions;
         };
       };
+    };
+    tpsl: {
+      updateTPSLSuccess: PerpsToastOptions;
+      updateTPSLError: (error?: string) => PerpsToastOptions;
     };
   };
   formValidation: {
@@ -323,7 +336,7 @@ const usePerpsToasts = (): {
           error: {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
-              strings('perps.deposit.error_toast'),
+              strings('perps.deposit.deposit_failed'),
               strings('perps.deposit.error_generic'),
             ),
           },
@@ -442,53 +455,100 @@ const usePerpsToasts = (): {
               strings('perps.order.order_failed'),
               handlePerpsError({
                 error,
-                fallbackMessage: strings('perps.order.order_failed'),
+                fallbackMessage: strings(
+                  'perps.order.your_funds_have_been_returned_to_you',
+                ),
               }),
             ),
           }),
+        },
+        // Used for both market and limit orders.
+        shared: {
           cancellationInProgress: (
             direction: OrderDirection,
             amount: string,
             assetSymbol: string,
-          ) => ({
-            ...perpsBaseToastOptions.inProgress,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.order.cancelling_order'),
-              strings('perps.order.cancelling_order_subtitle', {
-                direction,
-                amount,
-                assetSymbol,
-              }),
-            ),
-          }),
-          cancellationSuccess: {
-            ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.order.order_cancelled'),
-              strings('perps.order.funds_are_available_to_trade'),
-            ),
+            detailedOrderType?: string,
+          ) => {
+            const labels: string[] = [];
+
+            // Title
+            if (detailedOrderType) {
+              const orderTypeLowercase = detailedOrderType.toLowerCase();
+
+              labels.push(
+                strings('perps.order.cancelling_order_in_progress', {
+                  detailedOrderType: orderTypeLowercase,
+                }),
+              );
+            } else {
+              labels.push(strings('perps.order.cancelling_order'));
+            }
+
+            // Subtext
+            if (direction && amount && assetSymbol) {
+              labels.push(
+                strings('perps.order.cancelling_order_subtitle', {
+                  direction,
+                  amount,
+                  assetSymbol,
+                }),
+              );
+            }
+
+            return {
+              ...perpsBaseToastOptions.inProgress,
+              labelOptions: getPerpsToastLabels(labels[0], labels?.[1]),
+            };
+          },
+          cancellationSuccess: (
+            isReduceOnly?: boolean,
+            detailedOrderType?: string,
+            direction?: OrderDirection,
+            amount?: string,
+            assetSymbol?: string,
+          ) => {
+            const labels: string[] = [];
+
+            // Title
+            if (detailedOrderType) {
+              const orderTypeLowercase = capitalize(
+                detailedOrderType.toLowerCase(),
+              );
+
+              labels.push(
+                strings('perps.order.order_cancelled_success', {
+                  detailedOrderType: orderTypeLowercase,
+                }),
+              );
+            } else {
+              labels.push(strings('perps.order.order_cancelled'));
+            }
+
+            // Subtext
+            if (direction && amount && assetSymbol) {
+              labels.push(
+                strings('perps.order.order_placement_subtitle', {
+                  direction,
+                  amount: Math.abs(parseFloat(amount)),
+                  assetSymbol,
+                }),
+              );
+            } else if (!isReduceOnly) {
+              labels.push(strings('perps.order.funds_are_available_to_trade'));
+            }
+
+            return {
+              ...perpsBaseToastOptions.success,
+              labelOptions: getPerpsToastLabels(labels[0], labels?.[1]),
+            };
           },
           cancellationFailed: {
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
               strings('perps.order.failed_to_cancel_order'),
+              strings('perps.order.order_still_active'),
             ),
-          },
-          reduceOnlyClose: {
-            cancellationSuccess: {
-              ...perpsBaseToastOptions.success,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.order_cancelled'),
-                strings('perps.close_position.limit_close_order_cancelled'),
-              ),
-            },
-            cancellationFailed: {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.failed_to_cancel_order'),
-                strings('perps.order.close_order_still_active'),
-              ),
-            },
           },
         },
       },
@@ -531,6 +591,13 @@ const usePerpsToasts = (): {
                   strings('perps.close_position.funds_are_available_to_trade'),
                 ),
               },
+              closeFullPositionFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.failed_to_close_position'),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
             },
             partial: {
               closePartialPositionInProgress: (
@@ -560,6 +627,22 @@ const usePerpsToasts = (): {
                     subtext,
                   ),
                 };
+              },
+              closePartialPositionSuccess: {
+                ...perpsBaseToastOptions.success,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.position_partially_closed'),
+                  strings('perps.close_position.funds_are_available_to_trade'),
+                ),
+              },
+              closePartialPositionFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings(
+                    'perps.close_position.failed_to_partially_close_position',
+                  ),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
               },
             },
           },
@@ -609,6 +692,25 @@ const usePerpsToasts = (): {
                 ),
               },
             },
+          },
+        },
+        tpsl: {
+          updateTPSLSuccess: {
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.update_success'),
+            ),
+          },
+          updateTPSLError: (error?: string) => {
+            const errorMessage = error || strings('perps.errors.unknown');
+
+            return {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.position.tpsl.update_failed'),
+                errorMessage,
+              ),
+            };
           },
         },
       },
