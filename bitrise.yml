@@ -571,7 +571,7 @@ workflows:
           title: Get Yarn cache directory
       - yarn@0:
           inputs:
-            - command: setup
+            - command: setup:github-ci
           title: Yarn Setup
   prep_environment:
     steps:
