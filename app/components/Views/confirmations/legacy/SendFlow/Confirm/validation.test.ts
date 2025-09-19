@@ -3,14 +3,14 @@ import {
   validateSufficientBalance,
   validateSufficientTokenBalance,
 } from './validation';
-import { renderFromWei, hexToBN } from '../../../../../../util/number';
+import { renderFromWei, hexToBN } from '../../../../../../util/number/legacy';
 import {
   getTicker,
   decodeTransferData,
 } from '../../../../../../util/transactions';
 import { strings } from '../../../../../../../locales/i18n';
 
-jest.mock('../../../../../../util/number', () => ({
+jest.mock('../../../../../../util/number/legacy', () => ({
   renderFromWei: jest.fn(),
   hexToBN: jest.fn(),
 }));

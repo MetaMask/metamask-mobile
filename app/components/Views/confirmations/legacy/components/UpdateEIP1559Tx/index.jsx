@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import { isHexString } from '@metamask/utils';
@@ -21,7 +22,7 @@ import {
   fromWei,
   hexToBN,
   renderFromWei,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/legacy';
 import { getTicker } from '../../../../../../util/transactions';
 import EditGasFee1559Update from '../EditGasFee1559Update';
 

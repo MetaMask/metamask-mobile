@@ -13,7 +13,7 @@ import { useRampSDK } from '../sdk';
 import { getNotificationDetails } from '../utils';
 import stateHasOrder from '../../utils/stateHasOrder';
 import useAnalytics from '../../hooks/useAnalytics';
-import { hexToBN, toHexadecimal } from '../../../../../util/number';
+import { hexToBN, toHexadecimal } from '../../../../../util/number/legacy';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectEvmChainId } from '../../../../../selectors/networkController';

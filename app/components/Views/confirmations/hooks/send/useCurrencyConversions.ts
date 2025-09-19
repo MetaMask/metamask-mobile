@@ -5,7 +5,10 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../../../reducers';
-import { getCurrencySymbol, isDecimal } from '../../../../../util/number';
+import {
+  getCurrencySymbol,
+  isDecimal,
+} from '../../../../../util/number/legacy';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import {
   selectConversionRateByChainId,

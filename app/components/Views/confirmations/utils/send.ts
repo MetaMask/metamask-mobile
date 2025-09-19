@@ -20,9 +20,9 @@ import {
 } from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
+import { toWei, BNToHex, hexToBN } from '../../../../util/number/legacy';
 import { isNativeToken } from '../utils/generic';
 
 const captureSendStartedEvent = (location: string) => {

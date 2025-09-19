@@ -29,7 +29,7 @@ import { Token as TokenType } from '@metamask/assets-controllers';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
-} from '../../../util/number';
+} from '../../../util/number/legacy';
 import WarningMessage from '../confirmations/legacy/SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';

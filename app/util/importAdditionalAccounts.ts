@@ -1,5 +1,5 @@
 import Engine from '../core/Engine';
-import { BNToHex } from '../util/number';
+import { BNToHex } from '../util/number/legacy';
 import Logger from '../util/Logger';
 import ExtendedKeyringTypes from '../../app/constants/keyringTypes';
 import type EthQuery from '@metamask/eth-query';

@@ -13,7 +13,7 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import {
   addCurrencySymbol,
   balanceToFiatNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { BridgeToken } from '../types';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import {

@@ -1,4 +1,4 @@
-import { renderFromWei, hexToBN } from '../../../../../../util/number';
+import { renderFromWei, hexToBN } from '../../../../../../util/number/legacy';
 import {
   getTicker,
   decodeTransferData,

@@ -25,7 +25,7 @@ import AntIcons from 'react-native-vector-icons/AntDesign';
 import Device from '../../../util/device';
 import { isIPFSUri, renderShortText } from '../../../util/general';
 import { toLocaleDate } from '../../../util/date';
-import { renderFromWei } from '../../../util/number';
+import { renderFromWei } from '../../../util/number/legacy';
 import { renderShortAddress } from '../../../util/address';
 import { isMainNet } from '../../../util/networks';
 import etherscanLink from '@metamask/etherscan-link';

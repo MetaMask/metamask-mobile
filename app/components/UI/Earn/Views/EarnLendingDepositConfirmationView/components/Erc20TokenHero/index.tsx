@@ -12,7 +12,7 @@ import Badge, {
 import NetworkAssetLogo from '../../../../../NetworkAssetLogo';
 import AvatarToken from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
-import { renderFromTokenMinimalUnit } from '../../../../../../../util/number';
+import { renderFromTokenMinimalUnit } from '../../../../../../../util/number/legacy';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';

@@ -6,7 +6,7 @@ import {
   weiToFiatNumber,
   renderFromWei,
   fromWei,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/legacy';
 import { BN } from 'ethereumjs-util';
 import type { TimePeriodGroupInfo } from './EarningsHistory.types';
 import { DateRange } from './EarningsTimePeriod/EarningsTimePeriod.types';
