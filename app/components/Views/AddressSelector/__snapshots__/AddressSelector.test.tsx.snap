@@ -1170,7 +1170,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 }
                                                 testID="multichain-address-row-network-name"
                                               >
-                                                Base Mainnet
+                                                Base
                                               </Text>
                                               <Text
                                                 accessibilityRole="text"

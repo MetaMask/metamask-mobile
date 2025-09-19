@@ -93,3 +93,13 @@ export const swapsSupportedChainIds = [
   swapsUtils.BASE_CHAIN_ID,
   swapsUtils.SEI_CHAIN_ID,
 ];
+
+export const MAINNET_DISPLAY_NAME = 'Ethereum';
+export const LINEA_MAINNET_DISPLAY_NAME = 'Linea';
+export const POLYGON_DISPLAY_NAME = 'Polygon';
+export const AVALANCHE_DISPLAY_NAME = 'Avalanche';
+export const ARBITRUM_DISPLAY_NAME = 'Arbitrum';
+export const BNB_DISPLAY_NAME = 'BNB Chain';
+export const OPTIMISM_DISPLAY_NAME = 'OP';
+export const ZK_SYNC_ERA_DISPLAY_NAME = 'zkSync Era';
+export const BASE_DISPLAY_NAME = 'Base';

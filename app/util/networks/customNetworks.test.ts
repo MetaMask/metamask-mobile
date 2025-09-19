@@ -9,15 +9,15 @@ import { CaipChainId } from '@metamask/utils';
 describe('popularNetwork', () => {
   it('should have correct chainIds for all popular network', () => {
     const expectedChainIds: { [key: string]: string } = {
-      'Avalanche C-Chain': toHex('43114'),
-      'Arbitrum One': toHex('42161'),
-      'BNB Smart Chain Mainnet': toHex('56'),
+      Avalanche: toHex('43114'),
+      Arbitrum: toHex('42161'),
+      'BNB Chain': toHex('56'),
       Base: toHex('8453'),
-      'OP Mainnet': toHex('10'),
+      OP: toHex('10'),
       Palm: toHex('11297108109'),
-      'Polygon Mainnet': toHex('137'),
-      'zkSync Mainnet': toHex('324'),
-      'Sei Mainnet': toHex('1329'),
+      Polygon: toHex('137'),
+      zkSync: toHex('324'),
+      Sei: toHex('1329'),
     };
 
     PopularList.forEach((rpc) => {
