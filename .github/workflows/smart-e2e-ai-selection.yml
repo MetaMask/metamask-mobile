@@ -229,6 +229,9 @@ jobs:
       should-build-android: ${{ steps.conditions.outputs.should-build-android }}
       should-test-ios: ${{ steps.conditions.outputs.should-test-ios }}
       should-test-android: ${{ steps.conditions.outputs.should-test-android }}
+      actual-ios-jobs: ${{ steps.conditions.outputs.actual-ios-jobs }}
+      actual-android-jobs: ${{ steps.conditions.outputs.actual-android-jobs }}
+      actual-total-jobs: ${{ steps.conditions.outputs.actual-total-jobs }}
     steps:
       - name: Calculate platform conditions
         id: conditions
@@ -260,9 +263,29 @@ jobs:
           echo "should-test-ios=$SHOULD_BUILD_IOS" >> "$GITHUB_OUTPUT"
           echo "should-test-android=$SHOULD_BUILD_ANDROID" >> "$GITHUB_OUTPUT"
 
+          # Calculate actual job counts
+          TOTAL_SPLITS="${{ needs.analyze-and-plan.outputs.total-splits }}"
+          IOS_JOBS=0
+          ANDROID_JOBS=0
+
+          if [ "$SHOULD_BUILD_IOS" = "true" ] && [ "$TOTAL_SPLITS" -gt 0 ]; then
+            IOS_JOBS="$TOTAL_SPLITS"
+          fi
+
+          if [ "$SHOULD_BUILD_ANDROID" = "true" ] && [ "$TOTAL_SPLITS" -gt 0 ]; then
+            ANDROID_JOBS="$TOTAL_SPLITS"
+          fi
+
+          TOTAL_JOBS=$((IOS_JOBS + ANDROID_JOBS))
+
+          echo "actual-ios-jobs=$IOS_JOBS" >> "$GITHUB_OUTPUT"
+          echo "actual-android-jobs=$ANDROID_JOBS" >> "$GITHUB_OUTPUT"
+          echo "actual-total-jobs=$TOTAL_JOBS" >> "$GITHUB_OUTPUT"
+
           echo "🎯 Platform Conditions:"
-          echo "- iOS Build/Test: $SHOULD_BUILD_IOS"
-          echo "- Android Build/Test: $SHOULD_BUILD_ANDROID"
+          echo "- iOS Build/Test: $SHOULD_BUILD_IOS ($IOS_JOBS jobs)"
+          echo "- Android Build/Test: $SHOULD_BUILD_ANDROID ($ANDROID_JOBS jobs)"
+          echo "- Total CI Jobs: $TOTAL_JOBS"
 
   # Step 3: Build iOS app for testing
   build-ios:
@@ -364,8 +387,9 @@ jobs:
             echo "- **Selected Tags**: ${{ needs.analyze-and-plan.outputs.selected-tags-display }}"
             echo "- **Total Splits**: ${{ needs.analyze-and-plan.outputs.total-splits }}"
             echo ""
-            echo "- **iOS Enabled**: ${{ needs.platform-conditions.outputs.should-build-ios }}"
-            echo "- **Android Enabled**: ${{ needs.platform-conditions.outputs.should-build-android }}"
+            echo "- **iOS Jobs**: ${{ needs.platform-conditions.outputs.actual-ios-jobs }} (enabled: ${{ needs.platform-conditions.outputs.should-build-ios }})"
+            echo "- **Android Jobs**: ${{ needs.platform-conditions.outputs.actual-android-jobs }} (enabled: ${{ needs.platform-conditions.outputs.should-build-android }})"
+            echo "- **Total CI Jobs**: ${{ needs.platform-conditions.outputs.actual-total-jobs }}"
             echo ""
             echo "- **iOS Result**: ${{ needs.ios-smart-tests.result || 'skipped' }}"
             echo "- **Android Result**: ${{ needs.android-smart-tests.result || 'skipped' }}"
