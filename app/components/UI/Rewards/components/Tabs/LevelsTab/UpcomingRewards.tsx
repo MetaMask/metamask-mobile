@@ -21,8 +21,9 @@ import {
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { AppThemeKey } from '../../../../../../util/theme/models';
-import { formatNumber, getIconName } from '../../../utils/formatUtils';
+import { formatNumber } from '../../../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
+import RewardItem from './RewardItem';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
@@ -30,51 +31,6 @@ interface TierAccordionProps {
   onToggle: () => void;
 }
 
-interface RewardItemProps {
-  reward: SeasonRewardDto;
-  isLast?: boolean;
-}
-
-export const RewardItem: React.FC<RewardItemProps> = ({
-  reward,
-  isLast = false,
-}) => (
-  <Box
-    twClassName={`flex-row items-center py-3 px-4 gap-4 ${
-      !isLast ? 'border-b border-muted' : ''
-    }`}
-  >
-    {/* Reward Icon */}
-    <Box
-      twClassName={`h-12 w-12 rounded-full bg-muted items-center justify-center`}
-      testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
-    >
-      <Icon
-        name={getIconName(reward.iconName)}
-        size={IconSize.Lg}
-        twClassName="text-icon-alternative"
-      />
-    </Box>
-
-    {/* Reward Info */}
-    <Box twClassName="flex-1">
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-text-default mb-1"
-        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
-      >
-        {reward.name}
-      </Text>
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName="text-text-alternative"
-        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}
-      >
-        {reward.shortDescription}
-      </Text>
-    </Box>
-  </Box>
-);
 const TierAccordion: React.FC<TierAccordionProps> = ({
   tier,
   isExpanded,
@@ -82,7 +38,6 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 }) => {
   const tw = useTailwind();
   const { themeAppearance, brandColors } = useTheme();
-  const animatedHeight = useRef(new Animated.Value(0)).current;
   const animatedRotation = useRef(new Animated.Value(0)).current;
 
   // Get appropriate image URL based on theme
@@ -94,26 +49,18 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
     [tier.image, themeAppearance],
   );
 
-  const rewards = useMemo(() => tier.rewards || [], [tier.rewards]);
+  const seasonRewards = useMemo(() => tier.rewards || [], [tier.rewards]);
 
   // Animate height and rotation when expanded state changes
   useEffect(() => {
-    const targetHeight = isExpanded ? rewards.length * 74 : 0; // Approximate height per reward item
     const targetRotation = isExpanded ? 1 : 0;
 
-    Animated.parallel([
-      Animated.timing(animatedHeight, {
-        toValue: targetHeight,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-      Animated.timing(animatedRotation, {
-        toValue: targetRotation,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [isExpanded, rewards.length, animatedHeight, animatedRotation]);
+    Animated.timing(animatedRotation, {
+      toValue: targetRotation,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isExpanded, animatedRotation]);
 
   const rotateInterpolate = animatedRotation.interpolate({
     inputRange: [0, 1],
@@ -184,7 +131,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
         </Box>
 
         {/* Expand/Collapse Button */}
-        {rewards.length > 0 && (
+        {seasonRewards.length > 0 && (
           <TouchableOpacity onPress={onToggle}>
             <Box twClassName="ml-4 p-2">
               <Animated.View
@@ -204,23 +151,20 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
       </Box>
 
       {/* Expandable Rewards List */}
-      {rewards.length > 0 && (
-        <Animated.View
-          style={[tw.style('overflow-hidden'), { height: animatedHeight }]}
+      {seasonRewards.length > 0 && isExpanded && (
+        <Box
+          twClassName="bg-background-muted"
+          testID={REWARDS_VIEW_SELECTORS.TIER_REWARDS}
         >
-          <Box
-            twClassName="bg-background-muted"
-            testID={REWARDS_VIEW_SELECTORS.TIER_REWARDS}
-          >
-            {rewards.map((reward: SeasonRewardDto, index: number) => (
-              <RewardItem
-                key={reward.id}
-                reward={reward}
-                isLast={index === rewards.length - 1}
-              />
-            ))}
-          </Box>
-        </Animated.View>
+          {seasonRewards.map((seasonReward: SeasonRewardDto, index: number) => (
+            <RewardItem
+              key={seasonReward.id}
+              seasonReward={seasonReward}
+              isLast={index === seasonRewards.length - 1}
+              isLocked
+            />
+          ))}
+        </Box>
       )}
     </Box>
   );
@@ -229,6 +173,7 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
 const UpcomingRewards: React.FC = () => {
   const seasonTiers = useSelector(selectSeasonTiers) as SeasonTierDto[];
   const currentTier = useSelector(selectCurrentTier);
+
   // Filter tiers to show only those above current tier
   const upcomingTiers = useMemo(() => {
     if (!currentTier) {
