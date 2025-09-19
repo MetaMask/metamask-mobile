@@ -2,6 +2,7 @@ import { CaipChainId } from '@metamask/utils';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
@@ -191,9 +192,22 @@ class NetworkManager {
   }
 
   /**
-   * Close the network manager
+   * Check if the network manager is currently visible
+   */
+  async isNetworkManagerVisible(): Promise<boolean> {
+    return Utilities.isElementVisible(this.networkManagerBottomSheet, 1000);
+  }
+
+  /**
+   * Close the network manager if it exists
    */
   async closeNetworkManager(): Promise<void> {
+    const isVisible = await this.isNetworkManagerVisible();
+
+    if (!isVisible) {
+      return;
+    }
+
     // swipe down on the bottom sheet
     await Gestures.swipe(this.networkManagerBottomSheet, 'down', {
       speed: 'fast',

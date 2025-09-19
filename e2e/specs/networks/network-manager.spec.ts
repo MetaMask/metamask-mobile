@@ -96,6 +96,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select and check the network in the base control bar
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+          await NetworkManager.closeNetworkManager();
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
@@ -109,6 +110,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select Avalanche and check if Ethereum is not selected
           await NetworkManager.tapNetwork(NetworkToCaipChainId.AVALANCHE);
+          await NetworkManager.closeNetworkManager();
           // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
           // as thee globally selected network in the useNetworkSelection hook. This is needed until we
           // resolve BIP44 issues with network filtering
@@ -149,6 +151,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Tap localhost network and check base control bar text
           await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
+          await NetworkManager.closeNetworkManager();
           // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
           // as thee globally selected network in the useNetworkSelection hook. This is needed until we
           // resolve BIP44 issues with network filtering
@@ -205,6 +208,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select Ethereum network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
+          await NetworkManager.closeNetworkManager();
           // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
           // as thee globally selected network in the useNetworkSelection hook. This is needed until we
           // resolve BIP44 issues with network filtering
@@ -257,6 +261,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select Ethereum network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+          await NetworkManager.closeNetworkManager();
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
@@ -302,6 +307,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select a custom network (Linea Sepolia)
           await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA_SEPOLIA);
+          await NetworkManager.closeNetworkManager();
           // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
           // as thee globally selected network in the useNetworkSelection hook. This is needed until we
           // resolve BIP44 issues with network filtering
@@ -355,6 +361,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select Ethereum as the active network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+          await NetworkManager.closeNetworkManager();
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
