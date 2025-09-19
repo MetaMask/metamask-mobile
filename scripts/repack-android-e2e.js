@@ -2,12 +2,13 @@
 
 /**
  * Android E2E APK Repack Script using @expo/repack-app
- * 
+ *
  * Simple implementation following official documentation exactly.
  */
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 /**
  * Logger utility
@@ -16,6 +17,7 @@ const logger = {
   info: (msg) => console.log(`📦 ${msg}`),
   success: (msg) => console.log(`✅ ${msg}`),
   error: (msg) => console.error(`❌ ${msg}`),
+  warn: (msg) => console.warn(`⚠️  ${msg}`),
 };
 
 /**
@@ -77,7 +79,7 @@ async function main() {
 
     // Create working directory for main APK repack
     const mainWorkingDir = 'android/app/build/repack-working-main';
-    
+
     if (!fs.existsSync(mainWorkingDir)) {
       fs.mkdirSync(mainWorkingDir, { recursive: true });
       logger.info(`Created working directory: ${mainWorkingDir}`);
@@ -109,29 +111,21 @@ async function main() {
 
     // Step 2: Re-sign test APK to match signature (can't use repack - it's not a React Native app)
     logger.info('⏱️  Step 2: Re-signing test APK to match signature...');
-    
+
     // Copy test APK to temp location for re-signing
     fs.copyFileSync(testSourceApk, testRepackedApk);
-    
-    // Use Android SDK tools to re-sign the test APK with same keystore
-    const { execSync } = require('child_process');
-    
+
     try {
       // First, remove existing signature
       logger.info('Removing existing signature from test APK...');
       execSync(`zip -d "${testRepackedApk}" META-INF/\\*.SF META-INF/\\*.RSA META-INF/\\*.DSA || true`, { stdio: 'inherit' });
-      
+
       // Re-sign with same keystore as main APK
       logger.info('Re-signing test APK with matching keystore...');
       execSync(`jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore android/app/debug.keystore -storepass android "${testRepackedApk}" androiddebugkey`, { stdio: 'inherit' });
-      
-      // Align the APK for optimization
-      logger.info('Optimizing test APK alignment...');
-      execSync(`zipalign -f -v 4 "${testRepackedApk}" "${testRepackedApk}.aligned"`, { stdio: 'inherit' });
-      fs.renameSync(`${testRepackedApk}.aligned`, testRepackedApk);
-      
+
       logger.success('Test APK re-signing completed successfully');
-      
+
     } catch (error) {
       logger.error(`Test APK re-signing failed: ${error.message}`);
       // Don't fail the entire process - try to continue with mismatched signatures
