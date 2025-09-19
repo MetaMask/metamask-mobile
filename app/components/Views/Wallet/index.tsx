@@ -181,7 +181,6 @@ import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -1176,7 +1175,6 @@ const Wallet = ({
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
-        <AssetPollingProvider />
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert

@@ -20,8 +20,8 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-///: END:ONLY_INCLUDE_IF
 import Engine from '../../../core/Engine';
+///: END:ONLY_INCLUDE_IF
 
 interface UseNetworkSelectionOptions {
   /**
