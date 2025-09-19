@@ -5,8 +5,11 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
 import * as bridgeReducer from '../../../../../../core/redux/slices/bridge';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 
 const mockGoBack = jest.fn();
+
+jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 
 jest.mock(
   '../../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
@@ -35,8 +38,17 @@ function render() {
 }
 
 describe('PayWithNetworkModal', () => {
+  const useTransactionPayAvailableTokensMock = jest.mocked(
+    useTransactionPayAvailableTokens,
+  );
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableChainIds: ['0x1', '0xa'],
+      availableTokens: [],
+    });
   });
 
   it('renders networks', async () => {

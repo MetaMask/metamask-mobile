@@ -2,11 +2,9 @@ import { Token } from '@metamask/assets-controllers';
 import Engine from '../../../../../../core/Engine';
 import { selectTokensByChainIdAndAddress } from '../../../../../../selectors/tokensController';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
-import {
-  ARBITRUM_USDC_ADDRESS,
-  usePerpsDepositInit,
-} from './usePerpsDepositInit';
+import { usePerpsDepositInit } from './usePerpsDepositInit';
 import { act } from '@testing-library/react-native';
+import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
 
 const NETWORK_CLIENT_ID = 'mockNetworkClientId';
 

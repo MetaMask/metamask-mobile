@@ -9,8 +9,8 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { useMemo } from 'react';
 import { useDeepMemo } from '../useDeepMemo';
 import { toChecksumAddress } from '../../../../../util/address';
-import { ARBITRUM_USDC_ADDRESS } from '../../external/perps-temp/hooks/usePerpsDepositInit';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { ARBITRUM_USDC_ADDRESS } from '../../constants/perps';
 
 export interface TokenFiatRateRequest {
   address: Hex;

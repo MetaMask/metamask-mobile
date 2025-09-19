@@ -9,6 +9,7 @@ import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/brid
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 import { cloneDeep } from 'lodash';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -257,28 +258,18 @@ describe('BridgeSourceNetworkSelector', () => {
     });
   });
 
-  it('does not render non-EVM networks if isEvmOnly set', async () => {
-    const state = cloneDeep(initialState);
-
-    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
-      MultichainNetwork.Solana
-    ] = {
-      isActiveSrc: true,
-      isActiveDest: true,
-      isUnifiedUIEnabled: true,
-    };
-
-    const { queryByText } = renderScreen(
-      () => <BridgeSourceNetworkSelector isEvmOnly />,
+  it('does not render networks if not in chain IDs', async () => {
+    const { getByText, queryByText } = renderScreen(
+      () => <BridgeSourceNetworkSelector chainIds={[CHAIN_IDS.OPTIMISM]} />,
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state },
+      { state: initialState },
     );
 
     await waitFor(() => {
-      expect(queryByText('Solana')).toBeNull();
-      expect(queryByText('$30012.75599')).toBeNull();
+      expect(queryByText('Ethereum Mainnet')).toBeNull();
+      expect(getByText('Optimism')).toBeTruthy();
     });
   });
 });
