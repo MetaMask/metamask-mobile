@@ -89,7 +89,7 @@ export function usePerpsOrderForm(
   const [orderForm, setOrderForm] = useState<OrderFormState>({
     asset: initialAsset,
     direction: initialDirection,
-    amount: initialAmountValue,
+    amount: '0', // Will be updated by useEffect when initialAmountValue is calculated
     leverage: defaultLeverage,
     balancePercent: Math.round(initialBalancePercent * 100) / 100,
     takeProfitPrice: undefined,
