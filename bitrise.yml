@@ -663,7 +663,7 @@ workflows:
                 echo "Running setup with bundled yarn in isolated environment..."
                 
                 # Run setup with yarn-specific isolation (preserve git environment)
-                $YARN_CMD setup:ci
+                $YARN_CMD setup:github-ci
                 
                 # Verify PPOM files were generated
                 echo "Checking if PPOM files were generated..."
