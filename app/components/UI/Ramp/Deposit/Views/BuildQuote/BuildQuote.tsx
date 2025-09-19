@@ -60,8 +60,8 @@ import {
   getTransakFiatCurrencyId,
   getTransakChainId,
   getTransakPaymentMethodId,
-  formatCurrency,
 } from '../../utils';
+import { formatCurrency } from '../../utils/formatCurrency';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';

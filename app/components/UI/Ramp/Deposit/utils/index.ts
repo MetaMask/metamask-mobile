@@ -22,8 +22,7 @@ import {
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { renderNumber } from '../../../../../util/number';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { AppThemeKey, Colors } from '../../../../../util/theme/models';
 import { CaipAssetReference, CaipChainId } from '@metamask/utils';
 import {
@@ -146,36 +145,6 @@ export function getPaymentMethodByTransakId(
   return ALL_PAYMENT_METHODS.find(
     (method) => getTransakPaymentMethodId(method) === transakId,
   );
-}
-
-/**
- * Formats currency amounts using the device's locale
- * @param amount - The amount to format (number or string)
- * @param currency - The currency code (e.g., 'USD', 'EUR')
- * @param options - Additional formatting options
- * @returns Formatted currency string
- */
-export function formatCurrency(
-  amount: number | string,
-  currency: string,
-  options?: Intl.NumberFormatOptions,
-): string {
-  try {
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    const defaultOptions: Intl.NumberFormatOptions = {
-      style: 'currency',
-      currency: currency || 'USD',
-      currencyDisplay: 'symbol',
-    };
-
-    return getIntlNumberFormatter(I18n.locale, {
-      ...defaultOptions,
-      ...options,
-    }).format(numAmount);
-  } catch (error) {
-    console.error('Error formatting currency:', error);
-    return amount.toString();
-  }
 }
 
 const NOTIFICATION_DURATION = 5000;

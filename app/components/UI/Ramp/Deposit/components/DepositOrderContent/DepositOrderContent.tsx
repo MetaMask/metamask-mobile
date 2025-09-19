@@ -14,10 +14,10 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../locales/i18n';
 import {
-  formatCurrency,
   getCryptoCurrencyFromTransakId,
   hasDepositOrderField,
 } from '../../utils';
+import { formatCurrency } from '../../utils/formatCurrency';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountName } from '../../../../../hooks/useAccountName';
