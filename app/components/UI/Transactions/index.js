@@ -309,6 +309,7 @@ class Transactions extends PureComponent {
     }
   };
 
+  // TODO: we should delete this is dead code.
   toggleDetailsView = (id, index) => {
     const oldId = this.selectedTx && this.selectedTx.id;
     const oldIndex = this.selectedTx && this.selectedTx.index;

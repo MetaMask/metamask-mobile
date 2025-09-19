@@ -161,11 +161,6 @@ describe('Checkout', () => {
 
     render();
 
-    expect(createCustomOrderIdData).toHaveBeenCalledWith(
-      'test-order-id',
-      undefined,
-      '0x123',
-      'BUY',
-    );
+    expect(createCustomOrderIdData).not.toHaveBeenCalled();
   });
 });

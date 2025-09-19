@@ -83,12 +83,12 @@ const CheckoutWebView = () => {
   }, [navigation, colors, handleCancelPress, provider.name]);
 
   useEffect(() => {
-    if (!customOrderId) {
+    if (!customOrderId || !selectedAsset?.network?.chainId) {
       return;
     }
     const customOrderIdData = createCustomOrderIdData(
       customOrderId,
-      selectedAsset?.network?.chainId,
+      selectedAsset.network.chainId,
       selectedAddress,
       isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );
