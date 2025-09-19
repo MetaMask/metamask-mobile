@@ -21,6 +21,11 @@ export const useOriginSource = ({
     return undefined;
   }
 
+  // Check for V2 connections
+  if (origin.startsWith(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN)) {
+    return SourceType.SDK_CONNECT_V2;
+  }
+
   // Check if origin is a UUID (SDK channel ID format) or starts with SDK_REMOTE_ORIGIN
   const isChannelId = isUUID(origin);
   const isSDKRemoteOrigin = origin.startsWith(
