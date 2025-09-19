@@ -277,6 +277,7 @@ const PerpsClosePositionView: React.FC = () => {
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
+      feeResults,
     );
   };
 
