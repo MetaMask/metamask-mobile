@@ -156,10 +156,10 @@ const OnboardingIntroStep: React.FC = () => {
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Center}
     >
-      <Box twClassName="justify-center items-center gap-1">
+      <Box twClassName="justify-center items-center">
         <RNText
           style={[
-            tw.style('text-center text-white text-[44px]'),
+            tw.style('text-center text-white text-12'),
             // eslint-disable-next-line react-native/no-inline-styles
             { fontFamily: 'MM Poly Regular', fontWeight: '400' },
           ]}
@@ -168,7 +168,7 @@ const OnboardingIntroStep: React.FC = () => {
         </RNText>
         <RNText
           style={[
-            tw.style('text-center text-white text-[44px]'),
+            tw.style('text-center text-white text-12'),
             // eslint-disable-next-line react-native/no-inline-styles
             { fontFamily: 'MM Poly Regular', fontWeight: '400' },
           ]}
@@ -232,7 +232,7 @@ const OnboardingIntroStep: React.FC = () => {
     <Box twClassName="flex-grow min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-1 px-4 py-8')}
+        style={tw.style('flex-1 p-4')}
         resizeMode="cover"
       >
         {/* Spacer */}

@@ -1,7 +1,6 @@
 import { SmokeAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import Assertions from '../../framework/Assertions';
 import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-accounts/common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
@@ -32,7 +31,6 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       }
 
       await AccountListBottomSheet.tapAccountEllipsisButtonV2(LAST);
-      await AccountActionsBottomSheet.tapAccountDetails();
       await AccountDetails.tapNetworksLink();
 
       const visibleNetworks = [

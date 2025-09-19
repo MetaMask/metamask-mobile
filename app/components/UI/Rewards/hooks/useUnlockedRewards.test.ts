@@ -17,6 +17,8 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -31,6 +33,11 @@ jest.mock('../../../../selectors/rewards', () => ({
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectSeasonId: jest.fn(),
+}));
+
+// Mock the useInvalidateByRewardEvents hook
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: jest.fn(),
 }));
 
 describe('useUnlockedRewards', () => {
