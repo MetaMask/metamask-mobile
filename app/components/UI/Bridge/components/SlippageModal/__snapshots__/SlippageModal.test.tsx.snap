@@ -236,9 +236,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 14,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 20,
               }
