@@ -607,9 +607,10 @@ workflows:
                 unset YARN_WRAP_OUTPUT
                 unset YARN_COMMAND
                 
-                # Create completely isolated environment
-                export HOME=/tmp/isolated-yarn-home
-                mkdir -p $HOME
+                # Create yarn-specific isolation without breaking git
+                export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
+                export YARN_GLOBAL_FOLDER="$(pwd)/.yarn/global"
+                export YARN_LINK_FOLDER="$(pwd)/.yarn/link"
                 
                 # Create clean .yarnrc.yml if it doesn't exist
                 if [ ! -f ".yarnrc.yml" ]; then
@@ -622,14 +623,8 @@ workflows:
                 # Run install using bundled yarn directly with complete isolation
                 echo "Running install with bundled yarn in isolated environment..."
                 
-                # Use env -i to start with completely clean environment
-                env -i \
-                  PATH="$PATH" \
-                  NODE_PATH="$NODE_PATH" \
-                  HOME="$HOME" \
-                  PWD="$(pwd)" \
-                  YARN_CACHE_FOLDER="$(pwd)/.yarn/cache" \
-                  $YARN_CMD install --immutable
+                # Run install with yarn-specific isolation (preserve git environment)
+                $YARN_CMD install --immutable
           title: Yarn Install
       - script@1:
           title: Yarn Setup
@@ -657,11 +652,10 @@ workflows:
                 unset YARN_WRAP_OUTPUT
                 unset YARN_COMMAND
                 
-                # Create completely isolated environment
-                export HOME=/tmp/isolated-yarn-home
-                mkdir -p $HOME
+                # Create yarn-specific isolation without breaking git
                 export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
                 export YARN_GLOBAL_FOLDER="$(pwd)/.yarn/global"
+                export YARN_LINK_FOLDER="$(pwd)/.yarn/link"
                 
                 # Use the same bundled yarn for setup
                 if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
@@ -673,14 +667,8 @@ workflows:
                 
                 echo "Running setup with bundled yarn in isolated environment..."
                 
-                # Use env -i for complete isolation
-                env -i \
-                  PATH="$PATH" \
-                  NODE_PATH="$NODE_PATH" \
-                  HOME="$HOME" \
-                  PWD="$(pwd)" \
-                  YARN_CACHE_FOLDER="$(pwd)/.yarn/cache" \
-                  $YARN_CMD setup:ci
+                # Run setup with yarn-specific isolation (preserve git environment)
+                $YARN_CMD setup:ci
                 
                 # Verify PPOM files were generated
                 echo "Checking if PPOM files were generated..."
