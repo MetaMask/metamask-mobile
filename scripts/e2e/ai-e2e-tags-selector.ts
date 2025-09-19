@@ -360,8 +360,8 @@ ANALYSIS FRAMEWORK:
    - **Asset files**: Images, icons, SVGs that don't affect functionality
    - **Comments/typing**: Code comment updates, TypeScript interface changes only
 
-5. **NON NEGOTIABLE**: Always include a detailed reasoning section explaining:
-- Run all tags when the yarn.lock changes
+5. **NON NEGOTIABLE**
+- Run ALL tags when the yarn.lock changes - This is a HIGH RISK change that could impact any part of the app
 
 RESPOND WITH JSON ONLY:
 {
