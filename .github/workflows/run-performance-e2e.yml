@@ -140,7 +140,7 @@ jobs:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, set-build-names]
-    if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.result == 'success')
+    if: (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: onboarding
@@ -155,7 +155,7 @@ jobs:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.result == 'success')
+    if: (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: onboarding
@@ -174,7 +174,7 @@ jobs:
     name: Wait for Onboarding Completion
     runs-on: ubuntu-latest
     needs: [run-android-onboarding-tests, run-ios-onboarding-tests]
-    if: always()
+    if: success() || failure()
     steps:
       - name: Wait for onboarding tests to complete
         run: |
@@ -185,7 +185,7 @@ jobs:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
+    if: (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: imported-wallet
@@ -200,7 +200,7 @@ jobs:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: always() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
+    if: (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: imported-wallet
