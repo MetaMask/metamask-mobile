@@ -46,6 +46,7 @@ const RegionsView = () => {
   const {
     setSelectedRegion,
     setSelectedFiatCurrencyId,
+    selectedAsset,
     sdkError,
     isBuy,
     isSell,
@@ -75,15 +76,15 @@ const RegionsView = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Region Screen',
-        chain_id_destination: 'unknown', // TODO: Replace with actual chainId
+        chain_id_destination: selectedAsset?.network?.chainId || 'unknown',
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Region Screen',
-        chain_id_source: 'unknown', // TODO: Replace with actual chainId
+        chain_id_source: selectedAsset?.network?.chainId || 'unknown',
       });
     }
-  }, [isBuy, trackEvent]);
+  }, [isBuy, trackEvent, selectedAsset]);
 
   useEffect(() => {
     navigation.setOptions(

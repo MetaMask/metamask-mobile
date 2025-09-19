@@ -67,7 +67,7 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { isBuy, intent, setIntent } = useRampSDK();
+  const { isBuy, intent, setIntent, selectedAsset } = useRampSDK();
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -118,15 +118,15 @@ function NetworkSwitcher() {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Network Switcher Screen',
-        chain_id_destination: 'unknown', // TODO: Replace with actual chainId
+        chain_id_destination: selectedAsset?.network?.chainId || 'unknown',
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Network Switcher Screen',
-        chain_id_source: 'unknown', // TODO: Replace with actual chainId
+        chain_id_source: selectedAsset?.network?.chainId || 'unknown',
       });
     }
-  }, [isBuy, trackEvent]);
+  }, [isBuy, trackEvent, selectedAsset]);
 
   useEffect(() => {
     navigation.setOptions(

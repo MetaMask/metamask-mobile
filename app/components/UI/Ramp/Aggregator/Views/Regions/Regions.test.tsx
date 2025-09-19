@@ -1,5 +1,5 @@
 import React from 'react';
-import { Country } from '@consensys/on-ramp-sdk';
+import { Country, CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
@@ -37,6 +37,10 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
+  selectedAsset: {
+    id: 'mock-asset-id',
+    network: { chainId: '1' },
+  } as CryptoCurrency,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {

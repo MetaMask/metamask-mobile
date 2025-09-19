@@ -22,8 +22,14 @@ const getStartedIcon = require('../../components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const { getStarted, setGetStarted, sdkError, isBuy, setIntent } =
-    useRampSDK();
+  const {
+    getStarted,
+    setGetStarted,
+    sdkError,
+    isBuy,
+    setIntent,
+    selectedAsset,
+  } = useRampSDK();
   const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
@@ -35,15 +41,15 @@ const GetStarted: React.FC = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_destination: 'unknown', // TODO: Replace with actual chainId
+        chain_id_destination: selectedAsset?.network?.chainId || 'unknown',
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Get Started Screen',
-        chain_id_source: 'unknown', // TODO: Replace with actual chainId
+        chain_id_source: selectedAsset?.network?.chainId || 'unknown',
       });
     }
-  }, [isBuy, trackEvent]);
+  }, [isBuy, trackEvent, selectedAsset]);
 
   useEffect(() => {
     if (params) {
