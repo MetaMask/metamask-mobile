@@ -98,7 +98,7 @@ export const isMultichainAccountsState1Enabled = () =>
  * Check if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
-export const isMultichainAccountsState2Enabled = () =>
-  isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
-    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
-  ]);
+export const isMultichainAccountsState2Enabled = () => true;
+// isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
+//   MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+// ]);
