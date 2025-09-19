@@ -570,38 +570,56 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
-                # First, clear ALL potential legacy config sources BEFORE running any yarn commands
-                echo "Clearing legacy configurations..."
+                # The global yarn has legacy configs we can't clear, so bypass it entirely
+                echo "Bypassing global yarn completely - using bundled version directly"
+                
+                # Check if bundled yarn exists
+                if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
+                  echo "Found bundled Yarn 3.8.7"
+                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
+                else
+                  echo "Bundled yarn not found, creating it..."
+                  # Download yarn 3.8.7 directly
+                  mkdir -p .yarn/releases
+                  curl -fsSL -o .yarn/releases/yarn-3.8.7.cjs https://repo.yarnpkg.com/3.8.7/packages/yarnpkg-cli/bin/yarn.js
+                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
+                fi
+                
+                # Verify bundled version works
+                echo "Bundled Yarn version: $($YARN_CMD --version)"
+                
+                # Clear any legacy config files
                 rm -f .yarnrc || true
-                rm -f ~/.yarnrc || true
-                rm -rf ~/.yarn || true
                 
-                # Clear yarn environment variables that might cause issues
-                unset YARN_CACHE_FOLDER
-                unset YARN_CACHE_DIR
-                unset YARN_GLOBAL_FOLDER
-                unset YARN_LINK_FOLDER
-                unset YARN_ENABLE_GLOBAL_CACHE
-                unset YARN_ENABLE_IMMUTABLE_INSTALLS
+                # Create clean .yarnrc.yml if it doesn't exist
+                if [ ! -f ".yarnrc.yml" ]; then
+                  echo "Creating clean .yarnrc.yml..."
+                  echo "nodeLinker: node-modules" > .yarnrc.yml
+                  echo "enableScripts: false" >> .yarnrc.yml
+                  echo "yarnPath: .yarn/releases/yarn-3.8.7.cjs" >> .yarnrc.yml
+                fi
                 
-                # Verify the yarn version (should be v3 from prep_environment)
-                echo "Yarn version: $(yarn --version)"
-                echo "Which yarn: $(which yarn)"
-                
-                # Now try yarn set version with clean environment
-                echo "Setting Yarn version to 3.8.7..."
-                yarn set version 3.8.7
-                
-                # Verify version after set
-                echo "Yarn version after set: $(yarn --version)"
-                
-                # Run install with immutable flag for Yarn v3
-                yarn install --immutable
+                # Run install using bundled yarn directly
+                echo "Running install with bundled yarn..."
+                $YARN_CMD install --immutable
           title: Yarn Install
-      - yarn@0:
-          inputs:
-            - command: setup
+      - script@1:
           title: Yarn Setup
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                
+                # Use the same bundled yarn for setup
+                if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
+                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
+                else
+                  echo "ERROR: Bundled yarn not found!"
+                  exit 1
+                fi
+                
+                echo "Running setup with bundled yarn..."
+                $YARN_CMD setup:ci
       - save-cache@1:
           title: Save Yarn cache
           inputs:
