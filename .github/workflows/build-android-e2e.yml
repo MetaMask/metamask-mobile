@@ -48,7 +48,7 @@ jobs:
           platform: android
           setup-simulator: false
           configure-keystores: true
-          target: ${{ inputs.build_type }}
+          target: qa # we're using the qa keystore for e2e builds
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
