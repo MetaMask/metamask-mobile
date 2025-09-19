@@ -122,13 +122,13 @@ jobs:
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
+    if: inputs.browserstack_app_url_android_onboarding == '' || inputs.browserstack_app_url_android_onboarding == null
     secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
-    if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
+    if: inputs.browserstack_app_url_ios_onboarding == '' || inputs.browserstack_app_url_ios_onboarding == null
     secrets: inherit
 
 

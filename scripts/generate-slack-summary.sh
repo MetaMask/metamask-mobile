@@ -23,37 +23,55 @@ if [ -f "$SUMMARY_FILE" ]; then
             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" 2>/dev/null)
         
         if [ $? -eq 0 ] && [ -n "$jobStatuses" ]; then
-            # Check if any imported wallet jobs failed
-            importedWalletFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("Imported Wallet")) | .conclusion' | grep -c "failure" || echo "0")
+            # Check individual platform job statuses
+            androidOnboardingFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("Android") and contains("Onboarding")) | .conclusion' | grep -c "failure" || echo "0")
+            iosOnboardingFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("iOS") and contains("Onboarding")) | .conclusion' | grep -c "failure" || echo "0")
+            androidImportedWalletFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("Android") and contains("Imported Wallet")) | .conclusion' | grep -c "failure" || echo "0")
+            iosImportedWalletFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("iOS") and contains("Imported Wallet")) | .conclusion' | grep -c "failure" || echo "0")
             
-            # Check if any onboarding jobs failed
-            onboardingFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("Onboarding")) | .conclusion' | grep -c "failure" || echo "0")
-            
-            # Set status based on job failures
-            if [ "$importedWalletFailed" -gt 0 ]; then
-                importedWalletStatus=":x: FAILED"
+            # Set status for each platform and test type
+            if [ "$androidOnboardingFailed" -gt 0 ]; then
+                androidOnboardingStatus=":x: FAILED"
             else
-                importedWalletStatus=":white_check_mark: PASSED"
+                androidOnboardingStatus=":white_check_mark: PASSED"
             fi
             
-            if [ "$onboardingFailed" -gt 0 ]; then
-                onboardingStatus=":x: FAILED"
+            if [ "$iosOnboardingFailed" -gt 0 ]; then
+                iosOnboardingStatus=":x: FAILED"
             else
-                onboardingStatus=":white_check_mark: PASSED"
+                iosOnboardingStatus=":white_check_mark: PASSED"
+            fi
+            
+            if [ "$androidImportedWalletFailed" -gt 0 ]; then
+                androidImportedWalletStatus=":x: FAILED"
+            else
+                androidImportedWalletStatus=":white_check_mark: PASSED"
+            fi
+            
+            if [ "$iosImportedWalletFailed" -gt 0 ]; then
+                iosImportedWalletStatus=":x: FAILED"
+            else
+                iosImportedWalletStatus=":white_check_mark: PASSED"
             fi
         else
             # Fallback if API call fails
-            importedWalletStatus=":question: UNKNOWN"
-            onboardingStatus=":question: UNKNOWN"
+            androidOnboardingStatus=":question: UNKNOWN"
+            iosOnboardingStatus=":question: UNKNOWN"
+            androidImportedWalletStatus=":question: UNKNOWN"
+            iosImportedWalletStatus=":question: UNKNOWN"
         fi
     else
         # Fallback: check for test failure indicators in files
         if [ -d "test-results" ] && find test-results -name "*.json" -exec grep -l '"testFailed": true' {} \; | grep -q .; then
-            importedWalletStatus=":x: FAILED"
-            onboardingStatus=":x: FAILED"
+            androidOnboardingStatus=":x: FAILED"
+            iosOnboardingStatus=":x: FAILED"
+            androidImportedWalletStatus=":x: FAILED"
+            iosImportedWalletStatus=":x: FAILED"
         else
-            importedWalletStatus=":white_check_mark: PASSED"
-            onboardingStatus=":white_check_mark: PASSED"
+            androidOnboardingStatus=":white_check_mark: PASSED"
+            iosOnboardingStatus=":white_check_mark: PASSED"
+            androidImportedWalletStatus=":white_check_mark: PASSED"
+            iosImportedWalletStatus=":white_check_mark: PASSED"
         fi
     fi
     
@@ -81,8 +99,12 @@ if [ -f "$SUMMARY_FILE" ]; then
     SUMMARY+="\n"
     SUMMARY+="---------------\n\n"
     SUMMARY+="*Test Results:*\n"
-    SUMMARY+="• Imported Wallet Performance Tests (Android + iOS): $importedWalletStatus\n"
-    SUMMARY+="• Onboarding Performance Tests (Android + iOS): $onboardingStatus\n\n"
+    SUMMARY+="• Onboarding Performance Tests:\n"
+    SUMMARY+="  • Android: $androidOnboardingStatus\n"
+    SUMMARY+="  • iOS: $iosOnboardingStatus\n"
+    SUMMARY+="• Imported Wallet Performance Tests:\n"
+    SUMMARY+="  • Android: $androidImportedWalletStatus\n"
+    SUMMARY+="  • iOS: $iosImportedWalletStatus\n\n"
     SUMMARY+="---------------\n\n"
     SUMMARY+="*Build Info:*\n"
     SUMMARY+="• Commit Hash: \`$GITHUB_SHA\`\n"
