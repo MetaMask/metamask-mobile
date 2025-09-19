@@ -688,11 +688,16 @@ workflows:
                 
                 # On macOS, Yarn is installed via brew and overrides corepack
                 # So we need to upgrade yarn via brew to get v3
+                echo "Current Yarn version before brew: $(yarn --version)"
                 echo "Upgrading Yarn via brew to get v3..."
                 brew upgrade yarn || brew install yarn@$YARN_VERSION || true
                 
+                # Force link the new version
+                brew link --overwrite yarn || true
+                
                 # Verify final yarn version
-                echo "Final Yarn version: $(yarn --version)"
+                echo "Final Yarn version after brew: $(yarn --version)"
+                echo "Yarn path: $(which yarn)"
       - save-cache@1:
           title: Save Node
           inputs:
