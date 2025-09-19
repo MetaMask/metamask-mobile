@@ -41,22 +41,30 @@ async function main() {
   const startTime = Date.now();
 
   try {
-    const sourceApkPath = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
-    const repackedApkPath = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
-    const finalApkPath = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk'; // CI expects this name
+    // Configuration for both APKs
+    const mainSourceApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+    const mainRepackedApk = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
+    const mainFinalApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+    const testSourceApk = 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk';
+    const testRepackedApk = 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest-repack.apk';
+    const testFinalApk = 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk';
     const sourcemapOutputPath = 'sourcemaps/android/index.android.bundle.map';
 
-    logger.info('🚀 Starting Android E2E APK repack process...');
-    logger.info(`Source APK: ${sourceApkPath}`);
-    logger.info(`Repacked APK: ${repackedApkPath}`);
-    logger.info(`Final APK: ${finalApkPath}`);
+    logger.info('🚀 Starting Android E2E APK repack process (BOTH APKs)...');
+    logger.info(`Main Source APK: ${mainSourceApk}`);
+    logger.info(`Test Source APK: ${testSourceApk}`);
+    logger.info(`Repacking both APKs with matching signatures...`);
 
-    // Verify source APK exists
-    if (!fs.existsSync(sourceApkPath)) {
-      throw new Error(`Source APK not found: ${sourceApkPath}`);
+    // Verify both source APKs exist
+    if (!fs.existsSync(mainSourceApk)) {
+      throw new Error(`Main APK not found: ${mainSourceApk}`);
+    }
+    if (!fs.existsSync(testSourceApk)) {
+      throw new Error(`Test APK not found: ${testSourceApk}`);
     }
 
-    logger.info(`Source APK size: ${getFileSize(sourceApkPath)}`);
+    logger.info(`Main APK size: ${getFileSize(mainSourceApk)}`);
+    logger.info(`Test APK size: ${getFileSize(testSourceApk)}`);
 
     // Ensure sourcemap directory exists
     const sourcemapDir = path.dirname(sourcemapOutputPath);
@@ -67,46 +75,79 @@ async function main() {
     // Dynamic import for ES module compatibility
     const { repackAppAndroidAsync } = await import('@expo/repack-app');
 
-    // Create working directory in project filesystem to avoid cross-device issues
-    const workingDir = 'android/app/build/repack-working';
-    if (!fs.existsSync(workingDir)) {
-      fs.mkdirSync(workingDir, { recursive: true });
-      logger.info(`Created working directory: ${workingDir}`);
-    }
+    // Create working directories in same filesystem to avoid cross-device issues
+    const mainWorkingDir = 'android/app/build/repack-working-main';
+    const testWorkingDir = 'android/app/build/repack-working-test';
 
-    // Use official API with working directory and signing for E2E compatibility
+    [mainWorkingDir, testWorkingDir].forEach(dir => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        logger.info(`Created working directory: ${dir}`);
+      }
+    });
+
+    // Common signing configuration for both APKs to ensure matching signatures
+    const signingOptions = {
+      keyStorePath: 'android/app/debug.keystore',
+      keyStorePassword: 'pass:android',
+      keyAlias: 'androiddebugkey', 
+      keyPassword: 'pass:android',
+    };
+
+    // Step 1: Repack main APK with updated JavaScript bundle
+    logger.info('⏱️  Step 1: Repacking main APK with updated JavaScript...');
     await repackAppAndroidAsync({
       platform: 'android',
       projectRoot: process.cwd(),
-      sourceAppPath: sourceApkPath,
-      outputPath: repackedApkPath,
-      workingDirectory: workingDir,  // Force library to use project filesystem
+      sourceAppPath: mainSourceApk,
+      outputPath: mainRepackedApk,
+      workingDirectory: mainWorkingDir,
       verbose: true,
-      androidSigningOptions: {
-        keyStorePath: 'android/app/debug.keystore',
-        keyStorePassword: 'pass:android',
-        keyAlias: 'androiddebugkey',
-        keyPassword: 'pass:android',
-      },
+      androidSigningOptions: signingOptions,
       exportEmbedOptions: {
         sourcemapOutput: sourcemapOutputPath,
       },
       env: process.env,
     });
 
-    // Verify repacked APK was created
-    if (!fs.existsSync(repackedApkPath)) {
-      throw new Error(`Repacked APK not found: ${repackedApkPath}`);
+    // Step 2: Repack test APK to match signature (no JS bundle changes needed)
+    logger.info('⏱️  Step 2: Repacking test APK to match signature...');
+    await repackAppAndroidAsync({
+      platform: 'android',
+      projectRoot: process.cwd(),
+      sourceAppPath: testSourceApk,
+      outputPath: testRepackedApk,
+      workingDirectory: testWorkingDir,
+      verbose: true,
+      androidSigningOptions: signingOptions, // Same signing = matching signature
+      // No exportEmbedOptions needed - test APK doesn't have JS bundle
+      env: process.env,
+    });
+
+    // Verify both repacked APKs were created
+    if (!fs.existsSync(mainRepackedApk)) {
+      throw new Error(`Repacked main APK not found: ${mainRepackedApk}`);
+    }
+    if (!fs.existsSync(testRepackedApk)) {
+      throw new Error(`Repacked test APK not found: ${testRepackedApk}`);
     }
 
-    // Copy repacked APK to final location that CI expects (avoids cross-device issues)
-    logger.info('Copying repacked APK to final location for CI...');
-    fs.copyFileSync(repackedApkPath, finalApkPath);
-    fs.unlinkSync(repackedApkPath);
+    // Copy both repacked APKs to final locations that CI expects
+    logger.info('Copying repacked APKs to final locations for CI...');
+    fs.copyFileSync(mainRepackedApk, mainFinalApk);
+    fs.copyFileSync(testRepackedApk, testFinalApk);
+
+    // Clean up temporary files and directories
+    fs.unlinkSync(mainRepackedApk);
+    fs.unlinkSync(testRepackedApk);
+    fs.rmSync(mainWorkingDir, { recursive: true, force: true });
+    fs.rmSync(testWorkingDir, { recursive: true, force: true });
+    logger.info('Cleaned up temporary APK files and working directories');
 
     const duration = Math.round((Date.now() - startTime) / 1000);
-    logger.success(`🎉 APK repack completed in ${duration}s`);
-    logger.success(`Final APK: ${finalApkPath} (${getFileSize(finalApkPath)})`);
+    logger.success(`🎉 BOTH APKs repack completed in ${duration}s`);
+    logger.success(`Main APK: ${mainFinalApk} (${getFileSize(mainFinalApk)})`);
+    logger.success(`Test APK: ${testFinalApk} (${getFileSize(testFinalApk)})`);
 
     // Check sourcemap
     if (fs.existsSync(sourcemapOutputPath)) {
