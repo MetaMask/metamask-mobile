@@ -74,7 +74,7 @@ async function main() {
       logger.info(`Created working directory: ${workingDir}`);
     }
 
-    // Use official API with working directory in same filesystem
+    // Use official API with working directory and signing for E2E compatibility
     await repackAppAndroidAsync({
       platform: 'android',
       projectRoot: process.cwd(),
@@ -82,6 +82,12 @@ async function main() {
       outputPath: repackedApkPath,
       workingDirectory: workingDir,  // Force library to use project filesystem
       verbose: true,
+      androidSigningOptions: {
+        keyStorePath: 'android/app/debug.keystore',
+        keyStorePassword: 'pass:android',
+        keyAlias: 'androiddebugkey',
+        keyPassword: 'pass:android',
+      },
       exportEmbedOptions: {
         sourcemapOutput: sourcemapOutputPath,
       },
