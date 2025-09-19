@@ -37,7 +37,8 @@ import {
   selectIsSolanaSourced,
   selectBridgeViewMode,
   setBridgeViewMode,
- selectNoFeeAssets } from '../../../../../core/redux/slices/bridge';
+  selectNoFeeAssets,
+} from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
   useRoute,
@@ -368,9 +369,8 @@ const BridgeView = () => {
       activeQuote &&
       new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0);
 
-    const isNoFeeDestinationAsset = noFeeDestAssets?.includes(
-      destToken?.address,
-    );
+    const isNoFeeDestinationAsset =
+      destToken?.address && noFeeDestAssets?.includes(destToken.address);
 
     return (
       activeQuote &&
