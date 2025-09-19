@@ -58,6 +58,7 @@ const mockSelectIsAllNetworks = jest.fn();
 const mockSelectIsPopularNetwork = jest.fn();
 const mockSelectIsEvmNetworkSelected = jest.fn();
 const mockSelectNetworkName = jest.fn();
+const mockSelectMultichainAccountsState2Enabled = jest.fn();
 
 jest.mock('../../../../selectors/networkController', () => ({
   selectIsAllNetworks: () => mockSelectIsAllNetworks(),
@@ -71,6 +72,14 @@ jest.mock('../../../../selectors/multichainNetworkController', () => ({
 jest.mock('../../../../selectors/networkInfos', () => ({
   selectNetworkName: () => mockSelectNetworkName(),
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () =>
+      mockSelectMultichainAccountsState2Enabled(),
+  }),
+);
 
 // Mock typed functions
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
@@ -184,6 +193,7 @@ describe('BaseControlBar', () => {
     mockSelectIsPopularNetwork.mockReturnValue(false);
     mockSelectIsEvmNetworkSelected.mockReturnValue(true);
     mockSelectNetworkName.mockReturnValue('Ethereum Mainnet');
+    mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
   });
 
   const renderComponent = (
@@ -508,6 +518,45 @@ describe('BaseControlBar', () => {
 
       expect(filterButton.props.style).toBeDefined();
       expect(filterButton.props.style.opacity).toBeUndefined();
+    });
+
+    it('should enable button when multichain accounts state 2 is enabled', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+      const disabledNetworkInfo = {
+        ...defaultNetworkInfo,
+        isDisabled: true,
+      };
+      mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
+
+      const { getByTestId } = renderComponent();
+      const filterButton = getByTestId('test-network-filter');
+
+      expect(filterButton.props.disabled).toBe(false);
+    });
+
+    it('should respect custom isDisabled over multichain accounts state', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const { getByTestId } = renderComponent({
+        isDisabled: true,
+      });
+      const filterButton = getByTestId('test-network-filter');
+
+      expect(filterButton.props.disabled).toBe(true);
+    });
+
+    it('should use hook isDisabled when multichain accounts state 2 is disabled', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+      const disabledNetworkInfo = {
+        ...defaultNetworkInfo,
+        isDisabled: true,
+      };
+      mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
+
+      const { getByTestId } = renderComponent();
+      const filterButton = getByTestId('test-network-filter');
+
+      expect(filterButton.props.disabled).toBe(true);
     });
   });
 
