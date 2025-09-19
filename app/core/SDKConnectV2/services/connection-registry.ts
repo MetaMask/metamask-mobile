@@ -86,14 +86,14 @@ export class ConnectionRegistry {
    * 5. Sync the connection list to the host application
    * 6. Hide loading indicator
    */
-  public handleConnectDeeplink: (url: string) => Promise<void> | undefined;
+  public handleConnectDeeplink: (url: string) => void;
 
   private async _handleConnectDeeplink(url: string): Promise<void> {
     let conn: Connection | undefined;
 
     try {
-      const connreq = this.parseConnectionRequest(url);
       this.hostapp.showLoading();
+      const connreq = this.parseConnectionRequest(url);
       conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
       await conn.connect(connreq.sessionRequest);
       this.connections.set(conn.id, conn);
