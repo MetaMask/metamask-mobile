@@ -32,11 +32,7 @@ export function BridgeFeeRow() {
     selectTransactionBridgeQuotesById(state, transactionId),
   );
 
-  const show = isQuotesLoading || Boolean(quotes?.length);
-
-  if (!show) {
-    return null;
-  }
+  const hasQuotes = Boolean(quotes?.length);
 
   if (isQuotesLoading) {
     return (
@@ -50,15 +46,21 @@ export function BridgeFeeRow() {
   return (
     <>
       <InfoRow
+        testID="bridge-fee-row"
         label={strings('confirm.label.transaction_fee')}
-        tooltip={getTooltip(type)}
+        tooltip={hasQuotes ? getTooltip(type) : undefined}
         tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
       >
         <Text>{totalTransactionFeeFormatted}</Text>
       </InfoRow>
-      <InfoRow label={strings('confirm.label.metamask_fee')}>
-        <Text>{fiatFormatter(new BigNumber(0))}</Text>
-      </InfoRow>
+      {hasQuotes && (
+        <InfoRow
+          testID="metamask-fee-row"
+          label={strings('confirm.label.metamask_fee')}
+        >
+          <Text>{fiatFormatter(new BigNumber(0))}</Text>
+        </InfoRow>
+      )}
     </>
   );
 }

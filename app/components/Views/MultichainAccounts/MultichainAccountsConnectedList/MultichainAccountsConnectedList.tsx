@@ -20,6 +20,7 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import Engine from '../../../../core/Engine';
 
 const MultichainAccountsConnectedList = ({
   privacyMode,
@@ -35,19 +36,24 @@ const MultichainAccountsConnectedList = ({
     numOfAccounts: selectedAccountGroups.length,
   });
 
+  const handleSelectAccount = useCallback(
+    (accountGroup: AccountGroupObject) => {
+      const { AccountTreeController } = Engine.context;
+      AccountTreeController.setSelectedAccountGroup(accountGroup.id);
+    },
+    [],
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: AccountGroupObject }) => (
       <AccountListCell
-        isSelected
         accountGroup={item}
-        onSelectAccount={() => {
-          // No op here because it is handled by edit accounts.
-        }}
+        onSelectAccount={handleSelectAccount}
         // @ts-expect-error - This is temporary because the account list cell is being updated in another PR.
         privacyMode={privacyMode}
       />
     ),
-    [privacyMode],
+    [privacyMode, handleSelectAccount],
   );
 
   return (

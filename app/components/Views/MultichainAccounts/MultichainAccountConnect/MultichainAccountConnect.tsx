@@ -62,7 +62,6 @@ import useOriginSource from '../../../hooks/useOriginSource.ts';
 import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
-  getDefaultSelectedChainIds,
 } from '../../AccountConnect/utils.ts';
 import {
   getPhishingTestResultAsync,
@@ -150,7 +149,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
+  const { origin: channelIdOrHostname } = hostInfo.metadata;
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -163,33 +162,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const isOriginWalletConnect =
     !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
 
-  const defaultSelectedChainIds = useMemo(
-    () =>
-      getDefaultSelectedChainIds({
-        isEip1193Request: Boolean(isEip1193Request),
-        isOriginWalletConnect: Boolean(isOriginWalletConnect),
-        isOriginMMSDKRemoteConn: Boolean(isOriginMMSDKRemoteConn),
-        origin: channelIdOrHostname,
-        allNetworksList,
-        supportedRequestedCaipChainIds: allNetworksList,
-        requestedNamespaces,
-      }),
-    [
-      isEip1193Request,
-      isOriginWalletConnect,
-      isOriginMMSDKRemoteConn,
-      channelIdOrHostname,
-      allNetworksList,
-      requestedNamespaces,
-    ],
-  );
-
   const requestedCaipChainIdsWithDefaultSelectedChainIds = useMemo(
-    () =>
-      Array.from(
-        new Set([...requestedCaipChainIds, ...defaultSelectedChainIds]),
-      ),
-    [requestedCaipChainIds, defaultSelectedChainIds],
+    () => Array.from(new Set([...requestedCaipChainIds, ...allNetworksList])),
+    [requestedCaipChainIds, allNetworksList],
   );
 
   const {

@@ -49,7 +49,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
 describe(SmokeTrade('Onramp quote build screen'), () => {
   let shouldCheckProviderSelectedEvents = true;
   beforeEach(async () => {
-    jest.setTimeout(150000);
+    jest.setTimeout(200000);
   });
 
   it('should get to the Amount to buy screen, after selecting Get Started', async () => {

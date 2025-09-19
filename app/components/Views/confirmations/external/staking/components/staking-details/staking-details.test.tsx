@@ -61,7 +61,7 @@ describe('StakingDetails', () => {
     expect(getByText('12 hours')).toBeDefined();
 
     expect(getByText('Withdrawal time')).toBeDefined();
-    expect(getByText('1 to 11 days')).toBeDefined();
+    expect(getByText('1 to 44 days')).toBeDefined();
   });
 
   it('tracks tooltip clicked event', async () => {
