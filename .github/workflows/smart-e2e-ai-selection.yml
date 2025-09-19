@@ -276,7 +276,7 @@ jobs:
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
 
-          <!-- smart-e2e-comment-id: ${{ github.run_id }} -->
+          <!-- smart-e2e-comment-id: ${{ github.event.pull_request.number }} -->
           EOF
 
           # Delete any existing Smart E2E comments and create a new one
@@ -524,7 +524,7 @@ jobs:
 
           _$STATUS_ICON [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Smart E2E AI Selection_
 
-          <!-- smart-e2e-comment-id: ${{ github.run_id }} -->
+          <!-- smart-e2e-comment-id: ${{ github.event.pull_request.number }} -->
           EOF
 
           # Delete existing Smart E2E comment and create final results comment
