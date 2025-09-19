@@ -5173,10 +5173,10 @@
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
 
-"@metamask/eip-5792-middleware@npm:@metamask-previews/eip-5792-middleware@1.1.0-preview-6b2341f8":
-  version "1.1.0-preview-6b2341f8"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/eip-5792-middleware/-/eip-5792-middleware-1.1.0-preview-6b2341f8.tgz#d7b6a17540096d71358e3129f753ac1dc52d8c51"
-  integrity sha512-TqQh54lGhzCwtAZcutlN1CfOV49nAxt27YakWFMPfZVbqP+/Lrs5Y/ObgYPcQsA81UQMsTnHbUWisif8BJLP/Q==
+"@metamask/eip-5792-middleware@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eip-5792-middleware/-/eip-5792-middleware-1.2.0.tgz#c47d9e56caf103ae1c56f883b2e77b42826865cc"
+  integrity sha512-BWTxQlsZLNgCw8fgHH5AtSbNkwSnWSYQC5SndDpIp0byq0YXK8GK+0/DezbNRoAoPbf32QQ3bAYJPawMGcd0Bg==
   dependencies:
     "@metamask/eth-json-rpc-middleware" "^17.0.1"
     "@metamask/superstruct" "^3.1.0"
