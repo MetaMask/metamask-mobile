@@ -5,6 +5,7 @@ import { Hex } from '@metamask/utils';
 
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
+import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import Text, {
   TextVariant,
@@ -23,15 +24,20 @@ import { AvatarSize } from '../../../../../../../component-library/components/Av
 export const NetworkAndOriginRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
-  const chainId = transactionMetadata?.chainId;
-  const origin = transactionMetadata?.origin;
+  const signatureRequest = useSignatureRequest();
+
+  // Get chain ID from either transaction or signature request
+  const chainId = transactionMetadata?.chainId || signatureRequest?.chainId;
+  const origin =
+    transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
+
   const networkConfiguration = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId),
   );
   const isDappOrigin = origin !== MMM_ORIGIN;
   const networkImage = getNetworkImageSource({ chainId: chainId as Hex });
 
-  if (!transactionMetadata) {
+  if (!transactionMetadata && !signatureRequest) {
     return null;
   }
 
