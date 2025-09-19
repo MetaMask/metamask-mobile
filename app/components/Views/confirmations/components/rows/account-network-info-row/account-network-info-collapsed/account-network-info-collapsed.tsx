@@ -29,6 +29,7 @@ import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './account-network-info-collapsed.styles';
+import { selectWalletsMap } from '../../../../../../../selectors/multichainAccounts/accountTreeController';
 
 const AccountNetworkInfoCollapsed = () => {
   const mockAvatarAccountType = useSelector(selectAvatarAccountType);
@@ -36,6 +37,10 @@ const AccountNetworkInfoCollapsed = () => {
     selectMultichainAccountsState2Enabled,
   );
   const { chainId, fromAddress } = useApprovalInfo() ?? {};
+  const walletsMap = useSelector(selectWalletsMap);
+  const haveMoreThanOneWallet = Object.keys(walletsMap).length > 1;
+  const shouldShowWalletName =
+    isMultichainAccountsState2Enabled && haveMoreThanOneWallet;
 
   const { accountName, walletName, accountGroupName } = useAccountInfo(
     fromAddress as string,
@@ -84,9 +89,16 @@ const AccountNetworkInfoCollapsed = () => {
                 {accountGroupName || accountName}
               </Text>
             </View>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {walletName || networkName}
-            </Text>
+            {shouldShowWalletName && (
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {walletName}
+              </Text>
+            )}
+            {!isMultichainAccountsState2Enabled && (
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {networkName}
+              </Text>
+            )}
           </View>
         </View>
         <Icon

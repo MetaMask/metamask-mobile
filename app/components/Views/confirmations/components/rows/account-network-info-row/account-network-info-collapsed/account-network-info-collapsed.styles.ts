@@ -37,6 +37,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     infoContainer: {
       marginLeft: -4,
+      justifyContent: 'center',
     },
   });
 };
