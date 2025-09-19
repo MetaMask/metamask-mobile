@@ -2,134 +2,93 @@
 
 exports[`InfoAddress should match snapshot 1`] = `
 <View
-  accessibilityState={
-    {
-      "busy": undefined,
-      "checked": undefined,
-      "disabled": undefined,
-      "expanded": undefined,
-      "selected": undefined,
-    }
+  style={
+    [
+      {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "borderRadius": 99,
+        "flexDirection": "row",
+        "gap": 5,
+        "paddingVertical": 4,
+      },
+      undefined,
+    ]
   }
-  accessibilityValue={
-    {
-      "max": undefined,
-      "min": undefined,
-      "now": undefined,
-      "text": undefined,
-    }
-  }
-  accessible={true}
-  collapsable={false}
-  focusable={true}
-  onBlur={[Function]}
-  onClick={[Function]}
-  onFocus={[Function]}
-  onResponderGrant={[Function]}
-  onResponderMove={[Function]}
-  onResponderRelease={[Function]}
-  onResponderTerminate={[Function]}
-  onResponderTerminationRequest={[Function]}
-  onStartShouldSetResponder={[Function]}
-  testID="name-0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
 >
   <View
-    style={
-      [
-        {
-          "alignItems": "center",
-          "alignSelf": "center",
-          "borderRadius": 99,
-          "flexDirection": "row",
-          "gap": 5,
-          "paddingVertical": 4,
-        },
-        undefined,
-      ]
+    placeholderStyle={
+      {
+        "backgroundColor": "#f3f5f9",
+      }
     }
+    useNativeDriver={true}
   >
     <View
-      placeholderStyle={
-        {
-          "backgroundColor": "#f3f5f9",
-        }
-      }
-      useNativeDriver={true}
-    >
-      <View
-        onLoadEnd={[Function]}
-        style={
-          {
-            "backgroundColor": "#ffffff",
-            "borderRadius": 8,
-            "height": 32,
-            "overflow": "hidden",
-            "width": 32,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "height": 32,
-              "width": 32,
-            }
-          }
-        />
-      </View>
-      <View
-        collapsable={false}
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "opacity": 1,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-          }
-        }
-      >
-        <View
-          style={
-            [
-              {},
-              {
-                "backgroundColor": "#eee",
-              },
-              {
-                "backgroundColor": "#f3f5f9",
-              },
-            ]
-          }
-        />
-      </View>
-    </View>
-    <View
+      onLoadEnd={[Function]}
       style={
         {
-          "marginLeft": 4,
+          "backgroundColor": "#ffffff",
+          "borderRadius": 6,
+          "height": 24,
+          "overflow": "hidden",
+          "width": 24,
         }
       }
     >
-      <Text
-        accessibilityRole="text"
-        ellipsizeMode="tail"
-        numberOfLines={1}
+      <View
         style={
           {
-            "color": "#121314",
-            "flexShrink": 1,
-            "fontFamily": "Geist Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
+            "height": 24,
+            "width": 24,
           }
         }
-      >
-        Account 1
-      </Text>
+      />
+    </View>
+    <View
+      collapsable={false}
+      style={
+        {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {},
+            {
+              "backgroundColor": "#eee",
+            },
+            {
+              "backgroundColor": "#f3f5f9",
+            },
+          ]
+        }
+      />
     </View>
   </View>
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="middle"
+    numberOfLines={1}
+    style={
+      {
+        "color": "#121314",
+        "flexShrink": 1,
+        "fontFamily": "Geist Regular",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    0xC4955...4D272
+  </Text>
 </View>
 `;
