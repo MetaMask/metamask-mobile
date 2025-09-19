@@ -118,6 +118,7 @@ jobs:
       - name: Set final outputs
         id: set-outputs
         run: |
+          changed_files="${{ steps.filter.outputs.catch_all_files }}" >> "${GITHUB_OUTPUT}"
 
           # Skip if [skip-e2e] tag found or label exists on PR
           if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then
@@ -125,7 +126,6 @@ jobs:
               echo "android_final=false"
               echo "ios_final=false"
               echo "builds=false"
-              echo "changed_files=false"
             } >> "${GITHUB_OUTPUT}"
             echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
             exit 0
@@ -136,7 +136,6 @@ jobs:
           ios="${{ steps.filter.outputs.ios }}"
           shared="${{ steps.filter.outputs.shared }}"
           ignore="${{ steps.filter.outputs.ignore }}"
-          changed_files="${{ steps.filter.outputs.catch_all_files }}"
 
           # Get lists of files
           ignore_files="${{ steps.filter.outputs.ignore_files }}"
@@ -184,16 +183,13 @@ jobs:
               ;;
           esac
 
+          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
+          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
+
           # Check if any builds will happen
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
             builds="true"
           else
             builds="false"
           fi
-
-          {
-            echo "android_final=$android_final"
-            echo "ios_final=$ios_final"
-            echo "changed_files=$changed_files"
-            echo "builds=$builds"
-          } >> "${GITHUB_OUTPUT}"
+          echo "builds=$builds" >> "${GITHUB_OUTPUT}"

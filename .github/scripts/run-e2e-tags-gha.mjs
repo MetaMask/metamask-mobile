@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 
 // Run E2E tests by tag, optionally split across runners.
@@ -343,7 +342,7 @@ async function main() {
   let runFiles = [...splitFiles];
   if (!skipQualityGate) {
     const changedSpecs = (() => {
-      const candidates = [process.env.CHANGED_FILES, process.env.changed_files, process.env.FILES_CHANGED];
+      const candidates = [process.env.CHANGED_FILES];
       let raw = candidates.find((v) => typeof v === 'string' && v.trim().length > 0) || '';
       raw = raw.trim();
       const eqIdx = raw.indexOf('=');
@@ -425,14 +424,7 @@ async function main() {
   }
 }
 
-// ESM entrypoint detection
-const __filename = fileURLToPath(import.meta.url);
-const entryPath = process.argv[1] ? path.resolve(process.argv[1]) : null;
-if (entryPath === __filename) {
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  main();
-}
-
-export { main };
-
-
+main().catch((error) => {
+  console.error('\n❌ Unexpected error:', error);
+  process.exit(1);
+});
