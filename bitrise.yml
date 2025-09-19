@@ -1233,7 +1233,7 @@ workflows:
       - android_e2e_test
   build_flask_e2e_ios:
     envs:
-      - YARN_COMMAND: 'build:ios:flask:e2e'
+      - COMMAND_YARN: 'build:ios:flask:e2e'
     after_run:
       - ios_e2e_build
   # TODO: Remove this workflow since it's not used anymore
@@ -2078,10 +2078,10 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                if [ -n "$YARN_COMMAND" ]; then
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                if [ -n "$COMMAND_YARN" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$COMMAND_YARN"
                 else
-                    echo "No YARN_COMMAND provided. Running yarn build:ios:main:e2e..."
+                    echo "No COMMAND_YARN provided. Running yarn build:ios:main:e2e..."
                     yarn build:ios:main:e2e
                 fi
       - save-cocoapods-cache@1: {}
@@ -2513,8 +2513,8 @@ workflows:
                 done
                 export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
                 
-                if [ -n "$YARN_COMMAND" ]; then
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD "$YARN_COMMAND"
+                if [ -n "$COMMAND_YARN" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD "$COMMAND_YARN"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD build:android:main:local
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
@@ -2551,8 +2551,8 @@ workflows:
                 fi
 
                 # Generate new names based on build type and version
-                if [ -n "$YARN_COMMAND" ]; then
-                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                if [ -n "$COMMAND_YARN" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$COMMAND_YARN" | sed 's/:/-/g')"
                   NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
                   NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
@@ -2822,7 +2822,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
-      - YARN_COMMAND: 'build:android:flask:prod'
+      - COMMAND_YARN: 'build:android:flask:prod'
     after_run:
       - _android_build_template
     meta:
@@ -2837,7 +2837,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
-      - YARN_COMMAND: 'build:android:flask:test'
+      - COMMAND_YARN: 'build:android:flask:test'
     after_run:
       - _android_build_template
     meta:
@@ -2846,7 +2846,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_flask_e2e:
     envs:
-      - YARN_COMMAND: 'build:android:flask:e2e'
+      - COMMAND_YARN: 'build:android:flask:e2e'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_FLASK_UAT_URL
@@ -2868,7 +2868,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
-      - YARN_COMMAND: 'build:android:main:prod'
+      - COMMAND_YARN: 'build:android:main:prod'
     after_run:
       - _android_build_template
     meta:
@@ -2877,7 +2877,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_beta:
     envs:
-      - YARN_COMMAND: 'build:android:main:beta'
+      - COMMAND_YARN: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
@@ -2892,7 +2892,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_rc:
     envs:
-      - YARN_COMMAND: 'build:android:main:rc'
+      - COMMAND_YARN: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
@@ -2907,7 +2907,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_test:
     envs:
-      - YARN_COMMAND: 'build:android:main:test'
+      - COMMAND_YARN: 'build:android:main:test'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -2922,7 +2922,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_e2e:
     envs:
-      - YARN_COMMAND: 'build:android:main:e2e'
+      - COMMAND_YARN: 'build:android:main:e2e'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -2938,7 +2938,7 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_exp:
     envs:
-      - YARN_COMMAND: 'build:android:main:exp'
+      - COMMAND_YARN: 'build:android:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
@@ -3064,7 +3064,7 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'qa'
       - OUTPUT_PATH: 'qaRelease'
-      - YARN_COMMAND: 'build:android:qa:prod'
+      - COMMAND_YARN: 'build:android:qa:prod'
     after_run:
       - _android_build_template
     meta:
@@ -3360,9 +3360,9 @@ workflows:
                 export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
                 
                 echo "This is the current build type: $METAMASK_BUILD_TYPE"
-                if [ -n "$YARN_COMMAND" ]; then
-                    echo "Running YARN_COMMAND: $YARN_COMMAND"
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD "$YARN_COMMAND"
+                if [ -n "$COMMAND_YARN" ]; then
+                    echo "Running COMMAND_YARN: $COMMAND_YARN"
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD "$COMMAND_YARN"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
@@ -3411,8 +3411,8 @@ workflows:
                 fi
 
                 # Generate new name based on build type and version
-                if [ -n "$YARN_COMMAND" ]; then
-                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
+                if [ -n "$COMMAND_YARN" ]; then
+                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$COMMAND_YARN" | sed 's/:/-/g')"
                   NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
                   NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
@@ -3493,13 +3493,13 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
-      - YARN_COMMAND: 'build:ios:main:prod'
+      - COMMAND_YARN: 'build:ios:main:prod'
     after_run:
       - _ios_build_template
   build_ios_main_beta:
     envs:
       - CONFIGURATION: 'Release'
-      - YARN_COMMAND: 'build:ios:main:beta'
+      - COMMAND_YARN: 'build:ios:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3509,7 +3509,7 @@ workflows:
   build_ios_main_rc:
     envs:
       - CONFIGURATION: 'Release'
-      - YARN_COMMAND: 'build:ios:main:rc'
+      - COMMAND_YARN: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3519,7 +3519,7 @@ workflows:
   build_ios_main_exp:
     envs:
       - CONFIGURATION: 'Release'
-      - YARN_COMMAND: 'build:ios:main:exp'
+      - COMMAND_YARN: 'build:ios:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3529,7 +3529,7 @@ workflows:
   build_ios_main_test:
     envs:
       - CONFIGURATION: 'Release'
-      - YARN_COMMAND: 'build:ios:main:test'
+      - COMMAND_YARN: 'build:ios:main:test'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -3545,7 +3545,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
-      - YARN_COMMAND: 'build:ios:main:e2e'
+      - COMMAND_YARN: 'build:ios:main:e2e'
     after_run:
       - _ios_build_template
   build_ios_main_e2e_gns_disabled:
@@ -3557,7 +3557,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
-      - YARN_COMMAND: 'build:ios:main:e2e'
+      - COMMAND_YARN: 'build:ios:main:e2e'
       - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
     after_run:
       - _ios_build_template
@@ -3593,7 +3593,7 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:prod'
+      - COMMAND_YARN: 'build:ios:flask:prod'
     after_run:
       - _ios_build_template
   build_ios_flask_test:
@@ -3603,7 +3603,7 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:test'
+      - COMMAND_YARN: 'build:ios:flask:test'
     after_run:
       - _ios_build_template
   build_ios_flask_e2e:
@@ -3615,7 +3615,7 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:e2e'
+      - COMMAND_YARN: 'build:ios:flask:e2e'
     after_run:
       - _ios_build_template
   build_ios_main_local:
@@ -3625,7 +3625,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
       - INFO_PLIST_NAME: 'Info.plist'
-      - YARN_COMMAND: 'build:ios:main:local'
+      - COMMAND_YARN: 'build:ios:main:local'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
@@ -3645,7 +3645,7 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:local'
+      - COMMAND_YARN: 'build:ios:flask:local'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
@@ -3664,7 +3664,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
-      - YARN_COMMAND: 'build:ios:qa:local'
+      - COMMAND_YARN: 'build:ios:qa:local'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
@@ -3683,7 +3683,7 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
-      - YARN_COMMAND: 'build:ios:qa:prod'
+      - COMMAND_YARN: 'build:ios:qa:prod'
     after_run:
       - _ios_build_template
   # TODO: Remove this workflow once new build configuration is consolidated
