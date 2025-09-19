@@ -1110,8 +1110,10 @@
       "confirmed": "Order Confirmed",
       "cancelling_order": "Cancelling order",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "Cancelling {{detailedOrderType}} order",
       "order_cancelled": "Order cancelled",
       "failed_to_cancel_order": "Failed to cancel order",
+      "order_still_active": "Order still active",
       "funds_have_been_returned_to_you": "Funds have been returned to you",
       "funds_are_available_to_trade": "Funds are available to trade",
       "close_order_still_active": "Close order still active",
@@ -1120,7 +1122,8 @@
       "order_placed": "Order placed",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Order failed",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
+      "order_cancelled_success": "{{detailedOrderType}} order cancelled"
     },
     "close_position": {
       "title": "Close position",
@@ -1147,7 +1150,9 @@
       "success_title": "Position Closed Successfully",
       "position_closed": "Position closed",
       "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "Close Position Failed",
+      "failed_to_close_position": "Failed to close position",
+      "failed_to_partially_close_position": "Failed to partially close position",
+      "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
@@ -1182,7 +1187,8 @@
       "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
-      "below": "below"
+      "below": "below",
+      "dismiss_tpsl_keypad": "Dismiss"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1510,7 +1516,9 @@
     "points": "Points",
     "unable_to_load": "Couldn't load",
     "points_error": "We can't load points right now",
-    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later."
+    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later.",
+    "tp_on_chart": "TP on Chart",
+    "sl_on_chart": "SL on Chart"
   },
   "receive": {
     "title": "Receive"
@@ -4958,7 +4966,7 @@
     "earn_eth_rewards": "Earn ETH rewards.",
     "earn_eth_rewards_description": "Start earning as soon as you stake. Rewards compound automatically.",
     "flexible_unstaking": "Flexible unstaking.",
-    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more": "Learn more",
     "got_it": "Got it",
@@ -4994,7 +5002,7 @@
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
     },
-    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "Max",
     "staking_from": "Staking from",
     "advanced_details": "Advanced details",
@@ -5018,7 +5026,7 @@
       }
     },
     "use_max": "Use max",
-    "estimated_unstaking_time": "1 to 11 days",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
     "select_a_token_to_deposit": "Select a token to deposit",
@@ -5125,7 +5133,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5349,6 +5357,8 @@
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
     "swap_to": "Swap to",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
