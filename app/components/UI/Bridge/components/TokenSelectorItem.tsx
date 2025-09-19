@@ -35,13 +35,13 @@ import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Scree
 import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
 import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../locales/i18n';
 import TagBase, {
   TagShape,
   TagSeverity,
 } from '../../../../component-library/base-components/TagBase';
+import { RootState } from '../../../../reducers';
 
 const createStyles = ({
   theme,
