@@ -56,7 +56,7 @@ import {
   usePerpsTrading,
   usePerpsToasts,
 } from '../../hooks';
-import { usePerpsLiveAccount } from '../../hooks/stream';
+import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import {
   PerpsStreamManager,
   PerpsStreamProvider,
@@ -116,6 +116,41 @@ jest.mock('../../contexts/PerpsOrderContext', () => {
     usePerpsOrderContext: jest.fn(),
   };
 });
+
+// Mock tpslValidation utils
+jest.mock('../../utils/tpslValidation', () => ({
+  calculateRoEForPrice: jest.fn((price: string, isForTakeProfit: boolean, params: { currentPrice: number; direction: 'long' | 'short' }) => {
+    // For stop loss calculations (isForTakeProfit = false)
+    if (!isForTakeProfit && params.currentPrice === 3000) {
+      if (price === '2800' && params.direction === 'long') {
+        return '67'; // Long SL at 2800 vs 3000
+      }
+      if (price === '3200' && params.direction === 'short') {
+        return '67'; // Short SL at 3200 vs 3000
+      }
+      if (price === '2900' && params.direction === 'long') {
+        return '33'; // Long SL at 2900 vs 3000 (safe)
+      }
+      if (price === '3100' && params.direction === 'short') {
+        return '33'; // Short SL at 3100 vs 3000 (safe)
+      }
+    }
+    // For take profit calculations (isForTakeProfit = true)
+    if (isForTakeProfit) {
+      return '0';
+    }
+    return '0';
+  }),
+  isStopLossSafeFromLiquidation: jest.fn((stopLossPrice: string, liquidationPrice: string, direction: string) => {
+    // Return false for risky SLs (to show warning)
+    if ((direction === 'long' && stopLossPrice === '2800' && liquidationPrice === '2850.00') ||
+        (direction === 'short' && stopLossPrice === '3200' && liquidationPrice === '3150.00')) {
+      return false;
+    }
+    // Return true for safe SLs (no warning)
+    return true;
+  }),
+}));
 
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
@@ -264,6 +299,7 @@ jest.mock('../../hooks', () => ({
 // Mock stream hooks
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(),
+  usePerpsLivePrices: jest.fn(),
 }));
 
 // Mock Redux selectors
@@ -599,6 +635,10 @@ describe('PerpsOrderView', () => {
     (usePerpsPrices as jest.Mock).mockReturnValue(
       defaultMockHooks.usePerpsPrices,
     );
+    (usePerpsLivePrices as jest.Mock).mockReturnValue({
+      ETH: { price: '2000.00', change24h: 2.5 },
+      BTC: { price: '45000.00', change24h: 1.8 },
+    });
 
     // Mock the new hooks
     (usePerpsMarketData as jest.Mock).mockReturnValue({
@@ -1022,10 +1062,10 @@ describe('PerpsOrderView', () => {
     });
 
     // Since the default order type is 'market' and no limit price is set,
-    // the hook should be called with the current market price (0 from mock data)
+    // the hook should be called with the current market price (2000 from mock data)
     expect(usePerpsLiquidationPrice).toHaveBeenCalledWith(
       expect.objectContaining({
-        entryPrice: 0, // Current mock price from assetData
+        entryPrice: 2000, // Current mock price from assetData
       }),
     );
   });
@@ -1266,6 +1306,16 @@ describe('PerpsOrderView', () => {
 
   describe('Stop loss liquidation warning', () => {
     it('shows liquidation warning for long position with stop loss below liquidation price', async () => {
+      // Mock higher ETH price for this test
+      (usePerpsPrices as jest.Mock).mockReturnValue({
+        ETH: { price: '3000.00', change24h: 2.5 },
+        BTC: { price: '45000.00', change24h: 1.8 },
+      });
+      (usePerpsLivePrices as jest.Mock).mockReturnValue({
+        ETH: { price: '3000.00', change24h: 2.5 },
+        BTC: { price: '45000.00', change24h: 1.8 },
+      });
+
       // Mock order context with risky stop loss for long position
       (usePerpsOrderContext as jest.Mock).mockReturnValue({
         orderForm: {
@@ -1316,6 +1366,16 @@ describe('PerpsOrderView', () => {
     });
 
     it('shows liquidation warning for short position with stop loss above liquidation price', async () => {
+      // Mock higher ETH price for this test
+      (usePerpsPrices as jest.Mock).mockReturnValue({
+        ETH: { price: '3000.00', change24h: 2.5 },
+        BTC: { price: '45000.00', change24h: 1.8 },
+      });
+      (usePerpsLivePrices as jest.Mock).mockReturnValue({
+        ETH: { price: '3000.00', change24h: 2.5 },
+        BTC: { price: '45000.00', change24h: 1.8 },
+      });
+
       // Mock order context with risky stop loss for short position
       (usePerpsOrderContext as jest.Mock).mockReturnValue({
         orderForm: {
@@ -1366,6 +1426,16 @@ describe('PerpsOrderView', () => {
     });
 
     it('does not show liquidation warning when stop loss is safe for long position', async () => {
+      // Mock higher ETH price for this test
+      (usePerpsPrices as jest.Mock).mockReturnValue({
+        ETH: { price: '3000.00', change24h: 2.5 },
+        BTC: { price: '45000.00', change24h: 1.8 },
+      });
+      (usePerpsLivePrices as jest.Mock).mockReturnValue({
+        ETH: { price: '3000.00', change24h: 2.5 },
+        BTC: { price: '45000.00', change24h: 1.8 },
+      });
+
       // Mock order context with safe stop loss for long position
       (usePerpsOrderContext as jest.Mock).mockReturnValue({
         orderForm: {
@@ -1419,6 +1489,16 @@ describe('PerpsOrderView', () => {
     });
 
     it('does not show liquidation warning when stop loss is safe for short position', async () => {
+      // Mock higher ETH price for this test
+      (usePerpsPrices as jest.Mock).mockReturnValue({
+        ETH: { price: '3000.00', change24h: 2.5 },
+        BTC: { price: '45000.00', change24h: 1.8 },
+      });
+      (usePerpsLivePrices as jest.Mock).mockReturnValue({
+        ETH: { price: '3000.00', change24h: 2.5 },
+        BTC: { price: '45000.00', change24h: 1.8 },
+      });
+
       // Mock order context with safe stop loss for short position
       (usePerpsOrderContext as jest.Mock).mockReturnValue({
         orderForm: {

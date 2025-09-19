@@ -1,10 +1,10 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
+import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectPerpsBalances } from '../selectors/perpsController';
 import { selectConversionRateBySymbol } from '../../../../selectors/currencyRateController';
-import { AccountState } from '../controllers/types';
+import { createTestWrapperWithStreamProvider } from '../__mocks__';
+import { selectPerpsBalances } from '../selectors/perpsController';
+import { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 
 // Mock dependencies
 jest.mock('react-redux');
@@ -20,15 +20,27 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 jest.mock('../selectors/perpsController');
 jest.mock('../../../../selectors/currencyRateController');
+jest.mock('./stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      totalBalance: '1000.00',
+      availableBalance: '750.00',
+      marginUsed: '250.00',
+      unrealizedPnl: '25.50',
+      returnOnEquity: '2.55',
+      totalValue: '1025.50',
+    },
+    isLoading: false,
+    error: null,
+  })),
+}));
 
 describe('usePerpsPortfolioBalance', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-  const mockGetAccountState = Engine.context.PerpsController
-    .getAccountState as jest.MockedFunction<
-    typeof Engine.context.PerpsController.getAccountState
-  >;
+  // Get the mock function directly from the mocked module
+  const streamMocks = jest.requireMock('./stream');
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,7 +64,14 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock the stream provider to return empty account data
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current).toEqual({
         perpsBalance: 0,
@@ -86,12 +105,22 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock the stream provider to return account data that matches the expected calculations
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '1000.00',
+          unrealizedPnl: '25.50',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current).toEqual({
-        perpsBalance: 1000.5,
+        perpsBalance: 1000,
         perpsBalance1dAgo: 950,
-        unrealizedPnl: 50.25,
+        unrealizedPnl: 25.5,
         hasPerpsData: true,
         perpsBalances: mockBalances,
       });
@@ -121,7 +150,18 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock the live account data to match expected aggregated values
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '1500.75', // 1000.50 + 500.25
+          unrealizedPnl: '-25.15', // -50.25 + 25.10
+          // other fields don't matter for this test
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current.perpsBalance).toBeCloseTo(1500.75, 2);
       expect(result.current.perpsBalance1dAgo).toBeCloseTo(1430, 2);
@@ -145,7 +185,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock the live account data to match expected single provider values
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '2500.00',
+          unrealizedPnl: '100.00',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current.perpsBalance).toBe(2500);
       expect(result.current.perpsBalance1dAgo).toBe(2400);
@@ -178,7 +228,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock the live account data for currency conversion test
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '1000.00',
+          unrealizedPnl: '50.00',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current.perpsBalance).toBeCloseTo(850, 2);
       expect(result.current.perpsBalance1dAgo).toBeCloseTo(765, 2);
@@ -202,7 +262,7 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       // Should use fallback rate of 1
       expect(result.current.perpsBalance).toBe(1000);
@@ -211,8 +271,8 @@ describe('usePerpsPortfolioBalance', () => {
     });
   });
 
-  describe('Fetch on mount behavior', () => {
-    it('should fetch account state when fetchOnMount is true and eligible', async () => {
+  describe('Stream integration', () => {
+    it('should handle null account from stream provider', async () => {
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
       (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
@@ -226,16 +286,111 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      mockGetAccountState.mockResolvedValue({} as AccountState);
+      // Mock the stream provider to return null account
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isLoading: false,
+        error: null,
+      });
 
-      renderHook(() => usePerpsPortfolioBalance());
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(1);
+      expect(result.current.perpsBalance).toBe(0);
+      expect(result.current.hasPerpsData).toBe(false);
+    });
+
+    it('should use live account data when available', async () => {
+      const mockSelectConversionRateBySymbol = jest.fn(() => 1);
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
+        mockSelectConversionRateBySymbol,
+      );
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPerpsBalances) return {};
+        if (typeof selector === 'function') {
+          return mockSelectConversionRateBySymbol();
+        }
+        return undefined;
+      });
+
+      // Mock the stream provider to return account data
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '500.00',
+          unrealizedPnl: '25.00',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
+
+      expect(result.current.perpsBalance).toBe(500);
+      expect(result.current.unrealizedPnl).toBe(25);
+      expect(result.current.hasPerpsData).toBe(true);
+    });
+
+    it('should handle loading state from stream provider', async () => {
+      const mockSelectConversionRateBySymbol = jest.fn(() => 1);
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
+        mockSelectConversionRateBySymbol,
+      );
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPerpsBalances) return {};
+        if (typeof selector === 'function') {
+          return mockSelectConversionRateBySymbol();
+        }
+        return undefined;
+      });
+
+      // Mock the stream provider in loading state
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isLoading: true,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
+
+      expect(result.current.perpsBalance).toBe(0);
+      expect(result.current.hasPerpsData).toBe(false);
+    });
+
+    it('should handle stream errors gracefully', async () => {
+      const mockSelectConversionRateBySymbol = jest.fn(() => 1);
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
+        mockSelectConversionRateBySymbol,
+      );
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPerpsBalances) return {};
+        if (typeof selector === 'function') {
+          return mockSelectConversionRateBySymbol();
+        }
+        return undefined;
+      });
+
+      // Mock the stream provider with error state
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isLoading: false,
+        error: new Error('Network error'),
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
+
+      // Should still return default values even if stream has errors
+      expect(result.current).toEqual({
+        perpsBalance: 0,
+        perpsBalance1dAgo: 0,
+        unrealizedPnl: 0,
+        hasPerpsData: false,
+        perpsBalances: {},
       });
     });
 
-    it('should not fetch when fetchOnMount is false', async () => {
+    it('should maintain consistent values across re-renders', async () => {
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
       (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
@@ -249,101 +404,25 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      renderHook(() => usePerpsPortfolioBalance());
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      // Mock consistent account data
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '100.00',
+          unrealizedPnl: '10.00',
+        },
+        isLoading: false,
+        error: null,
       });
 
-      expect(mockGetAccountState).not.toHaveBeenCalled();
-    });
+      const { result, rerender } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
-    it('should not fetch when not eligible', async () => {
-      Engine.context.PerpsController.state.isEligible = false;
-
-      const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
-        mockSelectConversionRateBySymbol,
-      );
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsBalances) return {};
-        if (typeof selector === 'function') {
-          return mockSelectConversionRateBySymbol();
-        }
-        return undefined;
-      });
-
-      renderHook(() => usePerpsPortfolioBalance());
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      expect(mockGetAccountState).not.toHaveBeenCalled();
-    });
-
-    it('should handle fetch errors gracefully', async () => {
-      const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
-        mockSelectConversionRateBySymbol,
-      );
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsBalances) return {};
-        if (typeof selector === 'function') {
-          return mockSelectConversionRateBySymbol();
-        }
-        return undefined;
-      });
-
-      mockGetAccountState.mockRejectedValue(new Error('Network error'));
-
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
-
-      await waitFor(() => {
-        // Should still return default values even if fetch fails
-        expect(result.current).toEqual({
-          perpsBalance: 0,
-          perpsBalance1dAgo: 0,
-          unrealizedPnl: 0,
-          hasPerpsData: false,
-          perpsBalances: {},
-        });
-      });
-    });
-
-    it('should only fetch once even if component re-renders', async () => {
-      const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
-        mockSelectConversionRateBySymbol,
-      );
-
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPerpsBalances) return {};
-        if (typeof selector === 'function') {
-          return mockSelectConversionRateBySymbol();
-        }
-        return undefined;
-      });
-
-      mockGetAccountState.mockResolvedValue({} as AccountState);
-
-      const { rerender } = renderHook(() => usePerpsPortfolioBalance());
-
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(1);
-      });
+      const initialResult = { ...result.current };
 
       // Re-render the hook
       rerender({});
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      // Should still only have been called once
-      expect(mockGetAccountState).toHaveBeenCalledTimes(1);
+      // Values should remain consistent
+      expect(result.current).toEqual(initialResult);
     });
   });
 
@@ -371,7 +450,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock invalid account data from stream to test invalid number handling
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: 'invalid',
+          unrealizedPnl: 'NaN',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       // BigNumber handles invalid values by creating NaN, which .toNumber() converts to NaN for 'invalid'
       // and undefined values are handled with || '0' fallback
@@ -403,7 +492,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock the stream provider to return negative balance data
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '-100.50',
+          unrealizedPnl: '-200.25',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current.perpsBalance).toBe(-100.5);
       expect(result.current.perpsBalance1dAgo).toBe(50);
@@ -433,7 +532,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock the stream provider to return large number data
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '999999999.99',
+          unrealizedPnl: '123456789.12',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current.perpsBalance).toBe(999999999.99);
       expect(result.current.perpsBalance1dAgo).toBe(888888888.88);
@@ -462,7 +571,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock stream data with missing fields to test fallbacks
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '1000.00',
+          // Missing unrealizedPnl field
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current.perpsBalance).toBe(1000);
       expect(result.current.perpsBalance1dAgo).toBe(0);
@@ -498,7 +617,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock stream data that corresponds to the expected values
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '500.00',
+          unrealizedPnl: '25.00',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       // Should only count the valid provider
       expect(result.current.perpsBalance).toBe(500);
@@ -526,7 +655,7 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result, rerender } = renderHook(() => usePerpsPortfolioBalance());
+      const { result, rerender } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       const initialBalance = result.current.perpsBalance;
       const initialPnl = result.current.unrealizedPnl;
@@ -568,7 +697,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result, rerender } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock the stream provider to return initial balance data
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '1000.00',
+          unrealizedPnl: '50.00',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result, rerender } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       const initialBalance = result.current.perpsBalance;
 
@@ -581,6 +720,16 @@ describe('usePerpsPortfolioBalance', () => {
           lastUpdated: Date.now(),
         },
       };
+
+      // Update the stream provider to match the new balances
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '2000.00',
+          unrealizedPnl: '100.00',
+        },
+        isLoading: false,
+        error: null,
+      });
 
       rerender({});
 
@@ -612,7 +761,17 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      const { result, rerender } = renderHook(() => usePerpsPortfolioBalance());
+      // Mock stream data that corresponds to the expected values
+      streamMocks.usePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '1000.00',
+          unrealizedPnl: '50.00',
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result, rerender } = renderHook(() => usePerpsPortfolioBalance(), { wrapper: createTestWrapperWithStreamProvider() });
 
       expect(result.current.perpsBalance).toBe(1000);
 

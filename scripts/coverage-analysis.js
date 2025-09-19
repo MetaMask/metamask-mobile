@@ -6,6 +6,316 @@ const fs = require('fs');
 const path = require('path');
 
 /**
+ * Find test files for changed source files
+ */
+function findImpactedTestFiles(changedFiles, debugMode = false) {
+  const impactedTests = new Set();
+
+  changedFiles.forEach(file => {
+    // 1. Direct test file for the changed source file
+    const directTestFile = file.replace(/\.(ts|tsx|js|jsx)$/, '.test.$1');
+    if (fs.existsSync(directTestFile)) {
+      impactedTests.add(directTestFile);
+      if (debugMode) console.log(`✓ Found test: ${directTestFile}`);
+    }
+
+    // 2. Check for test files in __tests__ directory (alternative pattern)
+    const basename = path.basename(file, path.extname(file));
+    const dirname = path.dirname(file);
+    const testDirPath = path.join(dirname, '__tests__', `${basename}.test.ts`);
+    const testDirPathTsx = path.join(dirname, '__tests__', `${basename}.test.tsx`);
+
+    if (fs.existsSync(testDirPath)) {
+      impactedTests.add(testDirPath);
+      if (debugMode) console.log(`✓ Found test in __tests__: ${testDirPath}`);
+    }
+    if (fs.existsSync(testDirPathTsx)) {
+      impactedTests.add(testDirPathTsx);
+      if (debugMode) console.log(`✓ Found test in __tests__: ${testDirPathTsx}`);
+    }
+  });
+
+  return Array.from(impactedTests);
+}
+
+/**
+ * Run impacted tests and collect results
+ */
+function runImpactedTests(testFiles, debugMode = false) {
+  if (testFiles.length === 0) {
+    return {
+      totalTests: 0,
+      passed: [],
+      failed: [],
+      errors: [],
+      allPassed: true
+    };
+  }
+
+  console.log(`\n🧪 Running ${testFiles.length} impacted test files...`);
+
+  const results = {
+    totalTests: testFiles.length,
+    passed: [],
+    failed: [],
+    errors: [],
+    allPassed: true
+  };
+
+  testFiles.forEach((testFile, index) => {
+    const progress = `[${index + 1}/${testFiles.length}]`;
+    process.stdout.write(`${progress} Testing ${path.basename(testFile)}... `);
+
+    try {
+      const startTime = Date.now();
+      execSync(`npx jest "${testFile}" --passWithNoTests --silent`, {
+        cwd: process.cwd(),
+        stdio: debugMode ? 'inherit' : 'pipe',
+        encoding: 'utf8'
+      });
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      console.log(`✅ (${duration}s)`);
+      results.passed.push({
+        file: testFile,
+        duration: parseFloat(duration)
+      });
+    } catch (error) {
+      console.log('❌');
+      results.allPassed = false;
+
+      // Try to extract meaningful error information
+      const errorInfo = {
+        file: testFile,
+        error: 'Test execution failed'
+      };
+
+      if (error.stdout) {
+        // Parse Jest output for failure details
+        const output = error.stdout.toString();
+        const failureMatch = output.match(/✕ (.+)/g);
+        const errorMatch = output.match(/Error: (.+)/);
+        const typeErrorMatch = output.match(/TypeError: (.+)/);
+
+        errorInfo.failedTests = failureMatch ? failureMatch.map(f => f.replace('✕ ', '')) : [];
+        errorInfo.errorMessage = errorMatch ? errorMatch[1] :
+          typeErrorMatch ? typeErrorMatch[1] :
+            'Unknown error';
+
+        // Check for common issues
+        if (output.includes('Cannot find module')) {
+          errorInfo.category = 'import_error';
+          const moduleMatch = output.match(/Cannot find module '([^']+)'/);
+          if (moduleMatch) errorInfo.missingModule = moduleMatch[1];
+        } else if (output.includes('mock')) {
+          errorInfo.category = 'mock_error';
+        } else if (output.includes('TypeError')) {
+          errorInfo.category = 'type_error';
+        } else {
+          errorInfo.category = 'test_failure';
+        }
+      }
+
+      results.failed.push(errorInfo);
+
+      if (debugMode) {
+        console.error(`\n❌ Error details for ${testFile}:`);
+        console.error(error.stdout ? error.stdout.toString() : error.message);
+      }
+    }
+  });
+
+  return results;
+}
+
+/**
+ * Categorize test failures and provide fix suggestions
+ */
+function analyzeTestFailures(failureResults) {
+  const analysis = {
+    byCategory: {},
+    suggestions: [],
+    priorityFixes: []
+  };
+
+  failureResults.forEach(failure => {
+    const category = failure.category || 'unknown';
+    if (!analysis.byCategory[category]) {
+      analysis.byCategory[category] = [];
+    }
+    analysis.byCategory[category].push(failure.file);
+
+    // Generate fix suggestions based on error category
+    if (category === 'import_error') {
+      analysis.suggestions.push({
+        file: failure.file,
+        issue: `Missing module: ${failure.missingModule || 'unknown'}`,
+        suggestion: 'Check if the import path has changed or if the module needs to be mocked'
+      });
+    } else if (category === 'mock_error') {
+      analysis.suggestions.push({
+        file: failure.file,
+        issue: 'Mock-related failure',
+        suggestion: 'Update mock implementations to match new function signatures or return values'
+      });
+    } else if (category === 'type_error') {
+      analysis.suggestions.push({
+        file: failure.file,
+        issue: `Type error: ${failure.errorMessage}`,
+        suggestion: 'Update TypeScript types or mock types to match refactored code'
+      });
+    }
+  });
+
+  // Identify priority fixes (blocking multiple tests)
+  Object.entries(analysis.byCategory).forEach(([category, files]) => {
+    if (files.length > 2) {
+      analysis.priorityFixes.push({
+        category,
+        affectedCount: files.length,
+        message: `Fix ${category.replace('_', ' ')} issues first - affecting ${files.length} test files`
+      });
+    }
+  });
+
+  return analysis;
+}
+
+/**
+ * Run preflight check to ensure test stability before coverage analysis
+ */
+async function runPreflightCheck(specificFiles = null) {
+  console.log('🚀 Running Preflight Check - Test Stability Analysis\n');
+  console.log('='.repeat(60));
+
+  let changedFiles;
+
+  if (specificFiles && specificFiles.length > 0) {
+    changedFiles = specificFiles.filter(file => fs.existsSync(file));
+  } else {
+    // Get changed files from PR
+    const allChangedFiles = getPRChangedFiles();
+    changedFiles = allChangedFiles;
+    console.log(`📝 Found ${changedFiles.length} changed source files in PR`);
+  }
+
+  if (changedFiles.length === 0) {
+    console.log('No files to analyze');
+    return { success: true, message: 'No changed files to test' };
+  }
+
+  // Find impacted test files
+  const impactedTests = findImpactedTestFiles(changedFiles, false);
+  console.log(`🔍 Found ${impactedTests.length} impacted test files`);
+
+  if (impactedTests.length === 0) {
+    console.log('\n✅ No existing tests impacted by changes - safe to proceed with coverage analysis');
+    return { success: true, changedFiles, impactedTests: [] };
+  }
+
+  // Run the impacted tests
+  const testResults = runImpactedTests(impactedTests, false);
+
+  // Analyze results
+  console.log('\n' + '='.repeat(60));
+  console.log('📊 Preflight Results:\n');
+  console.log(`✅ Passed: ${testResults.passed.length}/${testResults.totalTests} tests`);
+  console.log(`❌ Failed: ${testResults.failed.length}/${testResults.totalTests} tests`);
+
+  if (!testResults.allPassed) {
+    console.log('\n⚠️  Test Failures Detected - Fix These Before Coverage Analysis:\n');
+
+    const failureAnalysis = analyzeTestFailures(testResults.failed);
+
+    // Show priority fixes
+    if (failureAnalysis.priorityFixes.length > 0) {
+      console.log('🔧 Priority Fixes:');
+      failureAnalysis.priorityFixes.forEach(fix => {
+        console.log(`   - ${fix.message}`);
+      });
+      console.log('');
+    }
+
+    // Show individual failures
+    console.log('Failed Tests:');
+    testResults.failed.forEach(failure => {
+      console.log(`\n   ❌ ${path.basename(failure.file)}`);
+      if (failure.errorMessage) {
+        console.log(`      Error: ${failure.errorMessage}`);
+      }
+      if (failure.failedTests && failure.failedTests.length > 0) {
+        console.log(`      Failed cases: ${failure.failedTests.slice(0, 3).join(', ')}${failure.failedTests.length > 3 ? '...' : ''}`);
+      }
+    });
+
+    // Show suggestions
+    if (failureAnalysis.suggestions.length > 0) {
+      console.log('\n💡 Fix Suggestions:');
+      failureAnalysis.suggestions.forEach(suggestion => {
+        console.log(`\n   File: ${path.basename(suggestion.file)}`);
+        console.log(`   Issue: ${suggestion.issue}`);
+        console.log(`   Fix: ${suggestion.suggestion}`);
+      });
+    }
+
+    // Generate report for LLM consumption
+    const reportPath = path.join(__dirname, 'reports', `preflight-failures-${getCurrentBranchName()}.json`);
+    const report = {
+      timestamp: new Date().toISOString(),
+      branch: getCurrentBranchName(),
+      changedFiles,
+      testResults,
+      failureAnalysis,
+      recommendation: 'Fix all test failures before proceeding with coverage improvements'
+    };
+
+    // Ensure reports directory exists
+    const reportsDir = path.join(__dirname, 'reports');
+    if (!fs.existsSync(reportsDir)) {
+      fs.mkdirSync(reportsDir, { recursive: true });
+    }
+
+    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+
+    console.log(`\n📄 Detailed failure report saved to: ${reportPath}`);
+    console.log('\n❌ Preflight check failed - fix test failures before coverage analysis');
+
+    return {
+      success: false,
+      changedFiles,
+      impactedTests,
+      testResults,
+      failureAnalysis,
+      reportPath
+    };
+  }
+
+  // All tests passed
+  console.log('\n✅ All impacted tests passed!');
+
+  // Show slowest tests
+  const slowTests = testResults.passed
+    .sort((a, b) => b.duration - a.duration)
+    .slice(0, 3);
+
+  if (slowTests.length > 0) {
+    console.log('\n⏱️  Slowest tests:');
+    slowTests.forEach(test => {
+      console.log(`   ${test.duration}s - ${path.basename(test.file)}`);
+    });
+  }
+
+  console.log('\n✅ Preflight check passed - safe to proceed with coverage analysis\n');
+
+  return {
+    success: true,
+    changedFiles,
+    impactedTests,
+    testResults
+  };
+}
+
+/**
  * Parse SonarCloud exclusion patterns from sonar-project.properties
  */
 function parseSonarCloudExclusions() {
@@ -545,12 +855,20 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const specificFiles = [];
   let showHelp = false;
+  let runPreflight = false;
+  let preflightOnly = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
     if (arg === '--help' || arg === '-h') {
       showHelp = true;
+    } else if (arg === '--preflight' || arg === '-p') {
+      runPreflight = true;
+      preflightOnly = true; // Only run preflight, not coverage
+    } else if (arg === '--with-preflight') {
+      runPreflight = true;
+      preflightOnly = false; // Run preflight then coverage if successful
     } else if (arg === '--files' || arg === '-f') {
       // Next arguments until next flag are files
       i++;
@@ -568,7 +886,7 @@ function parseArgs() {
     }
   }
 
-  return { specificFiles, showHelp };
+  return { specificFiles, showHelp, runPreflight, preflightOnly };
 }
 
 /**
@@ -576,39 +894,52 @@ function parseArgs() {
  */
 function showHelp() {
   console.log(`
-Coverage Analysis Tool
+Coverage Analysis Tool with Test Stability Check
 
 Usage:
   node scripts/coverage-analysis.js [options] [files...]
 
 Options:
-  --files, -f <files...>    Analyze specific files instead of PR changes
-  --help, -h               Show this help message
+  --preflight, -p          Run preflight check only (test stability)
+  --with-preflight        Run preflight check, then coverage analysis if tests pass
+  --files, -f <files...>  Analyze specific files instead of PR changes
+  --help, -h              Show this help message
 
 Examples:
-  # Analyze all PR changes (default behavior)
+  # Check test stability for PR changes (recommended first step)
+  node scripts/coverage-analysis.js --preflight
+  
+  # Run full workflow: test stability then coverage
+  node scripts/coverage-analysis.js --with-preflight
+
+  # Analyze coverage for all PR changes (skip preflight)
   node scripts/coverage-analysis.js
 
-  # Analyze a specific file
+  # Check test stability for specific files
+  node scripts/coverage-analysis.js --preflight --files FoxIcon.tsx PerpsController.ts
+
+  # Analyze coverage for a specific file
   node scripts/coverage-analysis.js app/components/UI/Perps/components/FoxIcon/FoxIcon.tsx
 
   # Analyze multiple specific files
   node scripts/coverage-analysis.js --files FoxIcon.tsx PerpsController.ts
 
-  # Using relative paths
-  node scripts/coverage-analysis.js app/components/UI/Perps/hooks/usePerpsOrderFees.ts
+Workflow:
+  1. FIRST: Run with --preflight to ensure existing tests pass
+  2. FIX: Address any test failures identified
+  3. THEN: Run coverage analysis to identify gaps
+  4. IMPLEMENT: Add tests to improve coverage
 
 Notes:
-  - File paths can be relative to project root
-  - Only .ts and .tsx files with corresponding .test. files will be analyzed
-  - For specific files, git diff analysis will still show changes vs main branch
-  - Generates both JSON report (programmatic) and LCOV file (LLM integration)
-  - LCOV files can be used by Claude commands for targeted test generation
+  - Preflight check finds tests impacted by your changes
+  - Identifies common failure patterns (mocks, imports, types)
+  - Generates JSON reports for both preflight failures and coverage gaps
+  - LCOV files can be used by LLMs for targeted test generation
 `);
 }
 
-if (require.main === module) {
-  const { specificFiles, showHelp: shouldShowHelp } = parseArgs();
+async function main() {
+  const { specificFiles, showHelp: shouldShowHelp, runPreflight, preflightOnly } = parseArgs();
 
   if (shouldShowHelp) {
     showHelp();
@@ -616,7 +947,35 @@ if (require.main === module) {
   }
 
   const filesToAnalyze = specificFiles.length > 0 ? specificFiles : null;
-  analyzeCoverage(filesToAnalyze).catch(console.error);
+
+  if (runPreflight) {
+    const preflightResult = await runPreflightCheck(filesToAnalyze);
+
+    if (!preflightResult.success) {
+      // Exit with error code if preflight failed
+      process.exit(1);
+    }
+
+    if (preflightOnly) {
+      // If only running preflight, exit successfully
+      process.exit(0);
+    }
+
+    // If --with-preflight and tests passed, continue to coverage analysis
+    console.log('\n' + '='.repeat(60));
+    console.log('📊 Proceeding to Coverage Analysis...\n');
+  }
+
+  // Run coverage analysis (either standalone or after successful preflight)
+  await analyzeCoverage(filesToAnalyze);
 }
 
-module.exports = { analyzeCoverage };
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
+
+module.exports = { analyzeCoverage, runPreflightCheck };
+

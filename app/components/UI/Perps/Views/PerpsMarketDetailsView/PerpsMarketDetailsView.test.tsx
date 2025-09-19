@@ -22,18 +22,9 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
 
-// Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
-jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
-  usePerpsLiveAccount: jest.fn(),
-}));
-
-// Get reference to the mocked function
-const mockUsePerpsLiveAccount = jest.requireMock(
-  '../../hooks/stream/usePerpsLiveAccount',
-).usePerpsLiveAccount;
 
 // Create mock functions that can be modified during tests
-const mockUsePerpsAccount = jest.fn();
+const mockUsePerpsLiveAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 
 // Navigation mock functions
@@ -90,8 +81,10 @@ jest.mock('../../hooks/useHasExistingPosition', () => ({
   useHasExistingPosition: () => mockUseHasExistingPosition(),
 }));
 
-jest.mock('../../hooks/usePerpsAccount', () => ({
-  usePerpsAccount: () => mockUsePerpsAccount(),
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: () => mockUsePerpsLiveAccount(),
+  usePerpsLiveOrders: jest.fn(() => []),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock the selector module first
@@ -185,7 +178,6 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: () => mockUsePerpsAccount(),
   usePerpsConnection: () => ({
     isConnected: true,
     isConnecting: false,
@@ -352,23 +344,17 @@ const initialState = {
 describe('PerpsMarketDetailsView', () => {
   // Set up default mock return values before each test
   beforeEach(() => {
-    mockUsePerpsAccount.mockReturnValue({
-      availableBalance: '1000.00',
-      totalBalance: '1000.00',
-      marginUsed: '0.00',
-      unrealizedPnl: '0.00',
-    });
-
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '1000',
-        totalBalance: '1000',
-        marginUsed: '0',
-        unrealizedPnl: '0',
-        returnOnEquity: '0',
-        totalValue: '1000',
+        availableBalance: '1000.00',
+        totalBalance: '1000.00',
+        marginUsed: '0.00',
+        unrealizedPnl: '0.00',
+        returnOnEquity: '0.00',
+        totalValue: '1000.00',
       },
-      isInitialLoading: false,
+      isLoading: false,
+      error: null,
     });
 
     mockUseHasExistingPosition.mockReturnValue({
@@ -553,23 +539,17 @@ describe('PerpsMarketDetailsView', () => {
   describe('Button rendering scenarios', () => {
     it('renders add funds button when user balance is zero', () => {
       // Override with zero balance
-      mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '0.00',
-        totalBalance: '0.00',
-        marginUsed: '0.00',
-        unrealizedPnl: '0.00',
-      });
-
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalValue: '0',
+          availableBalance: '0.00',
+          totalBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalValue: '0.00',
         },
-        isInitialLoading: false,
+        isLoading: false,
+        error: null,
       });
 
       const { getByText, getByTestId, queryByTestId } = renderWithProvider(
@@ -600,11 +580,17 @@ describe('PerpsMarketDetailsView', () => {
 
     it('renders long/short buttons when user has balance and existing position', () => {
       // Override with non-zero balance and existing position
-      mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '1000.00',
-        totalBalance: '1500.00',
-        marginUsed: '500.00',
-        unrealizedPnl: '50.00',
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '1000.00',
+          totalBalance: '1500.00',
+          marginUsed: '500.00',
+          unrealizedPnl: '50.00',
+          returnOnEquity: '3.33',
+          totalValue: '1550.00',
+        },
+        isLoading: false,
+        error: null,
       });
 
       mockUseHasExistingPosition.mockReturnValue({
@@ -967,23 +953,17 @@ describe('PerpsMarketDetailsView', () => {
 
     it('navigates to deposit screen when add funds button is pressed', async () => {
       // Set zero balance to show add funds button
-      mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '0.00',
-        totalBalance: '0.00',
-        marginUsed: '0.00',
-        unrealizedPnl: '0.00',
-      });
-
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalValue: '0',
+          availableBalance: '0.00',
+          totalBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalValue: '0.00',
         },
-        isInitialLoading: false,
+        isLoading: false,
+        error: null,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1085,23 +1065,17 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       // Set zero balance to show add funds button
-      mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '0.00',
-        totalBalance: '0.00',
-        marginUsed: '0.00',
-        unrealizedPnl: '0.00',
-      });
-
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalValue: '0',
+          availableBalance: '0.00',
+          totalBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalValue: '0.00',
         },
-        isInitialLoading: false,
+        isLoading: false,
+        error: null,
       });
 
       const { getByTestId, getByText } = renderWithProvider(

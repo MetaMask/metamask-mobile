@@ -42,14 +42,12 @@ export class E2EControllerOverrides {
     console.log('E2E Mock: Intercepted placeOrder:', params.coin);
     const result = await this.mockService.mockPlaceOrder(params);
 
-    // Update Redux state to reflect the new position/balance
+    // Update Redux state to reflect the new balance
     const mockAccount = this.mockService.getMockAccountState();
-    const mockPositions = this.mockService.getMockPositions();
 
     (this.controller as ControllerWithUpdate).update(
       (state: PerpsControllerState) => {
         state.accountState = mockAccount;
-        state.positions = mockPositions;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null;
       },
@@ -86,19 +84,10 @@ export class E2EControllerOverrides {
     return mockAccount;
   }
 
-  // Mock positions with Redux update
+  // Mock positions (now handled by stream provider)
   async getPositions(): Promise<Position[]> {
     console.log('E2E Mock: Intercepted getPositions');
     const mockPositions = this.mockService.getMockPositions();
-
-    // Update Redux state
-    (this.controller as ControllerWithUpdate).update(
-      (state: PerpsControllerState) => {
-        state.positions = mockPositions;
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null;
-      },
-    );
 
     return mockPositions;
   }
@@ -116,14 +105,12 @@ export class E2EControllerOverrides {
       params.size,
     );
 
-    // Update Redux state to reflect the position closure
+    // Update Redux state to reflect the account balance changes
     const mockAccount = this.mockService.getMockAccountState();
-    const mockPositions = this.mockService.getMockPositions();
 
     (this.controller as ControllerWithUpdate).update(
       (state: PerpsControllerState) => {
         state.accountState = mockAccount;
-        state.positions = mockPositions;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null;
       },
@@ -255,17 +242,14 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     // no-op if structure differs
   }
   const mockAccount = mockService.getMockAccountState();
-  const mockPositions = mockService.getMockPositions();
 
   console.log('Initializing Redux state with mock data:', {
     availableBalance: mockAccount.availableBalance,
     totalBalance: mockAccount.totalBalance,
-    positionsCount: mockPositions.length,
   });
 
   (controller as ControllerWithUpdate).update((state: PerpsControllerState) => {
     state.accountState = mockAccount;
-    state.positions = mockPositions;
     state.lastUpdateTimestamp = Date.now();
     state.lastError = null;
     state.connectionStatus = 'connected';

@@ -84,6 +84,7 @@ describe('PerpsStreamManager', () => {
       subscribeToOrders: mockSubscribeToOrders,
       subscribeToPositions: mockSubscribeToPositions,
       subscribeToAccount: mockSubscribeToAccount,
+      isCurrentlyReinitializing: jest.fn(() => false),
     } as unknown as typeof mockEngine.context.PerpsController;
 
     mockDevLogger.log = jest.fn();
@@ -648,14 +649,11 @@ describe('PerpsStreamManager', () => {
       // Should notify with empty data after clearing
       expect(onUpdate).toHaveBeenCalledWith({});
 
-      // Should reconnect after delay
-      act(() => {
-        jest.advanceTimersByTime(100);
-      });
-
-      await waitFor(() => {
-        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
-      });
+      // The clearCache implementation deliberately doesn't auto-reconnect to prevent race conditions
+      // Reconnection should happen when new data is needed by existing subscribers
+      // Since clearCache already disconnected and notified subscribers with empty data,
+      // we don't expect an immediate reconnection
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
     });
 
     it('should cleanup prewarm subscription when clearing price cache', async () => {
@@ -848,7 +846,7 @@ describe('PerpsStreamManager', () => {
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
-    it('should reconnect after clearing cache if there are active subscribers', async () => {
+    it('should disconnect but not auto-reconnect when clearing cache with active subscribers', async () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -869,15 +867,12 @@ describe('PerpsStreamManager', () => {
         testStreamManager.prices.clearCache();
       });
 
-      // Advance timer to trigger reconnection
-      act(() => {
-        jest.advanceTimersByTime(100);
-      });
+      // Should disconnect the existing subscription
+      expect(mockUnsubscribe).toHaveBeenCalled();
 
-      // Should reconnect
-      await waitFor(() => {
-        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
-      });
+      // clearCache deliberately doesn't auto-reconnect to prevent race conditions
+      // Even with active subscribers, no new connection is made immediately
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
     });
 
     it('should not reconnect if no active subscribers', async () => {

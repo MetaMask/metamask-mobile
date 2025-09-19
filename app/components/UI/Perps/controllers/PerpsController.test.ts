@@ -13,6 +13,7 @@ import {
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { CandlePeriod } from '../constants/chartConfig';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AssetRoute } from './types';
 import Engine from '../../../../core/Engine';
 import {
@@ -139,9 +140,12 @@ describe('PerpsController', () => {
     mockHyperLiquidProvider = createMockHyperLiquidProvider();
 
     // Mock the HyperLiquidProvider constructor
-    (
-      HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
-    ).mockImplementation(() => mockHyperLiquidProvider);
+    const MockedHyperLiquidProvider =
+      HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>;
+    MockedHyperLiquidProvider.mockReset();
+    MockedHyperLiquidProvider.mockImplementation(
+      () => mockHyperLiquidProvider,
+    );
 
     // Set up default behaviors for utility functions to prevent test failures
     // Tests that need specific behaviors can override these defaults
@@ -155,11 +159,11 @@ describe('PerpsController', () => {
   /**
    * Helper function to create a PerpsController with proper messenger setup
    */
-  function withController<ReturnValue>(
-    fn: (args: {
-      controller: PerpsController;
-      messenger: TestMessenger;
-    }) => ReturnValue,
+function withController<ReturnValue>(
+  fn: (args: {
+    controller: PerpsController;
+    messenger: TestMessenger;
+  }) => ReturnValue,
     options: {
       state?: Partial<PerpsControllerState>;
       clientConfig?: { fallbackBlockedRegions?: string[] };
@@ -220,15 +224,32 @@ describe('PerpsController', () => {
       clientConfig,
     });
 
-    return fn({ controller, messenger });
+  return fn({ controller, messenger });
+}
+
+const initializeController = async (
+  controller: PerpsController,
+  options: { advanceTimers?: boolean } = {},
+) => {
+  const { advanceTimers = false } = options;
+  const initialization = controller.initializeProviders();
+
+  if (advanceTimers) {
+    try {
+      jest.advanceTimersByTime(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+    } catch (_error) {
+      // Timers are not mocked for this test; fall back to awaiting the promise directly
+    }
   }
+
+  await initialization;
+};
 
   describe('constructor', () => {
     it('should initialize with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPerpsControllerState());
         expect(controller.state.activeProvider).toBe('hyperliquid');
-        expect(controller.state.positions).toEqual([]);
         expect(controller.state.accountState).toBeNull();
         expect(controller.state.connectionStatus).toBe('disconnected');
         expect(controller.state.isEligible).toBe(false);
@@ -240,38 +261,12 @@ describe('PerpsController', () => {
       const customState: Partial<PerpsControllerState> = {
         activeProvider: 'hyperliquid',
         isTestnet: false,
-        positions: [
-          {
-            coin: 'BTC',
-            size: '1.0',
-            entryPrice: '50000',
-            positionValue: '50000',
-            unrealizedPnl: '1000',
-            marginUsed: '25000',
-            leverage: {
-              type: 'isolated',
-              value: 2,
-            },
-            liquidationPrice: '40000',
-            maxLeverage: 100,
-            returnOnEquity: '4.0',
-            cumulativeFunding: {
-              allTime: '0',
-              sinceOpen: '0',
-              sinceChange: '0',
-            },
-            takeProfitCount: 0,
-            stopLossCount: 0,
-          },
-        ],
       };
 
       withController(
         ({ controller }) => {
           expect(controller.state.activeProvider).toBe('hyperliquid');
           expect(controller.state.isTestnet).toBe(false);
-          expect(controller.state.positions).toHaveLength(1);
-          expect(controller.state.positions[0].coin).toBe('BTC');
         },
         { state: customState },
       );
@@ -547,13 +542,13 @@ describe('PerpsController', () => {
   });
 
   describe('provider management', () => {
-    it('should get active provider', () => {
-      withController(({ controller }) => {
+    it('should get active provider', async () => {
+      await withController(async ({ controller }) => {
         // Mock provider initialization
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
         // Initialize first to avoid the error
-        controller.initializeProviders();
+        await initializeController(controller);
 
         // Should not throw when properly initialized
         expect(() => controller.getActiveProvider()).not.toThrow();
@@ -617,11 +612,10 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.getPositions.mockResolvedValue(mockPositions);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.getPositions();
 
         expect(result).toEqual(mockPositions);
-        expect(controller.state.positions).toEqual(mockPositions);
         expect(controller.state.lastError).toBeNull();
         expect(mockHyperLiquidProvider.getPositions).toHaveBeenCalled();
       });
@@ -643,7 +637,7 @@ describe('PerpsController', () => {
         );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.getAccountState();
 
         expect(result).toEqual(mockAccountState);
@@ -661,11 +655,10 @@ describe('PerpsController', () => {
         );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         await expect(controller.getPositions()).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
-        expect(controller.state.positions).toEqual([]); // Should not modify positions on error
       });
     });
   });
@@ -690,7 +683,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.placeOrder(orderParams);
 
         expect(result).toEqual(mockOrderResult);
@@ -718,7 +711,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.placeOrder(orderParams);
 
         expect(result).toEqual(mockOrderResult);
@@ -765,7 +758,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.placeOrder(orderParams);
 
         expect(result).toEqual(mockOrderResult);
@@ -812,7 +805,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.placeOrder(orderParams);
 
         // Order should still succeed without discount
@@ -850,7 +843,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.placeOrder.mockResolvedValue(mockOrderResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.placeOrder(orderParams);
 
         expect(result).toEqual(mockOrderResult);
@@ -880,7 +873,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.cancelOrder.mockResolvedValue(mockCancelResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.cancelOrder(cancelParams);
 
         expect(result).toEqual(mockCancelResult);
@@ -912,7 +905,7 @@ describe('PerpsController', () => {
         );
 
         // Should not throw, but should log error
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Error should be logged but controller should continue to work
         expect(controller.state.lastError).toBe(null); // initializeProviders doesn't update state directly
@@ -962,7 +955,7 @@ describe('PerpsController', () => {
           new Error('Network timeout'),
         );
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         await expect(controller.getAccountState()).rejects.toThrow(
           'Network timeout',
@@ -979,7 +972,7 @@ describe('PerpsController', () => {
           'String error instead of Error object',
         );
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         await expect(controller.getMarkets()).rejects.toBeDefined();
         expect(controller.state.lastError).toBe('MARKETS_FAILED');
@@ -1007,7 +1000,7 @@ describe('PerpsController', () => {
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.placeOrder(orderParams);
 
         // Order should succeed but discount lookup should fail gracefully
@@ -1024,7 +1017,7 @@ describe('PerpsController', () => {
         // Use type assertion for this specific test case where we need to test null handling
         mockHyperLiquidProvider.getAccountState.mockResolvedValue(null as any);
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         await expect(controller.getAccountState()).rejects.toThrow(
           'Failed to get account state: received null/undefined response',
@@ -1037,12 +1030,12 @@ describe('PerpsController', () => {
   });
 
   describe('live data subscriptions', () => {
-    it('should subscribe to price updates', () => {
-      withController(({ controller }) => {
+    it('should subscribe to price updates', async () => {
+      await withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         mockHyperLiquidProvider.subscribeToPrices.mockReturnValue(jest.fn());
 
-        controller.initializeProviders();
+        await initializeController(controller);
 
         const params = {
           symbols: ['BTC', 'ETH'],
@@ -1058,12 +1051,12 @@ describe('PerpsController', () => {
       });
     });
 
-    it('should subscribe to position updates', () => {
-      withController(({ controller }) => {
+    it('should subscribe to position updates', async () => {
+      await withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         mockHyperLiquidProvider.subscribeToPositions.mockReturnValue(jest.fn());
 
-        controller.initializeProviders();
+        await initializeController(controller);
 
         const params = {
           callback: jest.fn(),
@@ -1078,14 +1071,14 @@ describe('PerpsController', () => {
       });
     });
 
-    it('should subscribe to order fill updates', () => {
-      withController(({ controller }) => {
+    it('should subscribe to order fill updates', async () => {
+      await withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         mockHyperLiquidProvider.subscribeToOrderFills.mockReturnValue(
           jest.fn(),
         );
 
-        controller.initializeProviders();
+        await initializeController(controller);
 
         const params = {
           callback: jest.fn(),
@@ -1100,12 +1093,12 @@ describe('PerpsController', () => {
       });
     });
 
-    it('should configure live data settings', () => {
-      withController(({ controller }) => {
+    it('should configure live data settings', async () => {
+      await withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         mockHyperLiquidProvider.setLiveDataConfig.mockReturnValue(undefined);
 
-        controller.initializeProviders();
+        await initializeController(controller);
 
         const config = {
           priceThrottleMs: 1000,
@@ -1143,7 +1136,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.editOrder.mockResolvedValue(mockEditResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.editOrder(editParams);
 
         expect(result).toEqual(mockEditResult);
@@ -1171,7 +1164,7 @@ describe('PerpsController', () => {
         );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.closePosition(closeParams);
 
         expect(result).toEqual(mockCloseResult);
@@ -1196,7 +1189,7 @@ describe('PerpsController', () => {
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         await controller.placeOrder(orderParams);
 
         // Verify trace was called with correct parameters
@@ -1234,7 +1227,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.getMarkets.mockResolvedValue(mockMarkets);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.getMarkets();
 
         expect(result).toEqual(mockMarkets);
@@ -1262,7 +1255,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.getMarkets.mockResolvedValue(mockMarkets);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.getMarkets({ symbols: ['BTC'] });
 
         expect(result).toHaveLength(1);
@@ -1326,7 +1319,7 @@ describe('PerpsController', () => {
           },
         ]);
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.withdraw(withdrawParams);
 
         // Verify result returned from provider
@@ -1373,7 +1366,7 @@ describe('PerpsController', () => {
           },
         ]);
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.withdraw(withdrawParams);
 
         // Verify result returned from provider
@@ -1400,7 +1393,7 @@ describe('PerpsController', () => {
           error: 'assetId is required for withdrawals',
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const result = await controller.withdraw(withdrawParams);
 
@@ -1441,7 +1434,7 @@ describe('PerpsController', () => {
             error: 'Amount must be a positive number',
           });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Test zero amount
         const resultZero = await controller.withdraw(withdrawParamsZero);
@@ -1494,7 +1487,7 @@ describe('PerpsController', () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.withdraw.mockResolvedValue(mockErrorResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const result = await controller.withdraw(withdrawParams);
 
@@ -1521,7 +1514,7 @@ describe('PerpsController', () => {
           new Error(errorMessage),
         );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const result = await controller.withdraw(withdrawParams);
 
@@ -1547,7 +1540,7 @@ describe('PerpsController', () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.withdraw.mockResolvedValue(mockErrorResult);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const result = await controller.withdraw(withdrawParams);
 
@@ -1592,7 +1585,7 @@ describe('PerpsController', () => {
           },
         });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Clear initial state
         controller.state.lastDepositResult = null;
@@ -1671,7 +1664,7 @@ describe('PerpsController', () => {
           },
         });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act
         const { result } = await controller.depositWithConfirmation();
@@ -1731,7 +1724,7 @@ describe('PerpsController', () => {
           };
         });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act
         const { result } = await controller.depositWithConfirmation();
@@ -1767,7 +1760,7 @@ describe('PerpsController', () => {
           mockDepositRoute,
         ]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Test each cancellation message variant
         for (const message of cancellationMessages) {
@@ -1833,7 +1826,7 @@ describe('PerpsController', () => {
           };
         });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act
         const { result } = await controller.depositWithConfirmation();
@@ -1873,7 +1866,7 @@ describe('PerpsController', () => {
           mockEngineContext.TransactionController.addTransaction as jest.Mock
         ).mockRejectedValue(mockError);
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act & Assert
         await expect(controller.depositWithConfirmation()).rejects.toBe(
@@ -1937,7 +1930,7 @@ describe('PerpsController', () => {
           },
         });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act
         await controller.depositWithConfirmation();
@@ -1960,7 +1953,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act & Assert
         await expect(
@@ -1993,7 +1986,7 @@ describe('PerpsController', () => {
           },
         });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act
         await controller.depositWithConfirmation();
@@ -2064,7 +2057,7 @@ describe('PerpsController', () => {
     it('should switch provider successfully', async () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const result = await controller.switchProvider('hyperliquid');
 
@@ -2078,7 +2071,7 @@ describe('PerpsController', () => {
     it('should handle switch to non-existent provider', async () => {
       withController(async ({ controller }) => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const result = await controller.switchProvider('nonexistent');
 
@@ -2095,7 +2088,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         mockHyperLiquidProvider.disconnect.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         await controller.disconnect();
 
         expect(mockHyperLiquidProvider.disconnect).toHaveBeenCalled();
@@ -2106,7 +2099,7 @@ describe('PerpsController', () => {
       withController(async ({ controller }) => {
         // Arrange
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Clear providers to force getActiveProvider to throw
         // @ts-ignore - Accessing private property for testing
@@ -2182,7 +2175,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         (mockHyperLiquidProvider as any).clientService = mockClientService;
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act
         const result = await controller.fetchHistoricalCandles(
@@ -2214,7 +2207,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         (mockHyperLiquidProvider as any).clientService = mockClientService;
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act & Assert
         await expect(
@@ -2234,7 +2227,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         // Don't add clientService to simulate unsupported provider
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act & Assert
         await expect(
@@ -2274,7 +2267,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
         (mockHyperLiquidProvider as any).clientService = mockClientService;
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Act
         const result = await controller.fetchHistoricalCandles(
@@ -2534,6 +2527,7 @@ describe('PerpsController', () => {
       mockHyperLiquidProvider.validateOrder.mockResolvedValue(mockResult);
 
       await withController(async ({ controller }) => {
+        await initializeController(controller);
         const result = await controller.validateOrder(mockParams);
 
         expect(mockHyperLiquidProvider.validateOrder).toHaveBeenCalledWith(
@@ -2572,6 +2566,7 @@ describe('PerpsController', () => {
       );
 
       await withController(async ({ controller }) => {
+        await initializeController(controller);
         const result = await controller.validateClosePosition(mockParams);
 
         expect(
@@ -2609,6 +2604,7 @@ describe('PerpsController', () => {
       mockHyperLiquidProvider.validateWithdrawal.mockResolvedValue(mockResult);
 
       await withController(async ({ controller }) => {
+        await initializeController(controller);
         const result = await controller.validateWithdrawal(mockParams);
 
         expect(mockHyperLiquidProvider.validateWithdrawal).toHaveBeenCalledWith(
@@ -2637,7 +2633,7 @@ describe('PerpsController', () => {
   describe('getBlockExplorerUrl', () => {
     it('should delegate to active provider', async () => {
       withController(async ({ controller }) => {
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const mockUrl = 'https://app.hyperliquid.xyz/explorer/address/0x123';
         mockHyperLiquidProvider.getBlockExplorerUrl.mockReturnValue(mockUrl);
@@ -2653,7 +2649,7 @@ describe('PerpsController', () => {
 
     it('should get base URL when no address provided', async () => {
       withController(async ({ controller }) => {
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const mockBaseUrl = 'https://app.hyperliquid.xyz/explorer';
         mockHyperLiquidProvider.getBlockExplorerUrl.mockReturnValue(
@@ -2671,7 +2667,7 @@ describe('PerpsController', () => {
 
     it('should handle testnet URLs', async () => {
       withController(async ({ controller }) => {
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         const mockTestnetUrl =
           'https://app.hyperliquid-testnet.xyz/explorer/address/0x456';
@@ -2732,7 +2728,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.getOrderFills.mockResolvedValue(mockOrderFills);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.getOrderFills(params);
 
         expect(result).toEqual(mockOrderFills);
@@ -2751,7 +2747,7 @@ describe('PerpsController', () => {
         );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         await expect(controller.getOrderFills()).rejects.toThrow(errorMessage);
       });
@@ -2812,7 +2808,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.getOrders.mockResolvedValue(mockOrders);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.getOrders(params);
 
         expect(result).toEqual(mockOrders);
@@ -2829,7 +2825,7 @@ describe('PerpsController', () => {
         );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         await expect(controller.getOrders()).rejects.toThrow(errorMessage);
       });
@@ -2865,7 +2861,7 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.getFunding.mockResolvedValue(mockFunding);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         const result = await controller.getFunding(params);
 
         expect(result).toEqual(mockFunding);
@@ -2882,7 +2878,7 @@ describe('PerpsController', () => {
         );
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         await expect(controller.getFunding()).rejects.toThrow(errorMessage);
       });
@@ -3324,17 +3320,6 @@ describe('PerpsController', () => {
 
       await withController(async ({ controller }) => {
         // Set up initial state with data
-        controller.state.positions = [
-          {
-            coin: 'BTC',
-            szi: '1.5',
-            entryPx: '50000',
-            positionValue: '75000',
-            returnOnEquity: '0.15',
-            unrealizedPnl: '1000',
-            marginUsed: '5000',
-          } as any,
-        ];
         controller.state.accountState = {
           marginSummary: {
             accountValue: '10000',
@@ -3356,7 +3341,6 @@ describe('PerpsController', () => {
         await controller.reconnectWithNewContext();
 
         // Verify state was cleared
-        expect(controller.state.positions).toEqual([]);
         expect(controller.state.accountState).toBeNull();
         expect(controller.state.pendingOrders).toEqual([]);
         expect(controller.state.lastError).toBeNull();
@@ -3416,7 +3400,6 @@ describe('PerpsController', () => {
 
       await withController(async ({ controller }) => {
         // Set some initial state
-        controller.state.positions = [{ coin: 'BTC' } as any];
         controller.state.accountState = { account: 'test' } as any;
         controller.state.pendingOrders = [{ oid: '123' } as any];
 
@@ -3426,7 +3409,6 @@ describe('PerpsController', () => {
         );
 
         // State should still be cleared even on error (cleared before the error)
-        expect(controller.state.positions).toEqual([]);
         expect(controller.state.accountState).toBeNull();
         expect(controller.state.pendingOrders).toEqual([]);
 
@@ -3453,8 +3435,6 @@ describe('PerpsController', () => {
 
       await withController(async ({ controller }) => {
         // Set up initial state
-        controller.state.positions = [{ coin: 'ETH' } as any];
-
         // Reconnect
         await controller.reconnectWithNewContext();
 
@@ -3524,7 +3504,7 @@ describe('PerpsController', () => {
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Ensure mainnet (not testnet)
         controller.state.isTestnet = false;
@@ -3584,7 +3564,7 @@ describe('PerpsController', () => {
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
 
         // Set to testnet
         controller.state.isTestnet = true;
@@ -3626,7 +3606,7 @@ describe('PerpsController', () => {
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         controller.state.isTestnet = false;
 
         // Place order
@@ -3688,7 +3668,7 @@ describe('PerpsController', () => {
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         controller.state.isTestnet = false;
 
         // Close position
@@ -3730,7 +3710,7 @@ describe('PerpsController', () => {
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         controller.state.isTestnet = false;
 
         // Place order
@@ -3784,7 +3764,7 @@ describe('PerpsController', () => {
         });
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
-        await controller.initializeProviders();
+        await initializeController(controller);
         controller.state.isTestnet = false;
 
         // Place order
@@ -4294,7 +4274,6 @@ describe('PerpsController', () => {
             "lastWithdrawResult": null,
             "pendingOrders": [],
             "perpsBalances": {},
-            "positions": [],
             "withdrawInProgress": false,
           }
         `);
@@ -4323,7 +4302,6 @@ describe('PerpsController', () => {
             },
             "isTestnet": false,
             "perpsBalances": {},
-            "positions": [],
           }
         `);
       });
@@ -4357,7 +4335,6 @@ describe('PerpsController', () => {
             "lastDepositTransactionId": null,
             "lastWithdrawResult": null,
             "perpsBalances": {},
-            "positions": [],
             "withdrawInProgress": false,
           }
         `);
@@ -4442,7 +4419,7 @@ describe('PerpsController', () => {
           );
           mockHyperLiquidProvider.setUserFeeDiscount = jest.fn();
 
-          await controller.initializeProviders();
+          await initializeController(controller);
 
           await expect(controller.placeOrder(orderParams)).rejects.toThrow(
             'Order placement failed',
@@ -4477,7 +4454,7 @@ describe('PerpsController', () => {
               throw new Error('Cleanup failed');
             });
 
-          await controller.initializeProviders();
+          await initializeController(controller);
 
           await expect(controller.placeOrder(orderParams)).rejects.toThrow(
             'Order placement failed',
