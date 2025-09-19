@@ -32,7 +32,6 @@ import {
 import { selectRampWalletAddress } from '../../../../../selectors/ramp';
 import { RootState } from '../../../../../reducers';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
-import { store } from '../../../../../store';
 import Engine from '../../../../../core/Engine';
 import { RampIntent, RampType, Region } from '../types';
 
@@ -225,20 +224,22 @@ export const RampSDKProvider = ({
       return;
     }
 
-    const currentAddressForAsset = selectRampWalletAddress(
-      store.getState(),
-      selectedAsset,
-    );
     const { AccountsController } = Engine.context;
     const currentAccount = AccountsController.getSelectedAccount();
 
+    // Reset asset when current account cannot support it
+    // For Solana assets: reset if current account doesn't have Solana scopes
+    // For EVM assets: they should work on any account in multichain mode
+    // TODO: In the future we may have Solana-only accounts so this will need to be updated
     if (
-      currentAddressForAsset === currentAccount.address &&
-      selectedAsset.network?.chainId?.startsWith('solana:')
+      selectedAsset.network?.chainId?.startsWith('solana:') &&
+      currentAccount.address === selectedAddress &&
+      !currentAccount.scopes?.some((scope) => scope.startsWith('solana:'))
     ) {
       setSelectedAsset(null);
     }
-  }, [selectedAddress, selectedAsset, isMultichainAccountsState2Enabled]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAddress, isMultichainAccountsState2Enabled]);
 
   const setSelectedRegionCallback = useCallback(
     (region: Region | null) => {
