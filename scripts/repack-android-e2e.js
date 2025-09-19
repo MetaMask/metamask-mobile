@@ -13,7 +13,7 @@ const path = require('path');
 const CONFIG = {
   platform: 'android',
   sourceApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-  outputApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release-repacked.apk',
+  outputApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk', // ← Fixed: overwrites original
   tempApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release-temp.apk',
   bundleOutputPath: 'android/app/build/generated/assets/createBundleProdRelease/index.android.bundle',
   sourcemapOutputPath: 'sourcemaps/android/index.android.bundle.map',
@@ -119,31 +119,6 @@ function generateJavaScriptBundle() {
 }
 
 /**
- * Verify Expo configuration for repack-app
- */
-function verifyExpoConfig() {
-  logger.info('Verifying Expo configuration...');
-  
-  // Check for app.config.js
-  if (!fs.existsSync('app.config.js')) {
-    throw new Error('app.config.js not found - required for @expo/repack-app');
-  }
-  
-  try {
-    const config = require(path.resolve('app.config.js'));
-    if (!config.android || !config.android.package) {
-      throw new Error('Android package ID not found in app.config.js - add android.package configuration');
-    }
-    logger.success(`Android package configured: ${config.android.package}`);
-  } catch (error) {
-    if (error.message.includes('Android package')) {
-      throw error;
-    }
-    logger.warn('Could not verify Expo config, but continuing...');
-  }
-}
-
-/**
  * Use @expo/repack-app to repack the APK with new bundle
  */
 function repackApk() {
@@ -155,9 +130,6 @@ function repackApk() {
   }
 
   logger.info(`Source APK: ${CONFIG.sourceApkPath} (${getFileSize(CONFIG.sourceApkPath)})`);
-
-  // Verify Expo configuration
-  verifyExpoConfig();
 
   // Prepare repack command
   const repackCommand = [
@@ -177,14 +149,17 @@ function repackApk() {
   }
 
   // Replace original APK with repacked version
+  // Note: sourceApkPath and outputApkPath are the same, so we're overwriting the original
   if (fs.existsSync(CONFIG.outputApkPath)) {
+    logger.info(`Replacing original APK with repacked version...`);
     fs.unlinkSync(CONFIG.outputApkPath);
   }
 
-  // Move temp APK to final location
+  // Move temp APK to final location (overwrites original)
   fs.renameSync(CONFIG.tempApkPath, CONFIG.outputApkPath);
 
   logger.success(`APK repacked successfully: ${CONFIG.outputApkPath} (${getFileSize(CONFIG.outputApkPath)})`);
+  logger.success(`Original APK has been replaced with repacked version`);
 }
 
 /**
