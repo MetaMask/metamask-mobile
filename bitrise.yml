@@ -2497,17 +2497,32 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                set -e
                 node -v
+                
+                # Use bundled yarn for all build commands to avoid legacy config issues
+                if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
+                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
+                else
+                  YARN_CMD="yarn"
+                fi
+                
+                # Clear yarn environment variables for build commands too
+                for var in $(env | grep ^YARN | cut -d= -f1); do
+                  unset $var
+                done
+                export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
+                
                 if [ -n "$YARN_COMMAND" ]; then
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD "$YARN_COMMAND"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:local
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD build:android:main:local
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
-                    yarn build:android:pre-release:bundle
+                    $YARN_CMD build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
-                    yarn build:android:pre-release:bundle:beta
+                    $YARN_CMD build:android:pre-release:bundle:beta
                 elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    yarn build:android:pre-release:bundle:flask
+                    $YARN_CMD build:android:pre-release:bundle:flask
                 else
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
@@ -3329,25 +3344,41 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo 'This is the current build type: $METAMASK_BUILD_TYPE'
+                set -e
+                
+                # Use bundled yarn for all build commands to avoid legacy config issues
+                if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
+                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
+                else
+                  YARN_CMD="yarn"
+                fi
+                
+                # Clear yarn environment variables for build commands too
+                for var in $(env | grep ^YARN | cut -d= -f1); do
+                  unset $var
+                done
+                export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
+                
+                echo "This is the current build type: $METAMASK_BUILD_TYPE"
                 if [ -n "$YARN_COMMAND" ]; then
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                    echo "Running YARN_COMMAND: $YARN_COMMAND"
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD "$YARN_COMMAND"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD start:ios:e2e:flask
                       else
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD start:ios:e2e
                       fi
                     else
-                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:main:local
+                      GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD build:ios:main:local
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
-                    yarn build:ios:pre-release
+                    $YARN_CMD build:ios:pre-release
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
-                    yarn build:ios:pre-beta
+                    $YARN_CMD build:ios:pre-beta
                 elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    yarn build:ios:pre-flask
+                    $YARN_CMD build:ios:pre-flask
                 else
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
