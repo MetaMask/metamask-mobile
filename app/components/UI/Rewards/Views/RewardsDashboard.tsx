@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useState,
   useRef,
+  useContext,
 } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -53,12 +54,16 @@ import RewardsActivity from '../components/Tabs/RewardsActivity';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { useUnlockedRewards } from '../hooks/useUnlockedRewards';
+import Toast, {
+  ToastContext,
+} from '../../../../component-library/components/Toast';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const theme = useTheme();
   const { colors } = theme;
+  const { toastRef } = useContext(ToastContext);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
   const dispatch = useDispatch();
@@ -322,6 +327,7 @@ const RewardsDashboard: React.FC = () => {
           </TabsList>
         </Box>
       </SafeAreaView>
+      <Toast ref={toastRef} />
     </ErrorBoundary>
   );
 };

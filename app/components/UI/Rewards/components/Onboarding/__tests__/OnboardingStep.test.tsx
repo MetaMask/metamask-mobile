@@ -211,13 +211,6 @@ describe('OnboardingStep', () => {
     renderWithProviders(<OnboardingStep {...defaultProps} />);
     // Gesture should be enabled by default
   });
-
-  it('should be disabled when enableSwipeGestures is false', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} enableSwipeGestures={false} />,
-    );
-    // Gestures should be disabled
-  });
 });
 
 describe('image and background rendering', () => {
@@ -331,17 +324,8 @@ describe('swipe gesture functionality', () => {
     expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
   });
 
-  it('should use custom swipeThreshold when provided', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} swipeThreshold={100} />,
-    );
-    expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
-  });
-
   it('should handle swipe gestures when enabled', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} enableSwipeGestures />,
-    );
+    renderWithProviders(<OnboardingStep {...defaultProps} />);
 
     const container = screen.getByTestId('onboarding-step-container');
     expect(container).toBeDefined();
@@ -359,9 +343,7 @@ describe('swipe gesture functionality', () => {
   });
 
   it('should not handle gestures when disabled', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} enableSwipeGestures={false} />,
-    );
+    renderWithProviders(<OnboardingStep {...defaultProps} />);
 
     const container = screen.getByTestId('onboarding-step-container');
     expect(container).toBeDefined();

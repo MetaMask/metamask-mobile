@@ -24,6 +24,7 @@ import {
   type UnlockedRewardsState,
   type RewardDto,
   CURRENT_SEASON_ID,
+  ClaimRewardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -65,7 +66,7 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 60 minutes
 
 // Unlocked rewards cache threshold
-const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 /**
  * State metadata for the RewardsController
@@ -319,6 +320,10 @@ export class RewardsController extends BaseController<
       'RewardsController:getUnlockedRewards',
       this.getUnlockedRewards.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:claimReward',
+      this.claimReward.bind(this),
+    );
   }
 
   /**
@@ -407,48 +412,6 @@ export class RewardsController extends BaseController<
       subscriptionId,
     );
     return this.state.unlockedRewards[compositeKey] || null;
-  }
-
-  /**
-   * Convert PointsBoostDto to serializable format for storage
-   */
-  #convertBoostsToSerializable(
-    boosts: PointsBoostDto[],
-  ): ActiveBoostsState['boosts'] {
-    return boosts.map((boost) => ({
-      id: boost.id,
-      name: boost.name,
-      icon: {
-        lightModeUrl: boost.icon.lightModeUrl,
-        darkModeUrl: boost.icon.darkModeUrl,
-      },
-      boostBips: boost.boostBips,
-      seasonLong: boost.seasonLong,
-      startDate: boost.startDate?.getTime(),
-      endDate: boost.endDate?.getTime(),
-      backgroundColor: boost.backgroundColor,
-    }));
-  }
-
-  /**
-   * Convert serializable format back to PointsBoostDto
-   */
-  #convertBoostsFromSerializable(
-    serializedBoosts: ActiveBoostsState['boosts'],
-  ): PointsBoostDto[] {
-    return serializedBoosts.map((boost) => ({
-      id: boost.id,
-      name: boost.name,
-      icon: {
-        lightModeUrl: boost.icon.lightModeUrl,
-        darkModeUrl: boost.icon.darkModeUrl,
-      },
-      boostBips: boost.boostBips,
-      seasonLong: boost.seasonLong,
-      startDate: boost.startDate ? new Date(boost.startDate) : undefined,
-      endDate: boost.endDate ? new Date(boost.endDate) : undefined,
-      backgroundColor: boost.backgroundColor,
-    }));
   }
 
   /**
@@ -1441,6 +1404,14 @@ export class RewardsController extends BaseController<
         },
       );
 
+      // Invalidate cache for the linked account
+      this.#invalidateSubscriptionCache(updatedSubscription.id);
+      // Emit event to trigger UI refresh
+      this.messagingSystem.publish('RewardsController:accountLinked', {
+        subscriptionId: updatedSubscription.id,
+        account: caipAccount,
+      });
+
       return true;
     } catch (error) {
       Logger.log(
@@ -1558,7 +1529,7 @@ export class RewardsController extends BaseController<
           maxAge: Math.round(ACTIVE_BOOSTS_CACHE_THRESHOLD_MS / 1000),
         },
       );
-      return this.#convertBoostsFromSerializable(cachedActiveBoosts.boosts);
+      return cachedActiveBoosts.boosts;
     }
 
     try {
@@ -1581,7 +1552,7 @@ export class RewardsController extends BaseController<
       // Update state with cached active boosts
       this.update((state: RewardsControllerState) => {
         state.activeBoosts[compositeKey] = {
-          boosts: this.#convertBoostsToSerializable(response.boosts),
+          boosts: response.boosts,
           lastFetched: Date.now(),
         };
       });
@@ -1680,5 +1651,98 @@ export class RewardsController extends BaseController<
       );
       return [];
     }
+  }
+
+  /**
+   * Claim a reward
+   * @param rewardId - The reward ID
+   * @param dto - The claim reward request body
+   * @param subscriptionId - The subscription ID for authentication
+   */
+  async claimReward(
+    rewardId: string,
+    subscriptionId: string,
+    dto?: ClaimRewardDto,
+  ): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    try {
+      await this.messagingSystem.call(
+        'RewardsDataService:claimReward',
+        rewardId,
+        subscriptionId,
+        dto,
+      );
+
+      // Invalidate cache for the active subscription
+      this.#invalidateSubscriptionCache(subscriptionId);
+
+      // Emit event to trigger UI refresh
+      this.messagingSystem.publish('RewardsController:rewardClaimed', {
+        rewardId,
+        subscriptionId,
+      });
+
+      Logger.log('RewardsController: Successfully claimed reward', {
+        rewardId,
+        subscriptionId,
+      });
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to claim reward:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Invalidate cached data for a subscription
+   * @param subscriptionId - The subscription ID to invalidate cache for
+   * @param seasonId - The season ID (defaults to current season)
+   */
+  #invalidateSubscriptionCache(
+    subscriptionId: string,
+    seasonId?: string,
+  ): void {
+    if (seasonId) {
+      // Invalidate specific season
+      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+        seasonId,
+        subscriptionId,
+      );
+      this.update((state: RewardsControllerState) => {
+        delete state.seasonStatuses[compositeKey];
+        delete state.unlockedRewards[compositeKey];
+        delete state.activeBoosts[compositeKey];
+      });
+    } else {
+      // Invalidate all seasons for this subscription
+      this.update((state: RewardsControllerState) => {
+        Object.keys(state.seasonStatuses).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.seasonStatuses[key];
+          }
+        });
+        Object.keys(state.unlockedRewards).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.unlockedRewards[key];
+          }
+        });
+        Object.keys(state.activeBoosts).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.activeBoosts[key];
+          }
+        });
+      });
+    }
+
+    Logger.log(
+      'RewardsController: Invalidated cache for subscription',
+      subscriptionId,
+      seasonId || 'all seasons',
+    );
   }
 }

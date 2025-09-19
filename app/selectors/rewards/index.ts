@@ -41,5 +41,15 @@ export const selectRewardsActiveAccountHasOptedIn = createSelector(
     rewardsControllerState.activeAccount?.hasOptedIn ?? null,
 );
 
+export const selectRewardsActiveAccountAddress = createSelector(
+  selectRewardsControllerState,
+  (rewardsControllerState): string | null => {
+    const account = rewardsControllerState.activeAccount?.account;
+    if (!account) return null;
+    const parts = account.split(':');
+    return parts[parts.length - 1];
+  },
+);
+
 export const selectHideUnlinkedAccountsBanner = (state: RootState): boolean =>
   state.rewards.hideUnlinkedAccountsBanner;

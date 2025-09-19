@@ -21,6 +21,7 @@ import type {
   OptOutDto,
   PointsBoostEnvelopeDto,
   RewardDto,
+  ClaimRewardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -118,6 +119,11 @@ export interface RewardsDataServiceGetUnlockedRewardsAction {
   handler: RewardsDataService['getUnlockedRewards'];
 }
 
+export interface RewardsDataServiceClaimRewardAction {
+  type: `${typeof SERVICE_NAME}:claimReward`;
+  handler: RewardsDataService['claimReward'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -134,7 +140,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
   | RewardsDataServiceGetActivePointsBoostsAction
-  | RewardsDataServiceGetUnlockedRewardsAction;
+  | RewardsDataServiceGetUnlockedRewardsAction
+  | RewardsDataServiceClaimRewardAction;
 
 export type RewardsDataServiceMessenger = RestrictedMessenger<
   typeof SERVICE_NAME,
@@ -235,6 +242,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getUnlockedRewards`,
       this.getUnlockedRewards.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:claimReward`,
+      this.claimReward.bind(this),
     );
   }
 
@@ -721,5 +732,31 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as RewardDto[];
+  }
+
+  /**
+   * Claim a reward.
+   * @param rewardId - The ID of the reward to claim.
+   * @param dto - The claim reward request body.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The claim reward DTO.
+   */
+  async claimReward(
+    rewardId: string,
+    subscriptionId: string,
+    dto?: ClaimRewardDto,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      `/wr/rewards/${rewardId}/claim`,
+      {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to claim reward: ${response.status}`);
+    }
   }
 }

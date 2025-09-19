@@ -25,8 +25,8 @@ const OnboardingStep2: React.FC = () => {
   }, [dispatch, navigation]);
 
   const handlePrevious = useCallback(() => {
-    dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-    navigation.navigate(Routes.WALLET_VIEW);
+    dispatch(setOnboardingActiveStep(OnboardingStep.STEP_1));
+    navigation.navigate(Routes.REWARDS_ONBOARDING_1);
   }, [dispatch, navigation]);
 
   const renderStepImage = () => (

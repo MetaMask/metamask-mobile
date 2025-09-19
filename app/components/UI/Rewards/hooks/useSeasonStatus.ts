@@ -6,6 +6,7 @@ import { setSeasonStatusLoading } from '../../../../reducers/rewards';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 /**
  * Custom hook to fetch and manage season status data from the rewards API
@@ -46,4 +47,9 @@ export const useSeasonStatus = (): void => {
   useEffect(() => {
     fetchSeasonStatus();
   }, [fetchSeasonStatus]);
+
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    fetchSeasonStatus,
+  );
 };

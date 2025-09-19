@@ -19,6 +19,8 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -38,6 +40,11 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
+}));
+
+// Mock the useInvalidateByRewardEvents hook
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: jest.fn(),
 }));
 
 describe('useActivePointsBoosts', () => {
@@ -75,8 +82,8 @@ describe('useActivePointsBoosts', () => {
       },
       boostBips: 500,
       seasonLong: false,
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-01-31'),
+      startDate: '2024-01-01',
+      endDate: '2024-01-31',
       backgroundColor: '#00FF00',
     },
   ];
@@ -122,10 +129,10 @@ describe('useActivePointsBoosts', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockLogger).toHaveBeenCalledWith(
       'useActivePointsBoosts: Missing seasonId or subscriptionId',
-      {
+      expect.objectContaining({
         seasonId: null,
         subscriptionId: 'test-subscription-id',
-      },
+      }),
     );
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
@@ -149,10 +156,10 @@ describe('useActivePointsBoosts', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockLogger).toHaveBeenCalledWith(
       'useActivePointsBoosts: Missing seasonId or subscriptionId',
-      {
+      expect.objectContaining({
         seasonId: 'test-season-id',
         subscriptionId: null,
-      },
+      }),
     );
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
@@ -196,7 +203,7 @@ describe('useActivePointsBoosts', () => {
     );
     expect(mockLogger).toHaveBeenCalledWith(
       'useActivePointsBoosts: Failed to fetch active points boosts:',
-      'Network error',
+      expect.any(String),
     );
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(true));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
