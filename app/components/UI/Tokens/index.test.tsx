@@ -430,9 +430,11 @@ describe('Tokens', () => {
     };
     const { findByText } = renderComponent(testState);
 
-    expect(
-      await findByText(strings('wallet.unable_to_find_conversion_rate')),
-    ).toBeDefined();
+    await waitFor(() => {
+      expect(
+        findByText(strings('wallet.unable_to_find_conversion_rate')),
+      ).toBeDefined();
+    });
   });
 
   it('does not call goToAddEvmToken when non-EVM network is selected', () => {
