@@ -221,7 +221,7 @@ jobs:
           echo "$REASONING" >> $GITHUB_STEP_SUMMARY
 
           # Add test file breakdown if available
-          BREAKDOWN=$(echo "$RESULT" | jq -r '.testFileBreakdown[]? | "  - " + .tag + ": " + (.fileCount | tostring) + " files → " + (.recommendedSplits | tostring) + " splits"')
+          BREAKDOWN=$(echo "$RESULT" | jq -r '.testFileBreakdown[]? | "  - " + .tag + ": " + (.fileCount | tostring) + " files → " + (.recommendedSplits | tostring) + " splits"' | tr '\n' '\n')
           if [ -n "$BREAKDOWN" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 📊 Test File Breakdown" >> $GITHUB_STEP_SUMMARY
@@ -235,6 +235,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Post AI analysis to PR
         env:
           GH_TOKEN: ${{ github.token }}
@@ -253,7 +256,7 @@ jobs:
           - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
 
           **Test File Breakdown:**
-          ${{ needs.analyze-and-plan.outputs.breakdown }}
+          ${{ needs.analyze-and-plan.outputs.breakdown || '(No breakdown available)' }}
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
           EOF
