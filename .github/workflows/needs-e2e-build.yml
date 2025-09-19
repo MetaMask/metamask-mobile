@@ -118,7 +118,11 @@ jobs:
       - name: Set final outputs
         id: set-outputs
         run: |
-          changed_files="${{ steps.filter.outputs.catch_all_files }}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "changed_files<<EOF"
+            echo "${{ steps.filter.outputs.catch_all_files }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
           # Skip if [skip-e2e] tag found or label exists on PR
           if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then
