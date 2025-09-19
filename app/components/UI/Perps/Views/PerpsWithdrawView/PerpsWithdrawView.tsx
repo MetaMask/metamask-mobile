@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { Animated, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { captureException } from '@sentry/react-native';
 
 import {
   Box,
@@ -72,6 +73,8 @@ import Button, {
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
+const USDC_TOKEN_URL =
+  'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png';
 
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
@@ -250,6 +253,11 @@ const PerpsWithdrawView: React.FC = () => {
     navigation.goBack();
 
     // Execute withdrawal asynchronously
+    // Get the correct assetId for USDC on Arbitrum (declare outside try block for error handling)
+    const assetId = isTestnet
+      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+
     try {
       // Execute withdrawal directly using controller
       const controller = Engine.context.PerpsController;
@@ -257,11 +265,6 @@ const PerpsWithdrawView: React.FC = () => {
       // Construct assetId in CAIP format: eip155:{chainId}/erc20:{tokenAddress}/default
       // Convert hex chainId to decimal for CAIP format
       const chainIdDecimal = parseInt(destToken.chainId, 16).toString();
-
-      // Get the correct assetId for USDC on Arbitrum
-      const assetId = isTestnet
-        ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-        : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
 
       DevLogger.log('Initiating withdrawal with params:', {
         amount: withdrawAmountDetailed,
@@ -319,6 +322,27 @@ const PerpsWithdrawView: React.FC = () => {
       endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
       endMeasure(
         PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+      );
+
+      // Capture exception with withdrawal context
+      captureException(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          tags: {
+            component: 'PerpsWithdrawView',
+            action: 'financial_withdrawal',
+            operation: 'financial_operations',
+          },
+          extra: {
+            withdrawalContext: {
+              amount: withdrawAmountDetailed,
+              assetId,
+              destination: destToken.address,
+              chainId: destToken.chainId,
+              isTestnet,
+            },
+          },
+        },
       );
 
       // Track withdrawal failed
@@ -481,9 +505,8 @@ const PerpsWithdrawView: React.FC = () => {
             >
               <AvatarToken
                 name={destToken.symbol}
-                imageSource={
-                  destToken.image ? { uri: destToken.image } : undefined
-                }
+                // hardcoding usdc token image url until we support other withdrawal token types
+                imageSource={{ uri: USDC_TOKEN_URL }}
                 size={AvatarSize.Sm}
               />
             </BadgeWrapper>

@@ -27,6 +27,7 @@ import * as UseNotificationsModule from '../../../util/notifications/hooks/useNo
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/wallet/NotificationsView.selectors';
 
 const navigationMock = {
   navigate: jest.fn(),
@@ -34,7 +35,7 @@ const navigationMock = {
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(() => ({})),
+  useNavigation: jest.fn().mockReturnValue({}),
 }));
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
@@ -104,12 +105,14 @@ describe('NotificationsView - header', () => {
 });
 
 describe('NotificationsView - content', () => {
-  it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+  it('shows empty container when no notifications are available', () => {
+    const { getByTestId } = renderWithProvider(
       <NotificationsView navigation={navigationMock} />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER),
+    ).toBeOnTheScreen();
   });
 });
 

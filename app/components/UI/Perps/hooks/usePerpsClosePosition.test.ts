@@ -32,9 +32,12 @@ const mockPerpsToastOptions = {
         full: {
           closeFullPositionInProgress: jest.fn(),
           closeFullPositionSuccess: {},
+          closeFullPositionFailed: {},
         },
         partial: {
           closePartialPositionInProgress: jest.fn(),
+          closePartialPositionSuccess: {},
+          closePartialPositionFailed: {},
         },
       },
       limitClose: {
@@ -75,6 +78,8 @@ describe('usePerpsClosePosition', () => {
       sinceOpen: '5',
       sinceChange: '2',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   beforeEach(() => {
@@ -119,12 +124,17 @@ describe('usePerpsClosePosition', () => {
       expect(result.current.isClosing).toBe(false);
       expect(result.current.error).toBeNull();
 
-      // Verify toast was shown
+      // Verify toasts were shown - progress toast and success toast
       expect(mockShowToast).toHaveBeenCalledTimes(2);
       expect(
         mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
           .closeFullPositionInProgress,
       ).toHaveBeenCalledWith('perps.market.long', '0.1', 'BTC');
+      expect(mockShowToast).toHaveBeenNthCalledWith(
+        2,
+        mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
+          .closeFullPositionSuccess,
+      );
     });
 
     it('should successfully close a partial position with limit order', async () => {
@@ -396,6 +406,438 @@ describe('usePerpsClosePosition', () => {
       });
 
       expect(result.current.error).toBeNull();
+    });
+
+    describe('toast notifications for market orders', () => {
+      describe('progress toasts', () => {
+        it('should show progress toast for full position market close', async () => {
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '123',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              mockPosition,
+              undefined,
+              'market',
+            );
+          });
+
+          // Verify progress toast is called with correct parameters
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionInProgress,
+          ).toHaveBeenCalledWith('perps.market.long', '0.1', 'BTC');
+        });
+
+        it('should show progress toast for partial position market close', async () => {
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '456',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              mockPosition,
+              '0.05',
+              'market',
+            );
+          });
+
+          // Verify progress toast is called with correct parameters
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionInProgress,
+          ).toHaveBeenCalledWith('perps.market.long', '0.05', 'BTC');
+        });
+
+        it('should show progress toast for short position', async () => {
+          const shortPosition: Position = {
+            ...mockPosition,
+            size: '-0.1', // Negative size indicates short position
+          };
+
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '789',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              shortPosition,
+              undefined,
+              'market',
+            );
+          });
+
+          // Verify progress toast is called with correct direction for short position
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionInProgress,
+          ).toHaveBeenCalledWith('perps.market.short', '-0.1', 'BTC');
+        });
+      });
+
+      describe('success toasts', () => {
+        it('should show success toast for full position market close', async () => {
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '123',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              mockPosition,
+              undefined,
+              'market',
+            );
+          });
+
+          // Should show progress toast first, then success toast
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionSuccess,
+          );
+        });
+
+        it('should show success toast for partial position market close', async () => {
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '456',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              mockPosition,
+              '0.05',
+              'market',
+            );
+          });
+
+          // Should show progress toast first, then success toast
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionSuccess,
+          );
+        });
+
+        it('should show success toast when size is empty string (treated as full close)', async () => {
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '999',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              mockPosition,
+              '',
+              'market',
+            );
+          });
+
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionSuccess,
+          );
+        });
+      });
+
+      describe('failure toasts', () => {
+        it('should show failure toast for full position market close', async () => {
+          const failureResult: OrderResult = {
+            success: false,
+            error: 'close_position_failed',
+          };
+          mockClosePosition.mockResolvedValue(failureResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition(
+                mockPosition,
+                undefined,
+                'market',
+              ),
+            ).rejects.toThrow();
+          });
+
+          // Should show progress toast first, then failure toast
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionFailed,
+          );
+        });
+
+        it('should show failure toast for partial position market close', async () => {
+          const failureResult: OrderResult = {
+            success: false,
+            error: 'close_position_failed',
+          };
+          mockClosePosition.mockResolvedValue(failureResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition(
+                mockPosition,
+                '0.05',
+                'market',
+              ),
+            ).rejects.toThrow();
+          });
+
+          // Should show progress toast first, then failure toast
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionFailed,
+          );
+        });
+
+        it('should show failure toast when size is empty string (treated as full close)', async () => {
+          const failureResult: OrderResult = {
+            success: false,
+            error: 'close_position_failed',
+          };
+          mockClosePosition.mockResolvedValue(failureResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition(mockPosition, '', 'market'),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionFailed,
+          );
+        });
+
+        it('should show failure toast with undefined error', async () => {
+          const failureResult: OrderResult = {
+            success: false,
+            error: undefined,
+          };
+          mockClosePosition.mockResolvedValue(failureResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition(
+                mockPosition,
+                '0.05',
+                'market',
+              ),
+            ).rejects.toThrow();
+          });
+
+          // Should still show failure toast even with undefined error
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionFailed,
+          );
+        });
+      });
+
+      describe('limit order toasts', () => {
+        it('should only show submission toast for full position limit close (no success toast)', async () => {
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '789',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              mockPosition,
+              undefined,
+              'limit',
+              '51000',
+            );
+          });
+
+          // Should only show submission toast for limit orders, not success toast
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .full.fullPositionCloseSubmitted,
+          ).toHaveBeenCalledWith('perps.market.long', '0.1', 'BTC');
+        });
+
+        it('should only show submission toast for partial position limit close (no success toast)', async () => {
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '789',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              mockPosition,
+              '0.05',
+              'limit',
+              '51000',
+            );
+          });
+
+          // Should only show submission toast for limit orders, not success toast
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .partial.partialPositionCloseSubmitted,
+          ).toHaveBeenCalledWith('perps.market.long', '0.05', 'BTC');
+        });
+
+        it('should not show failure toast for failed limit orders', async () => {
+          const failureResult: OrderResult = {
+            success: false,
+            error: 'limit_order_failed',
+          };
+          mockClosePosition.mockResolvedValue(failureResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition(
+                mockPosition,
+                '0.05',
+                'limit',
+                '51000',
+              ),
+            ).rejects.toThrow();
+          });
+
+          // Should only show submission toast, not failure toast for limit orders
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .partial.partialPositionCloseSubmitted,
+          ).toHaveBeenCalledWith('perps.market.long', '0.05', 'BTC');
+        });
+      });
+
+      describe('toast sequence verification', () => {
+        it('should show toasts in correct order for successful market close', async () => {
+          const successResult: OrderResult = {
+            success: true,
+            orderId: '123',
+          };
+          mockClosePosition.mockResolvedValue(successResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await result.current.handleClosePosition(
+              mockPosition,
+              undefined,
+              'market',
+            );
+          });
+
+          // Verify exact sequence: progress first, then success
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
+
+          // Verify progress toast was called with correct parameters
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionInProgress,
+          ).toHaveBeenCalledWith('perps.market.long', '0.1', 'BTC');
+
+          // First showToast call should be the progress toast result
+          const progressToastResult =
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionInProgress.mock.results[0]?.value;
+          expect(mockShowToast).toHaveBeenNthCalledWith(1, progressToastResult);
+
+          // Second call should be success toast
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionSuccess,
+          );
+        });
+
+        it('should show toasts in correct order for failed market close', async () => {
+          const failureResult: OrderResult = {
+            success: false,
+            error: 'close_failed',
+          };
+          mockClosePosition.mockResolvedValue(failureResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition(
+                mockPosition,
+                '0.05',
+                'market',
+              ),
+            ).rejects.toThrow();
+          });
+
+          // Verify exact sequence: progress first, then failure
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
+
+          // Verify progress toast was called with correct parameters
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionInProgress,
+          ).toHaveBeenCalledWith('perps.market.long', '0.05', 'BTC');
+
+          // First showToast call should be the progress toast result
+          const progressToastResult =
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionInProgress.mock.results[0]?.value;
+          expect(mockShowToast).toHaveBeenNthCalledWith(1, progressToastResult);
+
+          // Second call should be failure toast
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionFailed,
+          );
+        });
+      });
     });
   });
 

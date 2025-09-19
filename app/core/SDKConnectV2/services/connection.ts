@@ -94,6 +94,14 @@ export class Connection {
   }
 
   /**
+   * Resumes a previously established session.
+   */
+  public async resume(): Promise<void> {
+    await this.client.resume(this.id);
+    console.warn(`[Connection:${this.id}] Resumed connection to dApp.`);
+  }
+
+  /**
    * Disconnects the connection from the dApp.
    */
   public async disconnect(): Promise<void> {

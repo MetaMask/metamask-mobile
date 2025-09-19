@@ -41,5 +41,5 @@ jobs:
           git add package.json
           git add ios/MetaMask.xcodeproj/project.pbxproj
           git add android/app/build.gradle
-          git commit -m "Bump version number to ${{ needs.generate-build-version.outputs.build-version }}"
+          git commit -m "[skip ci] Bump version number to ${{ needs.generate-build-version.outputs.build-version }}"
           git push origin HEAD:"$HEAD_REF" --force-with-lease

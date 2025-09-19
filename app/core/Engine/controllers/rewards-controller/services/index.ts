@@ -1,7 +1,6 @@
 // Export the Rewards Data Service
 export type {
   RewardsDataServiceActions,
-  RewardsDataServiceEvents,
   RewardsDataServiceGetPointsEventsAction,
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
@@ -14,6 +13,10 @@ export type {
   RewardsDataServiceLogoutAction,
   RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
+  RewardsDataServiceMobileJoinAction,
+  RewardsDataServiceGetOptInStatusAction,
+  RewardsDataServiceOptOutAction,
+  RewardsDataServiceGetUnlockedRewardsAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

@@ -51,12 +51,7 @@ class ImportWalletView {
   async enterSecretRecoveryPhrase(secretRecoveryPhrase: string): Promise<void> {
     await Gestures.replaceText(this.seedPhraseInput, secretRecoveryPhrase, {
       elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
-    });
-  }
-  async clearSecretRecoveryPhraseInputBox(): Promise<void> {
-    await Gestures.typeText(this.seedPhraseInput, '', {
-      elemDescription: 'Import Wallet Secret Recovery Phrase Input Box',
-      clearFirst: true,
+      checkVisibility: device.getPlatform() === 'ios',
     });
   }
 

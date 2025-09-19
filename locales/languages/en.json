@@ -39,7 +39,12 @@
       "buy_action": "Buy %{nativeCurrency}"
     },
     "signed_or_submitted": {
+      "title": "Transaction in progress",
       "message": "A previous transaction is still being signed or submitted."
+    },
+    "signed_or_submitted_perps_deposit": {
+      "title": "Deposit in progress",
+      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
     },
     "pending_transaction": {
       "title": "Pending transaction",
@@ -56,8 +61,12 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds"
     },
+    "insufficient_pay_token_balance_fees": {
+      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
+      "title": "Insufficient funds"
+    },
     "insufficient_pay_token_native": {
-      "message": "Insufficient native funds on payment token chain. Select different token."
+      "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
     },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
@@ -379,8 +388,10 @@
     "title": "MetaMask password",
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
+    "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
+    "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
-    "password": "Create new password",
+    "password": "Create password",
     "confirm_password": "Confirm password",
     "create_button": "Create password",
     "import_with_seed_phrase": "Import with Secret Recovery Phrase",
@@ -393,7 +404,7 @@
     "show": "Show",
     "hide": "Hide",
     "seed_phrase": "Secret Recovery Phrase",
-    "must_be_at_least": "Password must have at least {{number}} characters",
+    "must_be_at_least": "Must be at least {{number}} characters",
     "remember_me": "Remember me",
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
@@ -404,7 +415,9 @@
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
     "create_password_cta": "Create password",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
-    "password_error": "Passwords don’t match. Try again."
+    "password_error": "Passwords don’t match.",
+    "marketing_opt_in_description" : "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
+    "loose_password_description" : "If I lose this password, MetaMask can’t reset it."
   },
   "reset_password": {
     "title": "Change password",
@@ -441,12 +454,15 @@
     "warning_password_cancel_button": "Cancel",
     "changing_password": "Changing password...",
     "changing_password_subtitle": "This shouldn’t take long",
-    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me."
+    "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
+    "seedless_change_password_error_modal_title": "Change password failed",
+    "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "Import a wallet",
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
-    "create_new_password": "Create new password",
+    "create_new_password": "Create password",
     "confirm_password": "Confirm password",
     "import_button": "IMPORT",
     "cancel_button": "Cancel",
@@ -475,7 +491,7 @@
     "srp": "Secret Recovery Phrase",
     "srp_placeholder": "Add a space between each word and make sure no one is watching.",
     "learn_more_link": "Learn more",
-    "create_password_cta": "Create password",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Continue with Flow",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
@@ -491,6 +507,7 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
+    "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards"
   },
@@ -840,10 +857,10 @@
     "available_balance": "Available balance",
     "margin_used": "Margin Used",
     "gtm_content": {
-      "title": "WE'VE GOT PERPS",
-      "title_description": "Predict price moves with up to 40x leverage.",
+      "title": "PERPS ARE HERE",
+      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
       "not_now": "Not now",
-      "try_now": "Trade perps"
+      "try_now": "Get started"
     },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
@@ -986,6 +1003,7 @@
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
+      "estimated_points": "Est. Points",
       "market": "Market",
       "limit": "Limit",
       "open_orders": "Orders",
@@ -1092,8 +1110,10 @@
       "confirmed": "Order Confirmed",
       "cancelling_order": "Cancelling order",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "Cancelling {{detailedOrderType}} order",
       "order_cancelled": "Order cancelled",
       "failed_to_cancel_order": "Failed to cancel order",
+      "order_still_active": "Order still active",
       "funds_have_been_returned_to_you": "Funds have been returned to you",
       "funds_are_available_to_trade": "Funds are available to trade",
       "close_order_still_active": "Close order still active",
@@ -1102,7 +1122,8 @@
       "order_placed": "Order placed",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Order failed",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
+      "order_cancelled_success": "{{detailedOrderType}} order cancelled"
     },
     "close_position": {
       "title": "Close position",
@@ -1118,6 +1139,7 @@
       "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
       "cancel": "Cancel",
       "margin": "Margin",
+      "includes_pnl":"includes P&L",
       "pnl": "PnL",
       "estimated_pnl": "Estimated PnL",
       "fees": "Fees",
@@ -1128,7 +1150,9 @@
       "success_title": "Position Closed Successfully",
       "position_closed": "Position closed",
       "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "Close Position Failed",
+      "failed_to_close_position": "Failed to close position",
+      "failed_to_partially_close_position": "Failed to partially close position",
+      "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
@@ -1157,7 +1181,14 @@
       "loss_percent_placeholder": "Loss",
       "profit_roe_placeholder": "% Profit",
       "loss_roe_placeholder": "% Loss",
-      "usd_label": "($)"
+      "usd_label": "($)",
+      "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
+      "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
+      "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
+      "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
+      "above": "above",
+      "below": "below",
+      "dismiss_tpsl_keypad": "Dismiss"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1240,7 +1271,9 @@
         "margin": "Margin",
         "not_set": "Not set",
         "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close position"
+        "close_position": "Close position",
+        "tpsl_count_multiple": "{{count}} orders",
+        "tpsl_count_single": "{{count}} order"
       },
       "list": {
         "loading": "Loading positions...",
@@ -1320,7 +1353,8 @@
         "content": "Trading fees are charged when you open or close a position.",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee",
-        "total": "Total fees"
+        "total": "Total fees",
+        "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
       },
       "closing_fees": {
         "title": "Closing Fees",
@@ -1359,12 +1393,26 @@
         "title": "Take Profit & Stop Loss",
         "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
       },
+      "close_position_you_receive": {
+        "title": "Receive amount",
+        "content": "Your receive amount is estimated and may change slightly due to slippage."
+      },
       "notifications": {
         "title": "Turn on notifications",
         "description": "Get notified about important perps trading events like order fills, liquidations, and market updates.",
         "turn_on_button": "Turn on"
       },
-      "got_it_button": "Got it"
+      "got_it_button": "Got it",
+      "tpsl_count_warning": {
+        "title": "Multiple TP/SL orders are active",
+        "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
+        "view_orders_button": "View orders",
+        "got_it_button": "Got it"
+      },
+      "points": {
+        "title": "Points",
+        "content": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps."
+      }
     },
     "connection": {
       "failed": "Connection Failed",
@@ -1464,7 +1512,13 @@
         "description": "Fund your perps account with any token and make your first trade in seconds."
       },
       "got_it": "Got it"
-    }
+    },
+    "points": "Points",
+    "unable_to_load": "Couldn't load",
+    "points_error": "We can't load points right now",
+    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later.",
+    "tp_on_chart": "TP on Chart",
+    "sl_on_chart": "SL on Chart"
   },
   "receive": {
     "title": "Receive"
@@ -1634,6 +1688,9 @@
     "banner": {
       "title": "Basic functionality is off",
       "link": "Turn on basic functionality"
+    },
+    "carousel": {
+      "empty_state": "You're all caught up!"
     }
   },
   "asset_details": {
@@ -2492,7 +2549,6 @@
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
-    "fund_button": "Fund",
     "token_marketplace": "Token marketplace",
     "sell_button": "Withdraw",
     "receive_button": "Receive",
@@ -3691,7 +3747,7 @@
     "list": {
       "0": "All",
       "1": "Wallet",
-      "2": "Annoucements"
+      "2": "Announcement"
     },
     "copied_to_clipboard": "Copied to clipboard",
     "address_copied_to_clipboard": "Address copied to clipboard",
@@ -3899,14 +3955,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "buy",
     "sell": "sell",
-    "orders": "Orders",
+    "orders": "Transfers",
     "All": "All",
     "Buy": "Buy",
     "Sell": "Sell",
     "token_marketplace": "Token marketplace",
     "Purchased": "Purchased",
     "Sold": "Sold",
-    "empty_orders_list": "You don't have any orders",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "You don't have any buy orders",
     "empty_sell_orders_list": "You don't have any sell orders",
     "purchased_currency": "Purchased {{currency}}",
@@ -3980,7 +4036,7 @@
     "select_a_quote": "Select a Quote",
     "recommended_quote": "Recommended quote",
     "select_a_cryptocurrency": "Select a cryptocurrency",
-    "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
+    "select_a_cryptocurrency_description": "Select from the list of tokens available.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
     "search_by_currency": "Search for a currency",
     "update_payment_method": "Update payment method",
@@ -4910,7 +4966,7 @@
     "earn_eth_rewards": "Earn ETH rewards.",
     "earn_eth_rewards_description": "Start earning as soon as you stake. Rewards compound automatically.",
     "flexible_unstaking": "Flexible unstaking.",
-    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more": "Learn more",
     "got_it": "Got it",
@@ -4946,7 +5002,7 @@
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
     },
-    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "Max",
     "staking_from": "Staking from",
     "advanced_details": "Advanced details",
@@ -4970,7 +5026,7 @@
       }
     },
     "use_max": "Use max",
-    "estimated_unstaking_time": "1 to 11 days",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
     "select_a_token_to_deposit": "Select a token to deposit",
@@ -5077,7 +5133,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5301,6 +5357,8 @@
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
     "swap_to": "Swap to",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
@@ -5447,6 +5505,21 @@
     "show_less": "less"
   },
   "multichain_accounts": {
+    "intro": {
+      "title": "Introducing multichain accounts",
+      "section_1_title": "What are multichain accounts?",
+      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_2_title": "Same address, more networks",
+      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+        "view_accounts_button": "View accounts",
+        "learn_more_button": "Learn more"
+      },
+      "learn_more": {
+        "title": "Learn more",
+        "description": "Multichain accounts are now the default. To opt out, turn off basic functionality.",
+        "checkbox_label": "Turn off basic functionality",
+        "confirm_button": "Confirm"
+      },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
     "account_details": {
@@ -5623,7 +5696,6 @@
     "failed_to_authenticate": "Failed to authenticate with rewards program",
     "not_implemented": "Coming soon",
     "not_implemented_season_summary": "Season Summary Coming Soon",
-    "not_opted_in_to_rewards": "This account hasn't opted in to rewards yet",
 
     "referral_rewards_title": "Referrals",
     "points": "Points",
@@ -5646,6 +5718,8 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
+
+    "toast_dismiss": "Dismiss",
 
     "events": {
       "type": {
@@ -5676,6 +5750,8 @@
       "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
+      "checking_opt_in": "Checking opt-in for accounts...",
+      "redirecting_to_dashboard": "Redirecting to dashboard...",
       "intro_skip": "Not now",
 
       "step_confirm": "Next",
@@ -5696,9 +5772,78 @@
       "step4_referral_input_placeholder": "Referral code (optional)",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
+      "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
+      "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
       "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
       "step4_legal_disclaimer_learn_more": "Learn more."
+    },
+
+    "settings": {
+      "title": "Reward Settings",
+      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "error_title": "Unable to Load Linked Accounts",
+      "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
+      "error_retry": "Retry",
+      "tab_linked_accounts": "Linked Accounts ({{count}})",
+      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
+      "no_linked_accounts": "No linked accounts",
+      "all_accounts_linked_title": "All accounts are linked",
+      "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
+      "link_account_success_title": "Account {{accountName}} successfully linked",
+      "link_account_error_title": "Failed to link account",
+      "link_account_button": "Link"
+    },
+
+    "optout": {
+        "title": "Opt out of Rewards",
+        "description": "This will erase your points and progress. You won't be able to undo this.",
+        "confirm": "Opt out",
+        "modal": {
+          "confirmation_title": "Are you sure?",
+          "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll restart at 0.",
+          "cancel": "Cancel",
+          "confirm": "Confirm",
+          "error_message": "Failed to opt out of rewards program. Please try again.",
+          "processing": "Processing..."
+        }
+    },
+
+    "unlinked_accounts_info": {
+      "title": "There are unlinked accounts",
+      "description": "If you want to earn points for the activity of these accounts you can link them in the settings page.",
+      "go_to_settings": "Go to settings"
+    },
+
+    "unlinked_account_info": {
+      "title": "Account not linked",
+      "description": "This account's activity is not being tracked for this season."
+    },
+
+    "link_account": "Link account",
+    "linking_account": "Linking...",
+
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Perps",
+        "sheet_title": "Trade perps",
+        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+        "points": "10 points per $100",
+        "cta_label": "Start a trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
     },
 
     "referral": {
@@ -5710,6 +5855,20 @@
         "title": "Share your code to earn more",
         "description": "Your friends earn bonus points, and you get 20% of their rewards."
       }
+    },
+    "active_boosts": {
+      "title": "Active boosts",
+      "error": "Failed to load active boosts"
+    },
+    "season_1": "Season 1",
+    "upcoming_rewards": {
+      "title": "Upcoming rewards",
+      "points_needed": "{{points}} points"
+    },
+    "unlocked_rewards": {
+      "title": "Unlocked rewards",
+      "empty": "No rewards yet. \nEarn points and level up.",
+      "see_ways_to_earn": "See ways to earn"
     }
   },
   "time": {

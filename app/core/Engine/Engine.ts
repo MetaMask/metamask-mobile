@@ -243,6 +243,7 @@ import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
+import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -906,6 +907,10 @@ export class Engine {
           assetsContractController,
         ),
       includeStakedAssets: true,
+      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
+        engine: { backgroundState: initialState },
+      }) as `0x${string}`[],
+      allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1013,42 +1018,6 @@ export class Engine {
       // @ts-expect-error Controller uses string for names rather than enum
       trace,
       config: {
-        accountSyncing: {
-          onAccountAdded: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                })
-                .build(),
-            );
-          },
-          onAccountNameUpdated: (profileId) => {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                })
-                .build(),
-            );
-          },
-          onAccountSyncErroneousSituation(profileId, situationMessage) {
-            MetaMetrics.getInstance().trackEvent(
-              MetricsEventBuilder.createEventBuilder(
-                MetaMetricsEvents.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
-              )
-                .addProperties({
-                  profile_id: profileId,
-                  situation_message: situationMessage,
-                })
-                .build(),
-            );
-          },
-        },
         contactSyncing: {
           onContactUpdated: (profileId) => {
             MetaMetrics.getInstance().trackEvent(
@@ -1495,10 +1464,12 @@ export class Engine {
         // TODO: This is long, can we decrease it?
         interval: 180000,
         state: initialState.TokenBalancesController,
-        useAccountsAPI: false,
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
           preferencesController.state.isMultiAccountBalancesEnabled,
+        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
+          engine: { backgroundState: initialState },
+        }) as `0x${string}`[],
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1572,7 +1543,6 @@ export class Engine {
         chainId: getGlobalChainId(networkController),
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
           allowedActions: ['NetworkController:getNetworkClientById'],

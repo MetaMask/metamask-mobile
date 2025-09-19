@@ -121,15 +121,22 @@ pipelines:
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
-  pr_regression_e2e_pipeline:
-    stages:
-      - set_main_target_stage: {}
-      - pr_cache_check_stage: {}
-      - build_regression_e2e_ios_android_stage: {}
-      - run_regression_e2e_ios_android_stage: {}
-      - build_regression_e2e_ios_gns_disabled_stage: {}
-      - run_regression_e2e_ios_gns_disabled_stage: {}
-      - notify: {}
+  pr_rc_rwy_pipeline:
+    workflows:
+      set_main_target_workflow: {}
+      pr_check_build_cache:
+        depends_on:
+        - set_main_target_workflow
+        abort_on_fail: true
+      bump_version_code:
+        depends_on:
+        - pr_check_build_cache
+      build_ios_rc_and_upload_sourcemaps:
+        depends_on:
+        - bump_version_code
+      build_android_rc_and_upload_sourcemaps:
+        depends_on:
+        - bump_version_code
   #App launch times pipeline. Runs on browserstack
   app_launch_times_and_expo_pipeline:
     stages:
@@ -359,8 +366,6 @@ stages:
       - run_tag_flask_build_tests_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_card_ios: {}
-      - run_tag_smoke_card_android: {}
   run_single_e2e_ios_android_stage:
     workflows:
       - run_single_ios_e2e_test: {}
@@ -2445,6 +2450,15 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/generated/sourcemaps/react/$OUTPUT_PATH
+            - is_compress: true
+            - zip_name: Android_Sourcemaps_$OUTPUT_PATH
+          title: Deploy Android Sourcemaps
       - script@1:
           title: Prepare Android build outputs for caching
           run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
@@ -3706,10 +3720,10 @@ app:
       MM_UNIFIED_SWAPS_ENABLED: true
     - opts:
         is_expand: false
-      MM_PERPS_ENABLED: false
+      MM_PERPS_ENABLED: true
     - opts:
         is_expand: false
-      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON"
+      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON,GB"
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -3742,13 +3756,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.56.0
+      VERSION_NAME: 7.57.0
     - opts:
         is_expand: false
       VERSION_NUMBER: 2349
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.56.0
+      FLASK_VERSION_NAME: 7.57.0
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 2349
@@ -3788,7 +3802,7 @@ meta:
     machine_type_id: g2.mac.4large
 trigger_map:
   - push_branch: release/*
-    pipeline: pr_regression_e2e_pipeline
+    pipeline: pr_rc_rwy_pipeline
   - push_branch: main
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'

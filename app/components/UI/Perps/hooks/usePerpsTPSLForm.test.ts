@@ -34,6 +34,8 @@ describe('usePerpsTPSLForm', () => {
       sinceOpen: '0',
       sinceChange: '0',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   const defaultParams = {
@@ -42,6 +44,7 @@ describe('usePerpsTPSLForm', () => {
     direction: 'long' as const,
     leverage: 10,
     isVisible: true,
+    liquidationPrice: '45000', // Default liquidation price for testing
   };
 
   beforeEach(() => {
@@ -73,6 +76,18 @@ describe('usePerpsTPSLForm', () => {
 
       expect(result.current.formState.takeProfitPrice).toBe('55000');
       expect(result.current.formState.stopLossPrice).toBe('45000');
+    });
+
+    it('should initialize with liquidationPrice parameter', () => {
+      const params = {
+        ...defaultParams,
+        liquidationPrice: '42000',
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Liquidation price should be used in validation
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
     });
 
     it('should calculate direction from position size when position is provided', () => {
@@ -360,10 +375,10 @@ describe('usePerpsTPSLForm', () => {
     it('should validate TPSL prices correctly for long positions', () => {
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
 
-      // Set valid prices for long position (TP > current, SL < current)
+      // Set valid prices for long position (TP > current, SL < current but > liquidation)
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('55000'); // Above current
-        result.current.handlers.handleStopLossPriceChange('45000'); // Below current
+        result.current.handlers.handleStopLossPriceChange('46000'); // Below current but above liquidation (45000)
       });
 
       expect(result.current.validation.isValid).toBe(true);
@@ -372,13 +387,17 @@ describe('usePerpsTPSLForm', () => {
     });
 
     it('should validate TPSL prices correctly for short positions', () => {
-      const shortParams = { ...defaultParams, direction: 'short' as const };
+      const shortParams = {
+        ...defaultParams,
+        direction: 'short' as const,
+        liquidationPrice: '55000', // Higher liquidation price for short position
+      };
       const { result } = renderHook(() => usePerpsTPSLForm(shortParams));
 
-      // Set valid prices for short position (TP < current, SL > current)
+      // Set valid prices for short position (TP < current, SL > current but < liquidation)
       act(() => {
         result.current.handlers.handleTakeProfitPriceChange('45000'); // Below current
-        result.current.handlers.handleStopLossPriceChange('55000'); // Above current
+        result.current.handlers.handleStopLossPriceChange('54000'); // Above current but below liquidation (55000)
       });
 
       expect(result.current.validation.isValid).toBe(true);
@@ -420,6 +439,181 @@ describe('usePerpsTPSLForm', () => {
       });
 
       expect(result.current.validation.hasChanges).toBe(true);
+    });
+
+    describe('liquidation price validation', () => {
+      it('should show no liquidation error when stop loss is valid for long position', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'long' as const,
+          liquidationPrice: '45000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss above liquidation price (valid for long)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('46000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toBe('');
+      });
+
+      it('should show liquidation error when stop loss is below liquidation price for long position', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'long' as const,
+          liquidationPrice: '45000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss below liquidation price (invalid for long)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('44000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toContain(
+          'above',
+        );
+      });
+
+      it('should show no liquidation error when stop loss is valid for short position', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'short' as const,
+          liquidationPrice: '55000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss below liquidation price (valid for short)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('54000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toBe('');
+      });
+
+      it('should show liquidation error when stop loss is above liquidation price for short position', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'short' as const,
+          liquidationPrice: '55000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss above liquidation price (invalid for short)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('56000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toContain(
+          'below',
+        );
+      });
+
+      it('should not show liquidation error when liquidationPrice is not provided', () => {
+        const params = {
+          ...defaultParams,
+          liquidationPrice: undefined,
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set any stop loss price
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('40000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toBe('');
+      });
+
+      it('should not show liquidation error when stop loss is empty', () => {
+        const params = {
+          ...defaultParams,
+          liquidationPrice: '45000',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // No stop loss set
+        expect(result.current.validation.stopLossLiquidationError).toBe('');
+      });
+
+      it('should handle liquidation price with currency formatting', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'long' as const,
+          liquidationPrice: '$45,000.00',
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss below formatted liquidation price (invalid for long)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('44000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toContain(
+          'above',
+        );
+      });
+
+      it('should consider precision when comparing stop loss to liquidation price', () => {
+        const params = {
+          ...defaultParams,
+          direction: 'long' as const,
+          liquidationPrice: '45000.001', // Very close to 45000
+        };
+        const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+        // Set stop loss at 45000 (should be considered below liquidation due to rounding)
+        act(() => {
+          result.current.handlers.handleStopLossPriceChange('45000');
+        });
+
+        expect(result.current.validation.stopLossLiquidationError).toContain(
+          'above',
+        );
+      });
+    });
+
+    it('should validate overall form including liquidation price', () => {
+      const params = {
+        ...defaultParams,
+        direction: 'long' as const,
+        liquidationPrice: '45000',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Set valid TP and SL prices but SL below liquidation
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('55000'); // Valid TP
+        result.current.handlers.handleStopLossPriceChange('44000'); // Invalid SL (below liquidation)
+      });
+
+      // Overall validation should be false due to liquidation error
+      expect(result.current.validation.isValid).toBe(false);
+      expect(result.current.validation.takeProfitError).toBe('');
+      expect(result.current.validation.stopLossError).toBe('');
+      expect(result.current.validation.stopLossLiquidationError).toContain(
+        'above',
+      );
+    });
+
+    it('should be valid when all prices are correct including liquidation', () => {
+      const params = {
+        ...defaultParams,
+        direction: 'long' as const,
+        liquidationPrice: '45000',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Set all valid prices
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('55000'); // Valid TP
+        result.current.handlers.handleStopLossPriceChange('46000'); // Valid SL (above liquidation)
+      });
+
+      expect(result.current.validation.isValid).toBe(true);
+      expect(result.current.validation.takeProfitError).toBe('');
+      expect(result.current.validation.stopLossError).toBe('');
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
     });
   });
 
@@ -568,6 +762,36 @@ describe('usePerpsTPSLForm', () => {
       expect(result.current.formState.takeProfitPrice).toBe('');
       expect(result.current.formState.takeProfitPercentage).toBe('');
     });
+
+    it('should handle invalid liquidation price gracefully', () => {
+      const params = {
+        ...defaultParams,
+        liquidationPrice: 'invalid',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('44000');
+      });
+
+      // Should not show liquidation error with invalid liquidation price
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
+    });
+
+    it('should handle empty liquidation price', () => {
+      const params = {
+        ...defaultParams,
+        liquidationPrice: '',
+      };
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('44000');
+      });
+
+      // Should not show liquidation error with empty liquidation price
+      expect(result.current.validation.stopLossLiquidationError).toBe('');
+    });
   });
 
   describe('initial percentage calculation', () => {
@@ -673,11 +897,12 @@ describe('usePerpsTPSLForm', () => {
   });
 
   describe('reference price logic for validation', () => {
-    it('should validate against entryPrice when provided', () => {
+    it('should validate against entryPrice when orderType is limit', () => {
       const params = {
         ...defaultParams,
         entryPrice: 52000, // Higher than current price
         isVisible: true,
+        orderType: 'limit' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
@@ -689,15 +914,16 @@ describe('usePerpsTPSLForm', () => {
 
       // Should be invalid because it's below entryPrice
       expect(result.current.validation.takeProfitError).toContain(
-        'limit price',
+        'entry price',
       );
     });
 
-    it('should validate against currentPrice when entryPrice not provided', () => {
+    it('should validate against currentPrice when orderType is market', () => {
       const params = {
         ...defaultParams,
         entryPrice: undefined,
         isVisible: true,
+        orderType: 'market' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
@@ -712,7 +938,7 @@ describe('usePerpsTPSLForm', () => {
       );
     });
 
-    it('should validate against position entry price when position exists', () => {
+    it('should validate against position entry price when position exists and orderType is limit', () => {
       const positionWithEntry = {
         ...mockPosition,
         entryPrice: '51000',
@@ -722,6 +948,7 @@ describe('usePerpsTPSLForm', () => {
         position: positionWithEntry,
         currentPrice: 50000,
         isVisible: true,
+        orderType: 'limit' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
@@ -735,15 +962,62 @@ describe('usePerpsTPSLForm', () => {
         'entry price',
       );
     });
+
+    it('should validate liquidation price against reference price for positions', () => {
+      const positionWithEntry = {
+        ...mockPosition,
+        entryPrice: '51000',
+        liquidationPrice: '46000',
+      };
+      const params = {
+        asset: 'BTC',
+        position: positionWithEntry,
+        currentPrice: 50000,
+        liquidationPrice: '46000',
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Set stop loss below liquidation price
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('45000');
+      });
+
+      expect(result.current.validation.stopLossLiquidationError).toContain(
+        'above',
+      );
+    });
+
+    it('should validate liquidation price against reference price for limit orders', () => {
+      const params = {
+        ...defaultParams,
+        entryPrice: 52000,
+        liquidationPrice: '47000',
+        isVisible: true,
+      };
+
+      const { result } = renderHook(() => usePerpsTPSLForm(params));
+
+      // Set stop loss below liquidation price
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('46000');
+      });
+
+      expect(result.current.validation.stopLossLiquidationError).toContain(
+        'above',
+      );
+    });
   });
 
   describe('price type determination in error messages', () => {
-    it('should show "entry price" error for positions', () => {
+    it('should show "entry price" error for positions and orderType is limit', () => {
       const params = {
         asset: 'BTC',
         position: mockPosition,
         currentPrice: 50000,
         isVisible: true,
+        orderType: 'limit' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
@@ -757,10 +1031,11 @@ describe('usePerpsTPSLForm', () => {
       );
     });
 
-    it('should show "limit price" error for limit orders', () => {
+    it('should show "entry price" error for actual limit orders', () => {
       const params = {
         ...defaultParams,
-        entryPrice: 52000, // Different from current, indicates limit order
+        orderType: 'limit' as const,
+        entryPrice: 52000,
         isVisible: true,
       };
 
@@ -771,7 +1046,7 @@ describe('usePerpsTPSLForm', () => {
       });
 
       expect(result.current.validation.takeProfitError).toContain(
-        'limit price',
+        'entry price',
       );
     });
 
@@ -780,6 +1055,7 @@ describe('usePerpsTPSLForm', () => {
         ...defaultParams,
         entryPrice: undefined, // No entry price = market order
         isVisible: true,
+        orderType: 'market' as const,
       };
 
       const { result } = renderHook(() => usePerpsTPSLForm(params));
