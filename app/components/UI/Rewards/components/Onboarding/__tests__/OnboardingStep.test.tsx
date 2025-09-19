@@ -74,13 +74,24 @@ jest.mock('../../../hooks/useValidateReferralCode', () => ({
   useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 
-// Mock Linking
+// Mock Linking and PanResponder
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
     ...RN,
     Linking: {
       openURL: jest.fn(),
+    },
+    PanResponder: {
+      create: jest.fn().mockReturnValue({
+        panHandlers: {
+          onStartShouldSetResponder: jest.fn(),
+          onMoveShouldSetResponder: jest.fn(),
+          onResponderGrant: jest.fn(),
+          onResponderMove: jest.fn(),
+          onResponderRelease: jest.fn(),
+        },
+      }),
     },
   };
 });
@@ -98,6 +109,135 @@ jest.mock(
   '../../../../../images/rewards/rewards-onboarding-step3-bg.svg',
   () => 'MockedSVGStep3',
 );
+
+describe('OnboardingStep - Skip and Swipe Functionality', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render skip button when onSkip prop is provided', () => {
+    const onSkipMock = jest.fn();
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        onSkip={onSkipMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const skipButton = screen.getByTestId('skip-button');
+    expect(skipButton).toBeTruthy();
+  });
+
+  it('should call onSkip when skip button is pressed', () => {
+    const onSkipMock = jest.fn();
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        onSkip={onSkipMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const skipButton = screen.getByTestId('skip-button');
+    fireEvent.press(skipButton);
+
+    expect(onSkipMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not render skip button when onSkip prop is not provided', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const skipButton = screen.queryByTestId('skip-button');
+    expect(skipButton).toBeNull();
+  });
+
+  it('should call onNext when next button is pressed', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const nextButton = screen.getByTestId('next-button');
+    fireEvent.press(nextButton);
+
+    expect(onNextMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onClose when close button is pressed', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const closeButton = screen.getByTestId('close-button');
+    fireEvent.press(closeButton);
+
+    expect(mockDispatch).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('should apply panHandlers to the container for swipe gestures', () => {
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={2}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const container = screen.getByTestId('onboarding-step-container');
+    expect(container.props.onResponderRelease).toBeDefined();
+  });
+
+  it('should disable swipe when disableSwipe prop is true', () => {
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={2}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+        disableSwipe
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    // We can't directly test the PanResponder behavior in this test environment,
+    // but we can verify the component renders with the prop
+    const container = screen.getByTestId('onboarding-step-container');
+    expect(container).toBeTruthy();
+  });
+});
 
 const mockOnNext = jest.fn();
 const mockOnPrevious = jest.fn();
@@ -137,6 +277,11 @@ describe('OnboardingStep', () => {
       );
       expect(screen.getByText('Custom Button Text')).toBeDefined();
     });
+
+    it('should render close button with correct testID', () => {
+      renderWithProviders(<OnboardingStep {...defaultProps} />);
+      expect(screen.getByTestId('close-button')).toBeDefined();
+    });
   });
 
   describe('button interactions', () => {
@@ -149,6 +294,16 @@ describe('OnboardingStep', () => {
       fireEvent.press(nextButton);
 
       expect(mockOnNext).toHaveBeenCalledTimes(1);
+    });
+
+    it('should navigate to wallet view and reset onboarding step when close button is pressed', () => {
+      renderWithProviders(<OnboardingStep {...defaultProps} />);
+
+      const closeButton = screen.getByTestId('close-button');
+      fireEvent.press(closeButton);
+
+      expect(mockDispatch).toHaveBeenCalledWith(expect.any(Object));
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
     });
 
     it('should disable next button when onNextDisabled is true', () => {

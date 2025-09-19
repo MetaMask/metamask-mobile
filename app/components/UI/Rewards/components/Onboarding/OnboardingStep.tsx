@@ -147,6 +147,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
               isLoading={onNextLoading}
               loadingText={onNextLoadingText}
               isDisabled={onNextDisabled || onNextLoading}
+              testID="next-button"
             >
               {nextButtonText || strings('rewards.onboarding.step_confirm')}
             </Button>
@@ -157,6 +158,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
                 size={ButtonSize.Lg}
                 onPress={onSkip}
                 twClassName="w-full bg-gray-500 border-gray-500"
+                testID="skip-button"
               >
                 <Text twClassName="text-text-default">
                   {strings('rewards.onboarding.step_skip')}
