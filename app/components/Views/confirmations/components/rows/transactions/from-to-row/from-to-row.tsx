@@ -16,14 +16,16 @@ import { useTransferRecipient } from '../../../../hooks/transactions/useTransfer
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './from-to-row.styles';
 import { selectWalletsMap } from '../../../../../../../selectors/multichainAccounts/accountTreeController';
-import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
+import { selectMultichainAccountsState2Enabled } from '../../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
+  const isBip44 = useSelector(selectMultichainAccountsState2Enabled);
   const walletsMap = useSelector(selectWalletsMap) || {};
   const haveMoreThanOneWallet = Object.keys(walletsMap).length > 1;
+  const shouldShowWalletName = isBip44 && haveMoreThanOneWallet;
 
   if (!transactionMetadata) {
     return null;
@@ -43,6 +45,7 @@ const FromToRow = () => {
             type={NameType.EthereumAddress}
             value={fromAddress}
             variation={chainId}
+            shouldShowWalletName={shouldShowWalletName}
           />
         </View>
 
@@ -59,9 +62,7 @@ const FromToRow = () => {
             type={NameType.EthereumAddress}
             value={toAddress}
             variation={chainId}
-            iconSizeOverride={
-              haveMoreThanOneWallet ? AvatarSize.Md : AvatarSize.Sm
-            }
+            shouldShowWalletName={shouldShowWalletName}
           />
         </View>
       </View>

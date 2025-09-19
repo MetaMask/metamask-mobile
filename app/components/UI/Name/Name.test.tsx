@@ -116,6 +116,7 @@ describe('Name', () => {
             type={NameType.EthereumAddress}
             value={KNOWN_ADDRESS_CHECKSUMMED}
             variation={CHAIN_IDS.MAINNET}
+            shouldShowWalletName
           />
         </Provider>,
       );

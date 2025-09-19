@@ -68,7 +68,7 @@ const Name: React.FC<NameProperties> = ({
   type,
   value,
   variation,
-  iconSizeOverride,
+  shouldShowWalletName,
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
@@ -82,9 +82,11 @@ const Name: React.FC<NameProperties> = ({
       value,
       variation,
     });
-  let iconSize = accountWalletName ? AvatarSize.Md : AvatarSize.Sm;
-  if (iconSizeOverride) {
-    iconSize = iconSizeOverride;
+  let iconSize;
+  if (shouldShowWalletName) {
+    iconSize = AvatarSize.Md;
+  } else {
+    iconSize = AvatarSize.Sm;
   }
 
   const { styles } = useStyles(styleSheet, {
@@ -139,7 +141,7 @@ const Name: React.FC<NameProperties> = ({
             <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
               {truncatedName}
             </NameLabel>
-            {accountWalletName && (
+            {accountWalletName && shouldShowWalletName && (
               <Text
                 numberOfLines={1}
                 color={TextColor.Alternative}
