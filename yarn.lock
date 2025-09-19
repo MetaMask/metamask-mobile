@@ -4895,10 +4895,10 @@
     "@metamask/keyring-utils" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.16.1":
-  version "0.16.1"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.16.1.tgz#7dbbaad53d78d56ccb521e92c5000af59ab43abf"
-  integrity sha512-vWvgXNjpX1egLRSc8pekbs9MltRTdeky74JGsFtqBdzLvJ8haeJmHVd80EgrDeePOvo1I+FXzUSjiGZ+c44ENA==
+"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@0.18.0-preview-a7d366c":
+  version "0.18.0-preview-a7d366c"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/account-tree-controller/-/account-tree-controller-0.18.0-preview-a7d366c.tgz#5fde0b47d57f64e3a675121d47e3019b44f661d0"
+  integrity sha512-1VUoHGpdhOcpp7W3wVuyHtKa1/OrAVWGBCcFQxJLSTk9dlEWbhRAsFROkdp+0jJ+Y+B/dpuka4H5rgC61V8XIQ==
   dependencies:
     "@metamask/base-controller" "^8.4.0"
     "@metamask/snaps-sdk" "^9.0.0"
@@ -4960,10 +4960,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^75.2.0":
-  version "75.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-75.2.0.tgz#826235291f458af74f9abc0966e0a42f0a427a22"
-  integrity sha512-l/P7i2PuiKFAdmtIXGSxmrOYy+jphQyDoP3ao4+jxtwKPSeRnLc7g642xIXPNuURRzy7DrLdFZN5Apve3D35lw==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@75.2.0-preview-a7d366c":
+  version "75.2.0-preview-a7d366c"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-75.2.0-preview-a7d366c.tgz#aa37bd2908efe1e4f360095b02bb537f1f2f2b62"
+  integrity sha512-8IreDXvUQ1/FoxF5l6ZW0R9HZMt3w2c432S9YRQVlFTs0grf+srRlwG4v3gPPjoGpHqyqBzLzZfvSGkp5RHlMQ==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -5018,7 +5018,7 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0", "@metamask/base-controller@^8.3.0", "@metamask/base-controller@^8.4.0":
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.3.0", "@metamask/base-controller@^8.4.0":
   version "8.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.4.0.tgz#1adffa81b4d6d53a6c5e54d956251c18a72cdf03"
   integrity sha512-K2tVUIA5p89X/1aro0uGcpR3UvzP6wioM+TzJeGe72ZzbTo3DC5nm98lXgVfWsWt/d94bk2RXijngfYk/0MaIQ==
@@ -5160,16 +5160,16 @@
   resolved "https://registry.npmjs.org/@metamask/design-tokens/-/design-tokens-8.1.1.tgz#f2a1f7dd03a9be8672ec06d83767d03d354501d8"
   integrity sha512-B3NwHI+KDJIGRXmBMBOI2Eoc0miYVcq6IU2mOOmZlBkyCeVSMxavrydmDLTsXKJ68uFrbvLUBC+zN9wnux6L6g==
 
-"@metamask/earn-controller@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/earn-controller/-/earn-controller-7.0.0.tgz#100aba823d2c808951634274e5aa15b91c08b67b"
-  integrity sha512-loo9RJC6MAWT8fFCSIk1fDRmJqs44tCKhSk0GP7gKMJ0K+yLRXSXTaDslmmIlY0Y9TMBnOGC9pY6Fiw54mi01g==
+"@metamask/earn-controller@npm:@metamask-previews/earn-controller@7.0.0-preview-a7d366c":
+  version "7.0.0-preview-a7d366c"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/earn-controller/-/earn-controller-7.0.0-preview-a7d366c.tgz#5dd5b83a95d5663002a504d3d2caddc01660829c"
+  integrity sha512-mVksYsTlNDXerjZ7hVei6qfyKp7SJZpgTDTJuoQKxpDnyR6Nu13V7xdtRAOq5qf7meG0iaXkS4dZYSWdwcECuw==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.2.0"
-    "@metamask/controller-utils" "^11.12.0"
-    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/controller-utils" "^11.14.0"
+    "@metamask/keyring-api" "^21.0.0"
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
 
@@ -5766,13 +5766,13 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-enablement-controller@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-1.1.0.tgz#83d198e2909d1c1dfd41d664fb3090d9b1345121"
-  integrity sha512-RTcx1MCOT9LMcIuJplyG8pJ+9RUJUYdIhe5iy/gDoUUHYoK5KMI9+JC1dEdUgIhUFERvgAacwflKBZNXPC/Wgw==
+"@metamask/network-enablement-controller@npm:@metamask-previews/network-enablement-controller@1.2.0-preview-a7d366c":
+  version "1.2.0-preview-a7d366c"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/network-enablement-controller/-/network-enablement-controller-1.2.0-preview-a7d366c.tgz#1b17877e28b457ecf356cdf16059afa983a7454a"
+  integrity sha512-NS+DD7obXgsrXUq/D1y/jLmUTdz/eFEHQpTkrfZQtFv98WWLIG2bjETaxRyApAvhCPkgRBR/L/Rxe9+betxMuw==
   dependencies:
-    "@metamask/base-controller" "^8.3.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/controller-utils" "^11.14.0"
     "@metamask/utils" "^11.8.0"
     reselect "^5.1.1"
 
