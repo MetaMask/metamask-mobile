@@ -37,6 +37,7 @@ import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
+import { strings } from '../../../../../locales/i18n';
 import TagBase, {
   TagShape,
   TagSeverity,
@@ -204,7 +205,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                   textProps={{ variant: TextVariant.BodyXS }}
                   style={styles.noFeeBadge}
                 >
-                  No MM fee
+                  {strings('bridge.no_mm_fee')}
                 </TagBase>
               )}
             </Box>
