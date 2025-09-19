@@ -23,6 +23,8 @@
     "format:check:changed": "git diff --name-only --diff-filter=ACM HEAD~1 | { grep -E '\\.(js|ts|tsx|json|feature)$' || true; } | xargs --no-run-if-empty prettier --check",
     "coverage:analyze": "node scripts/coverage-analysis.js",
     "coverage:files": "node scripts/coverage-analysis.js --files",
+    "coverage:preflight": "node scripts/coverage-analysis.js --preflight",
+    "coverage:full": "node scripts/coverage-analysis.js --with-preflight",
     "setup": "yarn clean && node scripts/setup.mjs",
     "setup:github-ci": "node scripts/setup.mjs --build-on-github-ci",
     "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
