@@ -49,7 +49,7 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
 ) => {
   // Overrides the multichain accounts state 2 enabled flag based on the feature versions.
   if (
-    enableMultichainAccountsState2Local &&
+    enableMultichainAccountsState2Local !== undefined &&
     featureVersionsToCheck.includes(MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2)
   ) {
     return enableMultichainAccountsState2Local === 'true';
