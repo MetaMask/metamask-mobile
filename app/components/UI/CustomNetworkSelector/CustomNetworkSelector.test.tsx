@@ -21,6 +21,10 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
+jest.mock('../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn().mockReturnValue(false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
