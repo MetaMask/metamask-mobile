@@ -1,0 +1,92 @@
+# Reusable workflow for E2E test reporting
+# Consolidates test results, generates reports, and uploads artifacts
+
+name: Report E2E Test Results
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        description: 'Platform being tested (ios or android)'
+        required: true
+        type: string
+      test-type:
+        description: 'Type of test suite (e.g., smoke, smart-e2e, regression)'
+        required: true
+        type: string
+      artifact-pattern:
+        description: 'Pattern to match test result artifacts'
+        required: true
+        type: string
+      report-name:
+        description: 'Name for the test report'
+        required: true
+        type: string
+
+jobs:
+  report-e2e-tests:
+    name: "Report ${{ inputs.platform }} ${{ inputs.test-type }} Tests"
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-test-results/
+          pattern: ${{ inputs.artifact-pattern }}
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: ${{ inputs.report-name }}
+          path: "all-test-results/**/*.xml"
+          reporter: "jest-junit"
+          fail-on-error: false
+          list-suites: "failed"
+          list-tests: "failed"
+
+      - name: Create mobile test report
+        id: create-json-report
+        continue-on-error: true
+        run: |
+          # Create a temporary directory for xml2js to avoid conflicts
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y
+          npm install xml2js@0.5.0 --no-audit --no-fund
+
+          # Copy node_modules to workspace
+          cp -r node_modules ${{ github.workspace }}/
+
+          # Run the mobile test report generator
+          cd ${{ github.workspace }}
+          TEST_RESULTS_PATH=all-test-results \
+          TEST_RUNS_PATH=test/test-results/test-runs-${{ inputs.platform }}.json \
+          RUN_ID=${{ github.run_id }} \
+          PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          node .github/scripts/create-e2e-test-report.mjs
+
+          # Clean up temporary node_modules
+          rm -rf node_modules
+
+      - name: Upload test runs JSON
+        if: steps.create-json-report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-e2e-${{ inputs.platform }}-${{ inputs.test-type }}-report
+          path: test/test-results/test-runs-${{ inputs.platform }}.json
+
+      - name: Upload merged XML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.platform }}-${{ inputs.test-type }}-merged-test-report
+          path: all-test-results/**/*.xml

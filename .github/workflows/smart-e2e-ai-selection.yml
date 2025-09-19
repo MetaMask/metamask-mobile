@@ -1,0 +1,388 @@
+# Dynamic AI Smart E2E Test Selection
+# Analyzes code changes and dynamically generates test jobs for selected tags
+
+name: Smart E2E AI Selection
+
+on:
+  pull_request:
+    types: [labeled, synchronize, reopened]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      enable_ios:
+        description: 'Enable iOS builds and tests'
+        required: false
+        default: false
+        type: boolean
+      enable_android:
+        description: 'Enable Android builds and tests'
+        required: false
+        default: true
+        type: boolean
+      include_main_changes:
+        description: 'Include recent changes from main branch'
+        required: false
+        default: false
+        type: boolean
+      base_branch:
+        description: 'Base branch to compare against'
+        required: false
+        default: 'origin/main'
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Step 1: AI Analysis & Test Planning
+  analyze-and-plan:
+    name: 'AI Analysis & Test Planning'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'smart-e2e') || contains(github.event.pull_request.labels.*.name, 'smart-e2e-android') || contains(github.event.pull_request.labels.*.name, 'smart-e2e-ios')
+    outputs:
+      selected-tags: ${{ steps.ai-analysis.outputs.tags }}
+      selected-tags-display: ${{ steps.ai-analysis.outputs.tags_display }}
+      test-strategy: ${{ steps.ai-analysis.outputs.strategy }}
+      total-splits: ${{ steps.ai-analysis.outputs.total_splits }}
+      matrix-splits: ${{ steps.ai-analysis.outputs.matrix_splits }}
+      should-run-tests: ${{ steps.ai-analysis.outputs.run_tests }}
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install minimal dependencies for AI analysis
+        run: |
+          echo "📦 Installing only required packages for AI analysis..."
+          # Install to a separate location that won't be overwritten
+          mkdir -p /tmp/ai-deps
+          cd /tmp/ai-deps
+          npm init -y
+          npm install @anthropic-ai/sdk@latest esbuild-register@latest --no-audit --no-fund
+          echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Ensure we get the full branch history for proper diff analysis
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Setup git for comprehensive analysis
+        run: |
+          echo "🔧 Ensuring complete git history..."
+          git fetch --unshallow --all || echo "Already unshallow"
+          git fetch origin main:main 2>/dev/null || echo "Main already available"
+          echo "✅ Git setup complete"
+
+      - name: Copy AI dependencies to workspace
+        run: |
+          echo "📋 Copying AI dependencies to workspace..."
+          # Create node_modules if it doesn't exist
+          mkdir -p node_modules
+          # Copy our pre-installed dependencies
+          cp -r /tmp/ai-deps/node_modules/* node_modules/
+          echo "✅ AI dependencies available in workspace"
+
+      - name: Test Selection AI Analysis
+        id: ai-analysis
+        env:
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+        run: |
+          echo "🤖 Running AI analysis..."
+
+          # Build command with dynamic arguments based on trigger type
+          BASE_CMD="node -r esbuild-register scripts/e2e/ai-e2e-tags-selector.ts --output json"
+
+          # Add base branch if specified (manual trigger)
+          if [ "${{ github.event.inputs.base_branch }}" != "" ] && [ "${{ github.event.inputs.base_branch }}" != "origin/main" ]; then
+            BASE_CMD="$BASE_CMD --base-branch ${{ github.event.inputs.base_branch }}"
+          fi
+
+          # Add include-main-changes flag
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.include_main_changes }}" == "true" ]; then
+              BASE_CMD="$BASE_CMD --include-main-changes"
+            fi
+          else
+            # For PR triggers, always include main changes for comprehensive analysis
+            BASE_CMD="$BASE_CMD --include-main-changes"
+          fi
+
+          echo "🤖 Running AI analysis with command: $BASE_CMD"
+          echo "📋 Event name: ${{ github.event_name }}"
+          echo "📋 Include main changes input: ${{ github.event.inputs.include_main_changes }}"
+
+          # Debug git state
+          echo "🔍 Git debug info:"
+          echo "- Current HEAD: $(git rev-parse HEAD)"
+          echo "- Origin main: $(git rev-parse origin/main 2>/dev/null || echo 'NOT FOUND')"
+          echo "- Files with include-main: $(git diff --name-only origin/main..HEAD 2>/dev/null | wc -l || echo 'ERROR')"
+          echo "- Files without include-main: $(git diff --name-only origin/main...HEAD 2>/dev/null | wc -l || echo 'ERROR')"
+          echo "- Last 5 commits: $(git log --oneline -5)"
+          echo "- Merge base: $(git merge-base origin/main HEAD 2>/dev/null || echo 'ERROR')"
+
+          RESULT=$(eval $BASE_CMD)
+
+          # Validate JSON output
+          if ! echo "$RESULT" | jq . > /dev/null 2>&1; then
+            echo "❌ Invalid JSON output from AI analysis"
+            echo "Raw output: $RESULT"
+            exit 1
+          fi
+
+          echo "📊 AI analysis completed successfully (builds running in parallel)"
+
+          # Parse results
+          TAGS=$(echo "$RESULT" | jq -r '.selectedTags | join("|")')  # Use pipe separator for grep regex
+          TAG_COUNT=$(echo "$RESULT" | jq -r '.selectedTags | length')
+          RISK_LEVEL=$(echo "$RESULT" | jq -r '.riskLevel')
+          TAG_DISPLAY=$(echo "$RESULT" | jq -r '.selectedTags | join(", ")')  # Human-readable format
+          TOTAL_SPLITS=$(echo "$RESULT" | jq -r '.totalSplits // 3')  # Use AI-calculated splits or fallback to 3
+          REASONING=$(echo "$RESULT" | jq -r '.reasoning // "AI analysis completed"')
+          CONFIDENCE=$(echo "$RESULT" | jq -r '.confidence // 75')
+
+          echo "✅ Selected tags: $TAG_DISPLAY"
+          echo "📈 Risk level: $RISK_LEVEL"
+          echo "🔢 Tag count: $TAG_COUNT"
+          echo "🧮 Total splits: $TOTAL_SPLITS (calculated based on test file counts)"
+
+          # Generate matrix array for GitHub Actions
+          MATRIX_ARRAY="["
+          for i in $(seq 1 $TOTAL_SPLITS); do
+            if [ $i -eq 1 ]; then
+              MATRIX_ARRAY="${MATRIX_ARRAY}$i"
+            else
+              MATRIX_ARRAY="${MATRIX_ARRAY},$i"
+            fi
+          done
+          MATRIX_ARRAY="${MATRIX_ARRAY}]"
+
+          echo "🔢 Generated matrix array: $MATRIX_ARRAY"
+
+          # Set outputs
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo "tags_display=$TAG_DISPLAY" >> $GITHUB_OUTPUT
+          echo "strategy=dynamic-$TAG_COUNT-tags" >> $GITHUB_OUTPUT
+          echo "total_splits=$TOTAL_SPLITS" >> $GITHUB_OUTPUT
+          echo "matrix_splits=$MATRIX_ARRAY" >> $GITHUB_OUTPUT
+
+          # Only run tests if we have tags selected and splits > 0
+          if [ "$TAG_COUNT" -eq 0 ]; then
+            echo "run_tests=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No E2E tests needed - AI determined changes are very low risk"
+          elif [ "$TOTAL_SPLITS" -gt 0 ]; then
+            echo "run_tests=true" >> $GITHUB_OUTPUT
+            echo "✅ Will run $((TOTAL_SPLITS * 2)) CI jobs ($TOTAL_SPLITS iOS + $TOTAL_SPLITS Android)"
+          else
+            echo "run_tests=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No E2E tests needed - selected tags have no test files"
+          fi
+
+          # Create readable test plan with file breakdown
+          echo "## 🎯 Smart E2E Test Plan" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$TAG_COUNT" -eq 0 ]; then
+            echo "- **Selected Tags**: None (no tests needed)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Risk Level**: $RISK_LEVEL" >> $GITHUB_STEP_SUMMARY
+            echo "- **AI Confidence**: ${CONFIDENCE}%" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total CI Jobs**: 0 (AI determined changes are very low risk)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Selected Tags**: $TAG_DISPLAY" >> $GITHUB_STEP_SUMMARY
+            echo "- **Risk Level**: $RISK_LEVEL" >> $GITHUB_STEP_SUMMARY
+            echo "- **AI Confidence**: ${CONFIDENCE}%" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total Splits**: $TOTAL_SPLITS (calculated from test file counts)" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$TOTAL_SPLITS" -gt 0 ]; then
+              echo "- **Total CI Jobs**: $((TOTAL_SPLITS * 2)) ($TOTAL_SPLITS iOS + $TOTAL_SPLITS Android)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- **Total CI Jobs**: 0 (selected tags have no test files)" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          # Add AI reasoning
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🤖 AI Analysis Reasoning" >> $GITHUB_STEP_SUMMARY
+          echo "$REASONING" >> $GITHUB_STEP_SUMMARY
+
+          # Add test file breakdown if available
+          BREAKDOWN=$(echo "$RESULT" | jq -r '.testFileBreakdown[]? | "  - " + .tag + ": " + (.fileCount | tostring) + " files → " + (.recommendedSplits | tostring) + " splits"')
+          if [ -n "$BREAKDOWN" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📊 Test File Breakdown" >> $GITHUB_STEP_SUMMARY
+            echo "$BREAKDOWN" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Step 2: Determine platform conditions
+  platform-conditions:
+    name: 'Platform Conditions'
+    needs: [analyze-and-plan]
+    runs-on: ubuntu-latest
+    outputs:
+      should-build-ios: ${{ steps.conditions.outputs.should-build-ios }}
+      should-build-android: ${{ steps.conditions.outputs.should-build-android }}
+      should-test-ios: ${{ steps.conditions.outputs.should-test-ios }}
+      should-test-android: ${{ steps.conditions.outputs.should-test-android }}
+    steps:
+      - name: Calculate platform conditions
+        id: conditions
+        run: |
+          # Base conditions
+          TESTS_NEEDED="${{ needs.analyze-and-plan.outputs.should-run-tests }}"
+          HAS_SPLITS="${{ needs.analyze-and-plan.outputs.total-splits != '0' }}"
+
+          # Platform enablement logic
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            IOS_ENABLED="${{ github.event.inputs.enable_ios }}"
+            ANDROID_ENABLED="${{ github.event.inputs.enable_android }}"
+          else
+            IOS_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'smart-e2e-ios') || contains(github.event.pull_request.labels.*.name, 'smart-e2e') }}"
+            ANDROID_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'smart-e2e-android') || contains(github.event.pull_request.labels.*.name, 'smart-e2e') }}"
+          fi
+
+          # Calculate final conditions
+          if [[ "$TESTS_NEEDED" == "true" && "$HAS_SPLITS" == "true" ]]; then
+            SHOULD_BUILD_IOS=$([[ "$IOS_ENABLED" == "true" ]] && echo "true" || echo "false")
+            SHOULD_BUILD_ANDROID=$([[ "$ANDROID_ENABLED" == "true" ]] && echo "true" || echo "false")
+          else
+            SHOULD_BUILD_IOS="false"
+            SHOULD_BUILD_ANDROID="false"
+          fi
+
+          echo "should-build-ios=$SHOULD_BUILD_IOS" >> $GITHUB_OUTPUT
+          echo "should-build-android=$SHOULD_BUILD_ANDROID" >> $GITHUB_OUTPUT
+          echo "should-test-ios=$SHOULD_BUILD_IOS" >> $GITHUB_OUTPUT
+          echo "should-test-android=$SHOULD_BUILD_ANDROID" >> $GITHUB_OUTPUT
+
+          echo "🎯 Platform Conditions:"
+          echo "- iOS Build/Test: $SHOULD_BUILD_IOS"
+          echo "- Android Build/Test: $SHOULD_BUILD_ANDROID"
+
+  # Step 3: Build iOS app for testing
+  build-ios:
+    name: 'Build iOS App'
+    needs: [platform-conditions]
+    if: needs.platform-conditions.outputs.should-build-ios == 'true'
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  # Step 4: Build Android app for testing
+  build-android:
+    name: 'Build Android App'
+    needs: [platform-conditions]
+    if: needs.platform-conditions.outputs.should-build-android == 'true'
+    uses: ./.github/workflows/build-android-e2e.yml
+    secrets: inherit
+
+  # Step 5: Dynamic iOS E2E Tests using reusable workflow
+  ios-smart-tests:
+    needs: [platform-conditions, build-ios]
+    if: needs.platform-conditions.outputs.should-test-ios == 'true' && needs.build-ios.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        split: ${{ fromJson(needs.analyze-and-plan.outputs.matrix-splits) }}
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: 'Smart-iOS-E2E-Split-${{ matrix.split }}-of-${{ needs.analyze-and-plan.outputs.total-splits }}'
+      platform: 'ios'
+      test_suite_tag: '${{ needs.analyze-and-plan.outputs.selected-tags }}'
+      split_number: ${{ matrix.split }}
+      total_splits: ${{ fromJson(needs.analyze-and-plan.outputs.total-splits) }}
+      test-timeout-minutes: 120
+    secrets: inherit
+
+  # Step 6: Dynamic Android E2E Tests using reusable workflow
+  android-smart-tests:
+    needs: [platform-conditions, build-android]
+    if: needs.platform-conditions.outputs.should-test-android == 'true' && needs.build-android.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        split: ${{ fromJson(needs.analyze-and-plan.outputs.matrix-splits) }}
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: 'Smart-Android-E2E-Split-${{ matrix.split }}-of-${{ needs.analyze-and-plan.outputs.total-splits }}'
+      platform: 'android'
+      test_suite_tag: '${{ needs.analyze-and-plan.outputs.selected-tags }}'
+      split_number: ${{ matrix.split }}
+      total_splits: ${{ fromJson(needs.analyze-and-plan.outputs.total-splits) }}
+      test-timeout-minutes: 120
+    secrets: inherit
+
+  # Step 7: Report iOS Test Results
+  report-ios-smart-tests:
+    name: '📊 iOS Smart E2E Test Report'
+    needs: [platform-conditions, ios-smart-tests]
+    if: needs.platform-conditions.outputs.should-test-ios == 'true' && (success() || failure())
+    uses: ./.github/workflows/report-e2e-tests.yml
+    with:
+      platform: 'ios'
+      test-type: 'smart-e2e'
+      artifact-pattern: 'Smart-iOS-E2E-*-test-results'
+      report-name: 'iOS Smart E2E Test Results'
+
+  # Step 8: Report Android Test Results
+  report-android-smart-tests:
+    name: '📊 Android Smart E2E Test Report'
+    needs: [platform-conditions, android-smart-tests]
+    if: needs.platform-conditions.outputs.should-test-android == 'true' && (success() || failure())
+    uses: ./.github/workflows/report-e2e-tests.yml
+    with:
+      platform: 'android'
+      test-type: 'smart-e2e'
+      artifact-pattern: 'Smart-Android-E2E-*-test-results'
+      report-name: 'Android Smart E2E Test Results'
+
+  # Step 9: Final Summary Report
+  report-results:
+    name: '📊 Smart E2E Test Results Summary'
+    runs-on: ubuntu-latest
+    needs:
+      [
+        analyze-and-plan,
+        platform-conditions,
+        ios-smart-tests,
+        android-smart-tests,
+        report-ios-smart-tests,
+        report-android-smart-tests,
+      ]
+    if: always() && needs.analyze-and-plan.result == 'success'
+    steps:
+      - name: Generate test report
+        run: |
+          echo "## 🎯 Smart E2E Test Execution Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Strategy**: ${{ needs.analyze-and-plan.outputs.test-strategy }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Selected Tags**: ${{ needs.analyze-and-plan.outputs.selected-tags-display }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Splits**: ${{ needs.analyze-and-plan.outputs.total-splits }}" >> $GITHUB_STEP_SUMMARY
+
+          # Show platform status from conditions job
+          echo "- **iOS Enabled**: ${{ needs.platform-conditions.outputs.should-build-ios }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Android Enabled**: ${{ needs.platform-conditions.outputs.should-build-android }}" >> $GITHUB_STEP_SUMMARY
+
+          echo "- **iOS Result**: ${{ needs.ios-smart-tests.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Android Result**: ${{ needs.android-smart-tests.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check test results
+        run: |
+          IOS_RESULT="${{ needs.ios-smart-tests.result }}"
+          ANDROID_RESULT="${{ needs.android-smart-tests.result }}"
+          SHOULD_RUN_TESTS="${{ needs.analyze-and-plan.outputs.should-run-tests }}"
+          TOTAL_SPLITS="${{ needs.analyze-and-plan.outputs.total-splits }}"
+
+          if [[ "$SHOULD_RUN_TESTS" == "false" ]] || [[ "$TOTAL_SPLITS" == "0" ]]; then
+            echo "ℹ️ No E2E tests were needed based on AI analysis"
+            echo "✅ Smart E2E analysis completed - no testing required"
+          elif [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
+            echo "❌ Some E2E tests failed"
+            exit 1
+          else
+            echo "✅ All E2E tests completed successfully"
+          fi

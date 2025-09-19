@@ -25,6 +25,11 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
+"@anthropic-ai/sdk@^0.62.0":
+  version "0.62.0"
+  resolved "https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.62.0.tgz#c624086ce46101fe0bffe24893a1d00e6fea0972"
+  integrity sha512-gT2VFKX0gSp7KJNlav/vzRFjJOPYDZxCJRx7MYUc+fqURc5aS6OI/UJeD2KytJkjsIWv0OOwH1ePc1S5QE2GZw==
+
 "@appium/base-driver@^9.0.0", "@appium/base-driver@^9.1.0", "@appium/base-driver@^9.18.0":
   version "9.18.0"
   resolved "https://registry.yarnpkg.com/@appium/base-driver/-/base-driver-9.18.0.tgz#7a607b26f45e11258246a7a7ccdb699f9488f002"

@@ -14,7 +14,7 @@ const tags = {
   smokeIdentity: 'SmokeIdentity:',
   regressionIdentity: 'RegressionIdentity:',
   smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
-  SmokeTrade: 'Trade:',
+  SmokeTrade: 'SmokeTrade:',
   RegressionTrade: 'RegressionTrade:',
   SmokeNetworkAbstractions: 'NetworkAbstractions:',
   regressionNetworkAbstractions: 'RegressionNetworkAbstractions:',

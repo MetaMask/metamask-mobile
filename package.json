@@ -28,6 +28,7 @@
     "setup:flask": "export METAMASK_BUILD_TYPE='flask' && yarn setup",
     "setup:expo": "yarn clean && node scripts/setup.mjs --no-build-ios --no-build-android",
     "setup:e2e": "cd wdio && yarn install",
+    "smart-e2e": "node -r esbuild-register scripts/e2e/ai-e2e-tags-selector.ts",
     "start:ios": "./scripts/build.sh ios debug",
     "start:ios:qa": "./scripts/build.sh ios qaDebug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
@@ -210,6 +211,7 @@
     "appwright/form-data": "4.0.4"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.62.0",
     "@config-plugins/detox": "^9.0.0",
     "@consensys/native-ramps-sdk": "^2.0.0-beta.2",
     "@consensys/on-ramp-sdk": "2.1.11",
