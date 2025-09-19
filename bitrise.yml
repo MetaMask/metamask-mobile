@@ -638,6 +638,31 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
+                # REPEAT the same aggressive cleanup for this step (each step = fresh shell!)
+                echo "Clearing ALL legacy configurations for iOS build (setup step)..."
+                rm -f .yarnrc || true
+                rm -f ~/.yarnrc || true
+                rm -rf ~/.yarn || true
+                rm -f /usr/local/etc/yarnrc || true
+                rm -f /opt/homebrew/etc/yarnrc || true
+                
+                # Clear ALL yarn-related environment variables
+                unset YARN_CACHE_FOLDER
+                unset YARN_CACHE_DIR
+                unset YARN_GLOBAL_FOLDER
+                unset YARN_LINK_FOLDER
+                unset YARN_ENABLE_GLOBAL_CACHE
+                unset YARN_ENABLE_IMMUTABLE_INSTALLS
+                unset YARN_RC_FILENAME
+                unset YARN_WRAP_OUTPUT
+                unset YARN_COMMAND
+                
+                # Create completely isolated environment
+                export HOME=/tmp/isolated-yarn-home
+                mkdir -p $HOME
+                export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
+                export YARN_GLOBAL_FOLDER="$(pwd)/.yarn/global"
+                
                 # Use the same bundled yarn for setup
                 if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
                   YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
@@ -646,8 +671,16 @@ workflows:
                   exit 1
                 fi
                 
-                echo "Running setup with bundled yarn..."
-                $YARN_CMD setup:ci
+                echo "Running setup with bundled yarn in isolated environment..."
+                
+                # Use env -i for complete isolation
+                env -i \
+                  PATH="$PATH" \
+                  NODE_PATH="$NODE_PATH" \
+                  HOME="$HOME" \
+                  PWD="$(pwd)" \
+                  YARN_CACHE_FOLDER="$(pwd)/.yarn/cache" \
+                  $YARN_CMD setup:ci
                 
                 # Verify PPOM files were generated
                 echo "Checking if PPOM files were generated..."
