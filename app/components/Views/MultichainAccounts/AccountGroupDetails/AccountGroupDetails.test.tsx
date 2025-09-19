@@ -10,11 +10,26 @@ import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
 import {
   createMockAccountGroup,
   createMockInternalAccount,
+  createMockWallet,
+  createMockInternalAccountsFromGroups,
+  createMockState,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
+  const actual = jest.requireActual(
+    '../../../../selectors/multichainAccounts/accounts',
+  );
+  return {
+    ...actual,
+    selectIconSeedAddressByAccountGroupId: jest.fn(() =>
+      jest.fn(() => '0xseed'),
+    ),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -41,11 +56,14 @@ const mockAccount = createMockInternalAccount(
   'Test Account',
 );
 mockAccount.options.entropySource = 'keyring:test-wallet';
-const mockWallet = {
-  id: 'wallet-1',
-  metadata: { name: 'Test Wallet' },
-  type: 'keyring',
-};
+const groups = [mockAccountGroup];
+const mockWallet = createMockWallet(
+  'keyring:test-wallet',
+  'Test Wallet',
+  groups,
+);
+const internalAccounts = createMockInternalAccountsFromGroups(groups);
+const baseState = createMockState([mockWallet], internalAccounts);
 
 const mockNetworkControllerState = {
   networkConfigurationsByChainId: {
@@ -103,6 +121,7 @@ describe('AccountGroupDetails', () => {
   };
 
   const mockState = {
+    ...baseState,
     settings: {
       avatarAccountType: AvatarAccountType.Maskicon,
     },
@@ -110,33 +129,9 @@ describe('AccountGroupDetails', () => {
       seedphraseBackedUp: false,
     },
     engine: {
+      ...baseState.engine,
       backgroundState: {
-        AccountTreeController: {
-          accountTree: {
-            wallets: {
-              'wallet-1': mockWallet,
-            },
-          },
-        },
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              'account-1': mockAccount,
-            },
-            selectedAccount: 'account-1',
-          },
-        },
-        KeyringController: {
-          keyrings: [
-            {
-              type: 'HD Key Tree',
-              accounts: [mockAccount.address],
-              metadata: {
-                id: 'keyring:test-wallet',
-              },
-            },
-          ],
-        },
+        ...baseState.engine.backgroundState,
         NetworkController: mockNetworkControllerState,
         MultichainNetworkController: mockMultichainNetworkController,
       },
@@ -333,5 +328,24 @@ describe('AccountGroupDetails', () => {
         params: { accountGroup: mockAccountGroup },
       },
     );
+  });
+
+  it('uses the group icon seed address to render the avatar', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      {
+        state: mockState,
+      },
+    );
+
+    // Assert that the selector selectIconSeedAddressByAccountGroupId was called
+    const { selectIconSeedAddressByAccountGroupId: mockedFactory } =
+      jest.requireMock('../../../../selectors/multichainAccounts/accounts');
+    expect(mockedFactory).toHaveBeenCalledWith(mockAccountGroup.id);
+
+    // Assert that the avatar is rendered
+    expect(
+      getByTestId(AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR),
+    ).toBeTruthy();
   });
 });
