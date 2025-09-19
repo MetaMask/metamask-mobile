@@ -109,7 +109,9 @@ export type RootParamList = {
   Login: LoginParams | undefined;
   OnboardingRootNav: undefined;
   ImportFromSecretRecoveryPhrase: undefined;
-  OptinMetrics: undefined;
+  OptinMetrics: {
+    onContinue: () => void;
+  };
   OnboardingCarousel: undefined;
   Onboarding: undefined;
   ChoosePassword: undefined;
