@@ -1,4 +1,5 @@
 import { Connection } from '../services/connection';
+import { ConnectionRequest } from './connection-request';
 
 /**
  * Defines the contract for the host MetaMask Mobile application.
@@ -10,27 +11,19 @@ import { Connection } from '../services/connection';
 export interface IHostApplicationAdapter {
   /**
    * Displays a global, non-interactive loading modal. Used to indicate
-   * background activity, such as the cryptographic handshake.
+   * background activity, such as establishing a connection.
    */
-  showLoading(): void;
+  showConnectionLoading(connreq: ConnectionRequest): void;
 
   /**
    * Hides the global loading modal.
    */
-  hideLoading(): void;
+  hideConnectionLoading(connreq: ConnectionRequest): void;
 
   /**
-   * Displays a global, non-interactive alert.
-   * @param title The title of the alert.
-   * @param message The message to display in the alert.
+   * Displays a global, non-interactive error modal.
    */
-  showAlert(title: string, message: string): void;
-
-  /**
-   * Displays a modal for the user to enter a One-Time Password (OTP).
-   * @returns A promise that resolves when the user has entered the OTP.
-   */
-  showOTPModal(): Promise<void>;
+  showConnectionError(): void;
 
   /**
    * Syncs the full list of active v2 connections with the application's
