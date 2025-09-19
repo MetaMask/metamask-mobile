@@ -11,12 +11,12 @@ concurrency:
 jobs:
   needs_e2e_build:
     name: "Detect Mobile Build Changes"
-    if: ${{ github.event_name != 'merge_group' }}
+    if: ${{ github.event_name != 'merge_group' && contains(github.event.pull_request.labels.*.name, 'Run Flask E2E Smoke') }}
     uses: ./.github/workflows/needs-e2e-build.yml
 
   build-android-flask-apps:
     name: "Build Android Flask Apps"
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'Run Flask E2E Smoke') }}
     permissions:
       contents: read
       id-token: write
@@ -29,7 +29,7 @@ jobs:
   
   e2e-smoke-tests-android:
     name: "Android Flask E2E Smoke Tests"
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && contains(github.event.pull_request.labels.*.name, 'Run Flask E2E Smoke') }}
     permissions:
       contents: read
       id-token: write
