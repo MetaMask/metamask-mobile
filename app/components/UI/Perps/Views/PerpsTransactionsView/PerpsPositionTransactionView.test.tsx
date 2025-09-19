@@ -55,6 +55,10 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
   selectHasCreatedSolanaMainnetAccount: jest.fn(),
   selectInternalAccounts: jest.fn(() => []),
+  selectLastSelectedEvmAccount: jest.fn(() => ({
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+    type: 'eip155:eoa',
+  })),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
