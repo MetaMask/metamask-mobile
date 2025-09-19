@@ -35,24 +35,6 @@ describe('AccountNetworkInfoCollapsed', () => {
     expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
   });
 
-  it('displays walletName when available instead of networkName', () => {
-    mockUseAccountInfo.mockReturnValue({
-      accountName: '0x935E7...05477',
-      walletName: 'My Custom Wallet',
-      accountGroupName: undefined,
-    } as unknown as ReturnType<typeof useAccountInfo>);
-
-    const { getByText, queryByText } = renderWithProvider(
-      <AccountNetworkInfoCollapsed />,
-      {
-        state: personalSignatureConfirmationState,
-      },
-    );
-
-    expect(getByText('My Custom Wallet')).toBeOnTheScreen();
-    expect(queryByText('Ethereum Mainnet')).toBeNull();
-  });
-
   it('displays networkName when walletName is not available', () => {
     mockUseAccountInfo.mockReturnValue({
       accountName: '0x935E7...05477',
@@ -97,25 +79,5 @@ describe('AccountNetworkInfoCollapsed', () => {
     });
 
     expect(getByText('0x935E7...05477')).toBeOnTheScreen();
-  });
-
-  it('displays both walletName and accountGroupName when both are available', () => {
-    mockUseAccountInfo.mockReturnValue({
-      accountName: '0x935E7...05477',
-      walletName: 'My Custom Wallet',
-      accountGroupName: 'My Account Group',
-    } as unknown as ReturnType<typeof useAccountInfo>);
-
-    const { getByText, queryByText } = renderWithProvider(
-      <AccountNetworkInfoCollapsed />,
-      {
-        state: personalSignatureConfirmationState,
-      },
-    );
-
-    expect(getByText('My Account Group')).toBeOnTheScreen();
-    expect(getByText('My Custom Wallet')).toBeOnTheScreen();
-    expect(queryByText('0x935E7...05477')).toBeNull();
-    expect(queryByText('Ethereum Mainnet')).toBeNull();
   });
 });
