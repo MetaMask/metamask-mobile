@@ -48,7 +48,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getCryptoToken = () => {
-    if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
+    if (!order?.data || !hasDepositOrderField(order.data, 'cryptoCurrency')) {
       return null;
     }
     return order.data.cryptoCurrency;
@@ -59,11 +59,24 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const allNetworkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
+
+  const depositOrder = order.data as DepositOrder;
+  const depositNetwork = depositOrder?.network;
+  const networkChainId =
+    typeof depositNetwork === 'object' && depositNetwork?.chainId
+      ? depositNetwork.chainId
+      : order.network || '';
   const networkName =
-    allNetworkConfigurations[order.network as `${string}:${string}`]?.name;
-  const networkImageSource = getNetworkImageSource({
-    chainId: order.network ?? '',
-  });
+    typeof depositNetwork === 'object' && depositNetwork?.name
+      ? depositNetwork.name
+      : allNetworkConfigurations[networkChainId as `${string}:${string}`]
+          ?.name || 'Unknown Network';
+
+  const networkImageSource = networkChainId
+    ? getNetworkImageSource({
+        chainId: networkChainId,
+      })
+    : null;
 
   const getIconContainerStyle = () => {
     if (order.state === FIAT_ORDER_STATES.COMPLETED) {
@@ -121,9 +134,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
               badgeElement={
                 <BadgeNetwork
                   name={networkName}
-                  imageSource={getNetworkImageSource({
-                    chainId: order.network ?? '',
-                  })}
+                  imageSource={networkImageSource || undefined}
                 />
               }
             >
@@ -140,7 +151,8 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           {order.cryptoAmount} {order.cryptocurrency}
         </Text>
 
-        {hasDepositOrderField(order.data, 'statusDescription') &&
+        {order?.data &&
+        hasDepositOrderField(order.data, 'statusDescription') &&
         order.data.statusDescription ? (
           <Text
             variant={TextVariant.BodySM}

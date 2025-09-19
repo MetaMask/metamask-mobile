@@ -530,7 +530,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>
@@ -1135,7 +1135,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>
@@ -1667,7 +1667,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>

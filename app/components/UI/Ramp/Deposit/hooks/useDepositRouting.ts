@@ -246,7 +246,7 @@ export const useDepositRouting = ({
                 total_fee: Number(order.totalFeesFiat),
                 payment_method_id: order.paymentMethod.id,
                 country: selectedRegion?.isoCode || '',
-                chain_id: order.network || '',
+                chain_id: order.network.chainId,
                 currency_destination: order.cryptoCurrency.assetId || '',
                 currency_source: order.fiatCurrency,
               });
@@ -377,7 +377,6 @@ export const useDepositRouting = ({
                 const processedOrder = {
                   ...depositOrderToFiatOrder(order),
                   account: selectedWalletAddress || order.walletAddress,
-                  network: cryptoCurrencyChainId,
                 };
 
                 await handleNewOrder(processedOrder);
@@ -505,7 +504,6 @@ export const useDepositRouting = ({
       requestOtt,
       generatePaymentUrl,
       selectedWalletAddress,
-      cryptoCurrencyChainId,
       paymentMethodId,
       themeAppearance,
       colors,

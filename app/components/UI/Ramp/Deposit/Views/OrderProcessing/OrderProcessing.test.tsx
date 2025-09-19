@@ -81,7 +81,7 @@ describe('OrderProcessing Component', () => {
     network: 'eip155:1',
     data: {
       cryptoCurrency: MOCK_USDC_TOKEN,
-      network: 'ethereum',
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       providerOrderLink: 'https://transak.com/order/123',
       fiatAmount: '100',
       exchangeRate: '2000',

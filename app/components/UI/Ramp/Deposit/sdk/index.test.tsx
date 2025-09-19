@@ -55,7 +55,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       paymentMethod: 'credit_card',
       cryptoAmount: 0.1,
       isBuyOrSell: 'BUY',
-      network: 'mainnet',
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       feeDecimal: 0,
       totalFee: 0,
       feeBreakdown: [],

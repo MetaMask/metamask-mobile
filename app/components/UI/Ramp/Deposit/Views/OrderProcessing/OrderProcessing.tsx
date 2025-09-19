@@ -61,12 +61,14 @@ const OrderProcessing = () => {
         : order?.state === FIAT_ORDER_STATES.CANCELLED ||
           order?.state === FIAT_ORDER_STATES.FAILED
         ? strings('deposit.order_processing.error_title')
-        : strings('deposit.order_processing.title');
+        : strings('deposit.order_processing.title', {
+            currency: order?.cryptocurrency,
+          });
 
     navigation.setOptions(
       getDepositNavbarOptions(navigation, { title }, theme),
     );
-  }, [navigation, theme, order?.state]);
+  }, [navigation, theme, order?.state, order?.cryptocurrency]);
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {

@@ -28,7 +28,7 @@ const mockOrderData = {
     fiatAmount: 100,
     fiatCurrency: 'USD',
     cryptoCurrency: 'USDC',
-    network: 'ethereum',
+    network: { chainId: 'eip155:1', name: 'Ethereum' },
     status: 'created',
     orderType: 'buy',
     walletAddress: '0x123...',

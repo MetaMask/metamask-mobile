@@ -99,6 +99,7 @@ const BuildQuote = () => {
     error: regionsError,
     retryFetchRegions,
   } = useRegions();
+
   const {
     cryptoCurrencies,
     isFetching: isFetchingCryptos,
