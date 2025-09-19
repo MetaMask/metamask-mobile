@@ -8,7 +8,7 @@ import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import { Mockttp } from 'mockttp';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { goToImportSrp, inputSrp } from './utils';
+import { goToImportSrp, inputSrp } from '../multisrp/utils';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 
 const IMPORTED_ACCOUNT_NAME = 'Account 4';
