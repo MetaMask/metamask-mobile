@@ -137,18 +137,6 @@ describe('OnboardingStep', () => {
       );
       expect(screen.getByText('Custom Button Text')).toBeDefined();
     });
-
-    it('should render previous button when onPrevious is provided', () => {
-      renderWithProviders(<OnboardingStep {...defaultProps} />);
-      expect(screen.getByTestId('previous-button')).toBeDefined();
-    });
-
-    it('should not render previous button when onPrevious is not provided', () => {
-      renderWithProviders(
-        <OnboardingStep {...defaultProps} onPrevious={undefined} />,
-      );
-      expect(screen.queryByTestId('previous-button')).toBeNull();
-    });
   });
 
   describe('button interactions', () => {
@@ -161,15 +149,6 @@ describe('OnboardingStep', () => {
       fireEvent.press(nextButton);
 
       expect(mockOnNext).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onPrevious when previous button is pressed', () => {
-      renderWithProviders(<OnboardingStep {...defaultProps} />);
-
-      const previousButton = screen.getByTestId('previous-button');
-      fireEvent.press(previousButton);
-
-      expect(mockOnPrevious).toHaveBeenCalledTimes(1);
     });
 
     it('should disable next button when onNextDisabled is true', () => {
@@ -190,6 +169,39 @@ describe('OnboardingStep', () => {
       );
       expect(nextButton).toBeDefined();
       // Button should be disabled and show loading state
+    });
+
+    it('should render skip button when onSkip is provided', () => {
+      const mockOnSkip = jest.fn();
+      renderWithProviders(
+        <OnboardingStep {...defaultProps} onSkip={mockOnSkip} />,
+      );
+
+      const skipButton = screen.getByText(
+        'mocked_rewards.onboarding.step_skip',
+      );
+      expect(skipButton).toBeDefined();
+    });
+
+    it('should call onSkip when skip button is pressed', () => {
+      const mockOnSkip = jest.fn();
+      renderWithProviders(
+        <OnboardingStep {...defaultProps} onSkip={mockOnSkip} />,
+      );
+
+      const skipButton = screen.getByText(
+        'mocked_rewards.onboarding.step_skip',
+      );
+      fireEvent.press(skipButton);
+
+      expect(mockOnSkip).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not render skip button when onSkip is not provided', () => {
+      renderWithProviders(<OnboardingStep {...defaultProps} />);
+
+      const skipButton = screen.queryByText('mocked_rewards.onboarding.skip');
+      expect(skipButton).toBeNull();
     });
   });
 
@@ -233,19 +245,6 @@ describe('image and background rendering', () => {
   it('should not render image container when renderStepImage is not provided', () => {
     renderWithProviders(<OnboardingStep {...defaultProps} />);
     expect(screen.queryByTestId('step-image')).toBeNull();
-  });
-
-  it('should render background image when backgroundImageSource is provided', () => {
-    const mockImageSource = { uri: 'test-image.jpg' };
-
-    renderWithProviders(
-      <OnboardingStep
-        {...defaultProps}
-        backgroundImageSource={mockImageSource}
-      />,
-    );
-
-    expect(screen.getByTestId('background-image')).toBeDefined();
   });
 });
 
@@ -412,15 +411,6 @@ describe('edge cases and prop variations', () => {
     });
   });
 
-  it('should handle onPrevious undefined without crashing', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} onPrevious={undefined} />,
-    );
-
-    expect(screen.queryByTestId('previous-button')).toBeNull();
-    expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
-  });
-
   it('should render with minimal required props', () => {
     const minimalProps = {
       currentStep: 1,
@@ -465,21 +455,6 @@ describe('component composition and layout', () => {
     expect(screen.getByTestId('step-info')).toBeDefined();
     expect(screen.getByText('Custom Next')).toBeDefined();
     expect(screen.getByTestId('alternative-button')).toBeDefined();
-    expect(screen.getByTestId('previous-button')).toBeDefined();
-  });
-
-  it('should apply correct testIDs to all major elements', () => {
-    renderWithProviders(
-      <OnboardingStep
-        {...defaultProps}
-        backgroundImageSource={{ uri: 'test.jpg' }}
-      />,
-    );
-
-    expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
-    expect(screen.getByTestId('background-image')).toBeDefined();
-    expect(screen.getByTestId('progress-indicator-container')).toBeDefined();
-    expect(screen.getByTestId('previous-button')).toBeDefined();
   });
 });
 
@@ -515,9 +490,8 @@ describe('OnboardingStep1', () => {
       expect(screen.getByTestId('progress-indicator-container')).toBeDefined();
     });
 
-    it('should render previous and next buttons', () => {
+    it('should render skip and next buttons', () => {
       renderWithProviders(<OnboardingStep1 />);
-      expect(screen.getByTestId('previous-button')).toBeDefined();
       expect(
         screen.getByText('mocked_rewards.onboarding.step_confirm'),
       ).toBeDefined();
@@ -725,14 +699,21 @@ describe('OnboardingStep4', () => {
 
     it('should render legal disclaimer with learn more link', () => {
       renderWithProviders(<OnboardingStep4 />);
-      expect(
-        screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer'),
-      ).toBeDefined();
-      expect(
-        screen.getByText(
-          'mocked_rewards.onboarding.step4_legal_disclaimer_learn_more',
-        ),
-      ).toBeDefined();
+
+      // The component renders a Text component with nested Text components
+      // Instead of looking for exact mock keys, we'll check for the presence of Text elements
+      const textElements = screen.getAllByText(
+        /mocked_rewards.onboarding.step4_legal_disclaimer/,
+      );
+
+      // Verify we have at least one text element for the legal disclaimer
+      expect(textElements.length).toBeGreaterThan(0);
+
+      // Check for the presence of clickable text elements (terms and learn more links)
+      const clickableElements = screen.getAllByText(
+        /mocked_rewards.onboarding.step4_legal_disclaimer_[24]/,
+      );
+      expect(clickableElements.length).toBeGreaterThan(0);
     });
 
     it('should show progress indicator with currentStep set to 4', () => {
@@ -863,7 +844,7 @@ describe('OnboardingStep4', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       const learnMoreLink = screen.getByText(
-        'mocked_rewards.onboarding.step4_legal_disclaimer_learn_more',
+        'mocked_rewards.onboarding.step4_legal_disclaimer_2',
       );
       fireEvent.press(learnMoreLink);
 

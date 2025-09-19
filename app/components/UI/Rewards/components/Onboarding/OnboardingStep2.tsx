@@ -24,9 +24,9 @@ const OnboardingStep2: React.FC = () => {
     navigation.navigate(Routes.REWARDS_ONBOARDING_3);
   }, [dispatch, navigation]);
 
-  const handlePrevious = useCallback(() => {
-    dispatch(setOnboardingActiveStep(OnboardingStep.STEP_1));
-    navigation.navigate(Routes.REWARDS_ONBOARDING_1);
+  const handleSkip = useCallback(() => {
+    dispatch(setOnboardingActiveStep(OnboardingStep.STEP_4));
+    navigation.navigate(Routes.REWARDS_ONBOARDING_4);
   }, [dispatch, navigation]);
 
   const renderStepImage = () => (
@@ -65,7 +65,7 @@ const OnboardingStep2: React.FC = () => {
     <OnboardingStepComponent
       currentStep={2}
       onNext={handleNext}
-      onPrevious={handlePrevious}
+      onSkip={handleSkip}
       renderStepImage={renderStepImage}
       renderStepInfo={renderStepInfo}
     />
