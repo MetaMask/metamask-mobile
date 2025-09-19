@@ -1,13 +1,20 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../../hooks';
 import AccountCell from '../../AccountCell';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
+import Checkbox from '../../../../components/Checkbox';
 
 const AccountListCell = memo(
-  ({ accountGroup, isSelected, onSelectAccount }: AccountListCellProps) => {
+  ({
+    accountGroup,
+    avatarAccountType,
+    isSelected,
+    onSelectAccount,
+    showCheckbox = false,
+  }: AccountListCellProps) => {
     const { styles } = useStyles(createStyles, {});
 
     const handlePress = useCallback(() => {
@@ -20,7 +27,18 @@ const AccountListCell = memo(
         onPress={handlePress}
         activeOpacity={0.7}
       >
-        <AccountCell accountGroup={accountGroup} isSelected={isSelected} />
+        <AccountCell
+          startAccessory={
+            showCheckbox ? (
+              <View testID={`account-list-cell-checkbox-${accountGroup.id}`}>
+                <Checkbox isChecked={isSelected} onPress={handlePress} />
+              </View>
+            ) : undefined
+          }
+          accountGroup={accountGroup}
+          avatarAccountType={avatarAccountType}
+          isSelected={isSelected}
+        />
       </TouchableOpacity>
     );
   },

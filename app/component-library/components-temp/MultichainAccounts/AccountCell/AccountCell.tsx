@@ -18,24 +18,34 @@ import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balanc
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import AvatarAccount, {
+  AvatarAccountType,
+} from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarSize } from '../../../components/Avatars/Avatar/Avatar.types';
+import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
+  avatarAccountType: AvatarAccountType;
   isSelected: boolean;
   hideMenu?: boolean;
+  startAccessory?: React.ReactNode;
 }
 
 const AccountCell = ({
   accountGroup,
+  avatarAccountType,
   isSelected,
   hideMenu = false,
+  startAccessory,
 }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
-    navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS, {
-      accountGroup,
+    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS,
+      params: { accountGroup },
     });
   }, [navigate, accountGroup]);
 
@@ -46,6 +56,12 @@ const AccountCell = ({
   const groupBalance = useSelector(selectBalanceForGroup);
   const totalBalance = groupBalance?.totalBalanceInUserCurrency;
   const userCurrency = groupBalance?.userCurrency;
+
+  const selectEvmAddress = useMemo(
+    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
+    [accountGroup.id],
+  );
+  const evmAddress = useSelector(selectEvmAddress);
 
   const displayBalance = useMemo(() => {
     if (totalBalance == null || !userCurrency) {
@@ -65,7 +81,16 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <View style={styles.avatar} testID={AccountCellIds.AVATAR}></View>
+      {startAccessory}
+      <View style={styles.avatarWrapper}>
+        <AvatarAccount
+          accountAddress={evmAddress}
+          type={avatarAccountType}
+          size={AvatarSize.Md}
+          style={styles.avatar}
+          testID={AccountCellIds.AVATAR}
+        />
+      </View>
       <View style={styles.accountName}>
         <Text
           variant={TextVariant.BodyMDBold}
@@ -76,10 +101,11 @@ const AccountCell = ({
         >
           {accountGroup.metadata.name}
         </Text>
-        {isSelected && (
+        {!startAccessory && isSelected && (
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Md}
+            style={styles.checkIcon}
             color={TextColor.Primary}
           />
         )}

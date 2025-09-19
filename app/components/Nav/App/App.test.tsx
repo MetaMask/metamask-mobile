@@ -13,7 +13,6 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
 } from '../../../constants/storage';
-import { strings } from '../../../../locales/i18n';
 import {
   NavigationContainer,
   NavigationState,
@@ -30,6 +29,7 @@ import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -113,7 +113,7 @@ const mockRoutes = [
             index: 0,
             routes: [
               {
-                name: 'OnboardingCarousel',
+                name: 'Onboarding',
                 params: {},
               },
             ],
@@ -362,32 +362,50 @@ describe('App', () => {
       });
     });
 
-    it('navigates to OptinMetrics when user exists and OptinMetaMetricsUISeen is false', async () => {
-      // Mock StorageWrapper.getItem to return different values based on the key
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) {
-          return false; // OptinMetrics UI has not been seen
-        }
-        return null; // Default for other keys
+    describe('SRP vs Social Login user differentiation', () => {
+      beforeEach(() => {
+        jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
       });
 
-      renderScreen(
-        App,
-        { name: 'App' },
-        {
-          state: {
-            ...initialState,
-            user: {
-              ...initialState.user,
-              existingUser: true,
+      it('shows metrics optin for SRP users when not seen before', async () => {
+        const srpUserState = {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+          },
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine?.backgroundState,
+              SeedlessOnboardingController: {
+                vault: undefined,
+              },
             },
           },
-        },
-      );
+        };
 
-      // Wait a bit longer and add debugging
-      await waitFor(
-        () => {
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return false;
+            }
+            return null;
+          });
+
+        // Mock useMetrics hook to return false for isEnabled
+        jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+          useMetrics: () => ({
+            isEnabled: jest.fn().mockReturnValue(false),
+          }),
+        }));
+
+        // Act
+        renderScreen(App, { name: 'App' }, { state: srpUserState });
+
+        // Assert
+        await waitFor(() => {
           expect(mockReset).toHaveBeenCalledWith({
             routes: [
               {
@@ -401,9 +419,46 @@ describe('App', () => {
               },
             ],
           });
-        },
-        { timeout: 5000 },
-      );
+        });
+      });
+
+      it('navigates directly to home for SRP users when metrics UI already seen', async () => {
+        const srpUserState = {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
+          },
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine?.backgroundState,
+              SeedlessOnboardingController: {
+                vault: undefined,
+              },
+            },
+          },
+        };
+
+        jest
+          .spyOn(StorageWrapper, 'getItem')
+          .mockImplementation(async (key) => {
+            if (key === OPTIN_META_METRICS_UI_SEEN) {
+              return true;
+            }
+            return null;
+          });
+
+        // Act
+        renderScreen(App, { name: 'App' }, { state: srpUserState });
+
+        // Assert
+        await waitFor(() => {
+          expect(mockReset).toHaveBeenCalledWith({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+        });
+      });
     });
 
     describe('Seedless onboarding password outdated check', () => {
@@ -539,52 +594,6 @@ describe('App', () => {
       });
     });
   });
-  describe('OnboardingRootNav', () => {
-    it('renders the very first onboarding screen when you navigate into OnboardingRootNav', async () => {
-      const routeState = {
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            state: {
-              index: 0,
-              routes: [
-                {
-                  name: Routes.ONBOARDING.NAV,
-                  state: {
-                    index: 0,
-                    routes: [
-                      {
-                        name: 'OnboardingCarousel',
-                        params: {},
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      };
-      const mockStore = configureMockStore();
-      const store = mockStore(initialState);
-
-      const Providers = ({ children }: { children: React.ReactElement }) => (
-        <NavigationContainer initialState={routeState}>
-          <Provider store={store}>
-            <ThemeContext.Provider value={mockTheme}>
-              {children}
-            </ThemeContext.Provider>
-          </Provider>
-        </NavigationContainer>
-      );
-
-      const { getByText } = render(<App />, { wrapper: Providers });
-
-      expect(
-        getByText(strings('onboarding_carousel.get_started')),
-      ).toBeTruthy();
-    });
-  });
 
   describe('Renders multichain account details', () => {
     const mockLoggedInState = {
@@ -593,7 +602,7 @@ describe('App', () => {
         userLoggedIn: true,
       },
       settings: {
-        useBlockieIcon: true,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       engine: {
         ...initialState.engine,
@@ -716,7 +725,8 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Edit Account Name')).toBeTruthy();
+        expect(getByText('Account Group')).toBeTruthy();
+        expect(getByText('Account name')).toBeTruthy();
       });
     });
 
@@ -842,43 +852,43 @@ describe('App', () => {
         });
       });
     });
+  });
 
-    it('should use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) {
-          return false; // OptinMetrics UI has not been seen
-        }
-        return null; // Default for other keys
-      });
+  it('should use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
+    jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
+      if (key === OPTIN_META_METRICS_UI_SEEN) {
+        return false; // OptinMetrics UI has not been seen
+      }
+      return null; // Default for other keys
+    });
 
-      renderScreen(
-        App,
-        { name: 'App' },
-        {
-          state: {
-            ...initialState,
-            user: {
-              ...initialState.user,
-              existingUser: true,
-            },
+    renderScreen(
+      App,
+      { name: 'App' },
+      {
+        state: {
+          ...initialState,
+          user: {
+            ...initialState.user,
+            existingUser: true,
           },
         },
-      );
+      },
+    );
 
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          routes: [
-            {
-              name: Routes.ONBOARDING.ROOT_NAV,
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
               params: {
-                screen: Routes.ONBOARDING.NAV,
-                params: {
-                  screen: Routes.ONBOARDING.OPTIN_METRICS,
-                },
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
               },
             },
-          ],
-        });
+          },
+        ],
       });
     });
   });

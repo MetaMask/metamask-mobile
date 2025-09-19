@@ -3,25 +3,61 @@ import React from 'react';
 import UrlAutocomplete, { UrlAutocompleteRef } from './';
 import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { removeBookmark } from '../../../actions/bookmarks';
 import { noop } from 'lodash';
 import { createStackNavigator } from '@react-navigation/stack';
 import { TokenSearchResponseItem } from '@metamask/token-search-discovery-controller';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { RootState } from '../../../reducers';
 
-const defaultState = {
+const defaultState: DeepPartial<RootState> = {
   browser: { history: [{ url: 'https://www.google.com', name: 'Google' }] },
   bookmarks: [{ url: 'https://www.bookmark.com', name: 'MyBookmark' }],
   engine: {
     backgroundState: {
       PreferencesController: {
         isIpfsGatewayEnabled: false,
+        tokenNetworkFilter: {
+          '0x1': 'true',
+        },
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
       },
       MultichainNetworkController: {
         isEvmSelected: true,
+        multichainNetworkConfigurationsByChainId: {},
+      },
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: {
+            EIPS: {
+              1559: true,
+            },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1' as `0x${string}`,
+            rpcEndpoints: [
+              {
+                name: 'Ethereum Mainnet',
+                networkClientId: 'mainnet' as const,
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                type: RpcEndpointType.Infura,
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            nativeCurrency: 'ETH',
+            name: 'Ethereum Mainnet',
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+          },
+        },
       },
     },
   },

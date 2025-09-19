@@ -17,7 +17,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
@@ -124,8 +123,7 @@ export function useSwitchNetworks({
     async (networkConfiguration: NetworkConfiguration) => {
       if (!networkConfiguration) return;
 
-      const { MultichainNetworkController, SelectedNetworkController } =
-        Engine.context;
+      const { SelectedNetworkController } = Engine.context;
       const {
         name: nickname,
         chainId,
@@ -141,22 +139,17 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
-        isPerDappSelectedNetworkEnabled() && dismissModal?.();
-      } else {
-        trace({
-          name: TraceName.SwitchCustomNetwork,
-          parentContext: parentSpan,
-          op: TraceOperation.SwitchCustomNetwork,
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = networkConfigurationId;
         });
-        const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-        try {
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
-        } catch (error) {
-          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
-        }
+        isPerDappSelectedNetworkEnabled() && dismissModal?.();
       }
-
-      setTokenNetworkFilter(chainId);
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
@@ -174,11 +167,9 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      setTokenNetworkFilter,
       selectedNetworkName,
       trackEvent,
       createEventBuilder,
-      parentSpan,
       dismissModal,
     ],
   );
@@ -203,6 +194,15 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = type;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const networkConfiguration =

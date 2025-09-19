@@ -30,6 +30,7 @@ import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PerpsPositionsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
@@ -114,7 +115,10 @@ const PerpsPositionsView: React.FC = () => {
     }
 
     return (
-      <View style={styles.positionsSection}>
+      <View
+        style={styles.positionsSection}
+        testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION}
+      >
         <View style={styles.sectionHeader}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.open_positions')}
@@ -123,12 +127,24 @@ const PerpsPositionsView: React.FC = () => {
             {positionCountText}
           </Text>
         </View>
-        {positions.map((position, index) => (
-          <PerpsPositionCard
-            key={`${position.coin}-${index}`}
-            position={position}
-          />
-        ))}
+        {positions.map((position, index) => {
+          const sizeValue = parseFloat(position.size);
+          const directionSegment = Number.isFinite(sizeValue)
+            ? sizeValue > 0
+              ? 'long'
+              : sizeValue < 0
+              ? 'short'
+              : 'unknown'
+            : 'unknown';
+          return (
+            <View
+              key={`${position.coin}-${index}`}
+              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+            >
+              <PerpsPositionCard position={position} />
+            </View>
+          );
+        })}
       </View>
     );
   };
@@ -197,7 +213,6 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
           </View>
         </View>
-
         {renderContent()}
       </ScrollView>
 
@@ -223,6 +238,7 @@ const PerpsPositionsView: React.FC = () => {
           initialTakeProfitPrice={selectedPosition.takeProfitPrice}
           initialStopLossPrice={selectedPosition.stopLossPrice}
           isUpdating={isUpdating}
+          orderType="market" // Default to market for existing positions
         />
       )}
     </SafeAreaView>

@@ -1,33 +1,32 @@
 import React from 'react';
-import { View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import useStyles from '../useStyles';
 import { NotificationDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Notifications/NotificationDetailsView.selectors';
+import { Box } from '../../../../UI/Box/Box';
 
 const Header = ({ title, subtitle }: { title: string; subtitle: string }) => {
   const { styles } = useStyles();
 
   return (
-    <View style={styles.header}>
-      <Text
-        testID={NotificationDetailsViewSelectorsIDs.TITLE}
-        variant={TextVariant.BodyLGMedium}
-        color={TextColor.Default}
-        style={styles.headerText}
-      >
-        {title}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.headerText}
-      >
-        {subtitle}
-      </Text>
-    </View>
+    <Box style={styles.header}>
+      <Box>
+        <Text
+          testID={NotificationDetailsViewSelectorsIDs.TITLE}
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Default}
+        >
+          {title}
+        </Text>
+      </Box>
+      <Box>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          {subtitle}
+        </Text>
+      </Box>
+    </Box>
   );
 };
 

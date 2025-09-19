@@ -56,11 +56,8 @@ import { AppThemeKey } from '../../../util/theme/models';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-import {
-  lockAccountSyncing,
-  unlockAccountSyncing,
-} from '../../../actions/identity';
 import { Authentication } from '../../../core';
+import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 
 const defaultNumberOfWords = 12;
 
@@ -229,11 +226,21 @@ const ImportNewSecretRecoveryPhrase = () => {
     navigation.goBack();
   };
 
+  const trackDiscoveryEvent = (discoveredAccountsCount: number) => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+      )
+        .addProperties({
+          number_of_solana_accounts_discovered: discoveredAccountsCount,
+        })
+        .build(),
+    );
+  };
+
   const onSubmit = async () => {
     setLoading(true);
     try {
-      await lockAccountSyncing();
-
       // check if seedless pwd is outdated skip cache before importing SRP
       const isSeedlessPwdOutdated =
         await Authentication.checkIsSeedlessPasswordOutdated(true);
@@ -241,8 +248,15 @@ const ImportNewSecretRecoveryPhrase = () => {
         // no need to handle error here, password outdated state will trigger modal that force user to log out
         return;
       }
+
+      // In case state 2 is enabled, discoverAccounts will be 0 because accounts are synced and then discovered
+      // in a non-blocking way. So we rely on the callback to track the event when the discovery is done.
       const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
         secretRecoveryPhrase.join(' '),
+        undefined,
+        async ({ discoveredAccountsCount }) => {
+          trackDiscoveryEvent(discoveredAccountsCount);
+        },
       );
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
@@ -261,15 +275,11 @@ const ImportNewSecretRecoveryPhrase = () => {
       });
 
       fetchAccountsWithActivity();
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-        )
-          .addProperties({
-            number_of_solana_accounts_discovered: discoveredAccountsCount,
-          })
-          .build(),
-      );
+
+      if (!isMultichainAccountsState2Enabled()) {
+        trackDiscoveryEvent(discoveredAccountsCount);
+      }
+
       navigation.navigate('WalletView');
     } catch (e) {
       if (
@@ -285,8 +295,6 @@ const ImportNewSecretRecoveryPhrase = () => {
         );
       }
       setLoading(false);
-    } finally {
-      await unlockAccountSyncing();
     }
   };
 

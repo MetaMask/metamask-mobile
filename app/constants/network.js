@@ -54,6 +54,7 @@ export const NETWORKS_CHAIN_ID = {
   MEGAETH_TESTNET: toHex('6342'),
   SEI: toHex('1329'),
   MONAD_TESTNET: toHex('10143'),
+  HYPER_EVM: toHex('999'),
   MEGAETH_MAINNET: toHex('4326'),
 };
 

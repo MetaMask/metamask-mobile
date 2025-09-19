@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import type { CandleData } from '../../types';
@@ -16,6 +17,8 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -28,6 +31,8 @@ export type { TimeDuration } from '../../constants/chartConfig';
 
 export interface TradingViewChartRef {
   resetToDefault: () => void;
+  zoomToLatestCandle: (candleCount?: number) => void;
+  clearTPSLLines: () => void;
 }
 
 interface TradingViewChartProps {
@@ -61,6 +66,13 @@ const TradingViewChart = React.forwardRef<
     const webViewRef = useRef<WebView>(null);
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
+    const [ohlcData, setOhlcData] = useState<{
+      open: string;
+      high: string;
+      low: string;
+      close: string;
+      time: number;
+    } | null>(null);
 
     // Platform-specific WebView props
     const platformSpecificProps = useMemo(() => {
@@ -69,13 +81,23 @@ const TradingViewChart = React.forwardRef<
         domStorageEnabled: true,
         originWhitelist: ['*'],
         mixedContentMode: 'compatibility' as const,
-        startInLoadingState: true,
+        startInLoadingState: false, // Disable built-in loader to use our skeleton
         scrollEnabled: false,
         showsHorizontalScrollIndicator: false,
         showsVerticalScrollIndicator: false,
         scalesPageToFit: false,
         webviewDebuggingEnabled: __DEV__,
       };
+
+      if (Platform.OS === 'android') {
+        return {
+          ...baseProps,
+          cacheEnabled: true, // Enable caching for better performance
+          incognito: false,
+          androidLayerType: 'hardware' as const,
+          allowsInlineMediaPlayback: false,
+        };
+      }
 
       if (Platform.OS === 'ios') {
         return {
@@ -90,9 +112,6 @@ const TradingViewChart = React.forwardRef<
           dataDetectorTypes: 'none' as const,
         };
       }
-
-      // Android-safe configuration
-      return baseProps;
     }, []);
 
     const htmlContent = useMemo(
@@ -120,6 +139,30 @@ const TradingViewChart = React.forwardRef<
       }
     }, [isChartReady]);
 
+    // Zoom to latest candle when period changes
+    const zoomToLatestCandle = useCallback(
+      (candleCount?: number) => {
+        if (webViewRef.current && isChartReady) {
+          const message = {
+            type: 'ZOOM_TO_LATEST_CANDLE',
+            candleCount: candleCount || visibleCandleCount,
+          };
+          webViewRef.current.postMessage(JSON.stringify(message));
+        }
+      },
+      [isChartReady, visibleCandleCount],
+    );
+
+    // Clear TPSL lines (except current price line)
+    const clearTPSLLines = useCallback(() => {
+      if (webViewRef.current && isChartReady) {
+        const message = {
+          type: 'CLEAR_TPSL_LINES',
+        };
+        webViewRef.current.postMessage(JSON.stringify(message));
+      }
+    }, [isChartReady]);
+
     // Handle messages from WebView
     const handleWebViewMessage = useCallback(
       (event: WebViewMessageEvent) => {
@@ -137,6 +180,20 @@ const TradingViewChart = React.forwardRef<
               break;
             case 'WEBVIEW_TEST':
               break;
+            case 'OHLC_DATA':
+              // Trigger haptic feedback only when OHLC data changes (not on every update)
+              if (
+                message.data &&
+                (!ohlcData ||
+                  message.data.open !== ohlcData.open ||
+                  message.data.high !== ohlcData.high ||
+                  message.data.low !== ohlcData.low ||
+                  message.data.close !== ohlcData.close)
+              ) {
+                impactAsync(ImpactFeedbackStyle.Light);
+              }
+              setOhlcData(message.data);
+              break;
             default:
               break;
           }
@@ -147,7 +204,7 @@ const TradingViewChart = React.forwardRef<
           );
         }
       },
-      [onChartReady],
+      [onChartReady, ohlcData],
     );
 
     // Convert CandleData to format expected by TradingView Lightweight Charts
@@ -244,11 +301,19 @@ const TradingViewChart = React.forwardRef<
 
     // Update auxiliary lines when they change
     useEffect(() => {
-      if (isChartReady && tpslLines) {
-        sendMessage({
-          type: 'ADD_AUXILIARY_LINES',
-          lines: tpslLines,
-        });
+      if (isChartReady) {
+        if (tpslLines) {
+          // Update TPSL lines when they exist
+          sendMessage({
+            type: 'ADD_AUXILIARY_LINES',
+            lines: tpslLines,
+          });
+        } else {
+          // Clear TPSL lines when they don't exist (position closed)
+          sendMessage({
+            type: 'CLEAR_TPSL_LINES',
+          });
+        }
       }
     }, [tpslLines, isChartReady, sendMessage]);
 
@@ -257,8 +322,10 @@ const TradingViewChart = React.forwardRef<
       ref,
       () => ({
         resetToDefault,
+        zoomToLatestCandle,
+        clearTPSLLines,
       }),
-      [resetToDefault],
+      [resetToDefault, zoomToLatestCandle, clearTPSLLines],
     );
 
     // Handle WebView errors
@@ -284,6 +351,23 @@ const TradingViewChart = React.forwardRef<
       );
     }
 
+    const webViewElement = (
+      <WebView
+        ref={webViewRef}
+        source={{ html: htmlContent }}
+        style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
+        onMessage={handleWebViewMessage}
+        onError={handleWebViewError}
+        onHttpError={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.error('TradingViewChart: HTTP Error:', nativeEvent);
+        }}
+        testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
+        {...(Platform.OS === 'android' ? { nestedScrollEnabled: true } : {})}
+        {...platformSpecificProps}
+      />
+    );
+
     return (
       <Box
         twClassName="bg-default rounded-lg"
@@ -294,22 +378,44 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
-          <WebView
-            ref={webViewRef}
-            source={{ html: htmlContent }}
-            style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
-            onMessage={handleWebViewMessage}
-            onError={handleWebViewError}
-            onHttpError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('TradingViewChart: HTTP Error:', nativeEvent);
-            }}
-            testID={`${
-              testID || TradingViewChartSelectorsIDs.CONTAINER
-            }-webview`}
-            {...platformSpecificProps}
-          />
+          {/* Show skeleton while chart is loading */}
+          {!isChartReady && (
+            <Skeleton
+              height={height}
+              width="100%"
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{
+                position: 'absolute',
+                zIndex: 10,
+                backgroundColor: theme.colors.background.default,
+              }} // eslint-disable-line react-native/no-inline-styles
+              testID={`${
+                testID || TradingViewChartSelectorsIDs.CONTAINER
+              }-skeleton`}
+            />
+          )}
+          {Platform.OS === 'android' ? (
+            <GestureDetector gesture={Gesture.Pinch()}>
+              {webViewElement}
+            </GestureDetector>
+          ) : (
+            webViewElement
+          )}
         </Box>
+
+        {/* OHLC Legend */}
+        {ohlcData && (
+          <Box style={styles.ohlcLegend}>
+            <Box style={styles.ohlcRow}>
+              <Text variant={TextVariant.BodyXs}>O: {ohlcData.open}</Text>
+              <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
+            </Box>
+            <Box style={styles.ohlcRow}>
+              <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
+              <Text variant={TextVariant.BodyXs}>L: {ohlcData.low}</Text>
+            </Box>
+          </Box>
+        )}
       </Box>
     );
   },

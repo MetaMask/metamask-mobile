@@ -123,10 +123,12 @@ jest.mock('../../../core/Engine', () => ({
     AccountTrackerController: { refresh: jest.fn() },
     SelectedNetworkController: {
       setNetworkClientIdForDomain: jest.fn(),
+      update: jest.fn(),
     },
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
     },
   },
 }));
@@ -371,7 +373,7 @@ describe('Network Selector', () => {
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).not.toBeCalled();
   });
 
   it('toggles the test networks switch correctly', () => {
@@ -454,7 +456,7 @@ describe('Network Selector', () => {
     fireEvent.press(gnosisCell);
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).not.toBeCalled();
   });
 
   it('changes to test network when another network cell is pressed', async () => {

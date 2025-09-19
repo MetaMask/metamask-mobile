@@ -33,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 8,
     },
     sectionTitle: {
-      paddingTop: 8,
+      paddingTop: 16,
     },
     emptyContainer: {
       padding: 24,
@@ -46,6 +46,8 @@ const styleSheet = (params: { theme: Theme }) => {
     loadingContainer: {
       padding: 24,
       alignItems: 'center',
+      marginTop: 10,
+      borderRadius: 12,
     },
     firstTimeContainer: {
       flex: 1,
@@ -65,6 +67,7 @@ const styleSheet = (params: { theme: Theme }) => {
     firstTimeDescription: {
       textAlign: 'center',
       paddingHorizontal: 16,
+      width: 280,
     },
     startTradingButton: {
       marginTop: 16,

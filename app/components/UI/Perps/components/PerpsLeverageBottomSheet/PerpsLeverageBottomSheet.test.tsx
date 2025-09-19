@@ -50,6 +50,7 @@ jest.mock('../../../../../util/theme', () => ({
 
 // Mock format utilities
 jest.mock('../../utils/formatUtils', () => ({
+  ...jest.requireActual('../../utils/formatUtils'),
   formatPrice: jest.fn((value) => {
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
@@ -505,6 +506,110 @@ describe('PerpsLeverageBottomSheet', () => {
 
       // Assert - Should cap at 100.0% even for actual liquidation price
       expect(screen.getByText(/100\.0%/)).toBeOnTheScreen();
+    });
+
+    it('uses limit price for liquidation calculation when orderType is limit', () => {
+      // Arrange
+      const limitPrice = '2800';
+      const currentPrice = 3000;
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+
+      const propsWithLimitOrder = {
+        ...defaultProps,
+        currentPrice,
+        limitPrice,
+        orderType: 'limit' as const,
+      };
+
+      // Mock the liquidation price hook to track what entry price it receives
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice = jest.fn(() => ({
+        liquidationPrice: '2520.00', // Mock calculated based on limit price
+        isCalculating: false,
+        error: null,
+      }));
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...propsWithLimitOrder} />);
+
+      // Assert - Hook should be called with limit price as entry price
+      expect(
+        mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entryPrice: parseFloat(limitPrice), // Should use limit price, not current price
+          leverage: defaultProps.leverage,
+          direction: defaultProps.direction,
+          asset: defaultProps.asset,
+        }),
+        expect.objectContaining({ debounceMs: 500 }),
+      );
+    });
+
+    it('uses current price for liquidation calculation when orderType is market', () => {
+      // Arrange
+      const limitPrice = '2800';
+      const currentPrice = 3000;
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+
+      const propsWithMarketOrder = {
+        ...defaultProps,
+        currentPrice,
+        limitPrice, // Even if limit price is provided
+        orderType: 'market' as const,
+      };
+
+      // Mock the liquidation price hook to track what entry price it receives
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice = jest.fn(() => ({
+        liquidationPrice: '2700.00', // Mock calculated based on current price
+        isCalculating: false,
+        error: null,
+      }));
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...propsWithMarketOrder} />);
+
+      // Assert - Hook should be called with current price as entry price
+      expect(
+        mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entryPrice: currentPrice, // Should use current price, not limit price
+          leverage: defaultProps.leverage,
+          direction: defaultProps.direction,
+          asset: defaultProps.asset,
+        }),
+        expect.objectContaining({ debounceMs: 500 }),
+      );
+    });
+
+    it('truncates liquidation price to 2 decimals when price is above 1', () => {
+      // Arrange - Mock hook to return liquidation price with many decimal places
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: '1234.3552435', // Price above 1 with many decimals
+          isCalculating: false,
+          error: null,
+        },
+      );
+
+      const props = {
+        ...defaultProps,
+        leverage: 5,
+        currentPrice: 3000,
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Should display truncated price with 2 decimal places
+      expect(screen.getByText('$1,234.36')).toBeOnTheScreen();
     });
   });
 

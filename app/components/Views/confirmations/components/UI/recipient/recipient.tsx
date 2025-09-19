@@ -1,18 +1,21 @@
 import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
+
 import {
   Box,
+  FontWeight,
   Text,
   TextVariant,
-  FontWeight,
+  ButtonBase,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { formatAddress } from '../../../../../../util/address';
+import styleSheet from './recipient.styles';
+import { useStyles } from '../../../../../hooks/useStyles';
 
 export interface RecipientType {
   address: string;
@@ -21,7 +24,6 @@ export interface RecipientType {
   contactName?: string;
   walletName?: string;
 }
-
 interface RecipientProps {
   recipient: RecipientType;
   isSelected?: boolean;
@@ -38,13 +40,14 @@ export function Recipient({
   onPress,
 }: RecipientProps) {
   const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
 
-  const handlePress = useCallback(() => {
+  const handlePressRecipient = useCallback(() => {
     onPress?.(recipient);
   }, [recipient, onPress]);
 
   return (
-    <Pressable
+    <ButtonBase
       testID={
         isSelected
           ? `selected-${recipient.address}`
@@ -52,11 +55,11 @@ export function Recipient({
       }
       style={({ pressed }) =>
         tw.style(
-          'w-full flex-row items-center justify-between py-2 px-4',
+          'w-full flex-row items-center justify-between h-18 rounded-none',
           pressed || isSelected ? 'bg-pressed' : 'bg-transparent',
         )
       }
-      onPress={handlePress}
+      onPress={handlePressRecipient}
     >
       <Box twClassName="flex-row items-center">
         <Box twClassName="h-12 justify-center">
@@ -67,9 +70,10 @@ export function Recipient({
             size={AvatarSize.Md}
           />
         </Box>
+
         <Box twClassName="ml-4 h-12 justify-center">
           <Text
-            testID={`recipient-address-${recipient.address}`}
+            testID={`recipient-name-${recipient.address}`}
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
@@ -78,8 +82,16 @@ export function Recipient({
               ? recipient.accountGroupName || recipient.contactName
               : recipient.accountName || recipient.contactName}
           </Text>
+          <Text
+            testID={`recipient-address-${recipient.address}`}
+            variant={TextVariant.BodyMd}
+            style={styles.recipientAddress}
+            numberOfLines={1}
+          >
+            {formatAddress(recipient.address, 'short')}
+          </Text>
         </Box>
       </Box>
-    </Pressable>
+    </ButtonBase>
   );
 }

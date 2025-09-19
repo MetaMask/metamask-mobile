@@ -24,6 +24,31 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+// Mock React Native Animated
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Animated: {
+      ...RN.Animated,
+      Value: jest.fn(() => ({
+        setValue: jest.fn(),
+        stopAnimation: jest.fn(),
+      })),
+      timing: jest.fn(() => ({
+        start: jest.fn(),
+      })),
+      sequence: jest.fn(() => ({
+        start: jest.fn(),
+      })),
+      loop: jest.fn(() => ({
+        start: jest.fn(),
+      })),
+      View: RN.View,
+    },
+  };
+});
+
 // Mock safe area context (required for BottomSheet)
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -44,25 +69,75 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
   mockTheme: {
     colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000', alternative: '#666666' },
+      background: { default: '#FFFFFF', alternative: '#f0f0f0' },
+      text: { default: '#000000', alternative: '#666666', muted: '#999999' },
       border: { muted: '#CCCCCC' },
       success: { default: '#00FF00' },
+      primary: { default: '#0066cc' },
+      error: { default: '#ff0000' },
     },
   },
 }));
 
+// Mock useTailwind
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: jest.fn(() => ({
+    style: jest.fn((styles) => {
+      if (Array.isArray(styles)) {
+        return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
+      }
+      return styles || {};
+    }),
+  })),
+}));
+
 // Mock format utilities
 jest.mock('../../utils/formatUtils', () => ({
-  formatPrice: jest.fn((value) => {
+  formatPerpsFiat: jest.fn((value, options = {}) => {
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
+    if (isNaN(num)) return '$0.00';
+    // Handle dynamic decimals from ranges config - match component behavior
+    if (options.ranges && options.ranges.length > 0) {
+      const range = options.ranges[0];
+      if (
+        range.minimumDecimals !== undefined &&
+        range.maximumDecimals !== undefined
+      ) {
+        // Use the minimumDecimals as set by the component logic
+        return `$${num.toFixed(range.minimumDecimals)}`;
+      }
+    }
+    return `$${num.toFixed(2)}`;
   }),
+  formatWithSignificantDigits: jest.fn((value, significantDigits) => {
+    const num = typeof value === 'number' ? value : parseFloat(value);
+    if (isNaN(num)) return { value: '0', formatted: '$0.00' };
+    return {
+      value: num.toFixed(significantDigits || 2),
+      formatted: `$${num.toFixed(significantDigits || 2)}`,
+    };
+  }),
+  PRICE_RANGES_POSITION_VIEW: [
+    {
+      condition: () => true,
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+      threshold: 0.01,
+    },
+  ],
 }));
 
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
+}));
+
+// Mock BigNumber
+jest.mock('bignumber.js', () => ({
+  BigNumber: jest.fn().mockImplementation((value) => ({
+    multipliedBy: jest.fn().mockReturnThis(),
+    toString: jest.fn(() => value.toString()),
+  })),
 }));
 
 // Mock stream hooks
@@ -283,6 +358,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
     onConfirm: jest.fn(),
     asset: 'ETH',
     currentPrice: 3000,
+    direction: 'long' as const,
   };
 
   beforeEach(() => {
@@ -337,7 +413,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Assert
       expect(screen.getByText('perps.order.limit_price')).toBeOnTheScreen(); // Placeholder
-      expect(screen.getAllByText('USD')).toHaveLength(2); // Currency label + keypad currency
+      expect(screen.getByText('USD')).toBeOnTheScreen(); // Currency label
+      expect(screen.getByText('USD_PERPS')).toBeOnTheScreen(); // Keypad currency
     });
 
     it('displays initial limit price when provided', () => {
@@ -348,7 +425,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
       render(<PerpsLimitPriceBottomSheet {...props} />);
 
       // Assert
-      expect(screen.getByText('$3100.00')).toBeOnTheScreen(); // Formatted limit price display
+      expect(screen.getByText(/\$3100/)).toBeOnTheScreen(); // Formatted limit price display
       expect(screen.getByText('3100')).toBeOnTheScreen(); // Keypad value
     });
 
@@ -358,7 +435,9 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Assert
       expect(screen.getByTestId('keypad-component')).toBeOnTheScreen();
-      expect(screen.getByTestId('keypad-currency')).toHaveTextContent('USD');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      ); // Updated to match component
     });
   });
 
@@ -400,58 +479,59 @@ describe('PerpsLimitPriceBottomSheet', () => {
       );
 
       // Assert
-      expect(screen.getByTestId('keypad-currency')).toHaveTextContent('USD');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      ); // Updated to match component
       expect(screen.getByTestId('keypad-value')).toHaveTextContent('3100'); // Initial value
     });
   });
 
   describe('Quick Action Buttons', () => {
-    it('calculates -1% price when -1% button is pressed', () => {
+    it('displays direction-specific preset buttons for long orders', () => {
       // Act
-      render(<PerpsLimitPriceBottomSheet {...defaultProps} />);
+      render(<PerpsLimitPriceBottomSheet {...defaultProps} direction="long" />);
 
-      const onePercentButton = screen.getByText('-1%');
-      fireEvent.press(onePercentButton);
-
-      // Assert - Button exists and is pressable
-      expect(onePercentButton).toBeOnTheScreen();
+      // Assert - Long orders show negative percentages (buy below market)
+      expect(screen.getByText('-1%')).toBeOnTheScreen();
+      expect(screen.getByText('-2%')).toBeOnTheScreen();
+      expect(screen.getByText('-5%')).toBeOnTheScreen();
+      expect(screen.getByText('-10%')).toBeOnTheScreen();
     });
 
-    it('calculates -2% price when -2% button is pressed', () => {
+    it('displays direction-specific preset buttons for short orders', () => {
       // Act
-      render(<PerpsLimitPriceBottomSheet {...defaultProps} />);
-
-      const twoPercentButton = screen.getByText('-2%');
-      fireEvent.press(twoPercentButton);
-
-      // Assert - Button exists and is pressable
-      expect(twoPercentButton).toBeOnTheScreen();
-    });
-
-    it('uses current price as base for percentage calculations when no limit price set', () => {
-      // Arrange - No initial limit price
-      render(<PerpsLimitPriceBottomSheet {...defaultProps} />);
-
-      // Act
-      const onePercentButton = screen.getByText('-1%');
-      fireEvent.press(onePercentButton);
-
-      // Assert - Should calculate based on current price ($3000)
-      // -1% of 3000 = 2970
-      expect(onePercentButton).toBeOnTheScreen();
-    });
-
-    it('uses existing limit price as base for percentage calculations when set', () => {
-      // Arrange - With initial limit price
       render(
-        <PerpsLimitPriceBottomSheet {...defaultProps} limitPrice="3100" />,
+        <PerpsLimitPriceBottomSheet {...defaultProps} direction="short" />,
       );
 
+      // Assert - Short orders show positive percentages (sell above market)
+      expect(screen.getByText('+1%')).toBeOnTheScreen();
+      expect(screen.getByText('+2%')).toBeOnTheScreen();
+      expect(screen.getByText('+5%')).toBeOnTheScreen();
+      expect(screen.getByText('+10%')).toBeOnTheScreen();
+    });
+
+    it('calculates price based on current market price for long orders', () => {
       // Act
+      render(<PerpsLimitPriceBottomSheet {...defaultProps} direction="long" />);
+
       const onePercentButton = screen.getByText('-1%');
       fireEvent.press(onePercentButton);
 
-      // Assert - Should calculate based on limit price ($3100)
+      // Assert - Button exists and is pressable
+      expect(onePercentButton).toBeOnTheScreen();
+    });
+
+    it('calculates price based on current market price for short orders', () => {
+      // Act
+      render(
+        <PerpsLimitPriceBottomSheet {...defaultProps} direction="short" />,
+      );
+
+      const onePercentButton = screen.getByText('+1%');
+      fireEvent.press(onePercentButton);
+
+      // Assert - Button exists and is pressable
       expect(onePercentButton).toBeOnTheScreen();
     });
   });
@@ -508,7 +588,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
       fireEvent.press(confirmButton);
 
       // Assert
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
 
     it('calls onConfirm with empty string when no limit price set', () => {
@@ -562,9 +642,6 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
     it('handles percentage calculations with zero base price', () => {
       // Arrange - No price data available
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({});
-
       render(<PerpsLimitPriceBottomSheet {...defaultProps} currentPrice={0} />);
 
       // Act
@@ -647,6 +724,72 @@ describe('PerpsLimitPriceBottomSheet', () => {
       expect(screen.getByTestId('keypad-component')).toBeOnTheScreen();
       expect(screen.getByTestId('keypad-button-1')).toBeOnTheScreen();
       expect(screen.getByTestId('keypad-button-clear')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Limit Price Warnings', () => {
+    it('warns when opening a Long order and limit price is above current', () => {
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="long"
+          limitPrice="3100"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_above'),
+      ).toBeOnTheScreen();
+    });
+
+    it('warns when opening a Short order and limit price is below current', () => {
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="short"
+          limitPrice="2990"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_below'),
+      ).toBeOnTheScreen();
+    });
+
+    it('warns when closing a Long position and limit price is below current', () => {
+      // Closing a long position passes direction="short" with isClosingPosition
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="short"
+          isClosingPosition
+          limitPrice="2990"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_below'),
+      ).toBeOnTheScreen();
+    });
+
+    it('warns when closing a Short position and limit price is above current', () => {
+      // Closing a short position passes direction="long" with isClosingPosition
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          direction="long"
+          isClosingPosition
+          limitPrice="3100"
+          currentPrice={3000}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_above'),
+      ).toBeOnTheScreen();
     });
   });
 });

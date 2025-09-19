@@ -93,10 +93,11 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         }
       };
 
-      const isWalletAction = rootScreenName === Routes.MODAL.WALLET_ACTIONS;
+      const isWalletAction =
+        rootScreenName === Routes.MODAL.TRADE_WALLET_ACTIONS;
 
       return (
-        <View key={key} style={tw.style('flex-1')}>
+        <View key={key} style={tw.style('flex-1 w-full')}>
           <TabBarItem
             label={labelText}
             iconName={icon}
@@ -130,7 +131,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full pt-3 px-2 bg-default border-t border-muted gap-x-2"
+        twClassName="w-full pt-3 px-2 bg-default border-t border-muted"
         style={[tw.style(`pb-[${bottomInset}px]`)]}
       >
         {renderTabBarItems()}

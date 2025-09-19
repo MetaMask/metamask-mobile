@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useState, useEffect } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -19,8 +19,15 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
 import { AccountWalletId } from '@metamask/account-api';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import createStyles from './AccountListFooter.styles';
 import Engine from '../../../../../core/Engine';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../../../util/trace';
 
 interface AccountListFooterProps {
   walletId: AccountWalletId;
@@ -37,6 +44,13 @@ const AccountListFooter = memo(
     const wallet = walletsMap?.[walletId];
     const walletInfo = useWalletInfo(wallet);
 
+    // End trace when the loading finishes
+    useEffect(() => {
+      if (!isLoading) {
+        endTrace({ name: TraceName.CreateMultichainAccount });
+      }
+    }, [isLoading]);
+
     const handleCreateAccount = useCallback(async () => {
       if (!walletInfo?.keyringId) {
         Logger.error(
@@ -44,7 +58,6 @@ const AccountListFooter = memo(
           'Cannot create account without keyring ID',
         );
         setIsLoading(false);
-
         return;
       }
 
@@ -73,6 +86,12 @@ const AccountListFooter = memo(
     }, [walletInfo?.keyringId, onAccountCreated]);
 
     const handlePress = useCallback(() => {
+      // Start the trace before setting the loading state
+      trace({
+        name: TraceName.CreateMultichainAccount,
+        op: TraceOperation.AccountCreate,
+      });
+
       // Force immediate state update
       setIsLoading(true);
 
@@ -104,7 +123,11 @@ const AccountListFooter = memo(
               />
             )}
           </View>
-          <Text variant={TextVariant.BodyMd} style={styles.buttonText}>
+          <Text
+            variant={TextVariant.BodyMd}
+            style={styles.buttonText}
+            testID={AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT}
+          >
             {isLoading
               ? strings('multichain_accounts.wallet_details.creating_account')
               : strings('multichain_accounts.wallet_details.create_account')}
