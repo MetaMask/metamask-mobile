@@ -167,21 +167,21 @@ jobs:
           echo "🔢 Generated matrix array: $MATRIX_ARRAY"
 
           # Set outputs
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
-          echo "tags_display=$TAG_DISPLAY" >> $GITHUB_OUTPUT
-          echo "strategy=dynamic-$TAG_COUNT-tags" >> $GITHUB_OUTPUT
-          echo "total_splits=$TOTAL_SPLITS" >> $GITHUB_OUTPUT
-          echo "matrix_splits=$MATRIX_ARRAY" >> $GITHUB_OUTPUT
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+          echo "tags_display=$TAG_DISPLAY" >> "$GITHUB_OUTPUT"
+          echo "strategy=dynamic-$TAG_COUNT-tags" >> "$GITHUB_OUTPUT"
+          echo "total_splits=$TOTAL_SPLITS" >> "$GITHUB_OUTPUT"
+          echo "matrix_splits=$MATRIX_ARRAY" >> "$GITHUB_OUTPUT"
 
           # Only run tests if we have tags selected and splits > 0
           if [ "$TAG_COUNT" -eq 0 ]; then
-            echo "run_tests=false" >> $GITHUB_OUTPUT
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
             echo "ℹ️ No E2E tests needed - AI determined changes are very low risk"
           elif [ "$TOTAL_SPLITS" -gt 0 ]; then
-            echo "run_tests=true" >> $GITHUB_OUTPUT
+            echo "run_tests=true" >> "$GITHUB_OUTPUT"
             echo "✅ Will run $((TOTAL_SPLITS * 2)) CI jobs ($TOTAL_SPLITS iOS + $TOTAL_SPLITS Android)"
           else
-            echo "run_tests=false" >> $GITHUB_OUTPUT
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
             echo "ℹ️ No E2E tests needed - selected tags have no test files"
           fi
 
@@ -255,10 +255,10 @@ jobs:
             SHOULD_BUILD_ANDROID="false"
           fi
 
-          echo "should-build-ios=$SHOULD_BUILD_IOS" >> $GITHUB_OUTPUT
-          echo "should-build-android=$SHOULD_BUILD_ANDROID" >> $GITHUB_OUTPUT
-          echo "should-test-ios=$SHOULD_BUILD_IOS" >> $GITHUB_OUTPUT
-          echo "should-test-android=$SHOULD_BUILD_ANDROID" >> $GITHUB_OUTPUT
+          echo "should-build-ios=$SHOULD_BUILD_IOS" >> "$GITHUB_OUTPUT"
+          echo "should-build-android=$SHOULD_BUILD_ANDROID" >> "$GITHUB_OUTPUT"
+          echo "should-test-ios=$SHOULD_BUILD_IOS" >> "$GITHUB_OUTPUT"
+          echo "should-test-android=$SHOULD_BUILD_ANDROID" >> "$GITHUB_OUTPUT"
 
           echo "🎯 Platform Conditions:"
           echo "- iOS Build/Test: $SHOULD_BUILD_IOS"
@@ -282,7 +282,7 @@ jobs:
 
   # Step 5: Dynamic iOS E2E Tests using reusable workflow
   ios-smart-tests:
-    needs: [platform-conditions, build-ios]
+    needs: [analyze-and-plan, platform-conditions, build-ios]
     if: needs.platform-conditions.outputs.should-test-ios == 'true' && needs.build-ios.result == 'success'
     strategy:
       fail-fast: false
@@ -300,7 +300,7 @@ jobs:
 
   # Step 6: Dynamic Android E2E Tests using reusable workflow
   android-smart-tests:
-    needs: [platform-conditions, build-android]
+    needs: [analyze-and-plan, platform-conditions, build-android]
     if: needs.platform-conditions.outputs.should-test-android == 'true' && needs.build-android.result == 'success'
     strategy:
       fail-fast: false
@@ -357,18 +357,19 @@ jobs:
     steps:
       - name: Generate test report
         run: |
-          echo "## 🎯 Smart E2E Test Execution Report" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Strategy**: ${{ needs.analyze-and-plan.outputs.test-strategy }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Selected Tags**: ${{ needs.analyze-and-plan.outputs.selected-tags-display }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Total Splits**: ${{ needs.analyze-and-plan.outputs.total-splits }}" >> $GITHUB_STEP_SUMMARY
-
-          # Show platform status from conditions job
-          echo "- **iOS Enabled**: ${{ needs.platform-conditions.outputs.should-build-ios }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Android Enabled**: ${{ needs.platform-conditions.outputs.should-build-android }}" >> $GITHUB_STEP_SUMMARY
-
-          echo "- **iOS Result**: ${{ needs.ios-smart-tests.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Android Result**: ${{ needs.android-smart-tests.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## 🎯 Smart E2E Test Execution Report"
+            echo "- **Trigger**: ${{ github.event_name }}"
+            echo "- **Strategy**: ${{ needs.analyze-and-plan.outputs.test-strategy }}"
+            echo "- **Selected Tags**: ${{ needs.analyze-and-plan.outputs.selected-tags-display }}"
+            echo "- **Total Splits**: ${{ needs.analyze-and-plan.outputs.total-splits }}"
+            echo ""
+            echo "- **iOS Enabled**: ${{ needs.platform-conditions.outputs.should-build-ios }}"
+            echo "- **Android Enabled**: ${{ needs.platform-conditions.outputs.should-build-android }}"
+            echo ""
+            echo "- **iOS Result**: ${{ needs.ios-smart-tests.result || 'skipped' }}"
+            echo "- **Android Result**: ${{ needs.android-smart-tests.result || 'skipped' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check test results
         run: |
