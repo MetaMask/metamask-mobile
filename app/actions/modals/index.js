@@ -31,3 +31,11 @@ export function toggleSignModal(show) {
     show,
   };
 }
+
+export function toggleSlowRpcConnectionBanner({ visible, chainId } = {}) {
+  return {
+    type: 'TOGGLE_SLOW_RPC_CONNECTION_BANNER',
+    visible,
+    chainId,
+  };
+}
