@@ -467,7 +467,7 @@ export const selectIsGaslessSwapEnabled = createSelector(
 
 export const selectNoFeeAssets = createSelector(
   selectBridgeFeatureFlags,
-  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
   (bridgeFeatureFlags, chainId) => {
     if (!chainId) {
       return [];

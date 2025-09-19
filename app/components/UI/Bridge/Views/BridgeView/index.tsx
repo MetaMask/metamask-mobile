@@ -74,6 +74,7 @@ import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import ApprovalText from '../../components/ApprovalText';
 import { BigNumber } from 'bignumber.js';
+import { RootState } from '../../../../../reducers/index.ts';
 
 export interface BridgeRouteParams {
   sourcePage: string;
