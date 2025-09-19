@@ -1,4 +1,5 @@
 import { ViewProps, ViewStyle } from 'react-native';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 /**
  * The name types supported by the NameController.
@@ -11,6 +12,7 @@ export enum NameType {
 }
 
 export interface NameProperties extends ViewProps {
+  iconSizeOverride?: AvatarSize;
   preferContractSymbol?: boolean;
   type: NameType;
   value: string;
