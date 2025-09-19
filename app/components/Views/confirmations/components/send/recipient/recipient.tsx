@@ -1,30 +1,33 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Platform, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import {
   Box,
   Button,
-  ButtonVariant,
   ButtonBaseSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { ScrollView } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
-
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+} from 'react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../../../component-library/components/Banners/Banner';
-import { strings } from '../../../../../../../locales/i18n';
 import { useSendContext } from '../../../context/send-context/send-context';
+import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
+import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
-import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
-import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
-import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
-import { RecipientList } from '../../recipient-list/recipient-list';
+import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { RecipientInput } from '../../recipient-input';
+import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
 
@@ -32,7 +35,7 @@ export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
-  const { to, updateTo } = useSendContext();
+  const { to, updateTo, asset, chainId } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
@@ -60,15 +63,21 @@ export const Recipient = () => {
   useFocusEffect(
     useCallback(() => {
       setIsSubmittingTransaction(false);
-    }, []),
+      setIsRecipientSelectedFromList(false);
+      updateTo('');
+    }, [updateTo]),
   );
 
   const handleReview = useCallback(async () => {
-    if (toAddressError) {
+    if (toAddressError || isSubmittingTransaction) {
       return;
     }
-    setPastedRecipient(undefined);
+    // Precheck: only set `isSubmittingTransaction` guard if submission can proceed
+    if (!asset || !chainId) {
+      return;
+    }
     setIsSubmittingTransaction(true);
+    setPastedRecipient(undefined);
     handleSubmitPress(resolvedAddress || to);
     captureRecipientSelected();
   }, [
@@ -78,6 +87,9 @@ export const Recipient = () => {
     captureRecipientSelected,
     resolvedAddress,
     setPastedRecipient,
+    isSubmittingTransaction,
+    asset,
+    chainId,
   ]);
 
   useEffect(() => {
@@ -106,6 +118,13 @@ export const Recipient = () => {
           | typeof RecipientInputMethod.SelectContact,
       ) =>
       (recipient: RecipientType) => {
+        if (isSubmittingTransaction) {
+          return;
+        }
+        // Precheck: only set `isSubmittingTransaction` guard if submission can proceed
+        if (!asset || !chainId) {
+          return;
+        }
         setIsSubmittingTransaction(true);
         const selectedAddress = recipient.address;
         setIsRecipientSelectedFromList(true);
@@ -124,6 +143,9 @@ export const Recipient = () => {
       captureRecipientSelected,
       setRecipientInputMethodSelectAccount,
       setRecipientInputMethodSelectContact,
+      isSubmittingTransaction,
+      asset,
+      chainId,
     ],
   );
 

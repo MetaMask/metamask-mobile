@@ -34,6 +34,7 @@ interface UsePerpsTPSLFormParams {
   entryPrice?: number;
   isVisible?: boolean;
   liquidationPrice?: string;
+  orderType?: 'market' | 'limit';
 }
 
 interface TPSLFormState {
@@ -115,6 +116,7 @@ export function usePerpsTPSLForm(
     entryPrice: propEntryPrice,
     isVisible = false,
     liquidationPrice,
+    orderType,
   } = params;
 
   // Initialize form state with raw values (no currency formatting for inputs)
@@ -641,6 +643,7 @@ export function usePerpsTPSLForm(
         );
         setSelectedTpPercentage(roePercentage);
         setTpUsingPercentage(true);
+        setTpSourceOfTruth('percentage');
       } else {
         DevLogger.log(
           '[TPSL Debug] Invalid take profit price calculated, not updating',
@@ -699,6 +702,7 @@ export function usePerpsTPSLForm(
       }
       setSelectedSlPercentage(roePercentage);
       setSlUsingPercentage(true);
+      setSlSourceOfTruth('percentage');
     },
     [asset, currentPrice, actualDirection, leverage, entryPrice],
   );
@@ -723,14 +727,11 @@ export function usePerpsTPSLForm(
   // Validation logic
   // Use entryPrice for validation (which is the limit price for limit orders, or current price for market orders)
   // This ensures TP/SL are validated against the price where the order will execute
-  const referencePrice = entryPrice || currentPrice;
+  const referencePrice =
+    orderType === 'market' ? currentPrice : entryPrice || currentPrice;
 
   // Determine what type of price we're comparing against for error messages
-  const priceType = position
-    ? 'entry'
-    : entryPrice && entryPrice !== currentPrice
-    ? 'limit'
-    : 'current';
+  const priceType = orderType === 'market' ? 'current' : 'entry';
 
   const isValid = validateTPSLPrices(takeProfitPrice, stopLossPrice, {
     currentPrice: referencePrice,

@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
 
 import {
   Box,
   FontWeight,
   Text,
   TextVariant,
+  ButtonBase,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Avatar, {
@@ -47,7 +47,7 @@ export function Recipient({
   }, [recipient, onPress]);
 
   return (
-    <Pressable
+    <ButtonBase
       testID={
         isSelected
           ? `selected-${recipient.address}`
@@ -55,7 +55,7 @@ export function Recipient({
       }
       style={({ pressed }) =>
         tw.style(
-          'w-full flex-row items-center justify-between py-2 px-4',
+          'w-full flex-row items-center justify-between h-18 rounded-none',
           pressed || isSelected ? 'bg-pressed' : 'bg-transparent',
         )
       }
@@ -92,6 +92,6 @@ export function Recipient({
           </Text>
         </Box>
       </Box>
-    </Pressable>
+    </ButtonBase>
   );
 }

@@ -973,7 +973,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                     testID="label"
                   >
-                    1 to 11 days
+                    1 to 44 days
                   </Text>
                 </View>
               </View>

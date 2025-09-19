@@ -556,4 +556,7 @@ export interface IPerpsProvider {
 
   // Block explorer
   getBlockExplorerUrl(address?: string): string;
+
+  // Fee discount context (optional - for MetaMask reward discounts)
+  setUserFeeDiscount?(discountBips: number | undefined): void;
 }

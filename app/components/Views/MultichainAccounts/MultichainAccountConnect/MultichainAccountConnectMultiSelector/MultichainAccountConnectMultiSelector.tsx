@@ -171,6 +171,7 @@ const MultichainAccountConnectMultiSelector = ({
           onSelectAccount={onSelectAccountGroupId}
           selectedAccountGroups={selectedAccountGroups}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+          showCheckbox
         />
         {connection?.originatorInfo?.apiVersion && (
           <View style={styles.sdkInfoContainer}>
