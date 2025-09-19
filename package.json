@@ -50,6 +50,7 @@
     "build:android:main:e2e": "./scripts/build.sh android main e2e",
     "build:android:flask:prod": "./scripts/build.sh android flask production",
     "fingerprint:generate": "node scripts/generate-fingerprint.js",
+    "repack:android": "node scripts/repack-android-e2e.js",
     "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:flask:test": "./scripts/build.sh android flask test",
     "build:android:flask:e2e": "./scripts/build.sh android flask e2e",
@@ -504,6 +505,7 @@
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
+    "@expo/repack-app": "^0.2.9",
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
     "@babel/preset-env": "^7.25.3",
