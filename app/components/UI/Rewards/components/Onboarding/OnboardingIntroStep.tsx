@@ -18,7 +18,6 @@ import {
 
 import { setOnboardingActiveStep } from '../../../../../actions/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 import introBg from '../../../../../images/rewards/rewards-onboarding-intro-bg.png';
 import intro from '../../../../../images/rewards/rewards-onboarding-intro.png';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
@@ -26,8 +25,7 @@ import {
   selectOptinAllowedForGeo,
   selectOptinAllowedForGeoLoading,
 } from '../../../../../reducers/rewards/selectors';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
+import { selectRewardCandidateSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 
 /**
@@ -47,8 +45,7 @@ const OnboardingIntroStep: React.FC = () => {
   const optinAllowedForGeoLoading = useSelector(
     selectOptinAllowedForGeoLoading,
   );
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const subscriptionId = useSelector(selectRewardCandidateSubscriptionId);
 
   // Computed state
   const subscriptionIdLoading = subscriptionId === 'pending';
@@ -88,15 +85,6 @@ const OnboardingIntroStep: React.FC = () => {
       return;
     }
 
-    // Check for Solana account (not supported)
-    if (selectedAccount && isSolanaAccount(selectedAccount)) {
-      showErrorModal(
-        'rewards.onboarding.not_supported_account_needed_title',
-        'rewards.onboarding.not_supported_account_needed_description',
-      );
-      return;
-    }
-
     // Check for geo restrictions
     if (!optinAllowedForGeo) {
       showErrorModal(
@@ -109,14 +97,7 @@ const OnboardingIntroStep: React.FC = () => {
     // Proceed to next onboarding step
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_2));
     navigation.navigate(Routes.REWARDS_ONBOARDING_1);
-  }, [
-    dispatch,
-    isLoading,
-    navigation,
-    optinAllowedForGeo,
-    selectedAccount,
-    showErrorModal,
-  ]);
+  }, [dispatch, isLoading, navigation, optinAllowedForGeo, showErrorModal]);
 
   /**
    * Handles the skip button press

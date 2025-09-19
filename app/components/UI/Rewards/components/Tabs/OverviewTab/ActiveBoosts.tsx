@@ -31,7 +31,6 @@ import {
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
-import Logger from '../../../../../../util/Logger';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -194,13 +193,6 @@ const ActiveBoosts: React.FC = () => {
   const hasError = useSelector(selectActiveBoostsError);
 
   const numBoosts = useMemo(() => activeBoosts?.length || 0, [activeBoosts]);
-
-  Logger.log('ActiveBoosts', {
-    isLoading,
-    numBoosts,
-    hasError,
-    activeBoosts: activeBoosts?.length,
-  });
 
   // Local pan sink to capture horizontal swipes and prevent parent tab swipe
   const scrollNativeGesture = useMemo(() => Gesture.Native(), []);

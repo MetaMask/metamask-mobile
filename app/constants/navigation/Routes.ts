@@ -96,6 +96,7 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
+    REWARD_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',

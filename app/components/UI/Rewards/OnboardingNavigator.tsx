@@ -15,13 +15,13 @@ import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
 import { useNavigation } from '@react-navigation/native';
 import { setOnboardingActiveStep } from '../../../reducers/rewards';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
@@ -29,13 +29,13 @@ const OnboardingNavigator: React.FC = () => {
   useGeoRewardsMetadata();
 
   useEffect(() => {
-    if (hasAccountedOptedIn === true) {
+    if (subscriptionId) {
       navigation.navigate(Routes.REWARDS_DASHBOARD);
       dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
     } else if (!optinAllowedForGeo) {
       dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
     }
-  }, [hasAccountedOptedIn, navigation, dispatch, optinAllowedForGeo]);
+  }, [subscriptionId, navigation, dispatch, optinAllowedForGeo]);
 
   const getInitialRoute = () => {
     switch (activeStep) {

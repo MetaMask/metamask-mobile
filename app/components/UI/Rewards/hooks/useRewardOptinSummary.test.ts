@@ -82,9 +82,7 @@ describe('useRewardOptinSummary', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector
-      .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
-      .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
+    mockUseSelector.mockReturnValueOnce(mockAccounts); // selectInternalAccounts
   });
 
   describe('initial state', () => {
@@ -104,7 +102,6 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.unlinkedAccounts).toEqual([]);
       expect(result.current.isLoading).toBe(true);
       expect(result.current.hasError).toBe(false);
-      expect(result.current.currentAccountOptedIn).toBeNull();
       expect(typeof result.current.refresh).toBe('function');
     });
   });
@@ -127,7 +124,6 @@ describe('useRewardOptinSummary', () => {
       // Assert
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(false);
-      expect(result.current.currentAccountOptedIn).toBe(true); // Account1 is selected and opted in
 
       // Check linked accounts (opted in)
       expect(result.current.linkedAccounts).toHaveLength(2);
@@ -175,7 +171,6 @@ describe('useRewardOptinSummary', () => {
       // Assert
       expect(result.current.linkedAccounts).toHaveLength(0);
       expect(result.current.unlinkedAccounts).toHaveLength(3);
-      expect(result.current.currentAccountOptedIn).toBe(false);
     });
 
     it('should handle all accounts opted in', async () => {
@@ -194,7 +189,6 @@ describe('useRewardOptinSummary', () => {
       // Assert
       expect(result.current.linkedAccounts).toHaveLength(3);
       expect(result.current.unlinkedAccounts).toHaveLength(0);
-      expect(result.current.currentAccountOptedIn).toBe(true);
     });
 
     it('should handle selected account not in accounts list', async () => {
@@ -208,21 +202,18 @@ describe('useRewardOptinSummary', () => {
       mockUseSelector
         .mockReset()
         .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
-        .mockReturnValueOnce(differentAccount); // selectSelectedInternalAccount - not in accounts
+        .mockReturnValueOnce(differentAccount); //  - not in accounts
 
       const mockResponse: OptInStatusDto = {
         ois: [true, false, true],
       };
       mockEngineCall.mockResolvedValueOnce(mockResponse);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
+      const { waitForNextUpdate } = renderHook(() => useRewardOptinSummary());
 
       await waitForNextUpdate();
 
       // Assert
-      expect(result.current.currentAccountOptedIn).toBe(false); // Should default to false
     });
   });
 
@@ -243,7 +234,6 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.hasError).toBe(true);
       expect(result.current.linkedAccounts).toEqual([]);
       expect(result.current.unlinkedAccounts).toEqual([]);
-      expect(result.current.currentAccountOptedIn).toBeNull();
 
       expect(mockLoggerLog).toHaveBeenCalledWith(
         'useRewardOptinSummary: Failed to fetch opt-in status',
@@ -308,10 +298,7 @@ describe('useRewardOptinSummary', () => {
         ois: [true, false],
       };
 
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(newAccounts) // selectInternalAccounts
-        .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
+      mockUseSelector.mockReset().mockReturnValueOnce(newAccounts); // selectInternalAccounts
 
       mockEngineCall.mockResolvedValueOnce(newResponse);
 
@@ -359,10 +346,7 @@ describe('useRewardOptinSummary', () => {
   describe('edge cases', () => {
     it('should handle empty accounts array', () => {
       // Arrange
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce([]) // selectInternalAccounts - empty
-        .mockReturnValueOnce(null); // selectSelectedInternalAccount
+      mockUseSelector.mockReset().mockReturnValueOnce([]); // selectInternalAccounts - empty
 
       const { result } = renderHook(() => useRewardOptinSummary());
 
@@ -370,16 +354,12 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.linkedAccounts).toEqual([]);
       expect(result.current.unlinkedAccounts).toEqual([]);
-      expect(result.current.currentAccountOptedIn).toBeNull();
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
 
     it('should handle null internal accounts selector', () => {
       // Arrange
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(null) // selectInternalAccounts - null
-        .mockReturnValueOnce(null); // selectSelectedInternalAccount
+      mockUseSelector.mockReset().mockReturnValueOnce(null); // selectInternalAccounts - null
 
       const { result } = renderHook(() => useRewardOptinSummary());
 
@@ -393,10 +373,7 @@ describe('useRewardOptinSummary', () => {
     it('should handle single account', async () => {
       // Arrange
       const singleAccount = [mockAccount1];
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(singleAccount) // selectInternalAccounts
-        .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
+      mockUseSelector.mockReset().mockReturnValueOnce(singleAccount); // selectInternalAccounts
 
       const mockResponse: OptInStatusDto = {
         ois: [true],
@@ -412,29 +389,6 @@ describe('useRewardOptinSummary', () => {
       // Assert
       expect(result.current.linkedAccounts).toHaveLength(1);
       expect(result.current.unlinkedAccounts).toHaveLength(0);
-      expect(result.current.currentAccountOptedIn).toBe(true);
-    });
-
-    it('should handle no selected account', async () => {
-      // Arrange
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
-        .mockReturnValueOnce(null); // selectSelectedInternalAccount - null
-
-      const mockResponse: OptInStatusDto = {
-        ois: [true, false, true],
-      };
-      mockEngineCall.mockResolvedValueOnce(mockResponse);
-
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      await waitForNextUpdate();
-
-      // Assert
-      expect(result.current.currentAccountOptedIn).toBe(false); // Should default to false
     });
   });
 });

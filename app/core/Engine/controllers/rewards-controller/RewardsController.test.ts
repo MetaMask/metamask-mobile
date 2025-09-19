@@ -1003,7 +1003,8 @@ describe('RewardsController', () => {
 
       // Trigger authentication via account change
       const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
       )?.[1];
 
       if (subscribeCallback) {
@@ -1057,7 +1058,8 @@ describe('RewardsController', () => {
 
       // When: Authentication is triggered
       const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
       )?.[1];
 
       if (subscribeCallback) {
@@ -2125,7 +2127,8 @@ describe('RewardsController', () => {
 
       // Get the account change subscription callback
       const subscribeCalls = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
       );
       subscribeCallback = subscribeCalls
         ? subscribeCalls[1]
@@ -2155,7 +2158,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockReturnValue(mockAccount);
 
-      // Act - trigger account change
+      // Act - trigger account group change
       if (subscribeCallback) {
         await subscribeCallback(mockAccount, mockAccount);
       }
@@ -2187,7 +2190,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockReturnValue(mockAccount);
 
-      // Act - trigger account change
+      // Act - trigger account group change
       if (subscribeCallback) {
         await subscribeCallback(mockAccount, mockAccount);
       }
@@ -2252,11 +2255,12 @@ describe('RewardsController', () => {
       // Get the new subscription callback for the recreated controller
       const newSubscribeCallback = mockMessenger.subscribe.mock.calls
         .filter(
-          (call) => call[0] === 'AccountsController:selectedAccountChange',
+          (call) =>
+            call[0] === 'AccountTreeController:selectedAccountGroupChange',
         )
         .pop()?.[1];
 
-      // Act - trigger account change
+      // Act - trigger account group change
       if (newSubscribeCallback) {
         await newSubscribeCallback(mockAccount, mockAccount);
       }
@@ -2473,7 +2477,8 @@ describe('RewardsController', () => {
 
       // Act & Assert
       const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
-        (call) => call[0] === 'AccountsController:selectedAccountChange',
+        (call) =>
+          call[0] === 'AccountTreeController:selectedAccountGroupChange',
       )?.[1];
 
       if (subscribeCallback) {

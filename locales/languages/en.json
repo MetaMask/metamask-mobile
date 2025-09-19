@@ -5697,6 +5697,15 @@
     "not_implemented": "Coming soon",
     "not_implemented_season_summary": "Season Summary Coming Soon",
 
+
+    "link_account": "Link account",
+    "linking_account": "Linking {{accountName}}...",
+    "link_account_success": "{{accountName}} linked successfully",
+    "link_account_error": "Failed to link one or more addresses for {{accountName}}",
+    "linking_progress": "Linking progress: {{completed}}/{{total}} accounts",
+    "linking_current_address": "Linking {{address}}...",
+    "cancel_linking": "Cancel Linking",
+
     "referral_rewards_title": "Referrals",
     "points": "Points",
     "point": "Point",
@@ -5741,8 +5750,6 @@
     "onboarding": {
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_account_needed_title": "Ethereum account needed",
-      "not_supported_account_needed_description": "MetaMask Rewards aren't available for Solana accounts yet. Switch to an Ethereum account to claim your points.",
       "not_supported_confirm": "Got it",
 
       "intro_title_1": "Season 1",
@@ -5779,21 +5786,17 @@
       "step4_legal_disclaimer_learn_more": "Learn more."
     },
 
-    "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
-      "error_title": "Unable to Load Linked Accounts",
-      "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
-      "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
-      "no_linked_accounts": "No linked accounts",
-      "all_accounts_linked_title": "All accounts are linked",
-      "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
-      "link_account_success_title": "Account {{accountName}} successfully linked",
-      "link_account_error_title": "Failed to link account",
-      "link_account_button": "Link"
-    },
+  "settings": {
+    "title": "Reward Settings",
+    "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+    "error_title": "Unable to load accounts",
+    "error_description": "We couldn't detect your accounts. Please check your internet connection and try again.",
+    "error_retry": "Retry",
+    "account_link_status": {
+      "linked_singular": "{{count}} out of {{total}} address linked",
+      "linked_plural": "{{count}} out of {{total}} addresses linked"
+    }
+  },
 
     "optout": {
         "title": "Opt out of Rewards",
@@ -5810,18 +5813,17 @@
     },
 
     "unlinked_accounts_info": {
-      "title": "There are unlinked accounts",
-      "description": "If you want to earn points for the activity of these accounts you can link them in the settings page.",
-      "go_to_settings": "Go to settings"
+      "title": "Unlinked accounts",
+      "description": "Link your accounts to earn points for their activity.",
+      "dismiss": "Dismiss",
+      "confirm": "Link Accounts"
     },
 
     "unlinked_account_info": {
-      "title": "Account not linked",
-      "description": "This account's activity is not being tracked for this season."
+      "title": "Unlinked account",
+      "description": "Link this account to earn points for its activity.",
+      "confirm": "Link Account"
     },
-
-    "link_account": "Link account",
-    "linking_account": "Linking...",
 
     "ways_to_earn": {
       "title": "Ways to earn",
@@ -5876,6 +5878,11 @@
       "claimed_label": "Claimed",
       "reward_claimed": "Reward claimed",
       "expired": "Expired"
+    },
+    
+    "account_group_optin_modal": {
+      "title": "Linked addresses for {{accountName}}",
+      "no_addresses": "No addresses found."
     }
   },
   "time": {

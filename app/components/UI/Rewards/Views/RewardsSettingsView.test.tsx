@@ -69,9 +69,9 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
 }));
 
 // Mock components
-jest.mock('../components/Settings/RewardSettingsTabs', () => {
+jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {
   const { View, Text } = jest.requireActual('react-native');
-  return function MockRewardSettingsTabs({
+  return function MockRewardSettingsAccountGroupList({
     initialTabIndex,
   }: {
     initialTabIndex: number;
@@ -85,24 +85,14 @@ jest.mock('../components/Settings/RewardSettingsTabs', () => {
   };
 });
 
-// Mock selectors
-jest.mock('../../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
-}));
-
 // Mock hooks
 jest.mock('../hooks/useOptout', () => ({
   useOptout: jest.fn(),
 }));
 
 // Import mocked selectors for setup
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 import { useOptout } from '../hooks/useOptout';
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
 const mockUseOptout = useOptout as jest.MockedFunction<typeof useOptout>;
 
 describe('RewardsSettingsView', () => {

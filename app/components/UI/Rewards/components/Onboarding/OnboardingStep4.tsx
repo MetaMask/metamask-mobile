@@ -6,7 +6,7 @@ import {
   Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOptin } from '../../hooks/useOptIn';
@@ -36,13 +36,11 @@ import TextField, {
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
 import { REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL } from './constants';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../../selectors/rewards';
 
 const OnboardingStep4: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const { optin, optinError, optinLoading } = useOptin();
   const {
     referralCode,
@@ -194,9 +192,7 @@ const OnboardingStep4: React.FC = () => {
           ? strings('rewards.onboarding.step4_title_referral_validating')
           : ''
       }
-      onNextDisabled={
-        (!referralCodeIsValid && !!referralCode) || hasAccountedOptedIn === true
-      }
+      onNextDisabled={!referralCodeIsValid && !!referralCode}
       onPrevious={handlePrevious}
       nextButtonText={strings('rewards.onboarding.step4_confirm')}
       renderStepInfo={renderStepInfo}

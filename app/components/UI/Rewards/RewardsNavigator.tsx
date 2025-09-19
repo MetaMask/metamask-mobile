@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,17 +13,10 @@ import { BannerAlertSeverity } from '../../../component-library/components/Banne
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import ErrorBoundary from '../../Views/ErrorBoundary';
-import {
-  setOnboardingActiveStep,
-  OnboardingStep,
-} from '../../../actions/rewards';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+import { useSelector } from 'react-redux';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
+import { RewardsModalProvider } from './context/RewardsModalProvider';
 const Stack = createStackNavigator();
 
 interface RewardsNavigatorProps {
@@ -61,23 +54,14 @@ const AuthErrorView = () => {
 };
 
 const RewardsNavigatorContent: React.FC = () => {
-  const account = useSelector(selectSelectedInternalAccount);
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const dispatch = useDispatch();
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
-
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
     // If user has already opted in and has a valid subscription candidate ID, go to dashboard
-    if (
-      hasAccountedOptedIn === true &&
-      subscriptionId &&
-      subscriptionId !== 'pending' &&
-      subscriptionId !== 'error'
-    ) {
+    if (subscriptionId) {
       return Routes.REWARDS_DASHBOARD;
     }
 
@@ -85,50 +69,41 @@ const RewardsNavigatorContent: React.FC = () => {
     return Routes.REWARDS_ONBOARDING_FLOW;
   };
 
-  useEffect(() => {
-    if (account) {
-      dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-    }
-  }, [account, dispatch]);
-
   // Show loading only while checking auth state initially
   if (subscriptionId === 'error') {
     // if we had an error while getting the candidate subscription ID, show the auth error view
     return <AuthErrorView />;
   }
 
-  const isValidSubscriptionCandidateId =
-    Boolean(subscriptionId) &&
-    subscriptionId !== 'error' &&
-    subscriptionId !== 'pending';
-
   return (
-    <Stack.Navigator initialRouteName={getInitialRoute()}>
-      <Stack.Screen
-        name={Routes.REWARDS_ONBOARDING_FLOW}
-        component={OnboardingNavigator}
-        options={{ headerShown: false }}
-      />
-      {hasAccountedOptedIn === true || isValidSubscriptionCandidateId ? (
-        <>
-          <Stack.Screen
-            name={Routes.REWARDS_DASHBOARD}
-            component={RewardsDashboard}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REFERRAL_REWARDS_VIEW}
-            component={ReferralRewardsView}
-            options={{ headerShown: true }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_SETTINGS_VIEW}
-            component={RewardsSettingsView}
-            options={{ headerShown: true }}
-          />
-        </>
-      ) : null}
-    </Stack.Navigator>
+    <RewardsModalProvider>
+      <Stack.Navigator initialRouteName={getInitialRoute()}>
+        <Stack.Screen
+          name={Routes.REWARDS_ONBOARDING_FLOW}
+          component={OnboardingNavigator}
+          options={{ headerShown: false }}
+        />
+        {subscriptionId ? (
+          <>
+            <Stack.Screen
+              name={Routes.REWARDS_DASHBOARD}
+              component={RewardsDashboard}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name={Routes.REFERRAL_REWARDS_VIEW}
+              component={ReferralRewardsView}
+              options={{ headerShown: true }}
+            />
+            <Stack.Screen
+              name={Routes.REWARDS_SETTINGS_VIEW}
+              component={RewardsSettingsView}
+              options={{ headerShown: true }}
+            />
+          </>
+        ) : null}
+      </Stack.Navigator>
+    </RewardsModalProvider>
   );
 };
 
