@@ -126,12 +126,10 @@ jobs:
 
           # Debug git state
           echo "🔍 Git debug info:"
-          echo "- Current HEAD: $(git rev-parse HEAD)"
-          echo "- Origin main: $(git rev-parse origin/main 2>/dev/null || echo 'NOT FOUND')"
-          echo "- Files with include-main: $(git diff --name-only origin/main..HEAD 2>/dev/null | wc -l || echo 'ERROR')"
-          echo "- Files without include-main: $(git diff --name-only origin/main...HEAD 2>/dev/null | wc -l || echo 'ERROR')"
-          echo "- Last 5 commits: $(git log --oneline -5)"
-          echo "- Merge base: $(git merge-base origin/main HEAD 2>/dev/null || echo 'ERROR')"
+          FILES_WITH_MAIN=$(git diff --name-only origin/main..HEAD 2>/dev/null | wc -l || echo 'ERROR')
+          FILES_WITHOUT_MAIN=$(git diff --name-only origin/main...HEAD 2>/dev/null | wc -l || echo 'ERROR')
+          echo "- Files with include-main: $FILES_WITH_MAIN"
+          echo "- Files without include-main: $FILES_WITHOUT_MAIN"
 
           RESULT=$(eval $BASE_CMD)
 
@@ -178,9 +176,22 @@ jobs:
           echo "total_splits=$TOTAL_SPLITS" >> "$GITHUB_OUTPUT"
           echo "matrix_splits=$MATRIX_ARRAY" >> "$GITHUB_OUTPUT"
           echo "risk_level=$RISK_LEVEL" >> "$GITHUB_OUTPUT"
-          echo "reasoning=$REASONING" >> "$GITHUB_OUTPUT"
+
+          # Handle multi-line reasoning content carefully
+          {
+            echo "reasoning<<EOF"
+            echo "$REASONING"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
           echo "confidence=$CONFIDENCE" >> "$GITHUB_OUTPUT"
-          echo "breakdown=$BREAKDOWN" >> "$GITHUB_OUTPUT"
+
+          # Handle multi-line breakdown content carefully
+          {
+            echo "breakdown<<EOF"
+            echo "$BREAKDOWN"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
           # Only run tests if we have tags selected and splits > 0
           if [ "$TAG_COUNT" -eq 0 ]; then
