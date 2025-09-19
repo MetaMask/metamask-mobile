@@ -241,10 +241,10 @@ interface WalletTokensTabViewProps {
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
-
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isPerpsEnabled = useMemo(
-    () => isPerpsFlagEnabled,
-    [isPerpsFlagEnabled],
+    () => isPerpsFlagEnabled && isEvmSelected,
+    [isPerpsFlagEnabled, isEvmSelected],
   );
 
   const {
@@ -258,9 +258,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const tabsListRef = useRef<TabsListRef>(null);
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
 
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-
   const enabledNetworksIsSolana = useMemo(() => {
     if (allEnabledNetworks.length === 1) {
       return allEnabledNetworks.some(
@@ -269,6 +266,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     }
     return false;
   }, [allEnabledNetworks]);
+
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Track current tab index for Perps visibility
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
@@ -286,10 +286,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
-      isDisabled: !isPerpsEnabled,
       navigation,
     }),
-    [navigation, isPerpsEnabled],
+    [navigation],
   );
 
   const defiPositionsTabProps = useMemo(
@@ -387,7 +386,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (defiEnabled) {
+    if (defiEnabled && !enabledNetworksIsSolana) {
       tabs.push(
         <DeFiPositionsList
           {...defiPositionsTabProps}
@@ -395,6 +394,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
         />,
       );
     }
+
     if (collectiblesEnabled && !enabledNetworksIsSolana) {
       tabs.push(
         <CollectibleContracts
@@ -407,13 +407,13 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     return tabs;
   }, [
     tokensTabProps,
+    isPerpsEnabled,
     perpsTabProps,
     isPerpsTabVisible,
-    defiPositionsTabProps,
-    collectibleContractsTabProps,
-    isPerpsEnabled,
     defiEnabled,
+    defiPositionsTabProps,
     collectiblesEnabled,
+    collectibleContractsTabProps,
     enabledNetworksIsSolana,
   ]);
 
@@ -610,10 +610,15 @@ const Wallet = ({
 
   const collectiblesEnabled = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
+      if (allEnabledNetworks.length === 1) {
+        return allEnabledNetworks.some(
+          (network) => network.chainId !== SolScope.Mainnet,
+        );
+      }
       return true;
     }
     return isEvmSelected;
-  }, [isMultichainAccountsState2Enabled, isEvmSelected]);
+  }, [isMultichainAccountsState2Enabled, isEvmSelected, allEnabledNetworks]);
 
   const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
 
@@ -1166,6 +1171,7 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
+    (isEvmSelected || isMultichainAccountsState2Enabled) &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
@@ -1252,7 +1258,6 @@ const Wallet = ({
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
-      // enabledNetworksIsSolana,
     ],
   );
   const renderLoader = useCallback(
