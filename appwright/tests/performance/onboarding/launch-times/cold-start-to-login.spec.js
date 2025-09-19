@@ -48,7 +48,7 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-  await AppwrightSelectors.backgroundApp(device, 30);
+  await AppwrightSelectors.terminateApp(device);
   await AppwrightSelectors.activateApp(device);
   const timer1 = new TimerHelper(
     'Time since the the app is launched, until login screen appears',

@@ -148,9 +148,10 @@ export async function login(device, scenarioType, timeout = 10000) {
 }
 
 export async function dismissGTMModal(device, timeout = 5000) {
-  const notNowButton = await AppwrightSelectors.getElementByText(
+  console.log('Looking for perps onboarding button...');
+  const notNowButton = await AppwrightSelectors.getElementByID(
     device,
-    'Not now',
+    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
     timeout,
   );
   if (await notNowButton.isVisible({ timeout })) {

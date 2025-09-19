@@ -52,7 +52,7 @@ export default class AppwrightSelectors {
 
   static async terminateApp(device) {
     let retries = 3;
-    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask'; 
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask'; 
     while (retries > 0) {
       try {
         await device.terminateApp(packageId);
@@ -78,7 +78,7 @@ export default class AppwrightSelectors {
   }
 
   static async activateApp(device) {
-    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask';
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask-QA' : 'io.metamask';
     let retries = 3;
     
     while (retries > 0) {
