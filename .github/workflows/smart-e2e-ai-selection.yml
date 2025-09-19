@@ -107,7 +107,7 @@ jobs:
 
           # Add base branch if specified (manual trigger)
           if [ "${{ github.event.inputs.base_branch }}" != "" ] && [ "${{ github.event.inputs.base_branch }}" != "origin/main" ]; then
-            BASE_CMD="$BASE_CMD --base-branch ${{ github.event.inputs.base_branch }}"
+            BASE_CMD="$BASE_CMD --base-branch '${{ github.event.inputs.base_branch }}'"
           fi
 
           # Add include-main-changes flag
@@ -131,7 +131,7 @@ jobs:
           echo "- Files with include-main: $FILES_WITH_MAIN"
           echo "- Files without include-main: $FILES_WITHOUT_MAIN"
 
-          RESULT=$(eval $BASE_CMD)
+          RESULT=$(eval "$BASE_CMD")
 
           # Validate JSON output
           if ! echo "$RESULT" | jq . > /dev/null 2>&1; then
@@ -158,8 +158,8 @@ jobs:
 
           # Generate matrix array for GitHub Actions
           MATRIX_ARRAY="["
-          for i in $(seq 1 $TOTAL_SPLITS); do
-            if [ $i -eq 1 ]; then
+          for i in $(seq 1 "$TOTAL_SPLITS"); do
+            if [ "$i" -eq 1 ]; then
               MATRIX_ARRAY="${MATRIX_ARRAY}$i"
             else
               MATRIX_ARRAY="${MATRIX_ARRAY},$i"
