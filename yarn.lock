@@ -5018,7 +5018,7 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0", "@metamask/base-controller@^8.3.0", "@metamask/base-controller@^8.4.0":
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.0.3", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0", "@metamask/base-controller@^8.3.0", "@metamask/base-controller@^8.4.0":
   version "8.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.4.0.tgz#1adffa81b4d6d53a6c5e54d956251c18a72cdf03"
   integrity sha512-K2tVUIA5p89X/1aro0uGcpR3UvzP6wioM+TzJeGe72ZzbTo3DC5nm98lXgVfWsWt/d94bk2RXijngfYk/0MaIQ==
@@ -6266,14 +6266,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.3.0.tgz#276819d24f1b411c768441efb6098c1743d6f67a"
   integrity sha512-+VFE6wVWve86SLiUI3jyhJjizUezpOnwvRyem7EP79Mml+oSm48gQ4W8QqeQqTugbrlCsxtFI4QNEPotQsll6Q==
 
-"@metamask/swaps-controller@^13.3.0":
-  version "13.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-13.3.0.tgz#b1a9451c8602434c0c2853f076d83d82627ed902"
-  integrity sha512-2zB+i8YJpEgA5yL5zeRXQ893s1X2pAoottQtJ45UToVTzs5UeOpOpJQQnaIAsFZhMp9UmFn1LopvhlVXj32uHw==
+"@metamask/swaps-controller@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-14.0.0.tgz#284ee566c8add009463427c75fcc89cd14fb0f5e"
+  integrity sha512-Ceb3LY2dK9QWGwPzSZc2wHNllDp/yUMQnoD089i/l4Dre06TmuNmHhIprA+fXdsng1z72nRaiRan659/vjjZ0w==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^7.0.1"
+    "@metamask/base-controller" "^8.0.3"
     "@metamask/controller-utils" "^11.3.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/utils" "^10.0.0"
