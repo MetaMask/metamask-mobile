@@ -588,8 +588,28 @@ workflows:
                 # Verify bundled version works
                 echo "Bundled Yarn version: $($YARN_CMD --version)"
                 
-                # Clear any legacy config files
+                # Aggressive cleanup for iOS builds - clear ALL possible config sources
+                echo "Clearing ALL legacy configurations for iOS build..."
                 rm -f .yarnrc || true
+                rm -f ~/.yarnrc || true
+                rm -rf ~/.yarn || true
+                rm -f /usr/local/etc/yarnrc || true
+                rm -f /opt/homebrew/etc/yarnrc || true
+                
+                # Clear ALL yarn-related environment variables
+                unset YARN_CACHE_FOLDER
+                unset YARN_CACHE_DIR
+                unset YARN_GLOBAL_FOLDER
+                unset YARN_LINK_FOLDER
+                unset YARN_ENABLE_GLOBAL_CACHE
+                unset YARN_ENABLE_IMMUTABLE_INSTALLS
+                unset YARN_RC_FILENAME
+                unset YARN_WRAP_OUTPUT
+                unset YARN_COMMAND
+                
+                # Create completely isolated environment
+                export HOME=/tmp/isolated-yarn-home
+                mkdir -p $HOME
                 
                 # Create clean .yarnrc.yml if it doesn't exist
                 if [ ! -f ".yarnrc.yml" ]; then
@@ -599,9 +619,17 @@ workflows:
                   echo "yarnPath: .yarn/releases/yarn-3.8.7.cjs" >> .yarnrc.yml
                 fi
                 
-                # Run install using bundled yarn directly
-                echo "Running install with bundled yarn..."
-                $YARN_CMD install --immutable
+                # Run install using bundled yarn directly with complete isolation
+                echo "Running install with bundled yarn in isolated environment..."
+                
+                # Use env -i to start with completely clean environment
+                env -i \
+                  PATH="$PATH" \
+                  NODE_PATH="$NODE_PATH" \
+                  HOME="$HOME" \
+                  PWD="$(pwd)" \
+                  YARN_CACHE_FOLDER="$(pwd)/.yarn/cache" \
+                  $YARN_CMD install --immutable
           title: Yarn Install
       - script@1:
           title: Yarn Setup
@@ -620,6 +648,27 @@ workflows:
                 
                 echo "Running setup with bundled yarn..."
                 $YARN_CMD setup:ci
+                
+                # Verify PPOM files were generated
+                echo "Checking if PPOM files were generated..."
+                if [ -f "app/lib/ppom/ppom.html.js" ]; then
+                  echo "✅ ppom.html.js found"
+                else
+                  echo "❌ ppom.html.js NOT found - manually building PPOM..."
+                  # Manual PPOM build as fallback
+                  cd ppom
+                  $YARN_CMD install
+                  $YARN_CMD build
+                  cd ..
+                  
+                  # Verify again
+                  if [ -f "app/lib/ppom/ppom.html.js" ]; then
+                    echo "✅ ppom.html.js generated successfully"
+                  else
+                    echo "❌ PPOM build failed!"
+                    exit 1
+                  fi
+                fi
       - save-cache@1:
           title: Save Yarn cache
           inputs:
