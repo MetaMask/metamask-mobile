@@ -120,6 +120,7 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
     });
 
     mockUseSendContext.mockReturnValue({
@@ -142,6 +143,7 @@ describe('useAccounts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
       mockIsEvmAccountType.mockImplementation(
         (accountType) => accountType === 'eip155:eoa',
@@ -200,6 +202,7 @@ describe('useAccounts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
       mockIsEvmAccountType.mockReturnValue(false);
       mockIsSolanaAccount.mockImplementation(
@@ -240,6 +243,7 @@ describe('useAccounts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
     });
 
@@ -289,6 +293,7 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
     });
     mockIsEvmAccountType.mockReturnValue(false);
 
@@ -383,6 +388,7 @@ describe('useAccounts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
       mockIsEvmAccountType.mockImplementation(
         (accountType) => accountType === 'eip155:eoa',
@@ -432,6 +438,7 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
     });
 
     renderHook(() => useAccounts());
@@ -447,6 +454,7 @@ describe('useAccounts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
     });
 
     renderHook(() => useAccounts());

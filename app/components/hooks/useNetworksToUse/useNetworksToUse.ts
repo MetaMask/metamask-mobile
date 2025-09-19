@@ -7,6 +7,10 @@ import {
   NetworkType,
   ProcessedNetwork,
 } from '../useNetworksByNamespace/useNetworksByNamespace';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface UseNetworksToUseProps {
   networks: ProcessedNetwork[];
@@ -18,6 +22,10 @@ interface UseNetworksToUseReturn {
   networksToUse: ProcessedNetwork[];
   evmNetworks: ProcessedNetwork[];
   solanaNetworks: ProcessedNetwork[];
+  bitcoinNetworks: ProcessedNetwork[];
+  selectedEvmAccount: InternalAccount | null;
+  selectedSolanaAccount: InternalAccount | null;
+  selectedBitcoinAccount: InternalAccount | null;
   isMultichainAccountsState2Enabled: boolean;
   areAllNetworksSelectedCombined: boolean;
   areAllEvmNetworksSelected: boolean;
@@ -40,6 +48,17 @@ export const useNetworksToUse = ({
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
+
+  const selectedEvmAccount =
+    useSelector(selectSelectedInternalAccountByScope)(EVM_SCOPE) || null;
+
+  const selectedSolanaAccount =
+    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const selectedBitcoinAccount =
+    useSelector(selectSelectedInternalAccountByScope)(BtcScope.Mainnet) || null;
+  ///: END:ONLY_INCLUDE_IF
 
   const {
     networks: evmNetworks,
@@ -72,19 +91,54 @@ export const useNetworksToUse = ({
       return networks;
     }
 
-    return [
-      ...evmNetworks,
-      ...solanaNetworks,
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    if (selectedEvmAccount && selectedSolanaAccount && selectedBitcoinAccount) {
+      if (evmNetworks && solanaNetworks && bitcoinNetworks) {
+        return [...evmNetworks, ...solanaNetworks, ...bitcoinNetworks];
+      } else if (evmNetworks) {
+        return evmNetworks;
+      } else if (solanaNetworks) {
+        return solanaNetworks;
+      } else if (bitcoinNetworks) {
+        return bitcoinNetworks;
+      }
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    if (selectedEvmAccount && selectedSolanaAccount) {
+      if (evmNetworks && solanaNetworks) {
+        return [...evmNetworks, ...solanaNetworks];
+      } else if (evmNetworks) {
+        return evmNetworks;
+      } else if (solanaNetworks) {
+        return solanaNetworks;
+      }
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      ...bitcoinNetworks,
+      else if (bitcoinNetworks) {
+        return bitcoinNetworks;
+      }
       ///: END:ONLY_INCLUDE_IF
-    ];
+      return networks;
+    } else if (selectedEvmAccount) {
+      return evmNetworks || networks;
+    } else if (selectedSolanaAccount) {
+      return solanaNetworks || networks;
+    }
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    else if (selectedBitcoinAccount) {
+      return bitcoinNetworks || networks;
+    }
+    ///: END:ONLY_INCLUDE_IF
+    return networks;
   }, [
     isMultichainAccountsState2Enabled,
     evmNetworks,
     solanaNetworks,
     networks,
+    selectedEvmAccount,
+    selectedSolanaAccount,
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    selectedBitcoinAccount,
     bitcoinNetworks,
     ///: END:ONLY_INCLUDE_IF
   ]);
@@ -94,19 +148,32 @@ export const useNetworksToUse = ({
       return areAllNetworksSelected || false;
     }
 
-    return (
-      areAllEvmNetworksSelected &&
-      areAllSolanaNetworksSelected &&
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      areAllBitcoinNetworksSelected
-      ///: END:ONLY_INCLUDE_IF
-    );
+    const selectedAccountFlags = [];
+
+    if (selectedEvmAccount) {
+      selectedAccountFlags.push(areAllEvmNetworksSelected);
+    }
+    if (selectedSolanaAccount) {
+      selectedAccountFlags.push(areAllSolanaNetworksSelected);
+    }
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    if (selectedBitcoinAccount) {
+      selectedAccountFlags.push(areAllBitcoinNetworksSelected);
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return selectedAccountFlags.length > 0
+      ? selectedAccountFlags.every(Boolean)
+      : areAllNetworksSelected || false;
   }, [
     isMultichainAccountsState2Enabled,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
     areAllNetworksSelected,
+    selectedEvmAccount,
+    selectedSolanaAccount,
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    selectedBitcoinAccount,
     areAllBitcoinNetworksSelected,
     ///: END:ONLY_INCLUDE_IF
   ]);
@@ -115,6 +182,14 @@ export const useNetworksToUse = ({
     networksToUse,
     evmNetworks,
     solanaNetworks,
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    bitcoinNetworks,
+    ///: END:ONLY_INCLUDE_IF
+    selectedEvmAccount,
+    selectedSolanaAccount,
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    selectedBitcoinAccount,
+    ///: END:ONLY_INCLUDE_IF
     isMultichainAccountsState2Enabled,
     areAllNetworksSelectedCombined,
     areAllEvmNetworksSelected,
