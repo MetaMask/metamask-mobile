@@ -336,6 +336,14 @@ ANALYSIS FRAMEWORK:
 3. **Smart Selection Rules** (BE SELECTIVE):
    - **Don't default to running all tests** - analyze actual file paths and impact
    - **Consider "no tests needed"** for very low-risk changes (docs, minor configs, linting)
+   - **CRITICAL: Transaction confirmation changes** - ANY change that could affect the transaction confirmation flow should trigger SmokeConfirmations and SmokeConfirmationsRedesigned. This includes:
+     • Transaction controllers, signers, or approval logic
+     • Gas fee calculations or estimation
+     • Network switching or RPC changes
+     • Wallet state management that affects balances/transactions
+     • Payment flows, send/receive functionality
+     • Smart contract interactions or dapp connections
+     • Security-related changes (encryption, keyring, authentication)
    - Only include SmokeCore for true infrastructure/core engine changes
    - Match tags to specific affected areas based on file paths
    - For minor UI changes, consider if E2E tests are even needed
@@ -488,7 +496,10 @@ RESPOND WITH JSON ONLY:
         categories.identity.push(file);
       } else if (fileLower.includes('trade') || fileLower.includes('swap') || fileLower.includes('bridge') || fileLower.includes('perps')) {
         categories.trading.push(file);
-      } else if (fileLower.includes('confirmation') || fileLower.includes('confirm')) {
+      } else if (fileLower.includes('confirmation') || fileLower.includes('confirm') ||
+                 fileLower.includes('transaction') || fileLower.includes('approval') || fileLower.includes('signer') ||
+                 fileLower.includes('gasfee') || fileLower.includes('gas-fee') || fileLower.includes('send') ||
+                 fileLower.includes('payment') || fileLower.includes('keyring') || fileLower.includes('rpc')) {
         categories.confirmations.push(file);
       } else if (fileLower.includes('wallet') || fileLower.includes('balance') || fileLower.includes('asset') || fileLower.includes('token')) {
         categories.wallet.push(file);
