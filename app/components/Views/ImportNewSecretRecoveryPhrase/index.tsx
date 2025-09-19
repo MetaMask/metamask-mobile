@@ -226,6 +226,18 @@ const ImportNewSecretRecoveryPhrase = () => {
     navigation.goBack();
   };
 
+  const trackDiscoveryEvent = (discoveredAccountsCount: number) => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
+      )
+        .addProperties({
+          number_of_solana_accounts_discovered: discoveredAccountsCount,
+        })
+        .build(),
+    );
+  };
+
   const onSubmit = async () => {
     setLoading(true);
     try {
@@ -243,15 +255,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         secretRecoveryPhrase.join(' '),
         undefined,
         async ({ discoveredAccountsCount }) => {
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-            )
-              .addProperties({
-                number_of_solana_accounts_discovered: discoveredAccountsCount,
-              })
-              .build(),
-          );
+          trackDiscoveryEvent(discoveredAccountsCount);
         },
       );
       setLoading(false);
@@ -273,15 +277,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       fetchAccountsWithActivity();
 
       if (!isMultichainAccountsState2Enabled()) {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-          )
-            .addProperties({
-              number_of_solana_accounts_discovered: discoveredAccountsCount,
-            })
-            .build(),
-        );
+        trackDiscoveryEvent(discoveredAccountsCount);
       }
 
       navigation.navigate('WalletView');
