@@ -3,6 +3,7 @@ import {
   type WebSocketServiceMessenger,
 } from '@metamask/backend-platform';
 import { ControllerInitFunction } from '../../types';
+import { BackendWebSocketServiceInitMessenger } from '../../messengers/backend-websocket-service-messenger/backend-websocket-service-messenger';
 import Logger from '../../../../util/Logger';
 
 /**
@@ -16,8 +17,9 @@ import Logger from '../../../../util/Logger';
  */
 export const backendWebSocketServiceInit: ControllerInitFunction<
   WebSocketService,
-  WebSocketServiceMessenger
-> = ({ controllerMessenger }) => {
+  WebSocketServiceMessenger,
+  BackendWebSocketServiceInitMessenger
+> = ({ controllerMessenger, initMessenger }) => {
   try {
     const controller = new WebSocketService({
       messenger: controllerMessenger,
@@ -29,10 +31,35 @@ export const backendWebSocketServiceInit: ControllerInitFunction<
       reconnectDelay: 1000, // 1s initial reconnect delay
       maxReconnectDelay: 30000, // 30s max reconnect delay for mobile battery optimization
       requestTimeout: 20000, // 20s request timeout for mobile networks
+      // Feature flag integration - service will check this callback before connecting/reconnecting
+      enabledCallback: () => {
+        try {
+          // Check for local environment variable override first (for development)
+          const envOverride = process.env.BACKEND_WEBSOCKET_CONNECTION_ENABLED;
+          if (envOverride !== undefined && envOverride !== null) {
+            return envOverride === 'true';
+          }
+
+          // Fall back to remote feature flag
+          const remoteFeatureFlags = initMessenger?.call(
+            'RemoteFeatureFlagController:getState',
+          );
+          return Boolean(
+            remoteFeatureFlags?.remoteFeatureFlags
+              ?.backendWebSocketConnectionEnabled,
+          );
+        } catch (error) {
+          // If we can't get feature flags, default to NOT connecting (safer approach)
+          Logger.log(
+            '[WebSocketService] Could not check feature flags, defaulting to NOT connect:',
+            error as Error,
+          );
+          return false;
+        }
+      },
     });
 
-    // Explicitly connect the WebSocket service after creation
-    // Since we removed auto-initialization from the constructor
+    // Start connection attempt (service will check enabledCallback internally)
     controller.connect().catch((error) => {
       Logger.error(
         error as Error,

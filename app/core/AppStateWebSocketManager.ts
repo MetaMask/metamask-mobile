@@ -54,8 +54,11 @@ export class AppStateWebSocketManager {
         Logger.log('WebSocket disconnected due to app entering background');
       } else if (nextAppState === 'active') {
         // Reconnect WebSocket when app becomes active
+        // The WebSocket service will check its enabledCallback internally
         await this.webSocketService.connect();
-        Logger.log('WebSocket reconnected due to app becoming active');
+        Logger.log(
+          'WebSocket reconnection attempt completed (service handles feature flag check)',
+        );
       }
     } catch (error) {
       Logger.error(
