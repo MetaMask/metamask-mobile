@@ -17,7 +17,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
@@ -124,8 +123,7 @@ export function useSwitchNetworks({
     async (networkConfiguration: NetworkConfiguration) => {
       if (!networkConfiguration) return;
 
-      const { MultichainNetworkController, SelectedNetworkController } =
-        Engine.context;
+      const { SelectedNetworkController } = Engine.context;
       const {
         name: nickname,
         chainId,
@@ -151,20 +149,6 @@ export function useSwitchNetworks({
           state.activeDappNetwork = networkConfigurationId;
         });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
-      } else {
-        trace({
-          name: TraceName.SwitchCustomNetwork,
-          parentContext: parentSpan,
-          op: TraceOperation.SwitchCustomNetwork,
-        });
-        const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-        try {
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
-        } catch (error) {
-          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
-        }
-        // Only update token network filter for global network switches
-        setTokenNetworkFilter(chainId);
       }
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
@@ -183,11 +167,9 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      setTokenNetworkFilter,
       selectedNetworkName,
       trackEvent,
       createEventBuilder,
-      parentSpan,
       dismissModal,
     ],
   );

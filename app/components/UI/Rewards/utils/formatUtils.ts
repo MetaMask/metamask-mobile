@@ -122,10 +122,12 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
 /**
  * Formats an event details
  * @param event - The event
+ * @param accountName - Optional account name to display for bonus events
  * @returns The event details
  */
 export const getEventDetails = (
   event: PointsEventDto,
+  accountName: string | undefined,
 ): {
   title: string;
   details: string | undefined;
@@ -157,14 +159,14 @@ export const getEventDetails = (
     case 'SIGN_UP_BONUS':
       return {
         title: strings('rewards.events.type.sign_up_bonus'),
-        details: undefined,
+        details: accountName,
         icon: IconName.Edit,
         badgeImageUri: undefined,
       };
     case 'LOYALTY_BONUS':
       return {
         title: strings('rewards.events.type.loyalty_bonus'),
-        details: undefined, // TODO: Missing data
+        details: accountName,
         icon: IconName.ThumbUp,
         badgeImageUri: undefined,
       };
@@ -201,3 +203,53 @@ export const getIconName = (iconName: string): IconName =>
   Object.values(IconName).includes(iconName as IconName)
     ? (iconName as IconName)
     : IconName.Star;
+
+// Format Url for display
+export const formatUrl = (url: string): string => {
+  if (!url) {
+    return '';
+  }
+
+  // Clean up the input: trim whitespace and remove backticks
+  const cleanedUrl = url.trim().replace(/((^`)|(`$))/g, '');
+
+  try {
+    const urlObj = new URL(cleanedUrl);
+    // For http/https URLs, return just the hostname
+    if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
+      // Check if the original URL contains Unicode characters to preserve them
+      const originalHostMatch = cleanedUrl.match(/^https?:\/\/([^/?#]+)/);
+      if (originalHostMatch) {
+        const originalHost = originalHostMatch[1];
+        // If the original contains Unicode characters (non-ASCII), use it instead of punycode
+        if (
+          /[^\u0020-\u007E]/.test(originalHost) &&
+          !originalHost.includes('%')
+        ) {
+          return originalHost;
+        }
+      }
+      // For encoded URLs or ASCII domains, use the URL object's hostname which handles decoding
+      return urlObj.hostname;
+    }
+    // For other protocols (file:, mailto:, etc.), return the original URL
+    return cleanedUrl;
+  } catch (e) {
+    // Fallback: manually strip protocol and query strings for http/https
+    if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
+      let cleanUrl = cleanedUrl.replace(/^https?:\/\//, '');
+      const queryIndex = cleanUrl.indexOf('?');
+      if (queryIndex !== -1) {
+        cleanUrl = cleanUrl.substring(0, queryIndex);
+      }
+      return cleanUrl;
+    }
+    // For URLs without protocol, strip query parameters
+    const queryIndex = cleanedUrl.indexOf('?');
+    if (queryIndex !== -1) {
+      return cleanedUrl.substring(0, queryIndex);
+    }
+    // For non-http protocols or malformed URLs, return as-is
+    return cleanedUrl;
+  }
+};
