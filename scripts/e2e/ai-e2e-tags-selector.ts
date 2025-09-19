@@ -8,6 +8,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
+import { tags } from '../../e2e/tags';
  
 interface AIAnalysis {
   riskLevel: 'low' | 'medium' | 'high';
@@ -35,15 +36,11 @@ interface ParsedArgs {
 }
 
 class AIE2ETagsSelector {
-  private availableTags: string[];
+  private readonly availableTags = Object.values(tags)
+    .filter(tag => typeof tag === 'string' && tag.startsWith('Smoke'))
+    .map(tag => tag.replace(':', '').trim())
+    .filter(tag => tag.length > 0);
   private isQuietMode: boolean = false;
-  private knownSmokeTags = [
-        'SmokeCore', 'SmokeAccounts', 'SmokeConfirmations', 'SmokeConfirmationsRedesigned',
-        'SmokeSwaps', 'SmokeTrade', 'SmokeWalletUX', 'SmokeAssets', 'SmokeIdentity',
-        'SmokeNetworkAbstractions', 'SmokeWalletPlatform', 'SmokeNetworkExpansion',
-        'SmokeStake', 'SmokeNotifications', 'SmokeAnalytics', 'SmokeMultiChainPermissions',
-        'SmokeMultiChainAPI',
-      ];
   private readonly fileCategories = {
     ignore: [
       // Documentation
@@ -100,7 +97,10 @@ class AIE2ETagsSelector {
   };
 
   constructor() {
-    this.availableTags = this.extractTagsFromFile();
+    if (this.availableTags.length === 0) {
+      throw new Error('No available Smoke tags found in e2e/tags.js');
+    }
+    console.log(`🚀 Available Smoke Tags: ${this.availableTags.join(', ')}`);
   }
 
   private log(message: string): void {
@@ -151,53 +151,6 @@ class AIE2ETagsSelector {
       }
       return file === pattern || file.endsWith('/' + pattern);
 
-  }
-
-
-  /**
-   * Extract available tags from e2e/tags.js
-   */
-  private extractTagsFromFile(): string[] {
-    const tagsFilePath = join(__dirname, '..', 'e2e', 'tags.js');
-
-    try {
-      const tagsContent = readFileSync(tagsFilePath, 'utf8');
-
-      // Extract all smoke-related tags from the file
-      const tags: string[] = [];
-
-      // Match key-value patterns like smokeCore: 'SmokeCore:'
-      const keyMatches = tagsContent.match(/\s*([a-zA-Z]+):\s*['"]([^'"]+)['"]/g);
-      if (keyMatches) {
-        for (const match of keyMatches) {
-          const [, key, value] = match.match(/\s*([a-zA-Z]+):\s*['"]([^'"]+)['"]/) || [];
-          if (key && (key.toLowerCase().includes('smoke') || value?.startsWith('Smoke'))) {
-            // Use the key name but convert to proper format
-            if (key.startsWith('Smoke')) {
-              tags.push(key);
-            } else if (key.includes('smoke')) {
-              // Convert smokeCore -> SmokeCore
-              const formatted = key.replace('smoke', 'Smoke');
-              tags.push(formatted);
-            } else if (value?.includes(':')) {
-              // For cases like SmokeNetworkAbstractions: 'NetworkAbstractions:'
-              const tagName = value.replace(':', '');
-              if (!tagName.startsWith('Smoke')) {
-                tags.push('Smoke' + tagName);
-              } else {
-                tags.push(tagName);
-              }
-            }
-          }
-        }
-      }
-      // Merge and deduplicate
-      const allTags = [...new Set([...tags, ...this.knownSmokeTags])];
-      return allTags.sort();
-
-    } catch (error) {
-      return this.knownSmokeTags; // Fallback to known tags if file read fails
-    }
   }
 
 

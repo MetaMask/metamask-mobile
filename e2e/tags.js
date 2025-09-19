@@ -109,4 +109,5 @@ export {
   SmokeCard,
   SmokeWalletUX,
   RegressionWalletUX,
+  tags,
 };
