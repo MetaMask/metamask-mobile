@@ -499,8 +499,8 @@ export class RewardsController extends BaseController<
    * Check if silent authentication should be skipped
    */
   #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
-    // Skip for hardware and Solana accounts
-    if (isHardwareAccount(address) || isSolanaAddress(address)) return true;
+    // Skip for hardware
+    if (isHardwareAccount(address)) return true;
 
     const now = Date.now();
 
@@ -1341,14 +1341,6 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       Logger.log('RewardsController: Rewards feature is disabled');
-      return false;
-    }
-
-    // Check if account is non-EVM (Solana) and throw error
-    if (isSolanaAddress?.(account.address)) {
-      Logger.log(
-        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
-      );
       return false;
     }
 
