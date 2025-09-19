@@ -124,6 +124,9 @@ export type PerpsControllerState = {
   // Account data (persisted) - using HyperLiquid property names
   accountState: AccountState | null;
 
+  // Current positions
+  positions: Position[];
+
   // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
     [provider: string]: {
@@ -185,6 +188,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   isTestnet: __DEV__, // Default to testnet in dev
   connectionStatus: 'disconnected',
   accountState: null,
+  positions: [],
   perpsBalances: {},
   pendingOrders: [],
   depositInProgress: false,
@@ -212,6 +216,12 @@ const metadata = {
   accountState: {
     includeInStateLogs: true,
     persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  positions: {
+    includeInStateLogs: true,
+    persist: false,
     anonymous: false,
     usedInUi: true,
   },
