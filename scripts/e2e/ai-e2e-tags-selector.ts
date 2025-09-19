@@ -100,7 +100,6 @@ class AIE2ETagsSelector {
     if (this.availableTags.length === 0) {
       throw new Error('No available Smoke tags found in e2e/tags.js');
     }
-    this.log(`🚀 Available Smoke Tags: ${this.availableTags.join(', ')}`);
   }
 
   private log(message: string): void {
