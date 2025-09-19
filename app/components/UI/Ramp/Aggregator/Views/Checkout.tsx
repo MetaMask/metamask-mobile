@@ -75,7 +75,7 @@ const CheckoutWebView = () => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: provider.name },
+        { title: provider.name, showNetwork: false },
         colors,
         handleCancelPress,
       ),

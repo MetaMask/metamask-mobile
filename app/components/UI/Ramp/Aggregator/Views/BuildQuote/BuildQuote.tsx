@@ -84,6 +84,10 @@ import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Bu
 
 import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { selectRampWalletAddress } from '../../../../../../selectors/ramp';
+import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import Engine from '../../../../../../core/Engine';
+import { store } from '../../../../../../store';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,6 +137,7 @@ const BuildQuote = () => {
     useModalHandler(false);
 
   const nativeSymbol = useSelector(selectTicker);
+  const accounts = useSelector(selectInternalAccounts);
 
   /**
    * Grab the current state of the SDK via the context.
@@ -362,6 +367,7 @@ const BuildQuote = () => {
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
           showBack: params.showBack,
+          showNetwork: false,
         },
         colors,
         handleCancelPress,
@@ -515,8 +521,42 @@ const BuildQuote = () => {
     async (newAsset: CryptoCurrency) => {
       setSelectedAsset(newAsset);
       hideTokenSelectorModal();
+
+      if (newAsset?.network?.chainId?.startsWith('solana:')) {
+        const { AccountsController } = Engine.context;
+        const currentAccount = AccountsController.getSelectedAccount();
+
+        // Check if current account can generate a Solana address
+        const currentAccountCanUseSolana = selectRampWalletAddress(
+          store.getState(),
+          newAsset,
+        );
+
+        if (
+          !currentAccountCanUseSolana ||
+          currentAccountCanUseSolana === currentAccount.address
+        ) {
+          // Find first account that supports Solana
+          const solanaAccounts = accounts.filter((account) =>
+            account.scopes.some((scope) => scope.startsWith('solana:')),
+          );
+          const solanaAccount = solanaAccounts[0];
+
+          if (solanaAccount) {
+            const account = AccountsController.getAccountByAddress(
+              solanaAccount.address,
+            );
+
+            if (account) {
+              const { PreferencesController } = Engine.context;
+              AccountsController.setSelectedAccount(account.id);
+              PreferencesController.setSelectedAddress(solanaAccount.address);
+            }
+          }
+        }
+      }
     },
-    [hideTokenSelectorModal, setSelectedAsset],
+    [hideTokenSelectorModal, setSelectedAsset, accounts],
   );
 
   /**

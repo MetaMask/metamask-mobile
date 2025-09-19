@@ -31,6 +31,9 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { selectRampWalletAddress } from '../../../../../selectors/ramp';
 import { RootState } from '../../../../../reducers';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
+import { store } from '../../../../../store';
+import Engine from '../../../../../core/Engine';
 import { RampIntent, RampType, Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../../locales/i18n';
@@ -174,6 +177,9 @@ export const RampSDKProvider = ({
   const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
     selectedNetworkNickname || selectedAggregatorNetworkName;
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const INITIAL_PAYMENT_METHOD_ID = useSelector(
     fiatOrdersPaymentMethodSelectorAgg,
@@ -212,6 +218,27 @@ export const RampSDKProvider = ({
   useEffect(() => {
     setSelectedRegion(INITIAL_SELECTED_REGION);
   }, [INITIAL_SELECTED_REGION]);
+
+  // Clear incompatible assets when account changes
+  useEffect(() => {
+    if (!selectedAsset || !isMultichainAccountsState2Enabled) {
+      return;
+    }
+
+    const currentAddressForAsset = selectRampWalletAddress(
+      store.getState(),
+      selectedAsset,
+    );
+    const { AccountsController } = Engine.context;
+    const currentAccount = AccountsController.getSelectedAccount();
+
+    if (
+      currentAddressForAsset === currentAccount.address &&
+      selectedAsset.network?.chainId?.startsWith('solana:')
+    ) {
+      setSelectedAsset(null);
+    }
+  }, [selectedAddress, selectedAsset, isMultichainAccountsState2Enabled]);
 
   const setSelectedRegionCallback = useCallback(
     (region: Region | null) => {
