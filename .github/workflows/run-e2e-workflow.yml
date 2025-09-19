@@ -134,40 +134,56 @@ jobs:
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
         run: |
-          # Always move the main APK from the downloaded artifact into the expected directory
+          # Always move the main and test APKs from the downloaded artifacts into the expected directories
           ARTIFACT_ROOT="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk"
+          TEST_ARTIFACT_ROOT="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"
 
           if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
             TARGET_DIR="android/app/build/outputs/apk/flask/release/"
+            TEST_TARGET_DIR="android/app/build/outputs/apk/androidTest/flask/release/"
             SEARCH_SUBPATH="flask/release"
           else
             TARGET_DIR="android/app/build/outputs/apk/prod/release/"
+            TEST_TARGET_DIR="android/app/build/outputs/apk/androidTest/prod/release/"
             SEARCH_SUBPATH="prod/release"
           fi
 
-          if [[ -d "$ARTIFACT_ROOT" ]]; then
-            # Find the first non-androidTest APK within the expected subfolder (prod/flask)/release
-            #  -maxdepth 1: do not recurse further; only look in the release folder
-            #  -type f: only files
-            #  -name "*.apk": only APKs
-            #  ! -name "*androidTest*.apk": exclude test APKs
-            #  head -n1: pick the first match (there should be only one main APK)
-            APK_PATH=$(find "$ARTIFACT_ROOT/$SEARCH_SUBPATH" -maxdepth 1 -type f -name "*.apk" ! -name "*androidTest*.apk" | head -n1)
-            if [[ -n "$APK_PATH" ]]; then
-              cp "$APK_PATH" "$TARGET_DIR"
-              echo "✅ Android APK copied to $TARGET_DIR"
+          copy_apk() {
+            local search_root="$1"
+            local include_glob="$2"
+            local exclude_glob="$3"
+            local target_dir="$4"
+            local label="$5"
+
+            if [[ -d "$search_root" ]]; then
+              # -type f: files only; -name: include pattern; ! -name: exclude pattern (if provided)
+              if [[ -n "$exclude_glob" ]]; then
+                APK_PATH=$(find "$search_root" -maxdepth 1 -type f -name "$include_glob" ! -name "$exclude_glob" | head -n1)
+              else
+                APK_PATH=$(find "$search_root" -maxdepth 1 -type f -name "$include_glob" | head -n1)
+              fi
+
+              if [[ -n "$APK_PATH" ]]; then
+                mkdir -p "$target_dir"
+                cp "$APK_PATH" "$target_dir"
+                echo "✅ $label copied to $target_dir"
+              else
+                echo "❌ No $label found under $search_root matching $include_glob"
+                ls -la "$search_root" || true
+                exit 1
+              fi
             else
-              echo "❌ No main APK found under $ARTIFACT_ROOT/$SEARCH_SUBPATH"
-              echo "Contents for debugging:"
-              ls -la "$ARTIFACT_ROOT/$SEARCH_SUBPATH" || true
+              echo "❌ Search root $search_root not found for $label"
+              ls -la "$(dirname "$search_root")" || true
               exit 1
             fi
-          else
-            echo "❌ Artifact directory $ARTIFACT_ROOT not found"
-            echo "Contents of artifacts/ for debugging:"
-            ls -la artifacts/ || true
-            exit 1
-          fi
+          }
+
+          # Copy main APK (exclude androidTest variants)
+          copy_apk "$ARTIFACT_ROOT/$SEARCH_SUBPATH" "*.apk" "*androidTest*.apk" "$TARGET_DIR" "Android main APK"
+
+          # Copy test APK for Detox (androidTest)
+          copy_apk "$TEST_ARTIFACT_ROOT/androidTest/$SEARCH_SUBPATH" "*-androidTest.apk" "" "$TEST_TARGET_DIR" "Android Test APK"
 
       - name: Setup iOS artifacts from build job
         if: ${{ inputs.platform == 'ios' }}
