@@ -170,21 +170,18 @@ jobs:
           echo "🔢 Generated matrix array: $MATRIX_ARRAY"
 
           # Set outputs
-          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
-          echo "tags_display=$TAG_DISPLAY" >> "$GITHUB_OUTPUT"
-          echo "strategy=dynamic-$TAG_COUNT-tags" >> "$GITHUB_OUTPUT"
-          echo "total_splits=$TOTAL_SPLITS" >> "$GITHUB_OUTPUT"
-          echo "matrix_splits=$MATRIX_ARRAY" >> "$GITHUB_OUTPUT"
-          echo "risk_level=$RISK_LEVEL" >> "$GITHUB_OUTPUT"
-
-          # Handle multi-line reasoning content carefully
           {
+            echo "tags=$TAGS"
+            echo "tags_display=$TAG_DISPLAY"
+            echo "strategy=dynamic-$TAG_COUNT-tags"
+            echo "total_splits=$TOTAL_SPLITS"
+            echo "matrix_splits=$MATRIX_ARRAY"
+            echo "risk_level=$RISK_LEVEL"
             echo "reasoning<<EOF"
             echo "$REASONING"
             echo "EOF"
+            echo "confidence=$CONFIDENCE"
           } >> "$GITHUB_OUTPUT"
-
-          echo "confidence=$CONFIDENCE" >> "$GITHUB_OUTPUT"
 
           # Handle multi-line breakdown content carefully
           {
@@ -206,37 +203,45 @@ jobs:
           fi
 
           # Create readable test plan with file breakdown
-          echo "## 🎯 Smart E2E Test Plan" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎯 Smart E2E Test Plan" >> "$GITHUB_STEP_SUMMARY"
 
           if [ "$TAG_COUNT" -eq 0 ]; then
-            echo "- **Selected Tags**: None (no tests needed)" >> $GITHUB_STEP_SUMMARY
-            echo "- **Risk Level**: $RISK_LEVEL" >> $GITHUB_STEP_SUMMARY
-            echo "- **AI Confidence**: ${CONFIDENCE}%" >> $GITHUB_STEP_SUMMARY
-            echo "- **Total CI Jobs**: 0 (AI determined changes are very low risk)" >> $GITHUB_STEP_SUMMARY
+            {
+              echo "- **Selected Tags**: None (no tests needed)"
+              echo "- **Risk Level**: $RISK_LEVEL"
+              echo "- **AI Confidence**: ${CONFIDENCE}%"
+              echo "- **Total CI Jobs**: 0 (AI determined changes are very low risk)"
+            } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "- **Selected Tags**: $TAG_DISPLAY" >> $GITHUB_STEP_SUMMARY
-            echo "- **Risk Level**: $RISK_LEVEL" >> $GITHUB_STEP_SUMMARY
-            echo "- **AI Confidence**: ${CONFIDENCE}%" >> $GITHUB_STEP_SUMMARY
-            echo "- **Total Splits**: $TOTAL_SPLITS (optimized for actual test files)" >> $GITHUB_STEP_SUMMARY
+            {
+              echo "- **Selected Tags**: $TAG_DISPLAY"
+              echo "- **Risk Level**: $RISK_LEVEL"
+              echo "- **AI Confidence**: ${CONFIDENCE}%"
+              echo "- **Total Splits**: $TOTAL_SPLITS (optimized for actual test files)"
+            } >> "$GITHUB_STEP_SUMMARY"
 
             if [ "$TOTAL_SPLITS" -gt 0 ]; then
-              echo "- **Total CI Jobs**: $((TOTAL_SPLITS * 2)) ($TOTAL_SPLITS per platform × 2 platforms)" >> $GITHUB_STEP_SUMMARY
+              echo "- **Total CI Jobs**: $((TOTAL_SPLITS * 2)) ($TOTAL_SPLITS per platform × 2 platforms)" >> "$GITHUB_STEP_SUMMARY"
             else
-              echo "- **Total CI Jobs**: 0 (selected tags have no test files)" >> $GITHUB_STEP_SUMMARY
+              echo "- **Total CI Jobs**: 0 (selected tags have no test files)" >> "$GITHUB_STEP_SUMMARY"
             fi
           fi
 
           # Add AI reasoning
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🤖 AI Analysis Reasoning" >> $GITHUB_STEP_SUMMARY
-          echo "$REASONING" >> $GITHUB_STEP_SUMMARY
+          {
+            echo ""
+            echo "### 🤖 AI Analysis Reasoning"
+            echo "$REASONING"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           # Add test file breakdown if available
           BREAKDOWN=$(echo "$RESULT" | jq -r '.testFileBreakdown[]? | "  - " + .tag + ": " + (.fileCount | tostring) + " files → " + (.recommendedSplits | tostring) + " splits"' | tr '\n' '\n')
           if [ -n "$BREAKDOWN" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### 📊 Test File Breakdown" >> $GITHUB_STEP_SUMMARY
-            echo "$BREAKDOWN" >> $GITHUB_STEP_SUMMARY
+            {
+              echo ""
+              echo "### 📊 Test File Breakdown"
+              echo "$BREAKDOWN"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
   # Step 2: Post AI analysis to PR
@@ -332,10 +337,12 @@ jobs:
             SHOULD_BUILD_ANDROID="false"
           fi
 
-          echo "should-build-ios=$SHOULD_BUILD_IOS" >> "$GITHUB_OUTPUT"
-          echo "should-build-android=$SHOULD_BUILD_ANDROID" >> "$GITHUB_OUTPUT"
-          echo "should-test-ios=$SHOULD_BUILD_IOS" >> "$GITHUB_OUTPUT"
-          echo "should-test-android=$SHOULD_BUILD_ANDROID" >> "$GITHUB_OUTPUT"
+          {
+            echo "should-build-ios=$SHOULD_BUILD_IOS"
+            echo "should-build-android=$SHOULD_BUILD_ANDROID"
+            echo "should-test-ios=$SHOULD_BUILD_IOS"
+            echo "should-test-android=$SHOULD_BUILD_ANDROID"
+          } >> "$GITHUB_OUTPUT"
 
           # Calculate actual job counts
           TOTAL_SPLITS="${{ needs.analyze-and-plan.outputs.total-splits }}"
@@ -352,9 +359,11 @@ jobs:
 
           TOTAL_JOBS=$((IOS_JOBS + ANDROID_JOBS))
 
-          echo "actual-ios-jobs=$IOS_JOBS" >> "$GITHUB_OUTPUT"
-          echo "actual-android-jobs=$ANDROID_JOBS" >> "$GITHUB_OUTPUT"
-          echo "actual-total-jobs=$TOTAL_JOBS" >> "$GITHUB_OUTPUT"
+          {
+            echo "actual-ios-jobs=$IOS_JOBS"
+            echo "actual-android-jobs=$ANDROID_JOBS"
+            echo "actual-total-jobs=$TOTAL_JOBS"
+          } >> "$GITHUB_OUTPUT"
 
           echo "🎯 Platform Conditions:"
           echo "- iOS Build/Test: $SHOULD_BUILD_IOS ($IOS_JOBS jobs)"
@@ -478,7 +487,7 @@ jobs:
           cat > pr_comment_final.md << EOF
           ## 🤖 Smart E2E Test Analysis ✅
 
-          **Risk Level:** ${{ needs.analyze-and-plan.outputs.strategy }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
+          **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
 
           **Final Results:**
           - **iOS Jobs:** ${{ needs.platform-conditions.outputs.actual-ios-jobs }} (Result: ${{ needs.ios-smart-tests.result || 'skipped' }})
