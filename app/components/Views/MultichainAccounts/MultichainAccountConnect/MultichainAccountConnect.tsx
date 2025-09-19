@@ -133,10 +133,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     () => getCaipAccountIdsFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
   );
-  console.log(
-    '[MultichainAccountConnect] requestedCaipAccountIds',
-    requestedCaipAccountIds,
-  );
 
   const requestedCaipChainIds = useMemo(
     () => getAllScopesFromCaip25CaveatValue(requestedCaip25CaveatValue),
@@ -245,23 +241,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         ),
       ); // If the selected account group is not included in the requested account groups, we need to add it to the list.
 
-    console.log(
-      '[MultichainAccountConnect] requestedAccountGroupsIncludesSelectedAccountGroup',
-      requestedAccountGroupsIncludesSelectedAccountGroup,
-      requestedCaipAccountIds.length,
-    );
-
     // if there are no connected account groups, show the first supported account group
     const selectedAndRequestedAccountGroups = supportedAccountGroups.slice(
       0,
       requestedAccountGroupsIncludesSelectedAccountGroup
-        ? requestedCaipAccountIds.length + 1
-        : requestedCaipAccountIds.length,
-    );
-
-    console.log(
-      '[MultichainAccountConnect] selectedAndRequestedAccountGroups',
-      selectedAndRequestedAccountGroups,
+        ? requestedCaipAccountIds.length
+        : 0,
     );
 
     return {
@@ -280,15 +265,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     requestedCaipAccountIds,
     selectedAccountGroupWithInternalAccounts,
   ]);
-
-  console.log(
-    '[MultichainAccountConnect] suggestedCaipAccountIds',
-    suggestedCaipAccountIds,
-  );
-  console.log(
-    '[MultichainAccountConnect] suggestedAccountGroups',
-    suggestedAccountGroups,
-  );
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
     AccountGroupId[]

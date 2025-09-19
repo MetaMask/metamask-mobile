@@ -126,11 +126,6 @@ export const useAccountGroupsForPermissions = (
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
   const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
 
-  console.log(
-    '[useAccountGroupsForPermissions] requestedCaipAccountIds',
-    requestedCaipAccountIds,
-  );
-
   const result = useMemo(() => {
     const selectedAccountGroup = accountGroups.find(
       (accountGroup) => accountGroup.id === selectedAccountGroupId,
@@ -203,7 +198,6 @@ export const useAccountGroupsForPermissions = (
         ),
       ]),
     );
-
 
     return {
       supportedAccountGroups: Array.from(

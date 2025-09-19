@@ -252,10 +252,14 @@ jest.mock('../../../../selectors/accountsController', () => ({
 
 jest.mock('../../../../selectors/assets/balances', () => ({
   ...jest.requireActual('../../../../selectors/assets/balances'),
-  selectBalanceByAccountGroup: jest.fn(() => () => ({
-    totalBalanceInUserCurrency: 100.5,
-    userCurrency: 'usd',
-  })),
+  selectBalanceByAccountGroup: jest.fn((groupId) =>
+    jest.fn(() => ({
+      walletId: groupId.split('/')[0],
+      groupId,
+      totalBalanceInUserCurrency: 100.5,
+      userCurrency: 'usd',
+    })),
+  ),
 }));
 
 // Mock useAccountGroupsForPermissions hook
