@@ -11,7 +11,9 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 import { goToImportSrp, inputSrp } from '../multisrp/utils';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 
-const IMPORTED_ACCOUNT_NAME = 'Account 4';
+// We now have account indexes "per wallets", thus the new account for that new SRP (wallet), will
+// be: "Account 1".
+const IMPORTED_ACCOUNT_NAME = 'Account 1';
 
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
