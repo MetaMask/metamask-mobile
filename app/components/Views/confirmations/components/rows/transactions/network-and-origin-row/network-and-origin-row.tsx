@@ -22,6 +22,8 @@ import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row/info-row';
 import Address from '../../../UI/info-row/info-value/address';
 import styleSheet from './network-and-origin-row.styles';
+import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
+import AlertRow from '../../../UI/info-row/alert-row';
 
 export const NetworkAndOriginRow = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -61,12 +63,13 @@ export const NetworkAndOriginRow = () => {
       </InfoRow>
 
       {isDappOrigin && (
-        <InfoRow
+        <AlertRow
+          alertField={RowAlertKey.RequestFrom}
           label={strings('transactions.request_from')}
           style={styles.infoRowOverride}
         >
           <Text variant={TextVariant.BodyMD}>{origin}</Text>
-        </InfoRow>
+        </AlertRow>
       )}
       {signatureRequest && isSIWEMessage && (
         <InfoRow
