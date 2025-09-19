@@ -1066,20 +1066,34 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               ]
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
+                                              alignItems="center"
+                                              flexDirection="row"
                                               style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                  },
+                                                  undefined,
+                                                ]
                                               }
                                             >
-                                              HELLO
-                                            </Text>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                HELLO
+                                              </Text>
+                                            </View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -1337,20 +1351,34 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               ]
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
+                                              alignItems="center"
+                                              flexDirection="row"
                                               style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                  },
+                                                  undefined,
+                                                ]
                                               }
                                             >
-                                              FOO
-                                            </Text>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                FOO
+                                              </Text>
+                                            </View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -1640,20 +1668,34 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               ]
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
+                                              alignItems="center"
+                                              flexDirection="row"
                                               style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                  },
+                                                  undefined,
+                                                ]
                                               }
                                             >
-                                              ETH
-                                            </Text>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                ETH
+                                              </Text>
+                                            </View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -1911,20 +1953,34 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               ]
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
+                                              alignItems="center"
+                                              flexDirection="row"
                                               style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                  },
+                                                  undefined,
+                                                ]
                                               }
                                             >
-                                              TOKEN1
-                                            </Text>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                TOKEN1
+                                              </Text>
+                                            </View>
                                             <Text
                                               accessibilityRole="text"
                                               style={
@@ -2214,20 +2270,34 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               ]
                                             }
                                           >
-                                            <Text
-                                              accessibilityRole="text"
+                                            <View
+                                              alignItems="center"
+                                              flexDirection="row"
                                               style={
-                                                {
-                                                  "color": "#121314",
-                                                  "fontFamily": "Geist Medium",
-                                                  "fontSize": 18,
-                                                  "letterSpacing": 0,
-                                                  "lineHeight": 24,
-                                                }
+                                                [
+                                                  {
+                                                    "alignItems": "center",
+                                                    "flexDirection": "row",
+                                                  },
+                                                  undefined,
+                                                ]
                                               }
                                             >
-                                              ETH
-                                            </Text>
+                                              <Text
+                                                accessibilityRole="text"
+                                                style={
+                                                  {
+                                                    "color": "#121314",
+                                                    "fontFamily": "Geist Medium",
+                                                    "fontSize": 18,
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 24,
+                                                  }
+                                                }
+                                              >
+                                                ETH
+                                              </Text>
+                                            </View>
                                             <Text
                                               accessibilityRole="text"
                                               style={

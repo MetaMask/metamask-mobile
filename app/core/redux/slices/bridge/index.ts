@@ -465,6 +465,18 @@ export const selectIsGaslessSwapEnabled = createSelector(
   },
 );
 
+export const selectNoFeeAssets = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    if (!chainId) {
+      return [];
+    }
+    const caipChainId = formatChainIdToCaip(chainId);
+    return bridgeFeatureFlags.chains[caipChainId]?.noFeeAssets;
+  },
+);
+
 // Actions
 export const {
   setSourceAmount,
