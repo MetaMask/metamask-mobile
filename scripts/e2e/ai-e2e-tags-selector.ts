@@ -215,8 +215,8 @@ class AIE2ETagsSelector {
       this.log(`📝 Analyzing ${changedFiles.length} changed files`);
 
       const response = await anthropic.messages.create({
-        model:  'claude-opus-4-1-20250805',
-        max_tokens: 1500,
+        model:  'claude-4-sonnet-20250514',
+        max_tokens: 3000,
         temperature: 0.1,
         messages: [{ role: 'user', content: prompt }]
       });
