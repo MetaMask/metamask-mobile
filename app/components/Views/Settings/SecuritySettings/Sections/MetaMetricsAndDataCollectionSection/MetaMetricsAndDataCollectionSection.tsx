@@ -37,14 +37,8 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-  const {
-    trackEvent,
-    enable,
-    enableSocialLogin,
-    addTraitsToUser,
-    isEnabled,
-    createEventBuilder,
-  } = useMetrics();
+  const { trackEvent, enable, addTraitsToUser, isEnabled, createEventBuilder } =
+    useMetrics();
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -102,7 +96,6 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         ...generateUserSettingsAnalyticsMetaData(),
       };
       await enable();
-      await enableSocialLogin(true);
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
@@ -119,7 +112,6 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       });
     } else {
       await enable(false);
-      await enableSocialLogin(false);
       setAnalyticsEnabled(false);
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
