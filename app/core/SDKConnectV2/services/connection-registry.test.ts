@@ -118,7 +118,10 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(validDeeplink);
 
       // UI loading state is properly managed
-      expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledWith(
+        mockConnectionRequest,
+      );
 
       // Connection is created and established with correct parameters
       expect(Connection.create).toHaveBeenCalledWith(
@@ -140,7 +143,10 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
         mockConnection,
       ]);
-      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+        mockConnectionRequest,
+      );
     });
 
     it('should handle invalid URL gracefully', async () => {
@@ -156,20 +162,17 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(invalidDeeplink);
 
       // Error alert is shown
-      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
-        'Connection Error',
-        'The connection request failed. Please try again.',
-      );
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
 
       // Nothing else happens
-      expect(mockHostApp.showLoading).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
       expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
-      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
     });
 
-    it('should call hideLoading and not save anything if the URL is invalid', async () => {
+    it('should show error and not save anything if the URL is invalid', async () => {
       // Given: a registry ready to handle connections
       registry = new ConnectionRegistry(
         RELAY_URL,
@@ -183,20 +186,17 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(invalidDeeplink);
 
       // Error alert is shown
-      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
-        'Connection Error',
-        'The connection request failed. Please try again.',
-      );
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
 
       // Nothing else happens
-      expect(mockHostApp.showLoading).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
       expect(Connection.create).not.toHaveBeenCalled();
 
       // No data is persisted or UI updates made for invalid requests
       expect(mockConnection.disconnect).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
       expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
-      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
     });
 
     it('should attempt to disconnect and hide loading if the connect method fails', async () => {
@@ -216,13 +216,13 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(validDeeplink);
 
       // Connection creation is attempted but fails during handshake
-      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
-        'Connection Error',
-        'The connection request failed. Please try again.',
-      );
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
 
       // Nothing else happens
-      expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledWith(
+        mockConnectionRequest,
+      );
       expect(Connection.create).toHaveBeenCalledTimes(1);
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
 
@@ -231,7 +231,10 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
 
-      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+        mockConnectionRequest,
+      );
 
       disconnectSpy.mockRestore();
     });
