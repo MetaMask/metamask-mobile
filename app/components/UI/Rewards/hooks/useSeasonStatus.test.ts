@@ -22,6 +22,8 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -31,6 +33,11 @@ jest.mock('../../../../actions/rewards', () => ({
 
 jest.mock('../../../../reducers/rewards', () => ({
   setSeasonStatusLoading: jest.fn(),
+}));
+
+// Mock the useInvalidateByRewardEvents hook
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: jest.fn(),
 }));
 
 describe('useSeasonStatus', () => {
@@ -102,8 +109,28 @@ describe('useSeasonStatus', () => {
         updatedAt: 1640995200000,
       },
       tier: {
-        currentTier: { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-        nextTier: { id: 'silver', name: 'Silver', pointsNeeded: 100 },
+        currentTier: {
+          id: 'bronze',
+          name: 'Bronze',
+          pointsNeeded: 0,
+          image: {
+            lightModeUrl: 'bronze-light',
+            darkModeUrl: 'bronze-dark',
+          },
+          levelNumber: '1',
+          rewards: [],
+        },
+        nextTier: {
+          id: 'silver',
+          name: 'Silver',
+          pointsNeeded: 100,
+          image: {
+            lightModeUrl: 'silver-light',
+            darkModeUrl: 'silver-dark',
+          },
+          levelNumber: '2',
+          rewards: [],
+        },
         nextTierPointsNeeded: 50,
       },
     };

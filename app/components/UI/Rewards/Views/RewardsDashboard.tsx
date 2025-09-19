@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useState,
   useRef,
+  useContext,
 } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -30,7 +31,7 @@ import {
 } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { RewardsTab } from '../../../../reducers/rewards/types';
-
+import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import {
   selectRewardsActiveAccountHasOptedIn,
@@ -47,22 +48,24 @@ import Banner, {
 } from '../../../../component-library/components/Banners/Banner';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import AccountDisplayItem from '../components/AccountDisplayItem/AccountDisplayItem';
-
 import RewardsOverview from '../components/Tabs/RewardsOverview';
 import RewardsLevels from '../components/Tabs/RewardsLevels';
 import RewardsActivity from '../components/Tabs/RewardsActivity';
-import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
-
-// Tab wrapper components for TabsList
+import { useUnlockedRewards } from '../hooks/useUnlockedRewards';
+import Toast, {
+  ToastContext,
+} from '../../../../component-library/components/Toast';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const theme = useTheme();
   const { colors } = theme;
+  const { toastRef } = useContext(ToastContext);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const activeTab = useSelector(selectActiveTab);
   const dispatch = useDispatch();
   const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const hideUnlinkedAccountsBanner = useSelector(
@@ -87,9 +90,9 @@ const RewardsDashboard: React.FC = () => {
     enabled: !hideUnlinkedAccountsBanner,
   });
 
-  const activeTab = useSelector(selectActiveTab);
   // Sync rewards controller state with UI store
   useSeasonStatus();
+  useUnlockedRewards();
 
   // Set navigation title
   useEffect(() => {
@@ -324,6 +327,7 @@ const RewardsDashboard: React.FC = () => {
           </TabsList>
         </Box>
       </SafeAreaView>
+      <Toast ref={toastRef} />
     </ErrorBoundary>
   );
 };

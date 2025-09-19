@@ -142,6 +142,7 @@ jest.mock('../../../selectors/smartTransactionsController', () => ({
   selectSortedTransactions: jest.fn(),
   selectNonReplacedTransactions: jest.fn(),
   selectPendingSmartTransactionsBySender: jest.fn(),
+  selectPendingSmartTransactionsForSelectedAccountGroup: jest.fn(),
 }));
 
 jest.mock('../../../selectors/accountsController', () => ({

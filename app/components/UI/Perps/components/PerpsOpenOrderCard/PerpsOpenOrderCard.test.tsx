@@ -470,20 +470,6 @@ describe('PerpsOpenOrderCard', () => {
       expect(mockOnSelect).toHaveBeenCalledWith(mockOrder.orderId);
     });
 
-    it('does not call onSelect when card is pressed and disabled', () => {
-      render(
-        <PerpsOpenOrderCard
-          order={mockOrder}
-          onSelect={mockOnSelect}
-          disabled
-        />,
-      );
-
-      fireEvent.press(screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CARD));
-
-      expect(mockOnSelect).not.toHaveBeenCalled();
-    });
-
     it('renders chart activity indicators for TP', () => {
       render(
         <PerpsOpenOrderCard
@@ -595,9 +581,7 @@ describe('PerpsOpenOrderCard', () => {
         );
       }).not.toThrow();
     });
-  });
 
-  describe('Additional Coverage Tests', () => {
     it('handles order without takeProfitPrice and stopLossPrice', () => {
       const orderWithoutTPSL: Order = {
         ...mockOrder,

@@ -51,6 +51,11 @@ jest.mock('../../../hooks/usePointsEvents', () => ({
   usePointsEvents: (...args: unknown[]) => mockUsePointsEvents(...args),
 }));
 
+// Mock useAccountNames hook
+jest.mock('../../../../../hooks/DisplayName/useAccountNames', () => ({
+  useAccountNames: jest.fn(() => []),
+}));
+
 // Mock ActivityEventRow to simplify assertions
 jest.mock('./ActivityEventRow', () => ({
   ActivityEventRow: ({ event }: { event: { id: string } }) => {
@@ -192,7 +197,17 @@ describe('ActivityTab', () => {
       updatedAt: Date.now(),
     },
     tier: {
-      currentTier: { id: 'tier-1', name: 'Bronze', pointsNeeded: 0 },
+      currentTier: {
+        id: 'tier-1',
+        name: 'Bronze',
+        pointsNeeded: 0,
+        image: {
+          lightModeUrl: 'bronze-light',
+          darkModeUrl: 'bronze-dark',
+        },
+        levelNumber: '1',
+        rewards: [],
+      },
       nextTier: null,
       nextTierPointsNeeded: null,
     },

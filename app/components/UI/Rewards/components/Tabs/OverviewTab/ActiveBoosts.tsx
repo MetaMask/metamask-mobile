@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react';
-import { Dimensions, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Dimensions, Image, TouchableOpacity } from 'react-native';
+import {
+  Gesture,
+  GestureDetector,
+  ScrollView,
+} from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -152,7 +157,7 @@ const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
   <Box twClassName="mb-4">
     <Box twClassName="flex-row items-center gap-2 mb-1">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-        {strings('rewards.active_boosts_title')}
+        {strings('rewards.active_boosts.title')}
       </Text>
       {count !== null && (
         <Box twClassName="bg-text-muted rounded-full w-6 h-6 items-center justify-center">
@@ -174,7 +179,7 @@ const ErrorBanner: React.FC = () => (
         twClassName="text-error-default"
       />
       <Text variant={TextVariant.BodyMd} twClassName="text-error-default">
-        {strings('rewards.active_boosts_error')}
+        {strings('rewards.active_boosts.error')}
       </Text>
     </Box>
   </Box>
@@ -188,7 +193,7 @@ const ActiveBoosts: React.FC = () => {
   const isLoading = useSelector(selectActiveBoostsLoading);
   const hasError = useSelector(selectActiveBoostsError);
 
-  const numBoosts = useMemo(() => activeBoosts?.length || null, [activeBoosts]);
+  const numBoosts = useMemo(() => activeBoosts?.length || 0, [activeBoosts]);
 
   Logger.log('ActiveBoosts', {
     isLoading,
@@ -197,12 +202,29 @@ const ActiveBoosts: React.FC = () => {
     activeBoosts: activeBoosts?.length,
   });
 
+  // Local pan sink to capture horizontal swipes and prevent parent tab swipe
+  const scrollNativeGesture = useMemo(() => Gesture.Native(), []);
+  const panSink = useMemo(
+    () =>
+      Gesture.Pan()
+        .minDistance(1)
+        .activeOffsetX([-2, 2])
+        .failOffsetY([-8, 8])
+        .simultaneousWithExternalGesture(scrollNativeGesture)
+        .runOnJS(true),
+    [scrollNativeGesture],
+  );
+  const combinedGesture = useMemo(
+    () => Gesture.Simultaneous(scrollNativeGesture, panSink),
+    [scrollNativeGesture, panSink],
+  );
+
   if (!isLoading && !hasError && numBoosts === 0) {
     return null;
   }
 
   return (
-    <Box>
+    <Box twClassName="py-4">
       {/* Always show section header */}
       <SectionHeader count={isLoading ? 0 : numBoosts} />
 
@@ -213,17 +235,19 @@ const ActiveBoosts: React.FC = () => {
       {isLoading || !activeBoosts ? (
         <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
       ) : hasError ? null /* Show active boosts */ : activeBoosts?.length ? ( // Show nothing if there's an error (just the banner)
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          snapToInterval={CARD_WIDTH + CARD_SPACING}
-          snapToAlignment="start"
-        >
-          {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
-            <BoostCard key={boost.id} boost={boost} index={index} />
-          ))}
-        </ScrollView>
+        <GestureDetector gesture={combinedGesture}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={CARD_WIDTH + CARD_SPACING}
+            snapToAlignment="start"
+          >
+            {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
+              <BoostCard key={boost.id} boost={boost} index={index} />
+            ))}
+          </ScrollView>
+        </GestureDetector>
       ) : (
         <></>
       )}

@@ -77,6 +77,7 @@ import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -118,6 +119,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const multiChainTokenBalance = useSelector(selectTokensBalances);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const chainId = asset.chainId as Hex;
   const ticker = nativeCurrency;
@@ -322,7 +326,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const isMultichainAsset = isNonEvmAsset;
   const isEthOrNative = asset.isETH || asset.isNative;
 
-  if (isMultichainAsset) {
+  if (isMultichainAccountsState2Enabled) {
+    balance = asset.balance;
+  } else if (isMultichainAsset) {
     balance = asset.balance
       ? formatWithThreshold(
           parseFloat(asset.balance),

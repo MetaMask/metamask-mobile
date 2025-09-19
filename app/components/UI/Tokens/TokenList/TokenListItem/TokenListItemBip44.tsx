@@ -209,7 +209,7 @@ export const TokenListItemBip44 = React.memo(
           </View>
         </View>
         <ScamWarningIcon
-          asset={asset}
+          asset={asset as TokenI & { chainId: string }}
           setShowScamWarningModal={setShowScamWarningModal}
         />
       </AssetElement>
