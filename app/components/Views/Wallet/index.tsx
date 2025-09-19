@@ -285,7 +285,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const perpsTabProps = useMemo(
     () => ({
       key: 'perps-tab',
-      tabLabel: isPerpsEnabled ? strings('wallet.perps') : ' ',
+      tabLabel: strings('wallet.perps'),
       isDisabled: !isPerpsEnabled,
       navigation,
     }),
@@ -295,25 +295,19 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const defiPositionsTabProps = useMemo(
     () => ({
       key: 'defi-tab',
-      tabLabel:
-        enabledNetworksIsSolana || !defiEnabled ? ' ' : strings('wallet.defi'),
+      tabLabel: strings('wallet.defi'),
       navigation,
-      isDisabled: enabledNetworksIsSolana || !defiEnabled,
     }),
-    [navigation, enabledNetworksIsSolana, defiEnabled],
+    [navigation],
   );
 
   const collectibleContractsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
-      tabLabel:
-        enabledNetworksIsSolana || !collectiblesEnabled
-          ? ' '
-          : strings('wallet.collectibles'),
-      isDisabled: enabledNetworksIsSolana || !collectiblesEnabled,
+      tabLabel: strings('wallet.collectibles'),
       navigation,
     }),
-    [navigation, enabledNetworksIsSolana, collectiblesEnabled],
+    [navigation],
   );
 
   // Handle tab changes and track current index
@@ -393,19 +387,22 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    tabs.push(
-      <DeFiPositionsList
-        {...defiPositionsTabProps}
-        key={defiPositionsTabProps.key}
-      />,
-    );
-
-    tabs.push(
-      <CollectibleContracts
-        {...collectibleContractsTabProps}
-        key={collectibleContractsTabProps.key}
-      />,
-    );
+    if (defiEnabled) {
+      tabs.push(
+        <DeFiPositionsList
+          {...defiPositionsTabProps}
+          key={defiPositionsTabProps.key}
+        />,
+      );
+    }
+    if (collectiblesEnabled && !enabledNetworksIsSolana) {
+      tabs.push(
+        <CollectibleContracts
+          {...collectibleContractsTabProps}
+          key={collectibleContractsTabProps.key}
+        />,
+      );
+    }
 
     return tabs;
   }, [
@@ -415,6 +412,9 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     defiPositionsTabProps,
     collectibleContractsTabProps,
     isPerpsEnabled,
+    defiEnabled,
+    collectiblesEnabled,
+    enabledNetworksIsSolana,
   ]);
 
   return (
