@@ -9,6 +9,7 @@ import {
   PerpsEventType,
   formatNumber,
   getIconName,
+  formatUrl,
 } from './formatUtils';
 import {
   PointsEventDto,
@@ -16,6 +17,7 @@ import {
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
+import TEST_ADDRESS from '../../../../constants/address';
 
 const mockGetTimeDifferenceFromNow =
   getTimeDifferenceFromNow as jest.MockedFunction<
@@ -99,7 +101,7 @@ describe('formatUtils', () => {
         timestamp: new Date('2024-01-15T14:30:00Z'),
         value: 100,
         bonus: null,
-        accountAddress: null,
+        accountAddress: TEST_ADDRESS,
       };
 
       switch (type) {
@@ -143,7 +145,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return swap details
         expect(result).toEqual({
@@ -169,7 +171,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -193,7 +195,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -216,7 +218,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -239,7 +241,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -262,7 +264,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -285,7 +287,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return undefined details
         expect(result).toEqual({
@@ -307,7 +309,7 @@ describe('formatUtils', () => {
           },
         });
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Opened position',
@@ -321,7 +323,7 @@ describe('formatUtils', () => {
       it('returns correct details for REFERRAL event', () => {
         const event = createMockEvent('REFERRAL');
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Referral action',
@@ -335,7 +337,19 @@ describe('formatUtils', () => {
       it('returns correct details for SIGN_UP_BONUS event', () => {
         const event = createMockEvent('SIGN_UP_BONUS');
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        expect(result).toEqual({
+          title: 'Sign up bonus',
+          details: TEST_ADDRESS,
+          icon: IconName.Edit,
+        });
+      });
+
+      it('returns empty details when account name is not provided', () => {
+        const event = createMockEvent('SIGN_UP_BONUS');
+
+        const result = getEventDetails(event, undefined);
 
         expect(result).toEqual({
           title: 'Sign up bonus',
@@ -349,11 +363,11 @@ describe('formatUtils', () => {
       it('returns correct details for LOYALTY_BONUS event', () => {
         const event = createMockEvent('LOYALTY_BONUS');
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Loyalty bonus',
-          details: undefined,
+          details: TEST_ADDRESS,
           icon: IconName.ThumbUp,
         });
       });
@@ -363,7 +377,7 @@ describe('formatUtils', () => {
       it('returns correct details for ONE_TIME_BONUS event', () => {
         const event = createMockEvent('ONE_TIME_BONUS');
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'One-time bonus',
@@ -377,7 +391,7 @@ describe('formatUtils', () => {
       it('returns uncategorized event details for unknown type', () => {
         const event = createMockEvent('UNKNOWN_TYPE' as PointsEventDto['type']);
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Uncategorized event',
@@ -400,7 +414,7 @@ describe('formatUtils', () => {
           },
         });
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Opened position',
@@ -421,7 +435,7 @@ describe('formatUtils', () => {
           },
         });
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Opened position',
@@ -442,7 +456,7 @@ describe('formatUtils', () => {
           },
         });
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Opened position',
@@ -870,6 +884,198 @@ describe('formatUtils', () => {
         if (Object.values(IconName).includes(iconName as IconName)) {
           expect(getIconName(iconName)).toBe(iconName);
         }
+      });
+    });
+  });
+
+  describe('formatUrl', () => {
+    describe('valid URLs', () => {
+      it('should extract hostname from https URLs', () => {
+        expect(formatUrl('https://example.com')).toBe('example.com');
+        expect(formatUrl('https://www.google.com')).toBe('www.google.com');
+        expect(formatUrl('https://subdomain.example.com')).toBe(
+          'subdomain.example.com',
+        );
+      });
+
+      it('should extract hostname from http URLs', () => {
+        expect(formatUrl('http://example.com')).toBe('example.com');
+        expect(formatUrl('http://www.test.org')).toBe('www.test.org');
+      });
+
+      it('should extract hostname and ignore paths', () => {
+        expect(formatUrl('https://example.com/path/to/page')).toBe(
+          'example.com',
+        );
+        expect(formatUrl('https://api.github.com/users/username')).toBe(
+          'api.github.com',
+        );
+        expect(formatUrl('http://localhost:3000/dashboard')).toBe('localhost');
+      });
+
+      it('should extract hostname and ignore query parameters', () => {
+        expect(formatUrl('https://example.com?param=value')).toBe(
+          'example.com',
+        );
+        expect(formatUrl('https://search.google.com?q=test&lang=en')).toBe(
+          'search.google.com',
+        );
+        expect(
+          formatUrl('http://example.com/path?param1=value1&param2=value2'),
+        ).toBe('example.com');
+      });
+
+      it('should extract hostname and ignore fragments', () => {
+        expect(formatUrl('https://example.com#section')).toBe('example.com');
+        expect(formatUrl('https://docs.example.com/guide#installation')).toBe(
+          'docs.example.com',
+        );
+      });
+
+      it('should handle URLs with ports', () => {
+        expect(formatUrl('https://example.com:8080')).toBe('example.com');
+        expect(formatUrl('http://localhost:3000')).toBe('localhost');
+        expect(formatUrl('https://api.example.com:443/v1/users')).toBe(
+          'api.example.com',
+        );
+      });
+
+      it('should handle complex URLs', () => {
+        expect(
+          formatUrl(
+            'https://user:pass@example.com:8080/path?query=value#fragment',
+          ),
+        ).toBe('example.com');
+        expect(
+          formatUrl(
+            'https://api.v2.example.com:443/users/123?include=profile&format=json',
+          ),
+        ).toBe('api.v2.example.com');
+      });
+    });
+
+    describe('invalid URLs - fallback behavior', () => {
+      it('should handle URLs without protocol using fallback', () => {
+        expect(formatUrl('example.com')).toBe('example.com');
+        expect(formatUrl('www.google.com')).toBe('www.google.com');
+        expect(formatUrl('subdomain.example.org')).toBe(
+          'subdomain.example.org',
+        );
+      });
+
+      it('should handle URLs without protocol with paths using fallback', () => {
+        expect(formatUrl('example.com/path/to/page')).toBe(
+          'example.com/path/to/page',
+        );
+        expect(formatUrl('api.github.com/users')).toBe('api.github.com/users');
+      });
+
+      it('should handle URLs without protocol with query parameters using fallback', () => {
+        expect(formatUrl('example.com?param=value')).toBe('example.com');
+        expect(formatUrl('search.google.com?q=test&lang=en')).toBe(
+          'search.google.com',
+        );
+        expect(formatUrl('example.com/path?param1=value1&param2=value2')).toBe(
+          'example.com/path',
+        );
+      });
+
+      it('should handle malformed URLs using fallback', () => {
+        expect(formatUrl('not-a-url')).toBe('not-a-url');
+        expect(formatUrl('just-text-here')).toBe('just-text-here');
+        expect(formatUrl('ftp://example.com')).toBe('ftp://example.com');
+      });
+
+      it('should handle URLs with only protocol using fallback', () => {
+        expect(formatUrl('https://')).toBe('');
+        expect(formatUrl('http://')).toBe('');
+      });
+    });
+
+    describe('edge cases', () => {
+      it('should return empty string for empty input', () => {
+        expect(formatUrl('')).toBe('');
+      });
+
+      it('should return empty string for whitespace-only input', () => {
+        expect(formatUrl('   ')).toBe('');
+        expect(formatUrl('\t\n')).toBe('');
+      });
+
+      it('should handle URLs with special characters', () => {
+        expect(formatUrl('https://example-site.com')).toBe('example-site.com');
+        expect(formatUrl('https://test_site.org')).toBe('test_site.org');
+        expect(formatUrl('https://site123.net')).toBe('site123.net');
+      });
+
+      it('should handle international domain names', () => {
+        expect(formatUrl('https://例え.テスト')).toBe('例え.テスト');
+        expect(formatUrl('https://münchen.de')).toBe('münchen.de');
+      });
+
+      it('should handle URLs with backticks and spaces', () => {
+        expect(formatUrl(' `https://例え.テスト` ')).toBe('例え.テスト');
+        expect(formatUrl(' `https://münchen.de` ')).toBe('münchen.de');
+        expect(formatUrl('  https://example.com  ')).toBe('example.com');
+        expect(formatUrl('`https://example.com`')).toBe('example.com');
+      });
+
+      it('should handle very long URLs', () => {
+        const longDomain =
+          'very-long-subdomain-name-that-exceeds-normal-length.example.com';
+        expect(formatUrl(`https://${longDomain}/very/long/path`)).toBe(
+          longDomain,
+        );
+      });
+    });
+
+    describe('security considerations', () => {
+      it('should handle non-http protocols safely', () => {
+        expect(formatUrl('file:///etc/passwd')).toBe('file:///etc/passwd');
+        expect(formatUrl('mailto:user@example.com')).toBe(
+          'mailto:user@example.com',
+        );
+      });
+
+      it('should handle URLs with encoded characters', () => {
+        expect(formatUrl('https://example.com%2Fmalicious')).toBe(
+          'example.com%2Fmalicious',
+        );
+        expect(formatUrl('https://example.com/path%20with%20spaces')).toBe(
+          'example.com',
+        );
+      });
+    });
+
+    describe('real-world examples', () => {
+      it('should handle common website URLs', () => {
+        expect(formatUrl('https://www.github.com/user/repo')).toBe(
+          'www.github.com',
+        );
+        expect(formatUrl('https://stackoverflow.com/questions/123456')).toBe(
+          'stackoverflow.com',
+        );
+        expect(formatUrl('https://docs.google.com/document/d/abc123')).toBe(
+          'docs.google.com',
+        );
+      });
+
+      it('should handle API endpoints', () => {
+        expect(formatUrl('https://api.twitter.com/v1/tweets')).toBe(
+          'api.twitter.com',
+        );
+        expect(formatUrl('https://jsonplaceholder.typicode.com/posts/1')).toBe(
+          'jsonplaceholder.typicode.com',
+        );
+      });
+
+      it('should handle CDN URLs', () => {
+        expect(
+          formatUrl('https://cdn.jsdelivr.net/npm/package@1.0.0/dist/file.js'),
+        ).toBe('cdn.jsdelivr.net');
+        expect(formatUrl('https://unpkg.com/react@17.0.0/index.js')).toBe(
+          'unpkg.com',
+        );
       });
     });
   });

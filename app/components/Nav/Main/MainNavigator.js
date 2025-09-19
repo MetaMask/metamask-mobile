@@ -117,6 +117,7 @@ import { selectSendRedesignFlags } from '../../../selectors/featureFlagControlle
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -263,6 +264,10 @@ const RewardsModalFlow = () => (
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
       component={RewardsBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+      component={RewardsClaimBottomSheetModal}
     />
   </Stack.Navigator>
 );
@@ -910,7 +915,22 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
           component={SettingsFlow}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
         />
       )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />

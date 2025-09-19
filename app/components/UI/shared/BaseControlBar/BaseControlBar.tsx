@@ -1,4 +1,4 @@
-import React, { useCallback, ReactNode } from 'react';
+import React, { useCallback, ReactNode, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -109,8 +109,21 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const currentNetworkName = getNetworkInfo(0)?.networkName;
   const currentNetworkCaipChainId = getNetworkInfo(0)?.caipChainId;
 
-  // Determine if disabled (use custom logic if provided, otherwise use hook logic)
-  const isDisabled = customIsDisabled ?? hookIsDisabled;
+  // Determine if disabled based on context
+  const isDisabled = useMemo(() => {
+    // If custom disabled logic is provided, respect it
+    if (customIsDisabled !== undefined) {
+      return customIsDisabled;
+    }
+
+    // If multichain accounts state 2 is enabled, enable the button
+    if (isMultichainAccountsState2Enabled) {
+      return false;
+    }
+
+    // Otherwise, use the hook's logic
+    return hookIsDisabled;
+  }, [customIsDisabled, isMultichainAccountsState2Enabled, hookIsDisabled]);
 
   const displayAllNetworks = isMultichainAccountsState2Enabled
     ? totalEnabledNetworksCount > 1
