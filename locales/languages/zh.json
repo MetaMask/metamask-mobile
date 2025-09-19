@@ -4948,7 +4948,7 @@
     "earn_eth_rewards": "赚取 ETH 奖励.",
     "earn_eth_rewards_description": "质押后，即刻开始赚取奖励。奖励自动计算。",
     "flexible_unstaking": "灵活解除质押.",
-    "flexible_unstaking_description": "随时解除质押。通常需要不到 3 天的时间，但处理过程最多可能需要 11 天。",
+    "flexible_unstaking_description": "随时解除质押。通常需要不到 3 天的时间，但处理过程最多可能需要 44 天。",
     "disclaimer": "质押并不能保证回报，而且涉及包括资金损失在内的风险。",
     "learn_more": "了解详情",
     "got_it": "知道了",
@@ -4984,7 +4984,7 @@
       "geo_blocked": "您所在的地区不允许解除质押或质押。",
       "approximately": "大约"
     },
-    "unstake_input_banner_description": "平均而言，不到 3 天时间即可领取解除质押的 ETH，但也可能最长需要 11 天的时间.",
+    "unstake_input_banner_description": "平均而言，不到 3 天时间即可领取解除质押的 ETH，但也可能最长需要 44 天的时间.",
     "max": "最大值",
     "staking_from": "质押提供商",
     "advanced_details": "高级信息",
@@ -5008,7 +5008,7 @@
       }
     },
     "use_max": "使用最大",
-    "estimated_unstaking_time": "1 - 11 天",
+    "estimated_unstaking_time": "1 - 44 天",
     "proceed_anyway": "仍然继续",
     "gas_cost_impact": "燃料成本影响",
     "select_a_token_to_deposit": "选择要存入的代币",

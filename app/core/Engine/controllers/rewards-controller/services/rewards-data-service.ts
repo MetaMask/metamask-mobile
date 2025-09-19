@@ -387,7 +387,7 @@ export class RewardsDataService {
   }
 
   /**
-   * Get Perps fee discount for a given address.
+   * Get Perps fee discount in bips for a given address.
    * @param params - The request parameters containing the CAIP-10 address.
    * @returns The parsed Perps discount data containing opt-in status and discount percentage.
    */
@@ -416,9 +416,9 @@ export class RewardsDataService {
     }
 
     const optInStatus = parseInt(parts[0]);
-    const discount = parseFloat(parts[1]);
+    const discountBips = parseFloat(parts[1]);
 
-    if (isNaN(optInStatus) || isNaN(discount)) {
+    if (isNaN(optInStatus) || isNaN(discountBips)) {
       throw new Error(
         `Invalid perps discount values: optIn=${parts[0]}, discount=${parts[1]}`,
       );
@@ -432,7 +432,7 @@ export class RewardsDataService {
 
     return {
       hasOptedIn: optInStatus === 1,
-      discount,
+      discountBips,
     };
   }
 

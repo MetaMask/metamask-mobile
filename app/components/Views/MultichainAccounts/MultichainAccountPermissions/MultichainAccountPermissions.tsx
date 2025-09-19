@@ -190,7 +190,7 @@ export const MultichainAccountPermissions = (
       });
 
       // Navigate back
-      navigation.goBack();
+      navigation.navigate(Routes.BROWSER.HOME);
     } catch (error) {
       console.error('Error updating permissions:', error);
       // TODO: Show error to user

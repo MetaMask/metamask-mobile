@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react';
-import { Dimensions, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Dimensions, Image, TouchableOpacity } from 'react-native';
+import {
+  Gesture,
+  GestureDetector,
+  ScrollView,
+} from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -197,6 +202,23 @@ const ActiveBoosts: React.FC = () => {
     activeBoosts: activeBoosts?.length,
   });
 
+  // Local pan sink to capture horizontal swipes and prevent parent tab swipe
+  const scrollNativeGesture = useMemo(() => Gesture.Native(), []);
+  const panSink = useMemo(
+    () =>
+      Gesture.Pan()
+        .minDistance(1)
+        .activeOffsetX([-2, 2])
+        .failOffsetY([-8, 8])
+        .simultaneousWithExternalGesture(scrollNativeGesture)
+        .runOnJS(true),
+    [scrollNativeGesture],
+  );
+  const combinedGesture = useMemo(
+    () => Gesture.Simultaneous(scrollNativeGesture, panSink),
+    [scrollNativeGesture, panSink],
+  );
+
   if (!isLoading && !hasError && numBoosts === 0) {
     return null;
   }
@@ -213,17 +235,19 @@ const ActiveBoosts: React.FC = () => {
       {isLoading || !activeBoosts ? (
         <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
       ) : hasError ? null /* Show active boosts */ : activeBoosts?.length ? ( // Show nothing if there's an error (just the banner)
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          snapToInterval={CARD_WIDTH + CARD_SPACING}
-          snapToAlignment="start"
-        >
-          {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
-            <BoostCard key={boost.id} boost={boost} index={index} />
-          ))}
-        </ScrollView>
+        <GestureDetector gesture={combinedGesture}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={CARD_WIDTH + CARD_SPACING}
+            snapToAlignment="start"
+          >
+            {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
+              <BoostCard key={boost.id} boost={boost} index={index} />
+            ))}
+          </ScrollView>
+        </GestureDetector>
       ) : (
         <></>
       )}

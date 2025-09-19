@@ -19,6 +19,10 @@ export const createStyles = (colors: Theme['colors']) =>
       marginBottom: 32,
       gap: 8,
     },
+    priceInfoContainerCondensed: {
+      marginBottom: 12,
+      gap: 8,
+    },
     priceInfoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -26,6 +30,9 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     section: {
       marginBottom: 24,
+    },
+    sectionCondensed: {
+      marginBottom: 0,
     },
     sectionTitle: {
       marginBottom: 8,
@@ -130,7 +137,6 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     content: {
       paddingHorizontal: 16,
-      paddingBottom: 16,
     },
     description: {
       marginBottom: 16,
@@ -166,5 +172,21 @@ export const createStyles = (colors: Theme['colors']) =>
       paddingVertical: 8,
       backgroundColor: colors.background.alternative,
       borderRadius: 8,
+    },
+    keypadContainer: {
+      paddingHorizontal: 8,
+      paddingTop: 8,
+      backgroundColor: colors.background.default,
+    },
+    scrollContent: {
+      flex: 1,
+    },
+    keypadFooter: {
+      paddingHorizontal: 8,
+      width: '100%',
+    },
+    keypadDismissButton: {
+      width: '100%',
+      marginVertical: 12,
     },
   });

@@ -163,9 +163,7 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    if (isMultichainAccountsState2Enabled()) {
-      await this.attemptMultichainAccountWalletDiscovery();
-    } else {
+    if (!isMultichainAccountsState2Enabled()) {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -263,9 +261,7 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    if (isMultichainAccountsState2Enabled()) {
-      await this.attemptMultichainAccountWalletDiscovery();
-    } else {
+    if (!isMultichainAccountsState2Enabled()) {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];

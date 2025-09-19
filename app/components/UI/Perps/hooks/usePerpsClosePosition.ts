@@ -54,9 +54,11 @@ export const usePerpsClosePosition = (
           ? strings('perps.market.long')
           : strings('perps.market.short');
 
+        const isFullClose = size === undefined || size === '';
+
         if (orderType === 'market') {
           // Market closing full position
-          if (size === undefined || size === '') {
+          if (isFullClose) {
             showToast(
               PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionInProgress(
                 direction,
@@ -64,8 +66,9 @@ export const usePerpsClosePosition = (
                 position.coin,
               ),
             );
-          } else {
-            // Market closing partial position
+          }
+          // Market closing partial position
+          else {
             showToast(
               PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionInProgress(
                 direction,
@@ -78,7 +81,7 @@ export const usePerpsClosePosition = (
 
         if (orderType === 'limit') {
           // Limit closing full position
-          if (size === undefined || size === '') {
+          if (isFullClose) {
             showToast(
               PerpsToastOptions.positionManagement.closePosition.limitClose.full.fullPositionCloseSubmitted(
                 direction,
@@ -166,21 +169,51 @@ export const usePerpsClosePosition = (
 
           // Market order immediately fills or fails
           // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
+          // Note: We only support market close for now but keeping check for future limit close support.
           if (orderType === 'market') {
-            showToast(
-              PerpsToastOptions.positionManagement.closePosition.marketClose
-                .full.closeFullPositionSuccess,
-            );
+            // Market closed full position
+            if (isFullClose) {
+              showToast(
+                PerpsToastOptions.positionManagement.closePosition.marketClose
+                  .full.closeFullPositionSuccess,
+              );
+            }
+            // Market closed partial position
+            else {
+              showToast(
+                PerpsToastOptions.positionManagement.closePosition.marketClose
+                  .partial.closePartialPositionSuccess,
+              );
+            }
           }
 
           // Call success callback
           options?.onSuccess?.(result);
         } else {
+          // Note: We only support market close for now but keeping check for future limit close support.
+          if (orderType === 'market') {
+            // Market full close failed
+            if (isFullClose) {
+              showToast(
+                PerpsToastOptions.positionManagement.closePosition.marketClose
+                  .full.closeFullPositionFailed,
+              );
+            }
+            // Market partial close failed
+            else {
+              showToast(
+                PerpsToastOptions.positionManagement.closePosition.marketClose
+                  .partial.closePartialPositionFailed,
+              );
+            }
+          }
+
           // Use centralized error handler for all errors
           const errorMessage = handlePerpsError({
             error: result.error,
             fallbackMessage: strings('perps.close_position.error_unknown'),
           });
+
           throw new Error(errorMessage);
         }
 

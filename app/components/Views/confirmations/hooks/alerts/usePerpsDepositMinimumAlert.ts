@@ -7,8 +7,7 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
-
-export const MINIMUM_DEPOSIT_USD = 10;
+import { PERPS_MINIMUM_DEPOSIT } from '../../constants/perps';
 
 export function usePerpsDepositMinimumAlert({
   pendingTokenAmount,
@@ -20,7 +19,7 @@ export function usePerpsDepositMinimumAlert({
 
   const underMinimum =
     new BigNumber(pendingTokenAmount ?? amountUnformatted ?? '0').isLessThan(
-      MINIMUM_DEPOSIT_USD,
+      PERPS_MINIMUM_DEPOSIT,
     ) && type === TransactionType.perpsDeposit;
 
   return useMemo(() => {

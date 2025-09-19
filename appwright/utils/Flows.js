@@ -76,6 +76,8 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
+  await OnboardingSheet.tapNotNow();
+
   await WalletMainScreen.isMainWalletViewVisible();
   await dismissSystemDialogs(device);
 }

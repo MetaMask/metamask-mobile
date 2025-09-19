@@ -399,4 +399,146 @@ describe('useRewardsIconAnimation', () => {
       expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
     });
   });
+
+  describe('refresh animation trigger', () => {
+    it('triggers Refresh when isRefresh is true and has positive points', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          isRefresh: true,
+          estimatedPoints: 100,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Refresh');
+    });
+
+    it('does not trigger Refresh when estimatedPoints is 0', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          isRefresh: true,
+          estimatedPoints: 0,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).not.toHaveBeenCalled();
+    });
+
+    it('does not trigger Refresh when estimatedPoints is null', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          isRefresh: true,
+          estimatedPoints: null,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).not.toHaveBeenCalled();
+    });
+
+    it('prioritizes loading state over refresh', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          isRewardsLoading: true,
+          isRefresh: true,
+          estimatedPoints: 100,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+    });
+
+    it('prioritizes error state over refresh', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          hasRewardsError: true,
+          isRefresh: true,
+          estimatedPoints: 100,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Disable');
+    });
+  });
+
+  describe('additional edge cases for complete coverage', () => {
+    it('handles when shouldShowRewardsRow is false with refresh state', () => {
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          shouldShowRewardsRow: false,
+          isRefresh: true,
+          estimatedPoints: 100,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).not.toHaveBeenCalled();
+    });
+
+    it('handles points change from 0 to positive value', () => {
+      // Arrange
+      mockPreviousPointsRef.current = 0 as any;
+
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          estimatedPoints: 50,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
+      expect(mockPreviousPointsRef.current).toBe(50);
+    });
+
+    it('handles points change from positive to 0', () => {
+      // Arrange
+      mockPreviousPointsRef.current = 100 as any;
+
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          estimatedPoints: 0,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).not.toHaveBeenCalled();
+      expect(mockPreviousPointsRef.current).toBe(0);
+    });
+
+    it('handles points change from null to positive', () => {
+      // Arrange
+      mockPreviousPointsRef.current = null as any;
+
+      // Act
+      renderHookWithProvider(() =>
+        useRewardsIconAnimation({
+          ...defaultParams,
+          estimatedPoints: 75,
+        }),
+      );
+
+      // Assert
+      expect(mockFireState).toHaveBeenCalledWith('State Machine 1', 'Start');
+      expect(mockPreviousPointsRef.current).toBe(75);
+    });
+  });
 });
