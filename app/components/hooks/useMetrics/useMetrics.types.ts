@@ -33,4 +33,5 @@ export interface IUseMetricsHook {
   isDataRecorded(): boolean;
   getMetaMetricsId(): Promise<string | undefined>;
   createEventBuilder(event: IMetaMetricsEvent): MetricsEventBuilder;
+  enableSocialLogin(enable?: boolean): Promise<void>;
 }
