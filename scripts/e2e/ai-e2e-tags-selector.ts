@@ -321,8 +321,8 @@ ANALYSIS FRAMEWORK:
    - High (16+ files): Major changes, high regression risk
 
 2. **Granular Area Mapping** (be selective, don't default to running everything) - Use this as a guide to map changed files to areas:
-   - **HIGHIMPACT**: package.json, metro.config.js, babel.config.js, yarn.lock → Include SmokeCore (infrastructure changes)
-   - **APPCORE**: app/core/Engine/, app/core/Authentication/, app/store/, app/reducers/ → SmokeCore (only for core engine/state)
+   - **HIGHIMPACT**: package.json, metro.config.js, babel.config.js, yarn.lock → Include SmokeWalletPlatform (infrastructure changes)
+   - **APPCORE**: app/core/Engine/, app/core/Authentication/, app/store/, app/reducers/ → SmokeWalletPlatform (only for core engine/state)
    - **APPCONFIRMATIONS**: app/components/Views/confirmations/ → SmokeConfirmations, SmokeConfirmationsRedesigned
    - **APPIDENTITY**: app/actions/identity/, app/components/UI/AccountSelector/ → SmokeIdentity, SmokeAccounts
    - **APPTRADING**: app/components/UI/Perps/, app/components/Views/Swaps/, app/components/Views/Bridge/ → SmokeTrade, SmokeSwaps
@@ -331,7 +331,7 @@ ANALYSIS FRAMEWORK:
    - **APPWALLET**: wallet/balance/asset/token related files → SmokeAssets, SmokeWalletPlatform
    - **APPOTHER**: Other app/ files → Analyze path carefully, be conservative (don't over-select)
    - **ANDROID/IOS**: Platform-specific changes → Consider core stability but be targeted
-   - **E2ETESTS**: Test infrastructure → Include SmokeCore only if major test framework changes
+   - **E2ETESTS**: Test infrastructure → Include SmokeWalletPlatform only if major test framework changes
 
 3. **Smart Selection Rules** (BE SELECTIVE):
    - **Don't default to running all tests** - analyze actual file paths and impact
@@ -344,7 +344,7 @@ ANALYSIS FRAMEWORK:
      • Payment flows, send/receive functionality
      • Smart contract interactions or dapp connections
      • Security-related changes (encryption, keyring, authentication)
-   - Only include SmokeCore for true infrastructure/core engine changes
+   - Only include SmokeWalletPlatform for true infrastructure/core engine changes
    - Match tags to specific affected areas based on file paths
    - For minor UI changes, consider if E2E tests are even needed
    - For app/components changes, look at the specific component path to determine impact
@@ -359,6 +359,9 @@ ANALYSIS FRAMEWORK:
    - **Minor config**: Small configuration tweaks that don't impact app logic
    - **Asset files**: Images, icons, SVGs that don't affect functionality
    - **Comments/typing**: Code comment updates, TypeScript interface changes only
+
+5. **NON NEGOTIABLE**: Always include a detailed reasoning section explaining:
+- Run all tags when the yarn.lock changes
 
 RESPOND WITH JSON ONLY:
 {

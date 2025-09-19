@@ -49,8 +49,7 @@ jobs:
       selected-tags: ${{ steps.ai-analysis.outputs.tags }}
       selected-tags-display: ${{ steps.ai-analysis.outputs.tags_display }}
       test-strategy: ${{ steps.ai-analysis.outputs.strategy }}
-      total-splits: ${{ steps.ai-analysis.outputs.total_splits }}
-      matrix-splits: ${{ steps.ai-analysis.outputs.matrix_splits }}
+      test-matrix: ${{ steps.ai-analysis.outputs.test_matrix }}
       should-run-tests: ${{ steps.ai-analysis.outputs.run_tests }}
       risk-level: ${{ steps.ai-analysis.outputs.risk_level }}
       reasoning: ${{ steps.ai-analysis.outputs.reasoning }}
@@ -147,35 +146,43 @@ jobs:
           TAG_COUNT=$(echo "$RESULT" | jq -r '.selectedTags | length')
           RISK_LEVEL=$(echo "$RESULT" | jq -r '.riskLevel')
           TAG_DISPLAY=$(echo "$RESULT" | jq -r '.selectedTags | join(", ")')  # Human-readable format
-          TOTAL_SPLITS=$(echo "$RESULT" | jq -r '.totalSplits // 3')  # Use AI-calculated splits or fallback to 3
           REASONING=$(echo "$RESULT" | jq -r '.reasoning // "AI analysis completed"')
           CONFIDENCE=$(echo "$RESULT" | jq -r '.confidence // 75')
 
           echo "✅ Selected tags: $TAG_DISPLAY"
           echo "📈 Risk level: $RISK_LEVEL"
           echo "🔢 Tag count: $TAG_COUNT"
-          echo "🧮 Total splits: $TOTAL_SPLITS (calculated based on test file counts)"
 
-          # Generate matrix array for GitHub Actions
-          MATRIX_ARRAY="["
-          for i in $(seq 1 "$TOTAL_SPLITS"); do
-            if [ "$i" -eq 1 ]; then
-              MATRIX_ARRAY="${MATRIX_ARRAY}$i"
-            else
-              MATRIX_ARRAY="${MATRIX_ARRAY},$i"
-            fi
-          done
-          MATRIX_ARRAY="${MATRIX_ARRAY}]"
+          # Generate test matrix for GitHub Actions based on testFileBreakdown
+          TEST_MATRIX="[]"
+          if [ "$TAG_COUNT" -gt 0 ]; then
+            TEST_MATRIX=$(echo "$RESULT" | jq -c '[
+              .testFileBreakdown[] |
+              select(.recommendedSplits > 0) |
+              {
+                tag: .tag,
+                fileCount: .fileCount,
+                recommendedSplits: .recommendedSplits,
+                splits: [range(1; .recommendedSplits + 1)]
+              } |
+              .splits[] as $split |
+              {
+                tag: .tag,
+                fileCount: .fileCount,
+                split: $split,
+                totalSplits: .recommendedSplits
+              }
+            ]')
+          fi
 
-          echo "🔢 Generated matrix array: $MATRIX_ARRAY"
+          echo "🔢 Generated test matrix: $TEST_MATRIX"
 
           # Set outputs
           {
             echo "tags=$TAGS"
             echo "tags_display=$TAG_DISPLAY"
             echo "strategy=dynamic-$TAG_COUNT-tags"
-            echo "total_splits=$TOTAL_SPLITS"
-            echo "matrix_splits=$MATRIX_ARRAY"
+            echo "test_matrix=$TEST_MATRIX"
             echo "risk_level=$RISK_LEVEL"
             echo "reasoning<<EOF"
             echo "$REASONING"
@@ -190,13 +197,14 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          # Only run tests if we have tags selected and splits > 0
+          # Only run tests if we have test jobs in the matrix
+          MATRIX_LENGTH=$(echo "$TEST_MATRIX" | jq 'length')
           if [ "$TAG_COUNT" -eq 0 ]; then
             echo "run_tests=false" >> "$GITHUB_OUTPUT"
             echo "ℹ️ No E2E tests needed - AI determined changes are very low risk"
-          elif [ "$TOTAL_SPLITS" -gt 0 ]; then
+          elif [ "$MATRIX_LENGTH" -gt 0 ]; then
             echo "run_tests=true" >> "$GITHUB_OUTPUT"
-            echo "✅ Will run $((TOTAL_SPLITS * 2)) CI jobs ($TOTAL_SPLITS per platform × 2 platforms)"
+            echo "✅ Will run $((MATRIX_LENGTH * 2)) CI jobs ($MATRIX_LENGTH per platform × 2 platforms)"
           else
             echo "run_tests=false" >> "$GITHUB_OUTPUT"
             echo "ℹ️ No E2E tests needed - selected tags have no test files"
@@ -217,11 +225,11 @@ jobs:
               echo "- **Selected Tags**: $TAG_DISPLAY"
               echo "- **Risk Level**: $RISK_LEVEL"
               echo "- **AI Confidence**: ${CONFIDENCE}%"
-              echo "- **Total Splits**: $TOTAL_SPLITS (optimized for actual test files)"
+              echo "- **Test Jobs**: $MATRIX_LENGTH (dynamically generated based on test files)"
             } >> "$GITHUB_STEP_SUMMARY"
 
-            if [ "$TOTAL_SPLITS" -gt 0 ]; then
-              echo "- **Total CI Jobs**: $((TOTAL_SPLITS * 2)) ($TOTAL_SPLITS per platform × 2 platforms)" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$MATRIX_LENGTH" -gt 0 ]; then
+              echo "- **Total CI Jobs**: $((MATRIX_LENGTH * 2)) ($MATRIX_LENGTH per platform × 2 platforms)" >> "$GITHUB_STEP_SUMMARY"
             else
               echo "- **Total CI Jobs**: 0 (selected tags have no test files)" >> "$GITHUB_STEP_SUMMARY"
             fi
@@ -247,7 +255,7 @@ jobs:
   # Step 2: Post AI analysis to PR
   post-pr-comment:
     name: 'Post AI Analysis to PR'
-    needs: [analyze-and-plan]
+    needs: [analyze-and-plan, platform-conditions]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
@@ -268,7 +276,7 @@ jobs:
           > ${{ needs.analyze-and-plan.outputs.reasoning }}
 
           **Test Plan:**
-          - **Total Splits:** ${{ needs.analyze-and-plan.outputs.total-splits }} per platform (optimized for actual test files)
+          - **Test Jobs:** ${{ needs.platform-conditions.outputs.actual-total-jobs }} total (dynamically generated based on test files)
           - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
 
           **Test File Breakdown:**
@@ -326,7 +334,8 @@ jobs:
         run: |
           # Base conditions
           TESTS_NEEDED="${{ needs.analyze-and-plan.outputs.should-run-tests }}"
-          HAS_SPLITS="${{ needs.analyze-and-plan.outputs.total-splits != '0' }}"
+          TEST_MATRIX='${{ needs.analyze-and-plan.outputs.test-matrix }}'
+          MATRIX_LENGTH=$(echo "$TEST_MATRIX" | jq 'length')
 
           # Platform enablement logic
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
@@ -338,7 +347,7 @@ jobs:
           fi
 
           # Calculate final conditions
-          if [[ "$TESTS_NEEDED" == "true" && "$HAS_SPLITS" == "true" ]]; then
+          if [[ "$TESTS_NEEDED" == "true" && "$MATRIX_LENGTH" -gt 0 ]]; then
             SHOULD_BUILD_IOS=$([[ "$IOS_ENABLED" == "true" ]] && echo "true" || echo "false")
             SHOULD_BUILD_ANDROID=$([[ "$ANDROID_ENABLED" == "true" ]] && echo "true" || echo "false")
           else
@@ -354,16 +363,15 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           # Calculate actual job counts
-          TOTAL_SPLITS="${{ needs.analyze-and-plan.outputs.total-splits }}"
           IOS_JOBS=0
           ANDROID_JOBS=0
 
-          if [ "$SHOULD_BUILD_IOS" = "true" ] && [ "$TOTAL_SPLITS" -gt 0 ]; then
-            IOS_JOBS="$TOTAL_SPLITS"
+          if [ "$SHOULD_BUILD_IOS" = "true" ] && [ "$MATRIX_LENGTH" -gt 0 ]; then
+            IOS_JOBS="$MATRIX_LENGTH"
           fi
 
-          if [ "$SHOULD_BUILD_ANDROID" = "true" ] && [ "$TOTAL_SPLITS" -gt 0 ]; then
-            ANDROID_JOBS="$TOTAL_SPLITS"
+          if [ "$SHOULD_BUILD_ANDROID" = "true" ] && [ "$MATRIX_LENGTH" -gt 0 ]; then
+            ANDROID_JOBS="$MATRIX_LENGTH"
           fi
 
           TOTAL_JOBS=$((IOS_JOBS + ANDROID_JOBS))
@@ -402,14 +410,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        split: ${{ fromJson(needs.analyze-and-plan.outputs.matrix-splits) }}
+        include: ${{ fromJson(needs.analyze-and-plan.outputs.test-matrix) }}
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: 'Smart-iOS-E2E-Split-${{ matrix.split }}-of-${{ needs.analyze-and-plan.outputs.total-splits }}'
+      test-suite-name: 'Smart-iOS-E2E-${{ matrix.tag }}-Split-${{ matrix.split }}-of-${{ matrix.totalSplits }}'
       platform: 'ios'
-      test_suite_tag: '${{ needs.analyze-and-plan.outputs.selected-tags }}'
+      test_suite_tag: '${{ matrix.tag }}'
       split_number: ${{ matrix.split }}
-      total_splits: ${{ fromJson(needs.analyze-and-plan.outputs.total-splits) }}
+      total_splits: ${{ matrix.totalSplits }}
       test-timeout-minutes: 120
     secrets: inherit
 
@@ -420,14 +428,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        split: ${{ fromJson(needs.analyze-and-plan.outputs.matrix-splits) }}
+        include: ${{ fromJson(needs.analyze-and-plan.outputs.test-matrix) }}
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: 'Smart-Android-E2E-Split-${{ matrix.split }}-of-${{ needs.analyze-and-plan.outputs.total-splits }}'
+      test-suite-name: 'Smart-Android-E2E-${{ matrix.tag }}-Split-${{ matrix.split }}-of-${{ matrix.totalSplits }}'
       platform: 'android'
-      test_suite_tag: '${{ needs.analyze-and-plan.outputs.selected-tags }}'
+      test_suite_tag: '${{ matrix.tag }}'
       split_number: ${{ matrix.split }}
-      total_splits: ${{ fromJson(needs.analyze-and-plan.outputs.total-splits) }}
+      total_splits: ${{ matrix.totalSplits }}
       test-timeout-minutes: 120
     secrets: inherit
 
@@ -480,7 +488,6 @@ jobs:
             echo "- **Trigger**: ${{ github.event_name }}"
             echo "- **Strategy**: ${{ needs.analyze-and-plan.outputs.test-strategy }}"
             echo "- **Selected Tags**: ${{ needs.analyze-and-plan.outputs.selected-tags-display }}"
-            echo "- **Total Splits**: ${{ needs.analyze-and-plan.outputs.total-splits }}"
             echo ""
             echo "- **iOS Jobs**: ${{ needs.platform-conditions.outputs.actual-ios-jobs }} (enabled: ${{ needs.platform-conditions.outputs.should-build-ios }})"
             echo "- **Android Jobs**: ${{ needs.platform-conditions.outputs.actual-android-jobs }} (enabled: ${{ needs.platform-conditions.outputs.should-build-android }})"
@@ -568,9 +575,9 @@ jobs:
           IOS_RESULT="${{ needs.ios-smart-tests.result }}"
           ANDROID_RESULT="${{ needs.android-smart-tests.result }}"
           SHOULD_RUN_TESTS="${{ needs.analyze-and-plan.outputs.should-run-tests }}"
-          TOTAL_SPLITS="${{ needs.analyze-and-plan.outputs.total-splits }}"
+          TOTAL_JOBS="${{ needs.platform-conditions.outputs.actual-total-jobs }}"
 
-          if [[ "$SHOULD_RUN_TESTS" == "false" ]] || [[ "$TOTAL_SPLITS" == "0" ]]; then
+          if [[ "$SHOULD_RUN_TESTS" == "false" ]] || [[ "$TOTAL_JOBS" == "0" ]]; then
             echo "ℹ️ No E2E tests were needed based on AI analysis"
             echo "✅ Smart E2E analysis completed - no testing required"
           elif [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
