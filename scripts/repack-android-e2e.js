@@ -67,12 +67,20 @@ async function main() {
     // Dynamic import for ES module compatibility
     const { repackAppAndroidAsync } = await import('@expo/repack-app');
 
-    // Use official API exactly as documented - different source and output paths
+    // Create working directory in project filesystem to avoid cross-device issues
+    const workingDir = 'android/app/build/repack-working';
+    if (!fs.existsSync(workingDir)) {
+      fs.mkdirSync(workingDir, { recursive: true });
+      logger.info(`Created working directory: ${workingDir}`);
+    }
+
+    // Use official API with working directory in same filesystem
     await repackAppAndroidAsync({
       platform: 'android',
       projectRoot: process.cwd(),
-      sourceAppPath: sourceApkPath,        // Read from original
-      outputPath: repackedApkPath,         // Write to different file
+      sourceAppPath: sourceApkPath,
+      outputPath: repackedApkPath,
+      workingDirectory: workingDir,  // Force library to use project filesystem
       verbose: true,
       exportEmbedOptions: {
         sourcemapOutput: sourcemapOutputPath,
