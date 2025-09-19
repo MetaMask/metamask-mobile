@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { ScrollView, View, StatusBar, ActivityIndicator } from 'react-native';
 import {
   Text,
@@ -24,11 +24,34 @@ import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './MultichainAccountsIn
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 
+// Minimum timeout duration for wallet alignment process (2 seconds)
+const WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS = 2000;
+
 const MultichainAccountsIntroModal = () => {
   const { styles, theme } = useStyles(styleSheet, { theme: useTheme() });
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [isAligning, setIsAligning] = useState(false);
+  const [isAlignmentComplete, setIsAlignmentComplete] = useState(false);
+
+  // Start alignment process when modal is displayed
+  useEffect(() => {
+    const startAlignment = async () => {
+      try {
+        await Engine.context.MultichainAccountService.alignWallets();
+        setIsAlignmentComplete(true);
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Error aligning wallet in multichain accounts intro modal',
+        );
+        // Still mark as complete to allow user to proceed
+        setIsAlignmentComplete(true);
+      }
+    };
+
+    startAlignment();
+  }, []);
 
   // Custom label component that shows both text and loading spinner
   const renderButtonLabel = () => {
@@ -60,28 +83,28 @@ const MultichainAccountsIntroModal = () => {
     setIsAligning(true);
 
     try {
-      const timeoutPromise = new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 2000);
-      });
-
-      const alignWalletsPromise =
-        Engine.context.MultichainAccountService.alignWallets();
-
-      // Use Promise.all to wait for both the alignment and the minimum timeout
-      await Promise.all([alignWalletsPromise, timeoutPromise]);
+      // If alignment is already complete, wait for minimum timeout
+      if (isAlignmentComplete) {
+        await new Promise<void>((resolve) => {
+          setTimeout(() => resolve(), WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS);
+        });
+      } else {
+        // If alignment is still running, just wait for minimum timeout
+        // The background alignment will complete on its own
+        await new Promise<void>((resolve) => {
+          setTimeout(() => resolve(), WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS);
+        });
+      }
     } catch (error) {
-      Logger.error(
-        error as Error,
-        'Error aligning wallet in multichain accounts intro modal',
-      );
-      // Still proceed to accounts even if alignment fails
+      Logger.error(error as Error, 'Error in multichain accounts intro modal');
+      // Still proceed to accounts even if there's an error
     } finally {
       dispatch(setMultichainAccountsIntroModalSeen(true));
       setIsAligning(false);
       navigation.goBack();
       navigation.navigate(...createAccountSelectorNavDetails({}));
     }
-  }, [navigation, dispatch, isAligning]);
+  }, [navigation, dispatch, isAligning, isAlignmentComplete]);
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
