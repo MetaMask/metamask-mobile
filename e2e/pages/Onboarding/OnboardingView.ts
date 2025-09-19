@@ -35,8 +35,12 @@ class OnboardingView {
           await Gestures.waitAndTap(this.existingWalletButton, {
             elemDescription: 'Onboarding Have an Existing Wallet Button',
           });
-          await Utilities.waitForElementToBeVisible(
-            OnboardingSheet.importSeedButton,
+          await Utilities.waitUntil(
+            () => Utilities.isElementVisible(OnboardingSheet.importSeedButton),
+            {
+              timeout: BASE_DEFAULTS.timeout,
+              interval: 100,
+            },
           );
         } else {
           await Gestures.waitAndTap(this.existingWalletButton, {
