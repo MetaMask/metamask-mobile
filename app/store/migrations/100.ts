@@ -38,9 +38,6 @@ const migration = (state: unknown): unknown => {
   if ('isAccountSyncingInProgress' in userStorageControllerState) {
     delete userStorageControllerState.isAccountSyncingInProgress;
   }
-  if ('isAccountSyncingInProgress' in userStorageControllerState) {
-    delete userStorageControllerState.isAccountSyncingInProgress;
-  }
 
   return state;
 };
