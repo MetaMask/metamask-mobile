@@ -34,6 +34,7 @@ import {
 import {
   selectInternalAccountListSpreadByScopesByGroupId,
   getWalletIdFromAccountGroup,
+  selectIconSeedAddressByAccountGroupId,
 } from '../../../../selectors/multichainAccounts/accounts';
 import { AccountGroupType } from '@metamask/account-api';
 import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
@@ -84,6 +85,11 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
   const accountAvatarType = useSelector(selectAvatarAccountType);
+  const selectIconSeedAddress = React.useMemo(
+    () => selectIconSeedAddressByAccountGroupId(id),
+    [id],
+  );
+  const iconSeedAddress = useSelector(selectIconSeedAddress);
 
   const selectWallet = useSelector(selectWalletById);
   const wallet = selectWallet?.(walletId);
@@ -173,8 +179,9 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
           <Avatar
             variant={AvatarVariant.Account}
             size={AvatarSize.Xl}
-            accountAddress={id}
+            accountAddress={iconSeedAddress}
             type={accountAvatarType}
+            testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR}
           />
         </Box>
         <TouchableOpacity
