@@ -12,6 +12,10 @@ import { BigNumber } from 'bignumber.js';
 import { usePerpsDepositInit } from './usePerpsDepositInit';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayTokenAmounts } from '../../../hooks/pay/useTransactionPayTokenAmounts';
+import {
+  ARBITRUM_USDC_ADDRESS,
+  PERPS_MINIMUM_DEPOSIT,
+} from '../../../constants/perps';
 
 export function usePerpsDepositView({
   isKeyboardVisible,
@@ -43,8 +47,8 @@ export function usePerpsDepositView({
   useAutomaticTransactionPayToken({
     balanceOverrides: [
       {
-        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as const,
-        balance: 10,
+        address: ARBITRUM_USDC_ADDRESS,
+        balance: PERPS_MINIMUM_DEPOSIT,
         chainId: CHAIN_IDS.ARBITRUM,
       },
     ],
