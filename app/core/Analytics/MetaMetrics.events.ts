@@ -579,6 +579,7 @@ enum EVENT_NAME {
   // Card
   CARD_VIEWED = 'Card Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',
+  CARD_HOME_VIEWED = 'Card Home Viewed',
   CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
@@ -1474,6 +1475,7 @@ const events = {
   // Card
   CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
+  CARD_HOME_VIEWED: generateOpt(EVENT_NAME.CARD_HOME_VIEWED),
   CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
   CARD_ADD_FUNDS_SWAPS_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADD_FUNDS_SWAPS_CLICKED,

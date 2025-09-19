@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
@@ -138,6 +144,38 @@ const CardHome = () => {
       navigation,
     ],
   );
+
+  // Track event only once after priorityToken and balances are loaded
+  const hasTrackedCardHomeView = useRef(false);
+
+  useEffect(() => {
+    const hasValidMainBalance =
+      mainBalance !== undefined &&
+      mainBalance !== TOKEN_BALANCE_LOADING &&
+      mainBalance !== TOKEN_BALANCE_LOADING_UPPERCASE;
+
+    const hasValidFiatBalance =
+      balanceFiat !== undefined &&
+      balanceFiat !== TOKEN_BALANCE_LOADING &&
+      balanceFiat !== TOKEN_BALANCE_LOADING_UPPERCASE &&
+      balanceFiat !== TOKEN_RATE_UNDEFINED;
+
+    const isLoaded =
+      !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
+
+    if (isLoaded && !hasTrackedCardHomeView.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
+          .addProperties({
+            token_symbol_priority: priorityToken?.symbol,
+            token_raw_balance_priority: mainBalance,
+            token_fiat_balance_priority: balanceFiat,
+          })
+          .build(),
+      );
+      hasTrackedCardHomeView.current = true;
+    }
+  }, [trackEvent, createEventBuilder, priorityToken, mainBalance, balanceFiat]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
