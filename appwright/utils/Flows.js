@@ -148,7 +148,10 @@ export async function login(device, scenarioType, timeout = 10000) {
 }
 
 export async function dismissGTMModal(device, timeout = 5000) {
-  console.log('Looking for perps onboarding button...');
+  if (!AppwrightSelectors.isAndroid(device)) {
+    console.log('Skipping perps onboarding skip - not an Android device');
+    return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
+  }
   const notNowButton = await AppwrightSelectors.getElementByID(
     device,
     PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
@@ -162,6 +165,10 @@ export async function dismissMultichainAccountsIntroModal(
   device,
   timeout = 5000,
 ) {
+  if (!AppwrightSelectors.isAndroid(device)) {
+    console.log('Skipping multichain onboarding skip - not an Android device');
+    return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
+  }
   const closeButton = await AppwrightSelectors.getElementByID(
     device,
     MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
