@@ -12,12 +12,12 @@ import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
-import { toggleBasicFunctionality } from '../actions/settings';
+import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
 import {
-  endPerformanceTrace,
   startPerformanceTrace,
+  endPerformanceTrace,
 } from '../core/redux/slices/performance';
 import { PerformanceEventNames } from '../core/redux/slices/performance/constants';
 
@@ -68,10 +68,9 @@ const createStoreAndPersistor = async () => {
    */
   const onPersistComplete = () => {
     endTrace({ name: TraceName.StoreInit });
+
     store.dispatch(
-      endPerformanceTrace({
-        eventName: PerformanceEventNames.RehydrateStore,
-      }),
+      endPerformanceTrace({ eventName: PerformanceEventNames.RehydrateStore }),
     );
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
@@ -80,7 +79,7 @@ const createStoreAndPersistor = async () => {
 
     // This sets the basic functionality value from the persisted state when the app is restarted
     store.dispatch(
-      toggleBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
+      setBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
     );
   };
 

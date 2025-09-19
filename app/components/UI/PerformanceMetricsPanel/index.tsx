@@ -15,7 +15,6 @@ import {
   selectPerformanceMetrics,
   selectPerformanceSession,
 } from '../../../core/redux/slices/performance';
-// Performance import removed (no early metrics)
 
 const formatDuration = (ms?: number) =>
   typeof ms === 'number' ? `${ms.toFixed(0)} ms` : '—';
@@ -28,7 +27,7 @@ const PerformanceMetricsPanel: React.FC = () => {
   const [open, setOpen] = useState(false);
   const metrics = useSelector(selectPerformanceMetrics);
   const session = useSelector(selectPerformanceSession);
-  // no early metrics after revert
+
 
   const metricsNormalized = useMemo(() => metrics ?? [], [metrics]);
 
@@ -96,10 +95,11 @@ const PerformanceMetricsPanel: React.FC = () => {
             </Text>
           </Box>
           <Box twClassName="max-h-72">
-            {/* Early metrics removed per revert */}
             {rows.length > 0 ? (
               <ScrollView style={tw.style({ maxHeight: 288 })}>
-                <Box twClassName="">{rows}</Box>
+                <Box twClassName="">
+                  {rows}
+                </Box>
               </ScrollView>
             ) : (
               <Box twClassName="px-3 py-4">

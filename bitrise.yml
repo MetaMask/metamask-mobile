@@ -3617,10 +3617,6 @@ app:
       MM_PER_DAPP_SELECTED_NETWORK: false
     - opts:
         is_expand: false
-      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: false
-
-    - opts:
-        is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
@@ -3634,6 +3630,12 @@ app:
     - opts:
         is_expand: false
       MM_UNIFIED_SWAPS_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_PERPS_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON"
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -3703,6 +3705,9 @@ app:
     - opts:
         is_expand: false
       SEEDLESS_ONBOARDING_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: true
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x

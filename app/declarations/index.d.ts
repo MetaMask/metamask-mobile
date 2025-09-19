@@ -291,6 +291,13 @@ declare module '@metamask/react-native-actionsheet' {
 
 declare module '@metamask/react-native-search-api';
 
+declare module 'react-native-progress/Bar' {
+  import { BarPropTypes } from 'react-native-progress';
+  import React from 'react';
+
+  export default class ProgressBar extends React.Component<BarPropTypes> {}
+}
+
 /**
  * @sentry/react-native types for v^6.10.0
  * Types are overridden to ensure captureException receives an Error type for more reliable stack traces

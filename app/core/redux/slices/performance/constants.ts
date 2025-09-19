@@ -12,4 +12,10 @@ export const PerformanceEventNames = {
   EngineRehydrate: 'ENGINE_REHYDRATE',
   // End-to-end from Redux rehydration start until Engine filesystem rehydration completes.
   RehydrateEndToEnd: 'REHYDRATE_END_TO_END',
+  // When creating a new account through UI.
+  CreateNewAccount: 'CREATE_NEW_ACCOUNT',
+  // When changing/enabling a popular network.
+  ChangePopularNetwork: 'CHANGE_POPULAR_NETWORK',
+  // When changing/enabling a custom network.
+  ChangeCustomNetwork: 'CHANGE_CUSTOM_NETWORK',
 };

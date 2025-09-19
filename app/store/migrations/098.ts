@@ -20,6 +20,7 @@ import Device from '../../util/device';
  */
 export default async function migrate(state: unknown) {
   if (!ensureValidState(state, 98)) {
+
     return state;
   }
 
@@ -86,6 +87,7 @@ export default async function migrate(state: unknown) {
       return newState;
     }
 
+
     return state;
   } catch (error) {
     captureException(
@@ -99,3 +101,4 @@ export default async function migrate(state: unknown) {
     return state;
   }
 }
+
