@@ -56,9 +56,7 @@ export class AppStateWebSocketManager {
         // Reconnect WebSocket when app becomes active
         // The WebSocket service will check its enabledCallback internally
         await this.webSocketService.connect();
-        Logger.log(
-          'WebSocket reconnection attempt completed (service handles feature flag check)',
-        );
+        Logger.log('WebSocket reconnection attempt completed (service handles feature flag check)');
       }
     } catch (error) {
       Logger.error(

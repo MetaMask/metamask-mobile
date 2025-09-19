@@ -39,20 +39,15 @@ export const backendWebSocketServiceInit: ControllerInitFunction<
           if (envOverride !== undefined && envOverride !== null) {
             return envOverride === 'true';
           }
-
+          
           // Fall back to remote feature flag
-          const remoteFeatureFlags = initMessenger?.call(
-            'RemoteFeatureFlagController:getState',
-          );
-          return Boolean(
-            remoteFeatureFlags?.remoteFeatureFlags
-              ?.backendWebSocketConnectionEnabled,
-          );
+          const remoteFeatureFlags = initMessenger?.call('RemoteFeatureFlagController:getState');
+          return Boolean(remoteFeatureFlags?.remoteFeatureFlags?.backendWebSocketConnectionEnabled);
         } catch (error) {
           // If we can't get feature flags, default to NOT connecting (safer approach)
           Logger.log(
             '[WebSocketService] Could not check feature flags, defaulting to NOT connect:',
-            error as Error,
+            error as Error
           );
           return false;
         }
