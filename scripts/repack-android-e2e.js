@@ -13,7 +13,8 @@ const path = require('path');
 const CONFIG = {
   platform: 'android',
   sourceApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
-  outputApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk', // Overwrites original
+  outputApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release.apk', // Final location
+  tempApkPath: 'android/app/build/outputs/apk/prod/release/app-prod-release-repacked.apk', // Safe temporary output
   sourcemapOutputPath: 'sourcemaps/android/index.android.bundle.map',
 };
 
@@ -109,7 +110,7 @@ async function repackApk() {
     'npx @expo/repack-app',
     `--platform ${CONFIG.platform}`,
     `--source-app "${CONFIG.sourceApkPath}"`,
-    `--output "${CONFIG.outputApkPath}"`, // Output directly to final location
+    `--output "${CONFIG.tempApkPath}"`, // Output to safe temporary location first
     '--embed-bundle-assets', // Let repack-app generate fresh bundle internally
     `--bundle-assets-sourcemap-output "${CONFIG.sourcemapOutputPath}"`, // Generate sourcemap
     `--working-directory "${process.cwd()}"`, // Use project directory to avoid cross-device issues
@@ -126,23 +127,23 @@ async function repackApk() {
 
   // Wait for file system operations to complete and verify repacked APK was created
   logger.info('Verifying repacked APK exists...');
-
+  
   // Add retry logic for file system delays in CI environments
   let retries = 0;
   const maxRetries = 10;
   const retryDelay = 1000; // 1 second
-
-  while (retries < maxRetries && !fileExists(CONFIG.outputApkPath)) {
-    logger.info(`Waiting for APK file... (attempt ${retries + 1}/${maxRetries})`);
+  
+  while (retries < maxRetries && !fileExists(CONFIG.tempApkPath)) {
+    logger.info(`Waiting for temporary APK file... (attempt ${retries + 1}/${maxRetries})`);
     await new Promise(resolve => setTimeout(resolve, retryDelay));
     retries++;
   }
 
-  if (!fileExists(CONFIG.outputApkPath)) {
+  if (!fileExists(CONFIG.tempApkPath)) {
     // Debug: List directory contents to understand what's happening
-    logger.error('APK not found after repack. Checking directory contents...');
+    logger.error('Temporary APK not found after repack. Checking directory contents...');
     try {
-      const apkDir = path.dirname(CONFIG.outputApkPath);
+      const apkDir = path.dirname(CONFIG.tempApkPath);
       const files = require('fs').readdirSync(apkDir);
       logger.error(`Files in ${apkDir}:`);
       files.forEach(file => {
@@ -153,7 +154,35 @@ async function repackApk() {
     } catch (error) {
       logger.error(`Could not list directory: ${error.message}`);
     }
-    throw new Error(`Repacked APK not found: ${CONFIG.outputApkPath}`);
+    throw new Error(`Repacked APK not found: ${CONFIG.tempApkPath}`);
+  }
+
+  // Safely replace original APK with repacked version
+  logger.info('Moving repacked APK to final location...');
+
+  // Backup original APK before replacement (in case something goes wrong)
+  const backupPath = CONFIG.sourceApkPath + '.backup';
+  if (fs.existsSync(CONFIG.sourceApkPath)) {
+    fs.copyFileSync(CONFIG.sourceApkPath, backupPath);
+    logger.info('Created backup of original APK');
+  }
+
+  try {
+    // Move repacked APK to final location
+    fs.renameSync(CONFIG.tempApkPath, CONFIG.outputApkPath);
+
+    // Remove backup if successful
+    if (fs.existsSync(backupPath)) {
+      fs.unlinkSync(backupPath);
+      logger.info('Removed APK backup (repack successful)');
+    }
+  } catch (error) {
+    // Restore backup if move failed
+    if (fs.existsSync(backupPath)) {
+      fs.renameSync(backupPath, CONFIG.outputApkPath);
+      logger.error('Restored original APK from backup due to repack failure');
+    }
+    throw new Error(`Failed to move repacked APK: ${error.message}`);
   }
 
   logger.success(`APK repacked successfully: ${CONFIG.outputApkPath} (${getFileSize(CONFIG.outputApkPath)})`);
@@ -172,8 +201,22 @@ async function repackApk() {
 function cleanup() {
   logger.info('Cleaning up temporary files...');
 
-  // @expo/repack-app handles its own temporary file cleanup
-  // No manual cleanup needed
+  const tempFiles = [
+    CONFIG.tempApkPath,
+    CONFIG.sourceApkPath + '.backup',
+  ];
+
+  tempFiles.forEach(file => {
+    if (fs.existsSync(file)) {
+      try {
+        fs.unlinkSync(file);
+        logger.info(`Removed: ${file}`);
+      } catch (error) {
+        logger.warn(`Could not remove ${file}: ${error.message}`);
+      }
+    }
+  });
+
   logger.success('Cleanup completed');
 }
 
