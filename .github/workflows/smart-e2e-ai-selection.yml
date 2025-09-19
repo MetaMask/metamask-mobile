@@ -423,8 +423,8 @@ jobs:
 
   # Step 6: Dynamic Android E2E Tests using reusable workflow
   android-smart-tests:
-    needs: [analyze-and-plan, platform-conditions, build-android]
-    if: needs.platform-conditions.outputs.should-test-android == 'true' && needs.build-android.result == 'success'
+    needs: [analyze-and-plan, platform-conditions]
+    if: needs.platform-conditions.outputs.should-test-android
     strategy:
       fail-fast: false
       matrix:
