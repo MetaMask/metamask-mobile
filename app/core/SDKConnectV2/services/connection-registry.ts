@@ -92,8 +92,8 @@ export class ConnectionRegistry {
     let conn: Connection | undefined;
 
     try {
-      this.hostapp.showLoading();
       const connreq = this.parseConnectionRequest(url);
+      this.hostapp.showLoading();
       conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
       await conn.connect(connreq.sessionRequest);
       this.connections.set(conn.id, conn);
