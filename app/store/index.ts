@@ -87,6 +87,12 @@ const createStoreAndPersistor = async () => {
   store.dispatch(
     startPerformanceTrace({ eventName: PerformanceEventNames.RehydrateStore }),
   );
+  // Start end-to-end rehydration trace at the same time Redux rehydration starts
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.RehydrateEndToEnd,
+    }),
+  );
   persistor = persistStore(store, null, onPersistComplete);
 };
 

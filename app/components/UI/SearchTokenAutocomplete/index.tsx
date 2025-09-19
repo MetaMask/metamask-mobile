@@ -219,51 +219,56 @@ const SearchTokenAutocomplete = ({
           eventName: PerformanceEventNames.AddToken,
         }),
       );
-      const networkConfig =
-        Engine.context.NetworkController.state
-          ?.networkConfigurationsByChainId?.[networkId];
+      try {
+        const networkConfig =
+          Engine.context.NetworkController.state
+            ?.networkConfigurationsByChainId?.[networkId];
 
-      if (!networkConfig) {
-        return;
-      }
+        if (!networkConfig) {
+          return;
+        }
 
-      const networkClient =
-        networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
-          ?.networkClientId;
+        const networkClient =
+          networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
+            ?.networkClientId;
 
-      if (!networkClient) {
-        return;
-      }
+        if (!networkClient) {
+          return;
+        }
 
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { TokensController } = Engine.context as any;
-      await TokensController.addToken({
-        address,
-        symbol,
-        decimals,
-        image: iconUrl,
-        name,
-        networkClientId: networkClient,
-      });
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { TokensController } = Engine.context as any;
+        await TokensController.addToken({
+          address,
+          symbol,
+          decimals,
+          image: iconUrl,
+          name,
+          networkClientId: networkClient,
+        });
 
-      const analyticsParams = getTokenAddedAnalyticsParams({
-        address,
-        symbol,
-      });
+        const analyticsParams = getTokenAddedAnalyticsParams({
+          address,
+          symbol,
+        });
 
-      if (analyticsParams) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-            .addProperties(analyticsParams)
-            .build(),
+        if (analyticsParams) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+              .addProperties(analyticsParams)
+              .build(),
+          );
+        }
+      } catch (e) {
+        // swallow and end trace below
+      } finally {
+        store.dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.AddToken,
+          }),
         );
       }
-      store.dispatch(
-        endPerformanceTrace({
-          eventName: PerformanceEventNames.AddToken,
-        }),
-      );
     },
     [getTokenAddedAnalyticsParams, trackEvent, createEventBuilder],
   );
@@ -281,6 +286,7 @@ const SearchTokenAutocomplete = ({
   }, [navigation]);
 
   const addTokenList = useCallback(async () => {
+
     for (const asset of selectedAssets) {
       await addToken({ ...asset });
     }

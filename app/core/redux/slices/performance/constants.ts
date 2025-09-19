@@ -6,8 +6,12 @@ export const PerformanceEventNames = {
   AddHdAccount: 'ADD_HD_ACCOUNT',
    // When adding a token.
    AddToken: 'ADD_TOKEN',
-  // When Redux store rehydrates from redux-persist
+  // When rehydrating the store.
   RehydrateStore: 'REHYDRATE_STORE',
+  // When rehydrating Engine state from filesystem to Redux.
+  EngineRehydrate: 'ENGINE_REHYDRATE',
+  // End-to-end from Redux rehydration start until Engine filesystem rehydration completes.
+  RehydrateEndToEnd: 'REHYDRATE_END_TO_END',
   // When creating a new account through UI.
   CreateNewAccount: 'CREATE_NEW_ACCOUNT',
   // When changing/enabling a popular network.
