@@ -74,7 +74,7 @@ const AccountNetworkInfoCollapsed = () => {
               {avatarComponent}
             </BadgeWrapper>
           )}
-          <View>
+          <View style={styles.infoContainer}>
             <View style={styles.accountInfo}>
               <Text
                 ellipsizeMode="tail"

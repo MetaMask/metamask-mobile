@@ -35,6 +35,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginStart: 8,
       paddingHorizontal: 12,
     },
+    infoContainer: {
+      marginLeft: -4,
+    },
   });
 };
 
