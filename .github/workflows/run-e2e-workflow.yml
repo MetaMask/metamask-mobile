@@ -183,7 +183,7 @@ jobs:
           copy_apk "$ARTIFACT_ROOT/$SEARCH_SUBPATH" "*.apk" "*androidTest*.apk" "$TARGET_DIR" "Android main APK"
 
           # Copy test APK for Detox (androidTest)
-          copy_apk "$TEST_ARTIFACT_ROOT/androidTest/$SEARCH_SUBPATH" "*-androidTest.apk" "" "$TEST_TARGET_DIR" "Android Test APK"
+          copy_apk "$TEST_ARTIFACT_ROOT/$SEARCH_SUBPATH" "*-androidTest.apk" "" "$TEST_TARGET_DIR" "Android Test APK"
 
       - name: Setup iOS artifacts from build job
         if: ${{ inputs.platform == 'ios' }}
