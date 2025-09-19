@@ -38,17 +38,41 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
   ],
   PUT: [
     {
-      urlEndpoint: accountsStorageUrl,
+      urlEndpoint:
+        /^https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/accounts_v2\/[a-fA-F0-9]+$/,
       responseCode: 200,
       response: 'OK',
     },
     {
       urlEndpoint: accountsStorageUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/addressBook\/[a-fA-F0-9]+$/,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint: contactStorageUrl,
+      responseCode: 200,
+      response: [],
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/multichain_accounts_wallets\/[a-fA-F0-9]+$/,
       responseCode: 200,
       response: 'OK',
     },
     {
       urlEndpoint: multichainWalletsUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/multichain_accounts_groups\/[a-fA-F0-9]+$/,
       responseCode: 200,
       response: 'OK',
     },
