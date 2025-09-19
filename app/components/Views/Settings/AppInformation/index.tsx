@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   Image,
   Text,
-  InteractionManager,
   View,
   ScrollView,
   TouchableOpacity,
@@ -45,16 +44,17 @@ const AppInformation = ({ navigation }: AppInformationProps) => {
   const [appInfo, setAppInfo] = useState('');
   const [appVersion, setAppVersion] = useState('');
 
+  // Simple navigation function for all links
+  // without over-engineering with interaction manager
+  // that not providing any benefit here as we just need to navigate to the webview
   const goTo = useCallback(
     (url: string, title: string) => {
-      InteractionManager.runAfterInteractions(() => {
-        navigation.navigate('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url,
-            title,
-          },
-        });
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url,
+          title,
+        },
       });
     },
     [navigation],
@@ -107,6 +107,9 @@ const AppInformation = ({ navigation }: AppInformationProps) => {
     goTo(url, strings('app_information.attributions'));
   }, [goTo, appVersion]);
 
+  // current design is to open the support center in the same way as contact us link,
+  // so it also calls openSupportWebPage and triggers the consent flow
+  // TODO: consider deleting this redundant link
   const onSupportCenter = useCallback(() => {
     openSupportWebPage();
   }, [openSupportWebPage]);
