@@ -38,9 +38,9 @@ const AccountNetworkInfoCollapsed = () => {
   );
   const { chainId, fromAddress } = useApprovalInfo() ?? {};
   const walletsMap = useSelector(selectWalletsMap);
-  const haveMoreThanOneWallet = Object.keys(walletsMap).length > 1;
+  const hasMoreThanOneWallet = Object.keys(walletsMap || {}).length > 1;
   const shouldShowWalletName =
-    isMultichainAccountsState2Enabled && haveMoreThanOneWallet;
+    isMultichainAccountsState2Enabled && hasMoreThanOneWallet;
 
   const { accountName, walletName, accountGroupName } = useAccountInfo(
     fromAddress as string,
