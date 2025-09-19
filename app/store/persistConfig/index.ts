@@ -1,6 +1,7 @@
 import { createMigrate, createTransform } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
+import { MMKVStorage } from '../mmkv-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
 import { version, migrations } from '../migrations';
@@ -20,9 +21,15 @@ const STORAGE_THROTTLE_DELAY = 200;
 export const ControllerStorage = {
   async getItem(key: string) {
     try {
+      // Read from MMKV first
+      const mmkv = await MMKVStorage.getItem(key);
+      if (mmkv) return mmkv;
+
+      // Fallback to filesystem during transition
       const res = await FilesystemStorage.getItem(key);
       if (res) {
-        // Using new storage system
+        // Write-through to MMKV for future reads
+        await MMKVStorage.setItem(key, res);
         return res;
       }
     } catch (error) {
@@ -33,7 +40,8 @@ export const ControllerStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
+      await MMKVStorage.setItem(key, value);
+      return true;
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to set item for ${key}`,
@@ -42,7 +50,7 @@ export const ControllerStorage = {
   },
   async removeItem(key: string) {
     try {
-      return await FilesystemStorage.removeItem(key);
+      await MMKVStorage.removeItem(key);
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to remove item for ${key}`,
@@ -64,7 +72,9 @@ export const ControllerStorage = {
         ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
-            const data = await FilesystemStorage.getItem(key);
+            const data =
+              (await MMKVStorage.getItem(key)) ??
+              (await FilesystemStorage.getItem(key));
             if (data) {
               // Parse the JSON data
               const parsedData = JSON.parse(data);
