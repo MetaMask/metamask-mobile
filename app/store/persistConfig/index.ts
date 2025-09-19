@@ -23,15 +23,7 @@ export const ControllerStorage = {
     try {
       // Read from MMKV first
       const mmkv = await MMKVStorage.getItem(key);
-      if (mmkv) return mmkv;
-
-      // Fallback to filesystem during transition
-      const res = await FilesystemStorage.getItem(key);
-      if (res) {
-        // Write-through to MMKV for future reads
-        await MMKVStorage.setItem(key, res);
-        return res;
-      }
+      return mmkv;
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to get item for ${key}`,
@@ -72,9 +64,7 @@ export const ControllerStorage = {
         ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
-            const data =
-              (await MMKVStorage.getItem(key)) ??
-              (await FilesystemStorage.getItem(key));
+            const data = await MMKVStorage.getItem(key);
             if (data) {
               // Parse the JSON data
               const parsedData = JSON.parse(data);
