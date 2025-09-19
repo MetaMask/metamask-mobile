@@ -32,26 +32,28 @@ const MultichainAccountsIntroModal = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [isAligning, setIsAligning] = useState(false);
-  const [isAlignmentComplete, setIsAlignmentComplete] = useState(false);
+
+  // Store the alignWallets promise so it can be reused
+  const alignWalletsPromise = React.useMemo(
+    () => Engine.context.MultichainAccountService.alignWallets(),
+    [],
+  );
 
   // Start alignment process when modal is displayed
   useEffect(() => {
     const startAlignment = async () => {
       try {
-        await Engine.context.MultichainAccountService.alignWallets();
-        setIsAlignmentComplete(true);
+        await alignWalletsPromise;
       } catch (error) {
         Logger.error(
           error as Error,
           'Error aligning wallet in multichain accounts intro modal',
         );
-        // Still mark as complete to allow user to proceed
-        setIsAlignmentComplete(true);
       }
     };
 
     startAlignment();
-  }, []);
+  }, [alignWalletsPromise]);
 
   // Custom label component that shows both text and loading spinner
   const renderButtonLabel = () => {
@@ -83,18 +85,13 @@ const MultichainAccountsIntroModal = () => {
     setIsAligning(true);
 
     try {
-      // If alignment is already complete, wait for minimum timeout
-      if (isAlignmentComplete) {
-        await new Promise<void>((resolve) => {
+      // Wait for both the alignment promise and minimum timeout
+      await Promise.all([
+        alignWalletsPromise,
+        new Promise<void>((resolve) => {
           setTimeout(() => resolve(), WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS);
-        });
-      } else {
-        // If alignment is still running, just wait for minimum timeout
-        // The background alignment will complete on its own
-        await new Promise<void>((resolve) => {
-          setTimeout(() => resolve(), WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS);
-        });
-      }
+        }),
+      ]);
     } catch (error) {
       Logger.error(error as Error, 'Error in multichain accounts intro modal');
       // Still proceed to accounts even if there's an error
@@ -104,7 +101,7 @@ const MultichainAccountsIntroModal = () => {
       navigation.goBack();
       navigation.navigate(...createAccountSelectorNavDetails({}));
     }
-  }, [navigation, dispatch, isAligning, isAlignmentComplete]);
+  }, [navigation, dispatch, isAligning, alignWalletsPromise]);
 
   const handleLearnMore = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
