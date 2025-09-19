@@ -47,20 +47,20 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 
 const createMockConnection = (id: string, name: string): Connection =>
-  ({
-    id,
-    metadata: {
-      dapp: {
-        name: `${name} DApp`,
-        url: `https://testdapp${id}.com`,
-        icon: `https://testdapp${id}.com/icon.png`,
-      },
-      sdk: {
-        version: '2.1.0',
-        platform: 'JavaScript',
-      },
+({
+  id,
+  metadata: {
+    dapp: {
+      name: `${name} DApp`,
+      url: `https://testdapp${id}.com`,
+      icon: `https://testdapp${id}.com/icon.png`,
     },
-  } as Connection);
+    sdk: {
+      version: '2.1.0',
+      platform: 'JavaScript',
+    },
+  },
+} as Connection);
 
 const mockConnectionRequest: ConnectionRequest = {
   sessionRequest: {
