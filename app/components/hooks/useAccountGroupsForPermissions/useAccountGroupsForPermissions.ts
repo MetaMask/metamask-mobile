@@ -126,6 +126,11 @@ export const useAccountGroupsForPermissions = (
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
   const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
 
+  console.log(
+    '[useAccountGroupsForPermissions] requestedCaipAccountIds',
+    requestedCaipAccountIds,
+  );
+
   const result = useMemo(() => {
     const selectedAccountGroup = accountGroups.find(
       (accountGroup) => accountGroup.id === selectedAccountGroupId,
@@ -140,7 +145,7 @@ export const useAccountGroupsForPermissions = (
     // Priority groups are groups that fulfill the requested account IDs and should be shown first
     const priorityConnectedGroups: AccountGroupWithInternalAccounts[] = [];
     const prioritySupportedGroups: AccountGroupWithInternalAccounts[] = [];
-    const updatedAccountGroupsToConnect: AccountGroupWithInternalAccounts[] =
+    const connectedAccountGroupWithRequested: AccountGroupWithInternalAccounts[] =
       [];
 
     let accountGroupsWithSelectedAccountGroup: AccountGroupWithInternalAccounts[] =
@@ -173,15 +178,15 @@ export const useAccountGroupsForPermissions = (
       if (isConnected) {
         if (fulfillsRequestedAccounts) {
           priorityConnectedGroups.push(accountGroup);
-          updatedAccountGroupsToConnect.push(accountGroup);
         } else {
           connectedAccountGroups.push(accountGroup);
         }
+        connectedAccountGroupWithRequested.push(accountGroup);
       }
       if (isSupported || fulfillsRequestedAccounts) {
         if (fulfillsRequestedAccounts) {
           prioritySupportedGroups.push(accountGroup);
-          updatedAccountGroupsToConnect.push(accountGroup);
+          connectedAccountGroupWithRequested.push(accountGroup);
         } else if (isSupported) {
           supportedAccountGroups.push(accountGroup);
         }
@@ -190,14 +195,15 @@ export const useAccountGroupsForPermissions = (
 
     // This are caip account ids of connected account groups with the requested chains/namespaces
     // It would also include newly requested chain requests.
-    const updatedCaipAccountIdsToConnect = Array.from(
+    const caipAccountIdsOfConnectedAccountGroupWithRequested = Array.from(
       new Set([
         ...getCaip25AccountFromAccountGroupAndScope(
-          updatedAccountGroupsToConnect,
+          connectedAccountGroupWithRequested,
           requestedCaipChainIds,
         ),
       ]),
     );
+
 
     return {
       supportedAccountGroups: Array.from(
@@ -207,7 +213,8 @@ export const useAccountGroupsForPermissions = (
         new Set([...priorityConnectedGroups, ...connectedAccountGroups]),
       ),
       connectedCaipAccountIds: connectedAccountIds,
-      updatedCaipAccountIdsToConnect,
+      connectedAccountGroupWithRequested,
+      caipAccountIdsOfConnectedAccountGroupWithRequested,
     };
   }, [
     existingPermission,
@@ -225,7 +232,11 @@ export const useAccountGroupsForPermissions = (
     supportedAccountGroups: result.supportedAccountGroups,
     /** CAIP account IDs that are already connected via existing permissions */
     existingConnectedCaipAccountIds: result.connectedCaipAccountIds,
+    /** Account groups that fulfill the requested account IDs */
+    connectedAccountGroupWithRequested:
+      result.connectedAccountGroupWithRequested,
     /** CAIP account IDs that should be connected */
-    updatedCaipAccountIdsToConnect: result.updatedCaipAccountIdsToConnect,
+    caipAccountIdsOfConnectedAccountGroupWithRequested:
+      result.caipAccountIdsOfConnectedAccountGroupWithRequested,
   };
 };
