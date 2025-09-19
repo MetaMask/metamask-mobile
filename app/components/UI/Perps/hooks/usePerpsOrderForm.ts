@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import type { OrderFormState } from '../types';
@@ -68,13 +68,15 @@ export function usePerpsOrderForm(
   const defaultLeverage = initialLeverage || TRADING_DEFAULTS.leverage;
   const maxPossibleAmount = availableBalance * defaultLeverage;
 
-  // Use 0 as initial amount if the total balance times leverage is less than the default amount
-  const initialAmountValue =
-    initialAmount ||
-    (maxPossibleAmount < defaultAmount
-      ? maxPossibleAmount.toString()
-      : defaultAmount.toString());
-
+  // Use memoized calculation for initial amount to ensure it updates when dependencies change
+  const initialAmountValue = useMemo(
+    () =>
+      initialAmount ||
+      (maxPossibleAmount < defaultAmount
+        ? maxPossibleAmount.toString()
+        : defaultAmount.toString()),
+    [initialAmount, maxPossibleAmount, defaultAmount],
+  );
   // Calculate initial balance percentage
   const initialMarginRequired =
     parseFloat(initialAmountValue) / defaultLeverage;
@@ -87,7 +89,7 @@ export function usePerpsOrderForm(
   const [orderForm, setOrderForm] = useState<OrderFormState>({
     asset: initialAsset,
     direction: initialDirection,
-    amount: initialAmountValue,
+    amount: '0', // Will be updated by useEffect when initialAmountValue is calculated
     leverage: defaultLeverage,
     balancePercent: Math.round(initialBalancePercent * 100) / 100,
     takeProfitPrice: undefined,
@@ -95,6 +97,16 @@ export function usePerpsOrderForm(
     limitPrice: undefined,
     type: initialType,
   });
+
+  // Update amount only once when the hook first calculates the initial value
+  // We use a ref to track if we've already set the initial amount to avoid overwriting user input
+  const hasSetInitialAmount = useRef(false);
+  useEffect(() => {
+    if (!hasSetInitialAmount.current && initialAmountValue !== '0') {
+      setOrderForm((prev) => ({ ...prev, amount: initialAmountValue }));
+      hasSetInitialAmount.current = true;
+    }
+  }, [initialAmountValue]);
 
   // Update entire form
   const updateOrderForm = (updates: Partial<OrderFormState>) => {
