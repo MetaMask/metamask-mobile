@@ -272,16 +272,26 @@ jobs:
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
           EOF
 
-          # Check if there's already a comment from this workflow
-          COMMENT_ID=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("🤖 Smart E2E Test Analysis")) | .id' | head -1)
+          # Delete any existing Smart E2E comments and create a new one
+          echo "🔍 Checking for existing Smart E2E comments..."
 
-          if [ -n "$COMMENT_ID" ]; then
-            echo "📝 Updating existing PR comment (ID: $COMMENT_ID)..."
-            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" --input pr_comment.md --field body="@-"
-          else
-            echo "📝 Creating new PR comment..."
-            gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
+          # Get all existing comment IDs that contain our marker
+          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("🤖 Smart E2E Test Analysis")) | .id' || echo "")
+
+          # Delete existing comments if any exist
+          if [ -n "$EXISTING_COMMENTS" ]; then
+            echo "🗑️ Deleting existing Smart E2E comments..."
+            echo "$EXISTING_COMMENTS" | while read -r comment_id; do
+              if [ -n "$comment_id" ]; then
+                echo "Deleting comment: $comment_id"
+                gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" || echo "Failed to delete comment $comment_id"
+              fi
+            done
           fi
+
+          # Always create a fresh comment
+          echo "📝 Creating new PR comment..."
+          gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
 
   # Step 3: Determine platform conditions
   platform-conditions:
@@ -482,13 +492,26 @@ jobs:
           _✅ [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Smart E2E AI Selection_
           EOF
 
-          # Update the existing comment
-          COMMENT_ID=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("🤖 Smart E2E Test Analysis")) | .id' | head -1)
+          # Delete existing Smart E2E comment and create final results comment
+          echo "🔍 Looking for existing Smart E2E comment to update..."
 
-          if [ -n "$COMMENT_ID" ]; then
-            echo "📝 Updating PR comment with final results..."
-            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" --input pr_comment_final.md --field body="@-"
+          # Get existing comment ID
+          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("🤖 Smart E2E Test Analysis")) | .id' || echo "")
+
+          # Delete existing comment if it exists
+          if [ -n "$EXISTING_COMMENTS" ]; then
+            echo "🗑️ Replacing existing Smart E2E comment with final results..."
+            echo "$EXISTING_COMMENTS" | while read -r comment_id; do
+              if [ -n "$comment_id" ]; then
+                echo "Deleting comment: $comment_id"
+                gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" || echo "Failed to delete comment $comment_id"
+              fi
+            done
           fi
+
+          # Create final results comment
+          echo "📝 Creating final results comment..."
+          gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment_final.md
 
       - name: Check test results
         run: |
