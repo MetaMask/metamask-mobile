@@ -100,7 +100,7 @@ class AIE2ETagsSelector {
     if (this.availableTags.length === 0) {
       throw new Error('No available Smoke tags found in e2e/tags.js');
     }
-    console.log(`🚀 Available Smoke Tags: ${this.availableTags.join(', ')}`);
+    this.log(`🚀 Available Smoke Tags: ${this.availableTags.join(', ')}`);
   }
 
   private log(message: string): void {
@@ -215,7 +215,7 @@ class AIE2ETagsSelector {
       this.log(`📝 Analyzing ${changedFiles.length} changed files`);
 
       const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model:  'claude-opus-4-1-20250805',
         max_tokens: 1500,
         temperature: 0.1,
         messages: [{ role: 'user', content: prompt }]
