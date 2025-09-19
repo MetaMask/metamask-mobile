@@ -1,10 +1,12 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { useSupportConsent } from './index';
 import {
   selectShouldShowConsentSheet,
   selectDataSharingPreference,
 } from '../../../selectors/security';
+import Routes from '../../../constants/navigation/Routes';
 
 // Mock the support utility
 jest.mock('../../../util/support', () => jest.fn());
@@ -12,6 +14,11 @@ jest.mock('../../../util/support', () => jest.fn());
 // Mock Redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+// Mock Navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
 }));
 
 // Mock the support utility
@@ -27,15 +34,22 @@ const mockGetSupportUrlTyped = mockGetSupportUrl as jest.MockedFunction<
 const mockUseSelectorTyped = useSelector as jest.MockedFunction<
   typeof useSelector
 >;
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
 
 describe('useSupportConsent', () => {
   const mockOnNavigate = jest.fn();
   const mockTitle = 'Test Title';
+  const mockNavigation = {
+    navigate: jest.fn(),
+  };
   let originalEnv: string | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetSupportUrlTyped.mockResolvedValue('https://support.metamask.io');
+    mockUseNavigation.mockReturnValue(mockNavigation);
     originalEnv = process.env.METAMASK_BUILD_TYPE;
 
     // Setup Redux mocks - default behavior
@@ -55,15 +69,7 @@ describe('useSupportConsent', () => {
     process.env.METAMASK_BUILD_TYPE = originalEnv;
   });
 
-  it('initializes with modal hidden', () => {
-    const { result } = renderHook(() =>
-      useSupportConsent(mockOnNavigate, mockTitle),
-    );
-
-    expect(result.current.showConsentSheet).toBe(false);
-  });
-
-  it('shows modal when openSupportWebPage is called in non-beta environment', () => {
+  it('navigates to consent modal when openSupportWebPage is called in non-beta environment', () => {
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle, 'production'),
     );
@@ -72,17 +78,22 @@ describe('useSupportConsent', () => {
       result.current.openSupportWebPage();
     });
 
-    expect(result.current.showConsentSheet).toBe(true);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      {
+        screen: Routes.MODAL.SUPPORT_CONSENT_MODAL,
+        params: {
+          onConsent: expect.any(Function),
+          onDecline: expect.any(Function),
+        },
+      },
+    );
   });
 
   it('navigates with consent parameters when user consents', async () => {
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
     );
-
-    act(() => {
-      result.current.openSupportWebPage();
-    });
 
     await act(async () => {
       await result.current.handleConsent();
@@ -93,17 +104,12 @@ describe('useSupportConsent', () => {
       'https://support.metamask.io',
       mockTitle,
     );
-    expect(result.current.showConsentSheet).toBe(false);
   });
 
   it('navigates without consent parameters when user declines', async () => {
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
     );
-
-    act(() => {
-      result.current.openSupportWebPage();
-    });
 
     await act(async () => {
       await result.current.handleDecline();
@@ -114,7 +120,6 @@ describe('useSupportConsent', () => {
       'https://support.metamask.io',
       mockTitle,
     );
-    expect(result.current.showConsentSheet).toBe(false);
   });
 
   it('falls back to base URL when consent request fails', async () => {
@@ -123,10 +128,6 @@ describe('useSupportConsent', () => {
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
     );
-
-    act(() => {
-      result.current.openSupportWebPage();
-    });
 
     await act(async () => {
       await result.current.handleConsent();
@@ -148,10 +149,6 @@ describe('useSupportConsent', () => {
       useSupportConsent(mockOnNavigate, mockTitle),
     );
 
-    act(() => {
-      result.current.openSupportWebPage();
-    });
-
     await act(async () => {
       await result.current.handleDecline();
     });
@@ -168,10 +165,6 @@ describe('useSupportConsent', () => {
       useSupportConsent(mockOnNavigate, customTitle),
     );
 
-    act(() => {
-      result.current.openSupportWebPage();
-    });
-
     await act(async () => {
       await result.current.handleConsent();
     });
@@ -182,25 +175,34 @@ describe('useSupportConsent', () => {
     );
   });
 
-  it('toggles sheet visibility when opening and consenting', async () => {
+  it('navigates to consent modal and handles consent flow', async () => {
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
     );
 
-    // Initially hidden
-    expect(result.current.showConsentSheet).toBe(false);
-
-    // Show modal
+    // Navigate to consent modal
     act(() => {
       result.current.openSupportWebPage();
     });
-    expect(result.current.showConsentSheet).toBe(true);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      {
+        screen: Routes.MODAL.SUPPORT_CONSENT_MODAL,
+        params: {
+          onConsent: expect.any(Function),
+          onDecline: expect.any(Function),
+        },
+      },
+    );
 
-    // Hide sheet after consent
+    // Handle consent
     await act(async () => {
       await result.current.handleConsent();
     });
-    expect(result.current.showConsentSheet).toBe(false);
+    expect(mockOnNavigate).toHaveBeenCalledWith(
+      'https://support.metamask.io',
+      mockTitle,
+    );
   });
 
   it('bypasses modal and navigates to beta support in beta environment', () => {
@@ -212,7 +214,7 @@ describe('useSupportConsent', () => {
       result.current.openSupportWebPage();
     });
 
-    expect(result.current.showConsentSheet).toBe(false);
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
     expect(mockOnNavigate).toHaveBeenCalledWith(
       'https://intercom.help/internal-beta-testing/en/',
       mockTitle,
@@ -239,14 +241,14 @@ describe('useSupportConsent', () => {
         result.current.openSupportWebPage();
       });
 
-      expect(result.current.showConsentSheet).toBe(false);
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
       expect(mockOnNavigate).toHaveBeenCalledWith(
         'https://support.metamask.io',
         mockTitle,
       );
     });
 
-    it('shows consent sheet when user has enabled consent sheet', async () => {
+    it('navigates to consent sheet when user has enabled consent sheet', async () => {
       mockUseSelectorTyped.mockImplementation((selector) => {
         if (selector === selectShouldShowConsentSheet) {
           return true; // Show consent sheet
@@ -265,11 +267,20 @@ describe('useSupportConsent', () => {
         result.current.openSupportWebPage();
       });
 
-      expect(result.current.showConsentSheet).toBe(true);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.MODAL.SUPPORT_CONSENT_MODAL,
+          params: {
+            onConsent: expect.any(Function),
+            onDecline: expect.any(Function),
+          },
+        },
+      );
       expect(mockOnNavigate).not.toHaveBeenCalled();
     });
 
-    it('shows consent sheet when user has no saved data sharing preference', async () => {
+    it('navigates to consent sheet when user has no saved data sharing preference', async () => {
       mockUseSelectorTyped.mockImplementation((selector) => {
         if (selector === selectShouldShowConsentSheet) {
           return false; // Don't show consent sheet
@@ -288,7 +299,16 @@ describe('useSupportConsent', () => {
         result.current.openSupportWebPage();
       });
 
-      expect(result.current.showConsentSheet).toBe(true);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.MODAL.SUPPORT_CONSENT_MODAL,
+          params: {
+            onConsent: expect.any(Function),
+            onDecline: expect.any(Function),
+          },
+        },
+      );
       expect(mockOnNavigate).not.toHaveBeenCalled();
     });
 
@@ -312,7 +332,7 @@ describe('useSupportConsent', () => {
         result.current.openSupportWebPage();
       });
 
-      expect(result.current.showConsentSheet).toBe(false);
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
       expect(mockOnNavigate).toHaveBeenCalledWith(
         'https://support.metamask.io',
         mockTitle,

@@ -54,7 +54,6 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
           "left": 0,
           "position": "absolute",
           "right": 0,
-          "zIndex": 999999,
         },
         {
           "paddingBottom": 0,
@@ -1124,7 +1123,6 @@ exports[`AccountConnect renders correctly with base request when there is no exi
           "left": 0,
           "position": "absolute",
           "right": 0,
-          "zIndex": 999999,
         },
         {
           "paddingBottom": 0,
@@ -2194,7 +2192,6 @@ exports[`AccountConnect renders correctly with request including chains and acco
           "left": 0,
           "position": "absolute",
           "right": 0,
-          "zIndex": 999999,
         },
         {
           "paddingBottom": 0,
@@ -3264,7 +3261,6 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
           "left": 0,
           "position": "absolute",
           "right": 0,
-          "zIndex": 999999,
         },
         {
           "paddingBottom": 0,

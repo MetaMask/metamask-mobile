@@ -1,17 +1,17 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import getSupportUrl from '../../../util/support';
+import Routes from '../../../constants/navigation/Routes';
 import {
   selectShouldShowConsentSheet,
   selectDataSharingPreference,
 } from '../../../selectors/security';
 
 interface UseSupportConsentReturn {
-  showConsentSheet: boolean;
   openSupportWebPage: () => void;
   handleConsent: () => Promise<void>;
   handleDecline: () => Promise<void>;
-  closeConsentSheet: () => void;
 }
 
 /**
@@ -26,7 +26,7 @@ export const useSupportConsent = (
   title: string,
   buildType?: string,
 ): UseSupportConsentReturn => {
-  const [showConsentSheet, setShowConsentSheet] = useState(false);
+  const navigation = useNavigation();
   const shouldShowConsentSheet = useSelector(selectShouldShowConsentSheet);
   const dataSharingPreference = useSelector(selectDataSharingPreference);
 
@@ -39,6 +39,30 @@ export const useSupportConsent = (
     onNavigateRef.current = onNavigate;
     titleRef.current = title;
   }, [onNavigate, title]);
+
+  const handleConsent = useCallback(async () => {
+    try {
+      const supportUrl = await getSupportUrl(true);
+      onNavigateRef.current(supportUrl, titleRef.current);
+    } catch (error) {
+      console.warn('Error getting support URL with consent:', error);
+      // Fallback to base URL
+      const supportUrl = await getSupportUrl(false);
+      onNavigateRef.current(supportUrl, titleRef.current);
+    }
+  }, []);
+
+  const handleDecline = useCallback(async () => {
+    try {
+      const supportUrl = await getSupportUrl(false);
+      onNavigateRef.current(supportUrl, titleRef.current);
+    } catch (error) {
+      console.warn('Error getting support URL without consent:', error);
+      // Fallback to base URL
+      const fallbackUrl = 'https://support.metamask.io';
+      onNavigateRef.current(fallbackUrl, titleRef.current);
+    }
+  }, []);
 
   const openSupportWebPage = useCallback(() => {
     // For beta builds, bypass consent flow and go directly to beta support
@@ -73,46 +97,25 @@ export const useSupportConsent = (
     }
 
     // Show consent sheet when shouldShowConsentSheet is true or no data sharing preference is saved
-    setShowConsentSheet(true);
-  }, [buildType, shouldShowConsentSheet, dataSharingPreference]);
-
-  const handleConsent = useCallback(async () => {
-    try {
-      const supportUrl = await getSupportUrl(true);
-      setShowConsentSheet(false);
-      onNavigateRef.current(supportUrl, titleRef.current);
-    } catch (error) {
-      console.warn('Error getting support URL with consent:', error);
-      // Fallback to base URL
-      const supportUrl = await getSupportUrl(false);
-      setShowConsentSheet(false);
-      onNavigateRef.current(supportUrl, titleRef.current);
-    }
-  }, []);
-
-  const handleDecline = useCallback(async () => {
-    try {
-      const supportUrl = await getSupportUrl(false);
-      setShowConsentSheet(false);
-      onNavigateRef.current(supportUrl, titleRef.current);
-    } catch (error) {
-      console.warn('Error getting support URL without consent:', error);
-      // Fallback to base URL
-      const fallbackUrl = 'https://support.metamask.io';
-      setShowConsentSheet(false);
-      onNavigateRef.current(fallbackUrl, titleRef.current);
-    }
-  }, []);
-
-  const closeConsentSheet = useCallback(() => {
-    setShowConsentSheet(false);
-  }, []);
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SUPPORT_CONSENT_MODAL,
+      params: {
+        onConsent: handleConsent,
+        onDecline: handleDecline,
+      },
+    });
+  }, [
+    buildType,
+    shouldShowConsentSheet,
+    dataSharingPreference,
+    navigation,
+    handleConsent,
+    handleDecline,
+  ]);
 
   return {
-    showConsentSheet,
     openSupportWebPage,
     handleConsent,
     handleDecline,
-    closeConsentSheet,
   };
 };

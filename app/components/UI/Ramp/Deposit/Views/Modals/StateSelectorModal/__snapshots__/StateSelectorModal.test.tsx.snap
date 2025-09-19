@@ -365,7 +365,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -1168,7 +1167,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -1915,7 +1913,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -2718,7 +2715,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -3521,7 +3517,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -4587,7 +4582,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,

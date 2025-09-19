@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ShowTokenId should render correctly 1`] = `
+exports[`SupportConsentScreen renders matching snapshot 1`] = `
 <View
   style={
     {
@@ -124,7 +124,7 @@ exports[`ShowTokenId should render correctly 1`] = `
                   }
                 }
               >
-                ShowTokenId
+                Test
               </Text>
             </View>
           </View>
@@ -312,189 +312,78 @@ exports[`ShowTokenId should render correctly 1`] = `
                       }
                     }
                   >
-                    <View
-                      onLayout={[Function]}
-                      style={
-                        [
-                          {
-                            "bottom": 0,
-                            "justifyContent": "flex-end",
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
-                      }
+                    <BottomSheet
+                      onClose={[Function]}
+                      shouldNavigateBack={false}
                     >
-                      <View
-                        style={
-                          [
-                            {
-                              "backgroundColor": "#3f434a66",
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                            },
-                            {
-                              "opacity": 0,
-                            },
-                          ]
-                        }
-                      >
-                        <TouchableOpacity
-                          onPress={[Function]}
-                          style={
-                            {
-                              "flex": 1,
-                            }
-                          }
-                        />
-                      </View>
-                      <View
-                        onLayout={[Function]}
-                        style={
-                          [
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                            },
-                            {
-                              "paddingBottom": 0,
-                            },
-                          ]
-                        }
-                      >
-                        <View
-                          collapsable={false}
-                          enabled={true}
-                          handlerTag={-1}
-                          handlerType="PanGestureHandler"
-                          onGestureHandlerEvent={[Function]}
-                          onGestureHandlerStateChange={[Function]}
-                          onLayout={[Function]}
-                          style={
-                            [
-                              {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
-                                "borderWidth": 1,
-                                "maxHeight": 1334,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
-                              },
-                              {
-                                "transform": [
-                                  {
-                                    "translateY": 1334,
-                                  },
-                                ],
-                              },
-                            ]
-                          }
+                      <BottomSheetHeader>
+                        <Text
+                          variant="HeadingMd"
                         >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
+                          Share device details with support
+                        </Text>
+                      </BottomSheetHeader>
+                      <Box
+                        twClassName="px-4 pb-4"
+                      >
+                        <Text
+                          twClassName="mb-6"
+                          variant="BodyMd"
+                        >
+                          Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.
+                        </Text>
+                        <Box
+                          twClassName="mb-6"
+                        >
+                          <TouchableOpacity
+                            isChecked={true}
+                            onPress={[Function]}
+                            testID="Checkbox"
                           >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "height": 32,
-                                "justifyContent": "space-between",
-                                "marginBottom": 8,
-                                "marginTop": 16,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Bold",
-                                  "fontSize": 18,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Token ID
+                            <Text>
+                              Save my preference
                             </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-end",
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                          </View>
-                          <View
+                          </TouchableOpacity>
+                        </Box>
+                        <Box
+                          alignItems="center"
+                          flexDirection="row"
+                          justifyContent="space-between"
+                          twClassName="gap-3"
+                        >
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            size="Lg"
                             style={
                               {
-                                "alignItems": "center",
-                                "paddingHorizontal": 16,
+                                "flex": 1,
                               }
                             }
+                            testID="Button"
+                            variant="Secondary"
                           >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
+                            <Text>
+                              Don't share
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            size="Lg"
+                            style={
+                              {
+                                "flex": 1,
                               }
-                            />
-                          </View>
-                        </View>
-                      </View>
-                    </View>
+                            }
+                            testID="Button"
+                            variant="Primary"
+                          >
+                            <Text>
+                              Confirm
+                            </Text>
+                          </TouchableOpacity>
+                        </Box>
+                      </Box>
+                    </BottomSheet>
                   </View>
                 </View>
               </View>

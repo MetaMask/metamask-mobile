@@ -22,7 +22,6 @@ import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings
 import { useSupportConsent } from '../../../hooks/useSupportConsent';
 import { isQa } from '../../../../util/test/utils';
 import { createStyles } from './index.styles';
-import SupportConsentSheet from '../../../UI/SupportConsentSheet';
 
 import foxImage from '../../../../images/branding/fox.png';
 
@@ -61,13 +60,10 @@ const AppInformation = ({ navigation }: AppInformationProps) => {
     [navigation],
   );
 
-  const {
-    showConsentSheet,
-    openSupportWebPage,
-    handleConsent,
-    handleDecline,
-    closeConsentSheet,
-  } = useSupportConsent(goTo, strings('drawer.metamask_support'));
+  const { openSupportWebPage } = useSupportConsent(
+    goTo,
+    strings('drawer.metamask_support'),
+  );
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -182,13 +178,6 @@ const AppInformation = ({ navigation }: AppInformationProps) => {
           </View>
         </ScrollView>
       </SafeAreaView>
-
-      <SupportConsentSheet
-        isVisible={showConsentSheet}
-        onConsent={handleConsent}
-        onDecline={handleDecline}
-        onClose={closeConsentSheet}
-      />
     </>
   );
 };

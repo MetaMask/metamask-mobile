@@ -1,6 +1,11 @@
-import React, { useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  ParamListBase,
+} from '@react-navigation/native';
 import {
   Box,
   Text,
@@ -14,7 +19,6 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { strings } from '../../../../locales/i18n';
@@ -23,28 +27,19 @@ import {
   setDataSharingPreference,
 } from '../../../actions/security';
 
-interface SupportConsentSheetProps {
-  isVisible: boolean;
-  onConsent: () => void;
-  onDecline: () => void;
-  onClose?: () => void;
+interface SupportConsentScreenParams {
+  onConsent?: () => void;
+  onDecline?: () => void;
 }
 
-const styles = StyleSheet.create({
-  button: {
-    flex: 1,
-  },
-});
-
-const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
-  isVisible,
-  onConsent,
-  onDecline,
-  onClose,
-}) => {
+const SupportConsentScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
+  const route = useRoute<RouteProp<ParamListBase, string>>();
   const [savePreference, setSavePreference] = useState(true);
+
+  const { onConsent, onDecline } =
+    (route.params as SupportConsentScreenParams) || {};
 
   const handleConsent = () => {
     if (savePreference) {
@@ -53,10 +48,7 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
       // Save that user wants to share data
       dispatch(setDataSharingPreference(true));
     }
-    onConsent();
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
-      // Empty callback to ensure the sheet closes
-    });
+    onConsent?.();
   };
 
   const handleDecline = () => {
@@ -66,22 +58,15 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
       // Save that user doesn't want to share data
       dispatch(setDataSharingPreference(false));
     }
-    onDecline();
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
-      // Empty callback to ensure the sheet closes
-    });
+    onDecline?.();
   };
 
-  if (!isVisible) {
-    return null;
-  }
+  const handleClose = () => {
+    navigation.goBack();
+  };
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={onClose}
-      shouldNavigateBack={false}
-    >
+    <BottomSheet onClose={handleClose} shouldNavigateBack={false}>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMd}>
           {strings('support_consent.title')}
@@ -111,7 +96,7 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             onPress={handleDecline}
-            style={styles.button}
+            style={{ flex: 1 }}
             label={strings('support_consent.decline')}
           />
 
@@ -119,7 +104,7 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             onPress={handleConsent}
-            style={styles.button}
+            style={{ flex: 1 }}
             label={strings('support_consent.consent')}
           />
         </Box>
@@ -128,4 +113,4 @@ const SupportConsentSheet: React.FC<SupportConsentSheetProps> = ({
   );
 };
 
-export default SupportConsentSheet;
+export default SupportConsentScreen;

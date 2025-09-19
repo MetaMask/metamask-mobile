@@ -365,7 +365,6 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,

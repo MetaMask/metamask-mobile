@@ -17,7 +17,6 @@ import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/Sn
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useSupportConsent } from '../../../components/hooks/useSupportConsent';
-import SupportConsentSheet from '../../../components/UI/SupportConsentSheet';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
@@ -151,13 +150,7 @@ const Settings = () => {
     });
   };
 
-  const {
-    showConsentSheet,
-    openSupportWebPage,
-    handleConsent,
-    handleDecline,
-    closeConsentSheet,
-  } = useSupportConsent(
+  const { openSupportWebPage } = useSupportConsent(
     goToBrowserUrl,
     strings('app_settings.contact_support'),
   );
@@ -361,13 +354,6 @@ const Settings = () => {
           titleColor={TextColor.Primary}
         />
       </ScrollView>
-
-      <SupportConsentSheet
-        isVisible={showConsentSheet}
-        onConsent={handleConsent}
-        onDecline={handleDecline}
-        onClose={closeConsentSheet}
-      />
     </>
   );
 };

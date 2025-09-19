@@ -17,6 +17,7 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
+import SupportConsentScreen from '../../../components/UI/SupportConsentScreen';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -545,6 +546,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}
       component={LearnMoreBottomSheet}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.SUPPORT_CONSENT_MODAL}
+      component={SupportConsentScreen}
+      options={{
+        presentation: 'modal',
+        gestureEnabled: true,
+      }}
     />
   </Stack.Navigator>
 );

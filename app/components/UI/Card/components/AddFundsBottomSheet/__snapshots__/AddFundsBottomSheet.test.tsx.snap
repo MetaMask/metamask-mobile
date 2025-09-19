@@ -366,7 +366,6 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -1178,7 +1177,6 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -1774,7 +1772,6 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,
@@ -2478,7 +2475,6 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                               "left": 0,
                               "position": "absolute",
                               "right": 0,
-                              "zIndex": 999999,
                             },
                             {
                               "paddingBottom": 0,

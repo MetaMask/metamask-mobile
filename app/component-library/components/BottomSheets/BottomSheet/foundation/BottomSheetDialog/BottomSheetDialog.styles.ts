@@ -30,7 +30,6 @@ const styleSheet = (params: {
       bottom: 0,
       left: 0,
       right: 0,
-      zIndex: 999999,
     } as ViewStyle) as ViewStyle,
     sheet: Object.assign(
       {

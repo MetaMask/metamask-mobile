@@ -41,7 +41,6 @@ import AppConstants from '../../../core/AppConstants';
 import { useSelector } from 'react-redux';
 import { isTest } from '../../../util/test/utils';
 import { useSupportConsent } from '../../hooks/useSupportConsent';
-import SupportConsentSheet from '../../UI/SupportConsentSheet';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -155,8 +154,10 @@ export const Fallback = (props) => {
     Linking.openURL(url);
   };
 
-  const { showConsentSheet, openSupportWebPage, handleConsent, handleDecline } =
-    useSupportConsent(goToBrowserUrl, strings('error_screen.contact_support'));
+  const { openSupportWebPage } = useSupportConsent(
+    goToBrowserUrl,
+    strings('error_screen.contact_support'),
+  );
 
   const handleContactSupport = () => openSupportWebPage();
 
@@ -386,12 +387,6 @@ export const Fallback = (props) => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-
-      <SupportConsentSheet
-        isVisible={showConsentSheet}
-        onConsent={handleConsent}
-        onDecline={handleDecline}
-      />
     </View>
   );
 };
