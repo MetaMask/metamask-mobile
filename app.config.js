@@ -27,6 +27,9 @@ module.exports = {
 
     'expo-apple-authentication',
   ],
+  android: {
+    package: 'io.metamask',
+  },
   ios: {
     usesAppleSignIn: true,
   },
