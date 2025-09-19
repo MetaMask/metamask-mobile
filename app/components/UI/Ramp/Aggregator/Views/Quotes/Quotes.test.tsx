@@ -90,7 +90,10 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   isSell: false,
   selectedAddress: '0x1234567890',
   selectedRegion: { id: 'mock-region-id' } as Region,
-  selectedAsset: { id: 'mock-asset-id' } as CryptoCurrency,
+  selectedAsset: {
+    id: 'mock-asset-id',
+    network: { chainId: '1' },
+  } as CryptoCurrency,
   selectedFiatCurrencyId: 'mock-fiat-currency-id',
 };
 
@@ -115,6 +118,7 @@ const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
   asset: {
     symbol: 'ETH',
+    network: { chainId: '1' },
   },
   fiatCurrency: {
     symbol: 'USD',
@@ -320,7 +324,7 @@ describe('Quotes', () => {
         "ONRAMP_QUOTES_EXPANDED",
         {
           "amount": 50,
-          "chain_id_destination": "1",
+          "chain_id_destination": "unknown",
           "currency_destination": "ETH",
           "currency_source": "USD",
           "payment_method_id": "/payment-methods/test-payment-method",
@@ -512,18 +516,18 @@ describe('Quotes', () => {
       };
       await simulateCustomActionCtaPress();
       expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
-        "ONRAMP_DIRECT_PROVIDER_CLICKED",
-        {
-          "chain_id_destination": "1",
-          "currency_destination": undefined,
-          "currency_source": "USD",
-          "payment_method_id": "/payment-methods/test-payment-method",
-          "provider_onramp": "Paypal (Staging)",
-          "region": "mock-region-id",
-        },
-      ]
-    `);
+        [
+          "ONRAMP_DIRECT_PROVIDER_CLICKED",
+          {
+            "chain_id_destination": "unknown",
+            "currency_destination": undefined,
+            "currency_source": "USD",
+            "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_onramp": "Paypal (Staging)",
+            "region": "mock-region-id",
+          },
+        ]
+      `);
     });
 
     it('calls the correct analytics event for sell custom action', async () => {
@@ -535,18 +539,18 @@ describe('Quotes', () => {
       };
       await simulateCustomActionCtaPress();
       expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
-        "OFFRAMP_DIRECT_PROVIDER_CLICKED",
-        {
-          "chain_id_source": "1",
-          "currency_destination": "USD",
-          "currency_source": undefined,
-          "payment_method_id": "/payment-methods/test-payment-method",
-          "provider_offramp": "Paypal (Staging)",
-          "region": "mock-region-id",
-        },
-      ]
-    `);
+        [
+          "OFFRAMP_DIRECT_PROVIDER_CLICKED",
+          {
+            "chain_id_source": "unknown",
+            "currency_destination": "USD",
+            "currency_source": undefined,
+            "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_offramp": "Paypal (Staging)",
+            "region": "mock-region-id",
+          },
+        ]
+      `);
     });
 
     it('calls the correct sdk method for buy custom action', async () => {
@@ -646,7 +650,7 @@ describe('Quotes', () => {
         "ONRAMP_PROVIDER_SELECTED",
         {
           "amount": 50,
-          "chain_id_destination": "1",
+          "chain_id_destination": "unknown",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
           "currency_source": "USD",
@@ -679,7 +683,7 @@ describe('Quotes', () => {
         "OFFRAMP_PROVIDER_SELECTED",
         {
           "amount": 50,
-          "chain_id_source": "1",
+          "chain_id_source": "unknown",
           "currency_destination": "USD",
           "currency_source": "ETH",
           "exchange_rate": 2809.8765432098767,
@@ -718,7 +722,7 @@ describe('Quotes', () => {
         "ONRAMP_PROVIDER_SELECTED",
         {
           "amount": 50,
-          "chain_id_destination": "1",
+          "chain_id_destination": "unknown",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
           "currency_source": "USD",
@@ -751,7 +755,7 @@ describe('Quotes', () => {
         "OFFRAMP_PROVIDER_SELECTED",
         {
           "amount": 50,
-          "chain_id_source": "1",
+          "chain_id_source": "unknown",
           "currency_destination": "USD",
           "currency_source": "ETH",
           "exchange_rate": 2809.8765432098767,
@@ -870,7 +874,7 @@ describe('Quotes', () => {
             "average_processing_fee": 2.89,
             "average_total_fee": 3.936666666666667,
             "average_total_fee_of_amount": 382.4978079068538,
-            "chain_id_destination": "1",
+            "chain_id_destination": "unknown",
             "currency_destination": "ETH",
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
@@ -924,7 +928,7 @@ describe('Quotes', () => {
             "average_processing_fee": 2.89,
             "average_total_fee": 3.936666666666667,
             "average_total_fee_of_amount": 382.4978079068538,
-            "chain_id_source": "1",
+            "chain_id_source": "unknown",
             "currency_destination": "USD",
             "currency_source": "ETH",
             "payment_method_id": "/payment-methods/test-payment-method",

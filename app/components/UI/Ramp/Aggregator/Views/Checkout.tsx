@@ -75,7 +75,7 @@ const CheckoutWebView = () => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: provider.name },
+        { title: provider.name, showNetwork: false },
         colors,
         handleCancelPress,
       ),
@@ -83,12 +83,12 @@ const CheckoutWebView = () => {
   }, [navigation, colors, handleCancelPress, provider.name]);
 
   useEffect(() => {
-    if (!customOrderId || !selectedAsset?.network?.chainId) {
+    if (!customOrderId) {
       return;
     }
     const customOrderIdData = createCustomOrderIdData(
       customOrderId,
-      selectedAsset.network.chainId,
+      selectedAsset?.network?.chainId,
       selectedAddress,
       isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );

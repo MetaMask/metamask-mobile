@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 import SelectorButton from '../../../../Base/SelectorButton';
@@ -13,10 +12,11 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 
 import { useAccountName } from '../../../../hooks/useAccountName';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { formatAddress } from '../../../../../util/address';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import { createAddressSelectorNavDetails } from '../../../../Views/AddressSelector/AddressSelector';
+import { useRampSDK } from '../sdk';
 
 const styles = StyleSheet.create({
   selector: {
@@ -31,14 +31,11 @@ const styles = StyleSheet.create({
 
 const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const navigation = useNavigation();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const { selectedAddress } = useRampSDK();
   const accountName = useAccountName();
+  const accountGroupName = useAccountGroupName();
 
-  const selectedFormattedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const displayName = accountGroupName || accountName;
 
   const openAccountSelector = useCallback(
     () =>
@@ -50,12 +47,9 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
     [isEvmOnly, navigation],
   );
 
-  const shortenedAddress = formatAddress(
-    selectedFormattedAddress || '',
-    'short',
-  );
+  const shortenedAddress = formatAddress(selectedAddress || '', 'full');
 
-  const displayedAddress = accountName
+  const displayedAddress = displayName
     ? `(${shortenedAddress})`
     : shortenedAddress;
 
@@ -65,7 +59,7 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
       style={styles.selector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
     >
-      {selectedAddress && selectedFormattedAddress ? (
+      {selectedAddress ? (
         <>
           <Avatar
             variant={AvatarVariant.Account}
@@ -76,9 +70,9 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
             variant={TextVariant.BodyMDMedium}
             style={styles.accountText}
             numberOfLines={1}
-            ellipsizeMode="middle"
+            ellipsizeMode="tail"
           >
-            {accountName} {displayedAddress}
+            {displayName} {displayedAddress}
           </Text>
         </>
       ) : (
