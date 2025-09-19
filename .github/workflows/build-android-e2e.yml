@@ -48,7 +48,7 @@ jobs:
           platform: android
           setup-simulator: false
           configure-keystores: true
-          target: ${{ inputs.metamask_environment }}
+          target: ${{ inputs.build_type }}
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
