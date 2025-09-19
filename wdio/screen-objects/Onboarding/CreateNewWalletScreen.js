@@ -70,8 +70,8 @@ class CreateNewWalletScreen {
           CREATE_PASSWORD_INPUT_FIRST_FIELD,
         );
       } else {
-        return  AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
-            
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');            
+
       }
     }
   }
