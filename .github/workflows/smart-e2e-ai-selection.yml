@@ -276,14 +276,15 @@ jobs:
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
 
-          <!-- smart-e2e-comment-id: ${{ github.event.pull_request.number }} -->
+          <!-- smart-e2e-comment-id: pr-${{ github.event.pull_request.number }} -->
           EOF
 
           # Delete any existing Smart E2E comments and create a new one
           echo "🔍 Checking for existing Smart E2E comments..."
 
-          # Get all existing comment IDs that contain our unique identifier
-          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("smart-e2e-comment-id:")) | .id' || echo "")
+          # Get all existing Smart E2E comment IDs for this PR (any previous workflow runs)
+          # Support both old format (19844) and new format (pr-19844)
+          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("smart-e2e-comment-id: pr-${{ github.event.pull_request.number }}")) | .id' || echo "")
 
           # Delete existing comments if any exist
           if [ -n "$EXISTING_COMMENTS" ]; then
@@ -291,7 +292,11 @@ jobs:
             echo "$EXISTING_COMMENTS" | while read -r comment_id; do
               if [ -n "$comment_id" ]; then
                 echo "Deleting comment: $comment_id"
-                gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" || echo "Failed to delete comment $comment_id"
+                if gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" 2>/dev/null; then
+                  echo "✅ Successfully deleted comment $comment_id"
+                else
+                  echo "⚠️ Could not delete comment $comment_id (may already be deleted)"
+                fi
               fi
             done
           else
@@ -524,14 +529,15 @@ jobs:
 
           _$STATUS_ICON [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Smart E2E AI Selection_
 
-          <!-- smart-e2e-comment-id: ${{ github.event.pull_request.number }} -->
+          <!-- smart-e2e-comment-id: pr-${{ github.event.pull_request.number }} -->
           EOF
 
           # Delete existing Smart E2E comment and create final results comment
           echo "🔍 Looking for existing Smart E2E comment to update..."
 
-          # Get existing comment ID using unique identifier
-          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("smart-e2e-comment-id:")) | .id' || echo "")
+          # Get existing Smart E2E comment IDs for this PR (any previous workflow runs)
+          # Support both old format (19844) and new format (pr-19844)
+          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("smart-e2e-comment-id: pr-${{ github.event.pull_request.number }}")) | .id' || echo "")
 
           # Delete existing comment if it exists
           if [ -n "$EXISTING_COMMENTS" ]; then
@@ -539,7 +545,11 @@ jobs:
             echo "$EXISTING_COMMENTS" | while read -r comment_id; do
               if [ -n "$comment_id" ]; then
                 echo "Deleting comment: $comment_id"
-                gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" || echo "Failed to delete comment $comment_id"
+                if gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" 2>/dev/null; then
+                  echo "✅ Successfully deleted comment $comment_id"
+                else
+                  echo "⚠️ Could not delete comment $comment_id (may already be deleted)"
+                fi
               fi
             done
           else
