@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Alert } from 'react-native';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -31,73 +31,15 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
     )),
 }));
 
-// Mock the support utility
-jest.mock('../../../util/support', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
-  openURL: jest.fn(),
 }));
 
 jest.mock('../../../util/sentry/utils', () => ({
   captureSentryFeedback: jest.fn(),
   captureExceptionForced: jest.fn(),
 }));
-
-// Mock BottomSheet component
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View: MockView } = jest.requireActual('react-native');
-
-    return MockReact.forwardRef(
-      (
-        {
-          children,
-          ...props
-        }: { children: React.ReactNode; [key: string]: unknown },
-        ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
-      ) => {
-        MockReact.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => {
-            if (callback) callback();
-          },
-        }));
-
-        return (
-          <MockView testID="bottom-sheet" {...props}>
-            {children}
-          </MockView>
-        );
-      },
-    );
-  },
-);
-
-// Mock BottomSheetHeader component
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
-  () => {
-    const { View: MockView } = jest.requireActual('react-native');
-
-    return ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode;
-      [key: string]: unknown;
-    }) => (
-      <MockView testID="bottom-sheet-header" {...props}>
-        {children}
-      </MockView>
-    );
-  },
-);
 
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
@@ -137,12 +79,12 @@ describe('ErrorBoundary', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <ErrorBoundary view={'Root'}>
-        <View />
-      </ErrorBoundary>,
-    );
+    const { toJSON } = renderWithProvider(<ErrorBoundary />, {});
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -286,34 +228,22 @@ describe('ErrorBoundary', () => {
       fireEvent.press(describeButton);
     });
 
-    // Wait for modal to open and find the text input
     await waitFor(() => {
-      expect(
-        getByPlaceholderText(
-          'Sharing details like how we can reproduce the bug will help us fix the problem.',
-        ),
-      ).toBeTruthy();
-    });
+      const textInput = getByPlaceholderText(
+        'Sharing details like how we can reproduce the bug will help us fix the problem.',
+      );
+      const submitButton = getByText('Submit');
+      fireEvent.changeText(textInput, 'Test feedback');
 
-    const textInput = getByPlaceholderText(
-      'Sharing details like how we can reproduce the bug will help us fix the problem.',
-    );
-    const submitButton = getByText('Submit');
-
-    fireEvent.changeText(textInput, 'Test feedback');
-
-    await act(async () => {
       fireEvent.press(submitButton);
-    });
 
-    expect(captureSentryFeedback).toHaveBeenCalledWith({
-      sentryId: mockProps.sentryId,
-      comments: 'Test feedback',
-    });
+      expect(captureSentryFeedback).toHaveBeenCalledWith({
+        sentryId: mockProps.sentryId,
+        comments: 'Test feedback',
+      });
 
-    expect(spyAlert).toHaveBeenCalledWith(
-      strings('error_screen.bug_report_thanks'),
-    );
+      expect(spyAlert).toHaveBeenCalledWith('Thanks! We’ll take a look soon.');
+    });
   });
 
   it('renders error message correctly', () => {

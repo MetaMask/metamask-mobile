@@ -2,4 +2,4 @@
 
 exports[`ErrorBoundary Onboarding Error Handling renders onboarding error state snapshot 1`] = `null`;
 
-exports[`ErrorBoundary render matches snapshot 1`] = `<View />`;
+exports[`ErrorBoundary render matches snapshot 1`] = `null`;

@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react';
+import React, { Component } from 'react';
 import {
   TouchableOpacity,
   View,
@@ -136,8 +136,8 @@ const createStyles = (colors) =>
 export const Fallback = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [feedback, setFeedback] = useState('');
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [feedback, setFeedback] = React.useState('');
   const isOnboardingError = Boolean(props.onboardingErrorConfig);
   const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,
@@ -146,12 +146,11 @@ export const Fallback = (props) => {
     isDataCollectionForMarketingEnabled && !isOnboardingError;
 
   const toggleModal = () => {
-    setModalVisible(!modalVisible);
+    setModalVisible((visible) => !visible);
+    setFeedback('');
   };
-
-  const handleContactSupport = () => {
-    Linking.openURL('https://support.metamask.io');
-  };
+  const handleContactSupport = () =>
+    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
 
   const handleTryAgain = () => DevSettings.reload();
 

@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   LayoutAnimation,
-  Linking,
 } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
@@ -60,19 +59,15 @@ const ReviewModal = () => {
     setShowHelpOptions(true);
   };
 
-  const goToBrowserUrl = useCallback(
-    async (url: string, title: string) => {
+  const openUrl = useCallback(
+    async (url: string) => {
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
-        params: { url, title },
+        params: { url },
       });
     },
     [navigation],
   );
-
-  const openSupportWebPage = useCallback(() => {
-    Linking.openURL('https://support.metamask.io');
-  }, []);
 
   const renderReviewContent = () => (
     <View style={styles.contentContainer}>
@@ -116,7 +111,7 @@ const ReviewModal = () => {
         <Text style={styles.description}>
           {strings('review_prompt.help_description_1')}
           <Text
-            onPress={openSupportWebPage}
+            onPress={() => openUrl(AppConstants.REVIEW_PROMPT.SUPPORT)}
             style={styles.contactLabel}
             suppressHighlighting
           >
@@ -126,7 +121,7 @@ const ReviewModal = () => {
         </Text>
         {helpOptions.map(({ label, link }, index) => {
           const key = `help-${index}`;
-          const onPress = () => goToBrowserUrl(link, label);
+          const onPress = () => openUrl(link);
           return (
             <TouchableOpacity key={key} onPress={onPress}>
               <Text style={[styles.optionLabel, styles.helpOption]}>
@@ -137,7 +132,7 @@ const ReviewModal = () => {
         })}
       </View>
     ),
-    [goToBrowserUrl, openSupportWebPage, styles],
+    [openUrl, styles],
   );
 
   const renderContent = () => {
