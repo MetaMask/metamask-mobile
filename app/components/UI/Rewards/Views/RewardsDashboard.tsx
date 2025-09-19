@@ -186,7 +186,7 @@ const RewardsDashboard: React.FC = () => {
 
             <Box flexDirection={BoxFlexDirection.Row}>
               <ButtonIcon
-                iconName={IconNameDS.UserCircle}
+                iconName={IconNameDS.UserCircleAdd}
                 size={ButtonIconSize.Lg}
                 disabled={!subscriptionId}
                 testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
