@@ -17,7 +17,7 @@ import PerpsTutorialScreen from '../../../../wdio/screen-objects/PerpsTutorialSc
 import PerpsMarketListView from '../../../../wdio/screen-objects/PerpsMarketListView.js';
 import PerpsTabView from '../../../../wdio/screen-objects/PerpsTabView.js';
 import PerpsDepositScreen from '../../../../wdio/screen-objects/PerpsDepositScreen.js';
-import { login } from '../../../utils/Flows.js';
+import { login, onboardingFlowImportSRP } from '../../../utils/Flows.js';
 
 async function screensSetup(device) {
   const screens = [
@@ -49,7 +49,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
 }, testInfo) => {
   await screensSetup(device);
 
-  await login(device, 'login', 120000);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
 
   await TabBarModal.tapActionButton();
 

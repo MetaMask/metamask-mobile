@@ -20,7 +20,7 @@ import CommonScreen from '../../../../wdio/screen-objects/CommonScreen.js';
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
-import { login } from '../../../utils/Flows.js';
+import { login, onboardingFlowImportSRP } from '../../../utils/Flows.js';
 
 test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -54,7 +54,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   CommonScreen.device = device;
   WalletActionModal.device = device;
 
-  await login(device, 'login', 120000);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);

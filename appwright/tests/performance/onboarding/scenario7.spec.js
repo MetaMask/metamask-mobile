@@ -12,7 +12,7 @@ import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
 import NetworkEducationModal from '../../../../wdio/screen-objects/Modals/NetworkEducationModal.js';
 import NetworksScreen from '../../../../wdio/screen-objects/NetworksScreen.js';
 import BridgeScreen from '../../../../wdio/screen-objects/BridgeScreen.js';
-import { login } from '../../../utils/Flows.js';
+import { login, onboardingFlowImportSRP } from '../../../utils/Flows.js';
 
 test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -32,7 +32,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   NetworksScreen.device = device;
   BridgeScreen.device = device;
 
-  await login(device, 'login', 120000);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
   // await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
 
   const timer1 = new TimerHelper(
