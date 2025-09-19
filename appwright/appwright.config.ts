@@ -20,7 +20,7 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch: '**/tests/performance/*/*.spec.js',
+      testMatch: '**/tests/performance/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -34,7 +34,7 @@ export default defineConfig({
     },
     {
       name: 'ios',
-      testMatch: '**/tests/performance/*/*.spec.js',
+      testMatch: '**/tests/performance/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -75,7 +75,7 @@ export default defineConfig({
     },
     {
       name: 'android-onboarding',
-      testMatch: '**/tests/performance/onboarding/*.spec.js',
+      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -89,7 +89,7 @@ export default defineConfig({
     },
     {
       name: 'ios-onboarding',
-      testMatch: '**/tests/performance/onboarding/*.spec.js',
+      testMatch: '**/tests/performance/onboarding/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
