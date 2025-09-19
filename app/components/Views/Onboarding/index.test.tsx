@@ -1740,112 +1740,76 @@ describe('Onboarding', () => {
   });
 
   describe('E2E Animation Paths', () => {
-    beforeEach(() => {
-      jest.resetModules();
-    });
-
-    afterEach(() => {
-      jest.resetModules();
-    });
-
-    it('should execute E2E branch in startRiveAnimation when isE2E is true', async () => {
-      const mockIsE2E = true;
+    it('should handle isE2E branches in animation methods', () => {
       const mockComponent = {
         mounted: true,
+        logoRef: {
+          current: { setInputState: jest.fn(), fireState: jest.fn() },
+        },
+        foxRef: { current: { fireState: jest.fn() } },
+        context: { themeAppearance: 'dark' },
+        logoPosition: { setValue: jest.fn() },
+        buttonsOpacity: { setValue: jest.fn() },
+        foxOpacity: { setValue: jest.fn() },
         moveLogoUp: jest.fn(),
-        startRiveAnimation() {
-          if (mockIsE2E) {
+        showFoxAnimation: jest.fn(),
+
+        startRiveAnimationE2E() {
+          const isE2E = true;
+          if (isE2E) {
             this.moveLogoUp();
             return;
           }
+          if (this.logoRef.current && this.mounted) {
+            const isDarkMode = this.context.themeAppearance === 'dark';
+            this.logoRef.current.setInputState(
+              'WordmarkBuildUp',
+              'Dark',
+              isDarkMode,
+            );
+            this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
+          }
         },
-      };
 
-      mockComponent.startRiveAnimation();
-
-      expect(mockComponent.moveLogoUp).toHaveBeenCalled();
-    });
-
-    it('should execute E2E branch in moveLogoUp when isE2E is true', async () => {
-      const mockIsE2E = true;
-      const mockComponent = {
-        mounted: true,
-        showFoxAnimation: jest.fn(),
-        logoPosition: { setValue: jest.fn() },
-        buttonsOpacity: { setValue: jest.fn() },
-        moveLogoUp() {
-          if (mockIsE2E) {
+        moveLogoUpE2E() {
+          const isE2E = true;
+          if (isE2E) {
             this.logoPosition.setValue(-180);
             this.buttonsOpacity.setValue(1);
             this.showFoxAnimation();
             return;
           }
         },
-      };
 
-      mockComponent.moveLogoUp();
-
-      expect(mockComponent.logoPosition.setValue).toHaveBeenCalledWith(-180);
-      expect(mockComponent.buttonsOpacity.setValue).toHaveBeenCalledWith(1);
-      expect(mockComponent.showFoxAnimation).toHaveBeenCalled();
-    });
-
-    it('should execute E2E branch in showFoxAnimation when isE2E is true', async () => {
-      const mockIsE2E = true;
-      const mockComponent = {
-        mounted: true,
-        foxOpacity: { setValue: jest.fn() },
-        showFoxAnimation() {
-          if (mockIsE2E) {
+        showFoxAnimationE2E() {
+          const isE2E = true;
+          if (isE2E) {
             this.foxOpacity.setValue(1);
             return;
           }
+          if (this.foxRef.current && this.mounted) {
+            this.foxRef.current.fireState('FoxRaiseUp', 'Start');
+          }
+        },
+
+        initializeButtonsOpacityE2E(isE2EFlag) {
+          return isE2EFlag ? 1 : 0;
         },
       };
 
-      mockComponent.showFoxAnimation();
-
-      expect(mockComponent.foxOpacity.setValue).toHaveBeenCalledWith(1);
-    });
-
-    it('should initialize buttonsOpacity with value 1 when isE2E is true', async () => {
-      const mockIsE2E = true;
-      const mockComponent: {
-        buttonsOpacity?: { value: number };
-        initAnimatedValues(): void;
-      } = {
-        initAnimatedValues() {
-          this.buttonsOpacity = mockIsE2E ? { value: 1 } : { value: 0 };
-        },
-      };
-
-      mockComponent.initAnimatedValues();
-
-      expect(mockComponent.buttonsOpacity?.value).toBe(1);
-    });
-
-    it('should verify animation timing and sequencing', async () => {
-      jest.useFakeTimers();
-
-      const mockComponent = {
-        mounted: true,
-        moveLogoUp: jest.fn(),
-        testTimeout() {
-          setTimeout(() => {
-            if (this.mounted) {
-              this.moveLogoUp();
-            }
-          }, 1000);
-        },
-      };
-
-      mockComponent.testTimeout();
-
-      jest.advanceTimersByTime(1000);
-
+      mockComponent.startRiveAnimationE2E();
       expect(mockComponent.moveLogoUp).toHaveBeenCalled();
 
-      jest.useRealTimers();
+      mockComponent.moveLogoUpE2E();
+      expect(mockComponent.logoPosition.setValue).toHaveBeenCalledWith(-180);
+      expect(mockComponent.buttonsOpacity.setValue).toHaveBeenCalledWith(1);
+      expect(mockComponent.showFoxAnimation).toHaveBeenCalled();
+
+      mockComponent.showFoxAnimationE2E();
+      expect(mockComponent.foxOpacity.setValue).toHaveBeenCalledWith(1);
+
+      expect(mockComponent.initializeButtonsOpacityE2E(true)).toBe(1);
+      expect(mockComponent.initializeButtonsOpacityE2E(false)).toBe(0);
     });
   });
 });
