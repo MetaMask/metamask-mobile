@@ -1,54 +1,54 @@
-import type { RootState } from '../../../../reducers';
-import {
-  renderHookWithProvider,
-  type DeepPartial,
-} from '../../../../util/test/renderWithProvider';
-import type { AccountState } from '../controllers/types';
-import { usePerpsAccount } from './usePerpsAccount';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import type { AccountState } from '../../controllers/types';
+import { usePerpsLiveAccount } from './usePerpsLiveAccount';
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-describe('usePerpsAccount', () => {
+// Mock PerpsStreamManager
+const mockSubscribe = jest.fn();
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    account: {
+      subscribe: mockSubscribe,
+    },
+  })),
+}));
+
+describe('usePerpsLiveAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('default state', () => {
-    it('should return null when PerpsController is undefined', () => {
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: undefined,
-          },
-        },
-      };
+    it('should return null account when PerpsController is undefined', () => {
+      // Mock the subscription to not call the callback (simulating no data)
+      mockSubscribe.mockImplementation(() => jest.fn());
 
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
       });
 
-      expect(result.current).toBeNull();
+      expect(result.current).toEqual({
+        account: null,
+        isInitialLoading: true,
+      });
     });
 
-    it('should return null when accountState is undefined', () => {
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: undefined,
-            },
-          },
-        },
-      };
+    it('should return null account when accountState is undefined', () => {
+      // Mock the subscription to not call the callback (simulating no data)
+      mockSubscribe.mockImplementation(() => jest.fn());
 
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
       });
 
-      expect(result.current).toBeNull();
+      expect(result.current).toEqual({
+        account: null,
+        isInitialLoading: true,
+      });
     });
   });
 
@@ -63,21 +63,20 @@ describe('usePerpsAccount', () => {
         totalValue: '5050',
       };
 
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: mockAccountState,
-            },
-          },
-        },
-      };
-
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      // Mock the subscription to immediately call the callback with the account data
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(mockAccountState);
+        return jest.fn();
       });
 
-      expect(result.current).toEqual(mockAccountState);
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current).toEqual({
+        account: mockAccountState,
+        isInitialLoading: false,
+      });
     });
 
     it('should handle zero balance account state', () => {
@@ -90,66 +89,63 @@ describe('usePerpsAccount', () => {
         totalValue: '0',
       };
 
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: mockAccountState,
-            },
-          },
-        },
-      };
-
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      // Mock the subscription to immediately call the callback with the account data
+      mockSubscribe.mockImplementation(({ callback }) => {
+        // Simulate immediate callback with account data
+        callback(mockAccountState);
+        return jest.fn(); // Return unsubscribe function
       });
 
-      expect(result.current).toEqual(mockAccountState);
-      expect(result.current?.availableBalance).toBe('0');
-      expect(result.current?.totalBalance).toBe('0');
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current).toEqual({
+        account: mockAccountState,
+        isInitialLoading: false,
+      });
+      expect(result.current?.account?.availableBalance).toBe('0');
+      expect(result.current?.account?.totalBalance).toBe('0');
     });
   });
 
   describe('partial state handling', () => {
     it('should handle partial account state', () => {
-      const partialAccountState: Partial<AccountState> = {
+      const partialAccountState: AccountState = {
         availableBalance: '100',
         totalBalance: '200',
-        // Missing marginUsed and unrealizedPnl
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '200',
       };
 
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: partialAccountState as AccountState,
-            },
-          },
-        },
-      };
-
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      // Mock the subscription to immediately call the callback with the account data
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(partialAccountState);
+        return jest.fn();
       });
 
-      expect(result.current?.availableBalance).toBe('100');
-      expect(result.current?.totalBalance).toBe('200');
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current?.account?.availableBalance).toBe('100');
+      expect(result.current?.account?.totalBalance).toBe('200');
     });
 
     it('should handle empty PerpsController state', () => {
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {},
-          },
-        },
-      };
+      // Mock the subscription to not call the callback (simulating no data)
+      mockSubscribe.mockImplementation(() => jest.fn());
 
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
       });
 
-      expect(result.current).toBeNull();
+      expect(result.current).toEqual({
+        account: null,
+        isInitialLoading: true,
+      });
     });
   });
 
@@ -164,22 +160,18 @@ describe('usePerpsAccount', () => {
         totalValue: '6500',
       };
 
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: positivePnlState,
-            },
-          },
-        },
-      };
-
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      // Mock the subscription to immediately call the callback with the account data
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(positivePnlState);
+        return jest.fn();
       });
 
-      expect(result.current?.unrealizedPnl).toBe('500');
-      expect(Number(result.current?.unrealizedPnl)).toBeGreaterThan(0);
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current?.account?.unrealizedPnl).toBe('500');
+      expect(Number(result.current?.account?.unrealizedPnl)).toBeGreaterThan(0);
     });
 
     it('should handle account with negative PnL', () => {
@@ -192,22 +184,18 @@ describe('usePerpsAccount', () => {
         totalValue: '4000',
       };
 
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: negativePnlState,
-            },
-          },
-        },
-      };
-
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      // Mock the subscription to immediately call the callback with the account data
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(negativePnlState);
+        return jest.fn();
       });
 
-      expect(result.current?.unrealizedPnl).toBe('-500');
-      expect(Number(result.current?.unrealizedPnl)).toBeLessThan(0);
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current?.account?.unrealizedPnl).toBe('-500');
+      expect(Number(result.current?.account?.unrealizedPnl)).toBeLessThan(0);
     });
 
     it('should handle account with high margin usage', () => {
@@ -220,23 +208,19 @@ describe('usePerpsAccount', () => {
         totalValue: '10000',
       };
 
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: highMarginState,
-            },
-          },
-        },
-      };
-
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      // Mock the subscription to immediately call the callback with the account data
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(highMarginState);
+        return jest.fn();
       });
 
-      expect(result.current?.marginUsed).toBe('9500');
-      expect(Number(result.current?.marginUsed)).toBe(9500);
-      expect(Number(result.current?.availableBalance)).toBe(500);
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current?.account?.marginUsed).toBe('9500');
+      expect(Number(result.current?.account?.marginUsed)).toBe(9500);
+      expect(Number(result.current?.account?.availableBalance)).toBe(500);
     });
 
     it('should handle account with no margin used', () => {
@@ -249,23 +233,19 @@ describe('usePerpsAccount', () => {
         totalValue: '10000',
       };
 
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: noMarginState,
-            },
-          },
-        },
-      };
-
-      const { result } = renderHookWithProvider(() => usePerpsAccount(), {
-        state,
+      // Mock the subscription to immediately call the callback with the account data
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(noMarginState);
+        return jest.fn();
       });
 
-      expect(result.current?.marginUsed).toBe('0');
-      expect(result.current?.availableBalance).toBe(
-        result.current?.totalBalance,
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current?.account?.marginUsed).toBe('0');
+      expect(result.current?.account?.availableBalance).toBe(
+        result.current?.account?.totalBalance,
       );
     });
   });
@@ -281,27 +261,23 @@ describe('usePerpsAccount', () => {
         totalValue: '1000',
       };
 
-      const state: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              accountState: mockAccountState,
-            },
-          },
-        },
-      };
+      // Mock the subscription to immediately call the callback with the account data
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(mockAccountState);
+        return jest.fn();
+      });
 
       const { result: result1 } = renderHookWithProvider(
-        () => usePerpsAccount(),
-        { state },
+        () => usePerpsLiveAccount(),
+        { state: {} },
       );
 
       const { result: result2 } = renderHookWithProvider(
-        () => usePerpsAccount(),
-        { state },
+        () => usePerpsLiveAccount(),
+        { state: {} },
       );
 
-      expect(result1.current).toBe(result2.current);
+      expect(result1.current).toStrictEqual(result2.current);
     });
   });
 });
