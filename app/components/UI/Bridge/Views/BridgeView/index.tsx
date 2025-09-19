@@ -37,7 +37,7 @@ import {
   selectIsSolanaSourced,
   selectBridgeViewMode,
   setBridgeViewMode,
-} from '../../../../../core/redux/slices/bridge';
+ selectNoFeeAssets } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
   useRoute,
@@ -113,6 +113,9 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
+  const noFeeDestAssets = useSelector((state: RootState) =>
+    selectNoFeeAssets(state, destToken?.chainId),
+  );
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -365,6 +368,10 @@ const BridgeView = () => {
       activeQuote &&
       new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0);
 
+    const isNoFeeDestinationAsset = noFeeDestAssets?.includes(
+      destToken?.address,
+    );
+
     return (
       activeQuote &&
       quotesLastFetched && (
@@ -384,15 +391,6 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
-          {hasFee ? (
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.disclaimerText}
-            >
-              {strings('bridge.fee_disclaimer')}
-            </Text>
-          ) : null}
           <Button
             variant={ButtonVariants.Primary}
             label={getButtonLabel()}
@@ -407,6 +405,26 @@ const BridgeView = () => {
               !hasSufficientGas
             }
           />
+          {hasFee ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.fee_disclaimer')}
+            </Text>
+          ) : null}
+          {!hasFee && isNoFeeDestinationAsset ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.no_mm_fee_disclaimer', {
+                destTokenSymbol: destToken?.symbol,
+              })}
+            </Text>
+          ) : null}
           {activeQuote?.approval && sourceAmount && sourceToken && (
             <ApprovalText amount={sourceAmount} symbol={sourceToken.symbol} />
           )}
