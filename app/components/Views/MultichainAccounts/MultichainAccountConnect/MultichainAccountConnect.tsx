@@ -233,20 +233,21 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       };
     }
 
-    const requestedAccountGroupsIncludesSelectedAccountGroup =
+    const selectedAccountGroupExcludesRequestedAccounts =
+      requestedCaipAccountIds.length > 0 &&
       !selectedAccountGroupWithInternalAccounts?.accounts?.some((account) =>
         isInternalAccountInPermittedAccountIds(
           account,
           requestedCaipAccountIds,
         ),
-      ); // If the selected account group is not included in the requested account groups, we need to add it to the list.
+      ); // If the selected account group does not include any requested accounts, we need to show more account groups
 
     // if there are no connected account groups, show the first supported account group
     const selectedAndRequestedAccountGroups = supportedAccountGroups.slice(
       0,
-      requestedAccountGroupsIncludesSelectedAccountGroup
-        ? requestedCaipAccountIds.length
-        : 0,
+      selectedAccountGroupExcludesRequestedAccounts
+        ? requestedCaipAccountIds.length + 1
+        : requestedCaipAccountIds.length,
     );
 
     return {
