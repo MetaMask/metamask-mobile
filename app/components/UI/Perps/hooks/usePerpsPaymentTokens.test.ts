@@ -10,6 +10,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../Bridge/hooks/useTokensWithBalance');
 jest.mock('../utils/tokenIconUtils');
 jest.mock('./index');
+jest.mock('./stream');
 jest.mock('../../../../selectors/networkController');
 jest.mock('../../../../selectors/tokenListController');
 jest.mock('../../../../selectors/preferencesController');
@@ -39,7 +40,8 @@ const mockUseTokensWithBalance = jest.requireMock(
   '../../Bridge/hooks/useTokensWithBalance',
 );
 const mockEnhanceTokenWithIcon = jest.requireMock('../utils/tokenIconUtils');
-const mockUsePerpsAccount = jest.requireMock('./index').usePerpsAccount;
+const mockUsePerpsLiveAccount =
+  jest.requireMock('./stream').usePerpsLiveAccount;
 const mockUsePerpsNetwork = jest.requireMock('./index').usePerpsNetwork;
 
 describe('usePerpsPaymentTokens', () => {
@@ -115,7 +117,7 @@ describe('usePerpsPaymentTokens', () => {
     mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue(
       mockTokensWithBalance,
     );
-    mockUsePerpsAccount.mockReturnValue(mockAccountState);
+    mockUsePerpsLiveAccount.mockReturnValue({ account: mockAccountState });
     mockUsePerpsNetwork.mockReturnValue('mainnet');
     mockEnhanceTokenWithIcon.enhanceTokenWithIcon.mockImplementation(
       ({ token }: { token: BridgeToken }) => ({
@@ -307,7 +309,11 @@ describe('usePerpsPaymentTokens', () => {
         availableBalance: '0',
       };
 
-      mockUsePerpsAccount.mockReturnValue(zeroBalanceAccountState);
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: zeroBalanceAccountState,
+        isLoading: false,
+        error: null,
+      });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
@@ -317,7 +323,11 @@ describe('usePerpsPaymentTokens', () => {
     });
 
     it('should handle null account state', () => {
-      mockUsePerpsAccount.mockReturnValue(null);
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isLoading: false,
+        error: null,
+      });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
