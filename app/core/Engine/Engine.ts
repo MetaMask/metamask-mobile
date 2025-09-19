@@ -220,6 +220,7 @@ import {
   onRpcEndpointDegraded,
   onRpcEndpointUnavailable,
 } from './controllers/network-controller/messenger-action-handlers';
+import { monitorNetworkInitialization } from './controllers/network-controller/monitor-network-initialization';
 import { INFURA_PROJECT_ID } from '../../constants/network';
 import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
@@ -1279,6 +1280,17 @@ export class Engine {
     const networkEnablementController =
       controllersByName.NetworkEnablementController;
     networkEnablementController.init();
+
+    monitorNetworkInitialization({
+      networkController,
+      networkEnablementController,
+      trackEvent: ({ event, properties }) => {
+        const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
+          .build();
+        MetaMetrics.getInstance().trackEvent(metricsEvent);
+      },
+    });
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
