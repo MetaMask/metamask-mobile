@@ -258,7 +258,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Create AI analysis comment
+          # Create AI analysis comment with unique identifier
           cat > pr_comment.md << EOF
           ## 🤖 Smart E2E Test Analysis
 
@@ -275,13 +275,15 @@ jobs:
           ${{ needs.analyze-and-plan.outputs.breakdown || '(No breakdown available)' }}
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
+
+          <!-- smart-e2e-comment-id: ${{ github.run_id }} -->
           EOF
 
           # Delete any existing Smart E2E comments and create a new one
           echo "🔍 Checking for existing Smart E2E comments..."
 
-          # Get all existing comment IDs that contain our marker
-          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("🤖 Smart E2E Test Analysis")) | .id' || echo "")
+          # Get all existing comment IDs that contain our unique identifier
+          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("smart-e2e-comment-id:")) | .id' || echo "")
 
           # Delete existing comments if any exist
           if [ -n "$EXISTING_COMMENTS" ]; then
@@ -292,6 +294,8 @@ jobs:
                 gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" || echo "Failed to delete comment $comment_id"
               fi
             done
+          else
+            echo "ℹ️ No existing Smart E2E comments found"
           fi
 
           # Always create a fresh comment
@@ -483,29 +487,51 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Generate status icon based on results
+          IOS_RESULT="${{ needs.ios-smart-tests.result || 'skipped' }}"
+          ANDROID_RESULT="${{ needs.android-smart-tests.result || 'skipped' }}"
+
+          # Determine overall status
+          if [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
+            STATUS_ICON="❌"
+            STATUS_TEXT="Failed"
+          elif [[ "$IOS_RESULT" == "cancelled" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
+            STATUS_ICON="⏸️"
+            STATUS_TEXT="Cancelled"
+          elif [[ "$IOS_RESULT" == "success" ]] || [[ "$ANDROID_RESULT" == "success" ]]; then
+            STATUS_ICON="✅"
+            STATUS_TEXT="Completed"
+          else
+            STATUS_ICON="🔄"
+            STATUS_TEXT="Completed"
+          fi
+
           # Update the existing comment with final results
           cat > pr_comment_final.md << EOF
-          ## 🤖 Smart E2E Test Analysis ✅
+          ## 🤖 Smart E2E Test Analysis $STATUS_ICON
 
           **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
 
           **Final Results:**
-          - **iOS Jobs:** ${{ needs.platform-conditions.outputs.actual-ios-jobs }} (Result: ${{ needs.ios-smart-tests.result || 'skipped' }})
-          - **Android Jobs:** ${{ needs.platform-conditions.outputs.actual-android-jobs }} (Result: ${{ needs.android-smart-tests.result || 'skipped' }})
+          - **iOS Jobs:** ${{ needs.platform-conditions.outputs.actual-ios-jobs }} (Result: $IOS_RESULT)
+          - **Android Jobs:** ${{ needs.platform-conditions.outputs.actual-android-jobs }} (Result: $ANDROID_RESULT)
           - **Total CI Jobs:** ${{ needs.platform-conditions.outputs.actual-total-jobs }}
+          - **Overall Status:** $STATUS_TEXT
 
           **Platform Configuration:**
           - iOS enabled: ${{ needs.platform-conditions.outputs.should-build-ios }}
           - Android enabled: ${{ needs.platform-conditions.outputs.should-build-android }}
 
-          _✅ [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Smart E2E AI Selection_
+          _$STATUS_ICON [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Smart E2E AI Selection_
+
+          <!-- smart-e2e-comment-id: ${{ github.run_id }} -->
           EOF
 
           # Delete existing Smart E2E comment and create final results comment
           echo "🔍 Looking for existing Smart E2E comment to update..."
 
-          # Get existing comment ID
-          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("🤖 Smart E2E Test Analysis")) | .id' || echo "")
+          # Get existing comment ID using unique identifier
+          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("smart-e2e-comment-id:")) | .id' || echo "")
 
           # Delete existing comment if it exists
           if [ -n "$EXISTING_COMMENTS" ]; then
@@ -516,6 +542,8 @@ jobs:
                 gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" || echo "Failed to delete comment $comment_id"
               fi
             done
+          else
+            echo "ℹ️ No existing Smart E2E comment found to replace"
           fi
 
           # Create final results comment
