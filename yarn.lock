@@ -4895,10 +4895,10 @@
     "@metamask/keyring-utils" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.16.0":
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.16.0.tgz#42f17e76c38145727060d1162cd34e9cc7a323e9"
-  integrity sha512-Mzoy0F82mnRN+KyopysHRVGbVUbeMe/2g9efhklkRAetQuvwKG0oXDAR7b4FhGAXGN0jU3vu+Z06zSDTO9iBXw==
+"@metamask/account-tree-controller@^0.16.1":
+  version "0.16.1"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.16.1.tgz#7dbbaad53d78d56ccb521e92c5000af59ab43abf"
+  integrity sha512-vWvgXNjpX1egLRSc8pekbs9MltRTdeky74JGsFtqBdzLvJ8haeJmHVd80EgrDeePOvo1I+FXzUSjiGZ+c44ENA==
   dependencies:
     "@metamask/base-controller" "^8.4.0"
     "@metamask/snaps-sdk" "^9.0.0"

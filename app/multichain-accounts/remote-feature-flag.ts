@@ -1,6 +1,5 @@
 import compareVersions from 'compare-versions';
 import packageJson from '../../package.json';
-import { isProduction } from '../util/environment';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import Engine from '../core/Engine';
 
@@ -14,9 +13,8 @@ export interface MultichainAccountsFeatureFlag {
 }
 
 const APP_VERSION = packageJson.version;
-const enabledMultichainAccountsState2Local =
-  process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true' &&
-  !isProduction();
+const enableMultichainAccountsState2Local =
+  process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2;
 
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';
@@ -50,12 +48,11 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
   featureVersionsToCheck: string[],
 ) => {
   // Overrides the multichain accounts state 2 enabled flag based on the feature versions.
-  // This is used to enable the feature locally for development/testing purposes.
   if (
-    enabledMultichainAccountsState2Local &&
+    enableMultichainAccountsState2Local !== undefined &&
     featureVersionsToCheck.includes(MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2)
   ) {
-    return true;
+    return enableMultichainAccountsState2Local === 'true';
   }
 
   const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;

@@ -14,6 +14,15 @@ import {
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
+const mockSetSelectedAccountGroup = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AccountTreeController: {
+      setSelectedAccountGroup: (id: string) => mockSetSelectedAccountGroup(id),
+    },
+  },
+}));
+
 jest.mock('../../../../selectors/assets/balances', () => {
   const actual = jest.requireActual('../../../../selectors/assets/balances');
   return {
@@ -26,6 +35,10 @@ jest.mock('../../../../selectors/assets/balances', () => {
     }),
   };
 });
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -88,7 +101,7 @@ const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
 
 describe('MultichainAccountsConnectedList', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('renders component with different account group configurations', () => {
@@ -275,6 +288,42 @@ describe('MultichainAccountsConnectedList', () => {
 
       expect(() => fireEvent.press(editButton)).toThrow('Test error');
       expect(mockHandleEditWithError).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('handleSelectAccount functionality', () => {
+    it('calls setSelectedAccountGroup when account is selected', () => {
+      const { getByText } = renderMultichainAccountsConnectedList();
+
+      const accountCell = getByText('Account 1');
+
+      fireEvent.press(accountCell);
+
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(1);
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith(
+        'keyring:test-group/group-1',
+      );
+    });
+
+    it('calls setSelectedAccountGroup with correct account ID for different accounts', () => {
+      const { getByText } = renderMultichainAccountsConnectedList();
+
+      const account1Cell = getByText('Account 1');
+      const account2Cell = getByText('Account 2');
+
+      fireEvent.press(account1Cell);
+
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith(
+        'keyring:test-group/group-1',
+      );
+
+      fireEvent.press(account2Cell);
+
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith(
+        'keyring:test-group/group-2',
+      );
+
+      expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(2);
     });
   });
 });
