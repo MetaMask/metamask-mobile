@@ -26,7 +26,6 @@ export const NetworkAndOriginRow = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const signatureRequest = useSignatureRequest();
 
-  // Get chain ID from either transaction or signature request
   const chainId = transactionMetadata?.chainId || signatureRequest?.chainId;
   const origin =
     transactionMetadata?.origin || signatureRequest?.messageParams?.origin;
