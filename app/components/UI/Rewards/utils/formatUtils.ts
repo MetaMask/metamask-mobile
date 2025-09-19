@@ -122,10 +122,12 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
 /**
  * Formats an event details
  * @param event - The event
+ * @param accountName - Optional account name to display for bonus events
  * @returns The event details
  */
 export const getEventDetails = (
   event: PointsEventDto,
+  accountName: string | undefined,
 ): {
   title: string;
   details: string | undefined;
@@ -157,14 +159,14 @@ export const getEventDetails = (
     case 'SIGN_UP_BONUS':
       return {
         title: strings('rewards.events.type.sign_up_bonus'),
-        details: undefined,
+        details: accountName,
         icon: IconName.Edit,
         badgeImageUri: undefined,
       };
     case 'LOYALTY_BONUS':
       return {
         title: strings('rewards.events.type.loyalty_bonus'),
-        details: undefined, // TODO: Missing data
+        details: accountName,
         icon: IconName.ThumbUp,
         badgeImageUri: undefined,
       };
