@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NativeSyntheticEvent, View , TextLayoutEventData } from 'react-native';
+import { NativeSyntheticEvent, View, TextLayoutEventData } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
