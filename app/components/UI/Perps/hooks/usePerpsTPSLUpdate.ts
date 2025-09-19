@@ -1,18 +1,10 @@
-import { useCallback, useContext, useState } from 'react';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
 import type { Position } from '../controllers/types';
 import { captureException } from '@sentry/react-native';
+import usePerpsToasts from './usePerpsToasts';
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -25,10 +17,10 @@ interface UseTPSLUpdateOptions {
  * @returns handleUpdateTPSL function and loading state
  */
 export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
-  const toastContext = useContext(ToastContext);
-  const toastRef = toastContext?.toastRef;
   const { updatePositionTPSL } = usePerpsTrading();
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleUpdateTPSL = useCallback(
     async (
@@ -49,53 +41,20 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         if (result.success) {
           DevLogger.log('Position TP/SL updated successfully:', result);
 
-          // Show success toast
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            labelOptions: [
-              {
-                label: strings('perps.position.tpsl.update_success'),
-                isBold: true,
-              },
-              { label: ' - ', isBold: false },
-              {
-                label: position.coin,
-                isBold: true,
-              },
-            ],
-            iconName: IconName.CheckBold,
-            iconColor: IconColor.Success,
-            hasNoTimeout: false,
-          });
+          showToast(
+            PerpsToastOptions.positionManagement.tpsl.updateTPSLSuccess,
+          );
 
           // Call success callback if provided
           options?.onSuccess?.();
         } else {
           DevLogger.log('Failed to update position TP/SL:', result.error);
 
-          // Show error toast
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Icon,
-            labelOptions: [
-              {
-                label: strings('perps.position.tpsl.update_failed'),
-                isBold: true,
-              },
-              { label: ': ', isBold: false },
-              {
-                label: result.error || strings('perps.errors.unknown'),
-                isBold: false,
-              },
-            ],
-            iconName: IconName.Error,
-            iconColor: IconColor.Error,
-            hasNoTimeout: true,
-            closeButtonOptions: {
-              label: strings('perps.order.error.dismiss'),
-              variant: ButtonVariants.Secondary,
-              onPress: () => toastRef?.current?.closeToast(),
-            },
-          });
+          showToast(
+            PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+              result.error,
+            ),
+          );
 
           // Call error callback if provided
           options?.onError?.(result.error || strings('perps.errors.unknown'));
@@ -131,29 +90,11 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
             ? error.message
             : strings('perps.errors.unknown');
 
-        // Show error toast
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('perps.position.tpsl.update_error'),
-              isBold: true,
-            },
-            { label: ': ', isBold: false },
-            {
-              label: errorMessage,
-              isBold: false,
-            },
-          ],
-          iconName: IconName.Error,
-          iconColor: IconColor.Error,
-          hasNoTimeout: true,
-          closeButtonOptions: {
-            label: strings('perps.order.error.dismiss'),
-            variant: ButtonVariants.Secondary,
-            onPress: () => toastRef?.current?.closeToast(),
-          },
-        });
+        showToast(
+          PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+            errorMessage,
+          ),
+        );
 
         // Call error callback if provided
         options?.onError?.(errorMessage);
@@ -162,7 +103,12 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         setIsUpdating(false);
       }
     },
-    [updatePositionTPSL, toastRef, options],
+    [
+      updatePositionTPSL,
+      showToast,
+      PerpsToastOptions.positionManagement.tpsl,
+      options,
+    ],
   );
 
   return { handleUpdateTPSL, isUpdating };
