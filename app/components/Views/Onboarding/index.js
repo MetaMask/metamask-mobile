@@ -48,6 +48,7 @@ import {
   endTrace,
   trace,
   hasMetricsConsent,
+  discardBufferedTraces,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -539,6 +540,7 @@ class Onboarding extends PureComponent {
 
     // Enable metrics for OAuth users
     await this.props.metrics.enableSocialLogin(true);
+    await discardBufferedTraces();
     await setupSentry();
 
     // use new trace instead of buffered trace for social login
@@ -562,6 +564,7 @@ class Onboarding extends PureComponent {
       name: TraceName.OnboardingSocialLoginAttempt,
       op: TraceOperation.OnboardingUserJourney,
       tags: { ...getTraceTags(store.getState()), provider },
+      parentContext: this.onboardingTraceCtx,
     });
 
     const action = async () => {
