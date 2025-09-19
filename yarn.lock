@@ -4895,10 +4895,10 @@
     "@metamask/keyring-utils" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.16.1":
-  version "0.16.1"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.16.1.tgz#7dbbaad53d78d56ccb521e92c5000af59ab43abf"
-  integrity sha512-vWvgXNjpX1egLRSc8pekbs9MltRTdeky74JGsFtqBdzLvJ8haeJmHVd80EgrDeePOvo1I+FXzUSjiGZ+c44ENA==
+"@metamask/account-tree-controller@^0.18.0":
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.18.0.tgz#5cd1dad79871a94bdf8c751305467484dfac3a5e"
+  integrity sha512-VN4bpoVzLI4zM9xMTudwv7o3CcMZPDN5XSwNmOGwu40bUisT3xIYlB+5G2jSjfMCAWqGLfy7+bBD1+x71WxcoA==
   dependencies:
     "@metamask/base-controller" "^8.4.0"
     "@metamask/snaps-sdk" "^9.0.0"
@@ -5657,11 +5657,12 @@
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
-"@metamask/multichain-account-service@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.9.0.tgz#364af6e83c4682bf99342a71435a8c62f7e1aff3"
-  integrity sha512-hmsq9TgdNLSQ/CM4DJdAb1uPXggjOuQpERcdEx7l50PfIZpsI9R5dJogUYIQC9VNmx30ZQpuZ2Ul2hEYEIgH3A==
+"@metamask/multichain-account-service@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.10.0.tgz#b01785b336d3cb91b34fef7da21e7c91fc56cbb2"
+  integrity sha512-UcUjPX2NNv99TLnrobxyBNC8AyP6U82OaAQq/mnOetYQNuk42KhxOVn/Fp7aj9HB8w7ChG2vX4C7PXB03q+tJw==
   dependencies:
+    "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.4.0"
     "@metamask/eth-snap-keyring" "^17.0.0"
     "@metamask/key-tree" "^10.1.1"
