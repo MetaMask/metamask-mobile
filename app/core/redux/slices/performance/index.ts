@@ -59,9 +59,6 @@ const slice = createSlice({
         environment?: PerformanceState['environment'];
       }>,
     ) => {
-      // if (!isTest) {
-      //   return;
-      // }
       // Initialize session if not already initialized
       if (!state.isInitialized) {
         const { environment } = action.payload;
@@ -89,9 +86,6 @@ const slice = createSlice({
         additionalMetadata?: Record<string, unknown>;
       }>,
     ) => {
-      // if (!isTest) {
-      //   return;
-      // }
       const { eventName, additionalMetadata = {} } = action.payload;
       const activeTrace = state.activeTraceBySessionId[eventName];
 

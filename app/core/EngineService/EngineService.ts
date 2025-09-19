@@ -63,7 +63,7 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
-    // Start Engine rehydration perf trace before reading from storage
+    // Start Engine rehydration perf trace before reading from filesystem
     ReduxService.store.dispatch(
       startPerformanceTrace({
         eventName: PerformanceEventNames.EngineRehydrate,
@@ -92,7 +92,7 @@ export class EngineService {
       this.updateControllers(Engine as unknown as TypedEngine);
 
       setupEnginePersistence();
-      // End Engine rehydration perf trace after initial init completes
+      // End Engine rehydration perf trace after initial Redux INIT_BG_STATE dispatch flushes
       ReduxService.store.dispatch(
         endPerformanceTrace({
           eventName: PerformanceEventNames.EngineRehydrate,

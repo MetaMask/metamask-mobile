@@ -28,28 +28,36 @@ const PerformanceMetricsPanel: React.FC = () => {
   const metrics = useSelector(selectPerformanceMetrics);
   const session = useSelector(selectPerformanceSession);
 
+
   const metricsNormalized = useMemo(() => metrics ?? [], [metrics]);
 
   const rows = useMemo(
     () =>
-      [...metricsNormalized].reverse().slice(0, 50).map((m, idx) => (
-        <Box
-          key={`${m.eventName}-${m.timestamp}-${idx}`}
-          twClassName="flex-row items-center justify-between px-3 py-2 border-b border-muted"
-        >
+      [...metricsNormalized]
+        .reverse()
+        .slice(0, 50)
+        .map((m, idx) => (
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            key={`${m.eventName}-${m.timestamp}-${idx}`}
+            twClassName="flex-row items-center justify-between px-3 py-2 border-b border-muted"
           >
-            <Text variant={TextVariant.BodySm}>{formatTime(m.timestamp)}</Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-2"
+            >
+              <Text variant={TextVariant.BodySm}>
+                {formatTime(m.timestamp)}
+              </Text>
+            </Box>
+            <Box twClassName="flex-1 px-3">
+              <Text variant={TextVariant.BodySm}>{m.eventName}</Text>
+            </Box>
+            <Text variant={TextVariant.BodySm}>
+              {formatDuration(m.duration)}
+            </Text>
           </Box>
-          <Box twClassName="flex-1 px-3">
-            <Text variant={TextVariant.BodySm}>{m.eventName}</Text>
-          </Box>
-          <Text variant={TextVariant.BodySm}>{formatDuration(m.duration)}</Text>
-        </Box>
-      )),
+        )),
     [metricsNormalized],
   );
 
