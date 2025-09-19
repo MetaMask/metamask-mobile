@@ -18,12 +18,12 @@ on:
     inputs:
       build_type:
         description: 'The type of build to perform'
-        required: true
+        required: false
         default: 'main'
         type: string
       metamask_environment:
         description: 'The environment to build for'
-        required: true
+        required: false
         default: 'e2e'
         type: string
 

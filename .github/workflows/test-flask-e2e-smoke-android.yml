@@ -1,0 +1,38 @@
+name: Android Flask E2E Smoke Tests Workflow
+
+on:
+  pull_request:
+    types: [labeled, opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+
+jobs:
+  needs_e2e_build:
+    name: "Detect Mobile Build Changes"
+    if: ${{ github.event_name != 'merge_group' }}
+    uses: ./.github/workflows/needs-e2e-build.yml
+
+  build-android-flask-apps:
+    name: "Build Android Flask Apps"
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'flask'
+      metamask_environment: 'e2e'
+    secrets: inherit
+  
+  e2e-smoke-tests-android:
+    name: "Android Flask E2E Smoke Tests"
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-flask-apps]
+    uses: ./.github/workflows/run-e2e-flask-smoke-tests-android.yml
+    secrets: inherit
