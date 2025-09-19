@@ -12,6 +12,7 @@ import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccoun
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import { getPasswordForScenario } from '../../utils/TestConstants.js';
+// Device Matrix
 
 test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,
