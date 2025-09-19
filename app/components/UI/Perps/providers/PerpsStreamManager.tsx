@@ -132,8 +132,8 @@ abstract class StreamChannel<T> {
     // Clear the cache
     this.cache.clear();
 
-    // Notify subscribers with null to trigger loading state
-    // This is different from empty array which means "no positions"
+    // Notify subscribers with cleared data to trigger loading state
+    // Using getClearedData() ensures type safety while maintaining loading semantics
     this.subscribers.forEach((subscriber) => {
       // Clear any pending updates and timers
       if (subscriber.timer) {
@@ -141,8 +141,8 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
-      // Send null to indicate "no data yet" (loading), not "empty data"
-      subscriber.callback(null as unknown as T);
+      // Send cleared data to indicate "no data yet" (loading state)
+      subscriber.callback(this.getClearedData());
     });
 
     // If we have active subscribers, they'll trigger reconnect in their next render
