@@ -16,6 +16,7 @@ import {
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
+import TEST_ADDRESS from '../../../../constants/address';
 
 const mockGetTimeDifferenceFromNow =
   getTimeDifferenceFromNow as jest.MockedFunction<
@@ -99,7 +100,7 @@ describe('formatUtils', () => {
         timestamp: new Date('2024-01-15T14:30:00Z'),
         value: 100,
         bonus: null,
-        accountAddress: null,
+        accountAddress: TEST_ADDRESS,
       };
 
       switch (type) {
@@ -143,7 +144,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return swap details
         expect(result).toEqual({
@@ -169,7 +170,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -193,7 +194,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -216,7 +217,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -239,7 +240,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -262,7 +263,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return perps details
         expect(result).toEqual({
@@ -285,7 +286,7 @@ describe('formatUtils', () => {
         });
 
         // When getting event details
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         // Then it should return undefined details
         expect(result).toEqual({
@@ -307,7 +308,7 @@ describe('formatUtils', () => {
           },
         });
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Opened position',
@@ -321,7 +322,7 @@ describe('formatUtils', () => {
       it('returns correct details for REFERRAL event', () => {
         const event = createMockEvent('REFERRAL');
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Referral action',
@@ -335,7 +336,19 @@ describe('formatUtils', () => {
       it('returns correct details for SIGN_UP_BONUS event', () => {
         const event = createMockEvent('SIGN_UP_BONUS');
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        expect(result).toEqual({
+          title: 'Sign up bonus',
+          details: TEST_ADDRESS,
+          icon: IconName.Edit,
+        });
+      });
+
+      it('returns empty details when account name is not provided', () => {
+        const event = createMockEvent('SIGN_UP_BONUS');
+
+        const result = getEventDetails(event, undefined);
 
         expect(result).toEqual({
           title: 'Sign up bonus',
@@ -349,11 +362,11 @@ describe('formatUtils', () => {
       it('returns correct details for LOYALTY_BONUS event', () => {
         const event = createMockEvent('LOYALTY_BONUS');
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Loyalty bonus',
-          details: undefined,
+          details: TEST_ADDRESS,
           icon: IconName.ThumbUp,
         });
       });
@@ -363,7 +376,7 @@ describe('formatUtils', () => {
       it('returns correct details for ONE_TIME_BONUS event', () => {
         const event = createMockEvent('ONE_TIME_BONUS');
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'One-time bonus',
@@ -377,7 +390,7 @@ describe('formatUtils', () => {
       it('returns uncategorized event details for unknown type', () => {
         const event = createMockEvent('UNKNOWN_TYPE' as PointsEventDto['type']);
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Uncategorized event',
@@ -400,7 +413,7 @@ describe('formatUtils', () => {
           },
         });
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Opened position',
@@ -421,7 +434,7 @@ describe('formatUtils', () => {
           },
         });
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Opened position',
@@ -442,7 +455,7 @@ describe('formatUtils', () => {
           },
         });
 
-        const result = getEventDetails(event);
+        const result = getEventDetails(event, TEST_ADDRESS);
 
         expect(result).toEqual({
           title: 'Opened position',

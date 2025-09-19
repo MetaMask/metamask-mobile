@@ -1684,10 +1684,8 @@ const initializeController = async (
           txHash: mockTxHash,
         });
         expect(controller.state.depositInProgress).toBe(false);
-        // Transaction ID should still be stored
-        expect(controller.state.lastDepositTransactionId).toBe(
-          'deposit-tx-456',
-        );
+        // Transaction ID should be cleared after successful deposit
+        expect(controller.state.lastDepositTransactionId).toBeNull();
       });
     });
 

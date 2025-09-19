@@ -4948,7 +4948,7 @@
     "earn_eth_rewards": "Dapatkan reward ETH.",
     "earn_eth_rewards_description": "Mulailah menghasilkan segera setelah Anda melakukan stake. Reward akan terkumpul secara otomatis.",
     "flexible_unstaking": "Pembatalan stake yang fleksibel.",
-    "flexible_unstaking_description": "Batalkan stake setiap saat. Biasanya waktu yang diperlukan kurang dari 3 hari, tetapi butuh waktu hingga 11 hari untuk memprosesnya.",
+    "flexible_unstaking_description": "Batalkan stake setiap saat. Biasanya waktu yang diperlukan kurang dari 3 hari, tetapi butuh waktu hingga 44 hari untuk memprosesnya.",
     "disclaimer": "Stake tidak menjamin reward, dan melibatkan risiko termasuk hilangnya dana.",
     "learn_more": "Selengkapnya",
     "got_it": "Mengerti",
@@ -4984,7 +4984,7 @@
       "geo_blocked": "Anda berada di wilayah tempat pembatalan stake maupun stake tidak diizinkan.",
       "approximately": "sekitar"
     },
-    "unstake_input_banner_description": "Rata-rata, diperlukan waktu kurang dari 3 hari agar ETH yang batal di-stake dapat diklaim, tetapi tindakan ini dapat memakan waktu hingga 11 hari.",
+    "unstake_input_banner_description": "Rata-rata, diperlukan waktu kurang dari 3 hari agar ETH yang batal di-stake dapat diklaim, tetapi tindakan ini dapat memakan waktu hingga 44 hari.",
     "max": "Maks",
     "staking_from": "Stake dari",
     "advanced_details": "Detail lanjutan",
@@ -5008,7 +5008,7 @@
       }
     },
     "use_max": "Gunakan maks",
-    "estimated_unstaking_time": "1 sampai 11 hari",
+    "estimated_unstaking_time": "1 sampai 44 hari",
     "proceed_anyway": "Tetap lanjutkan",
     "gas_cost_impact": "Dampak biaya gas",
     "select_a_token_to_deposit": "Pilih token untuk deposit",
