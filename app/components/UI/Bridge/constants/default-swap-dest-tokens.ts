@@ -5,12 +5,12 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
   [CHAIN_IDS.MAINNET]: {
-    symbol: 'USDC',
-    name: 'USD Coin',
-    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    symbol: 'mUSD',
+    name: 'MetaMask USD',
+    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
     decimals: 6,
     image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
     chainId: CHAIN_IDS.MAINNET,
   },
   [CHAIN_IDS.OPTIMISM]: {
@@ -68,12 +68,12 @@ export const DefaultSwapDestTokens: Record<Hex | CaipChainId, BridgeToken> = {
     chainId: CHAIN_IDS.BASE,
   },
   [CHAIN_IDS.LINEA_MAINNET]: {
-    symbol: 'USDC',
-    name: 'USD Coin',
-    address: '0x176211869ca2b568f2a7d4ee941e073a821ee1ff',
+    symbol: 'mUSD',
+    name: 'MetaMask USD',
+    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
     decimals: 6,
     image:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x176211869ca2b568f2a7d4ee941e073a821ee1ff.png',
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
     chainId: CHAIN_IDS.LINEA_MAINNET,
   },
   [CHAIN_IDS.ZKSYNC_ERA]: {
