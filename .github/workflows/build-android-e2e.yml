@@ -71,7 +71,7 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
-      - name: Build Android ${inputs.build_type} APKs
+      - name: Build Android ${{ inputs.build_type }} APKs
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"

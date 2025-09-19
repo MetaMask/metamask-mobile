@@ -120,11 +120,7 @@ jobs:
             mkdir -p android/app/build/outputs/apk/flask/release/
           fi
 
-          # Create directories for QA
-          # TODO: 
-          # Non flask E2E is currently using build_type=qa, once we start 
-          # building with build_type=main we can combine the directory creation 
-          # via input variables
+          # Create directories for Main
           if [[ "$METAMASK_BUILD_TYPE" == "main" ]]; then
             mkdir -p android/app/build/outputs/apk/prod/release/
           fi
@@ -138,30 +134,25 @@ jobs:
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
         run: |
-          # If an APK already exists under android/app/build/outputs/apk (any depth), prepare expected dirs
-          if find "android/app/build/outputs/apk" -type f -name "*.apk" -print -quit | grep -q .; then
-            echo "✅ Android APK detected under android/app/build/outputs/apk"
+          # Always move the main APK from the downloaded artifact into the expected directory
+          ARTIFACT_FILE="artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk"
 
-            # Mirror directory creation logic from 'Setup Android artifacts from build job'
-            if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
-              mkdir -p android/app/build/outputs/apk/flask/release/
-            fi
-
-            # Non flask (main/prod)
-            if [[ "$METAMASK_BUILD_TYPE" == "main" ]]; then
-              mkdir -p android/app/build/outputs/apk/prod/release/
-            fi
+          if [[ "$METAMASK_BUILD_TYPE" == "flask" ]]; then
+            TARGET_DIR="android/app/build/outputs/apk/flask/release/"
           else
-            # Fallback: move main APK from downloaded artifacts
-            if [[ -f "artifacts/app-prod-release.apk/app-prod-release.apk" ]]; then
-              mkdir -p "android/app/build/outputs/apk/prod/release/"
-              cp "artifacts/app-prod-release.apk/app-prod-release.apk" "android/app/build/outputs/apk/prod/release/"
-              echo "✅ Android main APK ready for E2E tests"
-            else
-              echo "❌ Android APK not found in outputs or artifacts"
-              ls -la artifacts/ || true
-              exit 1
-            fi
+            TARGET_DIR="android/app/build/outputs/apk/prod/release/"
+          fi
+
+          if [[ -f "$ARTIFACT_FILE" ]]; then
+            cp "$ARTIFACT_FILE" "$TARGET_DIR"
+            echo "✅ Android APK copied to $TARGET_DIR"
+          else
+            echo "❌ Artifact file $ARTIFACT_FILE not found"
+            echo "Contents of artifacts/ for debugging:"
+            ls -la artifacts/ || true
+            echo "Contents of artifact folder (if exists):"
+            ls -la "$(dirname "$ARTIFACT_FILE")" || true
+            exit 1
           fi
 
       - name: Setup iOS artifacts from build job
