@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -33,6 +33,11 @@ import { SolScope, BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from '../../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../../../core/redux/slices/performance/constants';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -41,6 +46,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const hdKeyrings = useSelector(selectHDKeyrings);
   const hasMultipleSRPs = hdKeyrings.length > 1;
+  const dispatch = useDispatch();
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
@@ -75,8 +81,23 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   });
 
   const createNewAccount = useCallback(async () => {
+    // Start performance trace
+    dispatch(
+      startPerformanceTrace({
+        eventName: PerformanceEventNames.CreateNewAccount,
+        metadata: { hasMultipleSRPs },
+      }),
+    );
+
     if (hasMultipleSRPs) {
       navigate(Routes.SHEET.ADD_ACCOUNT, {});
+      // End performance trace for multi-SRP case
+      dispatch(
+        endPerformanceTrace({
+          eventName: PerformanceEventNames.CreateNewAccount,
+          additionalMetadata: { flowType: 'multiSRP' },
+        }),
+      );
       return;
     }
 
@@ -99,6 +120,14 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       onBack();
 
       setIsLoading(false);
+      
+      // End performance trace
+      dispatch(
+        endPerformanceTrace({
+          eventName: PerformanceEventNames.CreateNewAccount,
+          additionalMetadata: { flowType: 'singleSRP' },
+        }),
+      );
     }
   }, [
     hasMultipleSRPs,
@@ -107,6 +136,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     createEventBuilder,
     onBack,
     fetchAccountsWithActivity,
+    dispatch,
   ]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

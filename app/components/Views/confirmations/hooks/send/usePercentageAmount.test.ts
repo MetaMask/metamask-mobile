@@ -1,11 +1,15 @@
 import BN from 'bnjs4';
+import { waitFor } from '@testing-library/react-native';
+
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
-  ACCOUNT_ADDRESS_MOCK_1,
+  ACCOUNT_ADDRESS_MOCK_2,
   evmSendStateMock,
   SOLANA_ASSET,
 } from '../../__mocks__/send.mock';
 import { useSendContext } from '../../context/send-context';
+// eslint-disable-next-line import/no-namespace
+import * as SendUtils from '../../utils/send';
 import { usePercentageAmount } from './usePercentageAmount';
 import { useBalance } from './useBalance';
 
@@ -96,7 +100,12 @@ describe('usePercentageAmount', () => {
 
   it('return correct max value for native asset', () => {
     mockUseSendContext.mockReturnValue({
-      asset: { chainId: '0x1', address: ACCOUNT_ADDRESS_MOCK_1, decimals: 2 },
+      asset: {
+        chainId: '0x1',
+        address: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
+        decimals: 2,
+        isNative: true,
+      },
     } as unknown as ReturnType<typeof useSendContext>);
     mockUseBalance.mockReturnValue({
       balance: '1000000000000000',
@@ -110,5 +119,58 @@ describe('usePercentageAmount', () => {
     );
     expect(result.current.isMaxAmountSupported).toBeTruthy();
     expect(result.current.getPercentageAmount(100)).toEqual('9685000000000');
+  });
+
+  it('return zero if amount of asset available is less than gas', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        chainId: '0x1',
+        address: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
+        decimals: 2,
+        isNative: true,
+      },
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseBalance.mockReturnValue({
+      balance: '100',
+      decimals: 2,
+      rawBalanceBN: new BN('100'),
+    });
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+    expect(result.current.isMaxAmountSupported).toBeTruthy();
+    expect(result.current.getPercentageAmount(100)).toEqual('0');
+  });
+
+  it('adjust L1 fee for optimism mainnet', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        chainId: '0xa',
+        address: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
+        decimals: 2,
+        isNative: true,
+      },
+      from: ACCOUNT_ADDRESS_MOCK_2,
+      value: '10',
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseBalance.mockReturnValue({
+      balance: '1000000000000000',
+      decimals: 2,
+      rawBalanceBN: new BN('1000000000000000'),
+    });
+    jest.spyOn(SendUtils, 'getLayer1GasFeeForSend').mockResolvedValue('0x5');
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+    expect(result.current.isMaxAmountSupported).toBeTruthy();
+    await waitFor(() => {
+      expect(result.current.getPercentageAmount(100)).toEqual(
+        '9684999999999.95',
+      );
+    });
   });
 });

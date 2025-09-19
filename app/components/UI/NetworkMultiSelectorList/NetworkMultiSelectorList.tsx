@@ -147,10 +147,13 @@ const NetworkMultiSelectList = ({
       debounce(
         (caipChainId: CaipChainId) => {
           if (!onSelectNetwork) return;
-
+          console.log('START: onSelectNetwork');
           startTransition(() => {
+
             onSelectNetwork(caipChainId);
+
           });
+          console.log('STOP: onSelectNetwork');
         },
         SELECTION_DEBOUNCE_DELAY,
         {

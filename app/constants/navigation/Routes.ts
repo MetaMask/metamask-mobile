@@ -227,6 +227,7 @@ const Routes = {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
       BALANCE_MODAL: 'PerpsBalanceModal',
+      GTM_MODAL: 'PerpsGTMModal',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -312,6 +313,7 @@ const Routes = {
     DEFAULT: 'Send',
   },
   REWARDS_VIEW: 'RewardsView',
+  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
 };
 
 export default Routes;

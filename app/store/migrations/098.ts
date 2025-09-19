@@ -85,7 +85,6 @@ export default async function migrate(state: unknown) {
 
       return newState;
     }
-
     return state;
   } catch (error) {
     captureException(

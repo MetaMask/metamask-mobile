@@ -36,6 +36,7 @@ import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
 import cardReducer from '../core/redux/slices/card';
+import rewardsReducer, { RewardsState } from './rewards';
 import { isTest } from '../util/test/utils';
 
 /**
@@ -127,6 +128,7 @@ export interface RootState {
   card: StateFromReducer<typeof cardReducer>;
   performance?: PerformanceState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
+  rewards: RewardsState;
 }
 
 const baseReducers = {
@@ -164,12 +166,13 @@ const baseReducers = {
   card: cardReducer,
   confirmationMetrics: confirmationMetricsReducer,
   cronjobController: cronjobControllerReducer,
+  rewards: rewardsReducer,
 };
 
-if (isTest) {
+// if (isTest) {
   // @ts-expect-error - it's expected to not exist, it should only exist in not production environments
   baseReducers.performance = performanceReducer;
-}
+// }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions

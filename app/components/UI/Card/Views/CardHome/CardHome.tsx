@@ -56,8 +56,17 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import {
+  Skeleton,
+  SkeletonProps,
+} from '../../../../../component-library/components/Skeleton';
 import { isE2E } from '../../../../../util/test/utils';
+
+const SkeletonLoading = (props: SkeletonProps) => {
+  if (isE2E) return null;
+
+  return <Skeleton {...props} />;
+};
 
 /**
  * CardHome Component
@@ -228,11 +237,9 @@ const CardHome = () => {
 
   const isLoading = useMemo(
     () =>
-      isE2E
-        ? false
-        : isLoadingPriorityToken ||
-          isLoadingNetworkChange ||
-          (!priorityToken && !hasError),
+      isLoadingPriorityToken ||
+      isLoadingNetworkChange ||
+      (!priorityToken && !hasError),
     [isLoadingPriorityToken, isLoadingNetworkChange, priorityToken, hasError],
   );
 
@@ -294,7 +301,7 @@ const CardHome = () => {
             {isLoading ||
             balanceAmount === TOKEN_BALANCE_LOADING ||
             balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-              <Skeleton
+              <SkeletonLoading
                 height={28}
                 width={'50%'}
                 style={styles.skeletonRounded}
@@ -358,7 +365,7 @@ const CardHome = () => {
           ]}
         >
           {isLoading || !priorityToken ? (
-            <Skeleton
+            <SkeletonLoading
               height={50}
               width={'100%'}
               style={styles.skeletonRounded}
@@ -376,7 +383,7 @@ const CardHome = () => {
           ]}
         >
           {isLoading ? (
-            <Skeleton
+            <SkeletonLoading
               height={28}
               width={'100%'}
               style={styles.skeletonRounded}
