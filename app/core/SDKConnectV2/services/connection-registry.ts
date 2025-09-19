@@ -90,7 +90,7 @@ export class ConnectionRegistry {
     let connreq: ConnectionRequest | undefined;
 
     try {
-      const connreq = this.parseConnectionRequest(url);
+      connreq = this.parseConnectionRequest(url);
       this.hostapp.showConnectionLoading(connreq);
       conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
       await conn.connect(connreq.sessionRequest);

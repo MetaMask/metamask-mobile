@@ -7,6 +7,11 @@ import {
   getPermittedAccounts,
   removePermittedAccounts,
 } from '../../../core/Permissions';
+import { ConnectionRequest } from '../types/connection-request';
+import {
+  hideNotificationById,
+  showSimpleNotification,
+} from '../../../actions/notification';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -26,6 +31,21 @@ jest.mock('../../../core/Permissions', () => ({
   removePermittedAccounts: jest.fn(),
 }));
 
+jest.mock('../../../actions/notification', () => ({
+  showSimpleNotification: jest.fn((notification) => ({
+    type: 'SHOW_SIMPLE_NOTIFICATION',
+    notification,
+  })),
+  hideNotificationById: jest.fn((id) => ({
+    type: 'HIDE_NOTIFICATION_BY_ID',
+    id,
+  })),
+}));
+
+jest.mock('../../../../locales/i18n', () => ({
+  strings: jest.fn().mockImplementation((key) => key),
+}));
+
 const createMockConnection = (id: string, name: string): Connection =>
   ({
     id,
@@ -42,6 +62,27 @@ const createMockConnection = (id: string, name: string): Connection =>
     },
   } as Connection);
 
+const mockConnectionRequest: ConnectionRequest = {
+  sessionRequest: {
+    id: 'session-123',
+    publicKeyB64: 'test-key',
+    channel: 'test-channel',
+    mode: 'trusted',
+    expiresAt: Date.now() + 3600000,
+  },
+  metadata: {
+    dapp: {
+      name: 'Test DApp',
+      url: 'https://test.com',
+      icon: 'https://test.com/icon.png',
+    },
+    sdk: {
+      version: '1.0.0',
+      platform: 'web',
+    },
+  },
+};
+
 describe('HostApplicationAdapter', () => {
   let adapter: HostApplicationAdapter;
 
@@ -50,15 +91,53 @@ describe('HostApplicationAdapter', () => {
     (setSdkV2Connections as jest.Mock).mockClear();
     (getPermittedAccounts as jest.Mock).mockClear();
     (removePermittedAccounts as jest.Mock).mockClear();
+    (showSimpleNotification as jest.Mock).mockClear();
+    (hideNotificationById as jest.Mock).mockClear();
     adapter = new HostApplicationAdapter();
   });
 
-  it('dummy tests for scaffolding, will be replaced with real tests', () => {
-    expect(adapter).toBeDefined();
-    expect(() => adapter.showLoading()).not.toThrow();
-    expect(() => adapter.hideLoading()).not.toThrow();
-    expect(() => adapter.showAlert()).not.toThrow();
-    expect(() => adapter.showOTPModal()).not.toThrow();
+  describe('showConnectionLoading', () => {
+    it('dispatches a pending notification with connection details', () => {
+      adapter.showConnectionLoading(mockConnectionRequest);
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: 'session-123',
+        autodismiss: 8000,
+        title: 'sdk_connect_v2.show_loading.title',
+        description: 'sdk_connect_v2.show_loading.description',
+        status: 'pending',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('hideConnectionLoading', () => {
+    it('dispatches hideNotificationById with the session request ID', () => {
+      adapter.hideConnectionLoading(mockConnectionRequest);
+
+      expect(hideNotificationById).toHaveBeenCalledTimes(1);
+      expect(hideNotificationById).toHaveBeenCalledWith('session-123');
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('showConnectionError', () => {
+    it('dispatches an error notification with standard error message', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+
+      adapter.showConnectionError();
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: '1234567890',
+        autodismiss: 5000,
+        title: 'sdk_connect_v2.show_error.title',
+        description: 'sdk_connect_v2.show_error.description',
+        status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('syncConnectionList', () => {
