@@ -559,146 +559,20 @@ workflows:
       - prep_environment
     steps:
       # - restore-cocoapods-cache@2: {}
-      - restore-cache@2:
-          title: Restore Yarn cache
+      - yarn@0:
           inputs:
-            - key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
-            - fallback_key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -e
-                
-                # The global yarn has legacy configs we can't clear, so bypass it entirely
-                echo "Bypassing global yarn completely - using bundled version directly"
-                
-                # Check if bundled yarn exists
-                if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
-                  echo "Found bundled Yarn 3.8.7"
-                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
-                else
-                  echo "Bundled yarn not found, creating it..."
-                  # Download yarn 3.8.7 directly
-                  mkdir -p .yarn/releases
-                  curl -fsSL -o .yarn/releases/yarn-3.8.7.cjs https://repo.yarnpkg.com/3.8.7/packages/yarnpkg-cli/bin/yarn.js
-                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
-                fi
-                
-                # Verify bundled version works
-                echo "Bundled Yarn version: $($YARN_CMD --version)"
-                
-                # Nuclear option: Backup ALL configs and start completely fresh
-                echo "Creating completely fresh Yarn environment..."
-                
-                # Backup ALL possible config sources temporarily
-                mv .yarnrc .yarnrc.backup 2>/dev/null || true
-                mv ~/.yarnrc ~/.yarnrc.backup 2>/dev/null || true
-                mv ~/.yarn ~/.yarn.backup 2>/dev/null || true
-                mv /usr/local/etc/yarnrc /usr/local/etc/yarnrc.backup 2>/dev/null || true
-                mv /opt/homebrew/etc/yarnrc /opt/homebrew/etc/yarnrc.backup 2>/dev/null || true
-                
-                # Clear ALL yarn environment variables
-                for var in $(env | grep ^YARN | cut -d= -f1); do
-                  unset $var
-                done
-                
-                # Set only the minimal required yarn environment
-                export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
-                
-                # Create clean .yarnrc.yml if it doesn't exist
-                if [ ! -f ".yarnrc.yml" ]; then
-                  echo "Creating clean .yarnrc.yml..."
-                  echo "nodeLinker: node-modules" > .yarnrc.yml
-                  echo "enableScripts: false" >> .yarnrc.yml
-                  echo "yarnPath: .yarn/releases/yarn-3.8.7.cjs" >> .yarnrc.yml
-                fi
-                
-                # Run install using bundled yarn directly with complete isolation
-                echo "Running install with bundled yarn in isolated environment..."
-                
-                # Run install with yarn-specific isolation (preserve git environment)
-                $YARN_CMD install --immutable
-                
-                # Restore backed up configs (so we don't break other tools)
-                mv .yarnrc.backup .yarnrc 2>/dev/null || true
-                mv ~/.yarnrc.backup ~/.yarnrc 2>/dev/null || true
-                mv ~/.yarn.backup ~/.yarn 2>/dev/null || true
-                mv /usr/local/etc/yarnrc.backup /usr/local/etc/yarnrc 2>/dev/null || true
-                mv /opt/homebrew/etc/yarnrc.backup /opt/homebrew/etc/yarnrc 2>/dev/null || true
+            - command: install --immutable
           title: Yarn Install
       - script@1:
-          title: Yarn Setup
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                set -e
-                
-                # Nuclear option: Backup ALL configs and start completely fresh (setup step)
-                echo "Creating completely fresh Yarn environment for setup..."
-                
-                # Backup ALL possible config sources temporarily
-                mv .yarnrc .yarnrc.backup 2>/dev/null || true
-                mv ~/.yarnrc ~/.yarnrc.backup 2>/dev/null || true
-                mv ~/.yarn ~/.yarn.backup 2>/dev/null || true
-                mv /usr/local/etc/yarnrc /usr/local/etc/yarnrc.backup 2>/dev/null || true
-                mv /opt/homebrew/etc/yarnrc /opt/homebrew/etc/yarnrc.backup 2>/dev/null || true
-                
-                # Clear ALL yarn environment variables
-                for var in $(env | grep ^YARN | cut -d= -f1); do
-                  unset $var
-                done
-                
-                # Set only the minimal required yarn environment
-                export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
-                
-                # Use the same bundled yarn for setup
-                if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
-                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
-                else
-                  echo "ERROR: Bundled yarn not found!"
-                  exit 1
-                fi
-                
-                echo "Running setup with bundled yarn in isolated environment..."
-                
-                # Run setup with yarn-specific isolation (preserve git environment)
-                $YARN_CMD setup:github-ci
-                
-                # Verify PPOM files were generated
-                echo "Checking if PPOM files were generated..."
-                if [ -f "app/lib/ppom/ppom.html.js" ]; then
-                  echo "✅ ppom.html.js found"
-                else
-                  echo "❌ ppom.html.js NOT found - manually building PPOM..."
-                  # Manual PPOM build as fallback
-                  cd ppom
-                  $YARN_CMD install
-                  $YARN_CMD build
-                  cd ..
-                  
-                  # Verify again
-                  if [ -f "app/lib/ppom/ppom.html.js" ]; then
-                    echo "✅ ppom.html.js generated successfully"
-                  else
-                    echo "❌ PPOM build failed!"
-                    exit 1
-                  fi
-                fi
-                
-                # Restore backed up configs (so we don't break other tools)
-                mv .yarnrc.backup .yarnrc 2>/dev/null || true
-                mv ~/.yarnrc.backup ~/.yarnrc 2>/dev/null || true
-                mv ~/.yarn.backup ~/.yarn 2>/dev/null || true
-                mv /usr/local/etc/yarnrc.backup /usr/local/etc/yarnrc 2>/dev/null || true
-                mv /opt/homebrew/etc/yarnrc.backup /opt/homebrew/etc/yarnrc 2>/dev/null || true
-      - save-cache@1:
-          title: Save Yarn cache
+                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+          title: Get Yarn cache directory
+      - yarn@0:
           inputs:
-            - key: yarn-cache-v3-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}
-            - paths: |-
-                .yarn/cache
-                .yarn/unplugged
+            - command: setup
+          title: Yarn Setup
   prep_environment:
     steps:
       - restore-cache@2:
@@ -753,23 +627,8 @@ workflows:
 
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
-                echo "Corepack enabling Yarn $YARN_VERSION"
+                echo "Corepack enabling $YARN_VERSION"
                 corepack enable
-                # Ensure Yarn v3 is properly prepared
-                corepack prepare yarn@$YARN_VERSION --activate
-                
-                # On macOS, Yarn is installed via brew and overrides corepack
-                # So we need to upgrade yarn via brew to get v3
-                echo "Current Yarn version before brew: $(yarn --version)"
-                echo "Upgrading Yarn via brew to get v3..."
-                brew upgrade yarn || brew install yarn@$YARN_VERSION || true
-                
-                # Force link the new version
-                brew link --overwrite yarn || true
-                
-                # Verify final yarn version
-                echo "Final Yarn version after brew: $(yarn --version)"
-                echo "Yarn path: $(which yarn)"
       - save-cache@1:
           title: Save Node
           inputs:
@@ -2497,32 +2356,17 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                set -e
                 node -v
-                
-                # Use bundled yarn for all build commands to avoid legacy config issues
-                if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
-                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
-                else
-                  YARN_CMD="yarn"
-                fi
-                
-                # Clear yarn environment variables for build commands too
-                for var in $(env | grep ^YARN | cut -d= -f1); do
-                  unset $var
-                done
-                export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
-                
                 if [ -n "$COMMAND_YARN" ]; then
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD "$COMMAND_YARN"
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$COMMAND_YARN"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD build:android:main:local
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:main:local
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
-                    $YARN_CMD build:android:pre-release:bundle
+                    yarn build:android:pre-release:bundle
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
-                    $YARN_CMD build:android:pre-release:bundle:beta
+                    yarn build:android:pre-release:bundle:beta
                 elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    $YARN_CMD build:android:pre-release:bundle:flask
+                    yarn build:android:pre-release:bundle:flask
                 else
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
@@ -3344,41 +3188,25 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                set -e
-                
-                # Use bundled yarn for all build commands to avoid legacy config issues
-                if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
-                  YARN_CMD="node .yarn/releases/yarn-3.8.7.cjs"
-                else
-                  YARN_CMD="yarn"
-                fi
-                
-                # Clear yarn environment variables for build commands too
-                for var in $(env | grep ^YARN | cut -d= -f1); do
-                  unset $var
-                done
-                export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
-                
-                echo "This is the current build type: $METAMASK_BUILD_TYPE"
+                echo 'This is the current build type: $METAMASK_BUILD_TYPE'
                 if [ -n "$COMMAND_YARN" ]; then
-                    echo "Running COMMAND_YARN: $COMMAND_YARN"
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD "$COMMAND_YARN"
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$COMMAND_YARN"
                 elif [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
                     if [ "$IS_SIM_BUILD" = "true" ]; then
                       if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD start:ios:e2e:flask
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e:flask
                       else
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD start:ios:e2e
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
                       fi
                     else
-                      GIT_BRANCH=$BITRISE_GIT_BRANCH $YARN_CMD build:ios:main:local
+                      GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:main:local
                     fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
-                    $YARN_CMD build:ios:pre-release
+                    yarn build:ios:pre-release
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
-                    $YARN_CMD build:ios:pre-beta
+                    yarn build:ios:pre-beta
                 elif [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                    $YARN_CMD build:ios:pre-flask
+                    yarn build:ios:pre-flask
                 else
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
