@@ -570,19 +570,30 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
+                # First, clear ALL potential legacy config sources BEFORE running any yarn commands
+                echo "Clearing legacy configurations..."
+                rm -f .yarnrc || true
+                rm -f ~/.yarnrc || true
+                rm -rf ~/.yarn || true
+                
+                # Clear yarn environment variables that might cause issues
+                unset YARN_CACHE_FOLDER
+                unset YARN_CACHE_DIR
+                unset YARN_GLOBAL_FOLDER
+                unset YARN_LINK_FOLDER
+                unset YARN_ENABLE_GLOBAL_CACHE
+                unset YARN_ENABLE_IMMUTABLE_INSTALLS
+                
                 # Verify the yarn version (should be v3 from prep_environment)
                 echo "Yarn version: $(yarn --version)"
                 echo "Which yarn: $(which yarn)"
                 
-                # Use yarn set version to ensure clean v3 installation
+                # Now try yarn set version with clean environment
                 echo "Setting Yarn version to 3.8.7..."
                 yarn set version 3.8.7
                 
                 # Verify version after set
                 echo "Yarn version after set: $(yarn --version)"
-                
-                # Clear any legacy configurations
-                rm -f .yarnrc || true
                 
                 # Run install with immutable flag for Yarn v3
                 yarn install --immutable
