@@ -324,7 +324,7 @@ describe('Quotes', () => {
         "ONRAMP_QUOTES_EXPANDED",
         {
           "amount": 50,
-          "chain_id_destination": "unknown",
+          "chain_id_destination": "1",
           "currency_destination": "ETH",
           "currency_source": "USD",
           "payment_method_id": "/payment-methods/test-payment-method",
@@ -519,7 +519,7 @@ describe('Quotes', () => {
         [
           "ONRAMP_DIRECT_PROVIDER_CLICKED",
           {
-            "chain_id_destination": "unknown",
+            "chain_id_destination": "1",
             "currency_destination": undefined,
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
@@ -542,7 +542,7 @@ describe('Quotes', () => {
         [
           "OFFRAMP_DIRECT_PROVIDER_CLICKED",
           {
-            "chain_id_source": "unknown",
+            "chain_id_source": "1",
             "currency_destination": "USD",
             "currency_source": undefined,
             "payment_method_id": "/payment-methods/test-payment-method",
@@ -650,7 +650,7 @@ describe('Quotes', () => {
         "ONRAMP_PROVIDER_SELECTED",
         {
           "amount": 50,
-          "chain_id_destination": "unknown",
+          "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
           "currency_source": "USD",
@@ -683,7 +683,7 @@ describe('Quotes', () => {
         "OFFRAMP_PROVIDER_SELECTED",
         {
           "amount": 50,
-          "chain_id_source": "unknown",
+          "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
           "exchange_rate": 2809.8765432098767,
@@ -722,7 +722,7 @@ describe('Quotes', () => {
         "ONRAMP_PROVIDER_SELECTED",
         {
           "amount": 50,
-          "chain_id_destination": "unknown",
+          "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
           "currency_source": "USD",
@@ -755,7 +755,7 @@ describe('Quotes', () => {
         "OFFRAMP_PROVIDER_SELECTED",
         {
           "amount": 50,
-          "chain_id_source": "unknown",
+          "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
           "exchange_rate": 2809.8765432098767,
@@ -874,7 +874,7 @@ describe('Quotes', () => {
             "average_processing_fee": 2.89,
             "average_total_fee": 3.936666666666667,
             "average_total_fee_of_amount": 382.4978079068538,
-            "chain_id_destination": "unknown",
+            "chain_id_destination": "1",
             "currency_destination": "ETH",
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
@@ -928,7 +928,7 @@ describe('Quotes', () => {
             "average_processing_fee": 2.89,
             "average_total_fee": 3.936666666666667,
             "average_total_fee_of_amount": 382.4978079068538,
-            "chain_id_source": "unknown",
+            "chain_id_source": "1",
             "currency_destination": "USD",
             "currency_source": "ETH",
             "payment_method_id": "/payment-methods/test-payment-method",
