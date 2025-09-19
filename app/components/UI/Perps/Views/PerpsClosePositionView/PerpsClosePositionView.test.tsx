@@ -1868,6 +1868,15 @@ describe('PerpsClosePositionView', () => {
         '', // Empty string when closePercentage is 100
         'market',
         undefined,
+        {
+          error: null,
+          isLoadingMetamaskFee: false,
+          metamaskFee: 0,
+          metamaskFeeRate: 0,
+          protocolFee: 45,
+          protocolFeeRate: 0.00045,
+          totalFee: 45,
+        },
       );
     });
 

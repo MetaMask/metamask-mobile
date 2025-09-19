@@ -14,6 +14,7 @@ import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
+import { OrderFeesResult } from './usePerpsOrderFees';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -35,6 +36,7 @@ export const usePerpsClosePosition = (
       size?: string,
       orderType: 'market' | 'limit' = 'market',
       limitPrice?: string,
+      feeResults?: OrderFeesResult,
     ) => {
       try {
         setIsClosing(true);
@@ -155,6 +157,14 @@ export const usePerpsClosePosition = (
             'millisecond',
           );
 
+          const closePercentage = isFullClose
+            ? 100
+            : (closeSize / positionSize) * 100;
+
+          const closeType = isFullClose
+            ? PerpsEventValues.CLOSE_TYPE.FULL
+            : PerpsEventValues.CLOSE_TYPE.PARTIAL;
+
           // Track position close executed
           track(MetaMetricsEvents.PERPS_POSITION_CLOSE_EXECUTED, {
             [PerpsEventProperties.ASSET]: position.coin,
@@ -165,6 +175,15 @@ export const usePerpsClosePosition = (
             [PerpsEventProperties.ORDER_TYPE]: orderType,
             [PerpsEventProperties.COMPLETION_DURATION]:
               performance.now() - closeStartTime,
+            [PerpsEventProperties.METAMASK_FEE]: feeResults?.metamaskFee,
+            [PerpsEventProperties.METAMASK_FEE_RATE]:
+              feeResults?.metamaskFeeRate,
+            [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+              feeResults?.feeDiscountPercentage,
+            [PerpsEventProperties.ESTIMATED_REWARDS]:
+              feeResults?.estimatedPoints,
+            [PerpsEventProperties.PERCENTAGE_CLOSED]: closePercentage,
+            [PerpsEventProperties.CLOSE_TYPE]: closeType,
           });
 
           // Market order immediately fills or fails
