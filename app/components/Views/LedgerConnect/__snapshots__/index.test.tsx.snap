@@ -81,16 +81,14 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -113,9 +111,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 24,
-            "fontWeight": "400",
           },
         ]
       }
@@ -161,16 +158,14 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 30,
-                "fontWeight": "400",
                 "marginVertical": 2,
               },
               undefined,
               undefined,
               {
-                "fontFamily": "CentraNo1-Bold",
-                "fontWeight": "600",
+                "fontFamily": "Geist Bold",
               },
               undefined,
               undefined,
@@ -206,9 +201,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -247,9 +241,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -288,9 +281,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -329,9 +321,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -370,9 +361,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -411,9 +401,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
@@ -453,16 +442,14 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 30,
-              "fontWeight": "400",
               "marginVertical": 2,
             },
             undefined,
             undefined,
             {
-              "fontFamily": "CentraNo1-Bold",
-              "fontWeight": "600",
+              "fontFamily": "Geist Bold",
             },
             undefined,
             undefined,
@@ -549,9 +536,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                       "alignSelf": "flex-start",
                       "color": "#121314",
                       "flex": 1,
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "paddingBottom": 10,
                       "paddingHorizontal": 15,
                       "paddingTop": 10,
@@ -636,9 +622,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "CentraNo1-Bold",
+                    "fontFamily": "Geist Bold",
                     "fontSize": 14,
-                    "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {

@@ -63,8 +63,7 @@ exports[`AssetSearch should render correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
-            "fontWeight": "400",
+            "fontFamily": "Geist Regular",
           },
           {
             "height": "85%",

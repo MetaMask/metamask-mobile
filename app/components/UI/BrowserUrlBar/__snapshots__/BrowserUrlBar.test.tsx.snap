@@ -47,9 +47,8 @@ exports[`BrowserUrlBar should render correctly 1`] = `
           {
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "height": 44,
             "margin": 0,
             "paddingLeft": 16,
@@ -134,9 +133,8 @@ exports[`BrowserUrlBar should render correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -210,9 +208,8 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
           {
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "height": 44,
             "margin": 0,
             "paddingLeft": 0,

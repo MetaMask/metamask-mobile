@@ -137,9 +137,8 @@ exports[`PaymentRequest renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
               }
             }
           >
@@ -198,9 +197,8 @@ exports[`PaymentRequest renders correctly 1`] = `
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "height": 40,
                   "paddingLeft": 8,
                   "paddingTop": 0,
@@ -226,9 +224,8 @@ exports[`PaymentRequest renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "marginBottom": 8,
               }
             }
@@ -369,9 +366,8 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "paddingBottom": 4,
                       }
                     }
@@ -382,8 +378,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontWeight": "400",
+                        "fontFamily": "Geist Regular",
                       }
                     }
                   >
@@ -512,9 +507,8 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "paddingBottom": 4,
                       }
                     }
@@ -525,8 +519,7 @@ exports[`PaymentRequest renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontWeight": "400",
+                        "fontFamily": "Geist Regular",
                       }
                     }
                   >
@@ -680,9 +673,8 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
               }
             }
           >
@@ -741,9 +733,8 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                 {
                   "color": "#121314",
                   "flex": 1,
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "height": 40,
                   "paddingLeft": 8,
                   "paddingTop": 0,
@@ -769,9 +760,8 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "marginBottom": 8,
               }
             }
@@ -912,9 +902,8 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "paddingBottom": 4,
                       }
                     }
@@ -925,8 +914,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontWeight": "400",
+                        "fontFamily": "Geist Regular",
                       }
                     }
                   >
@@ -1055,9 +1043,8 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
-                        "fontWeight": "400",
                         "paddingBottom": 4,
                       }
                     }
@@ -1068,8 +1055,7 @@ exports[`PaymentRequest renders correctly with network picker when feature flag 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontWeight": "400",
+                        "fontFamily": "Geist Regular",
                       }
                     }
                   >

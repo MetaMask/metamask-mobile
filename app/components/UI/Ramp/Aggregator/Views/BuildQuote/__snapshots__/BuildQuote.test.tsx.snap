@@ -131,9 +131,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -232,9 +231,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -524,9 +522,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -549,9 +546,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -630,9 +626,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -797,9 +792,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -898,9 +892,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1190,9 +1183,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -1215,9 +1207,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -1296,9 +1287,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -1463,9 +1453,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1564,9 +1553,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1856,9 +1844,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -1881,9 +1868,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -1962,9 +1948,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -2128,9 +2113,8 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -2229,9 +2213,8 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -3068,9 +3051,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -3169,9 +3151,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -3461,9 +3442,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -3486,9 +3466,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -3567,9 +3546,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -3733,9 +3711,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -3834,9 +3811,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -4673,9 +4649,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -4774,9 +4749,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -5066,9 +5040,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -5091,9 +5064,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -5172,9 +5144,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -5338,9 +5309,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -5439,9 +5409,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -6077,9 +6046,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
@@ -6118,16 +6086,14 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 30,
-                                                      "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "CentraNo1-Bold",
-                                                      "fontWeight": "600",
+                                                      "fontFamily": "Geist Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -6358,9 +6324,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
@@ -6399,16 +6364,14 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 30,
-                                                      "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "CentraNo1-Bold",
-                                                      "fontWeight": "600",
+                                                      "fontFamily": "Geist Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -6650,9 +6613,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               [
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 30,
-                                                  "fontWeight": "400",
                                                   "marginVertical": 2,
                                                 },
                                                 undefined,
@@ -6691,16 +6653,14 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "fontFamily": "CentraNo1-Bold",
-                                                    "fontWeight": "600",
+                                                    "fontFamily": "Geist Bold",
                                                   },
                                                   undefined,
                                                   {
@@ -6850,9 +6810,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       },
                                       [
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 14,
-                                          "fontWeight": "600",
                                           "textAlign": "center",
                                         },
                                         {
@@ -6935,9 +6894,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -7000,9 +6958,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -7065,9 +7022,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -7850,9 +7806,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     null,
                                     [
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 14,
-                                        "fontWeight": "600",
                                         "textAlign": "center",
                                       },
                                       {
@@ -8018,9 +7973,8 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -8119,9 +8073,8 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -8958,9 +8911,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -9059,9 +9011,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -9351,9 +9302,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -9376,9 +9326,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -9457,9 +9406,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -9623,9 +9571,8 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -9724,9 +9671,8 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -10563,9 +10509,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -10664,9 +10609,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -11302,9 +11246,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
@@ -11343,16 +11286,14 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 30,
-                                                      "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "CentraNo1-Bold",
-                                                      "fontWeight": "600",
+                                                      "fontFamily": "Geist Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -11583,9 +11524,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
@@ -11624,16 +11564,14 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 30,
-                                                      "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "CentraNo1-Bold",
-                                                      "fontWeight": "600",
+                                                      "fontFamily": "Geist Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -11875,9 +11813,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               [
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 30,
-                                                  "fontWeight": "400",
                                                   "marginVertical": 2,
                                                 },
                                                 undefined,
@@ -11916,16 +11853,14 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "fontFamily": "CentraNo1-Bold",
-                                                    "fontWeight": "600",
+                                                    "fontFamily": "Geist Bold",
                                                   },
                                                   undefined,
                                                   {
@@ -12121,9 +12056,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 14,
-                                          "fontWeight": "600",
                                           "textAlign": "center",
                                         },
                                         {
@@ -12206,9 +12140,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -12271,9 +12204,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -12336,9 +12268,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -13121,9 +13052,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 14,
-                                        "fontWeight": "600",
                                         "textAlign": "center",
                                       },
                                       {
@@ -13289,9 +13219,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -13390,9 +13319,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -14095,9 +14023,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
@@ -14136,16 +14063,14 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                   [
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "CentraNo1-Book",
+                                                      "fontFamily": "Geist Regular",
                                                       "fontSize": 30,
-                                                      "fontWeight": "400",
                                                       "marginVertical": 2,
                                                     },
                                                     undefined,
                                                     undefined,
                                                     {
-                                                      "fontFamily": "CentraNo1-Bold",
-                                                      "fontWeight": "600",
+                                                      "fontFamily": "Geist Bold",
                                                     },
                                                     undefined,
                                                     {
@@ -14514,9 +14439,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               [
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "CentraNo1-Book",
+                                                  "fontFamily": "Geist Regular",
                                                   "fontSize": 30,
-                                                  "fontWeight": "400",
                                                   "marginVertical": 2,
                                                 },
                                                 undefined,
@@ -14555,16 +14479,14 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 [
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "CentraNo1-Book",
+                                                    "fontFamily": "Geist Regular",
                                                     "fontSize": 30,
-                                                    "fontWeight": "400",
                                                     "marginVertical": 2,
                                                   },
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "fontFamily": "CentraNo1-Bold",
-                                                    "fontWeight": "600",
+                                                    "fontFamily": "Geist Bold",
                                                   },
                                                   undefined,
                                                   {
@@ -14760,9 +14682,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontFamily": "Geist Bold",
                                           "fontSize": 14,
-                                          "fontWeight": "600",
                                           "textAlign": "center",
                                         },
                                         {
@@ -14845,9 +14766,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -14910,9 +14830,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -14975,9 +14894,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -15040,9 +14958,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -15825,9 +15742,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 14,
-                                        "fontWeight": "600",
                                         "textAlign": "center",
                                       },
                                       {
@@ -15993,9 +15909,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -16094,9 +16009,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -16386,9 +16300,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -16411,9 +16324,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -16492,9 +16404,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -16658,9 +16569,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -16759,9 +16669,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -17051,9 +16960,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -17076,9 +16984,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -17157,9 +17064,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
