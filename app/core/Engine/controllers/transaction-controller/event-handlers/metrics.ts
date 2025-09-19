@@ -10,9 +10,18 @@ import {
   generateDefaultTransactionMetrics,
   generateEvent,
   generateRPCProperties,
+  getConfirmationMetricProperties,
 } from '../utils';
-import type { TransactionEventHandlerRequest } from '../types';
+import type {
+  TransactionEventHandlerRequest,
+  TransactionMetricsBuilder,
+} from '../types';
 import Logger from '../../../../../util/Logger';
+import { getMetaMaskPayProperties } from '../event_properties/metamask-pay';
+
+const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
+  getMetaMaskPayProperties,
+];
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
@@ -28,10 +37,46 @@ const createTransactionEventHandler =
         transactionEventHandlerRequest,
       );
 
-    const event = generateEvent(defaultTransactionMetricProperties);
+    const metrics = {
+      properties: defaultTransactionMetricProperties.properties,
+      sensitiveProperties:
+        defaultTransactionMetricProperties.sensitiveProperties,
+    };
+
+    const allTransactions =
+      transactionEventHandlerRequest.getState()?.engine?.backgroundState
+        ?.TransactionController?.transactions ?? [];
+
+    const getUIMetrics = getConfirmationMetricProperties.bind(
+      null,
+      transactionEventHandlerRequest.getState,
+    );
+
+    const getState = transactionEventHandlerRequest.getState;
+
+    for (const builder of METRICS_BUILDERS) {
+      try {
+        const currentMetrics = builder({
+          transactionMeta,
+          allTransactions,
+          getUIMetrics,
+          getState,
+        });
+
+        merge(metrics, currentMetrics);
+      } catch (error) {
+        // Intentionally empty
+      }
+    }
+
+    const event = generateEvent({
+      ...defaultTransactionMetricProperties,
+      ...metrics,
+    });
 
     MetaMetrics.getInstance().trackEvent(event);
   };
+
 /**
  * Handles metrics tracking when a transaction is added to the transaction controller
  * @param transactionMeta - The transaction metadata

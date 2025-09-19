@@ -96,7 +96,7 @@ export class RPCBridgeAdapter
    * Creates a new BackgroundBridge instance configured for our use case.
    */
   private createClient(): BackgroundBridge {
-    const middlewareHostname = `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}${this.connection.id}`;
+    const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.connection.id}`;
 
     return new BackgroundBridge({
       webview: null,

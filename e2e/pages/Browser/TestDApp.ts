@@ -6,7 +6,7 @@ import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
-import { TapOptions, Utilities } from '../../framework';
+import { Assertions, TapOptions, Utilities } from '../../framework';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -247,6 +247,66 @@ class TestDApp {
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ERC_1155_REVOKE_APPROVAL_BUTTON_ID,
     );
+  }
+
+  get openNetworkPicker(): WebElement {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
+    );
+  }
+
+  get networkModalContent(): WebElement {
+    return Matchers.getElementByCSS(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      '.network-modal-content',
+    );
+  }
+
+  getNetworkItemByName(networkName: string): WebElement {
+    return Matchers.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      `//div[contains(@class, "network-modal-item-name") and contains(text(), "${networkName}")]`,
+    );
+  }
+
+  get networkModalBody(): WebElement {
+    return Matchers.getElementByCSS(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      '.network-modal-body',
+    );
+  }
+
+  async verifyCurrentNetworkText(expectedNetworkName: string): Promise<void> {
+    const expectedText = `Current Network: ${expectedNetworkName}`;
+
+    await Assertions.expectElementToContainText(
+      this.openNetworkPicker,
+      expectedText,
+      {
+        description: `current network should contain "${expectedText}"`,
+      },
+    );
+  }
+
+  async getNetworkCellByLabel(networkLabel: string): Promise<DetoxElement> {
+    // Try different indices to find the network with the matching label
+    for (let index = 0; index < 10; index++) {
+      try {
+        const networkCell = await Matchers.getElementByIDAndLabel(
+          'cellmultiselect',
+          networkLabel,
+          index,
+        );
+        await Assertions.expectElementToBeVisible(networkCell, {
+          timeout: 1000,
+        });
+        return networkCell;
+      } catch {
+        // Continue to next index
+      }
+    }
+    throw new Error(`Could not find network cell with label "${networkLabel}"`);
   }
 
   /**
@@ -506,6 +566,29 @@ class TestDApp {
     await this.tapButton(this.erc1155RevokeApprovalButton, {
       elemDescription: 'ERC1155 Revoke Approval Button',
     });
+  }
+
+  async tapOpenNetworkPicker(): Promise<void> {
+    await this.tapButton(this.openNetworkPicker, {
+      elemDescription: 'Open Network Picker Button',
+    });
+  }
+
+  async tapNetworkByName(networkName: string): Promise<void> {
+    // Try to find the network without scrolling first
+    try {
+      const networkItem = await this.getNetworkItemByName(networkName);
+      await Assertions.expectElementToBeVisible(
+        networkItem as unknown as WebElement,
+        { timeout: 2000, description: 'network item by label' },
+      );
+      await Gestures.waitAndTap(networkItem as unknown as WebElement, {
+        elemDescription: `tap ${networkName} network`,
+      });
+      return;
+    } catch {
+      throw new Error(`Could not find network "${networkName}"`);
+    }
   }
 }
 

@@ -75,6 +75,10 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingVertical: 8,
     },
+    stopLossLiquidationWarning: {
+      paddingHorizontal: 8,
+      paddingTop: 8,
+    },
     validationContainer: {
       marginBottom: 12,
     },
@@ -95,6 +99,9 @@ const createStyles = (colors: Colors) =>
     keypad: {
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
+    },
+    pointsRightContainer: {
+      alignItems: 'flex-end',
     },
   });
 export default createStyles;

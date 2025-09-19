@@ -13,6 +13,7 @@ import * as EngineNetworkUtils from '../../../../util/networks/engineNetworkUtil
 import { AssetType, TokenStandard } from '../types/token';
 import { InitSendLocation } from '../constants/send';
 import {
+  addLeadingZeroIfNeeded,
   convertCurrency,
   formatToFixedDecimals,
   fromBNWithDecimals,
@@ -212,6 +213,11 @@ describe('formatToFixedDecimals', () => {
   it('remove trailing zeros', () => {
     expect(formatToFixedDecimals('1.0000')).toEqual('1');
   });
+  it('does not remove trailing zeros if trimTrailingZero is false', () => {
+    expect(formatToFixedDecimals('1.0000', 2, undefined, false)).toEqual(
+      '1.00',
+    );
+  });
   it('return `0` if value is equivalent to 0', () => {
     expect(formatToFixedDecimals('0.0000')).toEqual('0');
   });
@@ -344,6 +350,16 @@ describe('getConfusableCharacterInfo', () => {
     expect(getConfusableCharacterInfo('test.eth', (str) => str)).toStrictEqual({
       error: 'transaction.invalid_address',
       warning: 'send.invisible_character_error',
+    });
+  });
+
+  describe('addLeadingZeroIfNeeded', () => {
+    it('add zero to decimal value if needed', () => {
+      expect(addLeadingZeroIfNeeded(undefined)).toEqual(undefined);
+      expect(addLeadingZeroIfNeeded('')).toEqual('');
+      expect(addLeadingZeroIfNeeded('.001')).toEqual('0.001');
+      expect(addLeadingZeroIfNeeded('0.001')).toEqual('0.001');
+      expect(addLeadingZeroIfNeeded('100')).toEqual('100');
     });
   });
 });

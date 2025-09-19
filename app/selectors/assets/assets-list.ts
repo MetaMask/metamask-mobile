@@ -296,7 +296,7 @@ function assetToToken(
       asset.type.startsWith('eip155') &&
       asset.isNative &&
       asset.symbol === 'ETH',
-    isStaked: asset.isStaked,
+    isStaked: asset.isStaked || false,
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
