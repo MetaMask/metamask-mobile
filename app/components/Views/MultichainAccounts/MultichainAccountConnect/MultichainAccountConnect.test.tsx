@@ -18,7 +18,6 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import {
   createMockAccountsControllerState,
-  createMockInternalAccount,
   createMockUuidFromAddress,
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
