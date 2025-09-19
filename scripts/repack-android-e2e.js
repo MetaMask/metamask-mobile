@@ -75,16 +75,13 @@ async function main() {
     // Dynamic import for ES module compatibility
     const { repackAppAndroidAsync } = await import('@expo/repack-app');
 
-    // Create working directories in same filesystem to avoid cross-device issues
+    // Create working directory for main APK repack
     const mainWorkingDir = 'android/app/build/repack-working-main';
-    const testWorkingDir = 'android/app/build/repack-working-test';
-
-    [mainWorkingDir, testWorkingDir].forEach(dir => {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-        logger.info(`Created working directory: ${dir}`);
-      }
-    });
+    
+    if (!fs.existsSync(mainWorkingDir)) {
+      fs.mkdirSync(mainWorkingDir, { recursive: true });
+      logger.info(`Created working directory: ${mainWorkingDir}`);
+    }
 
     // Common signing configuration for both APKs to ensure matching signatures
     const signingOptions = {
@@ -110,19 +107,36 @@ async function main() {
       env: process.env,
     });
 
-    // Step 2: Repack test APK to match signature (no JS bundle changes needed)
-    logger.info('⏱️  Step 2: Repacking test APK to match signature...');
-    await repackAppAndroidAsync({
-      platform: 'android',
-      projectRoot: process.cwd(),
-      sourceAppPath: testSourceApk,
-      outputPath: testRepackedApk,
-      workingDirectory: testWorkingDir,
-      verbose: true,
-      androidSigningOptions: signingOptions, // Same signing = matching signature
-      // No exportEmbedOptions needed - test APK doesn't have JS bundle
-      env: process.env,
-    });
+    // Step 2: Re-sign test APK to match signature (can't use repack - it's not a React Native app)
+    logger.info('⏱️  Step 2: Re-signing test APK to match signature...');
+    
+    // Copy test APK to temp location for re-signing
+    fs.copyFileSync(testSourceApk, testRepackedApk);
+    
+    // Use Android SDK tools to re-sign the test APK with same keystore
+    const { execSync } = require('child_process');
+    
+    try {
+      // First, remove existing signature
+      logger.info('Removing existing signature from test APK...');
+      execSync(`zip -d "${testRepackedApk}" META-INF/\\*.SF META-INF/\\*.RSA META-INF/\\*.DSA || true`, { stdio: 'inherit' });
+      
+      // Re-sign with same keystore as main APK
+      logger.info('Re-signing test APK with matching keystore...');
+      execSync(`jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore android/app/debug.keystore -storepass android "${testRepackedApk}" androiddebugkey`, { stdio: 'inherit' });
+      
+      // Align the APK for optimization
+      logger.info('Optimizing test APK alignment...');
+      execSync(`zipalign -f -v 4 "${testRepackedApk}" "${testRepackedApk}.aligned"`, { stdio: 'inherit' });
+      fs.renameSync(`${testRepackedApk}.aligned`, testRepackedApk);
+      
+      logger.success('Test APK re-signing completed successfully');
+      
+    } catch (error) {
+      logger.error(`Test APK re-signing failed: ${error.message}`);
+      // Don't fail the entire process - try to continue with mismatched signatures
+      logger.warn('Continuing with potentially mismatched signatures - E2E tests may fail');
+    }
 
     // Verify both repacked APKs were created
     if (!fs.existsSync(mainRepackedApk)) {
@@ -141,7 +155,6 @@ async function main() {
     fs.unlinkSync(mainRepackedApk);
     fs.unlinkSync(testRepackedApk);
     fs.rmSync(mainWorkingDir, { recursive: true, force: true });
-    fs.rmSync(testWorkingDir, { recursive: true, force: true });
     logger.info('Cleaned up temporary APK files and working directories');
 
     const duration = Math.round((Date.now() - startTime) / 1000);
