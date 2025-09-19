@@ -216,7 +216,7 @@ class AIE2ETagsSelector {
 
       const response = await anthropic.messages.create({
         model:  'claude-4-sonnet-20250514',
-        max_tokens: 3000,
+        max_tokens: 1500,
         temperature: 0.1,
         messages: [{ role: 'user', content: prompt }]
       });
