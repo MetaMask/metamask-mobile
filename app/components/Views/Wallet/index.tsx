@@ -380,16 +380,18 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const tabsToRender = useMemo(() => {
     const tabs = [<Tokens {...tokensTabProps} key={tokensTabProps.key} />];
 
-    tabs.push(
-      <PerpsTabView
-        {...perpsTabProps}
-        key={perpsTabProps.key}
-        isVisible={isPerpsTabVisible}
-        onVisibilityChange={(callback) => {
-          perpsVisibilityCallback.current = callback;
-        }}
-      />,
-    );
+    if (isPerpsEnabled) {
+      tabs.push(
+        <PerpsTabView
+          {...perpsTabProps}
+          key={perpsTabProps.key}
+          isVisible={isPerpsTabVisible}
+          onVisibilityChange={(callback) => {
+            perpsVisibilityCallback.current = callback;
+          }}
+        />,
+      );
+    }
 
     tabs.push(
       <DeFiPositionsList
@@ -412,6 +414,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsTabVisible,
     defiPositionsTabProps,
     collectibleContractsTabProps,
+    isPerpsEnabled,
   ]);
 
   return (
