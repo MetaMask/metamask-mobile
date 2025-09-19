@@ -34,6 +34,7 @@ permissions:
   contents: read
   id-token: write
   pull-requests: write
+  issues: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -287,33 +288,25 @@ jobs:
           <!-- smart-e2e-comment-id: pr-${{ github.event.pull_request.number }} -->
           EOF
 
-          # Delete any existing Smart E2E comments and create a new one
-          echo "🔍 Checking for existing Smart E2E comments..."
+          # Find and update existing Smart E2E comment or create new one
+          echo "🔍 Looking for existing Smart E2E comment to update..."
 
-          # Get all existing Smart E2E comment IDs for this PR (any previous workflow runs)
-          # Support both old format (19844) and new format (pr-19844)
-          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("smart-e2e-comment-id: pr-${{ github.event.pull_request.number }}")) | .id' || echo "")
+          # Get the most recent Smart E2E comment ID for this PR
+          LATEST_COMMENT_ID=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq -r '.comments[] | select(.body | contains("smart-e2e-comment-id: pr-${{ github.event.pull_request.number }}")) | .id' 2>/dev/null | tail -1 || echo "")
 
-          # Delete existing comments if any exist
-          if [ -n "$EXISTING_COMMENTS" ]; then
-            echo "🗑️ Deleting existing Smart E2E comments..."
-            echo "$EXISTING_COMMENTS" | while read -r comment_id; do
-              if [ -n "$comment_id" ]; then
-                echo "Deleting comment: $comment_id"
-                if gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" 2>/dev/null; then
-                  echo "✅ Successfully deleted comment $comment_id"
-                else
-                  echo "⚠️ Could not delete comment $comment_id (may already be deleted)"
-                fi
-              fi
-            done
+          if [ -n "$LATEST_COMMENT_ID" ]; then
+            echo "📝 Updating existing Smart E2E comment: $LATEST_COMMENT_ID"
+            COMMENT_BODY=$(cat pr_comment.md)
+            if gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$LATEST_COMMENT_ID" --field body="$COMMENT_BODY" >/dev/null 2>&1; then
+              echo "✅ Successfully updated existing comment"
+            else
+              echo "⚠️ Failed to update existing comment, creating new one..."
+              gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
+            fi
           else
-            echo "ℹ️ No existing Smart E2E comments found"
+            echo "📝 No existing comment found, creating new Smart E2E comment..."
+            gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
           fi
-
-          # Always create a fresh comment
-          echo "📝 Creating new PR comment..."
-          gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
 
   # Step 3: Determine platform conditions
   platform-conditions:
@@ -542,33 +535,25 @@ jobs:
           <!-- smart-e2e-comment-id: pr-${{ github.event.pull_request.number }} -->
           EOF
 
-          # Delete existing Smart E2E comment and create final results comment
-          echo "🔍 Looking for existing Smart E2E comment to update..."
+          # Update existing Smart E2E comment with final results
+          echo "🔍 Looking for existing Smart E2E comment to update with final results..."
 
-          # Get existing Smart E2E comment IDs for this PR (any previous workflow runs)
-          # Support both old format (19844) and new format (pr-19844)
-          EXISTING_COMMENTS=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("smart-e2e-comment-id: pr-${{ github.event.pull_request.number }}")) | .id' || echo "")
+          # Get the most recent Smart E2E comment ID for this PR
+          LATEST_COMMENT_ID=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq -r '.comments[] | select(.body | contains("smart-e2e-comment-id: pr-${{ github.event.pull_request.number }}")) | .id' 2>/dev/null | tail -1 || echo "")
 
-          # Delete existing comment if it exists
-          if [ -n "$EXISTING_COMMENTS" ]; then
-            echo "🗑️ Replacing existing Smart E2E comment with final results..."
-            echo "$EXISTING_COMMENTS" | while read -r comment_id; do
-              if [ -n "$comment_id" ]; then
-                echo "Deleting comment: $comment_id"
-                if gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" 2>/dev/null; then
-                  echo "✅ Successfully deleted comment $comment_id"
-                else
-                  echo "⚠️ Could not delete comment $comment_id (may already be deleted)"
-                fi
-              fi
-            done
+          if [ -n "$LATEST_COMMENT_ID" ]; then
+            echo "📝 Updating existing Smart E2E comment with final results: $LATEST_COMMENT_ID"
+            FINAL_COMMENT_BODY=$(cat pr_comment_final.md)
+            if gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$LATEST_COMMENT_ID" --field body="$FINAL_COMMENT_BODY" >/dev/null 2>&1; then
+              echo "✅ Successfully updated existing comment with final results"
+            else
+              echo "⚠️ Failed to update existing comment, creating new one..."
+              gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment_final.md
+            fi
           else
-            echo "ℹ️ No existing Smart E2E comment found to replace"
+            echo "📝 No existing comment found, creating new Smart E2E comment with final results..."
+            gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment_final.md
           fi
-
-          # Create final results comment
-          echo "📝 Creating final results comment..."
-          gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment_final.md
 
       - name: Check test results
         run: |
