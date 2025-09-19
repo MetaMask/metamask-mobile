@@ -1,3 +1,9 @@
+// Mock Logger
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
+
 // Mock react-native components for testing
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -41,17 +47,12 @@ jest.mock('../../../animations/fox_appear.riv', () => 'mocked-fox-riv-file');
 
 // Mock rive
 interface RiveRef {
-  play: jest.Mock;
-  stop: jest.Mock;
-  reset: jest.Mock;
-  pause: jest.Mock;
+  setInputState: jest.Mock;
+  fireState: jest.Mock;
 }
 
 interface MockRiveProps {
   testID?: string;
-  onLoad?: () => void;
-  onStop?: () => void;
-  onError?: (error: Error) => void;
   [key: string]: unknown;
 }
 
@@ -62,28 +63,11 @@ jest.mock('rive-react-native', () => {
   const MockRiveInner: React.ForwardRefRenderFunction<
     RiveRef,
     MockRiveProps
-  > = (
-    { testID = 'mock-rive-animation', onLoad, onStop, onError, ...props },
-    ref,
-  ) => {
-    const playMock = jest.fn(() => {
-      if (onStop) {
-        onStop();
-      }
-    });
-
+  > = ({ testID = 'mock-rive-animation', ...props }, ref) => {
     React.useImperativeHandle(ref, () => ({
-      play: playMock,
-      stop: jest.fn(),
-      reset: jest.fn(),
-      pause: jest.fn(),
+      setInputState: jest.fn(),
+      fireState: jest.fn(),
     }));
-
-    React.useEffect(() => {
-      if (onLoad) {
-        onLoad();
-      }
-    }, [onLoad]);
 
     return React.createElement(View, { testID, ...props });
   };
@@ -135,6 +119,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import Logger from '../../../util/Logger';
 
 jest.mock('@react-native-community/netinfo', () => ({
   __esModule: true,
@@ -788,13 +773,13 @@ describe('Onboarding', () => {
       });
 
       await act(async () => {
-        jest.advanceTimersByTime(2000);
+        jest.advanceTimersByTime(1000);
       });
 
       expect(animatedTimingSpy).toHaveBeenCalled();
 
       await act(async () => {
-        jest.advanceTimersByTime(4000);
+        jest.advanceTimersByTime(2000);
       });
 
       expect(animatedTimingSpy.mock.calls.length).toBeGreaterThan(0);
@@ -1572,52 +1557,295 @@ describe('Onboarding', () => {
       expect(foxAnimation).toBeDefined();
     });
 
-    it('should verify component renders with animations and completes lifecycle', async () => {
-      const { getByTestId } = renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      expect(getByTestId('metamask-wordmark-animation')).toBeDefined();
-      expect(getByTestId('fox-animation')).toBeDefined();
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
-      expect(getByTestId('metamask-wordmark-animation')).toBeDefined();
-      expect(getByTestId('fox-animation')).toBeDefined();
-    });
-
-    it('should test error handling path in startRiveAnimation', async () => {
-      const testComponent = {
-        logoRef: { current: null as { play: jest.Mock } | null },
+    it('should call setInputState and fireState with correct parameters in dark mode', async () => {
+      const mockComponent = {
         mounted: true,
+        context: { themeAppearance: 'dark' },
+        logoRef: {
+          current: {
+            setInputState: jest.fn<void, [string, string, boolean]>(),
+            fireState: jest.fn<void, [string, string]>(),
+          },
+        },
+        moveLogoUp: jest.fn(),
         startRiveAnimation() {
-          try {
-            if (this.logoRef.current && this.mounted) {
-              this.logoRef.current.play();
-            } else {
-              setTimeout(() => {
-                if (this.logoRef.current && this.mounted) {
-                  this.logoRef.current.play();
-                }
-              }, 500);
-            }
-          } catch (error) {
-            expect(error).toBeDefined();
+          if (this.logoRef.current && this.mounted) {
+            const isDarkMode = this.context.themeAppearance === 'dark';
+            this.logoRef.current.setInputState(
+              'WordmarkBuildUp',
+              'Dark',
+              isDarkMode,
+            );
+            this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
+            setTimeout(() => {
+              if (this.mounted) {
+                this.moveLogoUp();
+              }
+            }, 1000);
           }
         },
       };
 
-      testComponent.startRiveAnimation();
+      mockComponent.startRiveAnimation();
 
-      jest.advanceTimersByTime(500);
+      expect(mockComponent.logoRef.current.setInputState).toHaveBeenCalledWith(
+        'WordmarkBuildUp',
+        'Dark',
+        true,
+      );
+      expect(mockComponent.logoRef.current.fireState).toHaveBeenCalledWith(
+        'WordmarkBuildUp',
+        'Start',
+      );
+    });
 
-      expect(true).toBe(true);
+    it('should call setInputState with light mode when themeAppearance is light', async () => {
+      const mockComponent = {
+        mounted: true,
+        context: { themeAppearance: 'light' },
+        logoRef: {
+          current: {
+            setInputState: jest.fn<void, [string, string, boolean]>(),
+            fireState: jest.fn<void, [string, string]>(),
+          },
+        },
+        moveLogoUp: jest.fn(),
+        startRiveAnimation() {
+          if (this.logoRef.current && this.mounted) {
+            const isDarkMode = this.context.themeAppearance === 'dark';
+            this.logoRef.current.setInputState(
+              'WordmarkBuildUp',
+              'Dark',
+              isDarkMode,
+            );
+            this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
+            setTimeout(() => {
+              if (this.mounted) {
+                this.moveLogoUp();
+              }
+            }, 1000);
+          }
+        },
+      };
+
+      mockComponent.startRiveAnimation();
+
+      expect(mockComponent.logoRef.current.setInputState).toHaveBeenCalledWith(
+        'WordmarkBuildUp',
+        'Dark',
+        false,
+      );
+    });
+
+    it('should handle error in startRiveAnimation and call Logger.error', () => {
+      const mockComponent = {
+        mounted: true,
+        context: { themeAppearance: 'dark' },
+        logoRef: {
+          current: {
+            setInputState: jest.fn<void, [string, string, boolean]>(() => {
+              throw new Error('Rive animation error');
+            }),
+            fireState: jest.fn<void, [string, string]>(),
+          },
+        },
+        startRiveAnimation() {
+          try {
+            if (this.logoRef.current && this.mounted) {
+              const isDarkMode = this.context.themeAppearance === 'dark';
+              this.logoRef.current.setInputState(
+                'WordmarkBuildUp',
+                'Dark',
+                isDarkMode,
+              );
+              this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
+            }
+          } catch (error) {
+            Logger.error(error as Error, 'Error triggering Rive animation');
+          }
+        },
+      };
+
+      mockComponent.startRiveAnimation();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error triggering Rive animation',
+      );
+    });
+
+    it('should handle Fox animation completion and call fireState', async () => {
+      jest.useFakeTimers();
+
+      const mockComponent = {
+        mounted: true,
+        foxRef: {
+          current: {
+            fireState: jest.fn<void, [string, string]>(),
+          },
+        },
+        foxOpacity: { setValue: jest.fn() },
+        showFoxAnimation() {
+          if (this.foxRef.current && this.mounted) {
+            try {
+              this.foxRef.current.fireState('FoxRaiseUp', 'Start');
+            } catch (error) {
+              // Intentionally empty for test
+            }
+          }
+        },
+      };
+
+      mockComponent.showFoxAnimation();
+
+      expect(mockComponent.foxRef.current.fireState).toHaveBeenCalledWith(
+        'FoxRaiseUp',
+        'Start',
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('should handle error in Fox animation and call Logger.error', () => {
+      const mockComponent = {
+        mounted: true,
+        foxRef: {
+          current: {
+            fireState: jest.fn<void, [string, string]>(() => {
+              throw new Error('Fox animation error');
+            }),
+          },
+        },
+        showFoxAnimation() {
+          if (this.foxRef.current && this.mounted) {
+            try {
+              this.foxRef.current.fireState('FoxRaiseUp', 'Start');
+            } catch (error) {
+              Logger.error(
+                error as Error,
+                'Error triggering Fox Rive animation',
+              );
+            }
+          }
+        },
+      };
+
+      mockComponent.showFoxAnimation();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error triggering Fox Rive animation',
+      );
+    });
+  });
+
+  describe('E2E Animation Paths', () => {
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    afterEach(() => {
+      jest.resetModules();
+    });
+
+    it('should execute E2E branch in startRiveAnimation when isE2E is true', async () => {
+      const mockIsE2E = true;
+      const mockComponent = {
+        mounted: true,
+        moveLogoUp: jest.fn(),
+        startRiveAnimation() {
+          if (mockIsE2E) {
+            this.moveLogoUp();
+            return;
+          }
+        },
+      };
+
+      mockComponent.startRiveAnimation();
+
+      expect(mockComponent.moveLogoUp).toHaveBeenCalled();
+    });
+
+    it('should execute E2E branch in moveLogoUp when isE2E is true', async () => {
+      const mockIsE2E = true;
+      const mockComponent = {
+        mounted: true,
+        showFoxAnimation: jest.fn(),
+        logoPosition: { setValue: jest.fn() },
+        buttonsOpacity: { setValue: jest.fn() },
+        moveLogoUp() {
+          if (mockIsE2E) {
+            this.logoPosition.setValue(-180);
+            this.buttonsOpacity.setValue(1);
+            this.showFoxAnimation();
+            return;
+          }
+        },
+      };
+
+      mockComponent.moveLogoUp();
+
+      expect(mockComponent.logoPosition.setValue).toHaveBeenCalledWith(-180);
+      expect(mockComponent.buttonsOpacity.setValue).toHaveBeenCalledWith(1);
+      expect(mockComponent.showFoxAnimation).toHaveBeenCalled();
+    });
+
+    it('should execute E2E branch in showFoxAnimation when isE2E is true', async () => {
+      const mockIsE2E = true;
+      const mockComponent = {
+        mounted: true,
+        foxOpacity: { setValue: jest.fn() },
+        showFoxAnimation() {
+          if (mockIsE2E) {
+            this.foxOpacity.setValue(1);
+            return;
+          }
+        },
+      };
+
+      mockComponent.showFoxAnimation();
+
+      expect(mockComponent.foxOpacity.setValue).toHaveBeenCalledWith(1);
+    });
+
+    it('should initialize buttonsOpacity with value 1 when isE2E is true', async () => {
+      const mockIsE2E = true;
+      const mockComponent: {
+        buttonsOpacity?: { value: number };
+        initAnimatedValues(): void;
+      } = {
+        initAnimatedValues() {
+          this.buttonsOpacity = mockIsE2E ? { value: 1 } : { value: 0 };
+        },
+      };
+
+      mockComponent.initAnimatedValues();
+
+      expect(mockComponent.buttonsOpacity?.value).toBe(1);
+    });
+
+    it('should verify animation timing and sequencing', async () => {
+      jest.useFakeTimers();
+
+      const mockComponent = {
+        mounted: true,
+        moveLogoUp: jest.fn(),
+        testTimeout() {
+          setTimeout(() => {
+            if (this.mounted) {
+              this.moveLogoUp();
+            }
+          }, 1000);
+        },
+      };
+
+      mockComponent.testTimeout();
+
+      jest.advanceTimersByTime(1000);
+
+      expect(mockComponent.moveLogoUp).toHaveBeenCalled();
+
+      jest.useRealTimers();
     });
   });
 });

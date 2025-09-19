@@ -91,6 +91,7 @@ exports[`Onboarding should render correctly 1`] = `
                 autoplay={false}
                 fit="contain"
                 source="mocked-wordmark-riv-file"
+                stateMachine="WordmarkBuildUp"
                 style={
                   {
                     "alignSelf": "center",
@@ -240,6 +241,7 @@ exports[`Onboarding should render correctly 1`] = `
       autoplay={false}
       fit="contain"
       source="mocked-fox-riv-file"
+      stateMachine="FoxRaiseUp"
       style={
         {
           "height": "100%",
@@ -344,6 +346,7 @@ exports[`Onboarding should render correctly with android 1`] = `
                 autoplay={false}
                 fit="contain"
                 source="mocked-wordmark-riv-file"
+                stateMachine="WordmarkBuildUp"
                 style={
                   {
                     "alignSelf": "center",
@@ -493,6 +496,7 @@ exports[`Onboarding should render correctly with android 1`] = `
       autoplay={false}
       fit="contain"
       source="mocked-fox-riv-file"
+      stateMachine="FoxRaiseUp"
       style={
         {
           "height": "100%",
@@ -597,6 +601,7 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
                 autoplay={false}
                 fit="contain"
                 source="mocked-wordmark-riv-file"
+                stateMachine="WordmarkBuildUp"
                 style={
                   {
                     "alignSelf": "center",
@@ -746,6 +751,7 @@ exports[`Onboarding should render correctly with large device and iphoneX 1`] = 
       autoplay={false}
       fit="contain"
       source="mocked-fox-riv-file"
+      stateMachine="FoxRaiseUp"
       style={
         {
           "height": "100%",
@@ -850,6 +856,7 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
                 autoplay={false}
                 fit="contain"
                 source="mocked-wordmark-riv-file"
+                stateMachine="WordmarkBuildUp"
                 style={
                   {
                     "alignSelf": "center",
@@ -999,6 +1006,7 @@ exports[`Onboarding should render correctly with medium device and android 1`] =
       autoplay={false}
       fit="contain"
       source="mocked-fox-riv-file"
+      stateMachine="FoxRaiseUp"
       style={
         {
           "height": "100%",
