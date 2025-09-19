@@ -588,29 +588,23 @@ workflows:
                 # Verify bundled version works
                 echo "Bundled Yarn version: $($YARN_CMD --version)"
                 
-                # Aggressive cleanup for iOS builds - clear ALL possible config sources
-                echo "Clearing ALL legacy configurations for iOS build..."
-                rm -f .yarnrc || true
-                rm -f ~/.yarnrc || true
-                rm -rf ~/.yarn || true
-                rm -f /usr/local/etc/yarnrc || true
-                rm -f /opt/homebrew/etc/yarnrc || true
+                # Nuclear option: Backup ALL configs and start completely fresh
+                echo "Creating completely fresh Yarn environment..."
                 
-                # Clear ALL yarn-related environment variables
-                unset YARN_CACHE_FOLDER
-                unset YARN_CACHE_DIR
-                unset YARN_GLOBAL_FOLDER
-                unset YARN_LINK_FOLDER
-                unset YARN_ENABLE_GLOBAL_CACHE
-                unset YARN_ENABLE_IMMUTABLE_INSTALLS
-                unset YARN_RC_FILENAME
-                unset YARN_WRAP_OUTPUT
-                unset YARN_COMMAND
+                # Backup ALL possible config sources temporarily
+                mv .yarnrc .yarnrc.backup 2>/dev/null || true
+                mv ~/.yarnrc ~/.yarnrc.backup 2>/dev/null || true
+                mv ~/.yarn ~/.yarn.backup 2>/dev/null || true
+                mv /usr/local/etc/yarnrc /usr/local/etc/yarnrc.backup 2>/dev/null || true
+                mv /opt/homebrew/etc/yarnrc /opt/homebrew/etc/yarnrc.backup 2>/dev/null || true
                 
-                # Create yarn-specific isolation without breaking git
+                # Clear ALL yarn environment variables
+                for var in $(env | grep ^YARN | cut -d= -f1); do
+                  unset $var
+                done
+                
+                # Set only the minimal required yarn environment
                 export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
-                export YARN_GLOBAL_FOLDER="$(pwd)/.yarn/global"
-                export YARN_LINK_FOLDER="$(pwd)/.yarn/link"
                 
                 # Create clean .yarnrc.yml if it doesn't exist
                 if [ ! -f ".yarnrc.yml" ]; then
@@ -625,6 +619,13 @@ workflows:
                 
                 # Run install with yarn-specific isolation (preserve git environment)
                 $YARN_CMD install --immutable
+                
+                # Restore backed up configs (so we don't break other tools)
+                mv .yarnrc.backup .yarnrc 2>/dev/null || true
+                mv ~/.yarnrc.backup ~/.yarnrc 2>/dev/null || true
+                mv ~/.yarn.backup ~/.yarn 2>/dev/null || true
+                mv /usr/local/etc/yarnrc.backup /usr/local/etc/yarnrc 2>/dev/null || true
+                mv /opt/homebrew/etc/yarnrc.backup /opt/homebrew/etc/yarnrc 2>/dev/null || true
           title: Yarn Install
       - script@1:
           title: Yarn Setup
@@ -633,29 +634,23 @@ workflows:
                 #!/usr/bin/env bash
                 set -e
                 
-                # REPEAT the same aggressive cleanup for this step (each step = fresh shell!)
-                echo "Clearing ALL legacy configurations for iOS build (setup step)..."
-                rm -f .yarnrc || true
-                rm -f ~/.yarnrc || true
-                rm -rf ~/.yarn || true
-                rm -f /usr/local/etc/yarnrc || true
-                rm -f /opt/homebrew/etc/yarnrc || true
+                # Nuclear option: Backup ALL configs and start completely fresh (setup step)
+                echo "Creating completely fresh Yarn environment for setup..."
                 
-                # Clear ALL yarn-related environment variables
-                unset YARN_CACHE_FOLDER
-                unset YARN_CACHE_DIR
-                unset YARN_GLOBAL_FOLDER
-                unset YARN_LINK_FOLDER
-                unset YARN_ENABLE_GLOBAL_CACHE
-                unset YARN_ENABLE_IMMUTABLE_INSTALLS
-                unset YARN_RC_FILENAME
-                unset YARN_WRAP_OUTPUT
-                unset YARN_COMMAND
+                # Backup ALL possible config sources temporarily
+                mv .yarnrc .yarnrc.backup 2>/dev/null || true
+                mv ~/.yarnrc ~/.yarnrc.backup 2>/dev/null || true
+                mv ~/.yarn ~/.yarn.backup 2>/dev/null || true
+                mv /usr/local/etc/yarnrc /usr/local/etc/yarnrc.backup 2>/dev/null || true
+                mv /opt/homebrew/etc/yarnrc /opt/homebrew/etc/yarnrc.backup 2>/dev/null || true
                 
-                # Create yarn-specific isolation without breaking git
+                # Clear ALL yarn environment variables
+                for var in $(env | grep ^YARN | cut -d= -f1); do
+                  unset $var
+                done
+                
+                # Set only the minimal required yarn environment
                 export YARN_CACHE_FOLDER="$(pwd)/.yarn/cache"
-                export YARN_GLOBAL_FOLDER="$(pwd)/.yarn/global"
-                export YARN_LINK_FOLDER="$(pwd)/.yarn/link"
                 
                 # Use the same bundled yarn for setup
                 if [ -f ".yarn/releases/yarn-3.8.7.cjs" ]; then
@@ -690,6 +685,13 @@ workflows:
                     exit 1
                   fi
                 fi
+                
+                # Restore backed up configs (so we don't break other tools)
+                mv .yarnrc.backup .yarnrc 2>/dev/null || true
+                mv ~/.yarnrc.backup ~/.yarnrc 2>/dev/null || true
+                mv ~/.yarn.backup ~/.yarn 2>/dev/null || true
+                mv /usr/local/etc/yarnrc.backup /usr/local/etc/yarnrc 2>/dev/null || true
+                mv /opt/homebrew/etc/yarnrc.backup /opt/homebrew/etc/yarnrc 2>/dev/null || true
       - save-cache@1:
           title: Save Yarn cache
           inputs:
