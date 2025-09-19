@@ -210,40 +210,23 @@ class AIE2ETagsSelector {
       const targetBranch = baseBranch || 'origin/main';
 
       if (includeMainChanges) {
-        // Include changes that might have come from main branch merges
-        this.log('📋 Including main changes - comprehensive analysis');
-        try {
-          // Use two-dot syntax to include both PR changes AND any main changes since branch creation
-          changedFiles = execSync(`git diff --name-only ${targetBranch}..HEAD`, {
-            encoding: 'utf8',
-            stdio: ['ignore', 'pipe', 'ignore']
-          }).trim().split('\n').filter(f => f);
+        // Use double-dot for comprehensive changes including main context
+        this.log('📋 Comprehensive analysis - using double-dot syntax');
+        changedFiles = execSync(`git diff --name-only ${targetBranch}..HEAD`, {
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore']
+        }).trim().split('\n').filter(f => f);
 
-          this.log(`📊 Comprehensive diff against: ${targetBranch} (includes main merges)`);
-        } catch {
-          this.warn('Fallback: using last 20 commits for comprehensive analysis');
-          changedFiles = execSync('git diff --name-only HEAD~20...HEAD', {
-            encoding: 'utf8',
-            stdio: ['ignore', 'pipe', 'ignore']
-          }).trim().split('\n').filter(f => f);
-        }
+        this.log(`📊 Found ${changedFiles.length} files with main context (${targetBranch}..HEAD)`);
       } else {
-        // Standard PR diff - only changes specific to this branch
-        this.log(`📋 PR-focused analysis against: ${targetBranch}`);
-        try {
-          changedFiles = execSync(`git diff --name-only ${targetBranch}...HEAD`, {
-            encoding: 'utf8',
-            stdio: ['ignore', 'pipe', 'ignore']
-          }).trim().split('\n').filter(f => f);
+        // Use triple-dot for branch-specific changes only
+        this.log(`📋 Branch-focused analysis - using triple-dot syntax`);
+        changedFiles = execSync(`git diff --name-only ${targetBranch}...HEAD`, {
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore']
+        }).trim().split('\n').filter(f => f);
 
-          this.log(`📊 Found ${changedFiles.length} changed files in PR`);
-        } catch {
-          this.warn(`Could not diff against ${targetBranch}, using recent commits`);
-          changedFiles = execSync('git diff --name-only HEAD~5...HEAD', {
-            encoding: 'utf8',
-            stdio: ['ignore', 'pipe', 'ignore']
-          }).trim().split('\n').filter(f => f);
-        }
+        this.log(`📊 Found ${changedFiles.length} branch-specific changes (${targetBranch}...HEAD)`);
       }
 
       let stagedFiles: string[] = [];
