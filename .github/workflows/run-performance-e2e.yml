@@ -3,6 +3,28 @@ on:
   schedule:
     - cron: '0 3 * * 1-6'
   workflow_dispatch:
+    inputs:
+      description:
+        description: 'Optional description for this test run'
+        required: false
+        type: string
+
+      browserstack_app_url_android_onboarding:
+        description: 'BrowserStack Android Onboarding App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_ios_onboarding:
+        description: 'BrowserStack iOS Onboarding App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_android_imported_wallet:
+        description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_ios_imported_wallet:
+        description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
+        required: false
+        type: string
   workflow_call:
     inputs:
       description:
