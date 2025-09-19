@@ -91,6 +91,11 @@ const createStyles = (params: { theme: Theme }) => {
     tokensList: {
       marginTop: 10,
     },
+    searchInput: {
+      borderRadius: 12,
+      borderWidth: 0,
+      backgroundColor: theme.colors.background.section,
+    },
   });
 };
 
@@ -231,6 +236,8 @@ export const BridgeTokenSelectorBase: React.FC<
     return tokensToRender;
   }, [pending, tokensToRender]);
 
+  const placeholderTextColor = theme.colors.text.alternative;
+
   return (
     <ReusableModal
       ref={modalRef}
@@ -281,6 +288,8 @@ export const BridgeTokenSelectorBase: React.FC<
             onChangeText={handleSearchTextChange}
             placeholder={strings('swaps.search_token')}
             testID="bridge-token-search-input"
+            style={styles.searchInput}
+            placeholderTextColor={placeholderTextColor}
           />
         </Box>
 
