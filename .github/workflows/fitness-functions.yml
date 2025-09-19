@@ -36,5 +36,5 @@ jobs:
           # files in the current directory and its subdirectories. The output is
           # then saved to a file called "diff".
           git diff "$(git merge-base "origin/$BASE_REF" HEAD)" HEAD -- . > ./diff
-          yarn run fitness-functions -- "ci" "./diff"
+          yarn run fitness-functions "ci" "./diff"
         working-directory: '.github/scripts'

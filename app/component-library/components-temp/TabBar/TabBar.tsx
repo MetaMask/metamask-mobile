@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import DefaultTabBar from '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 
 // External dependencies.
 import { useStyles } from '../../hooks';

@@ -2,7 +2,10 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import ScrollableTabView, {
+  TabBarProps,
+} from '@tommasini/react-native-scrollable-tab-view';
 
 // External dependencies.
 import TextComponent from '../../components/Texts/Text';
@@ -10,8 +13,8 @@ import TextComponent from '../../components/Texts/Text';
 // Internal dependencies.
 import TabBar from './TabBar';
 
-// Mock react-native-scrollable-tab-view
-jest.mock('react-native-scrollable-tab-view', () => ({
+// Mock @tommasini/react-native-scrollable-tab-view
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({
     children,
@@ -69,7 +72,7 @@ describe('TabBar', () => {
     // Act
     const { toJSON } = render(
       <ScrollableTabView
-        renderTabBar={(props) => <TabBar {...props} />}
+        renderTabBar={(props: typeof TabBarProps) => <TabBar {...props} />}
         initialPage={0}
       >
         {tabs.map((label, index) => (
@@ -92,7 +95,9 @@ describe('TabBar', () => {
     // Act
     const { toJSON } = render(
       <ScrollableTabView
-        renderTabBar={(props) => <TabBar {...props} style={customStyle} />}
+        renderTabBar={(props: typeof TabBarProps) => (
+          <TabBar {...props} style={customStyle} />
+        )}
         initialPage={0}
       >
         {tabs.map((label, index) => (
@@ -114,7 +119,7 @@ describe('TabBar', () => {
     // Act
     const { getByText } = render(
       <ScrollableTabView
-        renderTabBar={(props) => <TabBar {...props} />}
+        renderTabBar={(props: typeof TabBarProps) => <TabBar {...props} />}
         initialPage={0}
       >
         {tabLabels.map((label, index) => (
@@ -141,7 +146,7 @@ describe('TabBar', () => {
     // Act
     const { getByText } = render(
       <ScrollableTabView
-        renderTabBar={(props) => <TabBar {...props} />}
+        renderTabBar={(props: typeof TabBarProps) => <TabBar {...props} />}
         initialPage={0}
       >
         {tabData.map((tab, index) => (
@@ -167,7 +172,7 @@ describe('TabBar', () => {
     // Act
     render(
       <ScrollableTabView
-        renderTabBar={(props) => <TabBar {...props} />}
+        renderTabBar={(props: typeof TabBarProps) => <TabBar {...props} />}
         onChangeTab={mockOnChangeTab}
         initialPage={0}
       >
@@ -191,7 +196,7 @@ describe('TabBar', () => {
     // Act
     const { getByText } = render(
       <ScrollableTabView
-        renderTabBar={(props) => <TabBar {...props} />}
+        renderTabBar={(props: typeof TabBarProps) => <TabBar {...props} />}
         initialPage={0}
       >
         {multipleTabLabels.map((label, index) => (
@@ -220,7 +225,9 @@ describe('TabBar', () => {
     // Act
     const { toJSON } = render(
       <ScrollableTabView
-        renderTabBar={(props) => <TabBar {...props} {...additionalProps} />}
+        renderTabBar={(props: typeof TabBarProps) => (
+          <TabBar {...props} {...additionalProps} />
+        )}
         initialPage={0}
       >
         {tabs.map((label, index) => (
@@ -242,7 +249,7 @@ describe('TabBar', () => {
     // Act
     const { getByText } = render(
       <ScrollableTabView
-        renderTabBar={(props) => <TabBar {...props} />}
+        renderTabBar={(props: typeof TabBarProps) => <TabBar {...props} />}
         initialPage={1}
       >
         {tabs.map((label, index) => (

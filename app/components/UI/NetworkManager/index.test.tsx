@@ -176,7 +176,7 @@ jest.mock('@metamask/controller-utils', () => ({
 }));
 
 // Component mocks with simplified functionality
-jest.mock('react-native-scrollable-tab-view', () => {
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
   const ReactActual = jest.requireActual('react');
   const { View: RNView } = jest.requireActual('react-native');
 
@@ -211,7 +211,7 @@ jest.mock('react-native-scrollable-tab-view', () => {
   };
 });
 
-jest.mock('react-native-scrollable-tab-view/DefaultTabBar', () => {
+jest.mock('@tommasini/react-native-scrollable-tab-view/DefaultTabBar', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return (props: Record<string, unknown>) => (
     <RNView testID="default-tab-bar" {...props} />

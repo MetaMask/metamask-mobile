@@ -409,3 +409,5 @@ declare module '@sentry/react-native' {
     hint?: ExclusiveEventHintOrCaptureContext,
   ): string;
 }
+declare module '@tommasini/react-native-scrollable-tab-view';
+declare module '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';

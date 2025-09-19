@@ -17,25 +17,25 @@ jobs:
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
       RCT_NO_LAUNCH_PACKAGER: 1
-      XCODE_BUILD_SETTINGS: "COMPILER_INDEX_STORE_ENABLE=NO"
-      GITHUB_CI: "true"  # This ensures it's available during pod install
+      XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
+      GITHUB_CI: 'true' # This ensures it's available during pod install
       PLATFORM: ios
       METAMASK_ENVIRONMENT: qa
       METAMASK_BUILD_TYPE: main
       IS_TEST: true
-      E2E: "true"
+      E2E: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: true
-      CI: "true"
-      NODE_OPTIONS: "--max-old-space-size=8192"
-      MM_UNIFIED_SWAPS_ENABLED: "true"
-      MM_BRIDGE_ENABLED: "true"
-      BRIDGE_USE_DEV_APIS: "true"
-      RAMP_INTERNAL_BUILD: "true"
-      SEEDLESS_ONBOARDING_ENABLED: "true"
-      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
-      MM_NOTIFICATIONS_UI_ENABLED: "true"
-      MM_SECURITY_ALERTS_API_ENABLED: "true"
-      BLOCKAID_FILE_CDN: "static.cx.metamask.io/api/v1/confirmations/ppom"
+      CI: 'true'
+      NODE_OPTIONS: '--max-old-space-size=8192'
+      MM_UNIFIED_SWAPS_ENABLED: 'true'
+      MM_BRIDGE_ENABLED: 'true'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
+      MM_NOTIFICATIONS_UI_ENABLED: 'true'
+      MM_SECURITY_ALERTS_API_ENABLED: 'true'
+      BLOCKAID_FILE_CDN: 'static.cx.metamask.io/api/v1/confirmations/ppom'
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -70,23 +70,23 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env-yarn-v3@self-hosted-runners-config
         with:
           platform: ios
           setup-simulator: false
 
       - name: Print iOS tool versions
         run: |
-            echo "🔧 Node.js Version:"
-            node -v || echo "Node not found"
-            echo "🧶 Yarn Version:"
-            yarn -v || echo "Yarn not found"
-            echo "📦 CocoaPods Version:"
-            pod --version || echo "CocoaPods not found"
-            echo "🛠️ Xcode Path:"
-            xcode-select -p || echo "Xcode not found"
-            echo "📱 Booted iOS Simulators:"
-            xcrun simctl list | grep Booted || echo "No booted simulators found"
+          echo "🔧 Node.js Version:"
+          node -v || echo "Node not found"
+          echo "🧶 Yarn Version:"
+          yarn -v || echo "Yarn not found"
+          echo "📦 CocoaPods Version:"
+          pod --version || echo "CocoaPods not found"
+          echo "🛠️ Xcode Path:"
+          xcode-select -p || echo "Xcode not found"
+          echo "📱 Booted iOS Simulators:"
+          xcrun simctl list | grep Booted || echo "No booted simulators found"
         shell: bash
 
       # Clean iOS plist files to prevent extended attribute issues
@@ -103,7 +103,7 @@ jobs:
           command: |
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
-      
+
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
         run: |
@@ -116,12 +116,12 @@ jobs:
           METAMASK_ENVIRONMENT: main
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
-          IS_SIM_BUILD: "true"  # Ensures simulator build (.app) not device build (.ipa)
+          IS_SIM_BUILD: 'true' # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: "true"
-          CI: "true"
+          GITHUB_CI: 'true'
+          CI: 'true'
 
-          NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build
+          NODE_OPTIONS: '--max_old_space_size=4096' # Increase memory limit for build
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
@@ -174,5 +174,5 @@ jobs:
           echo "- Source Map: ${{ steps.upload-sourcemap.outcome }}"
 
         env:
-          GITHUB_REPOSITORY: "${{ github.repository }}"
-          GITHUB_RUN_ID: "${{ github.run_id }}"
+          GITHUB_REPOSITORY: '${{ github.repository }}'
+          GITHUB_RUN_ID: '${{ github.run_id }}'
