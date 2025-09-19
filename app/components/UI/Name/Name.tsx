@@ -5,9 +5,6 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -45,13 +42,19 @@ const NameLabel: React.FC<{
 const UnknownEthereumAddress: React.FC<{
   address: string;
   style?: ViewStyle;
-}> = ({ address, style }) => {
+  iconSize: AvatarSize;
+}> = ({ address, style, iconSize }) => {
   const displayNameVariant = DisplayNameVariant.Unknown;
   const { styles } = useStyles(styleSheet, { displayNameVariant });
 
   return (
     <View style={[styles.base, style]}>
-      <Icon name={IconName.Question} />
+      <Identicon
+        avatarSize={iconSize}
+        address={address}
+        diameter={16}
+        customStyle={styles.image}
+      />
       <NameLabel displayNameVariant={displayNameVariant} ellipsizeMode="middle">
         {renderShortAddress(address, 5)}
       </NameLabel>
@@ -65,6 +68,7 @@ const Name: React.FC<NameProperties> = ({
   type,
   value,
   variation,
+  iconSizeOverride,
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
@@ -78,13 +82,23 @@ const Name: React.FC<NameProperties> = ({
       value,
       variation,
     });
+  let iconSize = accountWalletName ? AvatarSize.Md : AvatarSize.Sm;
+  if (iconSizeOverride) {
+    iconSize = iconSizeOverride;
+  }
 
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: variant,
   });
 
   if (variant === DisplayNameVariant.Unknown) {
-    return <UnknownEthereumAddress address={value} style={style} />;
+    return (
+      <UnknownEthereumAddress
+        iconSize={iconSize}
+        address={value}
+        style={style}
+      />
+    );
   }
 
   const MAX_CHAR_LENGTH = 21;
@@ -115,9 +129,8 @@ const Name: React.FC<NameProperties> = ({
             />
           ) : (
             <Identicon
-              avatarSize={AvatarSize.Md}
+              avatarSize={iconSize}
               address={value}
-              diameter={16}
               imageUri={image}
               customStyle={styles.image}
             />

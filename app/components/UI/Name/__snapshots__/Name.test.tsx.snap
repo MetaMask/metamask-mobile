@@ -215,9 +215,9 @@ exports[`Name recognized address should render image 1`] = `
         style={
           [
             {
-              "borderRadius": 8,
-              "height": 16,
-              "width": 16,
+              "borderRadius": 23,
+              "height": 46,
+              "width": 46,
             },
             {
               "borderRadius": 8,
@@ -349,18 +349,18 @@ exports[`Name recognized address should return name 1`] = `
         style={
           {
             "backgroundColor": "#ffffff",
-            "borderRadius": 8,
-            "height": 32,
+            "borderRadius": 6,
+            "height": 24,
             "overflow": "hidden",
-            "width": 32,
+            "width": 24,
           }
         }
       >
         <View
           style={
             {
-              "height": 32,
-              "width": 32,
+              "height": 24,
+              "width": 24,
             }
           }
         />
@@ -438,19 +438,63 @@ exports[`Name unknown address displays checksummed address 1`] = `
     ]
   }
 >
-  <SvgMock
-    color="#121314"
-    fill="currentColor"
-    height={20}
-    name="Question"
-    style={
+  <View
+    placeholderStyle={
       {
-        "height": 20,
-        "width": 20,
+        "backgroundColor": "#f3f5f9",
       }
     }
-    width={20}
-  />
+    useNativeDriver={true}
+  >
+    <View
+      onLoadEnd={[Function]}
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderRadius": 6,
+          "height": 24,
+          "overflow": "hidden",
+          "width": 24,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "height": 24,
+            "width": 24,
+          }
+        }
+      />
+    </View>
+    <View
+      collapsable={false}
+      style={
+        {
+          "bottom": 0,
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {},
+            {
+              "backgroundColor": "#eee",
+            },
+            {
+              "backgroundColor": "#f3f5f9",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
   <Text
     accessibilityRole="text"
     ellipsizeMode="middle"

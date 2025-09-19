@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -14,11 +15,15 @@ import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './from-to-row.styles';
+import { selectWalletsMap } from '../../../../../../../selectors/multichainAccounts/accountTreeController';
+import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
 
 const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
+  const walletsMap = useSelector(selectWalletsMap) || {};
+  const haveMoreThanOneWallet = Object.keys(walletsMap).length > 1;
 
   if (!transactionMetadata) {
     return null;
@@ -54,6 +59,9 @@ const FromToRow = () => {
             type={NameType.EthereumAddress}
             value={toAddress}
             variation={chainId}
+            iconSizeOverride={
+              haveMoreThanOneWallet ? AvatarSize.Md : AvatarSize.Sm
+            }
           />
         </View>
       </View>
