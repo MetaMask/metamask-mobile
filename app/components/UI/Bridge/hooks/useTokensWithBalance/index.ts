@@ -4,6 +4,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
 import {
+  selectLastSelectedBitcoinAccount,
   selectLastSelectedEvmAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectLastSelectedSolanaAccount,
@@ -159,6 +160,11 @@ export const useTokensWithBalance: ({
     selectLastSelectedSolanaAccount,
   );
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const lastSelectedBitcoinAccount = useSelector(
+    selectLastSelectedBitcoinAccount,
+  );
+  ///: END:ONLY_INCLUDE_IF
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -180,9 +186,17 @@ export const useTokensWithBalance: ({
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
-  const nonEvmTokens = useSelector((state: RootState) =>
-    selectMultichainTokenListForAccountId(state, lastSelectedSolanaAccount?.id),
-  );
+  const nonEvmTokens = useSelector((state: RootState) => {
+    const solanaTokens = selectMultichainTokenListForAccountId(
+      state,
+      lastSelectedSolanaAccount?.id,
+    );
+    const bitcoinTokens = selectMultichainTokenListForAccountId(
+      state,
+      lastSelectedBitcoinAccount?.id,
+    );
+    return [...solanaTokens, ...bitcoinTokens];
+  });
   ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {
