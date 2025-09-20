@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
+import Logger from '../../../util/Logger';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -23,7 +24,6 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
@@ -40,7 +40,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import LottieView from 'lottie-react-native';
 import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
@@ -56,7 +55,6 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import fox from '../../../animations/Searching_Fox.json';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
@@ -64,6 +62,18 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
+import Rive, { Fit, Alignment } from 'rive-react-native';
+
+import FoxAnimation from '../../../animations/fox_appear.riv';
+import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
+import { isE2E } from '../../../util/test/utils';
+
+const getFoxAnimationHeight = (hasFooter) => {
+  if (hasFooter) {
+    return Device.isMediumDevice() ? 150 : 180;
+  }
+  return Device.isMediumDevice() ? 300 : 350;
+};
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -83,6 +93,17 @@ const createStyles = (colors) =>
       rowGap: 32,
       marginBottom: 160,
     },
+    loaderOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: importedColors.gettingStartedTextColor,
+      zIndex: 1000,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     image: {
       alignSelf: 'center',
       width: Device.isMediumDevice() ? 180 : 240,
@@ -96,7 +117,11 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       marginHorizontal: 'auto',
       padding: Device.isMediumDevice() ? 30 : 40,
-      marginTop: 16,
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      marginLeft: -(Device.isMediumDevice() ? 90 : 120),
+      marginTop: -(Device.isMediumDevice() ? 90 : 120),
     },
     foxImage: {
       width: Device.isMediumDevice() ? 110 : 145,
@@ -151,7 +176,12 @@ const createStyles = (colors) =>
       flexDirection: 'column',
       rowGap: Device.isMediumDevice() ? 12 : 16,
       marginBottom: 16,
-      width: '100%',
+      position: 'absolute',
+      top: '50%',
+      left: Device.isMediumDevice() ? 26 : 36,
+      right: Device.isMediumDevice() ? 26 : 36,
+      marginTop: 180,
+      alignItems: 'stretch',
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -209,13 +239,27 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     blackButton: {
-      backgroundColor: importedColors.btnBlack,
+      backgroundColor: importedColors.white,
     },
     blackButtonText: {
       color: importedColors.btnBlackText,
     },
     inverseBlackButton: {
-      backgroundColor: importedColors.btnBlackInverse,
+      backgroundColor: importedColors.applePayBlack,
+    },
+    foxAnimationWrapper: (hasFooter) => ({
+      position: 'absolute',
+      bottom: hasFooter ? 100 : -20,
+      left: 0,
+      right: 0,
+      height: getFoxAnimationHeight(hasFooter),
+      alignItems: 'center',
+      justifyContent: 'center',
+      pointerEvents: 'none',
+    }),
+    foxAnimation: {
+      width: '100%',
+      height: '100%',
     },
   });
 
@@ -223,6 +267,11 @@ const createStyles = (colors) =>
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
+  logoRef = React.createRef();
+  foxRef = React.createRef();
+  logoPosition = new Animated.Value(0);
+  buttonsOpacity = new Animated.Value(isE2E ? 1 : 0);
+  foxOpacity = new Animated.Value(0);
   static propTypes = {
     disableNewPrivacyPolicyToast: PropTypes.func,
     /**
@@ -319,16 +368,10 @@ class Onboarding extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { route, navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getTransparentOnboardingNavbarOptions(
-        colors,
-        importedColors.gettingStartedPageBackgroundColor,
-        true,
-        importedColors.btnBlack,
-      ),
-    );
+    const { navigation } = this.props;
+    navigation.setOptions({
+      headerShown: false,
+    });
   };
 
   componentDidMount() {
@@ -353,8 +396,85 @@ class Onboarding extends PureComponent {
           this.props.unsetLoading();
         }, 2000);
       }
+
+      this.startRiveAnimation();
     });
   }
+
+  startRiveAnimation = () => {
+    if (isE2E) {
+      this.moveLogoUp();
+      return;
+    }
+
+    try {
+      if (this.logoRef.current && this.mounted) {
+        const isDarkMode = this.context.themeAppearance === 'dark';
+
+        this.logoRef.current.setInputState(
+          'WordmarkBuildUp',
+          'Dark',
+          isDarkMode,
+        );
+        this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
+        setTimeout(() => {
+          if (this.mounted) {
+            this.moveLogoUp();
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      Logger.error(error, 'Error triggering Rive animation');
+    }
+  };
+
+  moveLogoUp = () => {
+    if (isE2E) {
+      this.logoPosition.setValue(-180);
+      this.buttonsOpacity.setValue(1);
+      this.showFoxAnimation();
+      return;
+    }
+
+    Animated.parallel([
+      Animated.timing(this.logoPosition, {
+        toValue: -180,
+        duration: 1200,
+        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+        useNativeDriver: true,
+      }),
+      Animated.timing(this.buttonsOpacity, {
+        toValue: 1,
+        duration: 1200,
+        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      this.showFoxAnimation();
+    });
+  };
+
+  showFoxAnimation = () => {
+    if (isE2E) {
+      this.foxOpacity.setValue(1);
+      return;
+    }
+
+    Animated.timing(this.foxOpacity, {
+      toValue: 1,
+      duration: 600,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      if (this.foxRef.current && this.mounted) {
+        try {
+          this.foxRef.current.fireState('FoxRaiseUp', 'Start');
+        } catch (error) {
+          Logger.error(error, 'Error triggering Fox Rive animation');
+        }
+      }
+    });
+  };
 
   componentWillUnmount() {
     this.mounted = false;
@@ -710,15 +830,6 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.loaderWrapper}>
-        <View style={styles.largeFoxWrapper}>
-          <LottieView
-            style={styles.image}
-            autoPlay
-            loop
-            source={fox}
-            resizeMode="contain"
-          />
-        </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
           <Text style={styles.loadingText} color={importedColors.btnBlack}>
@@ -736,26 +847,36 @@ class Onboarding extends PureComponent {
     return (
       <View style={styles.ctas}>
         <View style={styles.titleWrapper}>
-          <View style={styles.largeFoxWrapper}>
-            <LottieView
-              style={styles.image}
-              autoPlay
-              loop
-              source={fox}
-              resizeMode="contain"
-            />
-          </View>
-
-          <Text
-            variant={TextVariant.BodyMD}
-            style={styles.title}
-            testID={OnboardingSelectorIDs.SCREEN_TITLE}
+          <Animated.View
+            style={[
+              styles.largeFoxWrapper,
+              {
+                transform: [{ translateY: this.logoPosition }],
+              },
+            ]}
           >
-            {strings('onboarding.title')}
-          </Text>
+            <Rive
+              ref={this.logoRef}
+              style={styles.image}
+              source={MetaMaskWordmarkAnimation}
+              fit={Fit.Contain}
+              alignment={Alignment.Center}
+              autoplay={false}
+              stateMachine="WordmarkBuildUp"
+              testID="metamask-wordmark-animation"
+            />
+          </Animated.View>
         </View>
 
-        <View style={styles.createWrapper}>
+        <Animated.View
+          style={[
+            styles.createWrapper,
+            {
+              opacity: this.buttonsOpacity,
+              transform: [{ translateY: this.logoPosition }],
+            },
+          ]}
+        >
           <Button
             variant={ButtonVariants.Primary}
             onPress={() => this.handleCtaActions('create')}
@@ -763,7 +884,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlackText}
+                color={importedColors.applePayBlack}
               >
                 {strings('onboarding.start_exploring_now')}
               </Text>
@@ -781,7 +902,7 @@ class Onboarding extends PureComponent {
             label={
               <Text
                 variant={TextVariant.BodyMDMedium}
-                color={importedColors.btnBlack}
+                color={importedColors.white}
               >
                 {SEEDLESS_ONBOARDING_ENABLED
                   ? strings('onboarding.import_using_srp_social_login')
@@ -790,7 +911,7 @@ class Onboarding extends PureComponent {
             }
             style={styles.inverseBlackButton}
           />
-        </View>
+        </Animated.View>
       </View>
     );
   }
@@ -826,6 +947,7 @@ class Onboarding extends PureComponent {
     const { existingUser, errorToThrow } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const hasFooter = existingUser && !loading;
 
     // Component that throws error if needed (to be caught by ErrorBoundary)
     const ThrowErrorIfNeeded = () => {
@@ -848,7 +970,7 @@ class Onboarding extends PureComponent {
           style={[
             baseStyles.flexGrow,
             {
-              backgroundColor: importedColors.gettingStartedPageBackgroundColor,
+              backgroundColor: importedColors.gettingStartedTextColor,
             },
           ]}
           testID={OnboardingSelectorIDs.CONTAINER_ID}
@@ -858,7 +980,13 @@ class Onboarding extends PureComponent {
             contentContainerStyle={styles.scroll}
           >
             <View style={styles.wrapper}>
-              {loading ? this.renderLoader() : this.renderContent()}
+              {this.renderContent()}
+
+              {loading && (
+                <View style={[styles.loaderOverlay]}>
+                  {this.renderLoader()}
+                </View>
+              )}
             </View>
 
             {existingUser && !loading && (
@@ -875,6 +1003,26 @@ class Onboarding extends PureComponent {
           </ScrollView>
 
           <FadeOutOverlay />
+
+          <Animated.View
+            style={[
+              styles.foxAnimationWrapper(hasFooter),
+              {
+                opacity: this.foxOpacity,
+              },
+            ]}
+          >
+            <Rive
+              ref={this.foxRef}
+              style={styles.foxAnimation}
+              source={FoxAnimation}
+              fit={Fit.Contain}
+              alignment={Alignment.Center}
+              autoplay={false}
+              stateMachine="FoxRaiseUp"
+              testID="fox-animation"
+            />
+          </Animated.View>
 
           <View>{this.handleSimpleNotification()}</View>
         </View>
