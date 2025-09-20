@@ -29,6 +29,8 @@ ignores:
   # Appium drivers are used by Appwright for mobile automation
   - 'appium-uiautomator2-driver'
   - 'appium-xcuitest-driver'
+  # Used in scripts/repack-android-e2e.js for CI optimization
+  - '@expo/repack-app'
 
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used

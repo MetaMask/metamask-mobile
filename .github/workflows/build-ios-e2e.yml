@@ -103,11 +103,30 @@ jobs:
           command: |
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
-      
+
+      # Fingerprint-based build decision
+      # IMPORTANT: Generate fingerprint AFTER setup but BEFORE any build modifications
+      - name: Generate current fingerprint
+        id: generate-fingerprint
+        run: |
+          FINGERPRINT=$(yarn -s fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT}"
+
+      - name: Check and restore cached app
+        id: cache-restore
+        uses: actions/cache@v4
+        with:
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          restore-keys: |
+            ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
+
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
-          echo "🏗 Building iOS E2E App..."
+          echo "🏗 Building iOS E2E App (Full Build)..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           yarn build:ios:main:e2e
         shell: bash
@@ -139,6 +158,35 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
+      - name: Repack App with JS updates
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          echo "📦 Repacking iOS app with updated JavaScript..."
+          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+
+          # Generate new JS bundle with sourcemap
+          mkdir -p sourcemaps/ios
+          yarn react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output ios/main.jsbundle \
+            --sourcemap-output sourcemaps/ios/index.js.map
+
+          # Replace bundle in app
+          cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
+          rm -f ios/main.jsbundle
+
+          echo "✅ iOS app repacked successfully"
+
+      # Cache build artifacts with the pre-build fingerprint
+      - name: Cache build artifacts
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)
         id: upload-app
@@ -158,7 +206,9 @@ jobs:
           name: index.js.map
           path: sourcemaps/ios/index.js.map
           retention-days: 7
-          if-no-files-found: error
+          # Using 'warn' because sourcemaps are generated fresh during repack
+          # and may not exist if the build failed early or during full builds
+          if-no-files-found: warn
         continue-on-error: true
 
       # Generate artifact download URL and display upload status summary
