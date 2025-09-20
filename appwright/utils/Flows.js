@@ -14,6 +14,7 @@ import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
 import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
+import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../app/components/Views/MultichainAccounts/IntroModal/MultichainAccountsIntroModal.testIds.ts';
 
 /**
  * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
@@ -37,7 +38,7 @@ export async function dismissSystemDialogs(device) {
   }
 }
 
-export async function onboardingFlowImportSRP(device, srp) {
+export async function onboardingFlowImportSRP(device, srp, timeout = 10000) {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -70,16 +71,17 @@ export async function onboardingFlowImportSRP(device, srp) {
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
-  await MetaMetricsScreen.isScreenTitleVisible();
+  await MetaMetricsScreen.isScreenTitleVisible(timeout);
   await MetaMetricsScreen.tapIAgreeButton();
 
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
-
-  await OnboardingSheet.tapNotNow();
+  //Dismiss any GTM modal
+  await dismissMultichainAccountsIntroModal(device);
+  await dismissGTMModal(device);
+  await dismissSystemDialogs(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
-  await dismissSystemDialogs(device);
 }
 
 export async function importSRPFlow(device, srp) {
@@ -108,7 +110,7 @@ export async function importSRPFlow(device, srp) {
   timer.stop();
 
   timer2.start();
-  await AccountListComponent.tapAddAccountButton();
+  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 
@@ -121,26 +123,54 @@ export async function importSRPFlow(device, srp) {
 
   timer4.start();
   await ImportFromSeedScreen.tapContinueButton(false);
-  await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.isMainWalletViewVisible(60000);
   timer4.stop();
 
   timers.push(timer, timer2, timer3, timer4);
   return timers;
 }
 
-export async function login(device, scenarioType) {
+export async function login(device, scenarioType, timeout = 10000) {
   LoginScreen.device = device;
 
   const password = getPasswordForScenario(scenarioType);
 
   // Type password and unlock
-  await LoginScreen.typePassword(password);
+  await LoginScreen.typePassword(password, timeout);
   await LoginScreen.tapUnlockButton();
-  await tapPerpsBottomSheetGotItButton(device);
-  // Wait for app to settle after unlock
+
+  await device.waitForTimeout(5000);
+  await dismissMultichainAccountsIntroModal(device);
+  await dismissGTMModal(device);
   await dismissSystemDialogs(device);
+
+  // Wait for app to settle after unlock
 }
-export async function tapPerpsBottomSheetGotItButton(device) {
+
+export async function dismissGTMModal(device, timeout = 5000) {
+  const notNowButton = await AppwrightSelectors.getElementByText(
+    device,
+    'Not now',
+    timeout,
+  );
+  if (await notNowButton.isVisible({ timeout })) {
+    await notNowButton.tap();
+  }
+}
+export async function dismissMultichainAccountsIntroModal(
+  device,
+  timeout = 5000,
+) {
+  const closeButton = await AppwrightSelectors.getElementByID(
+    device,
+    MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
+  );
+  if (await closeButton.isVisible({ timeout })) {
+    await closeButton.tap();
+  }
+}
+
+export async function tapPerpsBottomSheetGotItButton(device, timeout = 5000) {
   // Only skip perps onboarding on Android devices
   if (!AppwrightSelectors.isAndroid(device)) {
     console.log('Skipping perps onboarding skip - not an Android device');
@@ -151,6 +181,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   const button = await AppwrightSelectors.getElementByID(
     device,
     PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
+    timeout,
   );
   await button.tap();
   console.log('Perps onboarding dismissed');

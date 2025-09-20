@@ -47,12 +47,12 @@ class MetaMetricsScreen{
     }
   }
 
-  async isScreenTitleVisible() {
+  async isScreenTitleVisible(timeout = 30000) {
     if (!this._device) {
       await expect(this.screenTitle).toBeDisplayed();
     } else {
       const element = await this.screenTitle;
-      await appwrightExpect(element).toBeVisible({ timeout: 30000 }); // Some devices take longer to transition to this screen
+      await appwrightExpect(element).toBeVisible({ timeout }); // Some devices take longer to transition to this screen
     }
   }
 

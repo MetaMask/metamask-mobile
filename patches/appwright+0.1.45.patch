@@ -54,7 +54,8 @@ index 638c5df..b8aa5e5 100644
 @@ -261,6 +269,15 @@ class BrowserStackDeviceProvider {
                  "appium:autoAcceptAlerts": true,
                  "appium:fullReset": true,
-                 "appium:settings[snapshotMaxDepth]": 62,
+-                "appium:settings[snapshotMaxDepth]": 62,
++                "appium:settings[snapshotMaxDepth]": 600,
 +                "appium:settings[autoGrantPermissions]": true,
 +                "appium:settings[waitForIdleTimeout]": 10000,
 +                "appium:settings[actionAcknowledgmentTimeout]": 3000,
@@ -196,3 +197,42 @@ index bf48530..8e5f191 100644
          }
      };
  })();
+diff --git a/node_modules/appwright/dist/providers/emulator/index.js b/node_modules/appwright/dist/providers/emulator/index.js
+index a51b1c2..2e8d7f4 100644
+--- a/node_modules/appwright/dist/providers/emulator/index.js
++++ b/node_modules/appwright/dist/providers/emulator/index.js
+@@ -75,7 +75,7 @@ class EmulatorDeviceProvider {
+                 "appium:autoAcceptAlerts": true,
+                 "appium:fullReset": true,
+                 "appium:deviceOrientation": this.project.use.device?.orientation,
+-                "appium:settings[snapshotMaxDepth]": 62,
++                "appium:settings[snapshotMaxDepth]": 600,
+                 "appium:wdaLaunchTimeout": 300_000,
+             },
+         };
+diff --git a/node_modules/appwright/dist/providers/local/index.js b/node_modules/appwright/dist/providers/local/index.js
+index b12c5a6..8f9e1d2 100644
+--- a/node_modules/appwright/dist/providers/local/index.js
++++ b/node_modules/appwright/dist/providers/local/index.js
+@@ -78,7 +78,7 @@ class LocalDeviceProvider {
+                 "appium:autoAcceptAlerts": true,
+                 "appium:fullReset": true,
+                 "appium:deviceOrientation": this.project.use.device?.orientation,
+-                "appium:settings[snapshotMaxDepth]": 62,
++                "appium:settings[snapshotMaxDepth]": 600,
+             },
+         };
+     }
+diff --git a/node_modules/appwright/dist/providers/lambdatest/index.js b/node_modules/appwright/dist/providers/lambdatest/index.js
+index c8b9d41..3f7a8e9 100644
+--- a/node_modules/appwright/dist/providers/lambdatest/index.js
++++ b/node_modules/appwright/dist/providers/lambdatest/index.js
+@@ -268,7 +268,7 @@ class LambdaTestDeviceProvider {
+                 isRealMobile: true,
+                 enableImageInjection: this.project.use.device
+                     ?.enableCameraImageInjection,
+-                "settings[snapshotMaxDepth]": 62,
++                "settings[snapshotMaxDepth]": 600,
+             },
+         };
+     }
