@@ -310,9 +310,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     };
   }, [dappUrl, channelIdOrHostname]);
 
-  const faviconSource = useFavicon(
-    channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
-  );
+  const { faviconURI: faviconSource } = useFavicon(dappUrl);
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
 

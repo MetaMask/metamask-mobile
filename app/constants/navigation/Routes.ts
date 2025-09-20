@@ -158,7 +158,6 @@ const Routes = {
     CONNECTION_DETAILS: 'ConnectionDetails',
     PERMITTED_NETWORKS_INFO_SHEET: 'PermittedNetworksInfoSheet',
     NETWORK_SELECTOR: 'NetworkSelector',
-    RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -327,6 +326,9 @@ const Routes = {
     ASSET: 'Asset',
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
+  },
+  SDK: {
+    RETURN_TO_DAPP_TOAST: 'ReturnToDappToast',
   },
 };
 
