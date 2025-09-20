@@ -83,6 +83,7 @@ import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { multichainCollectibleForEvmAccount } from '../../../selectors/nftController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -210,7 +211,7 @@ const CollectibleContracts = ({
   const allNetworks = useSelector(selectNetworkConfigurations);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const collectibleContractsByEnabledNetworks = useSelector(
-    multichainCollectibleContractsByEnabledNetworksSelector,
+    multichainCollectibleForEvmAccount,
   );
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
