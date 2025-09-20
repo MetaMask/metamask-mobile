@@ -1247,7 +1247,10 @@ export class Engine {
 
     const networkEnablementController =
       controllersByName.NetworkEnablementController;
+
+    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     networkEnablementController.init();
+    ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
