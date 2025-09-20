@@ -42,11 +42,14 @@ env:
   BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
   BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
   BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
+  
 
 jobs:
   trigger-ios-with-srp-build:
     name: Trigger iOS with-SRP Build on Bitrise
     runs-on: ubuntu-latest
+    env:
+      METAMASK_WORKFLOW: build_ios_main_rc
     outputs:
       build-id: ${{ steps.trigger-build.outputs.build-id }}
       build-slug: ${{ steps.trigger-build.outputs.build-slug }}
@@ -56,7 +59,7 @@ jobs:
         id: trigger-build
         run: |
           echo "Triggering iOS with-SRP build on Bitrise..."
-          echo "Workflow: build_ios_main_prod"
+          echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
           echo "Current branch: ${{ github.ref_name }}"
           
@@ -101,7 +104,7 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
-                "workflow_id": "build_ios_main_rc",
+                "workflow_id": "$METAMASK_WORKFLOW",
                 "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
@@ -124,7 +127,7 @@ jobs:
           fi
           
           # Wait for the workflow to complete
-          echo "Waiting for build_ios_main_prod to complete..."
+          echo "Waiting for $METAMASK_WORKFLOW to complete..."
           TIMEOUT=1800  # 30 minutes
           ELAPSED=0
           
@@ -179,6 +182,8 @@ jobs:
   trigger-ios-without-srp-build:
     name: Trigger iOS without-SRP Build on Bitrise
     runs-on: ubuntu-latest
+    env:
+      METAMASK_WORKFLOW: build_ios_main_rc
     outputs:
       build-id: ${{ steps.trigger-build.outputs.build-id }}
       build-slug: ${{ steps.trigger-build.outputs.build-slug }}
@@ -188,7 +193,7 @@ jobs:
         id: trigger-build
         run: |
           echo "Triggering iOS without-SRP build on Bitrise..."
-          echo "Workflow: build_ios_qa_prod"
+          echo "Workflow: $METAMASK_WORKFLOW"
           echo "BITRISE_APP_ID: $BITRISE_APP_ID"
           echo "Current branch: ${{ github.ref_name }}"
           
@@ -223,7 +228,7 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
-                "workflow_id": "build_ios_main_rc",
+                "workflow_id": "$METAMASK_WORKFLOW",
                 "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
@@ -246,7 +251,7 @@ jobs:
           fi
           
           # Wait for the workflow to complete
-          echo "Waiting for build_ios_main_rc to complete..."
+          echo "Waiting for $METAMASK_WORKFLOW to complete..."
           TIMEOUT=1800  # 30 minutes
           ELAPSED=0
           
@@ -341,10 +346,10 @@ jobs:
             WITH_SRP_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
               "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts")
             
-            # Find the IPA artifact with main-prod pattern
+            # Find the IPA artifact with main-* pattern
             WITH_SRP_IPA_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq -r '.data[] | 
               select(.title | endswith(".ipa")) | 
-              select(.title | test("metamask-device-main-prod-[0-9]+\\.ipa"))')
+              select(.title | test("metamask-device-main-[a-zA-Z0-9-]+-[0-9]+\\.ipa"))')
             
             if [[ -n "$WITH_SRP_IPA_ARTIFACT" ]]; then
               WITH_SRP_IPA_SLUG=$(echo "$WITH_SRP_IPA_ARTIFACT" | jq -r '.slug')
@@ -380,7 +385,7 @@ jobs:
                 echo "Failed to get with-SRP IPA download URL"
               fi
             else
-              echo "With-SRP IPA artifact not found (looking for metamask-device-main-prod-*.ipa)"
+              echo "With-SRP IPA artifact not found (looking for metamask-device-main-*-*.ipa)"
             fi
           else
             echo "With-SRP build ID not available"
@@ -392,10 +397,10 @@ jobs:
             WITHOUT_SRP_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
               "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts")
             
-            # Find the IPA artifact with qa-prod pattern
+            # Find the IPA artifact with main-* pattern
             WITHOUT_SRP_IPA_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq -r '.data[] | 
               select(.title | endswith(".ipa")) | 
-              select(.title | test("metamask-device-qa-prod-[0-9]+\\.ipa"))')
+              select(.title | test("metamask-device-main-[a-zA-Z0-9-]+-[0-9]+\\.ipa"))')
             
             if [[ -n "$WITHOUT_SRP_IPA_ARTIFACT" ]]; then
               WITHOUT_SRP_IPA_SLUG=$(echo "$WITHOUT_SRP_IPA_ARTIFACT" | jq -r '.slug')
@@ -431,7 +436,7 @@ jobs:
                 echo "Failed to get without-SRP IPA download URL"
               fi
             else
-              echo "Without-SRP IPA artifact not found (looking for metamask-device-qa-prod-*.ipa)"
+              echo "Without-SRP IPA artifact not found (looking for metamask-device-main-*-*.ipa)"
             fi
           else
             echo "Without-SRP build ID not available"
