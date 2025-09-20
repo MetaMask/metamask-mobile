@@ -91,7 +91,6 @@ export type {
 
 // React hooks for UI integration
 export {
-  usePerpsAccount,
   usePerpsTrading,
   usePerpsNetworkConfig,
   usePerpsNetwork,
