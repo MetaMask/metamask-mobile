@@ -18,6 +18,8 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { useDispatch } from 'react-redux';
+import { setTransactionBridgeQuotesLoading } from '../../../../../core/redux/slices/confirmationMetrics';
 
 const MAX_LENGTH = 28;
 
@@ -48,6 +50,7 @@ export function EditAmount({
   onKeyboardDone,
 }: EditAmountProps) {
   const fiatCurrency = PERPS_CURRENCY;
+  const dispatch = useDispatch();
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
@@ -56,6 +59,7 @@ export function EditAmount({
   const transactionMeta = useTransactionMetadataRequest();
   const [amountFiat, setAmountFiat] = useState<string>('0');
 
+  const transactionId = transactionMeta?.id as string;
   const tokenAddress = transactionMeta?.txParams?.to as Hex;
   const chainId = transactionMeta?.chainId as Hex;
   const fiatRate = useTokenFiatRate(tokenAddress, chainId, fiatCurrency);
@@ -128,6 +132,10 @@ export function EditAmount({
   }, [amountHuman, inputChanged, onChange]);
 
   const handleKeyboardDone = useCallback(() => {
+    dispatch(
+      setTransactionBridgeQuotesLoading({ transactionId, isLoading: true }),
+    );
+
     updateTokenAmount(amountHuman);
     inputRef.current?.blur();
     setShowKeyboard(false);
@@ -136,10 +144,12 @@ export function EditAmount({
     onKeyboardDone?.();
   }, [
     amountHuman,
+    dispatch,
     inputRef,
     onKeyboardDone,
     onKeyboardHide,
     setIsFooterVisible,
+    transactionId,
     updateTokenAmount,
   ]);
 
