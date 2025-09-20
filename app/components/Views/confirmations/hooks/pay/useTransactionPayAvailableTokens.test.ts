@@ -17,6 +17,7 @@ import {
   TransactionControllerState,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 jest.mock('./useTransactionPayToken');
@@ -32,15 +33,19 @@ const CHAIN_ID_2_MOCK = '0x2' as Hex;
 
 const TOKEN_1_MOCK = {
   address: '0xToken1',
+  balanceFiat: '$1',
+  balanceUsd: 1,
   chainId: CHAIN_ID_MOCK,
   tokenFiatAmount: 1,
-} as BridgeToken;
+} as BridgeToken & { balanceUsd: number };
 
 const TOKEN_2_MOCK = {
   address: '0xToken2',
+  balanceFiat: '$1',
+  balanceUsd: 1,
   chainId: CHAIN_ID_MOCK,
   tokenFiatAmount: 1,
-} as BridgeToken;
+} as BridgeToken & { balanceUsd: number };
 
 const NATIVE_TOKEN_1_MOCK = {
   ...TOKEN_1_MOCK,
@@ -52,6 +57,7 @@ function runHook({ type }: { type?: TransactionType } = {}) {
     {},
     simpleSendTransactionControllerMock,
     transactionApprovalControllerMock,
+    otherControllersMock,
   );
 
   if (type) {
@@ -137,7 +143,7 @@ describe('useTransactionPayAvailableTokens', () => {
     expect(result.current.availableTokens).toStrictEqual([]);
   });
 
-  it('returns required token even if no fiat or native balance', () => {
+  it('returns required token even if no usd or native balance', () => {
     useTransactionRequiredTokensMock.mockReturnValue([
       TOKEN_1_MOCK as unknown as TransactionToken,
     ]);
@@ -150,7 +156,7 @@ describe('useTransactionPayAvailableTokens', () => {
     const { result } = runHook();
 
     expect(result.current.availableTokens).toStrictEqual([
-      { ...TOKEN_1_MOCK, tokenFiatAmount: 0 },
+      { ...TOKEN_1_MOCK, balanceFiat: '$0', balanceUsd: 0, tokenFiatAmount: 0 },
     ]);
   });
 
@@ -168,7 +174,7 @@ describe('useTransactionPayAvailableTokens', () => {
     const { result } = runHook();
 
     expect(result.current.availableTokens).toStrictEqual([
-      { ...TOKEN_1_MOCK, tokenFiatAmount: 0 },
+      { ...TOKEN_1_MOCK, balanceFiat: '$0', balanceUsd: 0, tokenFiatAmount: 0 },
     ]);
   });
 

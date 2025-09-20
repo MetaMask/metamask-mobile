@@ -18,8 +18,13 @@ type FiatFormatter = (fiatAmount: BigNumber) => string;
  *
  * @returns A function that takes a fiat amount as a number and returns a formatted string.
  */
-const useFiatFormatter = (): FiatFormatter => {
-  const fiatCurrency = useSelector(selectCurrentCurrency);
+const useFiatFormatter = ({
+  currency,
+}: {
+  currency?: string;
+} = {}): FiatFormatter => {
+  const currencyCurrency = useSelector(selectCurrentCurrency);
+  const fiatCurrency = currency ?? currencyCurrency;
 
   return (fiatAmount: BigNumber) => {
     const hasDecimals = !fiatAmount.isInteger();

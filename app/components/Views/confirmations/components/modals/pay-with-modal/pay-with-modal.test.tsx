@@ -132,7 +132,7 @@ describe('PayWithModal', () => {
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableChainIds: [CHAIN_ID_1_MOCK, CHAIN_ID_2_MOCK],
-      availableTokens: TOKENS_MOCK,
+      availableTokens: TOKENS_MOCK as never,
     });
 
     useTransactionPayTokenMock.mockReturnValue({
