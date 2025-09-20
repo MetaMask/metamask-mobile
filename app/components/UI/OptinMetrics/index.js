@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Platform,
   StatusBar,
+  Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -53,6 +54,8 @@ import {
   discardBufferedTraces,
 } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
+import Device from '../../../util/device';
+import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -117,6 +120,28 @@ const createStyles = ({ colors }) =>
     title: {
       fontWeight: '700',
     },
+    sectionContainer: {
+      backgroundColor: colors.background.section,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+    },
+    imageContainer: {
+      alignItems: 'center',
+      marginVertical: Device.isMediumDevice() ? 8 : 12,
+    },
+    illustration: {
+      width: Device.isMediumDevice() ? 160 : 200,
+      height: Device.isMediumDevice() ? 120 : 150,
+      alignSelf: 'center',
+    },
+    flexContainer: {
+      flex: 1,
+    },
+    descriptionText: {
+      marginTop: 4,
+      marginLeft: 0,
+    },
   });
 
 /**
@@ -165,6 +190,10 @@ class OptinMetrics extends PureComponent {
      * Tracks the checkbox's checked state.
      */
     isCheckboxChecked: false,
+    /**
+     * Tracks the basic usage checkbox's checked state.
+     */
+    isBasicUsageChecked: false,
   };
 
   getStyles = () => {
@@ -173,13 +202,7 @@ class OptinMetrics extends PureComponent {
   };
 
   actionsList = isPastPrivacyPolicyDate
-    ? [1, 2, 3].map((value) => ({
-        action: value,
-        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
-        description: strings(
-          `privacy_policy.action_description_${value}_description`,
-        ),
-      }))
+    ? []
     : [1, 2, 3, 4, 5].map((value) => {
         const actionVal = value <= 2 ? 0 : 1;
         return {
@@ -423,6 +446,12 @@ class OptinMetrics extends PureComponent {
       title: '',
     });
 
+  openLearnMore = () =>
+    this.onPressLink({
+      url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/',
+      title: 'How to manage your MetaMetrics settings',
+    });
+
   /**
    * Render privacy policy description
    *
@@ -482,22 +511,11 @@ class OptinMetrics extends PureComponent {
     return (
       <View style={styles.actionContainer}>
         <Button
-          variant={ButtonVariants.Secondary}
-          onPress={this.onCancel}
-          testID={
-            MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID
-          }
-          style={styles.button}
-          label={strings('privacy_policy.cta_no_thanks')}
-          size={ButtonSize.Lg}
-        />
-        <View style={styles.buttonDivider} />
-        <Button
           variant={ButtonVariants.Primary}
           onPress={this.onConfirm}
           testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID}
           style={styles.button}
-          label={strings('privacy_policy.cta_i_agree')}
+          label={strings('privacy_policy.continue')}
           size={ButtonSize.Lg}
         />
       </View>
@@ -574,6 +592,13 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_title')}
             </Text>
+            <View style={styles.imageContainer}>
+              <Image
+                source={PrivacyIllustration}
+                style={styles.illustration}
+                resizeMode="contain"
+              />
+            </View>
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
@@ -593,32 +618,90 @@ class OptinMetrics extends PureComponent {
                 : this.renderLegacyAction(action, i),
             )}
             {isPastPrivacyPolicyDate ? (
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() =>
-                  this.setState((prevState) => ({
-                    isCheckboxChecked: !prevState.isCheckboxChecked,
-                  }))
-                }
-                activeOpacity={1}
-              >
-                <Checkbox
-                  isChecked={this.state.isCheckboxChecked}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                  onPress={() =>
-                    this.setState((prevState) => ({
-                      isCheckboxChecked: !prevState.isCheckboxChecked,
-                    }))
-                  }
-                />
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {strings('privacy_policy.checkbox')}
-                </Text>
-              </TouchableOpacity>
+              <View>
+                <View style={styles.sectionContainer}>
+                  <TouchableOpacity
+                    style={styles.checkbox}
+                    onPress={() =>
+                      this.setState((prevState) => ({
+                        isBasicUsageChecked: !prevState.isBasicUsageChecked,
+                      }))
+                    }
+                    activeOpacity={1}
+                  >
+                    <Checkbox
+                      isChecked={this.state.isBasicUsageChecked}
+                      accessibilityRole={'checkbox'}
+                      accessible
+                      onPress={() =>
+                        this.setState((prevState) => ({
+                          isBasicUsageChecked: !prevState.isBasicUsageChecked,
+                        }))
+                      }
+                    />
+                    <View style={styles.flexContainer}>
+                      <Text
+                        variant={TextVariant.BodySMMedium}
+                        color={TextColor.Default}
+                      >
+                        {strings('privacy_policy.gather_basic_usage_title')}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.descriptionText}
+                  >
+                    {strings('privacy_policy.gather_basic_usage_description') +
+                      ' '}
+                    <Text
+                      color={TextColor.Primary}
+                      variant={TextVariant.BodySM}
+                      onPress={this.openLearnMore}
+                    >
+                      {strings('privacy_policy.gather_basic_usage_learn_more')}
+                    </Text>
+                  </Text>
+                </View>
+                <View style={styles.sectionContainer}>
+                  <TouchableOpacity
+                    style={styles.checkbox}
+                    onPress={() =>
+                      this.setState((prevState) => ({
+                        isCheckboxChecked: !prevState.isCheckboxChecked,
+                      }))
+                    }
+                    activeOpacity={1}
+                  >
+                    <Checkbox
+                      isChecked={this.state.isCheckboxChecked}
+                      accessibilityRole={'checkbox'}
+                      accessible
+                      onPress={() =>
+                        this.setState((prevState) => ({
+                          isCheckboxChecked: !prevState.isCheckboxChecked,
+                        }))
+                      }
+                    />
+                    <View style={styles.flexContainer}>
+                      <Text
+                        variant={TextVariant.BodySMMedium}
+                        color={TextColor.Default}
+                      >
+                        {strings('privacy_policy.checkbox_marketing')}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.descriptionText}
+                  >
+                    {strings('privacy_policy.checkbox')}
+                  </Text>
+                </View>
+              </View>
             ) : null}
             <View style={styles.divider} />
             {this.renderPrivacyPolicy()}
