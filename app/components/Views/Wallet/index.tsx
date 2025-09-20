@@ -242,9 +242,14 @@ interface WalletTokensTabViewProps {
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const isPerpsEnabled = useMemo(
-    () => isPerpsFlagEnabled && isEvmSelected,
-    [isPerpsFlagEnabled, isEvmSelected],
+    () =>
+      isPerpsFlagEnabled &&
+      (isEvmSelected || isMultichainAccountsState2Enabled),
+    [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
 
   const {
