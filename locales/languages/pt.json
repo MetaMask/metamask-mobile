@@ -1003,6 +1003,7 @@
       "trigger_price": "Preço de disparo",
       "liquidation_price": "Preço de liquidação",
       "fees": "Taxas",
+      "estimated_points": "Est. Points",
       "market": "Mercado",
       "limit": "Limite",
       "open_orders": "Ordens",
@@ -1109,8 +1110,10 @@
       "confirmed": "Ordem confirmada",
       "cancelling_order": "Cancelling order",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "Cancelling {{detailedOrderType}} order",
       "order_cancelled": "Ordem cancelada",
       "failed_to_cancel_order": "Failed to cancel order",
+      "order_still_active": "Order still active",
       "funds_have_been_returned_to_you": "Funds have been returned to you",
       "funds_are_available_to_trade": "Funds are available to trade",
       "close_order_still_active": "Close order still active",
@@ -1119,7 +1122,8 @@
       "order_placed": "Order placed",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Falha na ordem",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
+      "order_cancelled_success": "{{detailedOrderType}} order cancelled"
     },
     "close_position": {
       "title": "Encerrar posição",
@@ -1146,7 +1150,9 @@
       "success_title": "Posição encerrada com sucesso",
       "position_closed": "Position closed",
       "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "Falha ao encerrar posição",
+      "failed_to_close_position": "Failed to close position",
+      "failed_to_partially_close_position": "Failed to partially close position",
+      "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Pontos Fox ganhos!",
       "minimum_remaining_warning": "A posição restante deve ser de pelo menos US$ {{minimum}}. Atual: US$ {{remaining}}",
       "minimum_remaining_error": "Não é possível encerrar parcialmente: a posição restante (US$ {{remaining}}) ficaria abaixo do tamanho mínimo de (US$ {{minimum}}) da ordem. Em vez disso, encerre 100%.",
@@ -1161,7 +1167,7 @@
       "description": "Escolha um percentual de ganho ou perda ou insira um preço de disparo personalizado para encerrar sua posição automaticamente.",
       "set": "Definir",
       "updating": "Atualizando...",
-      "off": "Desativado",
+      "off": "Off",
       "current_price": "Preço atual",
       "leverage": "Alavancagem",
       "margin": "Margem",
@@ -1181,7 +1187,8 @@
       "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
-      "below": "below"
+      "below": "below",
+      "dismiss_tpsl_keypad": "Dismiss"
     },
     "token_selector": {
       "no_tokens": "Nenhum token disponível"
@@ -1346,7 +1353,8 @@
         "content": "Taxas de negociação são cobradas quando você abre ou encerra uma posição.",
         "metamask_fee": "Taxa da MetaMask",
         "provider_fee": "Taxa do provedor",
-        "total": "Total de taxas"
+        "total": "Total de taxas",
+        "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
       },
       "closing_fees": {
         "title": "Taxas de encerramento",
@@ -1400,6 +1408,10 @@
         "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
         "view_orders_button": "View orders",
         "got_it_button": "Got it"
+      },
+      "points": {
+        "title": "Points",
+        "content": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps."
       }
     },
     "connection": {
@@ -1500,7 +1512,13 @@
         "description": "Deposite fundos em sua conta perps com qualquer token e faça sua primeira negociação em segundos."
       },
       "got_it": "Entendi"
-    }
+    },
+    "points": "Points",
+    "unable_to_load": "Couldn't load",
+    "points_error": "We can't load points right now",
+    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later.",
+    "tp_on_chart": "TP on Chart",
+    "sl_on_chart": "SL on Chart"
   },
   "receive": {
     "title": "Receber"
@@ -3729,7 +3747,7 @@
     "list": {
       "0": "Tudo",
       "1": "Carteira",
-      "2": "Comunicados"
+      "2": "Announcement"
     },
     "copied_to_clipboard": "Copiada para a área de transferência",
     "address_copied_to_clipboard": "Endereço copiado para a área de transferência",
@@ -4948,7 +4966,7 @@
     "earn_eth_rewards": "Ganhe recompensas em ETH.",
     "earn_eth_rewards_description": "Comece a ganhar assim que fizer staking. As recompensas são automáticas e compostas.",
     "flexible_unstaking": "Retirada flexível de staking.",
-    "flexible_unstaking_description": "Retire do staking quando quiser. Normalmente, leva menos de 3 dias, mas pode levar até 44 dias para processar.",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "O staking não garante recompensas e envolve riscos, incluindo perda de fundos.",
     "learn_more": "Saiba mais",
     "got_it": "Entendi",
@@ -4984,7 +5002,7 @@
       "geo_blocked": "Você está localizado em uma região onde não é permitido retirar ou fazer staking.",
       "approximately": "aproximadamente"
     },
-    "unstake_input_banner_description": "Em média, leva menos de 3 dias para o ETH retirado de staking se tornar exigível, mas pode levar até 44 dias.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "Máx.",
     "staking_from": "Staking de",
     "advanced_details": "Detalhes avançados",
@@ -5008,7 +5026,7 @@
       }
     },
     "use_max": "Usar o máximo",
-    "estimated_unstaking_time": "1 a 44 dias",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "Prosseguir mesmo assim",
     "gas_cost_impact": "Impacto no custo do gás",
     "select_a_token_to_deposit": "Selecione um token para depositar",
@@ -5115,7 +5133,7 @@
     },
     "unstaking_time": {
       "title": "Prazo para retirada de staking",
-      "tooltip": "Normalmente leva menos de 3 dias para retirar seu ETH do staking, mas pode levar até 11 dias para processar. O período exato depende do valor que você retirar do staking e da atividade de staking de ETH."
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5339,10 +5357,14 @@
     "select_amount": "Selecionar valor",
     "bridge_to": "Fazer ponte para",
     "swap_to": "Trocar para",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "Ponte",
     "submitting_transaction": "Enviando",
     "fetching_quote": "Buscando cotação",
     "fee_disclaimer": "Inclui taxa de 0,875% da MM",
+    "no_mm_fee": "No MM fee",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "Ainda não oferecemos suporte a carteiras de hardware. Use uma hot wallet para continuar.",
     "hardware_wallet_not_supported_solana": "Carteiras de hardware ainda não são compatíveis com Solana. Use uma hot wallet para continuar.",
     "price_impact_info_title": "Impacto no preço",
@@ -5718,13 +5740,14 @@
       "not_supported_confirm": "Entendi",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
-      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
+      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
       "checking_opt_in": "Checking opt-in for accounts...",
       "redirecting_to_dashboard": "Redirecting to dashboard...",
       "intro_skip": "Agora não",
       "step_confirm": "Avançar",
+      "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
       "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
       "step2_title": "Level up for bigger perks",
@@ -5736,13 +5759,16 @@
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
+      "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
       "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
-      "step4_legal_disclaimer_learn_more": "Saiba mais."
+      "step4_legal_disclaimer_1": "By clicking 'Claim Point', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+      "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
       "title": "Reward Settings",
@@ -5806,6 +5832,9 @@
       }
     },
     "referral": {
+      "referral_code": "Referral code",
+      "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Indique um amigo",
         "share_referral_subject": "Junte-se ao MetaMask Rewards"
@@ -5815,8 +5844,28 @@
         "description": "Seus amigos ganham pontos de bônus e você recebe 20% das recompensas deles."
       }
     },
-    "active_boosts_title": "Active Boosts",
-    "season_1": "Season 1"
+    "active_boosts": {
+      "title": "Active boosts",
+      "error": "Failed to load active boosts"
+    },
+    "season_1": "Season 1",
+    "upcoming_rewards": {
+      "title": "Upcoming rewards",
+      "points_needed": "{{points}} points",
+      "cta_label": "Got it",
+      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
+    },
+    "unlocked_rewards": {
+      "title": "Unlocked rewards",
+      "empty": "No rewards yet. \nEarn points and level up.",
+      "see_ways_to_earn": "See ways to earn",
+      "cta_label": "Claim now",
+      "cta_request_invite": "Request invite",
+      "claim_label": "Claim",
+      "claimed_label": "Claimed",
+      "reward_claimed": "Reward claimed",
+      "expired": "Expired"
+    }
   },
   "time": {
     "minutes_format": "{{count}} minuto",
@@ -5824,7 +5873,7 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Depósito de fundos na conta de perps",
+      "perps_deposit": "Funded perps account",
       "default": "Dados da transação"
     },
     "label": {
