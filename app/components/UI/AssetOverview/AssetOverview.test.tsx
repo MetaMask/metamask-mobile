@@ -206,7 +206,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -221,7 +220,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -250,7 +248,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -291,7 +288,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       {
         state: {
@@ -347,7 +343,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -375,7 +370,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -398,7 +392,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -454,7 +447,6 @@ describe('AssetOverview', () => {
         displayBuyButton={false}
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -474,7 +466,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -494,7 +485,6 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       {
         state: {
@@ -528,7 +518,6 @@ describe('AssetOverview', () => {
         asset={assetFromSearch}
         displayBuyButton
         displaySwapsButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -564,7 +553,6 @@ describe('AssetOverview', () => {
         asset={differentChainAssetFromSearch}
         displayBuyButton
         displaySwapsButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -601,7 +589,6 @@ describe('AssetOverview', () => {
           displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -632,7 +619,6 @@ describe('AssetOverview', () => {
           displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -679,7 +665,6 @@ describe('AssetOverview', () => {
           displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -727,7 +712,6 @@ describe('AssetOverview', () => {
           displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -786,7 +770,6 @@ describe('AssetOverview', () => {
           displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -820,7 +803,6 @@ describe('AssetOverview', () => {
           displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -852,7 +834,6 @@ describe('AssetOverview', () => {
           displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -883,7 +864,6 @@ describe('AssetOverview', () => {
           displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
