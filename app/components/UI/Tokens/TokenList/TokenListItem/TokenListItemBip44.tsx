@@ -110,7 +110,7 @@ export const TokenListItemBip44 = React.memo(
     const earnToken = getEarnToken(asset as TokenI);
 
     const networkBadgeSource = useMemo(
-      () => NetworkBadgeSource(chainId),
+      () => (chainId ? NetworkBadgeSource(chainId) : null),
       [chainId],
     );
 
@@ -174,10 +174,12 @@ export const TokenListItemBip44 = React.memo(
           style={styles.badge}
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource}
-            />
+            networkBadgeSource ? (
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource}
+              />
+            ) : null
           }
         >
           <AssetLogo asset={asset} />

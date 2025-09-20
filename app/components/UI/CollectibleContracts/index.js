@@ -82,6 +82,7 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -210,6 +211,9 @@ const CollectibleContracts = ({
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const collectibleContractsByEnabledNetworks = useSelector(
     multichainCollectibleContractsByEnabledNetworksSelector,
+  );
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
   );
 
   const { enabledNetworks, getNetworkInfo, isDisabled } =
@@ -664,8 +668,16 @@ const CollectibleContracts = ({
               </>
             }
             isDisabled={isDisabled}
-            onPress={isEvmSelected ? showFilterControls : () => null}
-            endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
+            onPress={
+              isEvmSelected || isMultichainAccountsState2Enabled
+                ? showFilterControls
+                : () => null
+            }
+            endIconName={
+              isEvmSelected || isMultichainAccountsState2Enabled
+                ? IconName.ArrowDown
+                : undefined
+            }
             style={
               isDisabled ? styles.controlButtonDisabled : styles.controlButton
             }

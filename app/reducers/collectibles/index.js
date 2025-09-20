@@ -5,7 +5,7 @@ import {
   selectAllNftContracts,
   selectAllNfts,
 } from '../../selectors/nftController';
-import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
+import { selectLastSelectedEvmAccount } from '../../selectors/accountsController';
 import { compareTokenIds } from '../../util/tokens';
 import { createDeepEqualSelector } from '../../selectors/util';
 import { selectEnabledNetworksByNamespace } from '../../selectors/networkEnablementController';
@@ -16,26 +16,27 @@ export const isNftFetchingProgressSelector = (state) =>
   state.collectibles.isNftFetchingProgress;
 
 export const collectibleContractsSelector = createSelector(
-  selectSelectedInternalAccountAddress,
+  selectLastSelectedEvmAccount,
   selectChainId,
   selectAllNftContracts,
-  (address, chainId, allNftContracts) =>
-    allNftContracts[address]?.[chainId] || [],
+  (selectedEvmAccount, chainId, allNftContracts) =>
+    allNftContracts[selectedEvmAccount?.address]?.[chainId] || [],
 );
 
 export const multichainCollectibleContractsSelector = createSelector(
-  selectSelectedInternalAccountAddress,
+  selectLastSelectedEvmAccount,
   selectAllNftContracts,
-  (address, allNftContracts) => allNftContracts[address] || {},
+  (selectedEvmAccount, allNftContracts) =>
+    allNftContracts[selectedEvmAccount?.address] || {},
 );
 
 export const multichainCollectibleContractsByEnabledNetworksSelector =
   createDeepEqualSelector(
-    selectSelectedInternalAccountAddress,
+    selectLastSelectedEvmAccount,
     selectAllNftContracts,
     selectEnabledNetworksByNamespace,
-    (address, allNftContracts, enabledNetworks) => {
-      const addressContracts = allNftContracts[address];
+    (selectedEvmAccount, allNftContracts, enabledNetworks) => {
+      const addressContracts = allNftContracts[selectedEvmAccount?.address];
 
       if (!addressContracts || Object.keys(addressContracts).length === 0) {
         return {};
@@ -67,25 +68,26 @@ export const multichainCollectibleContractsByEnabledNetworksSelector =
   );
 
 export const collectiblesSelector = createDeepEqualSelector(
-  selectSelectedInternalAccountAddress,
+  selectLastSelectedEvmAccount,
   selectChainId,
   selectAllNfts,
-  (address, chainId, allNfts) => allNfts[address]?.[chainId] || [],
+  (selectedEvmAccount, chainId, allNfts) =>
+    allNfts[selectedEvmAccount?.address]?.[chainId] || [],
 );
 
 export const multichainCollectiblesSelector = createDeepEqualSelector(
-  selectSelectedInternalAccountAddress,
+  selectLastSelectedEvmAccount,
   selectAllNfts,
-  (address, allNfts) => allNfts[address] || {},
+  (selectedEvmAccount, allNfts) => allNfts[selectedEvmAccount?.address] || {},
 );
 
 export const multichainCollectiblesByEnabledNetworksSelector =
   createDeepEqualSelector(
-    selectSelectedInternalAccountAddress,
+    selectLastSelectedEvmAccount,
     selectAllNfts,
     selectEnabledNetworksByNamespace,
-    (address, allNfts, enabledNetworks) => {
-      const addressNfts = allNfts[address];
+    (selectedEvmAccount, allNfts, enabledNetworks) => {
+      const addressNfts = allNfts[selectedEvmAccount?.address];
 
       if (!addressNfts || Object.keys(addressNfts).length === 0) {
         return {};
@@ -121,10 +123,11 @@ export const multichainCollectiblesByEnabledNetworksSelector =
   );
 
 export const favoritesCollectiblesSelector = createSelector(
-  selectSelectedInternalAccountAddress,
+  selectLastSelectedEvmAccount,
   selectChainId,
   favoritesSelector,
-  (address, chainId, favorites) => favorites[address]?.[chainId] || [],
+  (selectedEvmAccount, chainId, favorites) =>
+    favorites[selectedEvmAccount?.address]?.[chainId] || [],
 );
 
 export const isCollectibleInFavoritesSelector = createSelector(

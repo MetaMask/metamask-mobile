@@ -176,11 +176,17 @@
       "bip122": {
         "bip122:000000000019d6689c085ae165831e93": true,
         "bip122:000000000933ea01ad0ee984209779ba": false,
-        "bip122:00000008819873e925422c1ff0f99f7c": false
+        "bip122:00000008819873e925422c1ff0f99f7c": false,
+        "bip122:00000000da84f2bafbbc53dee25a72ae": false,
+        "bip122:regtest": false
       },
       "eip155": {
         "0x1": true,
+        "0x18c6": false,
         "0x2105": true,
+        "0x279f": false,
+        "0xaa36a7": false,
+        "0xe705": false,
         "0xe708": true
       },
       "solana": {
