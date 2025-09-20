@@ -38,4 +38,6 @@ jobs:
       id-token: write
     needs: [needs_e2e_build, build-ios-apps]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
     secrets: inherit

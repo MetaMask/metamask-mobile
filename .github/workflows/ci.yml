@@ -214,7 +214,7 @@ jobs:
 
   needs_e2e_build:
     uses: ./.github/workflows/needs-e2e-build.yml
-
+      
   build-android-apks:
     name: "Build Android APKs"
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
@@ -233,6 +233,8 @@ jobs:
       id-token: write
     needs: [needs_e2e_build, build-android-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
     secrets: inherit
 
   js-bundle-size-check:
