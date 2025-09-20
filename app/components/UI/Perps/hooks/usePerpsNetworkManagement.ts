@@ -21,7 +21,7 @@ const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
  */
 export const usePerpsNetworkManagement = () => {
   const currentNetwork = usePerpsNetwork();
-  const { enableNetwork } = useNetworkEnablement();
+  const { enableNetwork, isNetworkEnabled } = useNetworkEnablement();
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -45,8 +45,11 @@ export const usePerpsNetworkManagement = () => {
     const arbitrumCaipChainId = getArbitrumChainId();
     const chainId = toHex(parseInt(arbitrumCaipChainId.split(':')[1], 10));
 
-    // Check if network already exists
-    if (networkConfigurations[chainId]) {
+    // Check if network already exists & doesn't contain arbitrum in selected networks
+    if (
+      networkConfigurations[chainId] &&
+      !isNetworkEnabled(arbitrumCaipChainId)
+    ) {
       // Network exists, just enable it
       enableNetwork(arbitrumCaipChainId);
       return;
@@ -93,10 +96,11 @@ export const usePerpsNetworkManagement = () => {
       throw error;
     }
   }, [
-    currentNetwork,
-    networkConfigurations,
-    enableNetwork,
     getArbitrumChainId,
+    networkConfigurations,
+    isNetworkEnabled,
+    enableNetwork,
+    currentNetwork,
   ]);
 
   /**
