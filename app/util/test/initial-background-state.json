@@ -606,6 +606,9 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "SamplePetnamesController": {
+    "namesByChainIdAndAddress": {}
+  },
   "RewardsController": {
     "accounts": {},
     "activeAccount": null,
