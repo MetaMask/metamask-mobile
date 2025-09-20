@@ -12,6 +12,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import DownChevronText from './DownChevronText';
 import RemoteImage from '../../../../Base/RemoteImage';
+import SkeletonText from './SkeletonText';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -42,6 +43,7 @@ interface IProps {
   label?: string;
   icon?: ReactNode;
   highlighted?: boolean;
+  loading?: boolean;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress?: () => any;
@@ -53,29 +55,45 @@ const PaymentMethodSelector: React.FC<IProps> = ({
   icon,
   label,
   highlighted,
+  loading = false,
   onPress,
   paymentMethodIcons = [],
 }: IProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <Box label={label} onPress={onPress} highlighted={highlighted} compact>
+    <Box
+      label={label}
+      onPress={loading ? undefined : onPress}
+      highlighted={highlighted}
+      compact
+    >
       <ListItem>
-        {Boolean(icon) && <ListItemColumn>{icon}</ListItemColumn>}
-        <ListItemColumn widthType={WidthType.Fill}>
-          <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
+        <ListItemColumn>
+          {loading ? <SkeletonText small /> : icon}
         </ListItemColumn>
-        <DownChevronText text="Change" />
+        <ListItemColumn widthType={WidthType.Fill}>
+          {loading ? (
+            <SkeletonText />
+          ) : (
+            <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
+          )}
+        </ListItemColumn>
+        {!loading && <DownChevronText text="Change" />}
       </ListItem>
       <View style={styles.divider} />
       <View style={styles.iconContainer}>
-        {paymentMethodIcons.map((logoURL) => (
-          <RemoteImage
-            key={logoURL}
-            source={{ uri: logoURL }}
-            style={styles.icon}
-          />
-        ))}
+        {loading ? (
+          <SkeletonText small />
+        ) : (
+          paymentMethodIcons.map((logoURL) => (
+            <RemoteImage
+              key={logoURL}
+              source={{ uri: logoURL }}
+              style={styles.icon}
+            />
+          ))
+        )}
       </View>
     </Box>
   );

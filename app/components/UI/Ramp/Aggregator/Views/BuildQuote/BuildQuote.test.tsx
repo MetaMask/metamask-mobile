@@ -1013,4 +1013,55 @@ describe('BuildQuote View', () => {
       },
     });
   });
+
+  it('shows loading skeleton when regions are still fetching', () => {
+    mockUseRegionsValues.isFetching = true;
+    render(BuildQuote);
+
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('disables get quotes button when payment methods are fetching', () => {
+    mockUsePaymentMethodsValues.isFetching = true;
+    render(BuildQuote);
+
+    const submitBtn = getByRoleButton('Get quotes');
+    expect(submitBtn.props.disabled).toBe(true);
+  });
+
+  it('disables get quotes button when cryptocurrencies are fetching', () => {
+    mockUseCryptoCurrenciesValues.isFetchingCryptoCurrencies = true;
+    render(BuildQuote);
+
+    const submitBtn = getByRoleButton('Get quotes');
+    expect(submitBtn.props.disabled).toBe(true);
+  });
+
+  it('disables get quotes button when fiat currencies are fetching', () => {
+    mockUseFiatCurrenciesValues.isFetchingFiatCurrency = true;
+    render(BuildQuote);
+
+    const submitBtn = getByRoleButton('Get quotes');
+    expect(submitBtn.props.disabled).toBe(true);
+  });
+
+  it('enables get quotes button when all data is loaded and amount is valid', () => {
+    mockUseRegionsValues.isFetching = false;
+    mockUsePaymentMethodsValues.isFetching = false;
+    mockUseCryptoCurrenciesValues.isFetchingCryptoCurrencies = false;
+    mockUseFiatCurrenciesValues.isFetchingFiatCurrency = false;
+
+    render(BuildQuote);
+
+    const initialAmount = '0';
+    const validAmount = VALID_AMOUNT.toString();
+    const denomSymbol =
+      mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+    fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
+    fireEvent.press(getByRoleButton(validAmount));
+    fireEvent.press(getByRoleButton('Done'));
+
+    const submitBtn = getByRoleButton('Get quotes');
+    expect(submitBtn.props.disabled).toBe(false);
+  });
 });
