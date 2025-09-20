@@ -21,11 +21,8 @@ import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import type { Position } from '../../controllers/types';
-import {
-  usePerpsAccount,
-  usePerpsLivePositions,
-  usePerpsTPSLUpdate,
-} from '../../hooks';
+import { usePerpsLivePositions, usePerpsTPSLUpdate } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
@@ -36,7 +33,7 @@ const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
     null,
@@ -177,7 +174,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.totalBalance || '0')}
+              {formatPrice(account?.totalBalance || '0')}
             </Text>
           </View>
 
@@ -186,7 +183,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.availableBalance || '0')}
+              {formatPrice(account?.availableBalance || '0')}
             </Text>
           </View>
 
@@ -195,7 +192,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.marginUsed || '0')}
+              {formatPrice(account?.marginUsed || '0')}
             </Text>
           </View>
 
