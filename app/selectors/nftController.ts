@@ -5,10 +5,11 @@ import {
   NftControllerState,
 } from '@metamask/assets-controllers';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import { selectLastSelectedEvmAccount } from './accountsController';
 import { selectEnabledNetworksByNamespace } from './networkEnablementController';
+import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 
 const selectNftControllerState = (state: RootState) =>
   state.engine.backgroundState.NftController;
@@ -42,12 +43,14 @@ export const selectAllNftsFlat = createSelector(
  * @returns Record of chain IDs to NFT contract arrays for the selected account
  */
 export const multichainCollectibleForEvmAccount = createDeepEqualSelector(
-  selectLastSelectedEvmAccount,
+  selectSelectedInternalAccountByScope,
   selectAllNftContracts,
   selectEnabledNetworksByNamespace,
-  (selectedEvmAccount, allNftContracts, enabledNetworks) => {
+  (selectedInternalAccountByScope, allNftContracts, enabledNetworks) => {
     // Early return if no selected account
-    const accountAddress = selectedEvmAccount?.address;
+    const accountAddress = selectedInternalAccountByScope(
+      EthScope.Eoa,
+    )?.address;
     if (!accountAddress) {
       return {};
     }
