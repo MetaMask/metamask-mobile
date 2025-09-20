@@ -116,18 +116,29 @@ export const Footer = () => {
     if (isQRSigningInProgress) {
       return strings('confirm.qr_get_sign');
     }
+
+    if (isQuotesLoading) {
+      return strings('confirm.confirm');
+    }
+
     if (hasUnconfirmedDangerAlerts) {
       return fieldAlerts.length > 1
         ? strings('alert_system.review_alerts')
         : strings('alert_system.review_alert');
     }
+
     if (hasBlockingAlerts) {
       return strings('alert_system.review_alerts');
     }
+
     return strings('confirm.confirm');
   };
 
   const getStartIcon = () => {
+    if (isQuotesLoading) {
+      return undefined;
+    }
+
     if (hasUnconfirmedDangerAlerts) {
       return IconName.SecuritySearch;
     }
@@ -153,8 +164,9 @@ export const Footer = () => {
     {
       variant: ButtonVariants.Primary,
       isDanger:
-        securityAlertResponse?.result_type === ResultType.Malicious ||
-        hasDangerAlerts,
+        !isQuotesLoading &&
+        (securityAlertResponse?.result_type === ResultType.Malicious ||
+          hasDangerAlerts),
       isDisabled: isConfirmDisabled,
       label: confirmButtonLabel(),
       size: ButtonSize.Lg,
