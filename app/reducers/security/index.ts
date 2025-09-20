@@ -6,12 +6,16 @@ export interface SecurityState {
   allowLoginWithRememberMe: boolean;
   dataCollectionForMarketing: boolean | null;
   isNFTAutoDetectionModalViewed: boolean;
+  shouldShowConsentSheet: boolean;
+  dataSharingPreference: boolean | null;
 }
 
 export const initialState: Readonly<SecuritySettingsState> = {
   allowLoginWithRememberMe: false,
   dataCollectionForMarketing: null,
   isNFTAutoDetectionModalViewed: false,
+  shouldShowConsentSheet: true, // Default: always show consent sheet
+  dataSharingPreference: null, // Default: no data sharing preference saved
 };
 
 const securityReducer = (
@@ -33,6 +37,16 @@ const securityReducer = (
       return {
         ...state,
         dataCollectionForMarketing: action.enabled,
+      };
+    case ActionType.SET_SHOULD_SHOW_CONSENT_SHEET:
+      return {
+        ...state,
+        shouldShowConsentSheet: action.shouldShow,
+      };
+    case ActionType.SET_DATA_SHARING_PREFERENCE:
+      return {
+        ...state,
+        dataSharingPreference: action.preference,
       };
     default:
       return state;
