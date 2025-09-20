@@ -1,6 +1,11 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import { Hex, CaipChainId, parseCaipChainId } from '@metamask/utils';
+import {
+  Hex,
+  CaipChainId,
+  parseCaipChainId,
+  CaipAssetType,
+} from '@metamask/utils';
 import { createSelector } from 'reselect';
 import {
   selectChainId,
@@ -513,8 +518,13 @@ export const selectBip44DefaultPair = createSelector(
 
       // If 0th entry doesn't exist, error thrown and we return undefined
       const [sourceAssetId, destAssetId] = Object.entries(bip44DefaultPair)[0];
-      const sourceAsset = Bip44DefaultPairs[namespace][sourceAssetId];
-      const destAsset = Bip44DefaultPairs[namespace][destAssetId];
+      const sourceAsset = Bip44DefaultPairs[sourceAssetId as CaipAssetType];
+      const destAsset = Bip44DefaultPairs[destAssetId as CaipAssetType];
+
+      if (!sourceAsset || !destAsset) {
+        return undefined;
+      }
+
       return { sourceAsset, destAsset };
     } catch (error) {
       return undefined;
