@@ -125,6 +125,7 @@ import Logger from '../../../util/Logger';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { Carousel } from '../../UI/Carousel';
 import { TokenI } from '../../UI/Tokens/types';
+import SlowRpcConnectionBanner from '../../UI/SlowRpcConnectionBanner';
 
 import { cloneDeep } from 'lodash';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
@@ -1174,6 +1175,7 @@ const Wallet = ({
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
+        <SlowRpcConnectionBanner />
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
