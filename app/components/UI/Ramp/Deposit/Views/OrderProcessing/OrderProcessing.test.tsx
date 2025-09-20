@@ -6,6 +6,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { getOrderById } from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
+import { MOCK_USDC_TOKEN } from '../../testUtils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -58,6 +59,16 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   }),
 }));
 
+jest.mock('../../utils', () => ({
+  formatCurrency: jest.fn((amount, currency) => {
+    if (currency === 'USD') {
+      return `$${parseFloat(amount).toFixed(2)}`;
+    }
+    return `${currency} ${amount}`;
+  }),
+  hasDepositOrderField: jest.fn(() => true),
+}));
+
 describe('OrderProcessing Component', () => {
   const mockOrder = {
     id: 'test-order-id',
@@ -69,8 +80,8 @@ describe('OrderProcessing Component', () => {
     state: FIAT_ORDER_STATES.COMPLETED,
     network: 'eip155:1',
     data: {
-      cryptoCurrency: 'USDC',
-      network: 'ethereum',
+      cryptoCurrency: MOCK_USDC_TOKEN,
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       providerOrderLink: 'https://transak.com/order/123',
       fiatAmount: '100',
       exchangeRate: '2000',

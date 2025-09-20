@@ -1,6 +1,11 @@
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { DepositSDKNoAuth } from '../sdk';
 import { depositOrderToFiatOrder, processDepositOrder } from './';
+import {
+  MOCK_BTC_TOKEN,
+  MOCK_CREDIT_DEBIT_CARD,
+  MOCK_US_REGION,
+} from '../testUtils/constants';
 import { DepositOrder, NativeRampsSdk } from '@consensys/native-ramps-sdk';
 
 jest.mock('../sdk', () => ({
@@ -27,13 +32,21 @@ describe('depositOrderToFiatOrder', () => {
       fiatAmount: 123,
       totalFeesFiat: 9,
       cryptoAmount: 0.012361263,
-      cryptoCurrency: 'BTC',
+      cryptoCurrency: MOCK_BTC_TOKEN,
       fiatCurrency: 'USD',
-      network: 'ethereum',
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       status: 'COMPLETED',
       orderType: 'DEPOSIT' as DepositOrder['orderType'],
       walletAddress: '0x1234',
       txHash: '0x987654321',
+      providerOrderId: 'test-order-id',
+      providerOrderLink: 'https://test.com/order',
+      paymentMethod: MOCK_CREDIT_DEBIT_CARD,
+      timeDescriptionPending: '1-2 days',
+      fiatAmountInUsd: 123,
+      feesInUsd: 9,
+      region: MOCK_US_REGION,
+      paymentDetails: [],
     };
 
     const failedOrder = {
@@ -196,10 +209,17 @@ describe('depositOrderToFiatOrder', () => {
       id: 'test-id',
       provider: 'test-provider',
       createdAt: 1673886669608,
-      cryptoCurrency: 'ETH',
+      cryptoCurrency: {
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        chainId: 'eip155:1',
+        decimals: 18,
+        iconUrl: 'https://example.com/eth.png',
+      },
       fiatCurrency: 'USD',
       fiatAmount: 123,
-      network: 'ethereum',
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       status: 'COMPLETED',
       orderType: 'DEPOSIT' as DepositOrder['orderType'],
       walletAddress: '0x1234',
@@ -211,9 +231,16 @@ describe('depositOrderToFiatOrder', () => {
       provider: 'test-provider',
       createdAt: 1673886669608,
       fiatAmount: 123,
-      cryptoCurrency: 'ETH',
+      cryptoCurrency: {
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        chainId: 'eip155:1',
+        decimals: 18,
+        iconUrl: 'https://example.com/eth.png',
+      },
       fiatCurrency: 'USD',
-      network: 'ethereum',
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       status: 'COMPLETED',
       orderType: 'DEPOSIT',
       walletAddress: '0x1234',
@@ -225,6 +252,7 @@ describe('depositOrderToFiatOrder', () => {
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
+      fee: undefined,
       cryptoAmount: 0,
       cryptoFee: 0,
       currency: 'USD',
@@ -247,6 +275,7 @@ describe('depositOrderToFiatOrder', () => {
       provider: 'DEPOSIT',
       createdAt: 1673886669608,
       amount: 123,
+      fee: undefined,
       cryptoAmount: 0,
       cryptoFee: 0,
       currency: 'USD',
@@ -292,15 +321,15 @@ describe('processDepositOrder', () => {
       fiatAmount: 123,
       totalFeesFiat: 9,
       cryptoAmount: 0.012361263,
-      cryptoCurrency: 'BTC',
+      cryptoCurrency: MOCK_BTC_TOKEN,
       fiatCurrency: 'USD',
-      network: 'ethreum',
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       status: 'COMPLETED',
       orderType: 'DEPOSIT',
       walletAddress: '0x1234',
       txHash: '0x987654321',
     },
-  } as FiatOrder;
+  } as unknown as FiatOrder;
 
   afterEach(() => {
     jest.spyOn(Date, 'now').mockClear();

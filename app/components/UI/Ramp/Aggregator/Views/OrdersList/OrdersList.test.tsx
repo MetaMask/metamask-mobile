@@ -14,13 +14,17 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_USDT_TOKEN,
+} from '../../../Deposit/testUtils/constants';
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 
 const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-1',
     account: MOCK_ADDRESS,
-    network: '1',
+    network: 'eip155:1',
     cryptoAmount: '0.01231324',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.COMPLETED,
@@ -43,7 +47,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-2',
     account: MOCK_ADDRESS,
-    network: '1',
+    network: 'eip155:1',
     cryptoAmount: '0.01231324',
     orderType: 'SELL',
     state: FIAT_ORDER_STATES.PENDING,
@@ -66,7 +70,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-3',
     account: MOCK_ADDRESS,
-    network: '1',
+    network: 'eip155:1',
     cryptoAmount: '0.01231324',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.PENDING,
@@ -89,7 +93,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-4',
     account: MOCK_ADDRESS,
-    network: '1',
+    network: 'eip155:1',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.PENDING,
     provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -109,7 +113,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-deposit-order-1',
     account: MOCK_ADDRESS,
-    network: '1',
+    network: 'eip155:1',
     cryptoAmount: '100',
     orderType: DepositOrderType.Deposit,
     state: FIAT_ORDER_STATES.COMPLETED,
@@ -119,14 +123,14 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     amount: '100',
     currency: 'USD',
     data: {
-      cryptoCurrency: 'USDC',
+      cryptoCurrency: MOCK_USDC_TOKEN,
       providerOrderLink: 'https://transak.com/order/123',
     },
   },
   {
     id: 'test-deposit-order-2',
     account: MOCK_ADDRESS,
-    network: '1',
+    network: 'eip155:1',
     cryptoAmount: '20',
     orderType: DepositOrderType.Deposit,
     state: FIAT_ORDER_STATES.CREATED,
@@ -136,7 +140,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     amount: '20',
     currency: 'USD',
     data: {
-      cryptoCurrency: 'USDT',
+      cryptoCurrency: MOCK_USDT_TOKEN,
     },
   },
 ];

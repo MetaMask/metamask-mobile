@@ -6,7 +6,6 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
-import transakNetworkToChainId from '../utils/transakNetworkToChainId';
 import { DepositSDKNoAuth } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
@@ -34,7 +33,9 @@ const depositOrderStateToFiatOrderState = (
   }
 };
 
-export const depositOrderToFiatOrder = (depositOrder: DepositOrder) => ({
+export const depositOrderToFiatOrder = (
+  depositOrder: DepositOrder,
+): FiatOrder => ({
   id: depositOrder.id,
   provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
   createdAt: depositOrder.createdAt,
@@ -44,8 +45,11 @@ export const depositOrderToFiatOrder = (depositOrder: DepositOrder) => ({
   cryptoFee: depositOrder.totalFeesFiat || 0,
   currency: depositOrder.fiatCurrency,
   currencySymbol: '',
-  cryptocurrency: depositOrder.cryptoCurrency,
-  network: transakNetworkToChainId(depositOrder.network),
+  cryptocurrency: depositOrder.cryptoCurrency?.symbol || '',
+  network:
+    typeof depositOrder.network === 'object' && depositOrder.network?.chainId
+      ? depositOrder.network.chainId
+      : depositOrder.network || '',
   state: depositOrderStateToFiatOrderState(depositOrder.status),
   account: depositOrder.walletAddress,
   txHash: depositOrder.txHash,

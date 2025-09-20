@@ -11,6 +11,7 @@ import {
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { getOrderById, FiatOrder } from '../../../../../../reducers/fiatOrders';
 import AppConstants from '../../../../../../core/AppConstants';
+import { MOCK_DEPOSIT_ORDER, MOCK_US_REGION } from '../../testUtils';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -59,6 +60,16 @@ jest.mock('../../../index', () => ({
   }),
 }));
 
+jest.mock('../../utils', () => ({
+  formatCurrency: jest.fn((amount, currency) => {
+    if (currency === 'USD') {
+      return `$${parseFloat(amount).toFixed(2)}`;
+    }
+    return `${currency} ${amount}`;
+  }),
+  hasDepositOrderField: jest.fn(() => true),
+}));
+
 describe('DepositOrderDetails Component', () => {
   const mockOrder = {
     id: 'test-order-id-123456',
@@ -75,9 +86,18 @@ describe('DepositOrderDetails Component', () => {
     excludeFromPurchases: false,
     orderType: DepositOrderType.Deposit,
     data: {
-      cryptoCurrency: 'USDC',
-      network: 'ethereum',
+      ...MOCK_DEPOSIT_ORDER,
+      id: 'test-deposit-order-1',
+      provider: 'transak',
+      providerOrderId: 'transak_123',
       providerOrderLink: 'https://transak.com/order/123',
+      createdAt: Date.now(),
+      status: 'COMPLETED',
+      timeDescriptionPending: '1-2 days',
+      fiatAmountInUsd: 100,
+      feesInUsd: 2.5,
+      region: MOCK_US_REGION,
+      paymentDetails: [],
     } as DepositOrder,
   };
 

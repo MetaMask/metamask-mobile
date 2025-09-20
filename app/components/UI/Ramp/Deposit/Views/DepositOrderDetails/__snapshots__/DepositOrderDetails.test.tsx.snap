@@ -530,7 +530,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>
@@ -581,7 +581,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -1135,7 +1135,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>
@@ -1186,7 +1186,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -1667,7 +1667,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum Mainnet
+                    Ethereum
                   </Text>
                 </View>
               </View>
@@ -1718,7 +1718,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     }
                   >
                     ..
-                    123456
+                    ak_123
                   </Text>
                   <SvgMock
                     color="#121314"

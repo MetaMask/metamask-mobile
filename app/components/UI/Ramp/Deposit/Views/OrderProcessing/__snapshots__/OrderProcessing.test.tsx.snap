@@ -353,7 +353,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum
               </Text>
             </View>
           </View>
@@ -934,7 +934,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum
               </Text>
             </View>
           </View>
@@ -1600,7 +1600,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum
               </Text>
             </View>
           </View>
@@ -2181,7 +2181,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum
               </Text>
             </View>
           </View>

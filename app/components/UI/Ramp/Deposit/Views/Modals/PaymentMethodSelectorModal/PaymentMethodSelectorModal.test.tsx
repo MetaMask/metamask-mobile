@@ -1,12 +1,18 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentMethodSelectorModal from './PaymentMethodSelectorModal';
-import { useParams } from '../../../../../../../util/navigation/navUtils';
-import usePaymentMethods from '../../../hooks/usePaymentMethods';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { DepositPaymentMethod } from '../../../constants';
-import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
+import { MOCK_PAYMENT_METHODS } from '../../../testUtils';
+
+const mockSetSelectedPaymentMethod = jest.fn();
+const mockUseDepositSDK = jest.fn();
+jest.mock('../../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+}));
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -24,43 +30,27 @@ function renderWithProvider(component: React.ComponentType) {
   );
 }
 
+const mockUseParams = jest.fn();
 jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails: jest.fn(),
-  useParams: jest.fn(),
+  useParams: () => mockUseParams(),
 }));
 
-jest.mock('../../../hooks/usePaymentMethods', () => jest.fn());
-
-const mockPaymentMethods: DepositPaymentMethod[] = [
-  {
-    id: 'credit_debit_card',
-    name: 'Debit or Credit',
-    duration: 'instant',
-    icon: IconName.Card,
-  },
-
-  {
-    id: 'apple_pay',
-    name: 'Apple Pay',
-    duration: 'instant',
-    icon: IconName.Apple,
-    iconColor: {
-      light: '#000000',
-      dark: '#FFFFFF',
-    },
-  },
-];
+const mockPaymentMethods = MOCK_PAYMENT_METHODS;
 
 describe('PaymentMethodSelectorModal Component', () => {
-  const mockHandleSelectPaymentMethodId = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-    (useParams as jest.Mock).mockReturnValue({
-      selectedPaymentMethodId: 'credit_debit_card',
-      handleSelectPaymentMethodId: mockHandleSelectPaymentMethodId,
+    mockUseParams.mockReturnValue({
+      paymentMethods: mockPaymentMethods,
     });
-    (usePaymentMethods as jest.Mock).mockReturnValue(mockPaymentMethods);
+
+    mockUseDepositSDK.mockReturnValue({
+      setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
+      selectedRegion: { isoCode: 'US' },
+      isAuthenticated: false,
+      selectedPaymentMethod: mockPaymentMethods[0],
+    });
   });
 
   it('renders correctly and matches snapshot', () => {
@@ -78,7 +68,28 @@ describe('PaymentMethodSelectorModal Component', () => {
     fireEvent.press(bankTransferElement);
 
     await waitFor(() => {
-      expect(mockHandleSelectPaymentMethodId).toHaveBeenCalledWith('apple_pay');
+      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
+        mockPaymentMethods[1],
+      );
+    });
+  });
+
+  it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', async () => {
+    const { getByText } = renderWithProvider(PaymentMethodSelectorModal);
+
+    const applePayElement = getByText('Apple Pay');
+    fireEvent.press(applePayElement);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_PAYMENT_METHOD_SELECTED',
+        {
+          ramp_type: 'DEPOSIT',
+          region: 'US',
+          payment_method_id: 'apple_pay',
+          is_authenticated: false,
+        },
+      );
     });
   });
 });

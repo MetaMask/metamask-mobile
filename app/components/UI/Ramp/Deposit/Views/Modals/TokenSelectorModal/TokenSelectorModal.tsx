@@ -28,8 +28,8 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './TokenSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import useSupportedTokens from '../../../hooks/useSupportedTokens';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
+import { useDepositSDK } from '../../../sdk';
 
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
 import {
@@ -37,18 +37,19 @@ import {
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
-import { DepositCryptoCurrency } from '../../../constants';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
 import { useTheme } from '../../../../../../../util/theme';
-interface TokenSelectorModalNavigationDetails {
-  selectedAssetId?: string;
-  handleSelectAssetId?: (assetId: string) => void;
+import useAnalytics from '../../../../hooks/useAnalytics';
+
+interface TokenSelectorModalParams {
+  cryptoCurrencies: DepositCryptoCurrency[];
 }
 
 export const createTokenSelectorModalNavigationDetails =
-  createNavigationDetails(
+  createNavigationDetails<TokenSelectorModalParams>(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.TOKEN_SELECTOR,
   );
@@ -56,9 +57,6 @@ export const createTokenSelectorModalNavigationDetails =
 function TokenSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
-
-  const { selectedAssetId, handleSelectAssetId } =
-    useParams<TokenSelectorModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
@@ -70,8 +68,17 @@ function TokenSelectorModal() {
   });
 
   const { colors } = useTheme();
+  const trackEvent = useAnalytics();
 
-  const supportedTokens = useSupportedTokens();
+  const {
+    setSelectedCryptoCurrency,
+    selectedRegion,
+    isAuthenticated,
+    selectedCryptoCurrency,
+  } = useDepositSDK();
+
+  const { cryptoCurrencies: supportedTokens } =
+    useParams<TokenSelectorModalParams>();
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
     networkFilter,
@@ -84,12 +91,30 @@ function TokenSelectorModal() {
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
-      if (handleSelectAssetId) {
-        handleSelectAssetId(assetId);
+      const selectedToken = supportedTokens.find(
+        (token) => token.assetId === assetId,
+      );
+      if (selectedToken) {
+        trackEvent('RAMPS_TOKEN_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+          chain_id: selectedToken.chainId,
+          currency_destination: selectedToken.assetId,
+          currency_source: selectedRegion?.currency || '',
+          is_authenticated: isAuthenticated,
+        });
+        setSelectedCryptoCurrency(selectedToken);
       }
       sheetRef.current?.onCloseBottomSheet();
     },
-    [handleSelectAssetId],
+    [
+      supportedTokens,
+      trackEvent,
+      selectedRegion?.isoCode,
+      selectedRegion?.currency,
+      isAuthenticated,
+      setSelectedCryptoCurrency,
+    ],
   );
 
   const scrollToTop = useCallback(() => {
@@ -123,7 +148,7 @@ function TokenSelectorModal() {
         DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
       return (
         <ListItemSelect
-          isSelected={selectedAssetId === token.assetId}
+          isSelected={selectedCryptoCurrency?.assetId === token.assetId}
           onPress={() => handleSelectAssetIdCallback(token.assetId)}
           accessibilityRole="button"
           accessible
@@ -158,7 +183,7 @@ function TokenSelectorModal() {
       allNetworkConfigurations,
       colors.text.alternative,
       handleSelectAssetIdCallback,
-      selectedAssetId,
+      selectedCryptoCurrency?.assetId,
     ],
   );
 
@@ -224,7 +249,7 @@ function TokenSelectorModal() {
             ref={listRef}
             data={searchTokenResults}
             renderItem={renderToken}
-            extraData={selectedAssetId}
+            extraData={selectedCryptoCurrency?.assetId}
             keyExtractor={(item) => item.assetId}
             ListEmptyComponent={renderEmptyList}
             keyboardDismissMode="none"
