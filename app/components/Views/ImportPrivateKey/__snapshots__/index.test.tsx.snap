@@ -453,9 +453,8 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 32,
-                                      "fontWeight": "400",
                                       "justifyContent": "center",
                                       "letterSpacing": 0,
                                       "lineHeight": 40,
@@ -555,9 +554,8 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                       "borderRadius": 6,
                                       "borderWidth": 0.5,
                                       "color": "#b7bbc8",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
                                       "height": 120,
                                       "marginVertical": 16,
                                       "paddingHorizontal": 16,

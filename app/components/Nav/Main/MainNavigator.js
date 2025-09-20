@@ -118,6 +118,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -506,6 +507,7 @@ const HomeTabs = () => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -607,10 +609,12 @@ const HomeTabs = () => {
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
     const currentRoute = state.routes[state.index];
+
     // Hide tab bar for rewards onboarding splash screen
     if (
-      currentRoute.name?.startsWith('REWARDS_ONBOARDING') &&
-      !isRewardsEnabled
+      currentRoute.name?.startsWith('Rewards') &&
+      isRewardsEnabled &&
+      !rewardsSubscription
     ) {
       return null;
     }
@@ -915,7 +919,22 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
           component={SettingsFlow}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
         />
       )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />
