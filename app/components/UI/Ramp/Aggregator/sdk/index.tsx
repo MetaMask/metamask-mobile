@@ -19,8 +19,6 @@ import {
 import Logger from '../../../../../util/Logger';
 
 import {
-  selectedAddressSelector,
-  chainIdSelector,
   fiatOrdersGetStartedAgg,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersRegionAGG,
@@ -31,6 +29,10 @@ import {
   fiatOrdersGetStartedSell,
   setFiatOrdersGetStartedSell,
 } from '../../../../../reducers/fiatOrders';
+import { selectRampWalletAddress } from '../../../../../selectors/ramp';
+import { RootState } from '../../../../../reducers';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
+import Engine from '../../../../../core/Engine';
 import { RampIntent, RampType, Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../../locales/i18n';
@@ -107,7 +109,6 @@ export interface RampSDK {
   setGetStarted: (getStartedFlag: boolean) => void;
 
   selectedAddress: string;
-  selectedChainId: string;
   selectedNetworkName?: string;
 
   isBuy: boolean;
@@ -171,12 +172,13 @@ export const RampSDKProvider = ({
   );
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
   const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
-  const selectedAddress = useSelector(selectedAddressSelector);
-  const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkNickname = useSelector(selectNickname);
   const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
     selectedNetworkNickname || selectedAggregatorNetworkName;
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const INITIAL_PAYMENT_METHOD_ID = useSelector(
     fiatOrdersPaymentMethodSelectorAgg,
@@ -208,9 +210,36 @@ export const RampSDKProvider = ({
   const isBuy = rampType === RampType.BUY;
   const isSell = rampType === RampType.SELL;
 
+  const selectedAddress = useSelector((state: RootState) =>
+    selectRampWalletAddress(state, selectedAsset),
+  );
+
   useEffect(() => {
     setSelectedRegion(INITIAL_SELECTED_REGION);
   }, [INITIAL_SELECTED_REGION]);
+
+  // Clear incompatible assets when account changes
+  useEffect(() => {
+    if (!selectedAsset || !isMultichainAccountsState2Enabled) {
+      return;
+    }
+
+    const { AccountsController } = Engine.context;
+    const currentAccount = AccountsController.getSelectedAccount();
+
+    // Reset asset when current account cannot support it
+    // For Solana assets: reset if current account doesn't have Solana scopes
+    // For EVM assets: they should work on any account in multichain mode
+    // TODO: In the future we may have Solana-only accounts so this will need to be updated
+    if (
+      selectedAsset.network?.chainId?.startsWith('solana:') &&
+      currentAccount.address === selectedAddress &&
+      !currentAccount.scopes?.some((scope) => scope.startsWith('solana:'))
+    ) {
+      setSelectedAsset(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAddress, isMultichainAccountsState2Enabled]);
 
   const setSelectedRegionCallback = useCallback(
     (region: Region | null) => {
@@ -283,7 +312,6 @@ export const RampSDKProvider = ({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error - Ramps team ownership"
       selectedAddress,
-      selectedChainId,
       selectedNetworkName,
 
       isBuy,
@@ -304,7 +332,6 @@ export const RampSDKProvider = ({
       sdkError,
       selectedAddress,
       selectedAsset,
-      selectedChainId,
       selectedFiatCurrencyId,
       selectedNetworkName,
       selectedPaymentMethodId,

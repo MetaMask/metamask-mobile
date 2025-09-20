@@ -244,7 +244,6 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
   selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
-  selectedChainId: '1',
   selectedNetworkName: 'Ethereum',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
@@ -557,7 +556,7 @@ describe('BuildQuote View', () => {
       );
     });
 
-    it('switches network and sets asset when selecting crypto from different chain', async () => {
+    it('sets asset without switching network when selecting crypto from different chain', async () => {
       const mockPolygonToken = {
         ...mockCryptoCurrenciesData[0],
         network: {
@@ -581,7 +580,8 @@ describe('BuildQuote View', () => {
         fireEvent.press(getByRoleButton('Polygon Token'));
       });
 
-      expect(mockSetActiveNetwork).toHaveBeenCalled();
+      // Network switching is no longer expected in multichain approach
+      expect(mockSetActiveNetwork).not.toHaveBeenCalled();
       expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockPolygonToken);
     });
 

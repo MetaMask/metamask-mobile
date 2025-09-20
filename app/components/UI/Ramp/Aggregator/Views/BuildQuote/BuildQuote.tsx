@@ -24,8 +24,6 @@ import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 
-import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
-import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
@@ -62,10 +60,7 @@ import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
-import {
-  selectTicker,
-  selectNetworkConfigurationsByCaipChainId,
-} from '../../../../../../selectors/networkController';
+import { selectTicker } from '../../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -88,13 +83,11 @@ import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
-import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { selectRampWalletAddress } from '../../../../../../selectors/ramp';
+import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import Engine from '../../../../../../core/Engine';
-import { NetworkConfiguration } from '@metamask/network-controller';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { isCaipChainId } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
+import { store } from '../../../../../../store';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -144,9 +137,7 @@ const BuildQuote = () => {
     useModalHandler(false);
 
   const nativeSymbol = useSelector(selectTicker);
-  const networksByCaipChainId = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
+  const accounts = useSelector(selectInternalAccounts);
 
   /**
    * Grab the current state of the SDK via the context.
@@ -161,7 +152,6 @@ const BuildQuote = () => {
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     selectedAddress,
-    selectedChainId,
     selectedNetworkName,
     sdkError,
     rampType,
@@ -233,7 +223,7 @@ const BuildQuote = () => {
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
     fromAddress: selectedAddress,
-    chainId: selectedChainId,
+    chainId: selectedAsset?.network?.chainId || '1', // Default to mainnet if not available
     amount,
     decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
     isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
@@ -245,32 +235,32 @@ const BuildQuote = () => {
     estimateRange: 'high',
   });
 
-  const assetForBalance = useMemo(
-    () =>
-      selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
-        ? {
-            address: selectedAsset.address,
-            symbol: selectedAsset.symbol,
-            decimals: selectedAsset.decimals,
-          }
-        : {
-            isETH: true,
-          },
-    [selectedAsset],
-  );
+  // const assetForBalance = useMemo(
+  //   () =>
+  //     selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
+  //       ? {
+  //           address: selectedAsset.address,
+  //           symbol: selectedAsset.symbol,
+  //           decimals: selectedAsset.decimals,
+  //         }
+  //       : {
+  //           isETH: true,
+  //         },
+  //   [selectedAsset],
+  // );
 
-  const addressForBalance = useMemo(
-    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
-    [selectedAddress],
-  );
+  // const addressForBalance = useMemo(
+  //   () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+  //   [selectedAddress],
+  // );
 
-  const { addressBalance } = useAddressBalance(
-    assetForBalance as Asset,
-    addressForBalance,
-    true,
-  );
+  // const { addressBalance } = useAddressBalance(
+  //   assetForBalance as Asset,
+  //   addressForBalance,
+  //   true,
+  // );
 
-  const { balanceFiat, balanceBN, balance } = useBalance(
+  const { balanceBN } = useBalance(
     selectedAsset
       ? {
           chainId: selectedAsset.network.chainId,
@@ -358,15 +348,15 @@ const BuildQuote = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_destination: selectedChainId,
+        chain_id_destination: selectedAsset?.network?.chainId || '1',
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_source: selectedChainId,
+        chain_id_source: selectedAsset?.network?.chainId || '1',
       });
     }
-  }, [screenLocation, isBuy, selectedChainId, trackEvent]);
+  }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -377,6 +367,7 @@ const BuildQuote = () => {
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
           showBack: params.showBack,
+          showNetwork: false,
         },
         colors,
         handleCancelPress,
@@ -528,46 +519,44 @@ const BuildQuote = () => {
 
   const handleAssetPress = useCallback(
     async (newAsset: CryptoCurrency) => {
-      if (
-        newAsset.network?.chainId &&
-        newAsset.network.chainId !== selectedChainId
-      ) {
-        const assetCaipChainId = isCaipChainId(newAsset.network.chainId)
-          ? newAsset.network.chainId
-          : toEvmCaipChainId(toHex(newAsset.network.chainId));
-
-        const networkConfiguration = networksByCaipChainId[
-          assetCaipChainId
-        ] as NetworkConfiguration;
-
-        if (networkConfiguration) {
-          const { rpcEndpoints, defaultRpcEndpointIndex } =
-            networkConfiguration;
-          let networkClientId;
-
-          if (!rpcEndpoints || rpcEndpoints.length === 0) {
-            networkClientId = assetCaipChainId;
-          } else {
-            const { networkClientId: endpointNetworkClientId } =
-              rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
-            networkClientId = endpointNetworkClientId;
-          }
-
-          const { MultichainNetworkController } = Engine.context;
-
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
-        }
-      }
-
       setSelectedAsset(newAsset);
       hideTokenSelectorModal();
+
+      if (newAsset?.network?.chainId?.startsWith('solana:')) {
+        const { AccountsController } = Engine.context;
+        const currentAccount = AccountsController.getSelectedAccount();
+
+        // Check if current account can generate a Solana address
+        const currentAccountCanUseSolana = selectRampWalletAddress(
+          store.getState(),
+          newAsset,
+        );
+
+        if (
+          !currentAccountCanUseSolana ||
+          currentAccountCanUseSolana === currentAccount.address
+        ) {
+          // Find first account that supports Solana
+          const solanaAccounts = accounts.filter((account) =>
+            account.scopes.some((scope) => scope.startsWith('solana:')),
+          );
+          const solanaAccount = solanaAccounts[0];
+
+          if (solanaAccount) {
+            const account = AccountsController.getAccountByAddress(
+              solanaAccount.address,
+            );
+
+            if (account) {
+              const { PreferencesController } = Engine.context;
+              AccountsController.setSelectedAccount(account.id);
+              PreferencesController.setSelectedAddress(solanaAccount.address);
+            }
+          }
+        }
+      }
     },
-    [
-      hideTokenSelectorModal,
-      setSelectedAsset,
-      selectedChainId,
-      networksByCaipChainId,
-    ],
+    [hideTokenSelectorModal, setSelectedAsset, accounts],
   );
 
   /**
@@ -633,14 +622,14 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_source: currentFiatCurrency.symbol,
           currency_destination: selectedAsset.symbol,
-          chain_id_destination: selectedChainId,
+          chain_id_destination: selectedAsset.network?.chainId || '1',
         });
       } else {
         trackEvent('OFFRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
           currency_destination: currentFiatCurrency.symbol,
           currency_source: selectedAsset.symbol,
-          chain_id_source: selectedChainId,
+          chain_id_source: selectedAsset.network?.chainId || '1',
         });
       }
     }
@@ -653,7 +642,6 @@ const BuildQuote = () => {
     isBuy,
     navigation,
     selectedAsset,
-    selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
   ]);
@@ -938,7 +926,7 @@ const BuildQuote = () => {
               assetName={selectedAsset?.name ?? ''}
               onPress={handleAssetSelectorPress}
             />
-            {addressBalance ? (
+            {/* {addressBalance ? (
               <Row>
                 <Text
                   variant={TextVariant.BodySM}
@@ -949,7 +937,8 @@ const BuildQuote = () => {
                   {balanceFiat ? ` ≈ ${balanceFiat}` : null}
                 </Text>
               </Row>
-            ) : null}
+            ) : null} */}
+            {/* TODO: Fix multichain balance display */}
 
             <AmountInput
               highlighted={amountFocused}
