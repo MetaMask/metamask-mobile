@@ -1,5 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Utilities from '../../framework/Utilities';
 import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText,
@@ -23,6 +24,14 @@ class TokenOverview {
 
   get unstakeButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
+  }
+
+  get depositButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.DEPOSIT_BUTTON);
+  }
+
+  get withdrawButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WITHDRAW_BUTTON);
   }
 
   get stakeMoreButton(): DetoxElement {
@@ -105,6 +114,16 @@ class TokenOverview {
 
   async tapSwapButton(): Promise<void> {
     await Gestures.waitAndTap(this.swapButton);
+  }
+
+  async tapWithdrawButton(): Promise<void> {
+    await Utilities.waitForElementToStopMoving(this.withdrawButton);
+    await Gestures.waitAndTap(this.withdrawButton);
+  }
+
+  async tapDepositButton(): Promise<void> {
+    await Utilities.waitForElementToStopMoving(this.depositButton);
+    await Gestures.waitAndTap(this.depositButton);
   }
 
   async tapStakeMoreButton(): Promise<void> {
