@@ -102,6 +102,16 @@ class SettingsView {
     );
   }
 
+  async scrollToNetworksButton(): Promise<void> {
+    await Gestures.scrollToElement(
+      this.networksButton,
+      this.scrollViewIdentifier,
+      {
+        elemDescription: 'Scroll to Networks Button',
+      },
+    );
+  }
+
   async tapGeneralSettings(): Promise<void> {
     await Gestures.waitAndTap(this.generalSettingsButton, {
       elemDescription: 'Settings - General Settings Button',
