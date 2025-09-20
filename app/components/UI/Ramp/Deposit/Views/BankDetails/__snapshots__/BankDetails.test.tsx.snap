@@ -225,7 +225,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1327,7 +1327,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }

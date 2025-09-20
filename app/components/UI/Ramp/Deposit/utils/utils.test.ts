@@ -4,12 +4,12 @@ import {
   getTransakChainId,
   getTransakPaymentMethodId,
   getNotificationDetails,
-  formatCurrency,
   hasDepositOrderField,
   generateThemeParameters,
   timestampToTransakFormat,
   getCryptoCurrencyFromTransakId,
 } from '.';
+import { formatCurrency } from './formatCurrency';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,

@@ -225,7 +225,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -1886,7 +1886,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3479,7 +3479,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -5080,7 +5080,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }

@@ -225,7 +225,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -2051,7 +2051,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -3877,7 +3877,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -5703,7 +5703,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -7505,7 +7505,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -9307,7 +9307,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -11109,7 +11109,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -12911,7 +12911,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "Geist Bold",
-                      "fontSize": 16,
+                      "fontSize": 18,
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }

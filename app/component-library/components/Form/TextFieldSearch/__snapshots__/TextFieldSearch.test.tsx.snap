@@ -5,8 +5,9 @@ exports[`TextFieldSearch should render default settings correctly 1`] = `
   endAccessory={false}
   startAccessory={
     <Icon
+      color="Alternative"
       name="Search"
-      size="16"
+      size="20"
     />
   }
   testID="textfieldsearch"
