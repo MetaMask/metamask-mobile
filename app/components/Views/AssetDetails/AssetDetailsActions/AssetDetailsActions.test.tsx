@@ -43,7 +43,7 @@ describe('AssetDetailsActions', () => {
     displayBuyButton: true,
     displaySwapsButton: true,
     displayBridgeButton: true,
-    swapsIsLive: true,
+    chainId: '0x1' as const,
     goToSwaps: mockGoToSwaps,
     goToBridge: mockGoToBridge,
     onSend: mockOnSend,
