@@ -75,11 +75,10 @@ const getFaviconUrlFromLinks = (
 const originToUrl = (origin: string) => {
   if (origin) {
     try {
-      // remove sdk origin prefix before conversion
-      const originWithoutPrefix = origin.replace(
-        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-        '',
-      );
+      // remove sdk origin prefixes before conversion
+      const originWithoutPrefix = origin
+        .replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '')
+        .replace(AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN, '');
       const originWithProtocol = isUrl(originWithoutPrefix)
         ? originWithoutPrefix
         : `https://${originWithoutPrefix}`;

@@ -11,6 +11,8 @@ import { ConnectionRequest } from '../types/connection-request';
 import { PersistedConnection } from '../types/persisted-connection';
 import { KVStore } from '../store/kv-store';
 import { Metadata } from '../types/metadata';
+import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
+import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
 
 /**
  * Connection is a live, runtime representation of a dApp connection.
@@ -19,14 +21,28 @@ export class Connection {
   public readonly id: string;
   public readonly metadata: Metadata;
   public readonly client: WalletClient;
+  public readonly bridge: IRPCBridgeAdapter;
 
   private constructor(id: string, metadata: Metadata, client: WalletClient) {
     this.id = id;
     this.metadata = metadata;
     this.client = client;
+    this.bridge = new RPCBridgeAdapter(this);
 
     this.client.on('message', (payload) => {
-      console.warn(`[Connection:${this.id}] Received message:`, payload); // To be implemented in a future PR.
+      console.warn(
+        `[SDKConnectV2] [Connection:${this.id}] Received message:`,
+        JSON.stringify(payload),
+      );
+      this.bridge.send(payload);
+    });
+
+    this.bridge.on('response', (payload) => {
+      console.warn(
+        `[SDKConnectV2] [Connection:${this.id}] Sending message:`,
+        JSON.stringify(payload),
+      );
+      this.client.sendResponse(payload);
     });
   }
 
@@ -64,7 +80,7 @@ export class Connection {
    */
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
-    console.warn(`[Connection:${this.id}] Connected to dApp.`);
+    console.warn(`[SDKConnectV2] [Connection:${this.id}] Connected to dApp.`);
   }
 
   /**
@@ -79,7 +95,8 @@ export class Connection {
    * Disconnects the connection from the dApp.
    */
   public async disconnect(): Promise<void> {
+    this.bridge.dispose();
     await this.client.disconnect();
-    console.warn(`[Connection:${this.id}] Disconnected.`);
+    console.warn(`[SDKConnectV2] [Connection:${this.id}] Disconnected.`);
   }
 }

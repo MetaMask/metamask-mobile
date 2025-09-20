@@ -201,7 +201,7 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (!this.isMMSDK && !this.isWalletConnect) {
+    if (!this.isWalletConnect) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -462,7 +462,7 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
-    if (!this.isMMSDK && !this.isWalletConnect) {
+    if (!this.isWalletConnect) {
       controllerMessenger.unsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
