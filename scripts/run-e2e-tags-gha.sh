@@ -8,6 +8,7 @@ BASE_DIR="./e2e/specs"
 # Default values if not provided via environment variables
 SPLIT_NUMBER=${SPLIT_NUMBER:-1}
 TOTAL_SPLITS=${TOTAL_SPLITS:-1}
+METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-main}
 
 echo "Searching for tests with pattern: $TEST_SUITE_TAG"
 echo "Running split $SPLIT_NUMBER of $TOTAL_SPLITS"
@@ -20,7 +21,7 @@ while IFS= read -r file; do
     if [ -n "$file" ]; then
         matching_files+=("$file")
     fi
-done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -not -path "*/quarantine/*" -exec grep -l -w -F "$TEST_SUITE_TAG" {} \; | sort -u)
+done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -not -path "*/quarantine/*" -exec grep -l -E "\b($TEST_SUITE_TAG)\b" {} \; | sort -u)
 
 # Check if any files were found
 if [ ${#matching_files[@]} -eq 0 ]; then
@@ -30,6 +31,10 @@ fi
 
 # Display total results
 echo -e "\n📋 Found ${#matching_files[@]} matching test files in total"
+
+# Output all matched files for debugging/verification
+echo -e "\n📄 Matched test files:"
+printf '%s\n' "${matching_files[@]}" | sed 's/^/  ✓ /'
 
 # Calculate which files belong to our split
 TOTAL_FILES=${#matching_files[@]}
@@ -45,18 +50,22 @@ fi
 # Create array with only our split's files
 declare -a split_files
 for (( i=START_INDEX; i<END_INDEX; i++ )); do
-    split_files+=("${matching_files[$i]}")
+    # Ensure we don't go out of bounds
+    if [ $i -lt $TOTAL_FILES ]; then
+        split_files+=("${matching_files[$i]}")
+    fi
 done
+
+# Check if our split has any files first
+if [ ${#split_files[@]} -eq 0 ]; then
+    echo -e "\n⚠️ No test files for split $SPLIT_NUMBER of $TOTAL_SPLITS"
+    echo "This split is empty - no tests to run"
+    exit 0
+fi
 
 # Display split results
 echo -e "\n🔍 Running ${#split_files[@]} tests for split $SPLIT_NUMBER of $TOTAL_SPLITS:"
 printf '%s\n' "${split_files[@]}" | sed 's/^/  - /'
-
-# Check if our split has any files
-if [ ${#split_files[@]} -eq 0 ]; then
-    echo "⚠️ No test files for this split"
-    exit 0
-fi
 
 # Run tests for our split
 echo -e "\n🚀 Running matching tests for split $SPLIT_NUMBER..."
@@ -68,7 +77,7 @@ TEST_FILES="${split_files[*]}"
 IS_IOS_WORKFLOW="false"
 IS_GITHUB_CI="false"
 
-if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == *"ios"* ]]; then
+if [[ "${BITRISE_TRIGGERED_WORKFLOW_ID:-}" == *"ios"* ]]; then
     IS_IOS_WORKFLOW="true"
 fi
 

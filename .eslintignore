@@ -14,3 +14,4 @@ wdio
 /app/lib/ppom/blockaid-version.js
 /ppom
 junitProperties.js
+/scripts/e2e/ai-e2e-tags-selector.ts
