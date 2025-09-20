@@ -190,6 +190,21 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
        
       USDC
     </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
+          "letterSpacing": 0,
+          "lineHeight": 22,
+          "textAlign": "center",
+        }
+      }
+    >
+      Bank transfer initiated
+    </Text>
   </View>,
   <View
     style={
