@@ -5,10 +5,8 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
@@ -44,13 +42,19 @@ const NameLabel: React.FC<{
 const UnknownEthereumAddress: React.FC<{
   address: string;
   style?: ViewStyle;
-}> = ({ address, style }) => {
+  iconSize: AvatarSize;
+}> = ({ address, style, iconSize }) => {
   const displayNameVariant = DisplayNameVariant.Unknown;
   const { styles } = useStyles(styleSheet, { displayNameVariant });
 
   return (
     <View style={[styles.base, style]}>
-      <Icon name={IconName.Question} />
+      <Identicon
+        avatarSize={iconSize}
+        address={address}
+        diameter={16}
+        customStyle={styles.image}
+      />
       <NameLabel displayNameVariant={displayNameVariant} ellipsizeMode="middle">
         {renderShortAddress(address, 5)}
       </NameLabel>
@@ -60,29 +64,43 @@ const UnknownEthereumAddress: React.FC<{
 
 const Name: React.FC<NameProperties> = ({
   preferContractSymbol,
+  style,
   type,
   value,
   variation,
-  style,
+  shouldShowWalletName,
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
 
-  const { image, name, variant, isFirstPartyContractName } = useDisplayName({
-    preferContractSymbol,
-    type,
-    value,
-    variation,
-  });
+  const { accountWalletName, image, name, variant, isFirstPartyContractName } =
+    useDisplayName({
+      preferContractSymbol,
+      type,
+      value,
+      variation,
+    });
+  let iconSize;
+  if (shouldShowWalletName) {
+    iconSize = AvatarSize.Md;
+  } else {
+    iconSize = AvatarSize.Sm;
+  }
 
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: variant,
   });
 
   if (variant === DisplayNameVariant.Unknown) {
-    return <UnknownEthereumAddress address={value} style={style} />;
+    return (
+      <UnknownEthereumAddress
+        iconSize={iconSize}
+        address={value}
+        style={style}
+      />
+    );
   }
 
   const MAX_CHAR_LENGTH = 21;
@@ -113,15 +131,26 @@ const Name: React.FC<NameProperties> = ({
             />
           ) : (
             <Identicon
+              avatarSize={iconSize}
               address={value}
-              diameter={16}
               imageUri={image}
               customStyle={styles.image}
             />
           )}
-          <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
-            {truncatedName}
-          </NameLabel>
+          <View style={styles.labelContainer}>
+            <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
+              {truncatedName}
+            </NameLabel>
+            {accountWalletName && shouldShowWalletName && (
+              <Text
+                numberOfLines={1}
+                color={TextColor.Alternative}
+                variant={TextVariant.BodySM}
+              >
+                {accountWalletName}
+              </Text>
+            )}
+          </View>
         </View>
       </Pressable>
       {isTooltipVisible && (

@@ -11,6 +11,7 @@ export enum NameType {
 }
 
 export interface NameProperties extends ViewProps {
+  shouldShowWalletName?: boolean;
   preferContractSymbol?: boolean;
   type: NameType;
   value: string;
