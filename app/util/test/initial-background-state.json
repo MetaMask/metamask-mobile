@@ -615,5 +615,13 @@
     "seasons": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {}
+  },
+  "PredictController": {
+    "activeOrders": {},
+    "eligibility": {},
+    "lastError": null,
+    "lastUpdateTimestamp": 0,
+    "notifications": [],
+    "positions": []
   }
 }

@@ -205,6 +205,14 @@ describe('Engine', () => {
         previousMigrationVersion: 0, // This will be managed by the controller
         currentMigrationVersion,
       },
+      PredictController: {
+        activeOrders: {},
+        eligibility: {},
+        lastError: null,
+        lastUpdateTimestamp: 0,
+        notifications: [],
+        positions: [],
+      },
     };
 
     expect(initialBackgroundState).toStrictEqual(expectedState);
