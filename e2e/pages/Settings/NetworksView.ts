@@ -83,6 +83,10 @@ class NetworkView {
     );
   }
 
+  get customTab(): DetoxElement {
+    return Matchers.getElementByText(NetworkViewSelectorsText.CUSTOM_TAB);
+  }
+
   get networkNameInput(): DetoxElement {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_NAME_INPUT);
   }
@@ -168,6 +172,10 @@ class NetworkView {
 
   async switchToCustomNetworks(): Promise<void> {
     await Gestures.waitAndTap(this.customNetworkTab);
+  }
+
+  async switchToCustomTab(): Promise<void> {
+    await Gestures.waitAndTap(this.customTab);
   }
 
   async tapNetworkByName(networkName: string): Promise<void> {
