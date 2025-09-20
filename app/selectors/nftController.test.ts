@@ -13,15 +13,15 @@ import {
 } from './nftController';
 
 // Mock the external selectors that are dependencies
-jest.mock('./accountsController');
+jest.mock('./multichainAccounts/accounts');
 jest.mock('./networkEnablementController');
 
-import { selectLastSelectedEvmAccount } from './accountsController';
+import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { selectEnabledNetworksByNamespace } from './networkEnablementController';
 
-const mockSelectLastSelectedEvmAccount =
-  selectLastSelectedEvmAccount as jest.MockedFunction<
-    typeof selectLastSelectedEvmAccount
+const mockSelectSelectedInternalAccountByScope =
+  selectSelectedInternalAccountByScope as jest.MockedFunction<
+    typeof selectSelectedInternalAccountByScope
   >;
 const mockSelectEnabledNetworksByNamespace =
   selectEnabledNetworksByNamespace as jest.MockedFunction<
@@ -274,7 +274,10 @@ describe('NftController Selectors', () => {
   describe('multichainCollectibleForEvmAccount', () => {
     beforeEach(() => {
       // Set up default mock returns
-      mockSelectLastSelectedEvmAccount.mockReturnValue(mockSelectedEvmAccount);
+      // selectSelectedInternalAccountByScope returns a function that takes a scope and returns an account
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(mockSelectedEvmAccount),
+      );
       mockSelectEnabledNetworksByNamespace.mockReturnValue(mockEnabledNetworks);
     });
 
@@ -294,7 +297,9 @@ describe('NftController Selectors', () => {
 
     it('returns empty object when no account is selected', () => {
       // Arrange
-      mockSelectLastSelectedEvmAccount.mockReturnValue(undefined);
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(undefined),
+      );
       const mockState = createMockRootState();
 
       // Act
@@ -315,8 +320,9 @@ describe('NftController Selectors', () => {
         },
         scopes: ['eip155:1', 'eip155:89'] as `${string}:${string}`[],
       };
-      // @ts-expect-error - Testing edge case with invalid account
-      mockSelectLastSelectedEvmAccount.mockReturnValue(accountWithoutAddress);
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(accountWithoutAddress),
+      );
       const mockState = createMockRootState();
 
       // Act
@@ -468,8 +474,8 @@ describe('NftController Selectors', () => {
         },
         scopes: ['eip155:1', 'eip155:89'] as `${string}:${string}`[],
       };
-      mockSelectLastSelectedEvmAccount.mockReturnValue(
-        accountWithDifferentAddress,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(accountWithDifferentAddress),
       );
       const mockState = createMockRootState();
 
