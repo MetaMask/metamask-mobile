@@ -27,7 +27,11 @@ import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
-import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
+import {
+  selectHasCreatedSolanaMainnetAccount,
+  selectCanSignTransactions,
+} from '../../../../selectors/accountsController';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
 
@@ -253,6 +257,21 @@ export const selectIsSwapsLive = createSelector(
       selectIsBridgeEnabledDest(state, chainId),
   ],
   (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
+);
+
+/**
+ * Selector that determines if swap functionality is enabled
+ * Combines all the conditions needed for swap functionality to be available
+ */
+export const selectIsSwapsEnabled = createSelector(
+  [
+    selectCanSignTransactions,
+    selectBasicFunctionalityEnabled,
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsSwapsLive(state, chainId),
+  ],
+  (canSignTransactions, basicFunctionalityEnabled, swapsIsLive) =>
+    canSignTransactions && basicFunctionalityEnabled && swapsIsLive,
 );
 
 export const selectTopAssetsFromFeatureFlags = createSelector(

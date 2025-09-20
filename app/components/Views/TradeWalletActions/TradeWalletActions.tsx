@@ -30,7 +30,7 @@ import ActionListItem from '../../../component-library/components-temp/ActionLis
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
-import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
+import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
@@ -80,8 +80,8 @@ function TradeWalletActions() {
 
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
-  const swapsIsLive = useSelector((state: RootState) =>
-    selectIsSwapsLive(state, chainId),
+  const isSwapsEnabled = useSelector((state: RootState) =>
+    selectIsSwapsEnabled(state, chainId),
   );
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
@@ -258,7 +258,7 @@ function TradeWalletActions() {
                     iconName={IconName.SwapVertical}
                     onPress={goToSwaps}
                     testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-                    isDisabled={!canSignTransactions || !swapsIsLive}
+                    isDisabled={!isSwapsEnabled}
                   />
                 )}
                 {isPerpsEnabled && isEvmSelected && (

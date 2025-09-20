@@ -143,10 +143,7 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import {
-  selectIsSwapsLive,
-  selectIsUnifiedSwapsEnabled,
-} from '../../../core/redux/slices/bridge';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
@@ -501,9 +498,6 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const swapsIsLive = useSelector((state: RootState) =>
-    selectIsSwapsLive(state, chainId),
-  );
   const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Setup for AssetDetailsActions
@@ -1201,7 +1195,7 @@ const Wallet = ({
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
               displayBridgeButton={displayBridgeButton}
-              swapsIsLive={swapsIsLive}
+              chainId={chainId}
               goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
@@ -1244,12 +1238,12 @@ const Wallet = ({
       displayBuyButton,
       displaySwapsButton,
       displayBridgeButton,
-      swapsIsLive,
       onReceive,
       onSend,
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
+      chainId,
     ],
   );
   const renderLoader = useCallback(
