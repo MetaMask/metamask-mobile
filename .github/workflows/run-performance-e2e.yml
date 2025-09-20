@@ -178,7 +178,7 @@ jobs:
     name: Wait for Onboarding Completion
     runs-on: ubuntu-latest
     needs: [run-android-onboarding-tests, run-ios-onboarding-tests]
-    if: success() || failure()
+    if: always()
     steps:
       - name: Wait for onboarding tests to complete
         run: |
