@@ -40,11 +40,11 @@ import {
 } from '../../constants/hyperLiquidConfig';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
-  usePerpsAccount,
   usePerpsNetwork,
   usePerpsWithdrawQuote,
   useWithdrawTokens,
 } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsPerformance } from '../../hooks/usePerpsPerformance';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
@@ -96,7 +96,7 @@ const PerpsWithdrawView: React.FC = () => {
   const { track: trackEvent } = usePerpsEventTracking();
   const { startMeasure, endMeasure } = usePerpsPerformance();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
@@ -106,10 +106,10 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Parse available balance from perps account state
   const availableBalance = useMemo(() => {
-    if (!cachedAccountState?.availableBalance) return 0;
+    if (!account?.availableBalance) return 0;
     // Use parseCurrencyString to properly parse formatted currency
-    return parseCurrencyString(cachedAccountState.availableBalance);
-  }, [cachedAccountState?.availableBalance]);
+    return parseCurrencyString(account.availableBalance);
+  }, [account?.availableBalance]);
 
   const formattedBalance = useMemo(
     () => formatPerpsFiat(availableBalance),

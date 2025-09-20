@@ -21,6 +21,12 @@ export * from './providerMocks';
 // Rewards mocks
 export * from './rewardsMocks';
 
+// Stream hook mocks
+export * from './streamHooksMocks';
+
+// Component mocks
+export * from './perpsComponentMocks';
+
 /**
  * Common test data and utilities
  */
@@ -38,7 +44,10 @@ export const TEST_CONSTANTS = {
 
 /**
  * Helper to clear all mocks in a consistent way
+ * Note: Does NOT clear constructor mocks to avoid test interference
  */
 export const clearAllMocks = () => {
-  jest.clearAllMocks();
+  // Clear individual mock call history instead of jest.clearAllMocks()
+  // to preserve constructor mock implementations that are set up in beforeEach
+  jest.clearAllTimers();
 };
