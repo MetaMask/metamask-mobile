@@ -36,14 +36,21 @@ import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 
+export interface OttToken {
+  token: string;
+  timestamp: number;
+}
+
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
   paymentMethodId: string;
+  ott?: OttToken | null;
 }
 
 export const useDepositRouting = ({
   cryptoCurrencyChainId,
   paymentMethodId,
+  ott,
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
@@ -400,14 +407,29 @@ export const useDepositRouting = ({
                   shouldUpdate: false,
                 });
               } else {
-                const ottResponse = await requestOtt();
+                let ottToken = ott?.token;
 
-                if (!ottResponse) {
+                const OTT_EXPIRATION_TIME = 5 * 60 * 1000;
+                const isOttExpired =
+                  ott?.timestamp &&
+                  Date.now() - ott.timestamp > OTT_EXPIRATION_TIME;
+
+                if (!ottToken || isOttExpired) {
+                  const ottResponse = await requestOtt();
+
+                  if (ottResponse?.ott) {
+                    ottToken = ottResponse.ott;
+                  } else {
+                    throw new Error('Failed to get OTT token');
+                  }
+                }
+
+                if (!ottToken) {
                   throw new Error('Failed to get OTT token');
                 }
 
                 const paymentUrl = await generatePaymentUrl(
-                  ottResponse.ott,
+                  ottToken,
                   quote,
                   selectedWalletAddress,
                   generateThemeParameters(themeAppearance, colors),
@@ -521,6 +543,7 @@ export const useDepositRouting = ({
       paymentMethodId,
       themeAppearance,
       colors,
+      ott,
     ],
   );
 
