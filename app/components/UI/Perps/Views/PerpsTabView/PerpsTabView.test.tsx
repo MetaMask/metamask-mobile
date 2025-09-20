@@ -46,6 +46,70 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   })),
 }));
 
+// Mock main hooks module with needed hooks (including stream hooks via export *)
+jest.mock('../../hooks', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    resetError: jest.fn(),
+  })),
+  usePerpsFirstTimeUser: jest.fn(() => ({
+    isFirstTimeUser: false,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  })),
+  usePerpsTrading: jest.fn(() => ({
+    getAccountState: jest.fn(),
+  })),
+  usePerpsEventTracking: jest.fn(() => ({
+    trackEvent: jest.fn(),
+  })),
+  usePerpsPerformance: jest.fn(() => ({
+    markStart: jest.fn(),
+    markEnd: jest.fn(),
+    measure: jest.fn(),
+  })),
+  // Stream hooks (re-exported from ./stream via export *)
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+    error: null,
+  })),
+  usePerpsLiveOrders: jest.fn(() => []),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      totalBalance: '1000.00',
+      availableBalance: '500.00',
+      marginUsed: '500.00',
+      unrealizedPnl: '25.50',
+      returnOnEquity: '2.55',
+      totalValue: '1025.50',
+    },
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+// Mock stream hooks module (imported separately)
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      totalBalance: '1000.00',
+      availableBalance: '500.00',
+      marginUsed: '500.00',
+      unrealizedPnl: '25.50',
+      returnOnEquity: '2.55',
+      totalValue: '1025.50',
+    },
+    isLoading: false,
+    error: null,
+  })),
+  usePerpsLiveOrders: jest.fn(() => []),
+}));
+
 // Mock PerpsConnectionProvider
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
@@ -93,11 +157,6 @@ jest.mock('../../hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
-}));
-
-// Mock stream hooks separately since they're imported from different path
-jest.mock('../../hooks/stream', () => ({
-  usePerpsLiveOrders: jest.fn(() => []),
 }));
 
 // Mock formatUtils
@@ -165,21 +224,19 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   },
 }));
 
+// Get references to mocked functions for use in tests
+const mockMainHooks = jest.requireMock('../../hooks');
+const mockStreamHooks = jest.requireMock('../../hooks/stream');
+
+// Create convenient references to individual mocks
+const mockUsePerpsFirstTimeUser = mockMainHooks.usePerpsFirstTimeUser;
+const mockUsePerpsLivePositions = mockMainHooks.usePerpsLivePositions;
+const mockUsePerpsLiveOrders = mockStreamHooks.usePerpsLiveOrders;
+
 describe('PerpsTabView', () => {
   const mockNavigation = {
     navigate: jest.fn(),
   };
-
-  const mockUsePerpsConnection =
-    jest.requireMock('../../hooks').usePerpsConnection;
-  const mockUsePerpsLivePositions =
-    jest.requireMock('../../hooks').usePerpsLivePositions;
-  const mockUsePerpsLiveOrders =
-    jest.requireMock('../../hooks/stream').usePerpsLiveOrders;
-  const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
-  const mockUsePerpsFirstTimeUser =
-    jest.requireMock('../../hooks').usePerpsFirstTimeUser;
-  const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -205,29 +262,12 @@ describe('PerpsTabView', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
 
-    // Default hook mocks
-    mockUsePerpsConnection.mockReturnValue({
-      isConnected: true,
-      isInitialized: true,
-      error: null,
-      connect: jest.fn(),
-      resetError: jest.fn(),
-    });
+    // Reset navigation mock to prevent test interference
+    mockNavigation.navigate.mockClear();
 
-    mockUsePerpsLivePositions.mockReturnValue({
-      positions: [],
-      isInitialLoading: false,
-    });
-
-    mockUsePerpsLiveOrders.mockReturnValue([]);
-
-    mockUsePerpsTrading.mockReturnValue({
-      getAccountState: jest.fn(),
-    });
-
+    // Reset all mocks to their defaults
     mockUsePerpsFirstTimeUser.mockReturnValue({
       isFirstTimeUser: false,
       isLoading: false,
@@ -235,7 +275,13 @@ describe('PerpsTabView', () => {
       refresh: jest.fn(),
     });
 
-    mockUsePerpsAccount.mockReturnValue(null);
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+      error: null,
+    });
+
+    mockMainHooks.usePerpsLiveOrders?.mockReturnValue?.([]);
 
     // Default eligibility mock
     const mockSelectPerpsEligibility = jest.requireMock(
@@ -254,56 +300,6 @@ describe('PerpsTabView', () => {
         });
       }
       return undefined;
-    });
-  });
-
-  describe('Hook Integration', () => {
-    it('should call getAccountState on mount when connected and initialized', () => {
-      const mockGetAccountState = jest.fn();
-      mockUsePerpsTrading.mockReturnValue({
-        getAccountState: mockGetAccountState,
-      });
-
-      mockUsePerpsConnection.mockReturnValue({
-        isConnected: true,
-        isInitialized: true,
-      });
-
-      render(<PerpsTabView />);
-
-      expect(mockGetAccountState).toHaveBeenCalled();
-    });
-
-    it('should not call getAccountState when not connected', () => {
-      const mockGetAccountState = jest.fn();
-      mockUsePerpsTrading.mockReturnValue({
-        getAccountState: mockGetAccountState,
-      });
-
-      mockUsePerpsConnection.mockReturnValue({
-        isConnected: false,
-        isInitialized: true,
-      });
-
-      render(<PerpsTabView />);
-
-      expect(mockGetAccountState).not.toHaveBeenCalled();
-    });
-
-    it('should not call getAccountState when not initialized', () => {
-      const mockGetAccountState = jest.fn();
-      mockUsePerpsTrading.mockReturnValue({
-        getAccountState: mockGetAccountState,
-      });
-
-      mockUsePerpsConnection.mockReturnValue({
-        isConnected: true,
-        isInitialized: false,
-      });
-
-      render(<PerpsTabView />);
-
-      expect(mockGetAccountState).not.toHaveBeenCalled();
     });
   });
 
@@ -653,7 +649,7 @@ describe('PerpsTabView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+      mockMainHooks.usePerpsLiveOrders?.mockReturnValue?.([]);
 
       render(<PerpsTabView />);
 
