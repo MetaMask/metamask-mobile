@@ -314,6 +314,7 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
+import { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 
 /**
  * Controllers that area always instantiated
@@ -555,6 +556,7 @@ export type Controllers = {
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  GatorPermissionsController: GatorPermissionsController;
 };
 
 /**
@@ -686,7 +688,8 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
-  | 'RewardsController';
+  | 'RewardsController'
+  | 'GatorPermissionsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

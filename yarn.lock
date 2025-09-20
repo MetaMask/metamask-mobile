@@ -4870,6 +4870,11 @@
   dependencies:
     source-map "^0.7.3"
 
+"@metamask/7715-permission-types@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/7715-permission-types/-/7715-permission-types-0.3.0.tgz#ed11d8117809c6b042f86d06702b3c4ef9c826e9"
+  integrity sha512-+bqFNe6/YCe2LZapiVJO3/hn7BSJLExYT+cDJS1spJocPeVsTyURv3IjblZxRqTOv+igTwrYbh45LvdkgzxkZQ==
+
 "@metamask/abi-utils@^2.0.3":
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-2.0.4.tgz#20908c1d910f7a17a89fdf5778a5c59d5cb8b8be"
@@ -5456,6 +5461,17 @@
     "@types/uuid" "^8.3.0"
     bn.js "^5.2.1"
     uuid "^8.3.2"
+
+"@metamask/gator-permissions-controller@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/gator-permissions-controller/-/gator-permissions-controller-0.1.0.tgz#874a0a526ca0a8422dfe2ec212e2625b21da6da6"
+  integrity sha512-vVoLoWfltb1klda+SB+ca2QjxOfLgXoxFa/7/SKTxBNB1CqmdoxlUkkl8fyBB7jdPy83xx1eIzPdU/oQ9oSkzg==
+  dependencies:
+    "@metamask/7715-permission-types" "^0.3.0"
+    "@metamask/base-controller" "^8.3.0"
+    "@metamask/snaps-sdk" "^9.0.0"
+    "@metamask/snaps-utils" "^11.0.0"
+    "@metamask/utils" "^11.4.2"
 
 "@metamask/json-rpc-engine@^10.0.0", "@metamask/json-rpc-engine@^10.0.2", "@metamask/json-rpc-engine@^10.0.3":
   version "10.0.3"
