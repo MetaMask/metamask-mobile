@@ -104,7 +104,7 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
-                "workflow_id": "$METAMASK_WORKFLOW",
+                "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
                 "commit_message": "Triggered by iOS Dual Versions workflow - Build with Predefined-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
@@ -228,7 +228,7 @@ jobs:
             -d '{
               "build_params": {
                 "branch": "${{ github.ref_name }}",
-                "workflow_id": "$METAMASK_WORKFLOW",
+                "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
                 "commit_message": "Triggered by iOS Dual Versions workflow - Build without Predefined-SRP",
                 "environments": '"$ENV_VARS"',
                 "custom_id": "'"$CUSTOM_ID"'"
