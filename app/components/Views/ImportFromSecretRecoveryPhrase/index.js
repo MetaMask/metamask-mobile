@@ -140,7 +140,7 @@ const ImportFromSecretRecoveryPhrase = ({
     useState(null);
   const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
     useState(null);
-  const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(false);
+  const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
@@ -171,7 +171,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleClear = useCallback(() => {
     setSeedPhrase(['']);
     setErrorWordIndexes({});
-    setShowAllSeedPhrase(false);
     setError('');
     setSeedPhraseInputFocusedIndex(0);
     setNextSeedPhraseInputFocusedIndex(0);
@@ -473,12 +472,6 @@ const ImportFromSecretRecoveryPhrase = ({
       handleSeedPhraseChange(text);
     }
   }, [handleSeedPhraseChange]);
-
-  const toggleShowAllSeedPhrase = () => {
-    seedPhraseInputRefs.current.get(seedPhraseInputFocusedIndex)?.blur();
-    setSeedPhraseInputFocusedIndex(null);
-    setShowAllSeedPhrase((prev) => !prev);
-  };
 
   const validateSeedPhrase = () => {
     // Trim each word before joining to ensure proper validation
@@ -918,37 +911,23 @@ const ImportFromSecretRecoveryPhrase = ({
                       ))}
                     </View>
                   </View>
-                  <View style={styles.seedPhraseContainerCta}>
-                    <Button
-                      variant={ButtonVariants.Link}
-                      style={styles.pasteButton}
-                      onPress={toggleShowAllSeedPhrase}
-                      label={
-                        showAllSeedPhrase
-                          ? strings('import_from_seed.hide_all')
-                          : strings('import_from_seed.show_all')
-                      }
-                      width={ButtonWidthTypes.Full}
-                    />
-                    <Button
-                      label={
-                        trimmedSeedPhraseLength >= 1
-                          ? strings('import_from_seed.clear_all')
-                          : strings('import_from_seed.paste')
-                      }
-                      variant={ButtonVariants.Link}
-                      style={styles.pasteButton}
-                      onPress={() => {
-                        if (trimmedSeedPhraseLength >= 1) {
-                          handleClear();
-                        } else {
-                          handlePaste();
-                        }
-                      }}
-                      width={ButtonWidthTypes.Full}
-                    />
-                  </View>
                 </View>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Primary}
+                  style={styles.pasteText}
+                  onPress={() => {
+                    if (trimmedSeedPhraseLength >= 1) {
+                      handleClear();
+                    } else {
+                      handlePaste();
+                    }
+                  }}
+                >
+                  {trimmedSeedPhraseLength >= 1
+                    ? strings('import_from_seed.clear_all')
+                    : strings('import_from_seed.paste')}
+                </Text>
                 {Boolean(error) && (
                   <Text
                     variant={TextVariant.BodySMMedium}
