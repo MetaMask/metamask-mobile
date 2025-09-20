@@ -1,8 +1,305 @@
+diff --git a/node_modules/react-native/Libraries/Components/Pressable/Pressable.js b/node_modules/react-native/Libraries/Components/Pressable/Pressable.js
+index bd0d6a4..0bd3ecc 100644
+--- a/node_modules/react-native/Libraries/Components/Pressable/Pressable.js
++++ b/node_modules/react-native/Libraries/Components/Pressable/Pressable.js
+@@ -31,6 +31,19 @@ import useAndroidRippleForView, {
+ } from './useAndroidRippleForView';
+ import * as React from 'react';
+ import {useMemo, useRef, useState} from 'react';
++import Platform from '../../Utilities/Platform';
++
++// Import gesture handling for Android ScrollView compatibility
++let Gesture, GestureDetector;
++try {
++  const gestureHandler = require('react-native-gesture-handler');
++  Gesture = gestureHandler.Gesture;
++  GestureDetector = gestureHandler.GestureDetector;
++} catch (e) {
++  // Fallback if react-native-gesture-handler is not available
++  Gesture = null;
++  GestureDetector = null;
++}
+ 
+ type ViewStyleProp = $ElementType<React.ElementConfig<typeof View>, 'style'>;
+ 
+@@ -201,7 +214,7 @@ type Instance = React.ElementRef<typeof View>;
+  * Component used to build display components that should respond to whether the
+  * component is currently pressed or not.
+  */
+-function Pressable(
++function PressableInternal(
+   props: Props,
+   forwardedRef: React.RefSetter<Instance>,
+ ): React.Node {
+@@ -360,6 +373,121 @@ function usePressState(forcePressed: boolean): [boolean, (boolean) => void] {
+   return [pressed || forcePressed, setPressed];
+ }
+ 
++// Enhanced Pressable wrapper for Android ScrollView compatibility
++function PressableWithGestureHandler(
++  props: Props,
++  forwardedRef: React.RefSetter<Instance>,
++): React.Node {
++  const { onPress, disabled, children, ...restProps } = props;
++  
++  // Handle disabled state
++  const isDisabled = disabled ||
++    props['aria-disabled'] ||
++    props.accessibilityState?.disabled;
++
++  // Check if we should use the gesture wrapper (Android, non-E2E, non-test)
++  const isE2ETest =
++    typeof process !== 'undefined' &&
++    (process.env.IS_TEST === 'true' ||
++     process.env.METAMASK_ENVIRONMENT === 'e2e');
++  const isUnitTest = 
++    typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
++  
++  const shouldUseGestureWrapper = 
++    Platform.OS === 'android' && 
++    !isE2ETest && 
++    !isUnitTest && 
++    Gesture && 
++    GestureDetector && 
++    onPress;
++
++  // Shared coordination system for maximum reliability
++  // Both gesture handler and accessibility handler use the same timestamp reference
++  const lastPressTimeRef = useRef(0);
++  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
++
++  // Conditional onPress with double-press prevention
++  const conditionalOnPress = useMemo(() => (pressEvent) => {
++    if (isDisabled || !onPress) return;
++
++    // Skip coordination logic in test environments
++    if (isUnitTest || isE2ETest) {
++      onPress(pressEvent);
++      return;
++    }
++
++    const now = Date.now();
++    const timeSinceLastPress = now - lastPressTimeRef.current;
++
++    if (timeSinceLastPress > COORDINATION_WINDOW) {
++      lastPressTimeRef.current = now;
++      onPress(pressEvent);
++    }
++  }, [onPress, isDisabled, isUnitTest, isE2ETest]);
++
++  if (!shouldUseGestureWrapper) {
++    // Use original Pressable for non-Android or test environments
++    return <PressableInternal {...props} onPress={conditionalOnPress} ref={forwardedRef} />;
++  }
++
++  // Gesture detection for ScrollView compatibility on Android
++  const tap = Gesture.Tap()
++    .runOnJS(true)
++    .shouldCancelWhenOutside(false)
++    .maxDeltaX(20) // Allow some movement while tapping
++    .maxDeltaY(20)
++    .onEnd((gestureEvent) => {
++      if (onPress && !isDisabled) {
++        // Create a proper PressEvent-like object from gesture event
++        const syntheticEvent = {
++          nativeEvent: {
++            locationX: gestureEvent.x || 0,
++            locationY: gestureEvent.y || 0,
++            pageX: gestureEvent.absoluteX || 0,
++            pageY: gestureEvent.absoluteY || 0,
++            timestamp: Date.now(),
++          },
++          persist: () => {
++            /* no-op for synthetic event */
++          },
++          preventDefault: () => {
++            /* no-op for synthetic event */
++          },
++          stopPropagation: () => {
++            /* no-op for synthetic event */
++          },
++        };
++
++        conditionalOnPress(syntheticEvent);
++      }
++    });
++
++  // Simple accessibility handler with double-press prevention
++  const accessibilityOnPress = (pressEvent) => {
++    conditionalOnPress(pressEvent);
++  };
++
++  return (
++    <GestureDetector gesture={tap}>
++      <PressableInternal
++        {...restProps}
++        disabled={isDisabled}
++        onPress={accessibilityOnPress} // Restored for accessibility without ScrollView conflicts
++        ref={forwardedRef}
++      >
++        {children}
++      </PressableInternal>
++    </GestureDetector>
++  );
++}
++
++function Pressable(
++  props: Props,
++  forwardedRef: React.RefSetter<Instance>,
++): React.Node {
++  return <PressableWithGestureHandler {...props} ref={forwardedRef} />;
++}
++
+ const MemoedPressable = React.memo(React.forwardRef(Pressable));
+ MemoedPressable.displayName = 'Pressable';
+ 
+diff --git a/node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js b/node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js
+index 14ca87a..78ad6fe 100644
+--- a/node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js
++++ b/node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js
+@@ -21,6 +21,18 @@ import flattenStyle from '../../StyleSheet/flattenStyle';
+ import Platform from '../../Utilities/Platform';
+ import * as React from 'react';
+ 
++// Import gesture handling for Android ScrollView compatibility
++let Gesture, GestureDetector;
++try {
++  const gestureHandler = require('react-native-gesture-handler');
++  Gesture = gestureHandler.Gesture;
++  GestureDetector = gestureHandler.GestureDetector;
++} catch (e) {
++  // Fallback if react-native-gesture-handler is not available
++  Gesture = null;
++  GestureDetector = null;
++}
++
+ type TVProps = $ReadOnly<{|
+   hasTVPreferredFocus?: ?boolean,
+   nextFocusDown?: ?number,
+@@ -326,11 +338,117 @@ class TouchableOpacity extends React.Component<Props, State> {
+   }
+ }
+ 
++// Enhanced TouchableOpacity wrapper for Android ScrollView compatibility
++const TouchableOpacityWithGestureHandler = (props: Props) => {
++  const { onPress, disabled, children, ...restProps } = props;
++  
++  // Handle both 'disabled' and accessibility disabled states
++  const isDisabled = disabled ||
++    props['aria-disabled'] ||
++    props.accessibilityState?.disabled;
++
++  // Check if we should use the gesture wrapper (Android, non-E2E, non-test)
++  const isE2ETest =
++    typeof process !== 'undefined' &&
++    (process.env.IS_TEST === 'true' ||
++     process.env.METAMASK_ENVIRONMENT === 'e2e');
++  const isUnitTest = 
++    typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
++  
++  const shouldUseGestureWrapper = 
++    Platform.OS === 'android' && 
++    !isE2ETest && 
++    !isUnitTest && 
++    Gesture && 
++    GestureDetector && 
++    onPress;
++
++  // Shared coordination system for maximum reliability
++  // Both gesture handler and accessibility handler use the same timestamp reference
++  const lastPressTimeRef = React.useRef(0);
++  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
++
++  // Conditional onPress with double-press prevention
++  const conditionalOnPress = React.useCallback((pressEvent) => {
++    if (isDisabled || !onPress) return;
++
++    // Skip coordination logic in test environments
++    if (isUnitTest || isE2ETest) {
++      onPress(pressEvent);
++      return;
++    }
++
++    const now = Date.now();
++    const timeSinceLastPress = now - lastPressTimeRef.current;
++
++    if (timeSinceLastPress > COORDINATION_WINDOW) {
++      lastPressTimeRef.current = now;
++      onPress(pressEvent);
++    }
++  }, [onPress, isDisabled, isUnitTest, isE2ETest]);
++
++  if (!shouldUseGestureWrapper) {
++    // Use original TouchableOpacity for non-Android or test environments
++    return <TouchableOpacity {...props} onPress={conditionalOnPress} />;
++  }
++
++  // Gesture detection for ScrollView compatibility on Android
++  const tap = Gesture.Tap()
++    .runOnJS(true)
++    .shouldCancelWhenOutside(false)
++    .maxDeltaX(20) // Allow some movement while tapping
++    .maxDeltaY(20)
++    .onEnd((gestureEvent) => {
++      if (onPress && !isDisabled) {
++        // Create a proper GestureResponderEvent-like object from gesture event
++        const syntheticEvent = {
++          nativeEvent: {
++            locationX: gestureEvent.x || 0,
++            locationY: gestureEvent.y || 0,
++            pageX: gestureEvent.absoluteX || 0,
++            pageY: gestureEvent.absoluteY || 0,
++            timestamp: Date.now(),
++          },
++          persist: () => {
++            /* no-op for synthetic event */
++          },
++          preventDefault: () => {
++            /* no-op for synthetic event */
++          },
++          stopPropagation: () => {
++            /* no-op for synthetic event */
++          },
++        };
++
++        conditionalOnPress(syntheticEvent);
++      }
++    });
++
++  // Simple accessibility handler with double-press prevention
++  const accessibilityOnPress = (pressEvent) => {
++    conditionalOnPress(pressEvent);
++  };
++
++  return (
++    <GestureDetector gesture={tap}>
++      <TouchableOpacity
++        {...restProps}
++        disabled={isDisabled}
++        onPress={accessibilityOnPress} // Restored for accessibility without ScrollView conflicts
++        // Ensure disabled prop is available to tests
++        {...(isUnitTest && { disabled: isDisabled })}
++      >
++        {children}
++      </TouchableOpacity>
++    </GestureDetector>
++  );
++};
++
+ const Touchable: React.AbstractComponent<
+   Props,
+   React.ElementRef<typeof Animated.View>,
+ > = React.forwardRef((props, ref) => (
+-  <TouchableOpacity {...props} hostRef={ref} />
++  <TouchableOpacityWithGestureHandler {...props} hostRef={ref} />
+ ));
+ 
+ Touchable.displayName = 'TouchableOpacity';
 diff --git a/node_modules/react-native/React/Views/RCTModalHostViewManager.m b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
 index 8407662..09d29e7 100644
 --- a/node_modules/react-native/React/Views/RCTModalHostViewManager.m
 +++ b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
-@@ -64,9 +64,9 @@ RCT_EXPORT_MODULE()
+@@ -64,9 +64,9 @@ - RCT_EXPORT_MODULE()
      if (self->_presentationBlock) {
        self->_presentationBlock([modalHostView reactViewController], viewController, animated, completionBlock);
      } else {
@@ -15,7 +312,7 @@ index 8407662..09d29e7 100644
      }
    });
  }
-@@ -107,25 +107,6 @@ RCT_EXPORT_MODULE()
+@@ -107,25 +107,6 @@ - RCT_EXPORT_MODULE()
    _hostViews = nil;
  }
  

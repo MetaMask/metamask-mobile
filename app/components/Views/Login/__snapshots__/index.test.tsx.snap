@@ -269,6 +269,7 @@ exports[`Login renders matching snapshot 1`] = `
             activeOpacity={1}
             disabled={true}
             loading={false}
+            onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
