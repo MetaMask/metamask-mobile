@@ -2,6 +2,7 @@ import { handleSnapRequest } from '../../../../Snaps/utils';
 import Engine from '../../../../Engine';
 import { SOLANA_WALLET_SNAP_ID } from '../../../../SnapKeyring/SolanaWalletSnap';
 import { HandlerType } from '@metamask/snaps-utils';
+import Logger from '../../../../../util/Logger';
 
 export interface SignRewardsMessageResult {
   signature: string;
@@ -34,7 +35,7 @@ export async function signSolanaRewardsMessage(
 
     return result as SignRewardsMessageResult;
   } catch (error) {
-    console.error('Error signing Solana rewards message:', error);
+    Logger.log('Error signing Solana rewards message:', error);
     throw error;
   }
 }
