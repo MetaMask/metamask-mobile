@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -7,6 +7,11 @@ import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../select
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from '../../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../../../core/redux/slices/performance/constants';
 
 interface UseNetworkSelectionOptions {
   /**
@@ -47,6 +52,8 @@ export const useNetworkSelection = ({
     enabledNetworksByNamespace,
     enableAllPopularNetworks,
   } = useNetworkEnablement();
+
+  const dispatch = useDispatch();
 
   const popularNetworkConfigurations = useSelector(
     selectPopularNetworkConfigurationsByCaipChainId,
@@ -97,11 +104,28 @@ export const useNetworkSelection = ({
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
-      await enableNetwork(chainId);
-      await resetCustomNetworks(chainId);
-      onComplete?.();
+      // Start performance trace
+      dispatch(
+        startPerformanceTrace({
+          eventName: PerformanceEventNames.ChangeCustomNetwork,
+        }),
+      );
+
+      try {
+        await enableNetwork(chainId);
+        await resetCustomNetworks(chainId);
+        
+        onComplete?.();
+      } finally {
+        // End performance trace
+        dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.ChangeCustomNetwork,
+          }),
+        );
+      }
     },
-    [enableNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks, dispatch],
   );
 
   const selectAllPopularNetworks = useCallback(
@@ -116,11 +140,28 @@ export const useNetworkSelection = ({
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
-      await enableNetwork(chainId);
-      await resetCustomNetworks();
-      onComplete?.();
+      // Start performance trace
+      dispatch(
+        startPerformanceTrace({
+          eventName: PerformanceEventNames.ChangePopularNetwork,
+        }),
+      );
+
+      try {
+        await enableNetwork(chainId);
+        await resetCustomNetworks();
+        
+        onComplete?.();
+      } finally {
+        // End performance trace
+        dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.ChangePopularNetwork,
+          }),
+        );
+      }
     },
-    [enableNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks, dispatch],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */

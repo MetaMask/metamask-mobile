@@ -6,7 +6,8 @@ import {
 } from '../../../api-mocking/helpers/mockHelpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
-  GET_QUOTE_ETH_WETH_RESPONSE,
+  GET_QUOTE_ETH_DAI_RESPONSE,
+  GET_TOKENS_MAINNET_RESPONSE,
 } from './constants';
 
 export const testSpecificMock: TestSpecificMock = async (
@@ -32,11 +33,19 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock ETH->WETH
+  // Mock ETH->DAI
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
-    response: GET_QUOTE_ETH_WETH_RESPONSE,
+    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
+    response: GET_QUOTE_ETH_DAI_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock Ethereum token list
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getTokens.*chainId=1/i,
+    response: GET_TOKENS_MAINNET_RESPONSE,
     responseCode: 200,
   });
 

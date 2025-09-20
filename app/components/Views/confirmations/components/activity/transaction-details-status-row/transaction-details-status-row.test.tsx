@@ -7,11 +7,15 @@ import {
 } from '@metamask/transaction-controller';
 import { TransactionDetailsStatusRow } from './transaction-details-status-row';
 import { strings } from '../../../../../../../locales/i18n';
+import { merge } from 'lodash';
+import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 
 function render() {
-  return renderWithProvider(<TransactionDetailsStatusRow />, {});
+  return renderWithProvider(<TransactionDetailsStatusRow />, {
+    state: merge({}, otherControllersMock),
+  });
 }
 
 describe('TransactionDetailsStatusRow', () => {

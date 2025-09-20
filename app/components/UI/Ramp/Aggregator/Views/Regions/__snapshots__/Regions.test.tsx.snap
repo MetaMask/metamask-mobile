@@ -129,7 +129,7 @@ exports[`Regions View renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -882,7 +882,7 @@ exports[`Regions View renders correctly while loading 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -1485,7 +1485,7 @@ exports[`Regions View renders correctly with error 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -2127,7 +2127,7 @@ exports[`Regions View renders correctly with no data 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -2730,7 +2730,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -3372,7 +3372,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -4123,7 +4123,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -5279,7 +5279,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -6435,7 +6435,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {

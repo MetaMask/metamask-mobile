@@ -8,6 +8,11 @@ import { useNavigation } from '@react-navigation/native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 
+jest.mock('../../../../actions/settings', () => ({
+  ...jest.requireActual('../../../../actions/settings'),
+  toggleBasicFunctionality: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
@@ -83,7 +88,7 @@ describe('ConfirmTurnOnBackupAndSyncModal', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(toggleBasicFunctionality(true));
+      expect(toggleBasicFunctionality).toHaveBeenCalledWith(true);
       expect(mockTrackEnableBackupAndSyncEvent).toHaveBeenCalled();
       expect(mockEnableBackupAndSync).toHaveBeenCalled();
     });

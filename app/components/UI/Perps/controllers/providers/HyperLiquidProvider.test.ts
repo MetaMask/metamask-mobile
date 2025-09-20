@@ -261,9 +261,9 @@ describe('HyperLiquidProvider', () => {
     } as Partial<HyperLiquidWalletService> as jest.Mocked<HyperLiquidWalletService>;
 
     mockSubscriptionService = {
-      subscribeToPrices: jest.fn().mockReturnValue(jest.fn()),
-      subscribeToPositions: jest.fn().mockReturnValue(jest.fn()),
-      subscribeToOrderFills: jest.fn().mockReturnValue(jest.fn()),
+      subscribeToPrices: jest.fn().mockResolvedValue(jest.fn()), // Returns Promise
+      subscribeToPositions: jest.fn().mockReturnValue(jest.fn()), // Returns function directly
+      subscribeToOrderFills: jest.fn().mockReturnValue(jest.fn()), // Returns function directly
       clearAll: jest.fn(),
     } as Partial<HyperLiquidSubscriptionService> as jest.Mocked<HyperLiquidSubscriptionService>;
 

@@ -60,6 +60,7 @@ export function useTransactionRequiredFiat({
 
         return {
           address: target.address,
+          amountHumanOriginal: amountHuman,
           amountFiat: amountFiat.toNumber(),
           balanceFiat: balanceFiat.toNumber(),
           feeFiat: feeFiat.toNumber(),

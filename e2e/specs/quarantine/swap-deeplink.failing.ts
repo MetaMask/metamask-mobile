@@ -18,12 +18,12 @@ import {
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import QuoteView from '../../pages/Bridge/QuoteView.ts';
+import QuoteView from '../../pages/swaps/QuoteView';
 import Matchers from '../../utils/Matchers.js';
 import Gestures from '../../utils/Gestures.js';
 import { Assertions as FrameworkAssertions } from '../../framework';
 import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks.ts';
-import { localNodeOptions } from '../bridge/constants.ts';
+import { localNodeOptions } from '../swaps/helpers/constants';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 

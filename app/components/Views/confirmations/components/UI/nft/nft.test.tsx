@@ -25,8 +25,9 @@ describe('Nft', () => {
     jest.clearAllMocks();
   });
 
-  it('displays NFT with collection name and name', () => {
+  it('displays NFT with collection name and tokenId for ERC721', () => {
     const mockNft = createMockNft({
+      standard: 'ERC721',
       collectionName: 'Bored Apes',
       name: 'Ape #456',
       tokenId: '456',
@@ -38,7 +39,7 @@ describe('Nft', () => {
     );
 
     expect(getByText('Bored Apes')).toBeOnTheScreen();
-    expect(getByText('Ape #456')).toBeOnTheScreen();
+    expect(getByText('#456')).toBeOnTheScreen();
   });
 
   it('displays tokenId when name is missing', () => {
@@ -60,6 +61,7 @@ describe('Nft', () => {
   it('displays tokenId when collectionName is missing', () => {
     const mockNft = createMockNft({
       collectionName: undefined,
+      standard: 'ERC721',
       name: 'Unique Art',
       tokenId: '101',
       balance: '0',
@@ -69,12 +71,12 @@ describe('Nft', () => {
       <Nft asset={mockNft} onPress={mockOnPress} />,
     );
 
-    expect(getByText('#101')).toBeOnTheScreen();
     expect(getByText('Unique Art')).toBeOnTheScreen();
   });
 
-  it('displays balance when provided and not zero', () => {
+  it('displays balance when provided and not zero for ERC1155', () => {
     const mockNft = createMockNft({
+      standard: 'ERC1155',
       collectionName: 'Multi Token',
       name: 'Token Item',
       balance: '5',
@@ -102,7 +104,7 @@ describe('Nft', () => {
     );
 
     expect(getByText('Zero Balance')).toBeOnTheScreen();
-    expect(getByText('Empty Item')).toBeOnTheScreen();
+    expect(getByText('#303')).toBeOnTheScreen();
     expect(queryByText('(0)')).not.toBeOnTheScreen();
   });
 
@@ -119,7 +121,7 @@ describe('Nft', () => {
     );
 
     expect(getByText('No Balance')).toBeOnTheScreen();
-    expect(getByText('Simple Item')).toBeOnTheScreen();
+    expect(getByText('#404')).toBeOnTheScreen();
     expect(queryByText(/^\(/)).not.toBeOnTheScreen();
   });
 
@@ -148,6 +150,6 @@ describe('Nft', () => {
     );
 
     expect(getByText('Simple Collection')).toBeOnTheScreen();
-    expect(getByText('Simple NFT')).toBeOnTheScreen();
+    expect(getByText('#123')).toBeOnTheScreen();
   });
 });

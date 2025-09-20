@@ -72,6 +72,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress1Mock,
         amountFiat: 8,
+        amountHumanOriginal: '2',
         balanceFiat: 40,
         feeFiat: 0.2,
         skipIfBalance: false,
@@ -80,6 +81,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress2Mock,
         amountFiat: 15,
+        amountHumanOriginal: '3',
         balanceFiat: 100,
         feeFiat: 0.375,
         skipIfBalance: true,
@@ -104,6 +106,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress1Mock,
         amountFiat: 16,
+        amountHumanOriginal: '4',
         balanceFiat: 40,
         feeFiat: 0.4,
         skipIfBalance: false,
@@ -112,6 +115,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress2Mock,
         amountFiat: 15,
+        amountHumanOriginal: '3',
         balanceFiat: 100,
         feeFiat: 0.375,
         skipIfBalance: true,

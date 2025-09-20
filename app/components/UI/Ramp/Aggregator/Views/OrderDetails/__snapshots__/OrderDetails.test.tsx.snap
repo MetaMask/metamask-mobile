@@ -176,30 +176,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1648,30 +1624,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -3138,30 +3090,6 @@ exports[`OrderDetails renders a created order 1`] = `
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -4590,30 +4518,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -6062,30 +5966,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -7514,30 +7394,6 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -7949,30 +7805,6 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -8591,30 +8423,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -10124,30 +9932,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -11660,30 +11444,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -13112,30 +12872,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                 >
                   Order Details
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View

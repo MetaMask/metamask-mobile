@@ -1,4 +1,5 @@
 import { BaseController } from '@metamask/base-controller';
+import { toHex } from '@metamask/controller-utils';
 import type {
   RewardsControllerState,
   RewardsAccountState,
@@ -6,9 +7,19 @@ import type {
   PerpsDiscountData,
   EstimatePointsDto,
   EstimatedPointsDto,
+  SeasonDtoState,
+  SeasonStatusState,
+  SeasonTierState,
+  SeasonTierDto,
+  SubscriptionReferralDetailsState,
+  GeoRewardsMetadata,
+  SeasonStatusDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
-import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
+import {
+  storeSubscriptionToken,
+  removeSubscriptionToken,
+} from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
@@ -24,6 +35,8 @@ import {
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
 
+export const DEFAULT_BLOCKED_REGIONS = ['UK'];
+
 const controllerName = 'RewardsController';
 
 // Silent authentication constants
@@ -32,6 +45,12 @@ const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 // Perps discount refresh threshold
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
+// Season status cache threshold
+const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+
+// Referral details cache threshold
+const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+
 /**
  * State metadata for the RewardsController
  */
@@ -39,6 +58,9 @@ const metadata = {
   lastAuthenticatedAccount: { persist: true, anonymous: false },
   accounts: { persist: true, anonymous: false },
   subscriptions: { persist: true, anonymous: false },
+  seasons: { persist: true, anonymous: false },
+  subscriptionReferralDetails: { persist: true, anonymous: false },
+  seasonStatuses: { persist: true, anonymous: false },
 };
 /**
  * Get the default state for the RewardsController
@@ -47,6 +69,9 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   lastAuthenticatedAccount: null,
   accounts: {},
   subscriptions: {},
+  seasons: {},
+  subscriptionReferralDetails: {},
+  seasonStatuses: {},
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -61,6 +86,85 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #isProcessingSilentAuth = false;
+
+  /**
+   * Calculate tier status and next tier information
+   */
+  calculateTierStatus(
+    seasonTiers: SeasonTierDto[],
+    currentTierId: string,
+    currentPoints: number,
+  ): SeasonTierState {
+    // Sort tiers by points needed (ascending)
+    const sortedTiers = [...seasonTiers].sort(
+      (a, b) => a.pointsNeeded - b.pointsNeeded,
+    );
+
+    // Find current tier
+    const currentTier = sortedTiers.find((tier) => tier.id === currentTierId);
+    if (!currentTier) {
+      throw new Error(
+        `Current tier ${currentTierId} not found in season tiers`,
+      );
+    }
+
+    // Find next tier (first tier with more points needed than current tier)
+    const currentTierIndex = sortedTiers.findIndex(
+      (tier) => tier.id === currentTierId,
+    );
+    const nextTier =
+      currentTierIndex < sortedTiers.length - 1
+        ? sortedTiers[currentTierIndex + 1]
+        : null;
+
+    // Calculate points needed for next tier
+    const nextTierPointsNeeded = nextTier
+      ? Math.max(0, nextTier.pointsNeeded - currentPoints)
+      : null;
+
+    return {
+      currentTier,
+      nextTier,
+      nextTierPointsNeeded,
+    };
+  }
+
+  /**
+   * Convert SeasonDto to SeasonDtoState for storage
+   */
+  #convertSeasonToState(season: SeasonStatusDto['season']): SeasonDtoState {
+    return {
+      id: season.id,
+      name: season.name,
+      startDate: season.startDate.getTime(),
+      endDate: season.endDate.getTime(),
+      tiers: season.tiers,
+    };
+  }
+
+  /**
+   * Convert SeasonStatusDto to SeasonStatusState and update seasons map
+   */
+  #convertSeasonStatusToSubscriptionState(
+    seasonStatus: SeasonStatusDto,
+  ): SeasonStatusState {
+    const tierState = this.calculateTierStatus(
+      seasonStatus.season.tiers,
+      seasonStatus.currentTierId,
+      seasonStatus.balance.total,
+    );
+
+    return {
+      season: this.#convertSeasonToState(seasonStatus.season),
+      balance: {
+        total: seasonStatus.balance.total,
+        refereePortion: seasonStatus.balance.refereePortion,
+        updatedAt: seasonStatus.balance.updatedAt?.getTime(),
+      },
+      tier: tierState,
+      lastFetched: Date.now(),
+    };
+  }
 
   constructor({
     messenger,
@@ -103,6 +207,30 @@ export class RewardsController extends BaseController<
       'RewardsController:isRewardsFeatureEnabled',
       this.isRewardsFeatureEnabled.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getSeasonStatus',
+      this.getSeasonStatus.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getReferralDetails',
+      this.getReferralDetails.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:optIn',
+      this.optIn.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:logout',
+      this.logout.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getGeoRewardsMetadata',
+      this.getGeoRewardsMetadata.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:validateReferralCode',
+      this.validateReferralCode.bind(this),
+    );
   }
 
   /**
@@ -136,6 +264,30 @@ export class RewardsController extends BaseController<
    */
   #getAccountState(account: CaipAccountId): RewardsAccountState | null {
     return this.state.accounts[account] || null;
+  }
+
+  /**
+   * Create composite key for season status storage
+   */
+  #createSeasonStatusCompositeKey(
+    seasonId: string,
+    subscriptionId: string,
+  ): string {
+    return `${seasonId}:${subscriptionId}`;
+  }
+
+  /**
+   * Get stored season status for a given composite key
+   */
+  #getSeasonStatus(
+    subscriptionId: string,
+    seasonId: string | 'current' = 'current',
+  ): SeasonStatusState | null {
+    const compositeKey = this.#createSeasonStatusCompositeKey(
+      seasonId,
+      subscriptionId,
+    );
+    return this.state.seasonStatuses[compositeKey] || null;
   }
 
   /**
@@ -233,26 +385,31 @@ export class RewardsController extends BaseController<
     return false;
   }
 
-  /**
-   * Perform silent authentication for the given address
-   */
-  async #performSilentAuth(internalAccount: InternalAccount): Promise<void> {
-    let account: CaipAccountId | undefined;
-
+  convertInternalAccountToCaipAccountId(
+    account: InternalAccount,
+  ): CaipAccountId | null {
     try {
-      const [scope] = internalAccount.scopes;
+      const [scope] = account.scopes;
       const { namespace, reference } = parseCaipChainId(scope);
-      account = toCaipAccountId(namespace, reference, internalAccount.address);
+      return toCaipAccountId(namespace, reference, account.address);
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to convert address to CAIP-10 format:',
         error,
       );
+      return null;
     }
+  }
 
-    const address = internalAccount.address;
+  /**
+   * Perform silent authentication for the given address
+   */
+  async #performSilentAuth(internalAccount: InternalAccount): Promise<void> {
+    const account: CaipAccountId | null =
+      this.convertInternalAccountToCaipAccountId(internalAccount);
+
     const shouldSkip = account
-      ? this.#shouldSkipSilentAuth(account, address)
+      ? this.#shouldSkipSilentAuth(account, internalAccount.address)
       : false;
     Logger.log('RewardsController: Should skip auth?', shouldSkip);
 
@@ -295,9 +452,16 @@ export class RewardsController extends BaseController<
       }
 
       // Use data service through messenger
-      const requestBody = { account: address, timestamp, signature };
+      const requestBody = {
+        account: internalAccount.address,
+        timestamp,
+        signature,
+      };
 
-      Logger.log('RewardsController: Performing silent auth for', address);
+      Logger.log(
+        'RewardsController: Performing silent auth for',
+        internalAccount.address,
+      );
 
       const loginResponse: LoginResponseDto = await this.messagingSystem.call(
         'RewardsDataService:login',
@@ -333,16 +497,7 @@ export class RewardsController extends BaseController<
         state.accounts[account] = accountState;
 
         // Update subscriptions map
-        if (!state.subscriptions[subscription.id]) {
-          state.subscriptions[subscription.id] = {
-            subscription,
-          };
-        } else {
-          state.subscriptions[subscription.id] = {
-            ...state.subscriptions[subscription.id],
-            subscription,
-          };
-        }
+        state.subscriptions[subscription.id] = subscription;
 
         // Update last authenticated account
         state.lastAuthenticatedAccount = accountState;
@@ -516,5 +671,377 @@ export class RewardsController extends BaseController<
    */
   isRewardsFeatureEnabled(): boolean {
     return selectRewardsEnabledFlag(store.getState());
+  }
+
+  /**
+   * Get season status with caching
+   * @param seasonId - The ID of the season to get status for
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<SeasonStatusState> - The season status data
+   */
+  async getSeasonStatus(
+    subscriptionId: string,
+    seasonId: string | 'current' = 'current',
+  ): Promise<SeasonStatusState | null> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return null;
+    }
+
+    // Check if we have cached season status and if threshold hasn't been reached
+    const cachedSeasonStatus = this.#getSeasonStatus(subscriptionId, seasonId);
+    if (
+      cachedSeasonStatus?.lastFetched &&
+      Date.now() - cachedSeasonStatus.lastFetched <
+        SEASON_STATUS_CACHE_THRESHOLD_MS
+    ) {
+      Logger.log(
+        'RewardsController: Using cached season status data for',
+        subscriptionId,
+        seasonId,
+      );
+
+      return cachedSeasonStatus;
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh season status data via API call for subscriptionId & seasonId',
+        subscriptionId,
+        seasonId,
+      );
+      const seasonStatus = await this.messagingSystem.call(
+        'RewardsDataService:getSeasonStatus',
+        seasonId,
+        subscriptionId,
+      );
+
+      const seasonState = this.#convertSeasonToState(seasonStatus.season);
+      const subscriptionSeasonStatus =
+        this.#convertSeasonStatusToSubscriptionState(seasonStatus);
+
+      const compositeKey = this.#createSeasonStatusCompositeKey(
+        seasonId,
+        subscriptionId,
+      );
+
+      this.update((state: RewardsControllerState) => {
+        // Update seasons map with season data
+        state.seasons[seasonId] = seasonState;
+
+        // Update season status with composite key
+        state.seasonStatuses[compositeKey] = subscriptionSeasonStatus;
+      });
+
+      return subscriptionSeasonStatus;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get season status:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get referral details with caching
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<SubscriptionReferralDetailsDto> - The referral details data
+   */
+  async getReferralDetails(
+    subscriptionId: string,
+  ): Promise<SubscriptionReferralDetailsState | null> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return null;
+    }
+
+    const cachedReferralDetails =
+      this.state.subscriptionReferralDetails[subscriptionId];
+
+    // Check if we have cached referral details and if threshold hasn't been reached
+    if (
+      cachedReferralDetails?.lastFetched &&
+      Date.now() - cachedReferralDetails.lastFetched <
+        REFERRAL_DETAILS_CACHE_THRESHOLD_MS
+    ) {
+      Logger.log(
+        'RewardsController: Using cached referral details data for',
+        subscriptionId,
+      );
+      return cachedReferralDetails;
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh referral details data via API call for',
+        subscriptionId,
+      );
+      const referralDetails = await this.messagingSystem.call(
+        'RewardsDataService:getReferralDetails',
+        subscriptionId,
+      );
+
+      const subscriptionReferralDetailsState: SubscriptionReferralDetailsState =
+        {
+          referralCode: referralDetails.referralCode,
+          totalReferees: referralDetails.totalReferees,
+          lastFetched: Date.now(),
+        };
+
+      this.update((state: RewardsControllerState) => {
+        // Update subscription referral details at root level
+        state.subscriptionReferralDetails[subscriptionId] =
+          subscriptionReferralDetailsState;
+      });
+
+      return subscriptionReferralDetailsState;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get referral details:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Perform the complete opt-in process for rewards
+   * @param account - The account to opt in
+   * @param referralCode - Optional referral code
+   */
+  async optIn(account: InternalAccount, referralCode?: string): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log('Rewards: Rewards feature is disabled, skipping optin', {
+        account: account.address,
+      });
+      return;
+    }
+
+    Logger.log('Rewards: Starting optin process', {
+      account: account.address,
+    });
+
+    const challengeResponse = await this.messagingSystem.call(
+      'RewardsDataService:generateChallenge',
+      {
+        address: account.address,
+      },
+    );
+
+    // Try different encoding approaches to handle potential character issues
+    let hexMessage;
+    try {
+      // First try: direct toHex conversion
+      hexMessage = toHex(challengeResponse.message);
+    } catch (error) {
+      // Fallback: use Buffer to convert to hex if toHex fails
+      hexMessage =
+        '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
+    }
+
+    // Use KeyringController for silent signature
+    const signature = await this.messagingSystem.call(
+      'KeyringController:signPersonalMessage',
+      {
+        data: hexMessage,
+        from: account.address,
+      },
+    );
+
+    Logger.log('Rewards: Submitting optin with signature...');
+    const optinResponse = await this.messagingSystem.call(
+      'RewardsDataService:optin',
+      {
+        challengeId: challengeResponse.id,
+        signature,
+        referralCode,
+      },
+    );
+
+    Logger.log('Rewards: Optin successful, updating controller state...');
+
+    // Update state with opt-in response data
+    this.update((state) => {
+      const caipAccount: CaipAccountId | null =
+        this.convertInternalAccountToCaipAccountId(account);
+      if (!caipAccount) {
+        return;
+      }
+      state.lastAuthenticatedAccount = {
+        account: caipAccount,
+        hasOptedIn: true,
+        subscriptionId: optinResponse.subscription.id,
+        lastAuthTime: Date.now(),
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+      state.accounts[caipAccount] = state.lastAuthenticatedAccount;
+      state.subscriptions[optinResponse.subscription.id] =
+        optinResponse.subscription;
+    });
+
+    // Store the subscription token for authenticated requests
+    if (optinResponse.subscription?.id && optinResponse.sessionId) {
+      await storeSubscriptionToken(
+        optinResponse.subscription.id,
+        optinResponse.sessionId,
+      ).catch((error) => {
+        Logger.log(
+          'RewardsController: Failed to store subscription token:',
+          error,
+        );
+      });
+    }
+  }
+
+  /**
+   * Logout user from rewards and clear associated data
+   * @param subscriptionId - Optional subscription ID to logout from
+   */
+  async logout(): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Rewards feature is disabled, skipping logout',
+      );
+      return;
+    }
+
+    if (!this.state.lastAuthenticatedAccount?.subscriptionId) {
+      Logger.log('RewardsController: No authenticated account found');
+      return;
+    }
+
+    const subscriptionId = this.state.lastAuthenticatedAccount.subscriptionId;
+    Logger.log(
+      'RewardsController: Starting logout process for account tied to subscriptionId',
+      {
+        subscriptionId,
+      },
+    );
+
+    try {
+      // Call the data service logout if subscriptionId is provided
+      await this.messagingSystem.call(
+        'RewardsDataService:logout',
+        subscriptionId,
+      );
+      Logger.log(
+        'RewardsController: Successfully logged out from data service',
+      );
+
+      // Remove the session token from storage
+      const tokenRemovalResult = await removeSubscriptionToken(subscriptionId);
+      if (!tokenRemovalResult.success) {
+        Logger.log(
+          'RewardsController: Warning - failed to remove session token:',
+          tokenRemovalResult?.error || 'Unknown error',
+        );
+      } else {
+        Logger.log('RewardsController: Successfully removed session token');
+      }
+
+      // Update controller state to reflect logout
+      this.update((state) => {
+        // Clear last authenticated account if it matches this subscription
+        if (state.lastAuthenticatedAccount?.subscriptionId === subscriptionId) {
+          state.lastAuthenticatedAccount = null;
+          Logger.log('RewardsController: Cleared last authenticated account');
+        }
+      });
+
+      Logger.log('RewardsController: Logout completed successfully');
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Logout failed to complete',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get geo rewards metadata including location and support status
+   * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
+   */
+  async getGeoRewardsMetadata(): Promise<GeoRewardsMetadata> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return {
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: false,
+      };
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+
+      // Get geo location from data service
+      const geoLocation = await this.messagingSystem.call(
+        'RewardsDataService:fetchGeoLocation',
+      );
+
+      // Check if the location is supported (not in blocked regions)
+      const optinAllowedForGeo = !DEFAULT_BLOCKED_REGIONS.some(
+        (blockedRegion) => geoLocation.startsWith(blockedRegion),
+      );
+
+      const result: GeoRewardsMetadata = {
+        geoLocation,
+        optinAllowedForGeo,
+      };
+
+      Logger.log('RewardsController: Geo rewards metadata retrieved', result);
+      return result;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get geo rewards metadata:',
+        error instanceof Error ? error.message : String(error),
+      );
+
+      // Return fallback metadata on error
+      return {
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: true,
+      };
+    }
+  }
+
+  /**
+   * Validate a referral code
+   * @param code - The referral code to validate
+   * @returns Promise<boolean> - True if the code is valid, false otherwise
+   */
+  async validateReferralCode(code: string): Promise<boolean> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return false;
+    }
+
+    if (!code.trim()) {
+      return false;
+    }
+
+    if (code.length !== 6) {
+      return false;
+    }
+
+    try {
+      const response = await this.messagingSystem.call(
+        'RewardsDataService:validateReferralCode',
+        code,
+      );
+      return response.valid;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to validate referral code:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return false;
+    }
   }
 }

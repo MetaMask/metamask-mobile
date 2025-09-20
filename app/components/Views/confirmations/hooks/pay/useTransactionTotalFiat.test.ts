@@ -115,6 +115,67 @@ describe('useTransactionTotalFiat', () => {
     );
   });
 
+  it('excludes dust', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: ADDRESS_MOCK,
+          amountFiat: 12.34,
+          amountHumanOriginal: '1.22',
+        },
+        {
+          address: ADDRESS_2_MOCK,
+          amountFiat: 23.45,
+          amountHumanOriginal: '2.33',
+        },
+      ],
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const { result } = runHook({
+      quotes: [
+        {
+          quote: {
+            destAsset: {
+              address: ADDRESS_MOCK,
+            },
+          },
+          sentAmount: {
+            valueInCurrency: '12.34',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '23.45',
+          },
+          toTokenAmount: {
+            valueInCurrency: '11.22',
+          },
+        },
+        {
+          quote: {
+            destAsset: {
+              address: ADDRESS_2_MOCK,
+            },
+          },
+          sentAmount: {
+            valueInCurrency: '34.56',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '45.67',
+          },
+          toTokenAmount: {
+            valueInCurrency: '22.33',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '86.02',
+        formatted: '$86.02',
+      }),
+    );
+  });
+
   it('ignores balance cost if matching quote', () => {
     useTransactionRequiredFiatMock.mockReturnValue({
       values: [

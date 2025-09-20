@@ -25,17 +25,21 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import NavigationService from '../../../../../core/NavigationService';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
+
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 
@@ -56,57 +60,67 @@ export interface TutorialScreen {
   riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES;
 }
 
-const tutorialScreens: TutorialScreen[] = [
-  {
-    id: 'what_are_perps',
-    title: strings('perps.tutorial.what_are_perps.title'),
-    description: strings('perps.tutorial.what_are_perps.description'),
-    subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.INTRO,
-  },
-  {
-    id: 'go_long_or_short',
-    title: strings('perps.tutorial.go_long_or_short.title'),
-    description: strings('perps.tutorial.go_long_or_short.description'),
-    subtitle: strings('perps.tutorial.go_long_or_short.subtitle'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
-  },
-  {
-    id: 'choose_leverage',
-    title: strings('perps.tutorial.choose_leverage.title'),
-    description: strings('perps.tutorial.choose_leverage.description'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
-  },
-  {
-    id: 'watch_liquidation',
-    title: strings('perps.tutorial.watch_liquidation.title'),
-    description: strings('perps.tutorial.watch_liquidation.description'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
-  },
-  {
-    id: 'close_anytime',
-    title: strings('perps.tutorial.close_anytime.title'),
-    description: strings('perps.tutorial.close_anytime.description'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
-  },
-  {
+const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
+  const defaultScreens = [
+    {
+      id: 'what_are_perps',
+      title: strings('perps.tutorial.what_are_perps.title'),
+      description: strings('perps.tutorial.what_are_perps.description'),
+      subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.INTRO,
+    },
+    {
+      id: 'go_long_or_short',
+      title: strings('perps.tutorial.go_long_or_short.title'),
+      description: strings('perps.tutorial.go_long_or_short.description'),
+      subtitle: strings('perps.tutorial.go_long_or_short.subtitle'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
+    },
+    {
+      id: 'choose_leverage',
+      title: strings('perps.tutorial.choose_leverage.title'),
+      description: strings('perps.tutorial.choose_leverage.description'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
+    },
+    {
+      id: 'watch_liquidation',
+      title: strings('perps.tutorial.watch_liquidation.title'),
+      description: strings('perps.tutorial.watch_liquidation.description'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
+    },
+    {
+      id: 'close_anytime',
+      title: strings('perps.tutorial.close_anytime.title'),
+      description: strings('perps.tutorial.close_anytime.description'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
+    },
+  ];
+
+  const readyToTradeScreen = {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
     riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
-  },
-];
+  };
+
+  if (!isEligible) {
+    return defaultScreens;
+  }
+
+  return [...defaultScreens, readyToTradeScreen];
+};
 
 interface PerpsTutorialRouteParams {
   isFromDeeplink?: boolean;
+  isFromGTMModal?: boolean;
 }
 
 const PerpsTutorialCarousel: React.FC = () => {
-  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: PerpsTutorialRouteParams }, 'params'>>();
   const isFromDeeplink = route.params?.isFromDeeplink || false;
+  const isFromGTMModal = route.params?.isFromGTMModal || false;
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -119,10 +133,21 @@ const PerpsTutorialCarousel: React.FC = () => {
   const hasTrackedStarted = useRef(false);
   const tutorialStartTime = useRef(Date.now());
 
+  const isEligible = useSelector(selectPerpsEligibility);
+
+  const tutorialScreens = useMemo(
+    () => getTutorialScreens(isEligible),
+    [isEligible],
+  );
+
   const isLastScreen = useMemo(
     () => currentTab === tutorialScreens.length - 1,
-    [currentTab],
+    [currentTab, tutorialScreens.length],
   );
+
+  const { styles } = useStyles(createStyles, {
+    shouldShowSkipButton: !isLastScreen || isEligible,
+  });
 
   // Track tutorial viewed on mount
   useEffect(() => {
@@ -168,17 +193,23 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Mark tutorial as completed
       markTutorialCompleted();
 
-      // Navigate immediately to confirmations screen for instant UI response
-      // Note: When from deeplink, user will go through deposit flow
-      // and should return to markets after completion
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      if (isEligible) {
+        // Navigate immediately to confirmations screen for instant UI response
+        // Note: When from deeplink, user will go through deposit flow
+        // and should return to markets after completion
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        });
 
-      // Initialize deposit in the background without blocking
-      depositWithConfirmation().catch((error) => {
-        console.error('Failed to initialize deposit:', error);
-      });
+        // Initialize deposit in the background without blocking
+        depositWithConfirmation().catch((error) => {
+          console.error('Failed to initialize deposit:', error);
+        });
+
+        return;
+      }
+
+      navigation.goBack();
     } else {
       // Go to next screen using the ref
       const nextTab = Math.min(currentTab + 1, tutorialScreens.length - 1);
@@ -196,11 +227,13 @@ const PerpsTutorialCarousel: React.FC = () => {
     }
   }, [
     isLastScreen,
-    markTutorialCompleted,
-    navigation,
-    currentTab,
     track,
+    currentTab,
+    markTutorialCompleted,
+    isEligible,
+    navigation,
     depositWithConfirmation,
+    tutorialScreens.length,
   ]);
 
   const handleSkip = useCallback(() => {
@@ -219,15 +252,18 @@ const PerpsTutorialCarousel: React.FC = () => {
       markTutorialCompleted();
     }
 
-    // Navigate based on deeplink flag
-    if (isFromDeeplink) {
-      // Navigate to wallet home first
-      navigation.navigate(Routes.WALLET.HOME);
+    // Navigate based on deeplink/gtm modal flag
+    if (isFromDeeplink || isFromGTMModal) {
+      // Navigate to wallet home first (using global navigation service like deeplink handler)
+      NavigationService.navigation.navigate(Routes.WALLET.HOME);
 
-      // The timeout is REQUIRED - React Navigation needs time to complete
-      // the navigation before params can be set on the new screen
+      // The timeout is REQUIRED - React Navigation needs time to:
+      // 1. Complete the navigation transition
+      // 2. Mount the Wallet component
+      // 3. Make navigation context available for setParams
+      // Without this delay, the tab selection will fail
       setTimeout(() => {
-        navigation.setParams({
+        NavigationService.navigation.setParams({
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
@@ -241,14 +277,23 @@ const PerpsTutorialCarousel: React.FC = () => {
     navigation,
     currentTab,
     track,
+    isFromGTMModal,
     isFromDeeplink,
   ]);
 
   const renderTabBar = () => <View />;
 
-  const buttonLabel = isLastScreen
-    ? strings('perps.tutorial.add_funds')
-    : strings('perps.tutorial.continue');
+  const buttonLabel = useMemo(() => {
+    if (!isEligible && isLastScreen) {
+      return strings('perps.tutorial.got_it');
+    }
+
+    if (isLastScreen) {
+      return strings('perps.tutorial.add_funds');
+    }
+
+    return strings('perps.tutorial.continue');
+  }, [isEligible, isLastScreen]);
 
   const skipLabel = isLastScreen
     ? strings('perps.tutorial.got_it')
@@ -334,14 +379,16 @@ const PerpsTutorialCarousel: React.FC = () => {
             size={ButtonSize.Lg}
             style={styles.continueButton}
           />
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {skipLabel}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.skipButton}>
+            <TouchableOpacity onPress={handleSkip} disabled={!isEligible}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
+              >
+                {skipLabel}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

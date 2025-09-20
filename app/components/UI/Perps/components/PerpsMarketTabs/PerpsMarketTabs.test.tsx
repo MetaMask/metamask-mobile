@@ -61,6 +61,7 @@ describe('PerpsMarketTabs', () => {
       // Act
       const { getByText } = render(
         <PerpsMarketTabs
+          symbol="BTC"
           marketStats={mockMarketStats}
           position={null}
           isLoadingPosition={false}
@@ -82,6 +83,7 @@ describe('PerpsMarketTabs', () => {
       // Act
       const { getByTestId } = render(
         <PerpsMarketTabs
+          symbol="BTC"
           marketStats={mockMarketStats}
           position={null}
           isLoadingPosition
@@ -105,6 +107,7 @@ describe('PerpsMarketTabs', () => {
       // Act
       const { getByText } = render(
         <PerpsMarketTabs
+          symbol="BTC"
           marketStats={mockMarketStats}
           position={mockPosition}
           isLoadingPosition={false}
@@ -126,6 +129,7 @@ describe('PerpsMarketTabs', () => {
       // Act
       const { getByText } = render(
         <PerpsMarketTabs
+          symbol="BTC"
           marketStats={mockMarketStats}
           position={null}
           isLoadingPosition={false}
@@ -147,6 +151,7 @@ describe('PerpsMarketTabs', () => {
       const onActiveTabChange = jest.fn();
       const { getByText } = render(
         <PerpsMarketTabs
+          symbol="BTC"
           marketStats={mockMarketStats}
           position={mockPosition}
           isLoadingPosition={false}
@@ -170,6 +175,7 @@ describe('PerpsMarketTabs', () => {
       const onActiveTabChange = jest.fn();
       const { getByTestId } = render(
         <PerpsMarketTabs
+          symbol="BTC"
           marketStats={mockMarketStats}
           position={mockPosition}
           isLoadingPosition={false}
@@ -193,6 +199,7 @@ describe('PerpsMarketTabs', () => {
       const onActiveTabChange = jest.fn();
       const { getByText } = render(
         <PerpsMarketTabs
+          symbol="BTC"
           marketStats={mockMarketStats}
           position={null}
           isLoadingPosition={false}
@@ -216,6 +223,7 @@ describe('PerpsMarketTabs', () => {
       // Act
       const { getByText } = render(
         <PerpsMarketTabs
+          symbol="BTC"
           marketStats={mockMarketStats}
           position={mockPosition}
           isLoadingPosition={false}

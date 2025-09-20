@@ -600,7 +600,10 @@
   },
   "RewardsController": {
     "accounts": {},
-    "subscriptions": {},
-    "lastAuthenticatedAccount": null
+    "lastAuthenticatedAccount": null,
+    "seasonStatuses": {},
+    "seasons": {},
+    "subscriptionReferralDetails": {},
+    "subscriptions": {}
   }
 }

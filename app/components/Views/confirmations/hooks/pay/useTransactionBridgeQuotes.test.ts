@@ -27,6 +27,8 @@ const TOKEN_ADDRESS_TARGET_2_MOCK = '0x789' as Hex;
 const ACCOUNT_ADDRESS_MOCK = '0xabc';
 const SOURCE_AMOUNT_1_MOCK = '1234';
 const SOURCE_AMOUNT_2_MOCK = '5678';
+const MINIMUM_TOKEN_AMOUNT_1_MOCK = '1.23';
+const MINIMUM_TOKEN_AMOUNT_2_MOCK = '2.34';
 
 const QUOTE_MOCK = {
   quote: {},
@@ -79,10 +81,12 @@ describe('useTransactionBridgeQuotes', () => {
         {
           address: TOKEN_ADDRESS_TARGET_1_MOCK,
           amountRaw: SOURCE_AMOUNT_1_MOCK,
+          targetAmountHuman: MINIMUM_TOKEN_AMOUNT_1_MOCK,
         },
         {
           address: TOKEN_ADDRESS_TARGET_2_MOCK,
           amountRaw: SOURCE_AMOUNT_2_MOCK,
+          targetAmountHuman: MINIMUM_TOKEN_AMOUNT_2_MOCK,
         },
       ],
     } as ReturnType<typeof useTransactionPayTokenAmounts>);
@@ -100,6 +104,7 @@ describe('useTransactionBridgeQuotes', () => {
     expect(getBridgeQuotesMock).toHaveBeenCalledWith([
       {
         from: ACCOUNT_ADDRESS_MOCK,
+        minimumTargetAmount: MINIMUM_TOKEN_AMOUNT_1_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
         sourceTokenAmount: SOURCE_AMOUNT_1_MOCK,
@@ -108,6 +113,7 @@ describe('useTransactionBridgeQuotes', () => {
       },
       {
         from: ACCOUNT_ADDRESS_MOCK,
+        minimumTargetAmount: MINIMUM_TOKEN_AMOUNT_2_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
         sourceTokenAmount: SOURCE_AMOUNT_2_MOCK,

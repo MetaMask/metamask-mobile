@@ -145,6 +145,63 @@ describe('useInAppBrowser', () => {
       );
     });
 
+    it('uses selectedAsset network chainId for custom order when available', async () => {
+      mockUseRampSDKValues.selectedAsset = {
+        network: { chainId: '137' },
+        symbol: 'USDC',
+      };
+
+      const { result } = renderHookWithProvider(() => useInAppBrowser(), {
+        state: defaultState,
+      });
+
+      jest.mocked(buyAction.createWidget).mockResolvedValueOnce({
+        url: 'test-url',
+        orderId: 'test-order-id',
+      } as BuyWidgetInformation);
+
+      await result.current(buyAction, testProvider);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        addFiatCustomIdData(
+          createCustomOrderIdData(
+            'test-order-id',
+            '137',
+            'mocked-selected-address',
+            'BUY',
+          ),
+        ),
+      );
+    });
+
+    it('falls back to selectedChainId when selectedAsset network is not available', async () => {
+      mockUseRampSDKValues.selectedAsset = {
+        symbol: 'USDC',
+      };
+
+      const { result } = renderHookWithProvider(() => useInAppBrowser(), {
+        state: defaultState,
+      });
+
+      jest.mocked(buyAction.createWidget).mockResolvedValueOnce({
+        url: 'test-url',
+        orderId: 'test-order-id',
+      } as BuyWidgetInformation);
+
+      await result.current(buyAction, testProvider);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        addFiatCustomIdData(
+          createCustomOrderIdData(
+            'test-order-id',
+            '56',
+            'mocked-selected-address',
+            'BUY',
+          ),
+        ),
+      );
+    });
+
     it('creates and dispatches addFiatCustomIdData if customOrderId is returned for sell', async () => {
       mockUseRampSDKValues.isBuy = false;
 
@@ -427,6 +484,34 @@ describe('useInAppBrowser', () => {
 
       await result.current(buyAction, testProvider);
       expect(mockHandleSuccessfulOrder).toHaveBeenCalled();
+    });
+
+    it('creates transformed order with network from aggregatorOrderToFiatOrder, not selectedChainId', async () => {
+      const mockOrder = {
+        id: 'test-order-id',
+        status: OrderStatusEnum.Pending,
+        cryptoCurrency: {
+          network: { chainId: '137' },
+        },
+        network: '137',
+      } as Order;
+
+      jest
+        .mocked((await SDK.orders()).getOrderFromCallback)
+        .mockResolvedValueOnce(mockOrder);
+
+      const { result } = renderHookWithProvider(() => useInAppBrowser(), {
+        state: defaultState,
+      });
+
+      await result.current(buyAction, testProvider);
+
+      expect(mockHandleSuccessfulOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          account: 'mocked-selected-address',
+          network: '137',
+        }),
+      );
     });
 
     it('logs error if an error is thrown', async () => {

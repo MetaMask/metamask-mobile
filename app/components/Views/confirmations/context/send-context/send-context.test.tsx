@@ -141,6 +141,7 @@ describe('useSendContext', () => {
       chainId: undefined,
       fromAccount: undefined,
       from: undefined,
+      maxValueMode: false,
       to: undefined,
       updateAsset: expect.any(Function),
       updateTo: expect.any(Function),

@@ -26,8 +26,8 @@ const PERCENTAGE_BUTTONS = [
     value: 50,
   },
   {
-    label: 'Max',
-    value: 100,
+    label: '90%',
+    value: 90,
   },
 ];
 

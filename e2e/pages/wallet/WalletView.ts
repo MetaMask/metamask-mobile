@@ -232,6 +232,15 @@ class WalletView {
     });
   }
 
+  async pullToRefreshTokensList(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+      speed: 'slow',
+      percentage: 0.8,
+      elemDescription: 'pull to refresh tokens list',
+    });
+  }
+
   async scrollToToken(
     tokenName: string,
     direction: 'up' | 'down' = 'down',

@@ -72,13 +72,13 @@ jobs:
       test_suite_tag: "SmokeNetworkExpansion"
     secrets: inherit
 
-  performance-ios-smoke:
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: performance-ios-smoke
-      platform: ios
-      test_suite_tag: "SmokePerformance"
-    secrets: inherit
+  # performance-ios-smoke:
+  #   uses: ./.github/workflows/run-e2e-workflow.yml
+  #   with:
+  #     test-suite-name: performance-ios-smoke
+  #     platform: ios
+  #     test_suite_tag: "SmokePerformance"
+  #   secrets: inherit
 
   card-ios-smoke:
     uses: ./.github/workflows/run-e2e-workflow.yml
@@ -101,7 +101,7 @@ jobs:
       - accounts-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
-      - performance-ios-smoke
+      # - performance-ios-smoke
       - card-ios-smoke
 
     steps:

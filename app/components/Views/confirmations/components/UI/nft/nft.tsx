@@ -18,8 +18,8 @@ import { BadgePosition } from '../../../../../../component-library/components/Ba
 import { Nft as NftType } from '../../../types/token';
 
 interface NftProps {
-  asset: NftType;
-  onPress: (asset: NftType) => void;
+  readonly asset: NftType;
+  readonly onPress: (asset: NftType) => void;
 }
 
 export function Nft({ asset, onPress }: NftProps) {
@@ -68,20 +68,16 @@ export function Nft({ asset, onPress }: NftProps) {
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
           >
-            {asset.collectionName || `#${asset.tokenId}`}
+            {asset.collectionName || asset.name}
           </Text>
-          {(asset.name || asset.tokenId) && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              {asset.balance !== '0' &&
-                asset.balance !== undefined &&
-                `(${asset.balance}) `}
-              {asset.name ? asset.name : `#${asset.tokenId}`}
-            </Text>
-          )}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {asset.standard === 'ERC1155' && `(${asset.balance}) `}
+            {asset.standard === 'ERC721' ? `#${asset.tokenId}` : asset.name}
+          </Text>
         </Box>
       </Box>
     </Pressable>

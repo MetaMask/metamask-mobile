@@ -14,6 +14,7 @@ const styleSheet = (params: { theme: Theme; vars: { isLast?: boolean } }) => {
       marginLeft: 9,
       marginRight: 22,
       width: isLast ? 0 : 2,
+      marginVertical: 3,
     },
     secondary: {
       paddingBottom: 12,

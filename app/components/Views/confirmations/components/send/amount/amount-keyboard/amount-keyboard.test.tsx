@@ -1,5 +1,5 @@
 import React from 'react';
-import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
+import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
 import { mockTheme } from '../../../../../../../util/theme';
@@ -11,7 +11,8 @@ import {
   evmSendStateMock,
   MOCK_NFT1155,
 } from '../../../../__mocks__/send.mock';
-import { SendContextProvider } from '../../../../context/send-context';
+import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
+import { useSendContext } from '../../../../context/send-context';
 import { useRouteParams } from '../../../../hooks/send/useRouteParams';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';
@@ -36,6 +37,14 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../context/send-context', () => ({
+  useSendContext: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/send/usePercentageAmount', () => ({
+  usePercentageAmount: jest.fn(),
+}));
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -53,6 +62,22 @@ jest.mock('@react-navigation/native', () => ({
     name: 'send_route',
   }),
 }));
+
+const MOCK_EVM_ASSET = {
+  chainId: '0x1',
+  address: ETHEREUM_ADDRESS,
+  isNative: true,
+  symbol: 'ETH',
+  decimals: 18,
+};
+
+const mockUseSendContext = useSendContext as jest.MockedFunction<
+  typeof useSendContext
+>;
+
+const mockUsePercentageAmount = usePercentageAmount as jest.MockedFunction<
+  typeof usePercentageAmount
+>;
 
 const renderComponent = (
   mockState?: ProviderValues['state'],
@@ -73,46 +98,52 @@ const renderComponent = (
     );
   };
 
-  return renderWithProvider(
-    <SendContextProvider>
-      <Comp />
-    </SendContextProvider>,
-    {
-      state,
-    },
-  );
+  return renderWithProvider(<Comp />, {
+    state,
+  });
 };
 
 describe('Amount', () => {
-  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
+  beforeEach(() => {
+    mockUsePercentageAmount.mockReturnValue({
+      getPercentageAmount: () => 10,
+      isMaxAmountSupported: true,
+    } as unknown as ReturnType<typeof usePercentageAmount>);
+  });
 
   it('renders correctly', () => {
-    mockUseRoute.mockReturnValue({
-      params: {
-        asset: {
-          chainId: '0x1',
-          address: ETHEREUM_ADDRESS,
-          isNative: true,
-          symbol: 'ETH',
-          decimals: 18,
-        },
-      },
-    } as RouteProp<ParamListBase, string>);
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_EVM_ASSET,
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+
     const { getByText } = renderComponent();
     expect(getByText('Continue')).toBeTruthy();
   });
 
   it('next button is disabled for NFT if amount is undefined', () => {
-    mockUseRoute.mockReturnValue({
-      params: {
-        asset: MOCK_NFT1155,
-      },
-    } as RouteProp<ParamListBase, string>);
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_NFT1155,
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
 
     const { getByRole } = renderComponent(undefined, '');
     expect(
       getByRole('button', { name: 'Next' }).props.style.backgroundColor,
     ).toEqual('#4459ff1a');
+  });
+
+  it('call updateValue with MaxMode true when Max button is pressed', () => {
+    const mockUpdateValue = jest.fn();
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_EVM_ASSET,
+      updateValue: mockUpdateValue,
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { getByRole } = renderComponent(undefined, '');
+    fireEvent.press(getByRole('button', { name: 'Max' }));
+    expect(mockUpdateValue).toHaveBeenCalledWith(10, true);
   });
 });
 

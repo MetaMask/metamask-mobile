@@ -85,13 +85,18 @@ export function useTransactionPayTokenAmounts({
         return true;
       })
       .map((value) => {
-        const amountHuman = new BigNumber(value.totalFiat).div(tokenFiatRate);
-        const amountRaw = amountHuman.shiftedBy(decimals).toFixed(0);
+        const amountHumanValue = new BigNumber(value.totalFiat).div(
+          tokenFiatRate,
+        );
+
+        const amountHuman = amountHumanValue.toString(10);
+        const amountRaw = amountHumanValue.shiftedBy(decimals).toFixed(0);
 
         return {
           address: value.address,
-          amountHuman: amountHuman.toString(10),
+          amountHuman,
           amountRaw,
+          targetAmountHuman: value.amountHumanOriginal,
         };
       });
   }, [address, chainId, decimals, tokenFiatRate, values]);

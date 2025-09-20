@@ -98,6 +98,7 @@ export interface GanacheNodeOptions {
 }
 export interface AnvilNodeOptions {
   hardfork?: Hardfork;
+  forkUrl?: string;
   loadState?: string;
   balance?: number;
   blockTime?: number;

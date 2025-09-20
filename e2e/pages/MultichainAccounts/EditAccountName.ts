@@ -21,6 +21,7 @@ class EditAccountName {
     await Gestures.typeText(this.accountNameInput, newName, {
       elemDescription: 'Account Name Input in Edit Account Name',
       hideKeyboard: true,
+      delay: 1000,
     });
   }
 

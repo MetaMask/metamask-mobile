@@ -2,6 +2,7 @@
  * Shared formatting utilities for Perps components
  */
 import { formatWithThreshold } from '../../../../util/assets';
+import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Formats a balance value as USD currency with appropriate decimal places
@@ -112,6 +113,37 @@ export const formatPercentage = (
   }
 
   return `${num >= 0 ? '+' : ''}${num.toFixed(decimals)}%`;
+};
+
+/**
+ * Formats funding rate for display
+ * @param value - Raw funding rate value (decimal, not percentage)
+ * @param options - Optional formatting options
+ * @param options.showZero - Whether to return zero display value for zero/undefined (default: true)
+ * @returns Formatted funding rate as percentage string
+ * @example formatFundingRate(0.0005) => "0.0500%"
+ * @example formatFundingRate(-0.0001) => "-0.0100%"
+ * @example formatFundingRate(undefined) => "0.0000%"
+ */
+export const formatFundingRate = (
+  value?: number | null,
+  options?: { showZero?: boolean },
+): string => {
+  const showZero = options?.showZero ?? true;
+
+  if (value === undefined || value === null) {
+    return showZero ? FUNDING_RATE_CONFIG.ZERO_DISPLAY : '';
+  }
+
+  const percentage = value * FUNDING_RATE_CONFIG.PERCENTAGE_MULTIPLIER;
+  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.DECIMALS);
+
+  // Check if the result is effectively zero
+  if (showZero && parseFloat(formatted) === 0) {
+    return FUNDING_RATE_CONFIG.ZERO_DISPLAY;
+  }
+
+  return `${formatted}%`;
 };
 
 /**

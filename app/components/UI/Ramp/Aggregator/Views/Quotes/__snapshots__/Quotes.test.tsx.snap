@@ -676,7 +676,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -1713,7 +1713,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -2816,7 +2816,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -4634,7 +4634,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -5821,7 +5821,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -6575,7 +6575,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -7329,7 +7329,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {
@@ -8083,7 +8083,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={1}
+                activeOpacity={0.2}
                 onPress={[Function]}
                 style={
                   {

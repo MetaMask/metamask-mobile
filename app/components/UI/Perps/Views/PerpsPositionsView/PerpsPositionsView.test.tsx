@@ -56,6 +56,17 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+// Mock the selector module
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
@@ -164,6 +175,18 @@ describe('PerpsPositionsView', () => {
     (usePerpsLivePositions as jest.Mock).mockReturnValue({
       positions: mockPositions,
       isInitialLoading: false,
+    });
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
     });
 
     // Using real implementations of utility functions (calculateTotalPnL, formatPrice, formatPnl) to test actual behavior

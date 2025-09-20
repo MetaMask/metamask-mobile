@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import type { Theme } from '../../../../../util/theme/models';
+import { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -9,24 +9,35 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       paddingTop: 8,
     },
-    periodOption: {
+    periodOptionsGrid: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-start',
+      paddingHorizontal: 8,
+    },
+    periodOption: {
+      width: '18%',
+      height: 48,
+      paddingVertical: 4,
+      paddingHorizontal: 4,
+      justifyContent: 'center',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      marginBottom: 6,
+      marginBottom: 8,
+      marginRight: '2%',
+      borderRadius: 12,
+      backgroundColor: colors.background.muted,
     },
     periodOptionActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
-      borderWidth: 2,
+      backgroundColor: colors.primary.alternative,
     },
-    checkIcon: {
-      marginLeft: 8,
+    sectionTitle: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginTop: 8,
+      marginBottom: 4,
     },
-    periodOptionLast: {
-      marginBottom: 0,
+    sectionSpacing: {
+      marginTop: 16,
     },
   });
 };

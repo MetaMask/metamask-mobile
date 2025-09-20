@@ -23,6 +23,11 @@ import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
 import { INIT_BG_STATE_KEY, LOG_TAG } from './constants';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from '../redux/slices/performance';
+import { PerformanceEventNames } from '../redux/slices/performance/constants';
 import { isE2E } from '../../util/test/utils';
 
 export class EngineService {
@@ -58,6 +63,12 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+    // Start Engine rehydration perf trace before reading from filesystem
+    ReduxService.store.dispatch(
+      startPerformanceTrace({
+        eventName: PerformanceEventNames.EngineRehydrate,
+      }),
+    );
     const persistedState = await ControllerStorage.getKey();
     trace({
       name: TraceName.EngineInitialization,
@@ -81,10 +92,33 @@ export class EngineService {
       this.updateControllers(Engine as unknown as TypedEngine);
 
       setupEnginePersistence();
+      // End Engine rehydration perf trace after initial Redux INIT_BG_STATE dispatch flushes
+      ReduxService.store.dispatch(
+        endPerformanceTrace({
+          eventName: PerformanceEventNames.EngineRehydrate,
+        }),
+      );
+      // End end-to-end rehydration trace here as well
+      ReduxService.store.dispatch(
+        endPerformanceTrace({
+          eventName: PerformanceEventNames.RehydrateEndToEnd,
+        }),
+      );
     } catch (error) {
       Logger.error(
         error as Error,
         'Failed to initialize Engine! Falling back to vault recovery.',
+      );
+      // Ensure we end the perf trace on failure as well
+      ReduxService.store.dispatch(
+        endPerformanceTrace({
+          eventName: PerformanceEventNames.EngineRehydrate,
+        }),
+      );
+      ReduxService.store.dispatch(
+        endPerformanceTrace({
+          eventName: PerformanceEventNames.RehydrateEndToEnd,
+        }),
       );
 
       // Give the navigation stack a chance to load

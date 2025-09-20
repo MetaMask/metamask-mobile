@@ -15,6 +15,7 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsBalanceModal from '../Views/PerpsBalanceModal';
+import PerpsGTMModal from '../components/PerpsGTMModal';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -36,6 +37,10 @@ const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.BALANCE_MODAL}
       component={PerpsBalanceModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.GTM_MODAL}
+      component={PerpsGTMModal}
     />
   </ModalStack.Navigator>
 );

@@ -10,6 +10,7 @@ import {
   TypeTextOptions,
 } from './types';
 import { createLogger } from './logger';
+import { sleep } from '@walletconnect/utils';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -334,6 +335,7 @@ export default class Gestures {
 
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
+        await sleep(500); // To help reduce flakiness as sometimes the app is not registering all text input
 
         logger.debug(
           `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
@@ -380,6 +382,7 @@ export default class Gestures {
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
         );
         await el.replaceText(text);
+        await sleep(500); // To help reduce flakiness as sometimes the app is not registering all text input
       },
       {
         timeout,

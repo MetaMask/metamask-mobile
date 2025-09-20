@@ -13,12 +13,12 @@ export function getEarnControllerMessenger(
   return baseControllerMessenger.getRestricted({
     name: 'EarnController',
     allowedEvents: [
-      'AccountsController:selectedAccountChange',
+      'AccountTreeController:selectedAccountGroupChange',
       'TransactionController:transactionConfirmed',
       'NetworkController:networkDidChange',
     ],
     allowedActions: [
-      'AccountsController:getSelectedAccount',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'NetworkController:getNetworkClientById',
     ],
   });

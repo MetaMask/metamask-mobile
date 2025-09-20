@@ -6,6 +6,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
+    tradeInfoContainer: {
+      paddingBottom: 12,
+    },
     firstTimeIcon: {
       width: 48,
       height: 48,
@@ -19,9 +22,10 @@ const styleSheet = (params: { theme: Theme }) => {
     content: {
       flex: 1,
     },
-    section: {
-      marginBottom: 24,
+    contentContainer: {
+      flexGrow: 1,
     },
+    section: {},
     sectionHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -50,6 +54,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
     },
     firstTimeContent: {
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -63,7 +68,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     startTradingButton: {
       marginTop: 16,
-      width: '100%',
     },
     // Order card styles to match position cards
     positionCard: {
@@ -92,6 +96,28 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     positionRight: {
       alignItems: 'flex-end',
+    },
+    startTradeCTA: {
+      paddingVertical: 12,
+      marginVertical: 2,
+      borderRadius: 8,
+    },
+    startTradeContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    startTradeIconContainer: {
+      width: 40,
+      height: 40,
+      borderWidth: 0,
+      borderRadius: 20,
+      backgroundColor: colors.background.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    startTradeText: {
+      marginLeft: 12,
+      flex: 1,
     },
   });
 };

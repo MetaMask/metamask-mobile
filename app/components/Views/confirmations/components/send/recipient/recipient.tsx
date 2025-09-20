@@ -14,13 +14,13 @@ import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
+import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
-import { useRouteParams } from '../../../hooks/send/useRouteParams';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
