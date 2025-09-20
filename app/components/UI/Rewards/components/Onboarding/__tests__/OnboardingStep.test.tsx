@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
-import { Text, Linking } from 'react-native';
+import { Text, Linking, PanResponder } from 'react-native';
 import OnboardingStep from '../OnboardingStep';
 import OnboardingStep1 from '../OnboardingStep1';
 import OnboardingStep2 from '../OnboardingStep2';
@@ -446,73 +446,213 @@ describe('ProgressIndicator integration', () => {
 });
 
 describe('swipe gesture functionality', () => {
-  // Mock PanResponder for gesture testing
-  const mockPanResponder = {
-    onStartShouldSetPanResponder: jest.fn(),
-    onMoveShouldSetPanResponder: jest.fn(),
-    onPanResponderMove: jest.fn(),
-    onPanResponderRelease: jest.fn(),
-  };
+  // Create real PanResponder mock to test the actual implementation
+  let panResponderCreateSpy: jest.SpyInstance;
+  let mockPanHandlers: unknown;
 
   beforeEach(() => {
-    // Mock PanResponder.create to return our mock
-    const mockCreate = jest.fn(() => ({
-      panHandlers: mockPanResponder,
-    }));
+    jest.clearAllMocks();
 
-    // Mock the React Native PanResponder
-    jest.doMock('react-native', () => {
-      const RN = jest.requireActual('react-native');
+    // Reset mock handlers
+    mockPanHandlers = {
+      onStartShouldSetResponder: jest.fn(),
+      onMoveShouldSetResponder: jest.fn(),
+      onResponderGrant: jest.fn(),
+      onResponderMove: jest.fn(),
+      onResponderRelease: jest.fn(),
+    };
+
+    // Spy on PanResponder.create to capture the actual implementation
+    panResponderCreateSpy = jest.spyOn(PanResponder, 'create');
+    panResponderCreateSpy.mockImplementation((config) => {
+      // Store the original config callbacks
+      const originalCallbacks = {
+        onStartShouldSetPanResponder: config.onStartShouldSetPanResponder,
+        onMoveShouldSetPanResponder: config.onMoveShouldSetPanResponder,
+        onPanResponderRelease: config.onPanResponderRelease,
+      };
+
+      // Return mock handlers but also execute the original callbacks
       return {
-        ...RN,
-        PanResponder: {
-          ...RN.PanResponder,
-          create: mockCreate,
-        },
+        panHandlers: mockPanHandlers,
+        _callbacks: originalCallbacks, // Store for testing
       };
     });
   });
 
-  it('should enable swipe gestures by default', () => {
-    renderWithProviders(<OnboardingStep {...defaultProps} />);
-    expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
+  afterEach(() => {
+    panResponderCreateSpy.mockRestore();
   });
 
-  it('should handle swipe gestures when enabled', () => {
+  it('should enable swipe gestures by default', () => {
     renderWithProviders(<OnboardingStep {...defaultProps} />);
 
+    // Verify PanResponder.create was called
+    expect(panResponderCreateSpy).toHaveBeenCalled();
+
+    // Verify the container has panHandlers attached
     const container = screen.getByTestId('onboarding-step-container');
     expect(container).toBeDefined();
+  });
 
-    // Test gesture simulation
-    fireEvent(container, 'panResponderRelease', null, {
+  it('should call onNext when swiping left', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep {...defaultProps} onNext={onNextMock} />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate a left swipe by directly calling the release handler
+    panResponderConfig.onPanResponderRelease(null, {
+      dx: -60, // Left swipe (should call onNext)
+      dy: 10,
+    });
+
+    // Verify onNext was called
+    expect(onNextMock).toHaveBeenCalled();
+  });
+
+  it('should call onPrevious when swiping right', () => {
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep {...defaultProps} onPrevious={onPreviousMock} />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate a right swipe by directly calling the release handler
+    panResponderConfig.onPanResponderRelease(null, {
       dx: 60, // Right swipe (should call onPrevious)
       dy: 10,
     });
 
-    fireEvent(container, 'panResponderRelease', null, {
-      dx: -60, // Left swipe (should call onNext)
-      dy: 10,
-    });
+    // Verify onPrevious was called
+    expect(onPreviousMock).toHaveBeenCalled();
   });
 
-  it('should not handle gestures when disabled', () => {
-    renderWithProviders(<OnboardingStep {...defaultProps} />);
+  it('should not call onNext when swiping left if onNextDisabled is true', () => {
+    const onNextMock = jest.fn();
 
-    const container = screen.getByTestId('onboarding-step-container');
-    expect(container).toBeDefined();
+    renderWithProviders(
+      <OnboardingStep {...defaultProps} onNext={onNextMock} onNextDisabled />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate a left swipe by directly calling the release handler
+    panResponderConfig.onPanResponderRelease(null, {
+      dx: -60, // Left swipe
+      dy: 10,
+    });
+
+    // Verify onNext was not called
+    expect(onNextMock).not.toHaveBeenCalled();
+  });
+
+  it('should not call onNext when swiping left if onNextLoading is true', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep {...defaultProps} onNext={onNextMock} onNextLoading />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate a left swipe by directly calling the release handler
+    panResponderConfig.onPanResponderRelease(null, {
+      dx: -60, // Left swipe
+      dy: 10,
+    });
+
+    // Verify onNext was not called
+    expect(onNextMock).not.toHaveBeenCalled();
+  });
+
+  it('should not handle gestures when disableSwipe is true', () => {
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        {...defaultProps}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+        disableSwipe
+      />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Verify onStartShouldSetPanResponder returns false when disableSwipe is true
+    expect(panResponderConfig.onStartShouldSetPanResponder()).toBe(false);
+
+    // Simulate swipes in both directions
+    panResponderConfig.onPanResponderRelease(null, { dx: 60, dy: 10 });
+    panResponderConfig.onPanResponderRelease(null, { dx: -60, dy: 10 });
+
+    // Verify neither callback was called
+    expect(onNextMock).not.toHaveBeenCalled();
+    expect(onPreviousMock).not.toHaveBeenCalled();
+  });
+
+  it('should ignore swipes below the threshold', () => {
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        {...defaultProps}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+      />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate small swipes (below threshold)
+    panResponderConfig.onPanResponderRelease(null, { dx: 30, dy: 10 }); // Small right swipe
+    panResponderConfig.onPanResponderRelease(null, { dx: -30, dy: 10 }); // Small left swipe
+
+    // Verify neither callback was called
+    expect(onNextMock).not.toHaveBeenCalled();
+    expect(onPreviousMock).not.toHaveBeenCalled();
   });
 
   it('should ignore vertical swipes', () => {
-    renderWithProviders(<OnboardingStep {...defaultProps} />);
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
 
-    const container = screen.getByTestId('onboarding-step-container');
+    renderWithProviders(
+      <OnboardingStep
+        {...defaultProps}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+      />,
+    );
 
-    // Test vertical swipe (should be ignored)
-    fireEvent(container, 'panResponderRelease', null, {
-      dx: 10, // Small horizontal movement
-      dy: 100, // Large vertical movement
-    });
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Check if onMoveShouldSetPanResponder correctly handles vertical movement
+    expect(
+      panResponderConfig.onMoveShouldSetPanResponder(null, { dx: 10, dy: 100 }),
+    ).toBe(false);
+
+    // Simulate vertical swipe
+    panResponderConfig.onPanResponderRelease(null, { dx: 10, dy: 100 });
+
+    // Verify neither callback was called
+    expect(onNextMock).not.toHaveBeenCalled();
+    expect(onPreviousMock).not.toHaveBeenCalled();
   });
 });
 
