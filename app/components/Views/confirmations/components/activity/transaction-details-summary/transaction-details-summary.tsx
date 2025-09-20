@@ -188,20 +188,24 @@ function getLineTitle(
   approvalBridgeHistory?: BridgeHistoryItem,
 ): string | undefined {
   const { type } = transactionMeta;
-  const sourceSymbol = bridgeHistory?.quote.srcAsset.symbol;
-  const targetSymbol = bridgeHistory?.quote.destAsset.symbol;
-  const approveSymbol = approvalBridgeHistory?.quote.srcAsset.symbol;
+  const sourceSymbol = bridgeHistory?.quote?.srcAsset?.symbol;
+  const targetSymbol = bridgeHistory?.quote?.destAsset?.symbol;
+  const approveSymbol = approvalBridgeHistory?.quote?.srcAsset?.symbol;
 
   switch (type) {
     case TransactionType.bridge:
-      return strings('transaction_details.summary_title.bridge', {
-        sourceSymbol,
-        targetSymbol,
-      });
+      return sourceSymbol && targetSymbol
+        ? strings('transaction_details.summary_title.bridge', {
+            sourceSymbol,
+            targetSymbol,
+          })
+        : strings('transaction_details.summary_title.bridge_loading');
     case TransactionType.bridgeApproval:
-      return strings('transaction_details.summary_title.bridge_approval', {
-        approveSymbol,
-      });
+      return approveSymbol
+        ? strings('transaction_details.summary_title.bridge_approval', {
+            approveSymbol,
+          })
+        : strings('transaction_details.summary_title.bridge_approval_loading');
     case TransactionType.perpsDeposit:
       return strings('transaction_details.summary_title.perps_deposit');
     case TransactionType.swap:
