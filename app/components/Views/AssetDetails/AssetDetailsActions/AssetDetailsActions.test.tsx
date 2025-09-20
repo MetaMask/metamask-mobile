@@ -11,6 +11,7 @@ import { EthMethod } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 
 // Mock the navigation hook
 const mockNavigate = jest.fn();
@@ -21,6 +22,17 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
   };
 });
+
+// Mock react-native-device-info to provide a valid version string
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.0.0'),
+}));
+
+// Mock the selectIsSwapsEnabled selector
+jest.mock('../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../core/redux/slices/bridge'),
+  selectIsSwapsEnabled: jest.fn(),
+}));
 
 // Mock the ramp hooks
 jest.mock('../../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => () => [
@@ -65,6 +77,7 @@ describe('AssetDetailsActions', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    jest.mocked(selectIsSwapsEnabled).mockReset();
   });
 
   it('should render correctly', () => {
@@ -126,6 +139,9 @@ describe('AssetDetailsActions', () => {
   });
 
   it('calls goToSwaps when the swap button is pressed', () => {
+    // Given swaps are enabled
+    jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
+
     // Given a state with an account that can sign transactions
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
