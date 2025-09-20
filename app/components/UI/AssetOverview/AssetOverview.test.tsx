@@ -120,6 +120,11 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../core/redux/slices/bridge'),
+  selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     NetworkController: {
