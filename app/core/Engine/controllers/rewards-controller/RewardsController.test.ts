@@ -15,6 +15,7 @@ import {
   type SubscriptionReferralDetailsState,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
+import { base58 } from 'ethers/lib/utils';
 
 // Mock dependencies
 jest.mock('./utils/multi-subscription-token-vault', () => ({
@@ -22,11 +23,23 @@ jest.mock('./utils/multi-subscription-token-vault', () => ({
   storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
   removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
 }));
-jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 jest.mock('../../../../selectors/featureFlagController/rewards');
 jest.mock('../../../../store');
 jest.mock('../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
+}));
+jest.mock('../../../Multichain/utils', () => ({
+  isNonEvmAddress: jest.fn(),
 }));
 jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn(),
@@ -35,12 +48,25 @@ jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   toHex: jest.fn(),
 }));
+jest.mock('./utils/solana-snap', () => ({
+  signSolanaRewardsMessage: jest
+    .fn()
+    .mockResolvedValue({ signature: 'solanaSignature123' }),
+}));
+// Mock base58 decode from ethers
+jest.mock('ethers/lib/utils', () => ({
+  ...jest.requireActual('ethers/lib/utils'),
+  base58: {
+    decode: jest.fn(),
+  },
+}));
 
 // Import mocked modules
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { store } from '../../../../store';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isHardwareAccount } from '../../../../util/address';
+import { isNonEvmAddress } from '../../../Multichain/utils';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { toHex } from '@metamask/controller-utils';
 import Logger from '../../../../util/Logger';
@@ -48,6 +74,7 @@ import {
   storeSubscriptionToken,
   removeSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
+import { signSolanaRewardsMessage } from './utils/solana-snap';
 
 // Type the mocked modules
 const mockSelectRewardsEnabledFlag =
@@ -57,6 +84,9 @@ const mockSelectRewardsEnabledFlag =
 const mockStore = store as jest.Mocked<typeof store>;
 const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
   typeof isHardwareAccount
+>;
+const mockIsNonEvmAddress = isNonEvmAddress as jest.MockedFunction<
+  typeof isNonEvmAddress
 >;
 const mockIsSolanaAddress = isSolanaAddress as jest.MockedFunction<
   typeof isSolanaAddress
@@ -68,6 +98,10 @@ const mockStoreSubscriptionToken =
 const mockRemoveSubscriptionToken =
   removeSubscriptionToken as jest.MockedFunction<
     typeof removeSubscriptionToken
+  >;
+const mockSignSolanaRewardsMessage =
+  signSolanaRewardsMessage as jest.MockedFunction<
+    typeof signSolanaRewardsMessage
   >;
 
 // Test constants - CAIP-10 format addresses
@@ -2168,7 +2202,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should skip silent auth for Solana addresses', async () => {
+    it('should NOT skip silent auth for Solana addresses', async () => {
       // Arrange
       mockIsSolanaAddress.mockReturnValue(true);
       const mockAccount = {
@@ -2185,15 +2219,115 @@ describe('RewardsController', () => {
         },
       };
 
-      mockMessenger.call.mockReturnValue(mockAccount);
+      // Mock the messenger to handle different method calls
+      const originalMockCall = mockMessenger.call;
+      mockMessenger.call = jest.fn().mockImplementation((method, ...args) => {
+        if (method === 'AccountsController:getSelectedMultichainAccount') {
+          return mockAccount;
+        }
+        if (method === 'RewardsDataService:login') {
+          return Promise.resolve({ success: true });
+        }
+        return originalMockCall(method, args[0], args[1], args[2]);
+      });
 
       // Act - trigger account change
       if (subscribeCallback) {
         await subscribeCallback(mockAccount, mockAccount);
       }
 
-      // Assert - should not attempt to call login service for Solana accounts
+      // Assert - should attempt to call login service for Solana accounts now
       expect(mockIsSolanaAddress).toHaveBeenCalledWith('solana-address');
+
+      // Restore the original mock
+      mockMessenger.call = originalMockCall;
+    });
+
+    it('should handle Solana message signing', async () => {
+      // Arrange
+      const mockTimestamp = 1234567890;
+      Date.now = jest.fn().mockReturnValue(mockTimestamp);
+
+      const mockSolanaAccount = {
+        address: 'solana123',
+        type: 'solana:pubkey' as const,
+      };
+
+      // Mock Solana address check
+      mockIsSolanaAddress.mockReturnValue(true);
+      mockIsNonEvmAddress.mockReturnValue(false);
+
+      // Mock the signature result
+      mockSignSolanaRewardsMessage.mockResolvedValue({
+        signature: 'solanaSignature123',
+        signedMessage: 'signedMessage123',
+        signatureType: 'ed25519',
+      });
+      const mockBase58Decode = base58.decode as jest.MockedFunction<
+        typeof base58.decode
+      >;
+      mockBase58Decode.mockReturnValue(
+        Buffer.from('decodedSolanaSignature', 'utf8'),
+      );
+      mockToHex.mockReturnValue('0xdecodedSolanaSignature');
+
+      // Act - create the message that would be signed
+      const message = `rewards,${mockSolanaAccount.address},${mockTimestamp}`;
+      const base64Message = Buffer.from(message, 'utf8').toString('base64');
+
+      // Call the function directly
+      const result = await signSolanaRewardsMessage(
+        mockSolanaAccount.address,
+        base64Message,
+      );
+
+      // Assert
+      expect(mockSignSolanaRewardsMessage).toHaveBeenCalledWith(
+        mockSolanaAccount.address,
+        expect.any(String),
+      );
+      expect(result).toEqual({
+        signature: 'solanaSignature123',
+        signedMessage: 'signedMessage123',
+        signatureType: 'ed25519',
+      });
+
+      // Restore Date.now
+      jest.restoreAllMocks();
+    });
+
+    it('should skip silent auth for hardware accounts', async () => {
+      // Arrange
+      mockIsHardwareAccount.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false);
+
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValue(mockAccount);
+
+      // Act - trigger account change
+      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      )?.[1];
+
+      if (subscribeCallback) {
+        await subscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:login',
         expect.anything(),
@@ -2830,7 +2964,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should return false for Solana accounts', async () => {
+    it('should no longer block Solana accounts', async () => {
       // Arrange
       const solanaAccount = {
         ...mockInternalAccount,
@@ -2838,16 +2972,21 @@ describe('RewardsController', () => {
       };
       mockIsSolanaAddress.mockReturnValue(true);
 
-      // Act
-      const result = await controller.linkAccountToSubscriptionCandidate(
-        solanaAccount,
-      );
-
-      // Assert
-      expect(result).toBe(false);
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
-      );
+      // We expect the function to throw an error when no subscription is found
+      // This is the expected behavior regardless of account type
+      try {
+        await controller.linkAccountToSubscriptionCandidate(solanaAccount);
+        // If we get here, the test should fail
+        fail('Expected function to throw an error');
+      } catch (error) {
+        // Verify it's failing for the right reason (no subscription) not because it's Solana
+        expect((error as Error).message).toBe(
+          'No valid subscription found to link account to',
+        );
+        expect(mockLogger.log).not.toHaveBeenCalledWith(
+          'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
+        );
+      }
     });
 
     it('should return true if account already has subscription', async () => {

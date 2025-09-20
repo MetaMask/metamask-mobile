@@ -435,10 +435,7 @@ export class RewardsController extends BaseController<
         'hex',
       )}`;
     } else if (!isNonEvmAddress(account.address)) {
-      const result = await this.#signEvmMessage(
-        account,
-        '0x' + Buffer.from(message, 'utf8').toString('hex'),
-      );
+      const result = await this.#signEvmMessage(account, message);
       return result;
     }
 

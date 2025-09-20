@@ -84,7 +84,7 @@ const AccountDisplayItem: React.FC<AccountDisplayItemProps> = ({
       />
 
       <Text variant={textVariant} fontWeight={fontWeight}>
-        {formatAddress(account.address, 'mid')}
+        {formatAddress(account.address, 'short')}
       </Text>
     </Box>
   );
