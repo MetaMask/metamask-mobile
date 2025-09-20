@@ -74,9 +74,6 @@ jest.mock('../../../core/Engine', () => ({
       accept: jest.fn(),
       reject: jest.fn(),
     },
-    KeyringController: {
-      resetQRKeyringState: jest.fn(),
-    },
   },
 }));
 
@@ -93,7 +90,6 @@ describe('useUnifiedTxActions', () => {
   interface EngineContextMock {
     TransactionController: { stopTransaction: jest.Mock };
     ApprovalController: { accept: jest.Mock; reject: jest.Mock };
-    KeyringController: { resetQRKeyringState: jest.Mock };
   }
 
   const engineContext = Engine.context as unknown as EngineContextMock;
@@ -421,9 +417,6 @@ describe('useUnifiedTxActions', () => {
         await result.current.signQRTransaction(tx);
       });
 
-      expect(
-        engineContext.KeyringController.resetQRKeyringState,
-      ).toHaveBeenCalled();
       expect(engineContext.ApprovalController.accept).toHaveBeenCalledWith(
         '12',
         undefined,
