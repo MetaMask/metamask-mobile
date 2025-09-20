@@ -220,9 +220,18 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
+import {
+  WebSocketService as BackendWebSocketService,
+  AccountActivityService,
+  type AccountActivityServiceEvents,
+  type AccountActivityServiceActions,
+  type WebSocketServiceActions as BackendWebSocketServiceActions,
+  type WebSocketServiceEvents as BackendWebSocketServiceEvents,
+} from '@metamask/backend-platform';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
+
 import {
   RemoteFeatureFlagController,
   RemoteFeatureFlagControllerState,
@@ -332,6 +341,14 @@ type OptionalControllers = Pick<
 >;
 
 /**
+ * Backend Platform Services (not controllers but part of context)
+ */
+interface BackendPlatformServices {
+  BackendWebSocketService: BackendWebSocketService;
+  AccountActivityService: AccountActivityService;
+}
+
+/**
  * Controllers that are defined with state.
  */
 export type StatefulControllers = Omit<
@@ -413,7 +430,9 @@ type GlobalActions =
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
-  | ErrorReportingServiceActions;
+  | ErrorReportingServiceActions
+  | AccountActivityServiceActions
+  | BackendWebSocketServiceActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -472,7 +491,9 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
-  | AccountTreeControllerEvents;
+  | AccountTreeControllerEvents
+  | AccountActivityServiceEvents
+  | BackendWebSocketServiceEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -490,7 +511,9 @@ export type BaseControllerMessenger = ExtendedControllerMessenger<
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type Controllers = {
+  AccountActivityService: AccountActivityService;
   AccountsController: AccountsController;
+  BackendWebSocketService: BackendWebSocketService;
   AccountTreeController: AccountTreeController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
@@ -560,7 +583,9 @@ export type Controllers = {
 /**
  * Combines required and optional controllers for the Engine context type.
  */
-export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
+export type EngineContext = RequiredControllers &
+  Partial<OptionalControllers> &
+  BackendPlatformServices;
 
 /**
  * All engine state, keyed by controller name

@@ -203,6 +203,8 @@ import { ApprovalControllerInit } from './controllers/approval-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
+import { backendWebSocketServiceInit } from './controllers/backend-websocket-service';
+import { accountActivityServiceInit } from './controllers/account-activity-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
@@ -244,6 +246,7 @@ import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
+import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -300,6 +303,7 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+  appStateWebSocketManager: AppStateWebSocketManager | null;
   rewardsDataService: RewardsDataService;
   /**
    * Creates a CoreController instance
@@ -1159,6 +1163,8 @@ export class Engine {
         DeFiPositionsController: defiPositionsControllerInit,
         BridgeController: bridgeControllerInit,
         BridgeStatusController: bridgeStatusControllerInit,
+        BackendWebSocketService: backendWebSocketServiceInit,
+        AccountActivityService: accountActivityServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -1348,6 +1354,15 @@ export class Engine {
       selectedNetworkClientId: networkController.state.selectedNetworkClientId,
     });
 
+    // Backend Platform services are now initialized through the standard controller init pattern above
+    const backendWebSocketService = controllersByName.BackendWebSocketService;
+    const accountActivityService = controllersByName.AccountActivityService;
+
+    // Initialize AppStateWebSocketManager to handle reconnection and re-subscription
+    this.appStateWebSocketManager = new AppStateWebSocketManager(
+      backendWebSocketService,
+    );
+
     this.context = {
       KeyringController: this.keyringController,
       AccountTreeController: accountTreeController,
@@ -1362,6 +1377,8 @@ export class Engine {
       }),
       AppMetadataController: controllersByName.AppMetadataController,
       AssetsContractController: assetsContractController,
+      AccountActivityService: accountActivityService,
+      BackendWebSocketService: backendWebSocketService,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -1459,10 +1476,12 @@ export class Engine {
             'PreferencesController:stateChange',
             'NetworkController:stateChange',
             'KeyringController:accountRemoved',
+            'AccountActivityService:balanceUpdated',
+            'AccountActivityService:statusChanged',
           ],
         }),
-        // TODO: This is long, can we decrease it?
-        interval: 180000,
+        // Updated to 30 seconds for better UX when WebSocket is down
+        interval: 30000,
         state: initialState.TokenBalancesController,
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
@@ -1727,6 +1746,11 @@ export class Engine {
       withSnapKeyring:
         withSnapKeyring as MultichainRouterArgs['withSnapKeyring'],
     });
+
+    // Initialize AppStateWebSocketManager for mobile optimization
+    this.appStateWebSocketManager = new AppStateWebSocketManager(
+      backendWebSocketService,
+    );
 
     this.configureControllersOnNetworkChange();
     this.startPolling();
@@ -2164,6 +2188,12 @@ export class Engine {
   }
 
   async destroyEngineInstance() {
+    // Cleanup AppStateWebSocketManager first
+    if (this.appStateWebSocketManager) {
+      this.appStateWebSocketManager.cleanup();
+      this.appStateWebSocketManager = null;
+    }
+
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {
