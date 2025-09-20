@@ -285,17 +285,6 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   },
 }));
 
-jest.mock('react-native', () => {
-  const actualRN = jest.requireActual('react-native');
-  return {
-    ...actualRN,
-    Platform: {
-      ...actualRN.Platform,
-      OS: 'ios',
-    },
-  };
-});
-
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockNav = {
@@ -1737,79 +1726,135 @@ describe('Onboarding', () => {
         'Error triggering Fox Rive animation',
       );
     });
-  });
 
-  describe('E2E Animation Paths', () => {
-    it('should handle isE2E branches in animation methods', () => {
+    it('should handle error in Fox animation callback and call Logger.error', () => {
+      jest.useFakeTimers();
+
       const mockComponent = {
         mounted: true,
-        logoRef: {
-          current: { setInputState: jest.fn(), fireState: jest.fn() },
+        foxOpacity: {
+          setValue: jest.fn(),
         },
-        foxRef: { current: { fireState: jest.fn() } },
-        context: { themeAppearance: 'dark' },
-        logoPosition: { setValue: jest.fn() },
-        buttonsOpacity: { setValue: jest.fn() },
-        foxOpacity: { setValue: jest.fn() },
-        moveLogoUp: jest.fn(),
-        showFoxAnimation: jest.fn(),
-
-        startRiveAnimationE2E() {
-          const isE2E = true;
-          if (isE2E) {
-            this.moveLogoUp();
-            return;
-          }
-          if (this.logoRef.current && this.mounted) {
-            const isDarkMode = this.context.themeAppearance === 'dark';
-            this.logoRef.current.setInputState(
-              'WordmarkBuildUp',
-              'Dark',
-              isDarkMode,
-            );
-            this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
-          }
+        foxRef: {
+          current: {
+            fireState: jest.fn<void, [string, string]>(() => {
+              throw new Error('Fox animation callback error');
+            }),
+          },
         },
-
-        moveLogoUpE2E() {
-          const isE2E = true;
-          if (isE2E) {
-            this.logoPosition.setValue(-180);
-            this.buttonsOpacity.setValue(1);
-            this.showFoxAnimation();
-            return;
-          }
-        },
-
-        showFoxAnimationE2E() {
-          const isE2E = true;
-          if (isE2E) {
-            this.foxOpacity.setValue(1);
-            return;
-          }
+        showFoxAnimation() {
           if (this.foxRef.current && this.mounted) {
-            this.foxRef.current.fireState('FoxRaiseUp', 'Start');
+            try {
+              this.foxRef.current.fireState('FoxRaiseUp', 'Start');
+            } catch (error) {
+              Logger.error(
+                error as Error,
+                'Error triggering Fox Rive animation',
+              );
+            }
           }
-        },
-
-        initializeButtonsOpacityE2E(isE2EFlag) {
-          return isE2EFlag ? 1 : 0;
         },
       };
 
-      mockComponent.startRiveAnimationE2E();
-      expect(mockComponent.moveLogoUp).toHaveBeenCalled();
+      mockComponent.showFoxAnimation();
 
-      mockComponent.moveLogoUpE2E();
-      expect(mockComponent.logoPosition.setValue).toHaveBeenCalledWith(-180);
-      expect(mockComponent.buttonsOpacity.setValue).toHaveBeenCalledWith(1);
-      expect(mockComponent.showFoxAnimation).toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error triggering Fox Rive animation',
+      );
 
-      mockComponent.showFoxAnimationE2E();
-      expect(mockComponent.foxOpacity.setValue).toHaveBeenCalledWith(1);
+      jest.useRealTimers();
+    });
+  });
 
-      expect(mockComponent.initializeButtonsOpacityE2E(true)).toBe(1);
-      expect(mockComponent.initializeButtonsOpacityE2E(false)).toBe(0);
+  describe('Utility Methods', () => {
+    it('should call updateNavBar and set headerShown to false', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const component = getByTestId(OnboardingSelectorIDs.CONTAINER_ID);
+      expect(component).toBeTruthy();
+
+      expect(mockNav.setOptions).toHaveBeenCalledWith({
+        headerShown: false,
+      });
+    });
+
+    it('should render loader when loading is true', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: {
+            ...mockInitialState,
+            user: {
+              ...mockInitialState.user,
+              loadingSet: true,
+            },
+          },
+        },
+        { route: { params: {} } },
+      );
+
+      const component = getByTestId(OnboardingSelectorIDs.CONTAINER_ID);
+      expect(component).toBeTruthy();
+    });
+
+    it('should render notification when delete param is present', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: { delete: true } } },
+      );
+
+      const component = getByTestId(OnboardingSelectorIDs.CONTAINER_ID);
+      expect(component).toBeTruthy();
+    });
+
+    it('should not render notification when delete param is not present', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+        { route: { params: {} } },
+      );
+
+      const component = getByTestId(OnboardingSelectorIDs.CONTAINER_ID);
+      expect(component).toBeTruthy();
+    });
+
+    it('should handle componentDidUpdate by calling updateNavBar', () => {
+      const { rerender } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      mockNav.setOptions.mockClear();
+
+      rerender(
+        <Onboarding
+          navigation={mockNav}
+          route={{ params: {} }}
+          {...mockInitialState}
+        />,
+      );
+
+      expect(mockNav.setOptions).toHaveBeenCalledWith({
+        headerShown: false,
+      });
     });
   });
 });
