@@ -47,6 +47,8 @@ import {
   TraceOperation,
   endTrace,
   trace,
+  hasMetricsConsent,
+  discardBufferedTraces,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -398,6 +400,7 @@ class Onboarding extends PureComponent {
       OAuthLoginService.resetOauthState();
     }
     await this.props.metrics.enableSocialLogin(false);
+    await hasMetricsConsent();
 
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
@@ -425,6 +428,7 @@ class Onboarding extends PureComponent {
       OAuthLoginService.resetOauthState();
     }
     await this.props.metrics.enableSocialLogin(false);
+    await hasMetricsConsent();
 
     const action = async () => {
       trace({
@@ -536,7 +540,15 @@ class Onboarding extends PureComponent {
 
     // Enable metrics for OAuth users
     await this.props.metrics.enableSocialLogin(true);
+    discardBufferedTraces();
     await setupSentry();
+
+    // use new trace instead of buffered trace for social login
+    this.onboardingTraceCtx = trace({
+      name: TraceName.OnboardingJourneyOverall,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+    });
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
