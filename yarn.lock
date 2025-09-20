@@ -5619,10 +5619,10 @@
     "@metamask/controller-utils" "^11.5.0"
     uuid "^8.3.2"
 
-"@metamask/message-signing-snap@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.npmjs.org/@metamask/message-signing-snap/-/message-signing-snap-1.1.2.tgz#701ace646077976ba22feda85e7968a1ea4c8642"
-  integrity sha512-TANi87ujo7WwyHubWy0iFoYFIh5t5ztvfZ/OqrA0rdZ2d58+6Bvj89jbi1tFWQPT//azwCF5jwQBnJAIVlAwBQ==
+"@metamask/message-signing-snap@^1.1.4":
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/@metamask/message-signing-snap/-/message-signing-snap-1.1.4.tgz#047b5548704f44d6111170264a8dd8dde733a590"
+  integrity sha512-BiKlbx9Y2OhJt8cgH6R+SmTr1TdN/kzxB1MWOP5Jqf9hdFv5Ys5gjNusTy7jVgY9PKvF/+JSMKKRbbMZ6UnMKQ==
 
 "@metamask/messenger@^0.3.0":
   version "0.3.0"

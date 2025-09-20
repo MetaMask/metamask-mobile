@@ -262,7 +262,7 @@
     "@metamask/keyring-internal-api": "^9.0.0",
     "@metamask/keyring-snap-client": "^8.0.0",
     "@metamask/logging-controller": "^6.0.4",
-    "@metamask/message-signing-snap": "^1.1.2",
+    "@metamask/message-signing-snap": "^1.1.4",
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/mobile-wallet-protocol-core": "^0.1.1",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.1.1",
