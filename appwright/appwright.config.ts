@@ -47,8 +47,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-android',
-      testMatch:
-        '**/tests/performance/onboarding/launch-times/cold-start-to-login.spec.js',
+      testMatch: '**/tests/performance/login/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -56,14 +55,13 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
-        buildPath: 'bs://eb6f155a1704516fa04125b94ca627b87ce8a05b', // Path to Browserstack url
+        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
     {
       name: 'browserstack-ios',
-      testMatch:
-        '**/tests/performance/onboarding/launch-times/cold-start-to-login.spec.js',
+      testMatch: '**/tests/performance/login/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -71,7 +69,7 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: 'bs://0bb83d4625423b61d2ebc0c4522be4bc82b20d76',
+        buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
         expectTimeout: 30 * 1000, //90 seconds  increased since login the app takes longer
       },
     },
