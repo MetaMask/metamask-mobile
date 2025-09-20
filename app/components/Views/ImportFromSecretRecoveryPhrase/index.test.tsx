@@ -1265,30 +1265,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('password strength indicator is shown on password input', async () => {
-      const { getByText, getByTestId } = await renderCreatePasswordUI();
-
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-      );
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'weakpass');
-      });
-
-      await waitFor(() => {
-        expect(getByText('Password strength: Weak')).toBeOnTheScreen();
-      });
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'StrongPass123!');
-      });
-
-      await waitFor(() => {
-        expect(getByText('Password strength: Good')).toBeOnTheScreen();
-      });
-    });
-
     it('on clicking eye icon, password visibility is toggled', async () => {
       const { getByTestId } = await renderCreatePasswordUI();
 

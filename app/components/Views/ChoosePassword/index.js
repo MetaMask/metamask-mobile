@@ -32,7 +32,6 @@ import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
-import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -42,7 +41,6 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
-  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
@@ -136,18 +134,6 @@ const createStyles = (colors) =>
         android: 24,
         default: 16,
       }),
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_weak: {
-      color: colors.error.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_good: {
-      color: colors.primary.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_strong: {
-      color: colors.success.default,
     },
     learnMoreContainer: {
       flexDirection: 'row',
@@ -679,10 +665,8 @@ class ChoosePassword extends PureComponent {
   };
 
   onPasswordChange = (val) => {
-    const passInfo = zxcvbn(val);
     this.setState((prevState) => ({
       password: val,
-      passwordStrength: passInfo.score,
       confirmPassword: val === '' ? '' : prevState.confirmPassword,
     }));
   };
@@ -725,8 +709,7 @@ class ChoosePassword extends PureComponent {
   };
 
   renderContent = () => {
-    const { isSelected, password, passwordStrength, confirmPassword, loading } =
-      this.state;
+    const { isSelected, password, confirmPassword, loading } = this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
     let canSubmit;
     if (this.getOauth2LoginSuccess()) {
@@ -736,7 +719,6 @@ class ChoosePassword extends PureComponent {
         passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     }
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
-    const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
@@ -877,26 +859,6 @@ class ChoosePassword extends PureComponent {
                       })}
                     </Text>
                   )}
-                  {Boolean(password) &&
-                    password.length >= MIN_PASSWORD_LENGTH && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Alternative}
-                        testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
-                      >
-                        {strings('choose_password.password_strength')}
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Alternative}
-                          style={styles[`strength_${passwordStrengthWord}`]}
-                        >
-                          {' '}
-                          {strings(
-                            `choose_password.strength_${passwordStrengthWord}`,
-                          )}
-                        </Text>
-                      </Text>
-                    )}
                 </View>
 
                 <View style={styles.field}>
