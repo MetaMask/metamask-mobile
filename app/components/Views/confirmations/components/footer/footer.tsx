@@ -33,6 +33,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export const Footer = () => {
   const {
@@ -52,12 +53,10 @@ export const Footer = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const transactionType = transactionMetadata?.type as TransactionType;
+  const isStakingConfirmationBool = isStakingConfirmation(transactionType);
 
-  const isStakingConfirmationBool = isStakingConfirmation(
-    transactionMetadata?.type as string,
-  );
-
-  const { isFooterVisible, isTransactionValueUpdating } =
+  const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
 
   const navigation = useNavigation();
@@ -175,6 +174,9 @@ export const Footer = () => {
       startIconName: getStartIcon(),
     },
   ];
+
+  const isFooterVisible =
+    isFooterVisibleFlag ?? transactionType !== TransactionType.perpsDeposit;
 
   if (!isFooterVisible) {
     return null;
