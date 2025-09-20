@@ -391,7 +391,7 @@ export class RewardsController extends BaseController<
    */
   #getActiveBoosts(
     subscriptionId: string,
-    seasonId: string = CURRENT_SEASON_ID,
+    seasonId: string,
   ): ActiveBoostsState | null {
     const compositeKey = this.#createSeasonSubscriptionCompositeKey(
       seasonId,
@@ -408,7 +408,7 @@ export class RewardsController extends BaseController<
    */
   #getUnlockedRewards(
     subscriptionId: string,
-    seasonId: string = CURRENT_SEASON_ID,
+    seasonId: string,
   ): UnlockedRewardsState | null {
     const compositeKey = this.#createSeasonSubscriptionCompositeKey(
       seasonId,

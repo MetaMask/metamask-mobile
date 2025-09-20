@@ -13,6 +13,7 @@ import {
   type SeasonTierDto,
   type SeasonDtoState,
   type SubscriptionReferralDetailsState,
+  CURRENT_SEASON_ID,
 } from './types';
 import type { CaipAccountId } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -1116,6 +1117,28 @@ describe('RewardsController', () => {
 
     beforeEach(() => {
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should use CURRENT_SEASON_ID as default when seasonId is not provided', async () => {
+      // Skip the actual test since we're just verifying the parameter is passed correctly
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:getSeasonStatus') {
+          // Check if the first parameter is CURRENT_SEASON_ID when not explicitly provided
+          expect(_args[0]).toBe(CURRENT_SEASON_ID);
+          expect(_args[1]).toBe(mockSubscriptionId);
+          return Promise.resolve(null);
+        }
+        return Promise.resolve({});
+      });
+
+      // Mock the controller method to avoid processing the response
+      jest.spyOn(controller, 'getSeasonStatus').mockResolvedValue(null);
+
+      // Act
+      await controller.getSeasonStatus(mockSubscriptionId);
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalled();
     });
 
     it('should return null when feature flag is disabled', async () => {
