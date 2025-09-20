@@ -1,14 +1,7 @@
 import React, { useCallback } from 'react';
-import {
-  Image,
-  ActivityIndicator,
-  TouchableOpacity,
-  Linking,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { Image, ActivityIndicator, Linking } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useOptin } from '../../hooks/useOptIn';
 import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
 import {
@@ -24,10 +17,6 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import step4Img from '../../../../../images/rewards/rewards-onboarding-step4.png';
-import {
-  OnboardingStep,
-  setOnboardingActiveStep,
-} from '../../../../../actions/rewards';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
 import TextField, {
@@ -35,12 +24,13 @@ import TextField, {
 } from '../../../../../component-library/components/Form/TextField';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
-import { REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL } from './constants';
 import { selectRewardsActiveAccountHasOptedIn } from '../../../../../selectors/rewards';
+import {
+  REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
+  REWARDS_ONBOARD_TERMS_URL,
+} from './constants';
 
 const OnboardingStep4: React.FC = () => {
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
   const tw = useTailwind();
   const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const { optin, optinError, optinLoading } = useOptin();
@@ -55,25 +45,20 @@ const OnboardingStep4: React.FC = () => {
     optin({ referralCode });
   }, [optin, referralCode]);
 
-  const handlePrevious = useCallback(() => {
-    dispatch(setOnboardingActiveStep(OnboardingStep.STEP_3));
-    navigation.navigate(Routes.REWARDS_ONBOARDING_3);
-  }, [dispatch, navigation]);
-
   const renderStepInfo = () => (
-    <Box twClassName="flex-grow" alignItems={BoxAlignItems.Center}>
+    <Box twClassName="flex-1" alignItems={BoxAlignItems.Center}>
       {/* Opt in error message */}
-      {optinError && (
-        <Box alignItems={BoxAlignItems.Center} twClassName="min-h-20">
+      <Box alignItems={BoxAlignItems.Center} twClassName="min-h-20">
+        {optinError && (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
             description={optinError}
           />
-        </Box>
-      )}
+        )}
+      </Box>
 
       {/* Placeholder Image */}
-      <Box twClassName="w-30 h-30 mb-6">
+      <Box twClassName="w-30 h-30 my-4">
         <Image
           source={step4Img}
           testID="step-4-image"
@@ -82,7 +67,7 @@ const OnboardingStep4: React.FC = () => {
       </Box>
 
       {/* Referral Code Input Section */}
-      <Box twClassName="w-full min-h-32 gap-20 my-4">
+      <Box twClassName="w-full min-h-32 gap-20 mb-2">
         <Text variant={TextVariant.HeadingLg} twClassName="text-center">
           {referralCodeIsValid
             ? strings('rewards.onboarding.step4_title_referral_bonus')
@@ -136,51 +121,61 @@ const OnboardingStep4: React.FC = () => {
               }
               isError={!referralCodeIsValid}
             />
+            {!!referralCode &&
+              !referralCodeIsValid &&
+              !isValidatingReferralCode && (
+                <Text twClassName="text-error-default">
+                  {strings('rewards.onboarding.step4_referral_input_error')}
+                </Text>
+              )}
           </Box>
         </Box>
       </Box>
     </Box>
   );
 
-  const renderLegalDisclaimer = () => (
-    <Box twClassName="w-full flex-row px-4">
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="justify-center flex-wrap gap-2"
-      >
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-alternative text-center"
-        >
-          {strings('rewards.onboarding.step4_legal_disclaimer')}
-        </Text>
+  const renderLegalDisclaimer = () => {
+    const openTermsOfUse = () => {
+      Linking.openURL(REWARDS_ONBOARD_TERMS_URL);
+    };
 
-        <TouchableOpacity
-          onPress={() => {
-            Linking.openURL(REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL);
-          }}
-          style={tw.style('flex-row items-center')}
-          activeOpacity={0.7}
+    const openLearnMore = () => {
+      Linking.openURL(REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL);
+    };
+
+    return (
+      <Box twClassName="w-full flex-row px-4 mt-4">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="justify-center flex-wrap gap-2"
         >
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-primary-default inline"
+            twClassName="text-alternative text-center"
           >
-            {strings('rewards.onboarding.step4_legal_disclaimer_learn_more')}
+            {strings('rewards.onboarding.step4_legal_disclaimer_1')}{' '}
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-primary-default"
+              onPress={openTermsOfUse}
+            >
+              {strings('rewards.onboarding.step4_legal_disclaimer_2')}
+            </Text>
+            {strings('rewards.onboarding.step4_legal_disclaimer_3')}{' '}
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-primary-default"
+              onPress={openLearnMore}
+            >
+              {strings('rewards.onboarding.step4_legal_disclaimer_4')}
+            </Text>
+            .{' '}
           </Text>
-
-          <Box twClassName="ml-1 inline">
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={IconColor.PrimaryDefault}
-            />
-          </Box>
-        </TouchableOpacity>
+        </Box>
       </Box>
-    </Box>
-  );
+    );
+  };
 
   return (
     <OnboardingStepComponent
@@ -197,11 +192,10 @@ const OnboardingStep4: React.FC = () => {
       onNextDisabled={
         (!referralCodeIsValid && !!referralCode) || hasAccountedOptedIn === true
       }
-      onPrevious={handlePrevious}
       nextButtonText={strings('rewards.onboarding.step4_confirm')}
       renderStepInfo={renderStepInfo}
-      stepInfoContainerStyle="justify-center"
       nextButtonAlternative={renderLegalDisclaimer}
+      disableSwipe
     />
   );
 };

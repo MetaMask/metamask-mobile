@@ -122,7 +122,11 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 // Mock actions and reducers
 jest.mock('../../../../../../actions/rewards', () => ({
-  setOnboardingActiveStep: jest.fn(),
+  setOnboardingActiveStep: jest.fn((step) => ({
+    type: 'SET_ONBOARDING_ACTIVE_STEP',
+    payload: step,
+  })),
+  setOnboardingComplete: jest.fn(() => ({ type: 'SET_ONBOARDING_COMPLETE' })),
 }));
 
 jest.mock('../../../../../../reducers/rewards/types', () => ({

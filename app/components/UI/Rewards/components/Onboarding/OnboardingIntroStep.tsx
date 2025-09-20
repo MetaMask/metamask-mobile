@@ -234,7 +234,7 @@ const OnboardingIntroStep: React.FC = () => {
     <Box twClassName="flex-grow min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-1 pb-4')}
+        style={tw.style('flex-1 px-4 py-8')}
         resizeMode="cover"
       >
         {/* Spacer */}
