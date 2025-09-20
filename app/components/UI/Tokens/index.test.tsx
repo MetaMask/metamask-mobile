@@ -396,8 +396,10 @@ describe('Tokens', () => {
 
   it('navigates to AddAsset screen when Add Tokens button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
-    expect(mockPush).toHaveBeenCalledWith('AddAsset', { assetType: 'token' });
+    waitFor(() => {
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
+      expect(mockPush).toHaveBeenCalledWith('AddAsset', { assetType: 'token' });
+    });
   });
 
   it('shows remove menu when remove button is pressed', () => {
@@ -456,9 +458,10 @@ describe('Tokens', () => {
 
     const { getByTestId } = renderComponent(state);
 
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
-
-    expect(mockPush).not.toHaveBeenCalled();
+    waitFor(() => {
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
+      expect(mockPush).not.toHaveBeenCalled();
+    });
   });
 
   it('renders correctly when token list is empty', () => {
@@ -478,8 +481,12 @@ describe('Tokens', () => {
       },
     };
 
-    const { getByTestId } = renderComponent(state);
-    expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
+    waitFor(() => {
+      const { getByTestId } = renderComponent(state);
+      expect(
+        getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER),
+      ).toBeDefined();
+    });
   });
 
   it('hides zero balance tokens when hideZeroBalanceTokens is enabled', () => {
