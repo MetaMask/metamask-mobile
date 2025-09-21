@@ -105,7 +105,7 @@ describe('OptinMetrics', () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
       fireEvent.press(
         screen.getByRole('button', {
-          name: strings('privacy_policy.cta_i_agree'),
+          name: strings('privacy_policy.continue'),
         }),
       );
       await waitFor(() => {
@@ -132,10 +132,12 @@ describe('OptinMetrics', () => {
 
     it('with marketing consent', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-      fireEvent.press(screen.getByText(strings('privacy_policy.checkbox')));
+      fireEvent.press(
+        screen.getByText(strings('privacy_policy.checkbox_marketing')),
+      );
       fireEvent.press(
         screen.getByRole('button', {
-          name: strings('privacy_policy.cta_i_agree'),
+          name: strings('privacy_policy.continue'),
         }),
       );
       await waitFor(() => {
@@ -165,7 +167,7 @@ describe('OptinMetrics', () => {
     renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
     fireEvent.press(
       screen.getByRole('button', {
-        name: strings('privacy_policy.cta_no_thanks'),
+        name: strings('privacy_policy.continue'),
       }),
     );
     await waitFor(() => {
@@ -196,15 +198,11 @@ describe('OptinMetrics', () => {
       });
 
       // Check that buttons are enabled (they should be clickable)
-      const agreeButton = screen.getByRole('button', {
-        name: strings('privacy_policy.cta_i_agree'),
-      });
-      const noThanksButton = screen.getByRole('button', {
-        name: strings('privacy_policy.cta_no_thanks'),
+      const continueButton = screen.getByRole('button', {
+        name: strings('privacy_policy.continue'),
       });
 
-      expect(agreeButton).toBeEnabled();
-      expect(noThanksButton).toBeEnabled();
+      expect(continueButton).toBeEnabled();
     });
 
     it('action buttons are not enabled when scroll view content does not fit viewport', () => {
@@ -228,18 +226,13 @@ describe('OptinMetrics', () => {
       });
 
       // Check that buttons are still disabled (they should not be clickable)
-      const agreeButton = screen.getByRole('button', {
-        name: strings('privacy_policy.cta_i_agree'),
-      });
-      const noThanksButton = screen.getByRole('button', {
-        name: strings('privacy_policy.cta_no_thanks'),
+      const continueButton = screen.getByRole('button', {
+        name: strings('privacy_policy.continue'),
       });
 
-      fireEvent.press(agreeButton);
-      fireEvent.press(noThanksButton);
+      fireEvent.press(continueButton);
 
-      expect(agreeButton).toBeTruthy();
-      expect(noThanksButton).toBeTruthy();
+      expect(continueButton).toBeTruthy();
     });
   });
 });
