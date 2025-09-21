@@ -49,7 +49,7 @@ const KycProcessing = () => {
   const trackEvent = useAnalytics();
 
   const { routeAfterAuthentication } = useDepositRouting({
-    cryptoCurrencyChainId: quote.network?.chainId || '',
+    cryptoCurrencyChainId: quote.network || '',
     paymentMethodId: quote.paymentMethod,
   });
 

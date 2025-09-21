@@ -46,10 +46,7 @@ export const depositOrderToFiatOrder = (
   currency: depositOrder.fiatCurrency,
   currencySymbol: '',
   cryptocurrency: depositOrder.cryptoCurrency?.symbol || '',
-  network:
-    typeof depositOrder.network === 'object' && depositOrder.network?.chainId
-      ? depositOrder.network.chainId
-      : depositOrder.network || '',
+  network: depositOrder.network?.chainId || '',
   state: depositOrderStateToFiatOrderState(depositOrder.status),
   account: depositOrder.walletAddress,
   txHash: depositOrder.txHash,

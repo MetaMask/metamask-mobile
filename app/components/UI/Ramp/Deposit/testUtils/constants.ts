@@ -186,7 +186,7 @@ export const MOCK_BUY_QUOTE: BuyQuote = {
   fiatAmount: 100,
   cryptoAmount: 0.05,
   isBuyOrSell: 'buy',
-  network: { chainId: 'eip155:1', name: 'Ethereum' },
+  network: 'eip155:1',
   feeDecimal: 0.025,
   totalFee: 2.5,
   feeBreakdown: [],

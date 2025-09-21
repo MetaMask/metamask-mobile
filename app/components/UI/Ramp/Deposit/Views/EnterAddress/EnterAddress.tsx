@@ -70,7 +70,7 @@ const EnterAddress = (): JSX.Element => {
   const postCodeInputRef = useRef<TextInput>(null);
 
   const { routeAfterAuthentication } = useDepositRouting({
-    cryptoCurrencyChainId: quote.network?.chainId || '',
+    cryptoCurrencyChainId: quote.network || '',
     paymentMethodId: quote.paymentMethod,
   });
 
