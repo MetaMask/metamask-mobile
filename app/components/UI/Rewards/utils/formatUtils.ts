@@ -21,7 +21,7 @@ export const formatNumber = (value: number | null): string => {
   }
   try {
     return getIntlNumberFormatter(I18n.locale).format(value);
-  } catch (e) {
+  } catch {
     return String(value);
   }
 };
@@ -45,11 +45,19 @@ export const formatRewardsDate = (
 
 export const formatTimeRemaining = (endDate: Date): string | null => {
   const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
-  return hours <= 0
-    ? minutes <= 0
-      ? null
-      : `${minutes}m`
-    : `${days}d ${hours}h`;
+
+  // No time remaining
+  if (hours <= 0 && minutes <= 0) {
+    return null;
+  }
+
+  // Only minutes remaining
+  if (hours <= 0) {
+    return `${minutes}m`;
+  }
+
+  // Hours and days remaining
+  return `${days}d ${hours}h`;
 };
 
 export const PerpsEventType = {
@@ -247,7 +255,7 @@ export const formatUrl = (url: string): string => {
     }
     // For other protocols (file:, mailto:, etc.), return the original URL
     return cleanedUrl;
-  } catch (e) {
+  } catch {
     // Fallback: manually strip protocol and query strings for http/https
     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
       let cleanUrl = cleanedUrl.replace(/^https?:\/\//, '');
