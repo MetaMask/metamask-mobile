@@ -5,6 +5,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import Icon, {
+  IconName,
   IconColor,
 } from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
@@ -92,7 +93,7 @@ function PaymentMethodSelectorModal() {
         <ListItemColumn widthType={WidthType.Auto}>
           <View style={styles.iconContainer}>
             <Icon
-              name={paymentMethod.icon}
+              name={paymentMethod.icon as IconName}
               color={
                 typeof paymentMethod.iconColor === 'object'
                   ? paymentMethod.iconColor[themeAppearance]
