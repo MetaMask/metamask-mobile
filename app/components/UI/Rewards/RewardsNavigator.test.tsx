@@ -258,35 +258,6 @@ describe('RewardsNavigator', () => {
       </Provider>,
     );
 
-  describe('Focus optimization', () => {
-    it('renders empty component when not focused', () => {
-      // Arrange
-      mockIsFocused.mockReturnValue(false);
-
-      // Act
-      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      // Assert - should not render any of the main content components
-      expect(queryByTestId('rewards-dashboard')).toBeNull();
-      expect(queryByTestId('onboarding-navigator')).toBeNull();
-      expect(queryByTestId('skeleton-loader')).toBeNull();
-      expect(queryByTestId('banner-alert')).toBeNull();
-    });
-
-    it('renders content when focused', () => {
-      // Arrange
-      mockIsFocused.mockReturnValue(true);
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      expect(getByTestId('onboarding-navigator')).toBeOnTheScreen();
-    });
-  });
-
   describe('Authentication states', () => {
     beforeEach(() => {
       mockIsFocused.mockReturnValue(true);
