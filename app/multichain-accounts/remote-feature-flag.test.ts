@@ -1,28 +1,13 @@
 import {
   assertMultichainAccountsFeatureFlagType,
-  isMultichainAccountsState1Enabled,
-  isMultichainAccountsState2Enabled,
+  isMultichainAccountsRemoteFeatureEnabled,
 } from './remote-feature-flag';
-import Engine from '../core/Engine';
 
 jest.mock('../../package.json', () => ({
   version: '15.0.0',
 }));
 
 describe('Multichain Accounts Feature Flag', () => {
-  let remoteFeatureFlagsMock: unknown;
-
-  beforeEach(() => {
-    remoteFeatureFlagsMock = {};
-    Engine.context = {
-      RemoteFeatureFlagController: {
-        state: {
-          remoteFeatureFlags: remoteFeatureFlagsMock,
-        },
-      },
-    };
-  });
-
   describe('assertMultichainAccountsFeatureFlagType', () => {
     it('returns true for valid feature flag type', () => {
       const validFlag = {
@@ -47,76 +32,65 @@ describe('Multichain Accounts Feature Flag', () => {
     });
   });
 
-  describe('isMultichainAccountsState1Enabled', () => {
-    it('returns true when the feature flag is missing', () => {
-      const result = isMultichainAccountsState1Enabled();
-      expect(result).toBe(true);
-    });
-
-    it('returns true when the feature is enabled and minimum version is met', () => {
-      remoteFeatureFlagsMock.enableMultichainAccounts = {
-        enabled: true,
-        featureVersion: '1',
-        minimumVersion: '10.0.0',
-      };
-      const result = isMultichainAccountsState1Enabled();
-      expect(result).toBe(true);
-    });
-
-    it('returns false when the feature is enabled but version does not match', () => {
-      remoteFeatureFlagsMock.enableMultichainAccounts = {
-        enabled: true,
-        featureVersion: '2',
-        minimumVersion: '10.0.0',
-      };
-      const result = isMultichainAccountsState1Enabled();
+  describe('isMultichainAccountsRemoteFeatureEnabled', () => {
+    it('returns false when the feature flag is not available', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled({}, ['1']);
       expect(result).toBe(false);
+    });
+
+    it('returns false when the feature is not enabled', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          enableMultichainAccounts: {
+            enabled: false,
+            featureVersion: null,
+            minimumVersion: null,
+          },
+        },
+        ['1'],
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the feature version does not match', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '2',
+            minimumVersion: '1.0.0',
+          },
+        },
+        ['1'],
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns true when the minimum version is met', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '6.0.0',
+          },
+        },
+        ['1'],
+      );
+      expect(result).toBe(true);
     });
 
     it('returns false when the minimum version is not met', () => {
-      remoteFeatureFlagsMock.enableMultichainAccounts = {
-        enabled: true,
-        featureVersion: '1',
-        minimumVersion: '16.0.0',
-      };
-      const result = isMultichainAccountsState1Enabled();
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('isMultichainAccountsState2Enabled', () => {
-    it('returns true when the feature flag is missing', () => {
-      const result = isMultichainAccountsState2Enabled();
-      expect(result).toBe(true);
-    });
-
-    it('returns true when the feature is enabled and minimum version is met', () => {
-      remoteFeatureFlagsMock.enableMultichainAccountsState2 = {
-        enabled: true,
-        featureVersion: '2',
-        minimumVersion: '10.0.0',
-      };
-      const result = isMultichainAccountsState2Enabled();
-      expect(result).toBe(true);
-    });
-
-    it('returns false when the feature is enabled but version does not match', () => {
-      remoteFeatureFlagsMock.enableMultichainAccountsState2 = {
-        enabled: true,
-        featureVersion: '1',
-        minimumVersion: '10.0.0',
-      };
-      const result = isMultichainAccountsState2Enabled();
-      expect(result).toBe(false);
-    });
-
-    it('returns false when the minimum version is not met', () => {
-      remoteFeatureFlagsMock.enableMultichainAccountsState2 = {
-        enabled: true,
-        featureVersion: '2',
-        minimumVersion: '16.0.0',
-      };
-      const result = isMultichainAccountsState2Enabled();
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '16.0.0',
+          },
+        },
+        ['1'],
+      );
       expect(result).toBe(false);
     });
   });
