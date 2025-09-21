@@ -24,6 +24,11 @@ import swapIllustration from '../../../../../../../images/rewards/rewards-swap.p
 import perpIllustration from '../../../../../../../images/rewards/rewards-trade.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
+import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -144,12 +149,24 @@ const getBottomSheetData = (type: WayToEarnType) => {
 
 export const WaysToEarn = () => {
   const navigation = useNavigation();
+  const token = getNativeAssetForChainId('eip155:59144');
+  // Use the swap/bridge navigation hook
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.Rewards,
+    sourcePage: 'rewards_overview',
+    sourceToken: {
+      address: token.address,
+      symbol: token.symbol,
+      decimals: token.decimals,
+      chainId: 'eip155:59144',
+    },
+  });
 
   const handleCTAPress = async (type: WayToEarnType) => {
     navigation.goBack(); // Close the modal first
 
     if (type === WayToEarnType.SWAPS) {
-      navigation.navigate(Routes.SWAPS);
+      goToSwaps();
     } else if (type === WayToEarnType.PERPS) {
       navigation.navigate(Routes.PERPS.ROOT);
     }
