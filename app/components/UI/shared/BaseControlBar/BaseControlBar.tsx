@@ -1,7 +1,8 @@
-import React, { useCallback, ReactNode, useMemo } from 'react';
+import React, { useCallback, ReactNode, useMemo, useEffect } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { SolScope } from '@metamask/keyring-api';
 import { strings } from '../../../../../locales/i18n';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import ButtonIcon, {
@@ -40,6 +41,8 @@ import createControlBarStyles from '../ControlBarStyles';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 export interface BaseControlBarProps {
   /**
@@ -93,12 +96,17 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     selectMultichainAccountsState2Enabled,
   );
 
+  const selectedSolanaAccount =
+    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
+
   // Shared hooks
   const {
     enabledNetworks,
     getNetworkInfo,
     isDisabled: hookIsDisabled,
   } = useCurrentNetworkInfo();
+
+  const { enableAllPopularNetworks } = useNetworkEnablement();
   const { areAllNetworksSelected, totalEnabledNetworksCount } =
     useNetworksByCustomNamespace({
       networkType: NetworkType.Popular,
@@ -106,6 +114,21 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
+
+  useEffect(() => {
+    if (
+      !selectedSolanaAccount &&
+      enabledNetworks.length === 1 &&
+      enabledNetworks[0].chainId === SolScope.Mainnet
+    ) {
+      enableAllPopularNetworks();
+    }
+  }, [
+    currentNetworkName,
+    enabledNetworks,
+    selectedSolanaAccount,
+    enableAllPopularNetworks,
+  ]);
 
   // Determine if disabled based on context
   const isDisabled = useMemo(() => {

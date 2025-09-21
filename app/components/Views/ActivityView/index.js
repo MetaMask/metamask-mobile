@@ -298,13 +298,23 @@ const ActivityView = () => {
                   )}
                 </>
               }
-              isDisabled={isDisabled}
-              onPress={isEvmSelected ? showFilterControls : () => null}
-              endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
-              style={
-                isDisabled ? styles.controlButtonDisabled : styles.controlButton
+              isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
+              onPress={
+                isEvmSelected || isMultichainAccountsState2Enabled
+                  ? showFilterControls
+                  : () => null
               }
-              disabled={isDisabled}
+              endIconName={
+                isEvmSelected || isMultichainAccountsState2Enabled
+                  ? IconName.ArrowDown
+                  : undefined
+              }
+              style={
+                isDisabled && !isMultichainAccountsState2Enabled
+                  ? styles.controlButtonDisabled
+                  : styles.controlButton
+              }
+              disabled={isDisabled && !isMultichainAccountsState2Enabled}
             />
           </View>
         )}

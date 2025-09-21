@@ -53,6 +53,8 @@ import {
   NetworkMenuModalState,
   ShowConfirmDeleteModalState,
 } from './index.types';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -86,7 +88,33 @@ const NetworkManager = () => {
   const { selectedCount } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { disableNetwork } = useNetworkEnablement();
+  const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
+
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
+  const enabledNetworks = useMemo(() => {
+    function getEnabledNetworks(
+      obj: Record<string, boolean | Record<string, boolean>>,
+    ): string[] {
+      const enabled: string[] = [];
+
+      Object.entries(obj).forEach(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          // recurse into nested object
+          enabled.push(...getEnabledNetworks(value));
+        } else if (value === true) {
+          // Return just the chain ID, not the full namespace path
+          enabled.push(key);
+        }
+      });
+
+      return enabled;
+    }
+
+    return getEnabledNetworks(enabledNetworksByNamespace);
+  }, [enabledNetworksByNamespace]);
 
   const [showNetworkMenuModal, setNetworkMenuModal] =
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
@@ -255,9 +283,20 @@ const NetworkManager = () => {
   const defaultTabIndex = useMemo(() => {
     // If no popular networks are selected, default to custom tab (index 1)
     // Otherwise, show popular tab (index 0)
-    const hasSelectedPopularNetworks = selectedCount > 0;
-    return hasSelectedPopularNetworks ? 0 : 1;
-  }, [selectedCount]);
+    if (isMultichainAccountsState2Enabled) {
+      if (enabledNetworks.length === 1) {
+        const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(
+          enabledNetworks[0] as `0x${string}`,
+        )
+          ? 0
+          : 1;
+        return isPopularNetwork;
+      }
+
+      return enabledNetworks.length > 1 ? 0 : 1;
+    }
+    return selectedCount > 0 ? 0 : 1;
+  }, [selectedCount, isMultichainAccountsState2Enabled, enabledNetworks]);
 
   const dismissModal = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

@@ -43,6 +43,7 @@ import {
   NetworkType,
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import Logger from '../../../util/Logger';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -123,7 +124,8 @@ export function useSwitchNetworks({
     async (networkConfiguration: NetworkConfiguration) => {
       if (!networkConfiguration) return;
 
-      const { SelectedNetworkController } = Engine.context;
+      const { MultichainNetworkController, SelectedNetworkController } =
+        Engine.context;
       const {
         name: nickname,
         chainId,
@@ -149,6 +151,18 @@ export function useSwitchNetworks({
           state.activeDappNetwork = networkConfigurationId;
         });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
+      } else {
+        trace({
+          name: TraceName.SwitchCustomNetwork,
+          parentContext: parentSpan,
+          op: TraceOperation.SwitchCustomNetwork,
+        });
+        const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+        try {
+          await MultichainNetworkController.setActiveNetwork(networkClientId);
+        } catch (error) {
+          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
+        }
       }
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
@@ -170,6 +184,7 @@ export function useSwitchNetworks({
       selectedNetworkName,
       trackEvent,
       createEventBuilder,
+      parentSpan,
       dismissModal,
     ],
   );

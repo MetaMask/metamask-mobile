@@ -239,9 +239,14 @@ interface WalletTokensTabViewProps {
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const isPerpsEnabled = useMemo(
-    () => isPerpsFlagEnabled && isEvmSelected,
-    [isPerpsFlagEnabled, isEvmSelected],
+    () =>
+      isPerpsFlagEnabled &&
+      (isEvmSelected || isMultichainAccountsState2Enabled),
+    [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
 
   const {
@@ -253,6 +258,16 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   } = props;
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const tabsListRef = useRef<TabsListRef>(null);
+  const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
+
+  const enabledNetworksIsSolana = useMemo(() => {
+    if (allEnabledNetworks.length === 1) {
+      return allEnabledNetworks.some(
+        (network) => network.chainId === SolScope.Mainnet,
+      );
+    }
+    return false;
+  }, [allEnabledNetworks]);
 
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -373,7 +388,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (defiEnabled) {
+    if (defiEnabled && !enabledNetworksIsSolana) {
       tabs.push(
         <DeFiPositionsList
           {...defiPositionsTabProps}
@@ -382,7 +397,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (collectiblesEnabled) {
+    if (collectiblesEnabled && !enabledNetworksIsSolana) {
       tabs.push(
         <CollectibleContracts
           {...collectibleContractsTabProps}
@@ -401,6 +416,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     defiPositionsTabProps,
     collectiblesEnabled,
     collectibleContractsTabProps,
+    enabledNetworksIsSolana,
   ]);
 
   return (
@@ -472,12 +488,9 @@ const Wallet = ({
   const enabledNetworksHasTestNet = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
       if (allEnabledNetworks.length === 1) {
-        return allEnabledNetworks.some(
-          (network) =>
-            isTestNet(network.chainId) || network.chainId === SolScope.Mainnet,
-        );
+        return allEnabledNetworks.some((network) => isTestNet(network.chainId));
       }
-      return true;
+      return false;
     }
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       return enabledNetworks.some((network) => isTestNet(network));
