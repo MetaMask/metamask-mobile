@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () => StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     container: {
       marginBottom: 8,
       width: '100%',
