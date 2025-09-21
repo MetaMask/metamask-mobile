@@ -33,13 +33,12 @@ import type { PerpsNavigationParamList } from '../../controllers/types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { BigNumber } from 'bignumber.js';
-import { USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
+import {
+  USDC_SYMBOL,
+  USDC_TOKEN_ICON_URL,
+} from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import images from '../../../../../images/image-icons';
-
-// Constants
-const USDC_TOKEN_URL =
-  'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -206,7 +205,7 @@ const PerpsMarketBalanceActions: React.FC<
             >
               <AvatarToken
                 name={USDC_SYMBOL}
-                imageSource={{ uri: USDC_TOKEN_URL }}
+                imageSource={{ uri: USDC_TOKEN_ICON_URL }}
                 size={AvatarSize.Lg}
               />
             </BadgeWrapper>
