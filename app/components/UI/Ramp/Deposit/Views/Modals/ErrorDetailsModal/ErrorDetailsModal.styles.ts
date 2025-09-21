@@ -1,10 +1,6 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-
-  return StyleSheet.create({
+const styleSheet = () => StyleSheet.create({
     headerContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -22,6 +18,5 @@ const styleSheet = (params: { theme: Theme }) => {
       lineHeight: 24,
     },
   });
-};
 
 export default styleSheet;

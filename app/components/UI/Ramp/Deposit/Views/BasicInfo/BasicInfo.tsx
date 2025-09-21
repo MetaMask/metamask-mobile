@@ -47,7 +47,6 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import Logger from '../../../../../../util/Logger';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import useSDKMethod from '../../../Aggregator/hooks/useSDKMethod';
 import { useRegions } from '../../hooks/useRegions';
 
 export interface BasicInfoParams {
