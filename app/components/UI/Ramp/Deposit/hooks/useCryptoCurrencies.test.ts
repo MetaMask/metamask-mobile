@@ -250,8 +250,8 @@ describe('useCryptoCurrencies', () => {
 
       // Act
       const { rerender } = renderHook(() => useCryptoCurrencies());
-      rerender();
-      rerender();
+      rerender({});
+      rerender({});
 
       // Assert - should only be called once due to useEffect dependencies
       expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledTimes(1);
@@ -274,7 +274,7 @@ describe('useCryptoCurrencies', () => {
       ]);
 
       // Act
-      rerender();
+      rerender({});
 
       // Assert
       expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(
@@ -299,7 +299,7 @@ describe('useCryptoCurrencies', () => {
       );
 
       // Act
-      rerender();
+      rerender({});
 
       // Assert
       expect(mockSetSelectedCryptoCurrency).toHaveBeenCalledWith(

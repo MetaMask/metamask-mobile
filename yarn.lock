@@ -1469,11 +1469,12 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@^2.0.0-beta.2":
-  version "2.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-2.0.0-beta.2.tgz#0b8afdb9f4681d809d992e59b288b0683e025c84"
-  integrity sha512-2mgbsaVFQk3rxZIjkv221dvFLJyTx2kJmfmn1feDG9Ga13zci0gZjxuJRxh+HMrPO6AJXUt/jnVXaUzQCS+GLQ==
+"@consensys/native-ramps-sdk@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-2.1.1.tgz#d7273232405ded56528186846199e425730e5c3f"
+  integrity sha512-lX6xJOKJEEXuIGhY+SOetJeex8q2f+9mttt+9FKd5suAHze5kOACiKgjAxT+CQAt+8bFHwY+n2Tn5aMdbF30NA==
   dependencies:
+    "@metamask/utils" "^11.5.0"
     async "^3.2.3"
     axios "^1.11.0"
     axios-retry "^3.1.2"
@@ -6375,7 +6376,7 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0", "@metamask/utils@^11.4.2", "@metamask/utils@^11.7.0", "@metamask/utils@^11.8.0":
+"@metamask/utils@^11.0.1", "@metamask/utils@^11.1.0", "@metamask/utils@^11.2.0", "@metamask/utils@^11.4.0", "@metamask/utils@^11.4.2", "@metamask/utils@^11.5.0", "@metamask/utils@^11.7.0", "@metamask/utils@^11.8.0":
   version "11.8.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.8.0.tgz#0d1f1b4097fa3645258cb397a9256e2c54b5c164"
   integrity sha512-EJqiuvVBAjV1vd1kBhmVmRtGfadrBfY3ImcAMjl+8MSSByTB3VNwvlIBLQdp+TwdAomUdenJCx2BvOSQykm8Hg==

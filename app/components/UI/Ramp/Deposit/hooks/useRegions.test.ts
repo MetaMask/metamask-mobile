@@ -305,8 +305,8 @@ describe('useRegions', () => {
 
       // Act
       const { rerender } = renderHook(() => useRegions());
-      rerender();
-      rerender();
+      rerender({});
+      rerender({});
 
       // Assert - should only be called once due to useEffect dependencies
       expect(mockSetSelectedRegion).toHaveBeenCalledTimes(1);
@@ -329,7 +329,7 @@ describe('useRegions', () => {
       ]);
 
       // Act
-      rerender();
+      rerender({});
 
       // Assert
       expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_FR_REGION);
@@ -361,7 +361,7 @@ describe('useRegions', () => {
       ]);
 
       // Act
-      rerender();
+      rerender({});
 
       // Assert
       expect(mockSetSelectedRegion).toHaveBeenCalledWith(MOCK_CA_REGION);
@@ -400,7 +400,7 @@ describe('useRegions', () => {
         }),
       );
 
-      rerender();
+      rerender({});
 
       // Now should select geolocated
       expect(mockSetSelectedRegion).toHaveBeenCalledWith(geolocatedEUR);

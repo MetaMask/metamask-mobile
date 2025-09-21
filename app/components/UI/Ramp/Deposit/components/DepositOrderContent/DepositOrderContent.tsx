@@ -62,19 +62,15 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
   const depositOrder = order.data as DepositOrder;
   const depositNetwork = depositOrder?.network;
-  const networkChainId =
-    typeof depositNetwork === 'object' && depositNetwork?.chainId
-      ? depositNetwork.chainId
-      : order.network || '';
+  const chainId = depositNetwork?.chainId;
   const networkName =
-    typeof depositNetwork === 'object' && depositNetwork?.name
-      ? depositNetwork.name
-      : allNetworkConfigurations[networkChainId as `${string}:${string}`]
-          ?.name || 'Unknown Network';
+    depositNetwork.name ||
+    allNetworkConfigurations[chainId as `${string}:${string}`]?.name ||
+    'Unknown Network';
 
-  const networkImageSource = networkChainId
+  const networkImageSource = chainId
     ? getNetworkImageSource({
-        chainId: networkChainId,
+        chainId,
       })
     : null;
 
