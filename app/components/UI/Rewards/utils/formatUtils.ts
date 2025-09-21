@@ -83,7 +83,7 @@ const getPerpsEventDetails = (
   const { amount, decimals, symbol } = payload.asset;
   const rawAmount = formatUnits(BigInt(amount), decimals);
   // Limit to at most 2 decimal places without padding zeros
-  const formattedAmount = Number(parseFloat(Number(rawAmount).toFixed(2)));
+  const formattedAmount = Number(parseFloat(Number(rawAmount).toFixed(3)));
 
   switch (payload.type) {
     case PerpsEventType.OPEN_POSITION:
@@ -116,7 +116,7 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
   const { amount, decimals, symbol } = payload.srcAsset;
   const rawAmount = formatUnits(BigInt(amount), decimals);
   // Limit to at most 2 decimal places without padding zeros
-  const formattedAmount = Number(parseFloat(Number(rawAmount).toFixed(2)));
+  const formattedAmount = Number(parseFloat(Number(rawAmount).toFixed(3)));
 
   return `${formattedAmount} ${symbol} to ${
     payload.destAsset?.symbol || 'Unknown'

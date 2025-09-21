@@ -465,7 +465,7 @@ describe('formatUtils', () => {
         });
       });
 
-      it('formats PERPS event amounts to at most 2 decimal places (1.23456 should display as 1.23)', () => {
+      it('formats PERPS event amounts to at most 3 decimal places (1.23456 should display as 1.235)', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
@@ -481,7 +481,7 @@ describe('formatUtils', () => {
 
         expect(result).toEqual({
           title: 'Opened position',
-          details: 'Long 1.23 ETH',
+          details: 'Long 1.235 ETH',
           icon: IconName.Candlestick,
         });
       });
@@ -507,7 +507,7 @@ describe('formatUtils', () => {
         });
       });
 
-      it('formats SWAP event amounts to at most 2 decimal places', () => {
+      it('formats SWAP event amounts to at most 3 decimal places', () => {
         const event = createMockEvent('SWAP', {
           srcAsset: {
             symbol: 'ETH',
@@ -529,7 +529,7 @@ describe('formatUtils', () => {
 
         expect(result).toEqual({
           title: 'Swap',
-          details: '1.23 ETH to USDC',
+          details: '1.235 ETH to USDC',
           icon: IconName.SwapVertical,
           badgeImageUri: 'https://example.com/eth.png',
         });
