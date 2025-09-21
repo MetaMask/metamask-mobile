@@ -11,6 +11,22 @@ import { getTimeDifferenceFromNow } from '../../../../util/date';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
+ * Formats a number to a string with locale-specific formatting.
+ * @param value - The number to format.
+ * @returns The formatted number as a string.
+ */
+export const formatNumber = (value: number | null): string => {
+  if (value === null || value === undefined) {
+    return '0';
+  }
+  try {
+    return getIntlNumberFormatter(I18n.locale).format(value);
+  } catch (e) {
+    return String(value);
+  }
+};
+
+/**
  * Formats a timestamp for rewards date
  * @param timestamp - Unix timestamp in milliseconds
  * @returns Formatted date string with time
@@ -83,7 +99,9 @@ const getPerpsEventDetails = (
   const { amount, decimals, symbol } = payload.asset;
   const rawAmount = formatUnits(BigInt(amount), decimals);
   // Limit to at most 2 decimal places without padding zeros
-  const formattedAmount = Number(parseFloat(Number(rawAmount).toFixed(3)));
+  const formattedAmount = formatNumber(
+    parseFloat(Number(rawAmount).toFixed(3)),
+  );
 
   switch (payload.type) {
     case PerpsEventType.OPEN_POSITION:
@@ -116,7 +134,9 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
   const { amount, decimals, symbol } = payload.srcAsset;
   const rawAmount = formatUnits(BigInt(amount), decimals);
   // Limit to at most 2 decimal places without padding zeros
-  const formattedAmount = Number(parseFloat(Number(rawAmount).toFixed(3)));
+  const formattedAmount = formatNumber(
+    parseFloat(Number(rawAmount).toFixed(3)),
+  );
 
   return `${formattedAmount} ${symbol} to ${
     payload.destAsset?.symbol || 'Unknown'
@@ -188,17 +208,6 @@ export const getEventDetails = (
         icon: IconName.Star,
         badgeImageUri: undefined,
       };
-  }
-};
-
-export const formatNumber = (value: number | null): string => {
-  if (value === null || value === undefined) {
-    return '0';
-  }
-  try {
-    return getIntlNumberFormatter(I18n.locale).format(value);
-  } catch (e) {
-    return String(value);
   }
 };
 
