@@ -137,6 +137,10 @@ pipelines:
       build_android_rc_and_upload_sourcemaps:
         depends_on:
         - bump_version_code
+      notify_success:
+        depends_on:
+        - build_ios_rc_and_upload_sourcemaps
+        - build_android_rc_and_upload_sourcemaps
   #App launch times pipeline. Runs on browserstack
   app_launch_times_and_expo_pipeline:
     stages:
