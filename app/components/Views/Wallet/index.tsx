@@ -143,10 +143,7 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
-import {
-  selectIsSwapsLive,
-  selectIsUnifiedSwapsEnabled,
-} from '../../../core/redux/slices/bridge';
+import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
@@ -242,9 +239,14 @@ interface WalletTokensTabViewProps {
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const isPerpsEnabled = useMemo(
-    () => isPerpsFlagEnabled && isEvmSelected,
-    [isPerpsFlagEnabled, isEvmSelected],
+    () =>
+      isPerpsFlagEnabled &&
+      (isEvmSelected || isMultichainAccountsState2Enabled),
+    [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
 
   const {
@@ -256,6 +258,16 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   } = props;
   const route = useRoute<RouteProp<ParamListBase, string>>();
   const tabsListRef = useRef<TabsListRef>(null);
+  const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
+
+  const enabledNetworksIsSolana = useMemo(() => {
+    if (allEnabledNetworks.length === 1) {
+      return allEnabledNetworks.some(
+        (network) => network.chainId === SolScope.Mainnet,
+      );
+    }
+    return false;
+  }, [allEnabledNetworks]);
 
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -376,7 +388,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (defiEnabled) {
+    if (defiEnabled && !enabledNetworksIsSolana) {
       tabs.push(
         <DeFiPositionsList
           {...defiPositionsTabProps}
@@ -385,7 +397,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (collectiblesEnabled) {
+    if (collectiblesEnabled && !enabledNetworksIsSolana) {
       tabs.push(
         <CollectibleContracts
           {...collectibleContractsTabProps}
@@ -404,6 +416,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     defiPositionsTabProps,
     collectiblesEnabled,
     collectibleContractsTabProps,
+    enabledNetworksIsSolana,
   ]);
 
   return (
@@ -475,12 +488,9 @@ const Wallet = ({
   const enabledNetworksHasTestNet = useMemo(() => {
     if (isMultichainAccountsState2Enabled) {
       if (allEnabledNetworks.length === 1) {
-        return allEnabledNetworks.some(
-          (network) =>
-            isTestNet(network.chainId) || network.chainId === SolScope.Mainnet,
-        );
+        return allEnabledNetworks.some((network) => isTestNet(network.chainId));
       }
-      return true;
+      return false;
     }
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       return enabledNetworks.some((network) => isTestNet(network));
@@ -501,9 +511,6 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const swapsIsLive = useSelector((state: RootState) =>
-    selectIsSwapsLive(state, chainId),
-  );
   const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Setup for AssetDetailsActions
@@ -1201,7 +1208,7 @@ const Wallet = ({
               displayBuyButton={displayBuyButton}
               displaySwapsButton={displaySwapsButton}
               displayBridgeButton={displayBridgeButton}
-              swapsIsLive={swapsIsLive}
+              chainId={chainId}
               goToBridge={goToBridge}
               goToSwaps={goToSwaps}
               onReceive={onReceive}
@@ -1244,12 +1251,12 @@ const Wallet = ({
       displayBuyButton,
       displaySwapsButton,
       displayBridgeButton,
-      swapsIsLive,
       onReceive,
       onSend,
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
+      chainId,
     ],
   );
   const renderLoader = useCallback(
