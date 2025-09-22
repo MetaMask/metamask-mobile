@@ -11,11 +11,11 @@ import {
   WalletDevice,
   TransactionEnvelopeType,
 } from '@metamask/transaction-controller';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import {
-  type SmartTransaction,
+  SmartTransactionsController,
   ClientId,
-} from '@metamask/smart-transactions-controller/dist/types';
+  type SmartTransaction,
+} from '@metamask/smart-transactions-controller';
 
 import {
   AllowedActions,

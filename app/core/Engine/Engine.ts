@@ -124,11 +124,17 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import {
+  SmartTransactionsController,
+  ClientId,
+  MetaMetricsEventName,
+  MetaMetricsEventCategory,
+  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
+  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
+} from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ChainId,
@@ -139,14 +145,6 @@ import {
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
-import {
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-} from '@metamask/smart-transactions-controller/dist/constants';
-import {
-  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
-  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
-} from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
