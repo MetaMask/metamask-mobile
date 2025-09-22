@@ -17,11 +17,20 @@ import {
   ISegmentClient,
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
+import { segmentPersistor } from './SegmentPersistor';
+import { createClient } from '@segment/analytics-react-native';
 
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();
+
+jest.mock('./SegmentPersistor', () => ({
+  segmentPersistor: {
+    get: jest.fn(),
+    set: jest.fn(),
+  },
+}));
 
 jest.mock('axios');
 
@@ -75,6 +84,40 @@ describe('MetaMetrics', () => {
       expect(metaMetrics2).toBeInstanceOf(MetaMetrics);
       expect(metaMetrics2).toBe(metaMetrics);
     });
+    it('uses custom persistor for Segment client', async () => {
+      // Reset instance to ensure fresh test
+      TestMetaMetrics.resetInstance();
+
+      const metaMetrics = TestMetaMetrics.getInstance();
+      await metaMetrics.configure();
+      await metaMetrics.enable();
+
+      const event = MetricsEventBuilder.createEventBuilder({
+        category: 'test event',
+      }).build();
+
+      metaMetrics.trackEvent(event);
+
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
+      // Verify that track is called (event is queued)
+      expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        anonymous: false,
+      });
+
+      // The key test: verify that createClient was called with our custom persistor
+      // This proves that the Segment client was initialized with our persistor
+      expect(createClient).toHaveBeenCalledWith(
+        expect.objectContaining({
+          storePersistor: segmentPersistor,
+        }),
+      );
+
+      // Test that the client can flush (send queued events)
+      await metaMetrics.flush();
+      expect(segmentMockClient.flush).toHaveBeenCalled();
+    });
   });
 
   describe('Configuration', () => {
@@ -86,6 +129,25 @@ describe('MetaMetrics', () => {
       StorageWrapper.getItem = jest.fn().mockRejectedValue(new Error('error'));
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeFalsy();
+    });
+
+    describe('flush policy configuration', () => {
+      it('creates flush policies with default values', () => {
+        TestMetaMetrics.resetInstance();
+        jest.clearAllMocks();
+
+        TestMetaMetrics.getInstance();
+
+        // Verify that createClient was called with flush policies
+        expect(createClient).toHaveBeenCalledWith(
+          expect.objectContaining({
+            flushPolicies: expect.arrayContaining([
+              expect.objectContaining({ count: 20 }), // default event limit
+              expect.objectContaining({ interval: 30000 }), // default 30 seconds in milliseconds
+            ]),
+          }),
+        );
+      });
     });
   });
 

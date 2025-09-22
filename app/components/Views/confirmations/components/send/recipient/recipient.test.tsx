@@ -13,6 +13,8 @@ import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
 
+jest.mock('../../../../../../component-library/components/Skeleton');
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   const ReactActual = jest.requireActual('react');
@@ -118,15 +120,24 @@ jest.mock('../../recipient-list/recipient-list', () => ({
 }));
 
 jest.mock('../../recipient-input', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  RecipientInput: ({ isRecipientSelectedFromList }: any) => {
-    const { View, Text } = jest.requireActual('react-native');
+  RecipientInput: ({
+    isRecipientSelectedFromList,
+    setPastedRecipient,
+  }: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  any) => {
+    const { View, Text, Pressable } = jest.requireActual('react-native');
     return (
       <View testID="recipient-input">
         <Text>
           RecipientInput - isRecipientSelectedFromList:{' '}
           {isRecipientSelectedFromList.toString()}
         </Text>
+        <Pressable
+          testID="set-pasted"
+          onPress={() => setPastedRecipient?.('0xvalid')}
+        >
+          <Text>paste</Text>
+        </Pressable>
       </View>
     );
   },
@@ -169,8 +180,9 @@ describe('Recipient', () => {
     mockUseSendContext.mockReturnValue({
       to: '',
       updateTo: mockUpdateTo,
-      asset: undefined,
-      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -242,8 +254,9 @@ describe('Recipient', () => {
     mockUseSendContext.mockReturnValue({
       to: '0x1234567890123456789012345678901234567890',
       updateTo: mockUpdateTo,
-      asset: undefined,
-      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -288,7 +301,7 @@ describe('Recipient', () => {
     expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
   });
 
-  it('call handleSubmitPress with reolved address when submitted', () => {
+  it('call handleSubmitPress with resolved address when submitted', () => {
     const mockHandleSubmitPress = jest.fn();
     mockUseSendActions.mockReturnValue({
       handleSubmitPress: mockHandleSubmitPress,
@@ -307,8 +320,9 @@ describe('Recipient', () => {
     mockUseSendContext.mockReturnValue({
       to: '0x1234567890123456789012345678901234567890',
       updateTo: mockUpdateTo,
-      asset: undefined,
-      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -359,8 +373,9 @@ describe('Recipient', () => {
     mockUseSendContext.mockReturnValue({
       to: '0x1234567890123456789012345678901234567890',
       updateTo: mockUpdateTo,
-      asset: undefined,
-      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '1',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
@@ -476,5 +491,214 @@ describe('Recipient', () => {
     fireEvent.press(getByText('Review'));
 
     expect(mockHandleSubmitPress).not.toHaveBeenCalled();
+  });
+});
+
+describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
+  let mockHandleSubmitPressLocal: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockHandleSubmitPressLocal = jest.fn();
+
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmitPressLocal,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '',
+      updateTo: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    mockUseAccounts.mockReturnValue(mockAccounts);
+    mockUseContacts.mockReturnValue(mockContacts);
+
+    mockUseRecipientSelectionMetrics.mockReturnValue({
+      captureRecipientSelected: jest.fn(),
+      setRecipientInputMethodManual: jest.fn(),
+      setRecipientInputMethodPasted: jest.fn(),
+      setRecipientInputMethodSelectAccount: jest.fn(),
+      setRecipientInputMethodSelectContact: jest.fn(),
+    });
+  });
+
+  it('does not auto-submit when pastedRecipient does not match toAddressValidated', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: '0xresolved',
+      toAddressError: undefined,
+      toAddressValidated: '0xother',
+      toAddressWarning: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+    fireEvent.press(getByTestId('set-pasted'));
+
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-submit when toAddressError is present', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: '0xresolved',
+      toAddressError: 'Invalid address',
+      toAddressValidated: '0xvalid',
+      toAddressWarning: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+    fireEvent.press(getByTestId('set-pasted'));
+
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-submit when toAddressWarning is present', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: '0xresolved',
+      toAddressError: undefined,
+      toAddressValidated: '0xvalid',
+      toAddressWarning: 'Warning',
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+    fireEvent.press(getByTestId('set-pasted'));
+
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-submit when loading is true', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: true,
+      resolvedAddress: '0xresolved',
+      toAddressError: undefined,
+      toAddressValidated: '0xvalid',
+      toAddressWarning: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+    fireEvent.press(getByTestId('set-pasted'));
+
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('handles reviews exits early if asset is missing', () => {
+    // Given: valid to address, no errors/warnings/loading, but missing asset
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: jest.fn(),
+      asset: undefined,
+      chainId: '1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    // When: pressing Review triggers handleReview, which should early-return
+    fireEvent.press(getByTestId('review-button-send'));
+
+    // Then: submit is not called
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('handles reviews exits early if chainId is missing', () => {
+    // Given: valid to address, no errors/warnings/loading, but missing asset
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: jest.fn(),
+      asset: {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    // When: pressing Review triggers handleReview, which should early-return
+    fireEvent.press(getByTestId('review-button-send'));
+
+    // Then: submit is not called
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('handles reviews exits early if toAddressError is defined', () => {
+    // Given: valid to address, no errors/warnings/loading, but missing asset
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: 'Error',
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: jest.fn(),
+      asset: {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
+      chainId: '0x1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    // When: pressing Review triggers handleReview, which should early-return
+    fireEvent.press(getByTestId('review-button-send'));
+
+    // Then: submit is not called
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
   });
 });

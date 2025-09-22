@@ -20,10 +20,8 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-///: END:ONLY_INCLUDE_IF
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
+///: END:ONLY_INCLUDE_IF
 
 interface UseNetworkSelectionOptions {
   /**
@@ -73,12 +71,6 @@ export const useNetworkSelection = ({
   const internalAccounts = useSelector(selectInternalAccounts);
   ///: END:ONLY_INCLUDE_IF
 
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
-  const { MultichainNetworkController, NetworkController } = Engine.context;
-
   const popularNetworkChainIds = useMemo(
     () =>
       new Set(
@@ -113,36 +105,6 @@ export const useNetworkSelection = ({
   );
   ///: END:ONLY_INCLUDE_IF
 
-  /** Disables all custom networks except the optionally specified one */
-  const resetCustomNetworks = useCallback(
-    (excludeChainId?: CaipChainId) => {
-      const networksToDisable = excludeChainId
-        ? customNetworksToReset.filter((chainId) => chainId !== excludeChainId)
-        : customNetworksToReset;
-
-      if (networksToDisable.length === 0) {
-        return;
-      }
-
-      networksToDisable.forEach((chainId) => {
-        disableNetwork(chainId as CaipChainId);
-      });
-    },
-    [customNetworksToReset, disableNetwork],
-  );
-
-  const resetSolanaNetworks = useCallback(() => {
-    disableNetwork(SolScope.Mainnet);
-  }, [disableNetwork]);
-
-  const resetEvmNetworks = useCallback(() => {
-    networks.forEach(({ caipChainId }) => {
-      if (caipChainId !== SolScope.Mainnet) {
-        disableNetwork(caipChainId);
-      }
-    });
-  }, [networks, disableNetwork]);
-
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
@@ -172,37 +134,22 @@ export const useNetworkSelection = ({
       }
       ///: END:ONLY_INCLUDE_IF
       await enableNetwork(chainId);
-      await resetCustomNetworks(chainId);
-      if (isMultichainAccountsState2Enabled) {
-        const { reference } = parseCaipChainId(chainId);
-        const clientId = NetworkController.findNetworkClientIdByChainId(
-          toHex(reference),
-        );
-        await MultichainNetworkController.setActiveNetwork(clientId);
-        await resetSolanaNetworks();
-      }
       onComplete?.();
     },
     [
       enableNetwork,
-      resetCustomNetworks,
-      resetSolanaNetworks,
-      MultichainNetworkController,
-      isMultichainAccountsState2Enabled,
-      NetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       bitcoinInternalAccounts,
-      ///: END:ONLY_INCLUDE_IF
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
     ],
   );
 
   const selectAllPopularNetworks = useCallback(
     async (onComplete?: () => void) => {
       await enableAllPopularNetworks();
-      await resetCustomNetworks();
       onComplete?.();
     },
-    [enableAllPopularNetworks, resetCustomNetworks],
+    [enableAllPopularNetworks],
   );
 
   /** Toggles a popular network and resets all custom networks */
@@ -221,37 +168,13 @@ export const useNetworkSelection = ({
       ///: END:ONLY_INCLUDE_IF
 
       await enableNetwork(chainId);
-      await resetCustomNetworks();
-      if (isMultichainAccountsState2Enabled && chainId === SolScope.Mainnet) {
-        try {
-          await MultichainNetworkController.setActiveNetwork(chainId);
-        } catch (error) {
-          // Handle error silently for now
-          console.error('Error setting active network:', error);
-        }
-        await resetEvmNetworks();
-      }
-      if (isMultichainAccountsState2Enabled && chainId !== SolScope.Mainnet) {
-        const { reference } = parseCaipChainId(chainId);
-        const clientId = NetworkController.findNetworkClientIdByChainId(
-          toHex(reference),
-        );
-        await MultichainNetworkController.setActiveNetwork(clientId);
-        await resetSolanaNetworks();
-      }
       onComplete?.();
     },
     [
       enableNetwork,
-      resetCustomNetworks,
-      resetSolanaNetworks,
-      isMultichainAccountsState2Enabled,
-      resetEvmNetworks,
-      MultichainNetworkController,
-      NetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       bitcoinInternalAccounts,
-      ///: END:ONLY_INCLUDE_IF
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
     ],
   );
 
@@ -330,7 +253,6 @@ export const useNetworkSelection = ({
     selectPopularNetwork,
     selectNetwork,
     deselectAll,
-    resetCustomNetworks,
     customNetworksToReset,
     selectAllPopularNetworks,
   };

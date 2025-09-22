@@ -67,6 +67,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsMarketDetails: {
     market: PerpsMarketData;
+    initialTab?: 'position' | 'orders' | 'info';
   };
 
   PerpsPositions: undefined;

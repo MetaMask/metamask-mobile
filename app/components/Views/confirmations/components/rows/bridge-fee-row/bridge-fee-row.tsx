@@ -1,7 +1,4 @@
 import React, { ReactNode } from 'react';
-import AnimatedSpinner, {
-  SpinnerSize,
-} from '../../../../../UI/AnimatedSpinner';
 import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -20,6 +17,7 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { BigNumber } from 'bignumber.js';
 import { Box } from '../../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
+import { SkeletonRow } from '../skeleton-row';
 
 export function BridgeFeeRow() {
   const { id: transactionId, type } = useTransactionMetadataOrThrow();
@@ -34,32 +32,35 @@ export function BridgeFeeRow() {
     selectTransactionBridgeQuotesById(state, transactionId),
   );
 
-  const show = isQuotesLoading || Boolean(quotes?.length);
+  const hasQuotes = Boolean(quotes?.length);
 
-  if (!show) {
-    return null;
+  if (isQuotesLoading) {
+    return (
+      <>
+        <SkeletonRow testId="bridge-fee-row-skeleton" />
+        <SkeletonRow testId="metamask-fee-row-skeleton" />
+      </>
+    );
   }
 
   return (
     <>
       <InfoRow
+        testID="bridge-fee-row"
         label={strings('confirm.label.transaction_fee')}
-        tooltip={getTooltip(type)}
+        tooltip={hasQuotes ? getTooltip(type) : undefined}
         tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
       >
-        {isQuotesLoading ? (
-          <AnimatedSpinner size={SpinnerSize.SM} />
-        ) : (
-          <Text>{totalTransactionFeeFormatted}</Text>
-        )}
+        <Text>{totalTransactionFeeFormatted}</Text>
       </InfoRow>
-      <InfoRow label={strings('confirm.label.metamask_fee')}>
-        {isQuotesLoading ? (
-          <AnimatedSpinner size={SpinnerSize.SM} />
-        ) : (
+      {hasQuotes && (
+        <InfoRow
+          testID="metamask-fee-row"
+          label={strings('confirm.label.metamask_fee')}
+        >
           <Text>{fiatFormatter(new BigNumber(0))}</Text>
-        )}
-      </InfoRow>
+        </InfoRow>
+      )}
     </>
   );
 }

@@ -78,6 +78,8 @@ describe('perps controller init', () => {
             sinceOpen: '-8.20',
             sinceChange: '-3.10',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ],
       accountState: null,

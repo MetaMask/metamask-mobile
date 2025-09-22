@@ -114,6 +114,18 @@ class FixtureBuilder {
   }
 
   /**
+   * Ensures that the multichain accounts intro modal is suppressed by setting the appropriate flag.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  ensureMultichainIntroModalSuppressed() {
+    if (!this.fixture?.state?.user) {
+      this.fixture.state.user = {};
+    }
+    this.fixture.state.user.multichainAccountsIntroModalSeen = true;
+    return this;
+  }
+
+  /**
    * Defines a Perps profile for E2E mocks.
    * The value is stored in the PerpsController state so that the mocks can read it.
    * @param profile Profile, e.g.: 'no-funds', 'default'.
@@ -1660,9 +1672,6 @@ class FixtureBuilder {
       isBackupAndSyncUpdateLoading: false,
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
-      hasAccountSyncingSyncedAtLeastOnce: true,
-      isAccountSyncingReadyToBeDispatched: true,
-      isAccountSyncingInProgress: false,
       isContactSyncingInProgress: false,
     });
 
@@ -1831,9 +1840,6 @@ class FixtureBuilder {
       isContactSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
-      hasAccountSyncingSyncedAtLeastOnce: false,
-      isAccountSyncingReadyToBeDispatched: true,
-      isAccountSyncingInProgress: false,
     };
     return this;
   }

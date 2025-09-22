@@ -42,6 +42,10 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'center',
       overflow: 'hidden',
     },
+    tpslCountPress: {
+      textDecorationLine: 'underline',
+      textDecorationStyle: 'dotted',
+    },
     headerLeft: {
       flex: 1,
       alignItems: 'flex-start',
