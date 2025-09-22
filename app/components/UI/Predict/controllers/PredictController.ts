@@ -62,9 +62,6 @@ export type PredictErrorCode =
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
-  // User positions
-  positions: PredictPosition[];
-
   // Eligibility (Geo-Blocking) per Provider
   eligibility: { [key: string]: boolean };
 
@@ -84,7 +81,6 @@ export type PredictControllerState = {
  * Get default PredictController state
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
-  positions: [],
   eligibility: {},
   lastError: null,
   lastUpdateTimestamp: 0,
@@ -96,7 +92,6 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
  * State metadata for the PredictController
  */
 const metadata = {
-  positions: { persist: true, anonymous: false },
   orders: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
   eligibility: { persist: false, anonymous: false },
