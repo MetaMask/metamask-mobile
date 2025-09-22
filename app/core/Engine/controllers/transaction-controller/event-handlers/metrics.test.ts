@@ -18,6 +18,7 @@ import {
   enabledSmartTransactionsState,
 } from '../data-helpers';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import Engine from '../../../Engine';
 
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
@@ -42,6 +43,10 @@ jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
   MetricsEventBuilder: {
     createEventBuilder: jest.fn(),
   },
+}));
+
+jest.mock('../../../Engine', () => ({
+  context: {},
 }));
 
 describe('Transaction Metric Event Handlers', () => {

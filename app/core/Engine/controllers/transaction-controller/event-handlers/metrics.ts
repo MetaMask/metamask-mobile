@@ -18,6 +18,10 @@ import type {
 } from '../types';
 import Logger from '../../../../../util/Logger';
 import { getMetaMaskPayProperties } from '../event_properties/metamask-pay';
+import Engine from '../../../Engine';
+import { createProjectLogger } from '@metamask/utils';
+
+const log = createProjectLogger('transaction-metrics');
 
 const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
   getMetaMaskPayProperties,
@@ -125,6 +129,15 @@ export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ): Promise<void> {
+  retryIfEngineNotInitialized(() => {
+    handleTransactionFinalizedEventForMetrics(
+      transactionMeta,
+      transactionEventHandlerRequest,
+    );
+
+    return;
+  });
+
   // Generate default properties
   const defaultTransactionMetricProperties =
     await generateDefaultTransactionMetrics(
@@ -176,4 +189,19 @@ export async function handleTransactionFinalizedEventForMetrics(
   const event = generateEvent(mergedEventProperties);
 
   MetaMetrics.getInstance().trackEvent(event);
+}
+
+function retryIfEngineNotInitialized(fn: () => void) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { context } = Engine;
+  } catch (e) {
+    log('Transaction controller event before engine initialized');
+
+    setTimeout(() => {
+      fn();
+    }, 5000);
+
+    return;
+  }
 }
