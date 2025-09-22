@@ -1486,8 +1486,7 @@
       "add_funds": "Add funds",
       "what_are_perps": {
         "title": "What are perps?",
-        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
-        "subtitle": "Here's how it works."
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it. Here's how it works."
       },
       "go_long_or_short": {
         "title": "Go long or short on a token",

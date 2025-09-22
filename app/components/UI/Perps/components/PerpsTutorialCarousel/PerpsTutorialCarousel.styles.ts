@@ -2,7 +2,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 import Device from '../../../../../util/device';
 
-const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = Dimensions.get('window');
+const { width: DEVICE_WIDTH } = Dimensions.get('window');
 
 const createStyles = (params: {
   theme: Theme;
@@ -37,9 +37,13 @@ const createStyles = (params: {
       paddingVertical: 0,
       maxWidth: DEVICE_WIDTH - 48,
     },
+    characterImage: {
+      width: '100%',
+      height: '100%',
+    },
     title: {
       textAlign: 'left',
-      marginBottom: 16,
+      marginBottom: 6,
       fontSize: Device.isMediumDevice() ? 24 : 28,
       lineHeight: Device.isMediumDevice() ? 28 : 32,
     },
@@ -94,9 +98,9 @@ const createStyles = (params: {
       width: '100%',
     },
     animationContainer: {
-      // TEMP Possibly: Waiting for Rive animations to be exported without fullscreen frame.
-      height: Math.min(DEVICE_HEIGHT * 0.45, 400), // Responsive height, max 400px
-      width: '100%',
+      height: 400,
+      position: 'relative',
+      bottom: 50,
     },
   });
 

@@ -5,7 +5,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import {
+  Dimensions,
+  Image,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -33,21 +39,25 @@ import {
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
-import Rive, { Alignment, Fit } from 'rive-react-native';
+import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
-const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding-carousel-light.riv');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-carousel-dark.riv');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// import Character from '../../images/perps_onboarding_character.svg';
+import Character from '../../images/perps_onboarding_character.png';
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
-  INTRO = 'Intro_Perps_v03 2',
-  SHORT_LONG = 'Short_Long_v03',
-  LEVERAGE = 'Leverage_v03',
-  LIQUIDATION = 'Liquidation_v03',
-  CLOSE = 'Close_v03',
-  READY = 'Ready_v03',
+  SHORT_LONG = '01_Short_Long',
+  LEVERAGE = '02_Leverage',
+  LIQUIDATION = '03_Liquidation',
+  CLOSE = '04_Close',
+  READY = '05_Ready',
 }
 
 export interface TutorialScreen {
@@ -55,17 +65,36 @@ export interface TutorialScreen {
   title: string;
   description: string;
   subtitle?: string;
-  riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES;
+  content?: React.ReactNode;
+  riveArtboardName?: PERPS_RIVE_ARTBOARD_NAMES;
 }
 
+// TODO: Fix positioning being inconsistent between tabs
+// TODO: Test on small and large devices
 const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
+  const { height: DEVICE_HEIGHT } = Dimensions.get('window');
+
   const defaultScreens = [
     {
       id: 'what_are_perps',
       title: strings('perps.tutorial.what_are_perps.title'),
       description: strings('perps.tutorial.what_are_perps.description'),
-      subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
-      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.INTRO,
+      content: (
+        <Image
+          source={Character}
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{
+            width: '100%',
+            height: '100%',
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: DEVICE_HEIGHT > 820 ? 80 : 10, // Extra margin larger screens so the image is lower
+            marginBottom: 20,
+          }}
+          resizeMode="contain"
+        />
+      ),
     },
     {
       id: 'go_long_or_short',
@@ -124,7 +153,12 @@ const PerpsTutorialCarousel: React.FC = () => {
   const continueDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const { navigateToConfirmation } = useConfirmNavigation();
 
+  // Refs for each Rive animation to control playback
+  const riveRefs = useRef<{ [key: string]: React.RefObject<RiveRef> }>({});
+
   const isEligible = useSelector(selectPerpsEligibility);
+
+  const isDarkMode = useColorScheme() === 'dark';
 
   const tutorialScreens = useMemo(
     () => getTutorialScreens(isEligible),
@@ -144,6 +178,12 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
   });
+
+  const PerpsOnboardingAnimation = useMemo(
+    () =>
+      isDarkMode ? PerpsOnboardingAnimationDark : PerpsOnboardingAnimationLight,
+    [isDarkMode],
+  );
 
   // Track tutorial viewed on mount
   useEffect(() => {
@@ -167,6 +207,53 @@ const PerpsTutorialCarousel: React.FC = () => {
     },
     [],
   );
+
+  // Helper function to get or create a ref for a specific screen
+  const getRiveRef = useCallback((screenId: string) => {
+    riveRefs.current[screenId] ??= React.createRef<RiveRef>();
+    return riveRefs.current[screenId];
+  }, []);
+
+  // Control Rive animation playback based on current tab visibility
+  useEffect(() => {
+    tutorialScreens.forEach((screen, index) => {
+      const riveRef = riveRefs.current[screen.id];
+      if (!riveRef?.current) return;
+
+      try {
+        if (index === currentTab) {
+          // Play animation for current visible tab
+          riveRef.current.play();
+        } else {
+          // Stop animation for non-visible tabs to prevent them from playing
+          riveRef.current.stop();
+        }
+      } catch (error) {
+        console.warn(
+          `Error controlling Rive animation for ${screen.id}:`,
+          error,
+        );
+      }
+    });
+  }, [currentTab, tutorialScreens]);
+
+  // Play the first tab's animation on mount
+  useEffect(() => {
+    const firstScreen = tutorialScreens[0];
+    if (firstScreen?.riveArtboardName) {
+      const riveRef = riveRefs.current[firstScreen.id];
+      if (riveRef?.current) {
+        try {
+          riveRef.current.play();
+        } catch (error) {
+          console.warn(
+            `Error playing initial Rive animation for ${firstScreen.id}:`,
+            error,
+          );
+        }
+      }
+    }
+  }, [tutorialScreens]);
 
   const handleTabChange = useCallback(
     (obj: { i: number }) => {
@@ -322,59 +409,63 @@ const PerpsTutorialCarousel: React.FC = () => {
       </View>
 
       {/* Tutorial Content */}
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.carouselWrapper}>
-          <ScrollableTabView
-            ref={scrollableTabViewRef}
-            renderTabBar={renderTabBar}
-            onChangeTab={handleTabChange}
-            initialPage={0}
-          >
-            {tutorialScreens.map((screen) => (
-              <View key={screen.id} style={styles.screenContainer}>
-                <View style={styles.contentContainer}>
-                  <Text
-                    variant={TextVariant.HeadingLG}
-                    color={TextColor.Default}
-                    style={styles.title}
-                  >
-                    {screen.title}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.description}
-                  >
-                    {screen.description}
-                  </Text>
-                  {screen.subtitle && (
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
-                      style={styles.subtitle}
-                    >
-                      {screen.subtitle}
-                    </Text>
-                  )}
-                  {/* Animation Container */}
-                  <View style={styles.animationContainer}>
-                    <Rive
-                      artboardName={screen.riveArtboardName}
-                      source={PerpsOnboardingAnimation}
-                      fit={Fit.Cover}
-                      alignment={Alignment.Center}
-                      autoplay
-                    />
-                  </View>
+      {/* <ScrollView contentContainerStyle={styles.scrollContent}> */}
+      <View style={styles.carouselWrapper}>
+        <ScrollableTabView
+          ref={scrollableTabViewRef}
+          renderTabBar={renderTabBar}
+          onChangeTab={handleTabChange}
+          initialPage={0}
+          prerenderingSiblingsNumber={1}
+        >
+          {tutorialScreens.map((screen) => (
+            <View key={screen.id} style={styles.screenContainer}>
+              {/* Text content wrapper */}
+              <Text
+                variant={TextVariant.HeadingMD}
+                color={TextColor.Default}
+                style={styles.title}
+              >
+                {screen.title}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.description}
+              >
+                {screen.description}
+              </Text>
+              {screen.subtitle && (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                  style={styles.subtitle}
+                >
+                  {screen.subtitle}
+                </Text>
+              )}
+
+              {/* Image/Animation content that fills remaining space */}
+              {screen?.content && screen.content}
+
+              {/* Animation Container */}
+              {screen?.riveArtboardName && (
+                <View style={styles.animationContainer}>
+                  <Rive
+                    ref={getRiveRef(screen.id)}
+                    artboardName={screen.riveArtboardName}
+                    source={PerpsOnboardingAnimation}
+                    fit={Fit.Cover}
+                    alignment={Alignment.Center}
+                    autoplay={false}
+                  />
                 </View>
-              </View>
-            ))}
-          </ScrollableTabView>
-        </View>
-      </ScrollView>
+              )}
+            </View>
+          ))}
+        </ScrollableTabView>
+      </View>
+      {/* </ScrollView> */}
 
       {/* Footer */}
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
