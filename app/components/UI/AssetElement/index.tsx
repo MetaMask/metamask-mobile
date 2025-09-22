@@ -6,7 +6,7 @@ import {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
-import { TokenI } from '../Tokens/types';
+import { Amount, TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import SensitiveText, {
@@ -21,13 +21,13 @@ import {
   TOKEN_RATE_UNDEFINED,
 } from '../Tokens/constants';
 import { BALANCE_TEST_ID, SECONDARY_BALANCE_TEST_ID } from './index.constants';
+import { useFormatters } from '../../../util/formatters';
 
 interface AssetElementProps {
   children?: React.ReactNode;
-  asset: TokenI;
+  asset: TokenI & { fiat: Amount };
   onPress?: (asset: TokenI) => void;
   onLongPress?: ((asset: TokenI) => void) | null;
-  balance?: string;
   balanceVariant?: TextVariant;
   secondaryBalance?: string;
   secondaryBalanceVariant?: TextVariant;
@@ -66,7 +66,6 @@ const createStyles = (colors: Colors) =>
  */
 const AssetElement: React.FC<AssetElementProps> = ({
   children,
-  balance,
   secondaryBalance,
   secondaryBalanceColor,
   asset,
@@ -78,6 +77,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { formatCurrencyWithMinThreshold } = useFormatters();
 
   const handleOnPress = () => {
     onPress?.(asset);
@@ -86,6 +86,9 @@ const AssetElement: React.FC<AssetElementProps> = ({
   const handleOnLongPress = () => {
     onLongPress?.(asset);
   };
+
+  const fiat = asset.fiat;
+  const balance = formatCurrencyWithMinThreshold(fiat.amount, fiat.currency);
 
   // TODO: Use the SensitiveText component when it's available
   // when privacyMode is true, we should hide the balance and the fiat

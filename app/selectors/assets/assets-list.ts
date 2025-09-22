@@ -8,7 +8,7 @@ import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
 
 import I18n from '../../../locales/i18n';
-import { TokenI } from '../../components/UI/Tokens/types';
+import { Amount, TokenI } from '../../components/UI/Tokens/types';
 import { sortAssets } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
@@ -273,7 +273,7 @@ const oneHundredths = 0.01;
 function assetToToken(
   asset: Asset & { isStaked?: boolean },
   tokensChainsCache: TokenListState['tokensChainsCache'],
-): TokenI {
+): TokenI & { fiat: Amount } {
   return {
     address: asset.assetId,
     aggregators:
@@ -284,6 +284,8 @@ function assetToToken(
     image: asset.image,
     name: asset.name,
     symbol: asset.symbol,
+
+    // Can remove?
     balance: formatWithThreshold(
       parseFloat(asset.balance),
       oneHundredThousandths,
@@ -294,6 +296,13 @@ function assetToToken(
           MULTICHAIN_NETWORK_DECIMAL_PLACES[asset.chainId as CaipChainId] || 5,
       },
     ),
+
+    fiat: {
+      amount: asset.fiat?.balance || 0,
+      currency: asset.fiat?.currency || 'USD',
+    },
+
+    // Can remove?
     balanceFiat: asset.fiat
       ? formatWithThreshold(asset.fiat.balance, oneHundredths, I18n.locale, {
           style: 'currency',
