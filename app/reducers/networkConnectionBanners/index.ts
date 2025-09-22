@@ -15,7 +15,7 @@ export interface NetworkConnectionBannersState {
 /**
  * Initial state of the Network Connection Banners event flow
  */
-const initialState: NetworkConnectionBannersState = {
+export const initialState: NetworkConnectionBannersState = {
   visible: false,
   chainId: undefined,
 };

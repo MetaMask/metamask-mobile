@@ -59,13 +59,13 @@ const useNetworkConnectionBanners = (): {
       currentNetwork.rpcEndpoints[defaultEndpointIndex]?.url ||
       currentNetwork.rpcEndpoints[0]?.url;
 
-    // Tracking the event
     navigation.navigate(Routes.EDIT_NETWORK, {
       network: rpcUrl,
       shouldNetworkSwitchPopToWallet: false,
       shouldShowPopularNetworks: false,
     });
 
+    // Tracking the event
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.SLOW_RPC_MONITORING_BANNER_EDIT_RPC_CLICKED,
