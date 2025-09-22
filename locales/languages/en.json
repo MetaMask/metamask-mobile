@@ -1163,8 +1163,6 @@
     "tpsl": {
       "title": "Take profit and stop loss",
       "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
-      "set": "Set",
-      "updating": "Updating...",
       "off": "Off",
       "current_price": "Current price",
       "leverage": "Leverage",
@@ -1186,7 +1184,7 @@
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
       "below": "below",
-      "dismiss_tpsl_keypad": "Dismiss"
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
