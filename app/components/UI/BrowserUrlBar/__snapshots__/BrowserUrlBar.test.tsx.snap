@@ -44,16 +44,19 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
-          {
-            "color": "#121314",
-            "flex": 1,
-            "fontFamily": "Geist Regular",
-            "fontSize": 14,
-            "height": 44,
-            "margin": 0,
-            "paddingLeft": 16,
-            "paddingVertical": 0,
-          }
+          [
+            {
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "height": 44,
+              "margin": 0,
+              "paddingLeft": 16,
+              "paddingVertical": 0,
+            },
+            false,
+          ]
         }
         testID="browser-modal-url-input"
       />
@@ -82,9 +85,8 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
             "opacity": 0,
@@ -242,16 +244,22 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
-          {
-            "color": "#121314",
-            "flex": 1,
-            "fontFamily": "Geist Regular",
-            "fontSize": 14,
-            "height": 44,
-            "margin": 0,
-            "paddingLeft": 0,
-            "paddingVertical": 0,
-          }
+          [
+            {
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "Geist Regular",
+              "fontSize": 14,
+              "height": 44,
+              "margin": 0,
+              "paddingLeft": 0,
+              "paddingVertical": 0,
+            },
+            {
+              "opacity": 0,
+              "position": "absolute",
+            },
+          ]
         }
         testID="browser-modal-url-input"
       />
@@ -280,9 +288,8 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
             "opacity": 1,
