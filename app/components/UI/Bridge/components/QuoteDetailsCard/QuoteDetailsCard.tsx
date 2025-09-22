@@ -30,6 +30,7 @@ import {
   selectSourceToken,
   selectBridgeFeatureFlags,
   selectDestAddress,
+  selectIsSwap,
 } from '../../../../../core/redux/slices/bridge';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
@@ -67,6 +68,7 @@ const QuoteDetailsCard: React.FC = () => {
   const sourceAmount = useSelector(selectSourceAmount);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destAddress = useSelector(selectDestAddress);
+  const isSwap = useSelector(selectIsSwap);
   const {
     estimatedPoints,
     isLoading: isRewardsLoading,
@@ -274,41 +276,43 @@ const QuoteDetailsCard: React.FC = () => {
           }}
         />
 
-        <KeyValueRow
-          field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={4}
-              >
-                <TouchableOpacity
-                  onPress={handleRecipientPress}
-                  activeOpacity={0.6}
-                  testID="recipient-selector-button"
-                  style={styles.slippageButton}
+        {!isSwap && (
+          <KeyValueRow
+            field={{
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={4}
                 >
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('bridge.recipient')}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.Muted}
-                  />
-                </TouchableOpacity>
-              </Box>
-            ),
-          }}
-          value={{
-            label: {
-              text: destAddress
-                ? formatAddress(destAddress, 'short')
-                : strings('bridge.select_recipient'),
-              variant: TextVariant.BodyMD,
-            },
-          }}
-        />
+                  <TouchableOpacity
+                    onPress={handleRecipientPress}
+                    activeOpacity={0.6}
+                    testID="recipient-selector-button"
+                    style={styles.slippageButton}
+                  >
+                    <Text variant={TextVariant.BodyMDMedium}>
+                      {strings('bridge.recipient')}
+                    </Text>
+                    <Icon
+                      name={IconName.Edit}
+                      size={IconSize.Sm}
+                      color={IconColor.Muted}
+                    />
+                  </TouchableOpacity>
+                </Box>
+              ),
+            }}
+            value={{
+              label: {
+                text: destAddress
+                  ? formatAddress(destAddress, 'short')
+                  : strings('bridge.select_recipient'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        )}
 
         {activeQuote?.minToTokenAmount && (
           <KeyValueRow
