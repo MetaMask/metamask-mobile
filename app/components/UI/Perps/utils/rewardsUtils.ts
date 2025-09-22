@@ -8,6 +8,7 @@ import {
   parseCaipChainId,
 } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import Logger from '../../../../util/Logger';
 
 /**
@@ -30,7 +31,14 @@ export const formatAccountToCaipAccountId = (
   try {
     const caipChainId = formatChainIdToCaip(chainId);
     const { namespace, reference } = parseCaipChainId(caipChainId);
-    return toCaipAccountId(namespace, reference, address);
+
+    // Normalize EVM addresses to checksummed format for consistent CAIP IDs
+    let normalizedAddress = address;
+    if (namespace === 'eip155') {
+      normalizedAddress = toChecksumHexAddress(address);
+    }
+
+    return toCaipAccountId(namespace, reference, normalizedAddress);
   } catch (error) {
     Logger.error(error as Error, {
       message: 'Rewards: Failed to format CAIP Account ID',
