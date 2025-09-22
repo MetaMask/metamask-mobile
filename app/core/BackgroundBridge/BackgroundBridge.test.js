@@ -516,7 +516,7 @@ describe('BackgroundBridge', () => {
             method: 'metamask_accountsChanged',
             params: ['7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU'],
           },
-          scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          scope: SolScope.Mainnet,
         },
       });
     });

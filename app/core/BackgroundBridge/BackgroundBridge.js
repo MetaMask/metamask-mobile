@@ -1079,11 +1079,9 @@ export class BackgroundBridge extends EventEmitter {
   getNonEvmAccountFromSelectedAccountGroup() {
     const controllerMessenger = Engine.controllerMessenger;
 
-    const internalAccounts = controllerMessenger.call(
+    const [solanaAccount] = controllerMessenger.call(
       `AccountTreeController:getAccountsFromSelectedAccountGroup`,
-    );
-    const solanaAccount = internalAccounts.find(
-      (account) => account.type === SolAccountType.DataAccount,
+      { type: SolAccountType.DataAccount },
     );
     return solanaAccount;
   }
