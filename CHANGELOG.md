@@ -575,6 +575,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: Unnecessary truncation for MainActionButton ([#19612](https://github.com/MetaMask/metamask-mobile/pull/19612))
 - fix: left aligned account picker in all cases for wallet homepage ([#19617](https://github.com/MetaMask/metamask-mobile/pull/19617))
 
+## [7.54.2]
+
+### Fixed
+- fix(deposit): disable Base & Linea USDT ([#19557](https://github.com/MetaMask/metamask-mobile/pull/19557))
+- fix(deposit): get started mUSD ([#19552](https://github.com/MetaMask/metamask-mobile/pull/19552))
+- fix(deposit): add force update and fix faulty data migration ([#19541](https://github.com/MetaMask/metamask-mobile/pull/19541))
+- fix: Unnecessary truncation for MainActionButton ([#19612](https://github.com/MetaMask/metamask-mobile/pull/19612))
+- fix: left aligned account picker in all cases for wallet homepage ([#19617](https://github.com/MetaMask/metamask-mobile/pull/19617))
+
 ## [7.54.1]
 
 ### Added
