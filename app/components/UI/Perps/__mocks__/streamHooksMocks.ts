@@ -5,7 +5,12 @@
  */
 
 import React from 'react';
-import type { AccountState, Position, Order, PriceUpdate } from '../controllers/types';
+import type {
+  AccountState,
+  Position,
+  Order,
+  PriceUpdate,
+} from '../controllers/types';
 
 /**
  * Default mock account state for testing
@@ -106,7 +111,10 @@ export const streamHookMocks = {
   /**
    * Mock for usePerpsLivePrices hook
    */
-  usePerpsLivePrices: (_params?: { symbols?: string[]; throttleMs?: number }) => ({
+  usePerpsLivePrices: (_params?: {
+    symbols?: string[];
+    throttleMs?: number;
+  }) => ({
     ETH: defaultMockPriceUpdate,
     BTC: { ...defaultMockPriceUpdate, coin: 'BTC', price: '45000.00' },
   }),
@@ -115,20 +123,38 @@ export const streamHookMocks = {
 /**
  * Jest mock factory functions
  */
-export const createStreamHookMocks = (overrides: Partial<typeof streamHookMocks> = {}) => ({
-  usePerpsLiveAccount: jest.fn(() => ({ ...streamHookMocks.usePerpsLiveAccount, ...overrides.usePerpsLiveAccount })),
-  usePerpsLivePositions: jest.fn(() => ({ ...streamHookMocks.usePerpsLivePositions, ...overrides.usePerpsLivePositions })),
-  usePerpsLiveOrders: jest.fn(() => ({ ...streamHookMocks.usePerpsLiveOrders, ...overrides.usePerpsLiveOrders })),
+export const createStreamHookMocks = (
+  overrides: Partial<typeof streamHookMocks> = {},
+) => ({
+  usePerpsLiveAccount: jest.fn(() => ({
+    ...streamHookMocks.usePerpsLiveAccount,
+    ...overrides.usePerpsLiveAccount,
+  })),
+  usePerpsLivePositions: jest.fn(() => ({
+    ...streamHookMocks.usePerpsLivePositions,
+    ...overrides.usePerpsLivePositions,
+  })),
+  usePerpsLiveOrders: jest.fn(() => ({
+    ...streamHookMocks.usePerpsLiveOrders,
+    ...overrides.usePerpsLiveOrders,
+  })),
   usePerpsLivePrices: jest.fn((params) => {
-    const pricesFunction = overrides.usePerpsLivePrices || streamHookMocks.usePerpsLivePrices;
-    return typeof pricesFunction === 'function' ? pricesFunction(params) : pricesFunction;
+    const pricesFunction =
+      overrides.usePerpsLivePrices || streamHookMocks.usePerpsLivePrices;
+    return typeof pricesFunction === 'function'
+      ? pricesFunction(params)
+      : pricesFunction;
   }),
 });
 
 /**
  * Stream provider mock component for tests that need provider context
  */
-export const MockPerpsStreamProvider = ({ children }: { children: React.ReactNode }) => children;
+export const MockPerpsStreamProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => children;
 
 /**
  * Mock stream context for tests
@@ -151,5 +177,7 @@ export const mockStreamContext = {
 /**
  * Helper to create test wrapper with stream provider
  */
-export const createTestWrapperWithStreamProvider = () => ({ children }: { children: React.ReactNode }) =>
-  React.createElement(MockPerpsStreamProvider, null, children);
+export const createTestWrapperWithStreamProvider =
+  () =>
+  ({ children }: { children: React.ReactNode }) =>
+    React.createElement(MockPerpsStreamProvider, null, children);

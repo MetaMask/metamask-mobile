@@ -371,7 +371,8 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
         // Validate account context
-        const currentAccount = getEvmAccountFromSelectedAccountGroup()?.address || null;
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
         if (this.accountAddress && this.accountAddress !== currentAccount) {
           Logger.error(new Error('OrderStreamChannel: Wrong account context'), {
             expected: currentAccount,
@@ -461,12 +462,16 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
         // Validate account context
-        const currentAccount = getEvmAccountFromSelectedAccountGroup()?.address || null;
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
         if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(new Error('PositionStreamChannel: Wrong account context'), {
-            expected: currentAccount,
-            received: this.accountAddress,
-          });
+          Logger.error(
+            new Error('PositionStreamChannel: Wrong account context'),
+            {
+              expected: currentAccount,
+              received: this.accountAddress,
+            },
+          );
           return;
         }
         this.accountAddress = currentAccount;
@@ -575,12 +580,16 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState) => {
         // Validate account context
-        const currentAccount = getEvmAccountFromSelectedAccountGroup()?.address || null;
+        const currentAccount =
+          getEvmAccountFromSelectedAccountGroup()?.address || null;
         if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(new Error('AccountStreamChannel: Wrong account context'), {
-            expected: currentAccount,
-            received: this.accountAddress,
-          });
+          Logger.error(
+            new Error('AccountStreamChannel: Wrong account context'),
+            {
+              expected: currentAccount,
+              received: this.accountAddress,
+            },
+          );
           return;
         }
         this.accountAddress = currentAccount;
