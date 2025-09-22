@@ -1,7 +1,6 @@
 import { SmokeAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import Assertions from '../../framework/Assertions';
 import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-accounts/common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
@@ -21,7 +20,10 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       );
       await AccountListBottomSheet.tapCreateAccount(FIRST);
 
-      const visibleAccounts = ['Account 1', 'Account 2', 'Account 5']; // Other account exist from fixture, next is Account 5
+      // Account names are now per wallet, thus other accounts from the fixture (that are not associated
+      // with the primary HD keyring) are not considered for account index. Current fixture uses 2 HD
+      // accounts, thus the next one is: "Account 3".
+      const visibleAccounts = ['Account 1', 'Account 2', 'Account 3'];
       for (const accountName of visibleAccounts) {
         await Assertions.expectElementToBeVisible(
           AccountListBottomSheet.getAccountElementByAccountNameV2(accountName),
@@ -32,7 +34,6 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       }
 
       await AccountListBottomSheet.tapAccountEllipsisButtonV2(LAST);
-      await AccountActionsBottomSheet.tapAccountDetails();
       await AccountDetails.tapNetworksLink();
 
       const visibleNetworks = [

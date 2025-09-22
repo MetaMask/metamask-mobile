@@ -17,7 +17,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
@@ -44,6 +43,7 @@ import {
   NetworkType,
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import Logger from '../../../util/Logger';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -163,8 +163,6 @@ export function useSwitchNetworks({
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
-        // Only update token network filter for global network switches
-        setTokenNetworkFilter(chainId);
       }
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
@@ -183,7 +181,6 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      setTokenNetworkFilter,
       selectedNetworkName,
       trackEvent,
       createEventBuilder,

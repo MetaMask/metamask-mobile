@@ -4895,10 +4895,10 @@
     "@metamask/keyring-utils" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.16.0":
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.16.0.tgz#42f17e76c38145727060d1162cd34e9cc7a323e9"
-  integrity sha512-Mzoy0F82mnRN+KyopysHRVGbVUbeMe/2g9efhklkRAetQuvwKG0oXDAR7b4FhGAXGN0jU3vu+Z06zSDTO9iBXw==
+"@metamask/account-tree-controller@^0.18.0":
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.18.0.tgz#5cd1dad79871a94bdf8c751305467484dfac3a5e"
+  integrity sha512-VN4bpoVzLI4zM9xMTudwv7o3CcMZPDN5XSwNmOGwu40bUisT3xIYlB+5G2jSjfMCAWqGLfy7+bBD1+x71WxcoA==
   dependencies:
     "@metamask/base-controller" "^8.4.0"
     "@metamask/snaps-sdk" "^9.0.0"
@@ -5018,7 +5018,7 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0", "@metamask/base-controller@^8.3.0", "@metamask/base-controller@^8.4.0":
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.0.3", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0", "@metamask/base-controller@^8.3.0", "@metamask/base-controller@^8.4.0":
   version "8.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.4.0.tgz#1adffa81b4d6d53a6c5e54d956251c18a72cdf03"
   integrity sha512-K2tVUIA5p89X/1aro0uGcpR3UvzP6wioM+TzJeGe72ZzbTo3DC5nm98lXgVfWsWt/d94bk2RXijngfYk/0MaIQ==
@@ -5032,18 +5032,18 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-1.0.0.tgz#a79ebf1925ebaa20d059c19bb8a6a20b2fb121f5"
   integrity sha512-xFz/L5/2tjduzIUj+86P63ACExD2icbrDeJzB6nfjhZ4GsfIcOHSm1Rwc5q945Ef88eVwMpqZhMv19i9K0dWmA==
 
-"@metamask/bridge-controller@^43.0.0":
-  version "43.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-43.0.0.tgz#19da56e46a3f79bf3b90fd681b017f727a82bd5f"
-  integrity sha512-u1Jn7G+IgkeeXTrtR+bRlZ8Y20ZX4bF5bdAl51weMjpGGse40Tg0FyvBK00ZhPczAPuRZ+y9hbzA3I+FBkcY2Q==
+"@metamask/bridge-controller@^43.2.0":
+  version "43.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-43.2.0.tgz#a9bc4f131c0790789fcfa1ee9b071bc2fdf79ff8"
+  integrity sha512-FtsavADLXWhPrOKx0r7T89EV4Fpu0XCj+kPGHB5pjCoVd086zbTN9FF4IXgclqjuL0x4GEWjzKXdfOIryWyO+g==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/constants" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.3.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/controller-utils" "^11.14.0"
     "@metamask/gas-fee-controller" "^24.0.0"
     "@metamask/keyring-api" "^21.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
@@ -5639,29 +5639,30 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/mobile-wallet-protocol-core@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.1.0.tgz#148a7393fc603af9eed89a1e2517df371eb01018"
-  integrity sha512-YcGPtV/I7GRAjtFhGQa6R+OwGYSrgKrel3PQbnoHPyvrzJ8wYW+ObeFuAHDiS79jbi10ETbDuf/5v/U62StahA==
+"@metamask/mobile-wallet-protocol-core@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.1.1.tgz#fcd3c4ee2b2e26d5147bfc5e7d962a396c492f79"
+  integrity sha512-HT6fQTZ/CyXOG64/2i9oapg43KbruVe55f3XdOjmuQRz6vDVsWSiDqVGPn87upq/ljiU2RUuJJ5Dzp8Fkd7H/A==
   dependencies:
     centrifuge "^5.3.5"
     eventemitter3 "^5.0.1"
     uuid "^11.1.0"
 
-"@metamask/mobile-wallet-protocol-wallet-client@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.1.0.tgz#738fc8fd9a604b079e2c11e9c898a2f99ee5ab8e"
-  integrity sha512-t3UKLP2XJ0vN5LL1nkb3y7neSARrnRlMZk+wmBgICnqHC8+1ebnE41KdeVqaRSfisK/EfmYEXqqob44N/zpy3Q==
+"@metamask/mobile-wallet-protocol-wallet-client@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.1.1.tgz#de8de9bfa6c9d6e26a4b442a614ae32c158758b0"
+  integrity sha512-GosrGV//3+P7qodvov9JXc/U7EqU179kxSNAgPmv77YMFOR0K4f/uFHytMdtpJxFV30cofRT0mcYF0dY6QdFLQ==
   dependencies:
-    "@metamask/mobile-wallet-protocol-core" "^0.1.0"
+    "@metamask/mobile-wallet-protocol-core" "^0.1.1"
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
-"@metamask/multichain-account-service@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.9.0.tgz#364af6e83c4682bf99342a71435a8c62f7e1aff3"
-  integrity sha512-hmsq9TgdNLSQ/CM4DJdAb1uPXggjOuQpERcdEx7l50PfIZpsI9R5dJogUYIQC9VNmx30ZQpuZ2Ul2hEYEIgH3A==
+"@metamask/multichain-account-service@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.10.0.tgz#b01785b336d3cb91b34fef7da21e7c91fc56cbb2"
+  integrity sha512-UcUjPX2NNv99TLnrobxyBNC8AyP6U82OaAQq/mnOetYQNuk42KhxOVn/Fp7aj9HB8w7ChG2vX4C7PXB03q+tJw==
   dependencies:
+    "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.4.0"
     "@metamask/eth-snap-keyring" "^17.0.0"
     "@metamask/key-tree" "^10.1.1"
@@ -5766,13 +5767,13 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-enablement-controller@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-1.1.0.tgz#83d198e2909d1c1dfd41d664fb3090d9b1345121"
-  integrity sha512-RTcx1MCOT9LMcIuJplyG8pJ+9RUJUYdIhe5iy/gDoUUHYoK5KMI9+JC1dEdUgIhUFERvgAacwflKBZNXPC/Wgw==
+"@metamask/network-enablement-controller@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-1.2.0.tgz#ffb6daac620d111a1bb2e6062bcf85e7cc0f835c"
+  integrity sha512-iYLWBuXCW/k2txXug/Cdk5qB4OEprKOU3hUdkpW5hAbf8357ohIVE01iqmUWuPfj5QBGC+NTOy/3206V/rm+7g==
   dependencies:
-    "@metamask/base-controller" "^8.3.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/controller-utils" "^11.14.0"
     "@metamask/utils" "^11.8.0"
     reselect "^5.1.1"
 
@@ -6234,10 +6235,10 @@
     ses "^1.14.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^2.3.8":
-  version "2.3.8"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.8.tgz#73d9f525d61b24e44a1889352bd1d115314bc59f"
-  integrity sha512-UZnsCrhFVIY2HHOEILwBI2qtlxMTGqzln3kKNVVMGJq7+UmDftHyWbaYbD8go55GkCdaOTOBZ8ZhPsSU+JxDBg==
+"@metamask/solana-wallet-snap@^2.3.9":
+  version "2.3.9"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.9.tgz#a358955ee34f258fc17c8cf4652f5e678cd70aac"
+  integrity sha512-lj8WGnBw03053Krhb/0DXg1HENrscSgsvO219UXmkoThzJgKVGrwXzf7IPUfT06s73RZ+ICqFjorxHgy2VZ2lQ==
 
 "@metamask/solana-wallet-standard@^0.5.1":
   version "0.5.1"
@@ -6266,14 +6267,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.3.0.tgz#276819d24f1b411c768441efb6098c1743d6f67a"
   integrity sha512-+VFE6wVWve86SLiUI3jyhJjizUezpOnwvRyem7EP79Mml+oSm48gQ4W8QqeQqTugbrlCsxtFI4QNEPotQsll6Q==
 
-"@metamask/swaps-controller@^13.3.0":
-  version "13.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-13.3.0.tgz#b1a9451c8602434c0c2853f076d83d82627ed902"
-  integrity sha512-2zB+i8YJpEgA5yL5zeRXQ893s1X2pAoottQtJ45UToVTzs5UeOpOpJQQnaIAsFZhMp9UmFn1LopvhlVXj32uHw==
+"@metamask/swaps-controller@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-14.0.0.tgz#284ee566c8add009463427c75fcc89cd14fb0f5e"
+  integrity sha512-Ceb3LY2dK9QWGwPzSZc2wHNllDp/yUMQnoD089i/l4Dre06TmuNmHhIprA+fXdsng1z72nRaiRan659/vjjZ0w==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^7.0.1"
+    "@metamask/base-controller" "^8.0.3"
     "@metamask/controller-utils" "^11.3.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/utils" "^10.0.0"
