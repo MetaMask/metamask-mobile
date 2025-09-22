@@ -169,7 +169,7 @@ const RewardsDashboard: React.FC = () => {
         <Box twClassName="flex-1 px-4 bg-default gap-4 relative">
           {/* Header row */}
           <Box twClassName="flex-row  justify-between">
-            <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+            <Text variant={TextVariant.HeadingLg} twClassName="text-default">
               {strings('rewards.main_title')}
             </Text>
 
