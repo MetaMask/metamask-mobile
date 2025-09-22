@@ -60,13 +60,13 @@ const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Season status cache threshold
-const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+const SEASON_STATUS_CACHE_THRESHOLD_MS = 0; // no caching for now
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
 // Active boosts cache threshold
-const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 60 minutes
+const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -1035,7 +1035,7 @@ export class RewardsController extends BaseController<
     try {
       // First try: direct toHex conversion
       hexMessage = toHex(challengeResponse.message);
-    } catch (error) {
+    } catch {
       // Fallback: use Buffer to convert to hex if toHex fails
       hexMessage =
         '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
