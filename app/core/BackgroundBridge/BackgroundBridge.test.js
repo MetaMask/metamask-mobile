@@ -3,13 +3,112 @@ import BackgroundBridge from './BackgroundBridge';
 import Engine from '../Engine';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../../core/AppConstants';
-import { Caip25CaveatType } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  KnownSessionProperties,
+} from '@metamask/chain-agnostic-permission';
 import {
   EthAccountType,
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-import { addTransaction } from '../../util/transaction-controller';
+
+jest.mock('../Engine', () => ({
+  init: jest.fn(),
+  acceptPrivacyPolicy: jest.fn(),
+  rejectPrivacyPolicy: jest.fn(),
+  controllerMessenger: {
+    call: jest.fn().mockImplementation((method) => {
+      if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
+        return 'mainnet';
+      }
+      if (method === 'NetworkController:getNetworkClientById') {
+        return {
+          configuration: {
+            chainId: '0x1',
+            ticker: 'ETH',
+          },
+        };
+      }
+      if (
+        method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [];
+      }
+      return undefined;
+    }),
+    subscribe: jest.fn(),
+    tryUnsubscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+  datamodel: {
+    state: {
+      PreferencesController: {
+        selectedAddress: '0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571',
+      },
+      AccountTreeController: {
+        selectedAccountGroup:
+          'eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571',
+      },
+    },
+  },
+  context: {
+    AccountsController: {
+      listAccounts: jest.fn(),
+      listMultichainAccounts: jest.fn(),
+      getSelectedAccount: jest.fn(),
+      getAccountByAddress: jest.fn(),
+    },
+    PermissionController: {
+      createPermissionMiddleware: jest.fn(),
+      requestPermissions: jest.fn(),
+      getCaveat: jest.fn(),
+      updateCaveat: jest.fn(),
+      revokePermission: jest.fn(),
+      revokePermissions: jest.fn(),
+      getPermissions: jest.fn(),
+      hasPermissions: jest.fn(),
+      hasPermission: jest.fn(),
+      executeRestrictedMethod: jest.fn(),
+      state: {
+        subjects: {},
+      },
+    },
+    PreferencesController: {
+      state: {},
+    },
+    SelectedNetworkController: {
+      getProviderAndBlockTracker: jest.fn(),
+    },
+    KeyringController: {
+      setLocked: jest.fn(),
+      createNewVaultAndRestore: jest.fn(),
+      createNewVaultAndKeychain: jest.fn(),
+      isUnlocked: jest.fn().mockReturnValue(true),
+      state: {
+        vault: 'vault',
+      },
+    },
+    NetworkController: {
+      getNetworkConfigurationByChainId: jest.fn(),
+      getNetworkClientById: jest.fn(() => ({
+        configuration: {
+          chainId: '0x1',
+          ticker: 'ETH',
+        },
+      })),
+      findNetworkClientIdByChainId: jest.fn(),
+    },
+    TransactionController: {
+      addTransaction: jest.fn(),
+      addTransactionBatch: jest.fn(),
+      isAtomicBatchSupported: jest.fn(),
+    },
+    ApprovalController: {
+      addAndShowApprovalRequest: jest.fn(),
+    },
+  },
+}));
 
 jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
@@ -57,7 +156,7 @@ function setupBackgroundBridge(url, isMMSDK = false) {
     TransactionController,
   } = Engine.context;
 
-  const mockAddress = '0x0';
+  const mockAddress = '0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571';
 
   // Setup required mocks for account and permissions
   AccountsController.getSelectedAccount.mockReturnValue({
@@ -370,6 +469,52 @@ describe('BackgroundBridge', () => {
           notification: {
             method: 'metamask_accountsChanged',
             params: ['someaddress'],
+          },
+          scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      });
+    });
+
+    it('prioritizes solana account from selected account group over scope accounts', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const sendNotificationSpy = jest.spyOn(
+        bridge,
+        'sendNotificationMultichain',
+      );
+
+      const selectedGroupSolanaAccount = {
+        type: SolAccountType.DataAccount,
+        address: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
+      };
+      mockAccountTreeController([selectedGroupSolanaAccount]);
+
+      PermissionController.getCaveat.mockReturnValue({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            [SolScope.Mainnet]: {
+              accounts: [
+                `${SolScope.Mainnet}:9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM`,
+              ],
+            },
+          },
+          isMultichainOrigin: true,
+          sessionProperties: {
+            [KnownSessionProperties.SolanaAccountChangedNotifications]: true,
+          },
+        },
+      });
+
+      bridge.notifySolanaAccountChangedForCurrentAccount();
+
+      expect(sendNotificationSpy).toHaveBeenCalledWith({
+        method: 'wallet_notify',
+        params: {
+          notification: {
+            method: 'metamask_accountsChanged',
+            params: ['7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU'],
           },
           scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         },

@@ -476,6 +476,10 @@ export class BackgroundBridge extends EventEmitter {
         `${AccountsController.name}:selectedAccountChange`,
         this.handleSolanaAccountChangedFromSelectedAccountChanges,
       );
+      controllerMessenger.unsubscribe(
+        `${AccountTreeController.name}:selectedAccountGroupChange`,
+        this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
+      );
     }
 
     this.port.emit('disconnect', { name: this.port.name, data: null });
@@ -1066,6 +1070,13 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   handleSolanaAccountChangedFromSelectedAccountGroupChanges = () => {
+    const solanaAccount = this.getNonEvmAccountFromSelectedAccountGroup();
+    if (solanaAccount) {
+      this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
+    }
+  };
+
+  getNonEvmAccountFromSelectedAccountGroup() {
     const controllerMessenger = Engine.controllerMessenger;
 
     const internalAccounts = controllerMessenger.call(
@@ -1074,10 +1085,8 @@ export class BackgroundBridge extends EventEmitter {
     const solanaAccount = internalAccounts.find(
       (account) => account.type === SolAccountType.DataAccount,
     );
-    if (solanaAccount) {
-      this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
-    }
-  };
+    return solanaAccount;
+  }
 
   sendNotificationEip1193(payload) {
     DevLogger.log(`BackgroundBridge::sendNotificationEip1193: `, payload);
@@ -1210,6 +1219,16 @@ export class BackgroundBridge extends EventEmitter {
       sessionScopes[SolScope.Testnet];
 
     if (solanaAccountsChangedNotifications && solanaScope) {
+      const currentSolanaAccountFromSelectedAccountGroup =
+        this.getNonEvmAccountFromSelectedAccountGroup();
+
+      if (currentSolanaAccountFromSelectedAccountGroup) {
+        this._notifySolanaAccountChange([
+          currentSolanaAccountFromSelectedAccountGroup.address,
+        ]);
+        return;
+      }
+
       const { accounts } = solanaScope;
 
       const [accountIdToEmit] = sortMultichainAccountsByLastSelected(accounts);
