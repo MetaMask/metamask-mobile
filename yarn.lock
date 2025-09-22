@@ -6039,15 +6039,15 @@
     "@noble/hashes" "^1.8.0"
     async-mutex "^0.5.0"
 
-"@metamask/selected-network-controller@^22.1.0":
-  version "22.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-22.1.0.tgz#dfeba14bafbdba071e02857e2ef90f30e5ed1258"
-  integrity sha512-KKPjJPO8ewEJOT5GMiee9o0fJNoHOgRHdUvLff2Iu4xJyUpMpwbxi62sAGf/mNFC/75d0P5dGgOeaLFpLkrd3g==
+"@metamask/selected-network-controller@^24.0.0":
+  version "24.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-24.0.0.tgz#9506d4c000fab72db286db545f0f88c87a05595c"
+  integrity sha512-Iamg9UKYk7CWNab8ydDYs345I5B18uroulTN3AdI/oCtcRmx9Dp6MR8r1cLxwHc3Dw1mlMvbCo1acaXwwm+grg==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/json-rpc-engine" "^10.0.3"
     "@metamask/swappable-obj-proxy" "^2.3.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.8.0"
 
 "@metamask/signature-controller@^32.0.0":
   version "32.0.0"
