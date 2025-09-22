@@ -57,6 +57,9 @@ jest.mock('../../../component-library/components/Buttons/Button', () => {
     ButtonSize: {
       Lg: 'Lg',
     },
+    ButtonWidthTypes: {
+      Full: 'full',
+    },
   };
 });
 

@@ -351,36 +351,36 @@ exports[`SupportConsentScreen renders matching snapshot 1`] = `
                           justifyContent="space-between"
                           twClassName="gap-3"
                         >
-                          <TouchableOpacity
-                            onPress={[Function]}
-                            size="Lg"
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
-                            testID="Button"
-                            variant="Secondary"
+                          <Box
+                            twClassName="flex-1"
                           >
-                            <Text>
-                              Don't share
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={[Function]}
-                            size="Lg"
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
-                            testID="Button"
-                            variant="Primary"
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              size="Lg"
+                              testID="Button"
+                              variant="Secondary"
+                              width="full"
+                            >
+                              <Text>
+                                Don't share
+                              </Text>
+                            </TouchableOpacity>
+                          </Box>
+                          <Box
+                            twClassName="flex-1"
                           >
-                            <Text>
-                              Confirm
-                            </Text>
-                          </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              size="Lg"
+                              testID="Button"
+                              variant="Primary"
+                              width="full"
+                            >
+                              <Text>
+                                Confirm
+                              </Text>
+                            </TouchableOpacity>
+                          </Box>
                         </Box>
                       </Box>
                     </BottomSheet>
