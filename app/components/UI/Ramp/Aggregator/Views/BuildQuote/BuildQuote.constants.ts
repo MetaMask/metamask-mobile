@@ -19,7 +19,7 @@ export const mockCryptoCurrenciesData = [
   {
     id: '2',
     idv2: '3',
-    network: {},
+    network: { chainId: '1' },
     symbol: 'ETH',
     logo: 'some_random_logo_url',
     decimals: 8,
@@ -30,7 +30,7 @@ export const mockCryptoCurrenciesData = [
   {
     id: '3',
     idv2: '4',
-    network: {},
+    network: { chainId: '1' },
     symbol: 'UNI',
     logo: 'uni_logo_url',
     decimals: 8,
