@@ -5,7 +5,6 @@
  * Designed for CI integration
  */
 
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 import { tags } from '../../e2e/tags';
@@ -199,7 +198,7 @@ class AIE2ETagsSelector {
    */
   private async analyzeWithAI(changedFiles: string[], filterResult: ReturnType<typeof this.filterRelevantFiles>): Promise<AIAnalysis> {
     try {
-      const { Anthropic } = await import('@anthropic-ai/sdk');
+      const { Anthropic } = require('@anthropic-ai/sdk');
       const apiKey = process.env.E2E_CLAUDE_API_KEY!;
       const anthropic = new Anthropic({ apiKey });
 
@@ -215,7 +214,7 @@ class AIE2ETagsSelector {
         messages: [{ role: 'user', content: prompt }]
       });
 
-      const textContent = response.content.find(block => block.type === 'text');
+      const textContent = response.content.find((block: any) => block.type === 'text');
       if (!textContent || textContent.type !== 'text') {
         throw new Error('No text content in response');
       }
