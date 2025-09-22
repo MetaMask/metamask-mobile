@@ -683,6 +683,7 @@ class AuthenticationService {
     }
 
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // SeedlessOnboardingController.setLocked() will not throw, it swallow the error in the function
       await SeedlessOnboardingController.setLocked();
     }
 
