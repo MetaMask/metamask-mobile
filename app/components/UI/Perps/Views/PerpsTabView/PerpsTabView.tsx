@@ -8,18 +8,12 @@ import {
   PerpsTabViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -49,6 +43,7 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { PerpsEmptyState } from '../PerpsEmptyState';
 
 interface PerpsTabViewProps {}
 
@@ -76,8 +71,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const isEligible = useSelector(selectPerpsEligibility);
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
-
-  const firstTimeUserIconSize = 48 as unknown as IconSize;
 
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
@@ -253,36 +246,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <View style={styles.firstTimeContent}>
-                <View style={styles.firstTimeContainer}>
-                  <Icon
-                    name={IconName.Details}
-                    color={IconColor.Muted}
-                    size={firstTimeUserIconSize}
-                    style={styles.firstTimeIcon}
-                  />
-                  <Text
-                    variant={TextVariant.HeadingMD}
-                    color={TextColor.Default}
-                    style={styles.firstTimeTitle}
-                  >
-                    {strings('perps.position.list.first_time_title')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.firstTimeDescription}
-                  >
-                    {strings('perps.position.list.first_time_description')}
-                  </Text>
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    label={strings('perps.position.list.start_trading')}
-                    onPress={handleNewTrade}
-                    style={styles.startTradingButton}
-                    width={ButtonWidthTypes.Full}
-                  />
-                </View>
+                <PerpsEmptyState onStartTrading={handleNewTrade} />
               </View>
             ) : (
               <View style={styles.tradeInfoContainer}>
