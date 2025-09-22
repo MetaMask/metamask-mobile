@@ -11,11 +11,13 @@ import { uniq } from 'lodash';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PERPS_MINIMUM_DEPOSIT } from '../../constants/perps';
 import { Hex } from '@metamask/utils';
+import { useTransactionPayFiat } from './useTransactionPayFiat';
 
 export function useTransactionPayAvailableTokens() {
   const supportedChains = useSelector(selectEnabledSourceChains);
   const { payToken } = useTransactionPayToken();
   const requiredTokens = useTransactionRequiredTokens();
+  const { convertFiat, formatFiat } = useTransactionPayFiat();
 
   const { chainId: transactionChainId, type } =
     useTransactionMetadataRequest() ?? {};
@@ -36,7 +38,7 @@ export function useTransactionPayAvailableTokens() {
     type === TransactionType.perpsDeposit ? PERPS_MINIMUM_DEPOSIT : 0;
 
   const isTokenAvailable = useCallback(
-    (token: BridgeToken) => {
+    (token: BridgeToken & { balanceUsd: number }) => {
       const isSelected =
         payToken?.address.toLowerCase() === token.address.toLowerCase() &&
         payToken?.chainId === token.chainId;
@@ -55,7 +57,7 @@ export function useTransactionPayAvailableTokens() {
         return true;
       }
 
-      const fiatAmount = token.tokenFiatAmount ?? 0;
+      const fiatAmount = token.balanceUsd ?? 0;
 
       const isTokenBalanceSufficient = minimumFiat
         ? fiatAmount >= minimumFiat
@@ -77,9 +79,23 @@ export function useTransactionPayAvailableTokens() {
     [allTokens, minimumFiat, payToken, targetTokens, transactionChainId],
   );
 
+  const updateFiatValues = useCallback(
+    (token: BridgeToken) => {
+      const balanceFiat = formatFiat(token.tokenFiatAmount ?? '0');
+      const balanceUsd = convertFiat(token.tokenFiatAmount ?? '0');
+
+      return {
+        ...token,
+        balanceFiat,
+        balanceUsd,
+      };
+    },
+    [convertFiat, formatFiat],
+  );
+
   const availableTokens = useMemo(
-    () => allTokens.filter(isTokenAvailable),
-    [allTokens, isTokenAvailable],
+    () => allTokens.map(updateFiatValues).filter(isTokenAvailable),
+    [allTokens, isTokenAvailable, updateFiatValues],
   );
 
   const availableChainIds = useMemo(
