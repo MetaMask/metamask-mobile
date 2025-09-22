@@ -55,13 +55,12 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
 ): boolean => {
   const overrideForVersion2 =
     override !== undefined &&
-    override === 'true' &&
     featureVersionsToCheck.some(
       ({ version }) => version === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
     );
 
   if (overrideForVersion2) {
-    return true;
+    return override === 'true';
   }
 
   return featureVersionsToCheck.some(({ version, featureKey }) => {
