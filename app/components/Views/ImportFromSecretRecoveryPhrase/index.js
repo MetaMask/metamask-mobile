@@ -836,7 +836,7 @@ const ImportFromSecretRecoveryPhrase = ({
                           startAccessory={
                             !isFirstInput && (
                               <Text
-                                variant={TextVariant.BodyMD}
+                                variant={TextVariant.BodyMDBold}
                                 color={TextColor.Alternative}
                                 style={styles.inputIndex}
                               >
