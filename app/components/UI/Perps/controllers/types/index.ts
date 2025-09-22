@@ -32,6 +32,17 @@ export type OrderParams = {
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
+
+  // Optional tracking data for MetaMetrics events
+  trackingData?: {
+    marginUsed: number; // Margin required for this order
+    totalFee: number; // Total fee for this order
+    marketPrice: number; // Current market price at order time
+    metamaskFee?: number; // MetaMask fee amount
+    metamaskFeeRate?: number; // MetaMask fee rate
+    feeDiscountPercentage?: number; // Fee discount percentage
+    estimatedPoints?: number; // Estimated reward points
+  };
 };
 
 export type OrderResult = {
