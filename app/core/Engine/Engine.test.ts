@@ -128,6 +128,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('DeFiPositionsController');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
+    expect(engine.context).toHaveProperty('GatorPermissionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -211,6 +212,18 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         notifications: [],
+      },
+      GatorPermissionsController: {
+        gatorPermissionsMapSerialized: JSON.stringify({
+          'native-token-stream': {},
+          'native-token-periodic': {},
+          'erc20-token-stream': {},
+          'erc20-token-periodic': {},
+          other: {},
+        }),
+        gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
+        isFetchingGatorPermissions: false,
+        isGatorPermissionsEnabled: false,
       },
     };
 
