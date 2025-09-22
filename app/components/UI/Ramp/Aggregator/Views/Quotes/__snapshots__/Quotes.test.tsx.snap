@@ -655,9 +655,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -756,9 +755,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1182,9 +1180,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   {
@@ -1225,16 +1222,14 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "CentraNo1-Bold",
-                                      "fontWeight": "600",
+                                      "fontFamily": "Geist Bold",
                                     },
                                     undefined,
                                     undefined,
@@ -1469,9 +1464,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                       null,
                                                       [
                                                         {
-                                                          "fontFamily": "CentraNo1-Bold",
+                                                          "fontFamily": "Geist Bold",
                                                           "fontSize": 14,
-                                                          "fontWeight": "600",
                                                           "textAlign": "center",
                                                         },
                                                         {
@@ -1692,9 +1686,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1793,9 +1786,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -2128,9 +2120,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontFamily": "Geist Bold",
                                     "fontSize": 18,
-                                    "fontWeight": "600",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginVertical": 3,
@@ -2795,9 +2786,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -2896,9 +2886,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -3340,9 +3329,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -3383,16 +3371,14 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
-                                            "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
-                                            "fontWeight": "600",
+                                            "fontFamily": "Geist Bold",
                                           },
                                           undefined,
                                           undefined,
@@ -3449,9 +3435,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         {
@@ -3825,9 +3810,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               null,
                                                               [
                                                                 {
-                                                                  "fontFamily": "CentraNo1-Bold",
+                                                                  "fontFamily": "Geist Bold",
                                                                   "fontSize": 14,
-                                                                  "fontWeight": "600",
                                                                   "textAlign": "center",
                                                                 },
                                                                 {
@@ -4172,9 +4156,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               null,
                                                               [
                                                                 {
-                                                                  "fontFamily": "CentraNo1-Bold",
+                                                                  "fontFamily": "Geist Bold",
                                                                   "fontSize": 14,
-                                                                  "fontWeight": "600",
                                                                   "textAlign": "center",
                                                                 },
                                                                 {
@@ -4444,9 +4427,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               null,
                                                               [
                                                                 {
-                                                                  "fontFamily": "CentraNo1-Bold",
+                                                                  "fontFamily": "Geist Bold",
                                                                   "fontSize": 14,
-                                                                  "fontWeight": "600",
                                                                   "textAlign": "center",
                                                                 },
                                                                 {
@@ -4621,9 +4603,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -4722,9 +4703,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -5148,9 +5128,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   {
@@ -5191,16 +5170,14 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "CentraNo1-Bold",
-                                      "fontWeight": "600",
+                                      "fontFamily": "Geist Bold",
                                     },
                                     undefined,
                                     undefined,
@@ -5584,9 +5561,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                         null,
                                                         [
                                                           {
-                                                            "fontFamily": "CentraNo1-Bold",
+                                                            "fontFamily": "Geist Bold",
                                                             "fontSize": 14,
-                                                            "fontWeight": "600",
                                                             "textAlign": "center",
                                                           },
                                                           {
@@ -5808,9 +5784,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -5909,9 +5884,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -6290,9 +6264,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -6315,9 +6288,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -6396,9 +6368,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -6562,9 +6533,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -6663,9 +6633,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -7044,9 +7013,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -7069,9 +7037,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -7150,9 +7117,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -7316,9 +7282,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -7417,9 +7382,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -7798,9 +7762,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -7823,9 +7786,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -7904,9 +7866,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -8070,9 +8031,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -8171,9 +8131,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -8552,9 +8511,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontFamily": "Geist Bold",
                                       "fontSize": 18,
-                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginVertical": 3,
@@ -8577,9 +8535,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       {
@@ -8658,9 +8615,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
+                                            "fontFamily": "Geist Bold",
                                             "fontSize": 14,
-                                            "fontWeight": "600",
                                             "textAlign": "center",
                                           },
                                           {
@@ -8713,9 +8669,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         {
@@ -8756,16 +8711,14 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -8826,9 +8779,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         {
@@ -8869,16 +8821,14 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -8939,9 +8889,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         {
@@ -8982,16 +8931,14 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -9052,9 +8999,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         {
@@ -9095,16 +9041,14 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -9165,9 +9109,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         {
@@ -9208,16 +9151,14 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 30,
-            "fontWeight": "400",
             "marginVertical": 2,
           },
           undefined,
           undefined,
           {
-            "fontFamily": "CentraNo1-Bold",
-            "fontWeight": "600",
+            "fontFamily": "Geist Bold",
           },
           undefined,
           undefined,
@@ -9281,9 +9222,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         undefined,
@@ -9342,9 +9282,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         undefined,
@@ -9403,9 +9342,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         undefined,
@@ -9464,9 +9402,8 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
       [
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 30,
-          "fontWeight": "400",
           "marginVertical": 2,
         },
         undefined,

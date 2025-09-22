@@ -67,6 +67,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsMarketDetails: {
     market: PerpsMarketData;
+    initialTab?: 'position' | 'orders' | 'info';
   };
 
   PerpsPositions: undefined;
@@ -101,6 +102,11 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsFundingTransaction: {
     transaction: PerpsTransaction;
+  };
+
+  PerpsTutorial: {
+    isFromDeeplink?: boolean;
+    isFromGTMModal?: boolean;
   };
 
   // Root perps view

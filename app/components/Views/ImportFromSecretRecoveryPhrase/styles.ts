@@ -61,11 +61,9 @@ const createStyles = (colors: any) =>
       display: 'flex',
       flex: 1,
       backgroundColor: importedColors.transparent,
-      height: 66,
     },
     textAreaInput: {
       display: 'flex',
-      flex: 1,
       backgroundColor: importedColors.transparent,
       fontSize: 16,
       color: colors.text.alternative,
@@ -132,18 +130,6 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       ...fontStyles.normal,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_weak: {
-      color: colors.error.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_good: {
-      color: colors.primary.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_strong: {
-      color: colors.success.default,
-    },
     input: {
       paddingVertical: Platform.select({
         ios: 4,
@@ -195,6 +181,9 @@ const createStyles = (colors: any) =>
       gap: 8,
       marginTop: 8,
       marginBottom: 16,
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 16,
     },
     learnMoreTextContainer: {
       flexDirection: 'row',
@@ -203,6 +192,7 @@ const createStyles = (colors: any) =>
       gap: 1,
       flexWrap: 'wrap',
       width: '90%',
+      marginTop: -6,
     },
     headerLeft: {
       marginLeft: 16,

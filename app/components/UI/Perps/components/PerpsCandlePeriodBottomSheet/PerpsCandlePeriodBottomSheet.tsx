@@ -87,7 +87,6 @@ const PerpsCandlePeriodBottomSheet: React.FC<
               CandlePeriod.ONE_DAY,
               CandlePeriod.THREE_DAYS, // 2d maps to 3d
               CandlePeriod.ONE_WEEK, // 7d
-              CandlePeriod.ONE_MONTH, // 30d
             ].includes(period.value),
           ),
         },

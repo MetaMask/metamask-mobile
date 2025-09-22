@@ -4,6 +4,7 @@ import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider
 import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import PerpsTabView from './PerpsTabView';
+import PerpsStreamBridge from '../../components/PerpsStreamBridge';
 
 interface PerpsTabViewWithProviderProps {
   navigation?: NavigationProp<ParamListBase>;
@@ -39,6 +40,7 @@ const PerpsTabViewWithProvider: React.FC<PerpsTabViewWithProviderProps> = (
   return (
     <PerpsConnectionProvider isVisible={isVisible}>
       <PerpsStreamProvider>
+        <PerpsStreamBridge />
         <PerpsTabView {...props} />
       </PerpsStreamProvider>
     </PerpsConnectionProvider>

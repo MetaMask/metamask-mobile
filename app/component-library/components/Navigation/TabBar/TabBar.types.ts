@@ -18,6 +18,7 @@ export enum TabBarIconKey {
   Wallet = 'Wallet',
   Browser = 'Browser',
   Actions = 'Actions',
+  Trade = 'Trade',
   Activity = 'Activity',
   Setting = 'Setting',
   Rewards = 'Rewards',

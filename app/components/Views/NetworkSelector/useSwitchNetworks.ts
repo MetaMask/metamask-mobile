@@ -17,7 +17,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
@@ -44,6 +43,7 @@ import {
   NetworkType,
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import Logger from '../../../util/Logger';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -141,6 +141,15 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = networkConfigurationId;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         trace({
@@ -155,8 +164,6 @@ export function useSwitchNetworks({
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
       }
-
-      setTokenNetworkFilter(chainId);
       if (!(domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()))
         dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
@@ -174,7 +181,6 @@ export function useSwitchNetworks({
     [
       domainIsConnectedDapp,
       origin,
-      setTokenNetworkFilter,
       selectedNetworkName,
       trackEvent,
       createEventBuilder,
@@ -203,6 +209,15 @@ export function useSwitchNetworks({
 
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
+        (
+          SelectedNetworkController as typeof SelectedNetworkController & {
+            update: (
+              fn: (state: { activeDappNetwork: string | null }) => void,
+            ) => void;
+          }
+        ).update((state: { activeDappNetwork: string | null }) => {
+          state.activeDappNetwork = type;
+        });
         isPerDappSelectedNetworkEnabled() && dismissModal?.();
       } else {
         const networkConfiguration =

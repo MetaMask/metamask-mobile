@@ -47,6 +47,9 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import RewardsNavigator, {
+  RewardsModalStack,
+} from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -114,9 +117,10 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import RewardsView from '../../UI/Rewards/Views/RewardsView';
-import ReferralRewardsView from '../../UI/Rewards/Views/RewardsReferralView';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
+import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
+import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -247,27 +251,19 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-const RewardsHome = () => {
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
-
-  if (!isRewardsEnabled) {
-    return null;
-  }
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.REFERRAL_REWARDS_VIEW}
-        component={ReferralRewardsView}
-        options={{ headerShown: true }}
-      />
-    </Stack.Navigator>
-  );
-};
+const RewardsHome = () => (
+  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+      component={RewardsBottomSheetModal}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+      component={RewardsClaimBottomSheetModal}
+    />
+  </Stack.Navigator>
+);
 
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
@@ -493,12 +489,17 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
+const UnmountOnBlurComponent = (children) => (
+  <UnmountOnBlur>{children}</UnmountOnBlur>
+);
+
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -524,9 +525,9 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
-    actions: {
-      tabBarIconKey: TabBarIconKey.Actions,
-      rootScreenName: Routes.MODAL.WALLET_ACTIONS,
+    trade: {
+      tabBarIconKey: TabBarIconKey.Trade,
+      rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
     },
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
@@ -599,6 +600,17 @@ const HomeTabs = () => {
   }, []);
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
+    const currentRoute = state.routes[state.index];
+
+    // Hide tab bar for rewards onboarding splash screen
+    if (
+      currentRoute.name?.startsWith('Rewards') &&
+      isRewardsEnabled &&
+      !rewardsSubscription
+    ) {
+      return null;
+    }
+
     if (isKeyboardHidden) {
       return (
         <TabBar
@@ -625,8 +637,8 @@ const HomeTabs = () => {
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
       <Tab.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
-        options={options.actions}
+        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+        options={options.trade}
         component={WalletTabModalFlow}
       />
       <Tab.Screen
@@ -640,14 +652,14 @@ const HomeTabs = () => {
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
           component={RewardsHome}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       ) : (
         <Tab.Screen
           name={Routes.SETTINGS_VIEW}
           options={options.settings}
           component={SettingsFlow}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       )}
     </Tab.Navigator>
@@ -817,7 +829,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, gestureEnabled: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
@@ -899,7 +911,22 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SETTINGS_VIEW}
           component={SettingsFlow}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+            animationEnabled: true,
+            cardStyleInterpolator: ({ current, layouts }) => ({
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            }),
+          }}
         />
       )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />

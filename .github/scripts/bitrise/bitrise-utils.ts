@@ -43,7 +43,6 @@ export interface E2ERunFlags {
     isFork : boolean;
     isDocs : boolean;
     isMQ : boolean;
-    hasAntiLabel : boolean;
     hasSmokeTestLabel : boolean;
 }
 
@@ -228,12 +227,10 @@ export async function determineE2ERunFlags(): Promise<E2ERunFlags> {
 
 
   const e2eLabel = process.env.E2E_LABEL;
-  const antiLabel = process.env.NO_E2E_LABEL;
 
     // Grab flags & labels
     const labels: Label[] = prData?.labels ?? [];
     const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
-    const hasAntiLabel = labels.some((label) => label.name === antiLabel);
     const fork = context.payload.pull_request?.head.repo.fork || false;
     const docs = isMergeQueue() ? false : prData.title.startsWith("docs:");
 
@@ -241,7 +238,6 @@ export async function determineE2ERunFlags(): Promise<E2ERunFlags> {
         isFork: fork,
         isDocs: docs,
         isMQ: isMergeQueue(),
-        hasAntiLabel: hasAntiLabel,
         hasSmokeTestLabel: hasSmokeTestLabel
     }
 
@@ -369,7 +365,6 @@ export function shouldRunBitriseE2E(flags : E2ERunFlags): [boolean, string] {
     {condition: flags.isFork, message: "The pull request is from a fork.", shouldRun: false},
     {condition: flags.isDocs, message: "The pull request is documentation related.", shouldRun: false},
     {condition: flags.isMQ, message: "The pull request is part of a merge queue.", shouldRun: false},
-    {condition: flags.hasAntiLabel, message: "The pull request has the anti-label.", shouldRun: false}
   ];
 
   // Iterate through conditions to determine action

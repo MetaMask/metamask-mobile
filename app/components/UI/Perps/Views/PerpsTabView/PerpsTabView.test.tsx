@@ -147,6 +147,10 @@ jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
   PerpsTabViewSelectorsIDs: {
     START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
   },
+  PerpsPositionsViewSelectorsIDs: {
+    POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
+    POSITION_ITEM: 'perps-positions-item',
+  },
 }));
 
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
@@ -196,6 +200,8 @@ describe('PerpsTabView', () => {
       sinceOpen: '5.00',
       sinceChange: '2.00',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   beforeEach(() => {

@@ -129,9 +129,8 @@ exports[`QuotesView should render quote screen 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -228,9 +227,8 @@ exports[`QuotesView should render quote screen 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -423,7 +421,15 @@ exports[`QuotesView should render quote screen 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -490,9 +496,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       undefined,
@@ -539,8 +544,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                         undefined,
                                         undefined,
                                         {
-                                          "fontFamily": "CentraNo1-Bold",
-                                          "fontWeight": "600",
+                                          "fontFamily": "Geist Bold",
                                         },
                                         undefined,
                                         undefined,
@@ -575,9 +579,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "fontFamily": "Geist Regular",
                                           "fontSize": 30,
-                                          "fontWeight": "400",
                                           "marginVertical": 2,
                                         },
                                         undefined,
@@ -639,9 +642,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
@@ -700,9 +702,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
@@ -764,9 +765,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       undefined,
@@ -814,9 +814,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
@@ -914,9 +913,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       undefined,
@@ -964,9 +962,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
@@ -1015,9 +1012,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -1072,9 +1068,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       undefined,
@@ -1255,16 +1250,14 @@ exports[`QuotesView should render quote screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 30,
-                                        "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
                                       undefined,
                                       undefined,
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
-                                        "fontWeight": "600",
+                                        "fontFamily": "Geist Bold",
                                       },
                                       undefined,
                                       undefined,
@@ -1350,16 +1343,14 @@ exports[`QuotesView should render quote screen 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
                                             undefined,
                                             {
-                                              "fontFamily": "CentraNo1-Bold",
-                                              "fontWeight": "600",
+                                              "fontFamily": "Geist Bold",
                                             },
                                             undefined,
                                             undefined,
@@ -1454,9 +1445,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 30,
-                                              "fontWeight": "400",
                                               "marginVertical": 2,
                                             },
                                             undefined,
@@ -1498,16 +1488,14 @@ exports[`QuotesView should render quote screen 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
-                                            "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
-                                            "fontWeight": "600",
+                                            "fontFamily": "Geist Bold",
                                           },
                                           undefined,
                                           undefined,
@@ -1576,16 +1564,14 @@ exports[`QuotesView should render quote screen 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
-                                            "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "CentraNo1-Bold",
-                                            "fontWeight": "600",
+                                            "fontFamily": "Geist Bold",
                                           },
                                           undefined,
                                           undefined,
@@ -1623,9 +1609,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
-                                            "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
                                           undefined,
@@ -1699,9 +1684,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "fontFamily": "Geist Regular",
                                             "fontSize": 30,
-                                            "fontWeight": "400",
                                             "marginVertical": 2,
                                           },
                                           undefined,
@@ -1804,9 +1788,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                     },
                                     [
                                       {
-                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontFamily": "Geist Bold",
                                         "fontSize": 14,
-                                        "fontWeight": "600",
                                         "textAlign": "center",
                                       },
                                       {
@@ -1837,9 +1820,8 @@ exports[`QuotesView should render quote screen 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     {
@@ -1888,7 +1870,7 @@ exports[`QuotesView should render quote screen 1`] = `
                           <View />
                         </View>
                       </RCTScrollView>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

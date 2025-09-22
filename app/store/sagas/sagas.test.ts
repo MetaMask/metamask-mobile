@@ -34,6 +34,14 @@ const mockBioStateMachineId = '123';
 
 const mockNavigate = jest.fn();
 
+jest.mock('../../util/notifications/services/FCMService', () => ({
+  __esModule: true,
+  default: {
+    onClickPushNotificationWhenAppClosed: jest.fn().mockResolvedValue(null),
+    onClickPushNotificationWhenAppSuspended: jest.fn(),
+  },
+}));
+
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
     // TODO: Replace "any" with type

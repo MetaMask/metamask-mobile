@@ -6,8 +6,8 @@ import { Json } from '@metamask/utils';
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
 export const BUFFER_STEP_DEFAULT = 0.025;
-export const SLIPPAGE_INITIAL_DEFAULT = 0.005;
-export const SLIPPAGE_SUBSEQUENT_DEFAULT = 0.02;
+export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
+export const SLIPPAGE_DEFAULT = 0.005;
 
 // A type predicate's type must be assignable to its parameter's type
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -29,8 +29,8 @@ export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
   bufferStep: number;
-  slippageInitial: number;
-  slippageSubsequent: number;
+  bufferSubsequent: number;
+  slippage: number;
 }
 
 /**
@@ -152,17 +152,16 @@ export const selectMetaMaskPayFlags = createSelector(
     const bufferInitial =
       metaMaskPayFlags?.bufferInitial ?? BUFFER_INITIAL_DEFAULT;
     const bufferStep = metaMaskPayFlags?.bufferStep ?? BUFFER_STEP_DEFAULT;
-    const slippageInitial =
-      metaMaskPayFlags?.slippageInitial ?? SLIPPAGE_INITIAL_DEFAULT;
-    const slippageSubsequent =
-      metaMaskPayFlags?.slippageSubsequent ?? SLIPPAGE_SUBSEQUENT_DEFAULT;
+    const bufferSubsequent =
+      metaMaskPayFlags?.bufferSubsequent ?? BUFFER_SUBSEQUENT_DEFAULT;
+    const slippage = metaMaskPayFlags?.slippage ?? SLIPPAGE_DEFAULT;
 
     return {
       attemptsMax,
       bufferInitial,
       bufferStep,
-      slippageInitial,
-      slippageSubsequent,
+      bufferSubsequent,
+      slippage,
     } as MetaMaskPayFlags;
   },
 );

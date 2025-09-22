@@ -47,12 +47,6 @@ Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
   const timeOut = 3000;
   await driver.pause(timeOut);
-  await WelcomeScreen.clickGetStartedButton();
-  await driver.pause(2000);
-  // await TermOfUseScreen.isDisplayed();
-  await TermOfUseScreen.tapScrollEndButton();
-  await TermOfUseScreen.tapAgreeCheckBox();
-    await TermOfUseScreen.tapAcceptButton();
   await OnboardingScreen.tapHaveAnExistingWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {

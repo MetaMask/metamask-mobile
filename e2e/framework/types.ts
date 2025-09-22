@@ -31,6 +31,7 @@ export interface TypeTextOptions extends GestureOptions {
 export interface SwipeOptions extends GestureOptions {
   speed?: 'fast' | 'slow';
   percentage?: number;
+  startOffsetPercentage?: { x: number; y: number };
 }
 
 export interface LongPressOptions extends GestureOptions {

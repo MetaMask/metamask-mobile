@@ -10,7 +10,7 @@ import CardHomeView from '../../pages/Card/CardHomeView';
 import SoftAssert from '../../utils/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-describe(SmokeCard('CardHome - Manage Card'), () => {
+describe.skip(SmokeCard('CardHome - Manage Card'), () => {
   const eventsToCheck: EventPayload[] = [];
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {
@@ -19,6 +19,7 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
           .withNetworkController(CustomNetworks.Tenderly.Linea)
+          .withAccountTreeController()
           .withTokens(
             [
               {

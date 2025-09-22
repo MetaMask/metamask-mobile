@@ -1,7 +1,9 @@
 import BN from 'bnjs4';
+import { Hex } from '@metamask/utils';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
+  ACCOUNT_ADDRESS_MOCK_1,
   evmSendStateMock,
   TOKEN_ADDRESS_MOCK_1,
 } from '../../__mocks__/send.mock';
@@ -39,7 +41,36 @@ describe('getPercentageValueFn', () => {
     });
   });
 
-  it('use value from contractBalances if asset.rawBalance is not available', () => {
+  it('use value from accountsByChainId for native asset if asset.rawBalance is not available', () => {
+    expect(
+      getBalance(
+        getBalanceFnArguments({
+          asset: {
+            address: '0x111',
+            chainId: '0x1',
+            decimals: 2,
+            isNative: true,
+          },
+          chainId: '0x1',
+          accountsByChainId: {
+            ['0x1' as Hex]: {
+              [ACCOUNT_ADDRESS_MOCK_1]: {
+                balance: '0xDE0B6B3A7640000',
+              },
+            },
+          },
+          from: ACCOUNT_ADDRESS_MOCK_1,
+          isEvmSendType: true,
+        }) as unknown as GetBalanceArgs,
+      ),
+    ).toStrictEqual({
+      balance: '10000000000000000',
+      decimals: 2,
+      rawBalanceBN: new BN('de0b6b3a7640000', 16),
+    });
+  });
+
+  it('use value from contractBalances for ERC20 asset if asset.rawBalance is not available', () => {
     expect(
       getBalance(
         getBalanceFnArguments({

@@ -95,6 +95,9 @@ describe('usePercentageAmount', () => {
       mockState,
     );
     expect(result.current.isMaxAmountSupported).toEqual(false);
+    expect(result.current.getPercentageAmount(75)).toEqual(
+      '0.000000000000000007',
+    );
     expect(result.current.getPercentageAmount(100)).toEqual(undefined);
   });
 
@@ -142,6 +145,7 @@ describe('usePercentageAmount', () => {
     );
     expect(result.current.isMaxAmountSupported).toBeTruthy();
     expect(result.current.getPercentageAmount(100)).toEqual('0');
+    expect(result.current.getPercentageAmount(50)).toEqual('0');
   });
 
   it('adjust L1 fee for optimism mainnet', async () => {

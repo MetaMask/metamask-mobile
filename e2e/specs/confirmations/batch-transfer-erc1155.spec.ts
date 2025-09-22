@@ -14,6 +14,8 @@ import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import WalletView from '../../pages/wallet/WalletView';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 describe(SmokeConfirmations('ERC1155 token'), () => {
   const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;
@@ -66,6 +68,10 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
+
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.changeNetworkTo('Localhost');
 
         // Assert that the ERC1155 activity is an smart contract interaction and it is confirmed
         await Assertions.expectTextDisplayed(

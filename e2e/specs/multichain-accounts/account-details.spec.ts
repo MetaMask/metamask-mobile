@@ -6,7 +6,7 @@ import ShareAddress from '../../pages/MultichainAccounts/ShareAddress';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
-  withMultichainAccountDetailsEnabled,
+  withMultichainAccountDetailsEnabledFixtures,
 } from './common';
 import TestHelpers from '../../helpers';
 
@@ -31,7 +31,7 @@ describe(
     });
 
     it('renames the account', async () => {
-      await withMultichainAccountDetailsEnabled(async () => {
+      await withMultichainAccountDetailsEnabledFixtures(async () => {
         await goToAccountDetails(HD_ACCOUNT);
         await editName('Account 1-edited');
       });

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import ReferralInfoSection from './ReferralInfoSection';
@@ -11,8 +11,8 @@ import {
   selectBalanceRefereePortion,
   selectReferralCode,
   selectReferralCount,
+  selectReferralDetailsLoading,
   selectSeasonStatusLoading,
-  selectSubscriptionId,
 } from '../../../../../reducers/rewards/selectors';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 
@@ -21,17 +21,9 @@ const ReferralDetails: React.FC = () => {
   const refereeCount = useSelector(selectReferralCount);
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
-  const subscriptionId = useSelector(selectSubscriptionId);
+  const referralDetailsLoading = useSelector(selectReferralDetailsLoading);
 
-  const { fetchReferralDetails, isLoading: isReferralDetailsLoading } =
-    useReferralDetails();
-
-  // Fetch referral details when component mounts or subscription ID changes
-  useEffect(() => {
-    if (subscriptionId) {
-      fetchReferralDetails();
-    }
-  }, [subscriptionId, fetchReferralDetails]);
+  useReferralDetails();
 
   const handleCopyCode = async () => {
     if (referralCode) {
@@ -59,11 +51,11 @@ const ReferralDetails: React.FC = () => {
         earnedPointsFromReferees={balanceRefereePortion}
         refereeCount={refereeCount}
         earnedPointsFromRefereesLoading={seasonStatusLoading}
-        refereeCountLoading={isReferralDetailsLoading}
+        refereeCountLoading={referralDetailsLoading}
       />
       <ReferralActionsSection
         referralCode={referralCode}
-        referralCodeLoading={isReferralDetailsLoading}
+        referralCodeLoading={referralDetailsLoading}
         onCopyCode={handleCopyCode}
         onCopyLink={handleCopyLink}
         onShareLink={handleShareLink}

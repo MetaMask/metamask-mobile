@@ -133,6 +133,7 @@ class ConnectedAccountsModal {
   async tapManagePermissionsButton(): Promise<void> {
     await Gestures.waitAndTap(this.managePermissionsButton, {
       elemDescription: 'Manage permissions button',
+      waitForElementToDisappear: true,
     });
   }
 

@@ -17,7 +17,6 @@ async function main(): Promise<void> {
     console.log(`Fork: ${flags.isFork}`);
     console.log(`Merge Queue: ${flags.isMQ}`);
     console.log(`Has smoke test label: ${flags.hasSmokeTestLabel}`);
-    console.log(`Anti label: ${flags.hasAntiLabel}`);
 
     const [shouldRun, reason] = shouldRunBitriseE2E(flags);
     console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
@@ -26,11 +25,6 @@ async function main(): Promise<void> {
     if (flags.isMQ) {
         console.log(`Skipping E2E result evaluation. Reason: Merge Queue PR.`);
         return;
-    }
-
-    //It's required to have at least one of these two labels
-    if (!flags.hasAntiLabel && !flags.hasSmokeTestLabel) {
-        core.setFailed(`No "Run Smoke E2E" or "No E2E Smoke Needed" labels found. Please apply one of these labels to the PR.`);
     }
 
     // Consume the label

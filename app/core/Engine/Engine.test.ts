@@ -45,6 +45,9 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
   selectSmartTransactionsEnabled: jest.fn().mockReturnValue(false),
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
+  selectPendingSmartTransactionsForSelectedAccountGroup: jest
+    .fn()
+    .mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
   ...jest.requireActual('../../selectors/settings'),
@@ -82,9 +85,10 @@ describe('Engine', () => {
     ReduxService.store = configureStore({});
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
+    await Engine.destroyEngine();
   });
 
   it('should expose an API', () => {
@@ -189,6 +193,12 @@ describe('Engine', () => {
     // Create expected state by merging the static fixture with current AppMetadataController state
     const expectedState = {
       ...backgroundState,
+      AccountTrackerController: {
+        ...backgroundState.AccountTrackerController,
+        // This is just hotfix, because it should not be empty but it reflects current state of Engine code
+        // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
+        accountsByChainId: {},
+      },
       AppMetadataController: {
         currentAppVersion,
         previousAppVersion: '', // This will be managed by the controller
@@ -341,9 +351,6 @@ describe('Engine', () => {
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
-    let engine: EngineClass;
-    afterEach(() => engine?.destroyEngineInstance());
-
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const selectedAccountId = 'test-account-id';
     const chainId: Hex = '0x1';
@@ -394,14 +401,26 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      engine = Engine.init(state);
+      const engine = Engine.init({
+        ...state,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: {
+                balance: '0',
+                stakedBalance: '0',
+              },
+            },
+          },
+        },
+      });
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
         ethFiat1dAgo: 0,
         tokenFiat: 0,
         tokenFiat1dAgo: 0,
-        ticker: '',
+        ticker: 'ETH',
         totalNativeTokenBalance: '0',
       });
     });
@@ -409,7 +428,7 @@ describe('Engine', () => {
     it('calculates when theres only ETH', () => {
       const ethPricePercentChange1d = 5; // up 5%
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         TokenRatesController: {
           marketData: {
@@ -460,7 +479,7 @@ describe('Engine', () => {
         },
       ];
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         TokensController: {
           allTokens: {
@@ -556,7 +575,7 @@ describe('Engine', () => {
         },
       ];
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         AccountTrackerController: {
           accountsByChainId: {

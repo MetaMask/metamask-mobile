@@ -18,7 +18,9 @@ import { setMeasurement } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accountUtils';
 import { generateTransferData } from '../../../../util/transactions';
+import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 import {
   trace,
   endTrace,
@@ -87,6 +89,8 @@ export const PERPS_ERROR_CODES = {
   ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
   MARKETS_FAILED: 'MARKETS_FAILED',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+  // Provider-agnostic order errors
+  ORDER_LEVERAGE_REDUCTION_FAILED: 'ORDER_LEVERAGE_REDUCTION_FAILED',
 } as const;
 
 export type PerpsErrorCode =
@@ -129,6 +133,9 @@ export type PerpsControllerState = {
 
   // Simple deposit state (transient, for UI feedback)
   depositInProgress: boolean;
+  // Internal transaction id for the deposit transaction
+  // We use this to fetch the bridge quotes and get the estimated time.
+  lastDepositTransactionId: string | null;
   lastDepositResult: {
     success: boolean;
     txHash?: string;
@@ -178,6 +185,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   depositInProgress: false,
   lastDepositResult: null,
   withdrawInProgress: false,
+  lastDepositTransactionId: null,
   lastWithdrawResult: null,
   lastError: null,
   lastUpdateTimestamp: 0,
@@ -196,22 +204,108 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
  * State metadata for the PerpsController
  */
 const metadata = {
-  positions: { persist: true, anonymous: false },
-  accountState: { persist: true, anonymous: false },
-  perpsBalances: { persist: true, anonymous: false },
-  isTestnet: { persist: true, anonymous: false },
-  activeProvider: { persist: true, anonymous: false },
-  connectionStatus: { persist: false, anonymous: false },
-  pendingOrders: { persist: false, anonymous: false },
-  depositInProgress: { persist: false, anonymous: false },
-  lastDepositResult: { persist: false, anonymous: false },
-  withdrawInProgress: { persist: false, anonymous: false },
-  lastWithdrawResult: { persist: false, anonymous: false },
-  lastError: { persist: false, anonymous: false },
-  lastUpdateTimestamp: { persist: false, anonymous: false },
-  isEligible: { persist: false, anonymous: false },
-  isFirstTimeUser: { persist: true, anonymous: false },
-  hasPlacedFirstOrder: { persist: true, anonymous: false },
+  positions: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  accountState: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  perpsBalances: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  isTestnet: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  activeProvider: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  connectionStatus: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  pendingOrders: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: false,
+  },
+  depositInProgress: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  lastDepositTransactionId: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  lastDepositResult: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  withdrawInProgress: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  lastWithdrawResult: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  lastError: {
+    includeInStateLogs: false,
+    persist: false,
+    anonymous: false,
+    usedInUi: false,
+  },
+  lastUpdateTimestamp: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: false,
+  },
+  isEligible: {
+    includeInStateLogs: true,
+    persist: false,
+    anonymous: false,
+    usedInUi: true,
+  },
+  isFirstTimeUser: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
+  hasPlacedFirstOrder: {
+    includeInStateLogs: true,
+    persist: true,
+    anonymous: false,
+    usedInUi: true,
+  },
 };
 
 /**
@@ -408,11 +502,9 @@ export class PerpsController extends BaseController<
     this.providers = new Map();
 
     this.initializeProviders().catch((error) => {
-      DevLogger.log('PerpsController: Error initializing providers', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error initializing providers',
+        context: 'PerpsController.constructor',
         timestamp: new Date().toISOString(),
       });
     });
@@ -452,6 +544,87 @@ export class PerpsController extends BaseController<
 
     if (Array.isArray(remoteBlockedRegions)) {
       this.setBlockedRegionList(remoteBlockedRegions, 'remote');
+    }
+  }
+
+  /**
+   * Calculate user fee discount from RewardsController
+   * Used to apply MetaMask reward discounts to trading fees
+   * @returns Fee discount in basis points (e.g., 550 for 5.5% off) or undefined if no discount
+   * @private
+   */
+  private async calculateUserFeeDiscount(): Promise<number | undefined> {
+    try {
+      const { RewardsController, NetworkController } = Engine.context;
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
+
+      if (!evmAccount) {
+        DevLogger.log('PerpsController: No EVM account found for fee discount');
+        return undefined;
+      }
+
+      // Get the chain ID using proper NetworkController method
+      const networkState = this.messagingSystem.call(
+        'NetworkController:getState',
+      );
+      const selectedNetworkClientId = networkState.selectedNetworkClientId;
+      const networkClient = NetworkController.getNetworkClientById(
+        selectedNetworkClientId,
+      );
+      const chainId = networkClient?.configuration?.chainId;
+
+      if (!chainId) {
+        Logger.error(
+          new Error('Chain ID not found for fee discount calculation'),
+          {
+            message:
+              'PerpsController: Missing chain ID prevents reward discount calculation',
+            context: 'PerpsController.calculateUserFeeDiscount',
+            selectedNetworkClientId,
+            networkClientExists: !!networkClient,
+          },
+        );
+        return undefined;
+      }
+
+      const caipAccountId = formatAccountToCaipAccountId(
+        evmAccount.address,
+        chainId,
+      );
+
+      if (!caipAccountId) {
+        Logger.error(
+          new Error('Failed to format CAIP account ID for fee discount'),
+          {
+            message:
+              'PerpsController: CAIP account ID formatting failed, preventing reward discount calculation',
+            context: 'PerpsController.calculateUserFeeDiscount',
+            address: evmAccount.address,
+            chainId,
+            selectedNetworkClientId,
+          },
+        );
+        return undefined;
+      }
+
+      const discountBips = await RewardsController.getPerpsDiscountForAccount(
+        caipAccountId,
+      );
+
+      DevLogger.log('PerpsController: Fee discount calculated', {
+        address: evmAccount.address,
+        caipAccountId,
+        discountBips,
+        discountPercentage: discountBips / 100,
+      });
+
+      return discountBips;
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: 'PerpsController: Fee discount calculation failed',
+        context: 'PerpsController.calculateUserFeeDiscount',
+      });
+      return undefined;
     }
   }
 
@@ -573,12 +746,25 @@ export class PerpsController extends BaseController<
     try {
       const provider = this.getActiveProvider();
 
+      // Calculate fee discount at execution time (fresh, secure)
+      const feeDiscountBips = await this.calculateUserFeeDiscount();
+
+      // Set discount context in provider for this order
+      if (feeDiscountBips !== undefined && provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(feeDiscountBips);
+      }
+
       // Optimistic update
       this.update((state) => {
         state.pendingOrders.push(params);
       });
 
       const result = await provider.placeOrder(params);
+
+      // Clear discount context after order (success or failure)
+      if (provider.setUserFeeDiscount) {
+        provider.setUserFeeDiscount(undefined);
+      }
 
       // Update state only on success
       if (result.success) {
@@ -625,6 +811,20 @@ export class PerpsController extends BaseController<
 
       return result;
     } catch (error) {
+      // Clear discount context in case of error
+      try {
+        const provider = this.getActiveProvider();
+        if (provider.setUserFeeDiscount) {
+          provider.setUserFeeDiscount(undefined);
+        }
+      } catch (cleanupError) {
+        Logger.error(cleanupError as Error, {
+          message:
+            'PerpsController: Failed to clear fee discount during error cleanup',
+          context: 'PerpsController.placeOrder',
+        });
+      }
+
       // End trace with error data
       endTrace({
         name: TraceName.PerpsOrderExecution,
@@ -749,8 +949,7 @@ export class PerpsController extends BaseController<
    * No complex state tracking - just sets a loading flag
    */
   async depositWithConfirmation() {
-    const { AccountTreeController, NetworkController, TransactionController } =
-      Engine.context;
+    const { NetworkController, TransactionController } = Engine.context;
 
     try {
       // Clear any stale results when starting a new deposit flow
@@ -769,11 +968,7 @@ export class PerpsController extends BaseController<
         amount: '0x0',
       });
 
-      const accounts =
-        AccountTreeController.getAccountsFromSelectedAccountGroup();
-      const evmAccount = accounts.find((account) =>
-        account.type.startsWith('eip155:'),
-      );
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
       if (!evmAccount) {
         throw new Error(
           'No EVM-compatible account found in selected account group',
@@ -798,14 +993,17 @@ export class PerpsController extends BaseController<
 
       // addTransaction shows the confirmation screen and returns a promise
       // The promise will resolve when transaction completes or reject if cancelled/failed
-      const { result } = await TransactionController.addTransaction(
-        transaction,
-        {
+      const { result, transactionMeta } =
+        await TransactionController.addTransaction(transaction, {
           networkClientId,
           origin: 'metamask',
           type: TransactionType.perpsDeposit,
-        },
-      );
+        });
+
+      // Store the transaction ID
+      this.update((state) => {
+        state.lastDepositTransactionId = transactionMeta.id;
+      });
 
       // At this point, the confirmation modal is shown to the user
       // The result promise will resolve/reject based on user action and transaction outcome
@@ -833,6 +1031,7 @@ export class PerpsController extends BaseController<
           setTimeout(() => {
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
             });
           }, 100);
         })
@@ -850,12 +1049,14 @@ export class PerpsController extends BaseController<
             // User cancelled - clear any state, no toast
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
               // Don't set lastDepositResult - no toast needed
             });
           } else {
             // Transaction failed after confirmation - show error toast
             this.update((state) => {
               state.depositInProgress = false;
+              state.lastDepositTransactionId = null;
               state.lastDepositResult = {
                 success: false,
                 error: errorMessage,
@@ -880,6 +1081,7 @@ export class PerpsController extends BaseController<
       if (!userCancelled) {
         // Only track actual errors, not user cancellations
         this.update((state) => {
+          state.lastDepositTransactionId = null;
           state.lastDepositResult = {
             success: false,
             error: errorMessage,
@@ -930,7 +1132,7 @@ export class PerpsController extends BaseController<
     });
 
     try {
-      DevLogger.log('🚀 PerpsController: STARTING WITHDRAWAL', {
+      DevLogger.log('PerpsController: STARTING WITHDRAWAL', {
         params,
         timestamp: new Date().toISOString(),
         assetId: params.assetId,
@@ -947,7 +1149,7 @@ export class PerpsController extends BaseController<
 
       // Get provider (all validation is handled at the provider level)
       const provider = this.getActiveProvider();
-      DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
+      DevLogger.log('PerpsController: DELEGATING TO PROVIDER', {
         provider: this.state.activeProvider,
         providerReady: !!provider,
       });
@@ -955,7 +1157,7 @@ export class PerpsController extends BaseController<
       // Execute withdrawal through provider
       const result = await provider.withdraw(params);
 
-      DevLogger.log('📊 PerpsController: WITHDRAWAL RESULT', {
+      DevLogger.log('PerpsController: WITHDRAWAL RESULT', {
         success: result.success,
         error: result.error,
         txHash: result.txHash,
@@ -975,7 +1177,7 @@ export class PerpsController extends BaseController<
           };
         });
 
-        DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
+        DevLogger.log('PerpsController: WITHDRAWAL SUCCESSFUL', {
           txHash: result.txHash,
           amount: params.amount,
           assetId: params.assetId,
@@ -987,12 +1189,10 @@ export class PerpsController extends BaseController<
 
         // Trigger account state refresh after withdrawal
         this.getAccountState().catch((error) => {
-          DevLogger.log(
-            '⚠️ PerpsController: Failed to refresh after withdrawal',
-            {
-              error: error instanceof Error ? error.message : 'Unknown error',
-            },
-          );
+          Logger.error(error as Error, {
+            message: '⚠️ PerpsController: Failed to refresh after withdrawal',
+            context: 'PerpsController.withdraw',
+          });
         });
 
         endTrace({
@@ -1017,7 +1217,7 @@ export class PerpsController extends BaseController<
         };
       });
 
-      DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
+      DevLogger.log('PerpsController: WITHDRAWAL FAILED', {
         error: result.error,
         params,
       });
@@ -1037,7 +1237,7 @@ export class PerpsController extends BaseController<
           ? error.message
           : PERPS_ERROR_CODES.WITHDRAW_FAILED;
 
-      DevLogger.log('💥 PerpsController: WITHDRAWAL EXCEPTION', {
+      DevLogger.log('PerpsController: WITHDRAWAL EXCEPTION', {
         error: errorMessage,
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
@@ -1195,13 +1395,31 @@ export class PerpsController extends BaseController<
       const [accountState, historicalPortfolio] = await Promise.all([
         provider.getAccountState(params),
         provider.getHistoricalPortfolio(params).catch((error) => {
-          DevLogger.log(
-            'Failed to get historical portfolio, continuing without it:',
-            error,
-          );
+          Logger.error(error as Error, {
+            message:
+              'Failed to get historical portfolio, continuing without it',
+            context: 'PerpsController.getAccountState',
+          });
           return;
         }),
       ]);
+
+      // Add safety check for accountState to prevent TypeError
+      if (!accountState) {
+        const error = new Error(
+          'Failed to get account state: received null/undefined response',
+        );
+
+        // Track null account state errors in Sentry for API monitoring
+        Logger.error(error, {
+          message: 'Received null/undefined account state from provider',
+          context: 'PerpsController.getAccountState',
+          provider: this.state.activeProvider,
+          isTestnet: this.state.isTestnet,
+        });
+
+        throw error;
+      }
 
       // fallback to the current account total value if possible
       const historicalPortfolioToUse: HistoricalPortfolioResult =
@@ -1493,8 +1711,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.getWithdrawalRoutes();
     } catch (error) {
-      DevLogger.log('PerpsController: Error getting withdrawal routes', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error getting withdrawal routes',
+        context: 'PerpsController.getWithdrawalRoutes',
         timestamp: new Date().toISOString(),
       });
       // Return empty array if provider is not available
@@ -1602,8 +1821,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPrices(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to prices', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to prices',
+        context: 'PerpsController.subscribeToPrices',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1621,8 +1841,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToPositions(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to positions', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to positions',
+        context: 'PerpsController.subscribeToPositions',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1640,8 +1861,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrderFills(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to order fills', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to order fills',
+        context: 'PerpsController.subscribeToOrderFills',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1659,8 +1881,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToOrders(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to orders', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to orders',
+        context: 'PerpsController.subscribeToOrders',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1678,8 +1901,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       return provider.subscribeToAccount(params);
     } catch (error) {
-      DevLogger.log('PerpsController: Error subscribing to account', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error subscribing to account',
+        context: 'PerpsController.subscribeToAccount',
         timestamp: new Date().toISOString(),
       });
       // Return a no-op unsubscribe function
@@ -1722,8 +1946,9 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       provider.setLiveDataConfig(config);
     } catch (error) {
-      DevLogger.log('PerpsController: Error setting live data config', {
-        error: error instanceof Error ? error.message : 'Unknown error',
+      Logger.error(error as Error, {
+        message: 'PerpsController: Error setting live data config',
+        context: 'PerpsController.setLiveDataConfig',
         timestamp: new Date().toISOString(),
       });
     }
@@ -1760,13 +1985,11 @@ export class PerpsController extends BaseController<
         const provider = this.getActiveProvider();
         await provider.disconnect();
       } catch (error) {
-        DevLogger.log(
-          'PerpsController: Error getting provider during disconnect',
-          {
-            error: error instanceof Error ? error.message : 'Unknown error',
-            timestamp: new Date().toISOString(),
-          },
-        );
+        Logger.error(error as Error, {
+          message: 'PerpsController: Error getting provider during disconnect',
+          context: 'PerpsController.disconnect',
+          timestamp: new Date().toISOString(),
+        });
       }
     }
 
@@ -1895,8 +2118,9 @@ export class PerpsController extends BaseController<
 
       return location;
     } catch (e) {
-      DevLogger.log('PerpsController: Failed to fetch geo location', {
-        error: e,
+      Logger.error(e as Error, {
+        message: 'PerpsController: Failed to fetch geo location',
+        context: 'PerpsController.performGeoLocationFetch',
       });
       // Don't cache failures
       return location;
@@ -1923,11 +2147,9 @@ export class PerpsController extends BaseController<
         );
       }
     } catch (error) {
-      DevLogger.log('PerpsController: Eligibility refresh failed', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      Logger.error(error as Error, {
+        message: 'PerpsController: Eligibility refresh failed',
+        context: 'PerpsController.refreshEligibility',
         timestamp: new Date().toISOString(),
       });
     } finally {
@@ -2055,12 +2277,7 @@ export class PerpsController extends BaseController<
       const token = await this.messagingSystem.call(
         'AuthenticationController:getBearerToken',
       );
-      const { AccountTreeController } = Engine.context;
-      const accounts =
-        AccountTreeController.getAccountsFromSelectedAccountGroup();
-      const evmAccount = accounts.find((account) =>
-        account.type.startsWith('eip155:'),
-      );
+      const evmAccount = getEvmAccountFromSelectedAccountGroup();
 
       if (!evmAccount || !token) {
         DevLogger.log('DataLake API: Missing requirements', {
