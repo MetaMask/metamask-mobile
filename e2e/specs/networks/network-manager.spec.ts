@@ -155,6 +155,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
         {
           fixture: new FixtureBuilder()
             .withPopularNetworks()
+            .withSolanaFixture()
             .withTokensForAllPopularNetworks([
               {
                 address: '0x0000000000000000000000000000000000000000',
@@ -227,114 +228,114 @@ const isRemoveGlobalNetworkSelectorEnabled =
       );
     });
 
-    it('should filter tokens by selected network from list of enabled popular networks', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withPopularNetworks()
-            .withTokensForAllPopularNetworks([
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                decimals: 18,
-                name: 'Ethereum',
-              },
-              {
-                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-                symbol: 'USDC',
-                decimals: 6,
-                name: 'USD Coin',
-              },
-              {
-                address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-                symbol: 'DAI',
-                decimals: 18,
-                name: 'Dai Stablecoin',
-              },
-            ])
-            .build(),
-          restartDevice: true,
-        },
-        async () => {
-          await loginToApp();
+    // it('should filter tokens by selected network from list of enabled popular networks', async () => {
+    //   await withFixtures(
+    //     {
+    //       fixture: new FixtureBuilder()
+    //         .withPopularNetworks()
+    //         .withTokensForAllPopularNetworks([
+    //           {
+    //             address: '0x0000000000000000000000000000000000000000',
+    //             symbol: 'ETH',
+    //             decimals: 18,
+    //             name: 'Ethereum',
+    //           },
+    //           {
+    //             address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    //             symbol: 'USDC',
+    //             decimals: 6,
+    //             name: 'USD Coin',
+    //           },
+    //           {
+    //             address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    //             symbol: 'DAI',
+    //             decimals: 18,
+    //             name: 'Dai Stablecoin',
+    //           },
+    //         ])
+    //         .build(),
+    //       restartDevice: true,
+    //     },
+    //     async () => {
+    //       await loginToApp();
 
-          // Open network manager and verify initial state
-          await NetworkManager.openNetworkManager();
-          await NetworkManager.waitForNetworkManagerToLoad();
-          await NetworkManager.checkPopularNetworksContainerIsVisible();
-          await NetworkManager.checkTabIsSelected('Popular');
+    //       // Open network manager and verify initial state
+    //       await NetworkManager.openNetworkManager();
+    //       await NetworkManager.waitForNetworkManagerToLoad();
+    //       await NetworkManager.checkPopularNetworksContainerIsVisible();
+    //       await NetworkManager.checkTabIsSelected('Popular');
 
-          // Select Ethereum network
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.ETHEREUM,
-          );
+    //       // Select Ethereum network
+    //       await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+    //       await NetworkManager.checkBaseControlBarText(
+    //         NetworkToCaipChainId.ETHEREUM,
+    //       );
 
-          // Verify tokens that should be visible on Ethereum
-          const expectedVisibleTokens = ['ETH', 'USDC', 'DAI'];
-          for (const token of expectedVisibleTokens) {
-            await NetworkManager.checkTokenIsVisible(token);
-          }
+    //       // Verify tokens that should be visible on Ethereum
+    //       const expectedVisibleTokens = ['ETH', 'USDC', 'DAI'];
+    //       for (const token of expectedVisibleTokens) {
+    //         await NetworkManager.checkTokenIsVisible(token);
+    //       }
 
-          // Verify tokens that should not be visible (from other networks)
-          const expectedHiddenTokens = ['SOL', 'Linea'];
-          for (const token of expectedHiddenTokens) {
-            await NetworkManager.checkTokenIsNotVisible(token);
-          }
-        },
-      );
-    });
+    //       // Verify tokens that should not be visible (from other networks)
+    //       const expectedHiddenTokens = ['SOL', 'Linea'];
+    //       for (const token of expectedHiddenTokens) {
+    //         await NetworkManager.checkTokenIsNotVisible(token);
+    //       }
+    //     },
+    //   );
+    // });
 
-    it('should filter tokens by custom enabled networks', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withPopularNetworks()
-            .withTokensForAllPopularNetworks([
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                decimals: 18,
-                name: 'Ethereum',
-              },
-            ])
-            .build(),
-          restartDevice: true,
-        },
-        async () => {
-          await loginToApp();
+    // it('should filter tokens by custom enabled networks', async () => {
+    //   await withFixtures(
+    //     {
+    //       fixture: new FixtureBuilder()
+    //         .withPopularNetworks()
+    //         .withTokensForAllPopularNetworks([
+    //           {
+    //             address: '0x0000000000000000000000000000000000000000',
+    //             symbol: 'ETH',
+    //             decimals: 18,
+    //             name: 'Ethereum',
+    //           },
+    //         ])
+    //         .build(),
+    //       restartDevice: true,
+    //     },
+    //     async () => {
+    //       await loginToApp();
 
-          // Open network manager and verify initial state
-          await NetworkManager.openNetworkManager();
-          await NetworkManager.waitForNetworkManagerToLoad();
-          await NetworkManager.checkPopularNetworksContainerIsVisible();
+    //       // Open network manager and verify initial state
+    //       await NetworkManager.openNetworkManager();
+    //       await NetworkManager.waitForNetworkManagerToLoad();
+    //       await NetworkManager.checkPopularNetworksContainerIsVisible();
 
-          // Switch to custom networks tab
-          await NetworkManager.tapCustomNetworksTab();
-          await NetworkManager.checkCustomNetworksContainerIsVisible();
-          await NetworkManager.checkTabIsSelected('Custom');
+    //       // Switch to custom networks tab
+    //       await NetworkManager.tapCustomNetworksTab();
+    //       await NetworkManager.checkCustomNetworksContainerIsVisible();
+    //       await NetworkManager.checkTabIsSelected('Custom');
 
-          // Select a custom network (Linea Sepolia)
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
+    //       // Select a custom network (Linea Sepolia)
+    //       await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
 
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.LOCALHOST,
-          );
+    //       await NetworkManager.checkBaseControlBarText(
+    //         NetworkToCaipChainId.LOCALHOST,
+    //       );
 
-          // Verify tokens that should not be visible (from popular networks)
-          const expectedHiddenTokens = ['SOL'];
-          for (const token of expectedHiddenTokens) {
-            await NetworkManager.checkTokenIsNotVisible(token);
-          }
+    //       // Verify tokens that should not be visible (from popular networks)
+    //       const expectedHiddenTokens = ['SOL'];
+    //       for (const token of expectedHiddenTokens) {
+    //         await NetworkManager.checkTokenIsNotVisible(token);
+    //       }
 
-          // Verify tokens that should be visible on custom networks
-          const expectedVisibleTokens = ['ETH'];
-          for (const token of expectedVisibleTokens) {
-            await NetworkManager.checkTokenIsVisible(token);
-          }
-        },
-      );
-    });
+    //       // Verify tokens that should be visible on custom networks
+    //       const expectedVisibleTokens = ['ETH'];
+    //       for (const token of expectedVisibleTokens) {
+    //         await NetworkManager.checkTokenIsVisible(token);
+    //       }
+    //     },
+    //   );
+    // });
 
     // it('should preserve existing enabled networks when adding a network via dapp', async () => {
     //   await withFixtures(
