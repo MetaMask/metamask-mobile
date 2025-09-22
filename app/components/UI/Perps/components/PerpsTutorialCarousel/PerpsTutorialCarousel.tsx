@@ -6,8 +6,8 @@ import React, {
   useState,
 } from 'react';
 import {
-  Dimensions,
   Image,
+  Platform,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -39,18 +39,20 @@ import {
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
-import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { useSelector } from 'react-redux';
+import Rive, { Alignment, Fit, LoopMode, RiveRef } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding-carousel-light.riv');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-carousel-dark.riv');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-// import Character from '../../images/perps_onboarding_character.svg';
 import Character from '../../images/perps_onboarding_character.png';
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
+
+// Currently all Perps onboarding animations have the same name
+const ANIMATION_NAME = 'Timeline 1';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   SHORT_LONG = '01_Short_Long',
@@ -69,11 +71,7 @@ export interface TutorialScreen {
   riveArtboardName?: PERPS_RIVE_ARTBOARD_NAMES;
 }
 
-// TODO: Fix positioning being inconsistent between tabs
-// TODO: Test on small and large devices
 const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
-  const { height: DEVICE_HEIGHT } = Dimensions.get('window');
-
   const defaultScreens = [
     {
       id: 'what_are_perps',
@@ -85,12 +83,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
           // eslint-disable-next-line react-native/no-inline-styles
           style={{
             width: '100%',
-            height: '100%',
             flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginTop: DEVICE_HEIGHT > 820 ? 80 : 10, // Extra margin larger screens so the image is lower
-            marginBottom: 20,
           }}
           resizeMode="contain"
         />
@@ -107,6 +100,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
       id: 'choose_leverage',
       title: strings('perps.tutorial.choose_leverage.title'),
       description: strings('perps.tutorial.choose_leverage.description'),
+      subtitle: strings('perps.tutorial.choose_leverage.subtitle'),
       riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
     },
     {
@@ -153,9 +147,6 @@ const PerpsTutorialCarousel: React.FC = () => {
   const continueDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const { navigateToConfirmation } = useConfirmNavigation();
 
-  // Refs for each Rive animation to control playback
-  const riveRefs = useRef<{ [key: string]: React.RefObject<RiveRef> }>({});
-
   const isEligible = useSelector(selectPerpsEligibility);
 
   const isDarkMode = useColorScheme() === 'dark';
@@ -185,6 +176,15 @@ const PerpsTutorialCarousel: React.FC = () => {
     [isDarkMode],
   );
 
+  const riveRefs = useRef<Record<number, RiveRef | null>>({});
+
+  const getRiveRef = useCallback(
+    (screenIndex: number) => (ref: RiveRef | null) => {
+      riveRefs.current[screenIndex] = ref;
+    },
+    [],
+  );
+
   // Track tutorial viewed on mount
   useEffect(() => {
     if (!hasTrackedViewed.current) {
@@ -197,7 +197,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     }
   }, [track]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(
     () => () => {
       if (continueDebounceRef.current) {
@@ -208,54 +208,16 @@ const PerpsTutorialCarousel: React.FC = () => {
     [],
   );
 
-  // Helper function to get or create a ref for a specific screen
-  const getRiveRef = useCallback((screenId: string) => {
-    riveRefs.current[screenId] ??= React.createRef<RiveRef>();
-    return riveRefs.current[screenId];
-  }, []);
-
-  // Control Rive animation playback based on current tab visibility
+  // Play animation on current tab
   useEffect(() => {
-    tutorialScreens.forEach((screen, index) => {
-      const riveRef = riveRefs.current[screen.id];
-      if (!riveRef?.current) return;
-
-      try {
-        if (index === currentTab) {
-          // Play animation for current visible tab
-          riveRef.current.play();
-        } else {
-          // Stop animation for non-visible tabs to prevent them from playing
-          riveRef.current.stop();
-        }
-      } catch (error) {
-        console.warn(
-          `Error controlling Rive animation for ${screen.id}:`,
-          error,
-        );
-      }
-    });
+    const currentRiveScreenRef = riveRefs.current[currentTab];
+    if (currentRiveScreenRef && tutorialScreens[currentTab]?.riveArtboardName) {
+      currentRiveScreenRef.play(ANIMATION_NAME, LoopMode.OneShot);
+    }
   }, [currentTab, tutorialScreens]);
 
-  // Play the first tab's animation on mount
-  useEffect(() => {
-    const firstScreen = tutorialScreens[0];
-    if (firstScreen?.riveArtboardName) {
-      const riveRef = riveRefs.current[firstScreen.id];
-      if (riveRef?.current) {
-        try {
-          riveRef.current.play();
-        } catch (error) {
-          console.warn(
-            `Error playing initial Rive animation for ${firstScreen.id}:`,
-            error,
-          );
-        }
-      }
-    }
-  }, [tutorialScreens]);
-
   const handleTabChange = useCallback(
+    // The next tab to change to
     (obj: { i: number }) => {
       setCurrentTab(obj.i);
 
@@ -303,7 +265,7 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Mark tutorial as completed
       markTutorialCompleted();
 
-      // We need to enable Arbitrum for desposits to work
+      // We need to enable Arbitrum for deposits to work
       // Arbitrum One is already added for all users as a default network
       // For devs on testnet, Arbitrum Sepolia will be added/enabled
       await ensureArbitrumNetworkExists();
@@ -409,72 +371,72 @@ const PerpsTutorialCarousel: React.FC = () => {
       </View>
 
       {/* Tutorial Content */}
-      {/* <ScrollView contentContainerStyle={styles.scrollContent}> */}
       <View style={styles.carouselWrapper}>
         <ScrollableTabView
           ref={scrollableTabViewRef}
           renderTabBar={renderTabBar}
           onChangeTab={handleTabChange}
           initialPage={0}
-          prerenderingSiblingsNumber={1}
+          /**
+           * Android experiences visual glitch where all layers of animations are stacked on top of each other when prerendering siblings.
+           * iOS devices render the animations correctly and can handle prerendering siblings.
+           */
+          prerenderingSiblingsNumber={Platform.OS === 'ios' ? 1 : 0}
         >
-          {tutorialScreens.map((screen) => (
+          {tutorialScreens.map((screen, screenIndex) => (
             <View key={screen.id} style={styles.screenContainer}>
-              {/* Text content wrapper */}
-              <Text
-                variant={TextVariant.HeadingMD}
-                color={TextColor.Default}
-                style={styles.title}
-              >
-                {screen.title}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.description}
-              >
-                {screen.description}
-              </Text>
-              {screen.subtitle && (
+              {/* Header Section - Fixed height for text content */}
+              <View style={styles.headerSection}>
+                <Text
+                  variant={TextVariant.HeadingMD}
+                  color={TextColor.Default}
+                  style={styles.title}
+                >
+                  {screen.title}
+                </Text>
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
-                  style={styles.subtitle}
+                  style={styles.description}
                 >
-                  {screen.subtitle}
+                  {screen.description}
                 </Text>
-              )}
+                {screen.subtitle && (
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.subtitle}
+                  >
+                    {screen.subtitle}
+                  </Text>
+                )}
+              </View>
 
-              {/* Image/Animation content that fills remaining space */}
-              {screen?.content && screen.content}
-
-              {/* Animation Container */}
-              {screen?.riveArtboardName && (
-                <View style={styles.animationContainer}>
+              {/* Content Section */}
+              <View style={styles.contentSection}>
+                {screen?.content && screen.content}
+                {screen?.riveArtboardName && (
                   <Rive
-                    ref={getRiveRef(screen.id)}
+                    key={screen.id}
+                    ref={getRiveRef(screenIndex)}
                     artboardName={screen.riveArtboardName}
+                    animationName={ANIMATION_NAME}
                     source={PerpsOnboardingAnimation}
-                    fit={Fit.Cover}
+                    fit={Fit.FitWidth}
                     alignment={Alignment.Center}
+                    style={styles.animation}
                     autoplay={false}
                   />
-                </View>
-              )}
+                )}
+              </View>
             </View>
           ))}
         </ScrollableTabView>
       </View>
-      {/* </ScrollView> */}
 
       {/* Footer */}
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.buttonRow}>
-          {isLastScreen && (
-            <Text variant={TextVariant.BodySM} style={styles.fundsInfoText}>
-              {strings('perps.tutorial.ready_to_trade.fund_text_helper')}
-            </Text>
-          )}
           <Button
             variant={ButtonVariants.Primary}
             label={buttonLabel}
