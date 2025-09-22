@@ -5032,18 +5032,18 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-1.0.0.tgz#a79ebf1925ebaa20d059c19bb8a6a20b2fb121f5"
   integrity sha512-xFz/L5/2tjduzIUj+86P63ACExD2icbrDeJzB6nfjhZ4GsfIcOHSm1Rwc5q945Ef88eVwMpqZhMv19i9K0dWmA==
 
-"@metamask/bridge-controller@^43.0.0":
-  version "43.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-43.0.0.tgz#19da56e46a3f79bf3b90fd681b017f727a82bd5f"
-  integrity sha512-u1Jn7G+IgkeeXTrtR+bRlZ8Y20ZX4bF5bdAl51weMjpGGse40Tg0FyvBK00ZhPczAPuRZ+y9hbzA3I+FBkcY2Q==
+"@metamask/bridge-controller@^43.2.0":
+  version "43.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-43.2.0.tgz#a9bc4f131c0790789fcfa1ee9b071bc2fdf79ff8"
+  integrity sha512-FtsavADLXWhPrOKx0r7T89EV4Fpu0XCj+kPGHB5pjCoVd086zbTN9FF4IXgclqjuL0x4GEWjzKXdfOIryWyO+g==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/constants" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.3.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/controller-utils" "^11.14.0"
     "@metamask/gas-fee-controller" "^24.0.0"
     "@metamask/keyring-api" "^21.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
@@ -5767,13 +5767,13 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-enablement-controller@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-1.1.0.tgz#83d198e2909d1c1dfd41d664fb3090d9b1345121"
-  integrity sha512-RTcx1MCOT9LMcIuJplyG8pJ+9RUJUYdIhe5iy/gDoUUHYoK5KMI9+JC1dEdUgIhUFERvgAacwflKBZNXPC/Wgw==
+"@metamask/network-enablement-controller@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-1.2.0.tgz#ffb6daac620d111a1bb2e6062bcf85e7cc0f835c"
+  integrity sha512-iYLWBuXCW/k2txXug/Cdk5qB4OEprKOU3hUdkpW5hAbf8357ohIVE01iqmUWuPfj5QBGC+NTOy/3206V/rm+7g==
   dependencies:
-    "@metamask/base-controller" "^8.3.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/controller-utils" "^11.14.0"
     "@metamask/utils" "^11.8.0"
     reselect "^5.1.1"
 
@@ -6235,10 +6235,10 @@
     ses "^1.14.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^2.3.10":
-  version "2.3.10"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.10.tgz#62865af0512b8e6456253ee367bd0e6260fb93c4"
-  integrity sha512-k5yHFqVhKsZcDwlcpTQC8XmonEbsTjrSiXQDvnxyil+fnbhWEEuJeGezlTiFGf4CK1eHi/ML3JlEWkDwfZGSyg==
+"@metamask/solana-wallet-snap@^2.3.9":
+  version "2.3.9"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.9.tgz#a358955ee34f258fc17c8cf4652f5e678cd70aac"
+  integrity sha512-lj8WGnBw03053Krhb/0DXg1HENrscSgsvO219UXmkoThzJgKVGrwXzf7IPUfT06s73RZ+ICqFjorxHgy2VZ2lQ==
 
 "@metamask/solana-wallet-standard@^0.5.1":
   version "0.5.1"

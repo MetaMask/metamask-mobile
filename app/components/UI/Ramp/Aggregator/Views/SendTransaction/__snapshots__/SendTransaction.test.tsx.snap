@@ -131,9 +131,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -909,9 +908,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1605,9 +1603,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
