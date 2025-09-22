@@ -551,7 +551,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.SUPPORT_CONSENT_MODAL}
       component={SupportConsentScreen}
       options={{
-        presentation: 'modal',
         gestureEnabled: true,
       }}
     />
