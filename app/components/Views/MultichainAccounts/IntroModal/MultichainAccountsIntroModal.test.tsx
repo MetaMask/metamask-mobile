@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import MultichainAccountsIntroModal from './MultichainAccountsIntroModal';
+import MultichainAccountsIntroModal, {
+  WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS,
+} from './MultichainAccountsIntroModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './testIds';
@@ -272,6 +274,9 @@ describe('MultichainAccountsIntroModal', () => {
         MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON,
       );
 
+      const startTime = performance.now();
+      let endTime = startTime;
+
       await act(async () => {
         fireEvent.press(viewAccountsButton);
       });
@@ -280,11 +285,17 @@ describe('MultichainAccountsIntroModal', () => {
       await waitFor(
         () => {
           expect(mockGoBack).toHaveBeenCalledTimes(1);
+          endTime = performance.now();
         },
         { timeout: 5000 },
       );
 
-      // The test passes if it completes successfully, which means the 2-second minimum timeout worked
+      const totalTime = endTime - startTime;
+
+      // Verify that the operation took at least the minimum timeout duration
+      expect(totalTime).toBeGreaterThanOrEqual(
+        WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS,
+      );
     });
   });
 });

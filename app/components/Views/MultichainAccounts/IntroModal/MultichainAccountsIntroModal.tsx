@@ -26,7 +26,7 @@ import Engine from '../../../../core/Engine';
 import { captureException } from '@sentry/react-native';
 
 // Minimum timeout duration for wallet alignment process (2 seconds)
-const WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS = 2000;
+export const WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS = 2000;
 
 const MultichainAccountsIntroModal = () => {
   const { styles, theme } = useStyles(styleSheet, { theme: useTheme() });
