@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 import SelectorButton from '../../../../Base/SelectorButton';
 import Avatar, {
@@ -17,6 +18,7 @@ import { formatAddress } from '../../../../../util/address';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import { createAddressSelectorNavDetails } from '../../../../Views/AddressSelector/AddressSelector';
 import { useRampSDK } from '../sdk';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 const styles = StyleSheet.create({
   selector: {
@@ -31,7 +33,15 @@ const styles = StyleSheet.create({
 
 const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const navigation = useNavigation();
-  const { selectedAddress } = useRampSDK();
+
+  // TODO: TEMPORARY FIX - Swaps feature should not be using Ramp-specific components.
+  // Swaps should either use their own AccountSelector or a generic shared component.
+  const rampSDK = useRampSDK();
+  const fallbackSelectedAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+  const selectedAddress = rampSDK?.selectedAddress || fallbackSelectedAddress;
+
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
 
