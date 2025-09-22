@@ -113,17 +113,17 @@ describe('getNetworkName', () => {
   });
 
   it('returns nickname from PopularList when network not in configurations', () => {
-    const chainId = toHex('43114') as Hex; // Avalanche C-Chain
+    const chainId = toHex('43114') as Hex; // Avalanche
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Avalanche C-Chain');
+    expect(result).toBe('Avalanche');
   });
 
-  it('returns nickname from PopularList for Arbitrum One', () => {
+  it('returns nickname from PopularList for Arbitrum', () => {
     const chainId = toHex('42161') as Hex;
     const networkConfigurations: Record<
       string,
@@ -131,7 +131,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Arbitrum One');
+    expect(result).toBe('Arbitrum');
   });
 
   it('returns nickname from PopularList for BNB Smart Chain', () => {
@@ -142,7 +142,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('BNB Smart Chain Mainnet');
+    expect(result).toBe('BNB Chain');
   });
 
   it('returns nickname from PopularList for Base', () => {
@@ -156,7 +156,7 @@ describe('getNetworkName', () => {
     expect(result).toBe('Base');
   });
 
-  it('returns nickname from PopularList for OP Mainnet', () => {
+  it('returns nickname from PopularList for OP', () => {
     const chainId = toHex('10') as Hex;
     const networkConfigurations: Record<
       string,
@@ -164,7 +164,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('OP Mainnet');
+    expect(result).toBe('OP');
   });
 
   it('returns "Unknown Network" when network not found anywhere', () => {
@@ -179,7 +179,7 @@ describe('getNetworkName', () => {
   });
 
   it('prioritizes network configurations over PopularList', () => {
-    const chainId = toHex('43114') as Hex; // Avalanche C-Chain
+    const chainId = toHex('43114') as Hex; // Avalanche
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration
