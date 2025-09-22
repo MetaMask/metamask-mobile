@@ -65,7 +65,7 @@ Read more about troubleshooting [here](https://airbnb.io/lottie/#/react-native?i
 
 ### Usage
 
-Read more on React native documenation for Rive [here](https://rive.app/docs/runtimes/react-native/react-native). Instructions on loading Rive files both locally and remotely [here](https://rive.app/docs/runtimes/react-native/loading-rive-to-expo).
+Read more on [React native documentation for Rive](https://rive.app/docs/runtimes/react-native/react-native). [Instructions on loading Rive files both locally and remotely](https://rive.app/docs/runtimes/react-native/loading-rive-to-expo).
 
 ```javascript
 import Rive from 'rive-react-native';
