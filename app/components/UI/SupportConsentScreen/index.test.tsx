@@ -138,13 +138,14 @@ const createMockRoute = (params = {}) => ({
   },
 });
 
-const createMockStore = (): Store => ({
-  dispatch: mockDispatch,
-  getState: () => ({}),
-  subscribe: jest.fn(),
-  replaceReducer: jest.fn(),
-  [Symbol.observable]: jest.fn(),
-} as Store);
+const createMockStore = (): Store =>
+  ({
+    dispatch: mockDispatch,
+    getState: () => ({}),
+    subscribe: jest.fn(),
+    replaceReducer: jest.fn(),
+    [Symbol.observable]: jest.fn(),
+  } as Store);
 
 const Stack = createStackNavigator();
 
