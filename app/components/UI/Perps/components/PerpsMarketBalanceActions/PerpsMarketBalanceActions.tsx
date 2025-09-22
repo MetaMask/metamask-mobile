@@ -5,12 +5,14 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
   ButtonBase,
   BoxFlexDirection,
   BoxAlignItems,
-  FontWeight,
 } from '@metamask/design-system-react-native';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
@@ -176,15 +178,16 @@ const PerpsMarketBalanceActions: React.FC<
           >
             <Box>
               <Text
-                fontWeight={FontWeight.Medium}
-                style={tw.style('text-text-alternative text-sm mb-1')}
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                style={tw.style('mb-1')}
               >
                 {strings('perps.available_balance')}
               </Text>
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <Text
-                  fontWeight={FontWeight.Bold}
-                  style={tw.style('text-text-default text-2xl')}
+                  variant={TextVariant.HeadingMD}
+                  color={TextColor.Default}
                   testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                 >
                   {formatPerpsFiat(totalBalance)}
@@ -228,8 +231,8 @@ const PerpsMarketBalanceActions: React.FC<
               testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
             >
               <Text
-                fontWeight={FontWeight.Medium}
-                style={tw.style('text-text-default text-base')}
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
               >
                 {strings('perps.add_funds')}
               </Text>
@@ -252,11 +255,8 @@ const PerpsMarketBalanceActions: React.FC<
               disabled={isBalanceEmpty}
             >
               <Text
-                fontWeight={FontWeight.Medium}
-                style={tw.style(
-                  'text-text-default text-base',
-                  isBalanceEmpty && 'text-text-muted',
-                )}
+                variant={TextVariant.BodyMDMedium}
+                color={isBalanceEmpty ? TextColor.Muted : TextColor.Default}
               >
                 {strings('perps.withdraw')}
               </Text>
