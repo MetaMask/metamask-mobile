@@ -36,6 +36,10 @@ const captureSendStartedEvent = (location: string) => {
 };
 
 export function isValidPositiveNumericString(str: string) {
+  const decimalRegex = /^(\d+(\.\d+)?|\.\d+)$/;
+
+  if (!decimalRegex.test(str)) return false;
+
   try {
     const num = new BigNumber(str);
     return num.isGreaterThanOrEqualTo(new BigNumber(0));
