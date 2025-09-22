@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import type { OrderFormState } from '../types';
-import { calculateMarginRequired } from '../utils/orderCalculations';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
 import { usePerpsLiveAccount } from './stream';
+import { findOptimalAmount } from '../utils/orderCalculations';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -29,14 +29,11 @@ export interface UsePerpsOrderFormReturn {
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
-  calculations: {
-    positionSize: string;
-    marginRequired: string;
-  };
+  optimizeOrderAmount: (price: number, szDecimals?: number) => void;
 }
 
 /**
- * Hook to manage the perpetual order form state and calculations
+ * Hook to manage the perpetual order form state
  * This hook is protocol-agnostic and handles form state management
  */
 export function usePerpsOrderForm(
@@ -195,18 +192,40 @@ export function usePerpsOrderForm(
     }));
   }, [currentNetwork]);
 
-  // Calculations that will be needed by the order view
-  // Note: These require additional data (price, szDecimals) that should be passed
-  // from the component that has access to market data
-  const calculations = useMemo(
-    () => ({
-      positionSize: '0', // This will be calculated in the component with price data
-      marginRequired: calculateMarginRequired({
-        amount: orderForm.amount,
-        leverage: orderForm.leverage,
-      }),
-    }),
-    [orderForm.amount, orderForm.leverage],
+  // Optimize order amount to get the highest USD value for the same position size
+  const optimizeOrderAmount = useCallback(
+    (price: number, szDecimals?: number) => {
+      setOrderForm((prev) => {
+        if (!prev.amount || parseFloat(prev.amount) === 0) {
+          return prev;
+        }
+
+        const optimizedAmount = findOptimalAmount({
+          targetAmount: prev.amount,
+          price,
+          szDecimals,
+        });
+
+        // Check if optimized amount would exceed available balance
+        const maxAllowedAmount = availableBalance * prev.leverage;
+        const optimizedAmountNum = parseFloat(optimizedAmount);
+
+        // Only update if the optimized amount is different, higher, and within bounds
+        if (
+          optimizedAmount !== prev.amount &&
+          optimizedAmountNum > parseFloat(prev.amount) &&
+          optimizedAmountNum <= maxAllowedAmount
+        ) {
+          return {
+            ...prev,
+            amount: optimizedAmount,
+          };
+        }
+
+        return prev;
+      });
+    },
+    [availableBalance],
   );
 
   return {
@@ -223,6 +242,6 @@ export function usePerpsOrderForm(
     handlePercentageAmount,
     handleMaxAmount,
     handleMinAmount,
-    calculations,
+    optimizeOrderAmount,
   };
 }
