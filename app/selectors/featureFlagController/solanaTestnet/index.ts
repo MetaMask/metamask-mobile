@@ -3,5 +3,8 @@ import { selectRemoteFeatureFlags } from '..';
 
 export const selectIsSolanaTestnetEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => remoteFeatureFlags.solanaTestnetsEnabled,
+  (remoteFeatureFlags) => {
+    console.log('remoteFeatureFlags.solanaTestnetsEnabled', remoteFeatureFlags.solanaTestnetsEnabled)
+    return true
+  }
 );

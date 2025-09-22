@@ -94,10 +94,8 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     [enabledNetworks, networksByCaipChainId],
   );
 
-  let isDisabled: boolean = Boolean(!isEvmSelected);
-  // We don't have Solana testnet networks, so we disable the network selector if Solana is selected
-  // TODO: Come back when we have Solana devnet available
-  isDisabled = Boolean(isSolanaSelected);
+  // For now there is no use case to have it disabled,
+  const isDisabled: boolean = false;
 
   const hasEnabledNetworks = enabledNetworks.length > 0;
 

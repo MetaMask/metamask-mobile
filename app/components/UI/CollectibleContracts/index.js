@@ -664,7 +664,7 @@ const CollectibleContracts = ({
               </>
             }
             isDisabled={isDisabled}
-            onPress={isEvmSelected ? showFilterControls : () => null}
+            onPress={showFilterControls}
             endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
             style={
               isDisabled ? styles.controlButtonDisabled : styles.controlButton
