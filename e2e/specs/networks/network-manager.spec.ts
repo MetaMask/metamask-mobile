@@ -12,7 +12,6 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -111,10 +110,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
           // Select Avalanche and check if Ethereum is not selected
           await NetworkManager.tapNetwork(NetworkToCaipChainId.AVALANCHE);
           await NetworkManager.closeNetworkManager();
-          // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
-          // as thee globally selected network in the useNetworkSelection hook. This is needed until we
-          // resolve BIP44 issues with network filtering
-          await NetworkEducationModal.tapGotItButton();
+
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.AVALANCHE,
           );
@@ -152,10 +148,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
           // Tap localhost network and check base control bar text
           await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
           await NetworkManager.closeNetworkManager();
-          // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
-          // as thee globally selected network in the useNetworkSelection hook. This is needed until we
-          // resolve BIP44 issues with network filtering
-          await NetworkEducationModal.tapGotItButton();
+
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.LOCALHOST,
           );
@@ -209,10 +202,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
           // Select Ethereum network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
           await NetworkManager.closeNetworkManager();
-          // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
-          // as thee globally selected network in the useNetworkSelection hook. This is needed until we
-          // resolve BIP44 issues with network filtering
-          await NetworkEducationModal.tapGotItButton();
+
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.SOLANA,
           );
@@ -308,10 +298,6 @@ const isRemoveGlobalNetworkSelectorEnabled =
           // Select a custom network (Linea Sepolia)
           await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA_SEPOLIA);
           await NetworkManager.closeNetworkManager();
-          // TODO: Temporary fix for network education modal. This will be removed when we stop setting the network
-          // as thee globally selected network in the useNetworkSelection hook. This is needed until we
-          // resolve BIP44 issues with network filtering
-          await NetworkEducationModal.tapGotItButton();
 
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.LINEA_SEPOLIA,

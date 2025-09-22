@@ -19,6 +19,10 @@ jest.mock('../../../hooks/useCurrentNetworkInfo', () => ({
   useCurrentNetworkInfo: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => null),
+}));
+
 // Mock the useNetworksByNamespace hooks
 jest.mock(
   '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',

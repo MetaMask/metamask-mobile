@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../constants/navigation/Routes';
@@ -25,10 +25,6 @@ import {
 } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 const Stack = createStackNavigator();
-
-interface RewardsNavigatorProps {
-  children?: React.ReactNode;
-}
 
 const AuthErrorView = () => {
   const tw = useTailwind();
@@ -60,7 +56,7 @@ const AuthErrorView = () => {
   );
 };
 
-const RewardsNavigatorContent: React.FC = () => {
+const RewardsNavigator: React.FC = () => {
   const account = useSelector(selectSelectedInternalAccount);
   const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -130,17 +126,6 @@ const RewardsNavigatorContent: React.FC = () => {
       ) : null}
     </Stack.Navigator>
   );
-};
-
-const RewardsNavigator: React.FC<RewardsNavigatorProps> = () => {
-  const isFocused = useIsFocused();
-
-  // Return early loading state when not focused to avoid running expensive hooks
-  if (!isFocused) {
-    return <></>;
-  }
-
-  return <RewardsNavigatorContent />;
 };
 
 export default RewardsNavigator;

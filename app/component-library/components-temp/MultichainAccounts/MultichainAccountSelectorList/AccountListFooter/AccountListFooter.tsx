@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState, useEffect } from 'react';
+import React, { memo, useCallback, useState, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -28,6 +28,7 @@ import {
   endTrace,
   trace,
 } from '../../../../../util/trace';
+import { useAccountsOperationsLoadingStates } from '../../../../../util/accounts/useAccountsOperationsLoadingStates';
 
 interface AccountListFooterProps {
   walletId: AccountWalletId;
@@ -38,6 +39,28 @@ const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const { styles } = useStyles(createStyles, {});
+    const {
+      isAccountSyncingInProgress,
+      loadingMessage: accountOperationLoadingMessage,
+    } = useAccountsOperationsLoadingStates();
+
+    const isLoadingState = isLoading || isAccountSyncingInProgress;
+
+    const actionLabel = useMemo(() => {
+      if (isAccountSyncingInProgress) {
+        return accountOperationLoadingMessage;
+      }
+
+      if (isLoadingState) {
+        return strings('multichain_accounts.wallet_details.creating_account');
+      }
+
+      return strings('multichain_accounts.wallet_details.create_account');
+    }, [
+      isLoadingState,
+      accountOperationLoadingMessage,
+      isAccountSyncingInProgress,
+    ]);
 
     // Get wallet information to find the keyringId
     const walletsMap = useSelector(selectWalletsMap);
@@ -106,14 +129,14 @@ const AccountListFooter = memo(
         <TouchableOpacity
           style={[
             styles.button,
-            (isLoading || !walletInfo?.keyringId) && styles.buttonDisabled,
+            (isLoadingState || !walletInfo?.keyringId) && styles.buttonDisabled,
           ]}
           onPress={handlePress}
-          disabled={isLoading || !walletInfo?.keyringId}
+          disabled={isLoadingState || !walletInfo?.keyringId}
           activeOpacity={0.7}
         >
           <View style={styles.iconContainer}>
-            {isLoading ? (
+            {isLoadingState ? (
               <AnimatedSpinner size={SpinnerSize.SM} />
             ) : (
               <Icon
@@ -128,9 +151,7 @@ const AccountListFooter = memo(
             style={styles.buttonText}
             testID={AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT}
           >
-            {isLoading
-              ? strings('multichain_accounts.wallet_details.creating_account')
-              : strings('multichain_accounts.wallet_details.create_account')}
+            {actionLabel}
           </Text>
         </TouchableOpacity>
       </View>
