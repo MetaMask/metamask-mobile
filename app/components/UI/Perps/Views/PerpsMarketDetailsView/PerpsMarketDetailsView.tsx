@@ -230,6 +230,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       market &&
       marketStats &&
       !isLoadingHistory &&
+      !isLoadingPosition &&
       !hasTrackedAssetView.current
     ) {
       // Track asset screen loaded
@@ -239,11 +240,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
         [PerpsEventProperties.ASSET]: market.symbol,
         [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
+        [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
       });
 
       hasTrackedAssetView.current = true;
     }
-  }, [market, marketStats, isLoadingHistory, track, endMeasure]);
+  }, [
+    market,
+    marketStats,
+    isLoadingHistory,
+    isLoadingPosition,
+    existingPosition,
+    track,
+    endMeasure,
+  ]);
 
   useEffect(() => {
     if (!isLoadingPosition && market) {
