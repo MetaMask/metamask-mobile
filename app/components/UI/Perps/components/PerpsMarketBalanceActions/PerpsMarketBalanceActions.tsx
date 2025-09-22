@@ -240,28 +240,28 @@ const PerpsMarketBalanceActions: React.FC<
           </Box>
 
           {/* Withdraw Button */}
-          <Box twClassName="flex-1">
-            <ButtonBase
-              twClassName="h-12 rounded-xl"
-              style={({ pressed }) =>
-                tw.style(
-                  'bg-subsection flex-row items-center justify-center w-full',
-                  pressed && 'bg-background-pressed',
-                  isBalanceEmpty && 'opacity-50',
-                )
-              }
-              onPress={handleWithdraw}
-              testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
-              disabled={isBalanceEmpty}
-            >
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={isBalanceEmpty ? TextColor.Muted : TextColor.Default}
+          {!isBalanceEmpty && (
+            <Box twClassName="flex-1">
+              <ButtonBase
+                twClassName="h-12 rounded-xl"
+                style={({ pressed }) =>
+                  tw.style(
+                    'bg-subsection flex-row items-center justify-center w-full',
+                    pressed && 'bg-background-pressed',
+                  )
+                }
+                onPress={handleWithdraw}
+                testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
               >
-                {strings('perps.withdraw')}
-              </Text>
-            </ButtonBase>
-          </Box>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                >
+                  {strings('perps.withdraw')}
+                </Text>
+              </ButtonBase>
+            </Box>
+          )}
         </Box>
       </Box>
 
