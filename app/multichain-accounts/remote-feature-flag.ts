@@ -69,13 +69,10 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
 
   const { enabled, featureVersion, minimumVersion } = enableMultichainAccounts;
 
-  if (!enabled) {
-    return false;
-  }
-
-  // @ts-expect-error if enabled is true, featureVersion and minimumVersion are guaranteed to be strings
   return (
+    enabled &&
     featureVersion === featureVersionToCheck &&
+    // @ts-expect-error if enabled is true, featureVersion and minimumVersion are guaranteed to be strings
     compareVersions.compare(minimumVersion, APP_VERSION, '<=')
   );
 };
