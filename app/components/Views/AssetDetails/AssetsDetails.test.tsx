@@ -47,28 +47,35 @@ jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
-jest.mock('../../../selectors/accountsController', () => ({
-  selectLastSelectedEvmAccount: jest.fn(() => ({
-    address: '0x0', // MOCK_ADDRESS_1
-  })),
-  selectSelectedInternalAccountAddress: jest.fn(() => '0x0'), // MOCK_ADDRESS_1
-  selectSelectedInternalAccountFormattedAddress: jest.fn(() => '0x0'), // MOCK_ADDRESS_1
-  selectSelectedAccountGroupInternalAccounts: jest.fn(() => []),
-  selectInternalAccounts: jest.fn(() => ({})),
-  selectSelectedInternalAccount: jest.fn(() => ({
-    id: 'mock-account-id',
-    address: '0x0',
-  })),
-}));
+// Mock all selector modules to avoid dependency chain issues
+jest.mock('../../../selectors/accountsController');
+jest.mock('../../../selectors/multichainAccounts/accountTreeController');
+jest.mock('../../../selectors/smartTransactionsController');
 
-// Mock multichain accounts selectors
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectAccountSections: jest.fn(() => []),
-    selectAccountTreeControllerState: jest.fn(() => ({})),
-  }),
-);
+// Import and mock specific selectors after module mocks
+import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
+
+const mockSelectLastSelectedEvmAccount =
+  selectLastSelectedEvmAccount as jest.MockedFunction<
+    typeof selectLastSelectedEvmAccount
+  >;
+
+// Set up the specific mocks we need
+mockSelectLastSelectedEvmAccount.mockReturnValue({
+  type: 'eip155:eoa' as const,
+  id: 'mock-account-id',
+  options: {},
+  metadata: {
+    name: 'Test Account',
+    importTime: Date.now(),
+    keyring: {
+      type: 'HD Key Tree',
+    },
+  },
+  address: '0x0', // MOCK_ADDRESS_1
+  scopes: ['eip155:1'],
+  methods: [],
+});
 
 const mockStore = configureMockStore();
 
