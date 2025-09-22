@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useAccounts } from '../../../hooks/useAccounts';
 import {
   selectDestAddress,
   setDestAddress,
@@ -8,52 +7,16 @@ import {
   selectIsSolanaToEvm,
 } from '../../../../core/redux/slices/bridge';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
-import { selectValidDestInternalAccountIds } from '../../../../selectors/bridge';
-import {
-  selectAccountGroups,
-  selectSelectedAccountGroup,
-} from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
+import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { isNonEvmAddress } from '../../../../core/Multichain/utils';
+import { useDestinationAccounts } from './useDestinationAccounts';
 
 export const useRecipientInitialization = (
   hasInitializedRecipient: React.MutableRefObject<boolean>,
 ) => {
   const dispatch = useDispatch();
-  const { accounts } = useAccounts();
+  const { destinationAccounts } = useDestinationAccounts();
   const currentlySelectedAccount = useSelector(selectSelectedAccountGroup);
-
-  // Filter accounts using BIP-44 aware multichain selectors via account IDs
-  const validDestIds = useSelector(selectValidDestInternalAccountIds);
-  const accountGroups = useSelector(selectAccountGroups);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
-  const filteredAccounts = useMemo(() => {
-    if (!validDestIds || validDestIds.size === 0) return [];
-    return accounts
-      .filter((account) => validDestIds.has(account.id))
-      .map((account) => {
-        // Use account group name if available, otherwise use account name
-        let accountName = account.name;
-        if (isMultichainAccountsState2Enabled) {
-          const accountGroup = accountGroups.find((group) =>
-            group.accounts.includes(account.id),
-          );
-          accountName = accountGroup?.metadata.name || account.name;
-        }
-        return {
-          ...account,
-          name: accountName,
-        };
-      });
-  }, [
-    accounts,
-    validDestIds,
-    accountGroups,
-    isMultichainAccountsState2Enabled,
-  ]);
 
   const destAddress = useSelector(selectDestAddress);
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
@@ -72,7 +35,7 @@ export const useRecipientInitialization = (
   // Initialize default recipient account
   useEffect(() => {
     // Only initialize if we haven't done so before, or if the current address doesn't match the network type
-    if (filteredAccounts.length === 0) {
+    if (destinationAccounts.length === 0) {
       return;
     }
 
@@ -92,9 +55,9 @@ export const useRecipientInitialization = (
 
     if (shouldInitialize) {
       // Find an account from the currently selected account group that supports the destination network
-      let defaultAccount = filteredAccounts[0]; // fallback to first account
-      if (currentlySelectedAccount && filteredAccounts.length > 0) {
-        const accountFromCurrentGroup = filteredAccounts.find((account) =>
+      let defaultAccount = destinationAccounts[0]; // fallback to first account
+      if (currentlySelectedAccount && destinationAccounts.length > 0) {
+        const accountFromCurrentGroup = destinationAccounts.find((account) =>
           currentlySelectedAccount.accounts.includes(account.id),
         );
 
@@ -110,7 +73,7 @@ export const useRecipientInitialization = (
     destAddress,
     isEvmToSolana,
     isSolanaToEvm,
-    filteredAccounts,
+    destinationAccounts,
     handleSelectAccount,
     currentlySelectedAccount,
     hasInitializedRecipient,
