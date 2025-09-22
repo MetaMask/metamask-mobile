@@ -28,7 +28,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
     it('should reflect the correct enabled networks state in the network manager', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().withPopularNetworks().build(),
+          fixture: new FixtureBuilder().build(),
           restartDevice: true,
         },
         async () => {
@@ -47,13 +47,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
           const popularNetworks = [
             NetworkToCaipChainId.ETHEREUM,
             NetworkToCaipChainId.LINEA,
-            NetworkToCaipChainId.AVALANCHE,
-            NetworkToCaipChainId.BNB,
-            NetworkToCaipChainId.ZKSYNC_ERA,
-            NetworkToCaipChainId.BASE,
-            NetworkToCaipChainId.OPTIMISM,
-            NetworkToCaipChainId.POLYGON,
-            NetworkToCaipChainId.PALM,
+            NetworkToCaipChainId.SOLANA,
           ];
 
           for (const network of popularNetworks) {
@@ -66,7 +60,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
     it('should reflect the enabled networks state in the network manager, when all popular networks are selected', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().withPopularNetworks().build(),
+          fixture: new FixtureBuilder().build(),
           restartDevice: true,
         },
         async () => {
@@ -84,7 +78,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
     it('should select a network and deselect the previous selected network', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder().withPopularNetworks().build(),
+          fixture: new FixtureBuilder().build(),
           restartDevice: true,
         },
         async () => {
@@ -108,11 +102,11 @@ const isRemoveGlobalNetworkSelectorEnabled =
           );
 
           // Select Avalanche and check if Ethereum is not selected
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.AVALANCHE);
+          await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
           await NetworkManager.closeNetworkManager();
 
           await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.AVALANCHE,
+            NetworkToCaipChainId.LINEA,
           );
 
           // validate that Ethereum is not selected
@@ -127,12 +121,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
     it('should default to custom tab when custom network is enabled', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder()
-            .withPopularNetworks()
-            .withNetworkEnabledMap({
-              eip155: { '0xaa36a7': false },
-            })
-            .build(),
+          fixture: new FixtureBuilder().build(),
           restartDevice: true,
         },
         async () => {
@@ -163,12 +152,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
     it('should default to default tab when default network is enabled', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder()
-            .withPopularNetworks()
-            .withNetworkEnabledMap({
-              eip155: { '0xaa36a7': false },
-            })
-            .build(),
+          fixture: new FixtureBuilder().build(),
           restartDevice: true,
         },
         async () => {
@@ -182,12 +166,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
     it('should filter by Solana', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder()
-            .withPopularNetworks()
-            .withNetworkEnabledMap({
-              eip155: { '0xaa36a7': false }, // Sepolia disabled
-            })
-            .build(),
+          fixture: new FixtureBuilder().build(),
           restartDevice: true,
         },
         async () => {
@@ -232,12 +211,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
     it('should filter tokens by enabled popular networks', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder()
-            .withPopularNetworks()
-            .withNetworkEnabledMap({
-              eip155: { '0xaa36a7': false }, // Sepolia disabled
-            })
-            .build(),
+          fixture: new FixtureBuilder().build(),
           restartDevice: true,
         },
         async () => {
@@ -263,7 +237,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
           }
 
           // Verify tokens that should not be visible (from other networks)
-          const expectedHiddenTokens = ['PALM', 'AVAX', 'BNB'];
+          const expectedHiddenTokens = ['SOL', 'Linea'];
           for (const token of expectedHiddenTokens) {
             await NetworkManager.checkTokenIsNotVisible(token);
           }
@@ -274,12 +248,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
     it('should filter tokens by custom enabled networks', async () => {
       await withFixtures(
         {
-          fixture: new FixtureBuilder()
-            .withPopularNetworks()
-            .withNetworkEnabledMap({
-              eip155: { '0xaa36a7': false }, // Sepolia disabled
-            })
-            .build(),
+          fixture: new FixtureBuilder().build(),
           restartDevice: true,
         },
         async () => {
@@ -304,7 +273,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
           );
 
           // Verify tokens that should not be visible (from popular networks)
-          const expectedHiddenTokens = ['PALM', 'AVAX', 'BNB'];
+          const expectedHiddenTokens = ['SOL'];
           for (const token of expectedHiddenTokens) {
             await NetworkManager.checkTokenIsNotVisible(token);
           }
