@@ -241,29 +241,35 @@ function setupBackgroundBridge(url, isMMSDK = false) {
 }
 
 const mockAccountTreeController = (accounts) => {
-  Engine.controllerMessenger.call = jest.fn().mockImplementation((method) => {
-    if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
-      return 'mainnet';
-    }
+  Engine.controllerMessenger.call = jest
+    .fn()
+    .mockImplementation((method, params) => {
+      if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
+        return 'mainnet';
+      }
 
-    if (method === 'NetworkController:getNetworkClientById') {
-      return {
-        configuration: {
-          chainId: '0x1',
-          ticker: 'ETH',
-        },
-      };
-    }
+      if (method === 'NetworkController:getNetworkClientById') {
+        return {
+          configuration: {
+            chainId: '0x1',
+            ticker: 'ETH',
+          },
+        };
+      }
 
-    if (
-      method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-    ) {
-      return accounts;
-    }
+      if (
+        method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        // Filter accounts by type if params.type is specified
+        if (params?.type) {
+          return accounts.filter((account) => account.type === params.type);
+        }
+        return accounts;
+      }
 
-    // Default return for other methods
-    return undefined;
-  });
+      // Default return for other methods
+      return undefined;
+    });
 };
 
 describe('BackgroundBridge', () => {
@@ -856,6 +862,7 @@ describe('BackgroundBridge', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        { type: SolAccountType.DataAccount },
       );
       expect(handleSolanaAccountSpy).not.toHaveBeenCalled();
     });
@@ -879,6 +886,7 @@ describe('BackgroundBridge', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        { type: SolAccountType.DataAccount },
       );
       expect(handleSolanaAccountSpy).not.toHaveBeenCalled();
     });
@@ -903,6 +911,7 @@ describe('BackgroundBridge', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        { type: SolAccountType.DataAccount },
       );
       expect(handleSolanaAccountSpy).toHaveBeenCalledWith(mockSolanaAccount);
     });
@@ -938,6 +947,7 @@ describe('BackgroundBridge', () => {
 
       expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        { type: SolAccountType.DataAccount },
       );
       expect(handleSolanaAccountSpy).toHaveBeenCalledWith(mockSolanaAccount1);
       expect(handleSolanaAccountSpy).toHaveBeenCalledTimes(1);
