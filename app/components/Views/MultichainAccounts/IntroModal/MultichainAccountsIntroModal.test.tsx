@@ -59,16 +59,13 @@ describe('MultichainAccountsIntroModal', () => {
     );
   });
 
-  it('renders correctly with all elements', () => {
-    const { getByTestId } = renderWithProviders(
+  it('renders correctly with all elements', async () => {
+    const { getByTestId, queryByTestId } = renderWithProviders(
       <MultichainAccountsIntroModal />,
     );
 
     expect(
       getByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.TITLE),
-    ).toBeTruthy();
-    expect(
-      getByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON),
     ).toBeTruthy();
     expect(
       getByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.IMAGE_PLACEHOLDER),
@@ -97,6 +94,13 @@ describe('MultichainAccountsIntroModal', () => {
     expect(
       getByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.LEARN_MORE_BUTTON),
     ).toBeTruthy();
+
+    // Wait for initial alignment to complete and close button to appear
+    await waitFor(() => {
+      expect(
+        queryByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON),
+      ).toBeTruthy();
+    });
   });
 
   it('displays correct title', () => {
@@ -153,10 +157,17 @@ describe('MultichainAccountsIntroModal', () => {
     ).toHaveTextContent(strings('multichain_accounts.intro.learn_more_button'));
   });
 
-  it('handles close button press', () => {
-    const { getByTestId } = renderWithProviders(
+  it('handles close button press', async () => {
+    const { getByTestId, queryByTestId } = renderWithProviders(
       <MultichainAccountsIntroModal />,
     );
+
+    // Wait for initial alignment to complete and close button to appear
+    await waitFor(() => {
+      expect(
+        queryByTestId(MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON),
+      ).toBeTruthy();
+    });
 
     const closeButton = getByTestId(
       MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
