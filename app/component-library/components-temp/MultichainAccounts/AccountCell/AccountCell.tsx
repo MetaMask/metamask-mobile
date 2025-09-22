@@ -107,6 +107,7 @@ const AccountCell = ({
             size={IconSize.Md}
             style={styles.checkIcon}
             color={TextColor.Primary}
+            testID={AccountCellIds.CHECK_ICON}
           />
         )}
       </View>
