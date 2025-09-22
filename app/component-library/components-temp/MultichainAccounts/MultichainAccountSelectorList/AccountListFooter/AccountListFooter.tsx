@@ -10,6 +10,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { useStyles } from '../../../../hooks';
 import AnimatedSpinner, {
   SpinnerSize,
@@ -123,6 +124,23 @@ const AccountListFooter = memo(
         handleCreateAccount();
       });
     }, [handleCreateAccount]);
+
+    const hasImportedOrHardwareAccounts = useMemo(
+      () =>
+        walletInfo?.accounts?.some((account) => {
+          const keyringType = account.metadata?.keyring?.type;
+          return (
+            keyringType === ExtendedKeyringTypes.simple ||
+            keyringType === ExtendedKeyringTypes.ledger ||
+            keyringType === ExtendedKeyringTypes.trezor
+          );
+        }),
+      [walletInfo?.accounts],
+    );
+
+    if (hasImportedOrHardwareAccounts) {
+      return null;
+    }
 
     return (
       <View style={styles.container}>

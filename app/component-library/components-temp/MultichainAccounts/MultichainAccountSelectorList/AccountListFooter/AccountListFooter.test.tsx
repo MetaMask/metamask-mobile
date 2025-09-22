@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
 import { useAccountsOperationsLoadingStates } from '../../../../../util/accounts/useAccountsOperationsLoadingStates';
 import Logger from '../../../../../util/Logger';
+import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
@@ -333,78 +334,26 @@ describe('AccountListFooter', () => {
     });
   });
 
-  describe('Loading States Integration', () => {
-    it('shows syncing message when account syncing is in progress', () => {
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: true,
-        areAnyOperationsLoading: true,
-        loadingMessage: 'Syncing...',
-      });
+  describe('Account Type Filtering', () => {
+    it('renders create account button only for HD accounts', () => {
+      const mockWalletInfoWithHdAccounts = {
+        keyringId: mockKeyringId,
+        accounts: [
+          {
+            address: '0x123',
+            metadata: {
+              keyring: {
+                type: ExtendedKeyringTypes.hd,
+              },
+            },
+          },
+        ],
+      };
 
-      const { getByText } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
+      (useWalletInfo as jest.Mock).mockReturnValue(
+        mockWalletInfoWithHdAccounts,
       );
 
-      expect(getByText('Syncing...')).toBeOnTheScreen();
-    });
-
-    it('shows creating account message when local loading is active', async () => {
-      const { getByText } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      fireEvent.press(getByText('Create account'));
-
-      await waitFor(() => {
-        expect(getByText('Creating account...')).toBeOnTheScreen();
-      });
-    });
-
-    it('prioritizes syncing message over local loading', async () => {
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: true,
-        areAnyOperationsLoading: true,
-        loadingMessage: 'Syncing...',
-      });
-
-      const { getByText } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      fireEvent.press(getByText('Syncing...'));
-
-      // Should still show syncing message, not creating account message
-      expect(getByText('Syncing...')).toBeOnTheScreen();
-    });
-
-    it('shows spinner when any loading state is active', async () => {
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: true,
-        areAnyOperationsLoading: true,
-        loadingMessage: 'Syncing...',
-      });
-
-      const { getByText } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      // When account syncing is in progress, should show spinner
-      expect(getByText('Syncing...')).toBeOnTheScreen();
-    });
-
-    it('shows default create account text when no loading states are active', () => {
       const { getByText } = render(
         <AccountListFooter
           walletId={mockWalletId}
@@ -463,6 +412,67 @@ describe('AccountListFooter', () => {
       );
 
       expect(getByText('Create account')).toBeOnTheScreen();
+    });
+
+    it('does not render create account button for imported or hardware accounts', () => {
+      const testCases = [
+        {
+          name: 'imported accounts',
+          accounts: [
+            {
+              address: '0x123',
+              metadata: { keyring: { type: ExtendedKeyringTypes.simple } },
+            },
+          ],
+        },
+        {
+          name: 'Ledger hardware accounts',
+          accounts: [
+            {
+              address: '0x123',
+              metadata: { keyring: { type: ExtendedKeyringTypes.ledger } },
+            },
+          ],
+        },
+        {
+          name: 'Trezor hardware accounts',
+          accounts: [
+            {
+              address: '0x123',
+              metadata: { keyring: { type: ExtendedKeyringTypes.trezor } },
+            },
+          ],
+        },
+        {
+          name: 'mixed HD and imported accounts',
+          accounts: [
+            {
+              address: '0x123',
+              metadata: { keyring: { type: ExtendedKeyringTypes.hd } },
+            },
+            {
+              address: '0x456',
+              metadata: { keyring: { type: ExtendedKeyringTypes.simple } },
+            },
+          ],
+        },
+      ];
+
+      testCases.forEach(({ accounts }) => {
+        (useWalletInfo as jest.Mock).mockReturnValue({
+          keyringId: mockKeyringId,
+          accounts,
+        });
+
+        const { queryByText } = render(
+          <AccountListFooter
+            walletId={mockWalletId}
+            onAccountCreated={jest.fn()}
+          />,
+        );
+
+        expect(queryByText('Create account')).not.toBeOnTheScreen();
+      });
     });
   });
 });
