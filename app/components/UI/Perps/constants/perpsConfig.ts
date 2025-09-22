@@ -97,6 +97,12 @@ export const PERFORMANCE_CONFIG = {
   // Max leverage cache duration (milliseconds)
   // How long to cache max leverage values per asset (leverage rarely changes)
   MAX_LEVERAGE_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
+
+  // Rewards cache durations (milliseconds)
+  // How long to cache fee discount data from rewards API
+  FEE_DISCOUNT_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+  // How long to cache points calculation parameters from rewards API
+  POINTS_CALCULATION_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
 } as const;
 
 /**
