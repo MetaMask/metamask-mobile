@@ -27,16 +27,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-jest.mock('../../Views/Modals/RegionSelectorModal', () => ({
-  createRegionSelectorModalNavigationDetails: jest.fn((params) => [
-    'DepositModals',
-    {
-      screen: 'DepositRegionSelectorModal',
-      params,
-    },
-  ]),
-}));
-
 describe('DepositPhoneField', () => {
   const mockOnChangeText = jest.fn();
 

@@ -60,16 +60,6 @@ jest.mock('../../../index', () => ({
   }),
 }));
 
-jest.mock('../../utils', () => ({
-  formatCurrency: jest.fn((amount, currency) => {
-    if (currency === 'USD') {
-      return `$${parseFloat(amount).toFixed(2)}`;
-    }
-    return `${currency} ${amount}`;
-  }),
-  hasDepositOrderField: jest.fn(() => true),
-}));
-
 describe('DepositOrderDetails Component', () => {
   const mockOrder = {
     id: 'test-order-id-123456',

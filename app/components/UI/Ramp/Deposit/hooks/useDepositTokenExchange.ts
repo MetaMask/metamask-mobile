@@ -27,9 +27,16 @@ const useDepositTokenExchange = ({
     fiatCurrency,
   });
 
-  const currentToken = tokens?.find(
-    ({ assetId }) => assetId === token?.assetId,
-  );
+  if (!tokens || !token) {
+    return {
+      tokenAmount: '0',
+      rate: null,
+      isLoading,
+      error,
+    };
+  }
+
+  const currentToken = tokens.find(({ assetId }) => assetId === token?.assetId);
 
   const rate = currentToken ? rates[currentToken.assetId] ?? null : null;
 
@@ -38,7 +45,7 @@ const useDepositTokenExchange = ({
   try {
     if (rate) {
       tokenAmount = (parseFloat(fiatAmount || '0') / rate).toFixed(
-        token?.decimals ?? 0,
+        token.decimals ?? 0,
       );
     }
   } catch (e) {

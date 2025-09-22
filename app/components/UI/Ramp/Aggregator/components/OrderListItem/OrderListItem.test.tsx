@@ -20,7 +20,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -41,7 +41,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -62,7 +62,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -83,7 +83,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -104,7 +104,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -125,7 +125,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -146,7 +146,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -164,7 +164,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
     cryptocurrency: 'ETH',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -182,7 +182,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
     cryptocurrency: 'ETH',
     currency: 'USD',
-    network: 'eip155:1',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
