@@ -83,11 +83,6 @@ describe('useMultichainAccountsIntroModal', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: '1.0.0',
-              },
               enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
@@ -125,11 +120,6 @@ describe('useMultichainAccountsIntroModal', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: '1.0.0',
-              },
               enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
@@ -165,11 +155,6 @@ describe('useMultichainAccountsIntroModal', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
-                enabled: false, // Feature disabled
-                featureVersion: '1',
-                minimumVersion: '1.0.0',
-              },
               enableMultichainAccountsState2: {
                 enabled: false, // Feature disabled
                 featureVersion: '2',
