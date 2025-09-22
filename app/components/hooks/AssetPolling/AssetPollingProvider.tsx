@@ -1,12 +1,12 @@
 import { useMemo, memo } from 'react';
 import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import useCurrencyRatePolling from './useCurrencyRatePolling';
 import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
 import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
-import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 // This provider is a step towards making controller polling fully UI based.
