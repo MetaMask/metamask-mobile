@@ -7,6 +7,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { addHexPrefix } from 'ethereumjs-util';
+import { encode } from '@metamask/abi-utils';
 import { toHex } from '@metamask/controller-utils';
 
 import Logger from '../../../../util/Logger';
@@ -21,7 +22,11 @@ import {
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
-import { generateTransferData } from '../../../../util/transactions';
+import {
+  NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE,
+  TRANSFER_FROM_FUNCTION_SIGNATURE,
+  TRANSFER_FUNCTION_SIGNATURE,
+} from '../../../../util/transactions';
 import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
@@ -80,6 +85,70 @@ export const handleSendPageNavigation = (
   }
 };
 
+function generateERC20TransferData({ toAddress = '0x0', amount = '0x0' }) {
+  return (
+    TRANSFER_FUNCTION_SIGNATURE +
+    Array.prototype.map
+      .call(
+        encode(
+          ['address', 'uint256'],
+          [addHexPrefix(toAddress), addHexPrefix(amount)],
+        ),
+        (x) => `00${x.toString(16)}`.slice(-2),
+      )
+      .join('')
+  );
+}
+
+function generateERC721TransferData({
+  toAddress = '0x0',
+  fromAddress = '0x0',
+  tokenId = '0x0',
+}) {
+  return (
+    TRANSFER_FROM_FUNCTION_SIGNATURE +
+    Array.prototype.map
+      .call(
+        encode(
+          ['address', 'address', 'uint256'],
+          [addHexPrefix(fromAddress), addHexPrefix(toAddress), BigInt(tokenId)],
+        ),
+        (x) => `00${x.toString(16)}`.slice(-2),
+      )
+      .join('')
+  );
+}
+
+function generateERC1155TransferData({
+  toAddress = '0x0',
+  fromAddress = '0x0',
+  tokenId = '0x0',
+  amount = '1',
+  data = '0',
+}) {
+  if (!tokenId) {
+    return undefined;
+  }
+  return (
+    NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE +
+    Array.prototype.map
+      .call(
+        encode(
+          ['address', 'address', 'uint256', 'uint256', 'bytes'],
+          [
+            addHexPrefix(fromAddress),
+            addHexPrefix(toAddress),
+            BigInt(tokenId),
+            addHexPrefix(amount),
+            addHexPrefix(data),
+          ],
+        ),
+        (x) => `00${x.toString(16)}`.slice(-2),
+      )
+      .join('')
+  );
+}
+
 export const prepareEVMTransaction = (
   asset: AssetType,
   transactionParams: TransactionParams,
@@ -90,25 +159,27 @@ export const prepareEVMTransaction = (
     trxnParams.data = '0x';
     trxnParams.to = to;
     trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BigNumber);
-  } else if (asset.tokenId) {
-    // NFT token
-    trxnParams.data = generateTransferData(
-      asset.standard === TokenStandard.ERC721
-        ? 'transferFrom'
-        : 'safeTransferFrom',
-      {
-        fromAddress: from,
-        toAddress: to,
-        tokenId: toHex(asset.tokenId),
-        amount: toHex(value ?? 1),
-      },
-    );
+  } else if (asset.standard === TokenStandard.ERC721) {
+    trxnParams.data = generateERC721TransferData({
+      fromAddress: from,
+      toAddress: to,
+      tokenId: asset.tokenId ? toHex(asset.tokenId) : '0x0',
+    });
+    trxnParams.to = asset.address;
+    trxnParams.value = '0x0';
+  } else if (asset.standard === TokenStandard.ERC1155) {
+    trxnParams.data = generateERC1155TransferData({
+      fromAddress: from,
+      toAddress: to,
+      tokenId: asset.tokenId ? toHex(asset.tokenId) : '0x0',
+      amount: toHex(value ?? 1),
+    });
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
   } else {
     // ERC20 token
     const tokenAmount = toTokenMinimalUnit(value ?? '0', asset.decimals);
-    trxnParams.data = generateTransferData('transfer', {
+    trxnParams.data = generateERC20TransferData({
       toAddress: to,
       amount: BNToHex(tokenAmount),
     });
