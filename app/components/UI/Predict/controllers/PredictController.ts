@@ -356,7 +356,7 @@ export class PredictController extends BaseController<
   private handleTransactionFailed(
     _event: TransactionControllerTransactionFailedEvent['payload'][0],
   ): void {
-    const batchId = _event.transactionMeta.id;
+    const batchId = _event.transactionMeta.batchId;
     const txId = _event.transactionMeta.id;
 
     const id = batchId ?? txId;
