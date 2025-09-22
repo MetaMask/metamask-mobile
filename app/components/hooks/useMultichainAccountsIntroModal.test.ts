@@ -172,7 +172,7 @@ describe('useMultichainAccountsIntroModal', () => {
               },
               enableMultichainAccountsState2: {
                 enabled: false, // Feature disabled
-                featureVersion: '1',
+                featureVersion: '2',
                 minimumVersion: '1.0.0',
               },
             },
