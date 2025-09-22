@@ -150,6 +150,7 @@ import mapSVG from './assets/map.svg';
 import menuSVG from './assets/menu.svg';
 import messagequestionSVG from './assets/message-question.svg';
 import messagesSVG from './assets/messages.svg';
+import metamaskfoxoutlineSVG from './assets/metamask-fox-outline.svg';
 import micSVG from './assets/mic.svg';
 import minusboldSVG from './assets/minus-bold.svg';
 import minussquareSVG from './assets/minus-square.svg';
@@ -186,7 +187,6 @@ import receivedSVG from './assets/received.svg';
 import refreshSVG from './assets/refresh.svg';
 import removeminusSVG from './assets/remove-minus.svg';
 import reportSVG from './assets/report.svg';
-import rewardsfoxSVG from './assets/rewards-fox.svg';
 import rocketSVG from './assets/rocket.svg';
 import savefilledSVG from './assets/save-filled.svg';
 import saveSVG from './assets/save.svg';
@@ -428,6 +428,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Menu]: menuSVG,
   [IconName.MessageQuestion]: messagequestionSVG,
   [IconName.Messages]: messagesSVG,
+  [IconName.MetamaskFoxOutline]: metamaskfoxoutlineSVG,
   [IconName.Mic]: micSVG,
   [IconName.MinusBold]: minusboldSVG,
   [IconName.MinusSquare]: minussquareSVG,
@@ -464,7 +465,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Refresh]: refreshSVG,
   [IconName.RemoveMinus]: removeminusSVG,
   [IconName.Report]: reportSVG,
-  [IconName.RewardsFox]: rewardsfoxSVG,
   [IconName.Rocket]: rocketSVG,
   [IconName.SaveFilled]: savefilledSVG,
   [IconName.Save]: saveSVG,
