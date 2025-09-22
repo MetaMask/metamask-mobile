@@ -1,6 +1,7 @@
 import {
   calculatePositionSize,
   calculateMarginRequired,
+  findOptimalAmount,
 } from './orderCalculations';
 
 describe('orderCalculations', () => {
@@ -170,6 +171,136 @@ describe('orderCalculations', () => {
       });
 
       expect(result).toBe('24.69');
+    });
+  });
+
+  describe('findOptimalAmount', () => {
+    it('should return the same amount when position size calculation is exact', () => {
+      // When the calculation results in an exact position size, no optimization needed
+      const result = findOptimalAmount({
+        targetAmount: '50000',
+        price: 50000,
+        szDecimals: 6,
+      });
+
+      expect(result).toBe('50000.00');
+    });
+
+    it('should find optimal amount that maximizes USD value for same position size', () => {
+      // Test case where multiple USD amounts result in same position size
+      const price = 30000;
+      const szDecimals = 6;
+
+      // These amounts should all result in the same position size due to rounding
+      const amount1 = '10';
+      const amount2 = '11';
+      const amount3 = '12';
+
+      const positionSize1 = calculatePositionSize({
+        amount: amount1,
+        price,
+        szDecimals,
+      });
+      const positionSize2 = calculatePositionSize({
+        amount: amount2,
+        price,
+        szDecimals,
+      });
+      const positionSize3 = calculatePositionSize({
+        amount: amount3,
+        price,
+        szDecimals,
+      });
+
+      // Verify they have the same position size
+      expect(positionSize1).toBe(positionSize2);
+      expect(positionSize2).toBe(positionSize3);
+
+      // Find optimal amount for the lowest one
+      const optimal = findOptimalAmount({
+        targetAmount: amount1,
+        price,
+        szDecimals,
+      });
+
+      // Should be close to the highest amount that gives same position size
+      const optimalPositionSize = calculatePositionSize({
+        amount: optimal,
+        price,
+        szDecimals,
+      });
+
+      expect(optimalPositionSize).toBe(positionSize1);
+      expect(parseFloat(optimal)).toBeGreaterThan(parseFloat(amount1));
+    });
+
+    it('should handle edge cases with zero values', () => {
+      expect(
+        findOptimalAmount({ targetAmount: '0', price: 50000, szDecimals: 6 }),
+      ).toBe('0');
+      expect(
+        findOptimalAmount({ targetAmount: '100', price: 0, szDecimals: 6 }),
+      ).toBe('100');
+      expect(
+        findOptimalAmount({ targetAmount: '', price: 50000, szDecimals: 6 }),
+      ).toBe('');
+    });
+
+    it('should handle invalid input gracefully', () => {
+      expect(
+        findOptimalAmount({
+          targetAmount: 'invalid',
+          price: 50000,
+          szDecimals: 6,
+        }),
+      ).toBe('invalid');
+      expect(
+        findOptimalAmount({ targetAmount: '100', price: NaN, szDecimals: 6 }),
+      ).toBe('100');
+    });
+
+    it('should work with different szDecimals', () => {
+      const result4Decimals = findOptimalAmount({
+        targetAmount: '100',
+        price: 50000,
+        szDecimals: 4,
+      });
+
+      const result8Decimals = findOptimalAmount({
+        targetAmount: '100',
+        price: 50000,
+        szDecimals: 8,
+      });
+
+      // Both should return valid amounts
+      expect(parseFloat(result4Decimals)).toBeGreaterThan(0);
+      expect(parseFloat(result8Decimals)).toBeGreaterThan(0);
+
+      // Verify position sizes are maintained
+      const originalPositionSize4 = calculatePositionSize({
+        amount: '100',
+        price: 50000,
+        szDecimals: 4,
+      });
+      const optimizedPositionSize4 = calculatePositionSize({
+        amount: result4Decimals,
+        price: 50000,
+        szDecimals: 4,
+      });
+      expect(optimizedPositionSize4).toBe(originalPositionSize4);
+    });
+
+    it('should return original amount if verification fails', () => {
+      // This tests the verification fallback mechanism
+      const result = findOptimalAmount({
+        targetAmount: '1',
+        price: 1000000, // Very high price that might cause precision issues
+        szDecimals: 6,
+      });
+
+      // Should return a valid amount
+      expect(result).toBeTruthy();
+      expect(parseFloat(result)).toBeGreaterThan(0);
     });
   });
 });

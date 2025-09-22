@@ -94,13 +94,17 @@ import {
   PRICE_RANGES_DETAILED_VIEW,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { calculatePositionSize } from '../../utils/orderCalculations';
+import {
+  calculateMarginRequired,
+  calculatePositionSize,
+} from '../../utils/orderCalculations';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 import { willFlipPosition } from '../../utils/orderUtils';
+import { BigNumber } from 'bignumber.js';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -160,13 +164,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm,
     setAmount,
     setLeverage,
+    optimizeOrderAmount,
     setTakeProfitPrice,
     setStopLossPrice,
     setLimitPrice,
     setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
-    calculations,
   } = usePerpsOrderContext();
 
   // Get live positions to sync leverage from existing position
@@ -298,12 +302,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const assetData = useMemo(() => {
     if (!currentPrice) {
-      return { price: 0, change: 0 };
+      return { price: 0, change: 0, markPrice: 0 };
     }
     const price = parseFloat(currentPrice.price || '0');
+    const markPrice = parseFloat(currentPrice.markPrice || '0');
     const change = parseFloat(currentPrice.percentChange24h || '0');
     return {
       price: isNaN(price) ? 0 : price, // Mid price used for display
+      markPrice: isNaN(markPrice) ? 0 : markPrice,
       change: isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
@@ -354,6 +360,21 @@ const PerpsOrderViewContentBase: React.FC = () => {
     [orderForm.amount, assetData.price, marketData?.szDecimals],
   );
 
+  const marginRequired = useMemo(() => {
+    if (!isLoadingMarketData && orderForm.amount) {
+      return calculateMarginRequired({
+        amount: BigNumber(assetData.markPrice).times(positionSize).toString(),
+        leverage: orderForm.leverage,
+      });
+    }
+  }, [
+    orderForm.amount,
+    assetData.markPrice,
+    orderForm.leverage,
+    isLoadingMarketData,
+    positionSize,
+  ]);
+
   const { updatePositionTPSL } = usePerpsTrading();
 
   // Order execution using new hook
@@ -402,9 +423,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     positionSize,
     showToast,
   ]);
-
-  // Get margin required from form calculations
-  const marginRequired = calculations.marginRequired;
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(() => {
@@ -510,7 +528,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     positionSize,
     assetPrice: assetData.price,
     availableBalance,
-    marginRequired,
+    marginRequired: marginRequired || '0',
   });
 
   // Filter out specific validation error(s) from display (similar to ClosePositionView pattern)
@@ -558,6 +576,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const handlePercentagePress = (percentage: number) => {
     inputMethodRef.current = 'percentage';
     handlePercentageAmount(percentage);
+    // Optimize after setting the amount
+    setTimeout(() => {
+      optimizeOrderAmount(assetData.price, marketData?.szDecimals);
+    }, 0);
   };
 
   const handleMaxPress = () => {
@@ -582,13 +604,40 @@ const PerpsOrderViewContentBase: React.FC = () => {
       if (currentAmount > maxAllowed) {
         setAmount(String(maxAllowed));
       }
+
+      // Optimize the amount after keypad input is complete
+      // Use a timeout to ensure the amount has been set first
+      setTimeout(() => {
+        optimizeOrderAmount(assetData.price, marketData?.szDecimals);
+      }, 0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isInputFocused,
-    orderForm.amount,
     availableBalance,
     orderForm.leverage,
     setAmount,
+    optimizeOrderAmount,
+    assetData.price,
+    marketData?.szDecimals,
+  ]);
+
+  // Optimize initial amount when market data becomes available
+  useEffect(() => {
+    if (
+      !isLoadingMarketData &&
+      marketData &&
+      assetData.price > 0 &&
+      !isInputFocused
+    ) {
+      optimizeOrderAmount(assetData.price, marketData.szDecimals);
+    }
+  }, [
+    isLoadingMarketData,
+    marketData,
+    assetData.price,
+    optimizeOrderAmount,
+    isInputFocused,
   ]);
 
   const handlePlaceOrder = useCallback(async () => {
@@ -754,6 +803,55 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
   const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
+
+  // Calculate the maximum amount that won't exceed available margin after position size rounding
+  const maxAllowedAmount = useMemo(() => {
+    if (
+      availableBalance === 0 ||
+      !assetData.price ||
+      !assetData.markPrice ||
+      !marketData?.szDecimals
+    ) {
+      return 0;
+    }
+
+    // Start with the theoretical maximum
+    let testAmount = amountTimesLeverage;
+
+    // Work backwards to find the highest amount that results in sufficient margin
+    while (testAmount > 0) {
+      const testPositionSize = calculatePositionSize({
+        amount: testAmount.toString(),
+        price: assetData.price,
+        szDecimals: marketData.szDecimals,
+      });
+
+      const actualNotionalValue =
+        parseFloat(testPositionSize) * assetData.price;
+      const requiredMargin = actualNotionalValue / orderForm.leverage;
+
+      // If this amount requires margin within our available balance, use it
+      if (requiredMargin <= availableBalance) {
+        return testAmount;
+      }
+
+      // Reduce the test amount by one position size increment
+      // Calculate the USD value of the smallest position size increment
+      const minPositionSizeIncrement = 1 / Math.pow(10, marketData.szDecimals);
+      const positionSizeIncrementUsd =
+        minPositionSizeIncrement * assetData.price;
+      testAmount -= Math.ceil(positionSizeIncrementUsd);
+    }
+
+    return 0;
+  }, [
+    amountTimesLeverage,
+    availableBalance,
+    assetData.price,
+    assetData.markPrice,
+    orderForm.leverage,
+    marketData?.szDecimals,
+  ]);
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
@@ -810,10 +908,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => {
                 inputMethodRef.current = 'slider';
-                setAmount(Math.floor(value).toString());
+                const amount = Math.floor(value).toString();
+                setAmount(amount);
+                // Optimize after setting the amount
+                setTimeout(() => {
+                  optimizeOrderAmount(assetData.price, marketData?.szDecimals);
+                }, 0);
               }}
               minimumValue={0}
-              maximumValue={amountTimesLeverage}
+              maximumValue={maxAllowedAmount}
               step={1}
               showPercentageLabels
               disabled={isAmountDisabled}
