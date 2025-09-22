@@ -124,64 +124,62 @@ const AppInformation = ({ navigation }: AppInformationProps) => {
   }, [openSupportWebPage]);
 
   return (
-    <>
-      <SafeAreaView
-        style={styles.wrapper}
-        testID={AboutMetaMaskSelectorsIDs.CONTAINER}
-      >
-        <ScrollView contentContainerStyle={styles.wrapperContent}>
-          <View style={styles.logoWrapper}>
-            <Image
-              source={foxImage}
-              style={styles.image}
-              resizeMethod={'auto'}
-            />
-            <Text style={styles.versionInfo}>{appInfo}</Text>
-            {isQa ? (
-              <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
-              </Text>
-            ) : null}
-          </View>
-          <Text style={styles.title}>{strings('app_information.links')}</Text>
-          <View style={styles.links}>
-            <TouchableOpacity onPress={onPrivacyPolicy}>
-              <Text style={styles.link}>
-                {strings('app_information.privacy_policy')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onTermsOfUse}>
-              <Text style={styles.link}>
-                {strings('app_information.terms_of_use')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onAttributions}>
-              <Text style={styles.link}>
-                {strings('app_information.attributions')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.division} />
-          <View style={styles.links}>
-            <TouchableOpacity onPress={onSupportCenter}>
-              <Text style={styles.link}>
-                {strings('app_information.support_center')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onWebSite}>
-              <Text style={styles.link}>
-                {strings('app_information.web_site')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onContactUs}>
-              <Text style={styles.link}>
-                {strings('app_information.contact_us')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+    <SafeAreaView
+      style={styles.wrapper}
+      testID={AboutMetaMaskSelectorsIDs.CONTAINER}
+    >
+      <ScrollView contentContainerStyle={styles.wrapperContent}>
+        <View style={styles.logoWrapper}>
+          <Image
+            source={foxImage}
+            style={styles.image}
+            resizeMethod={'auto'}
+          />
+          <Text style={styles.versionInfo}>{appInfo}</Text>
+          {isQa ? (
+            <Text style={styles.branchInfo}>
+              {`Branch: ${process.env['GIT_BRANCH']}`}
+            </Text>
+          ) : null}
+        </View>
+        <Text style={styles.title}>{strings('app_information.links')}</Text>
+        <View style={styles.links}>
+          <TouchableOpacity onPress={onPrivacyPolicy}>
+            <Text style={styles.link}>
+              {strings('app_information.privacy_policy')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onTermsOfUse}>
+            <Text style={styles.link}>
+              {strings('app_information.terms_of_use')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onAttributions}>
+            <Text style={styles.link}>
+              {strings('app_information.attributions')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.division} />
+        <View style={styles.links}>
+          <TouchableOpacity onPress={onSupportCenter}>
+            <Text style={styles.link}>
+              {strings('app_information.support_center')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onWebSite}>
+            <Text style={styles.link}>
+              {strings('app_information.web_site')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onContactUs}>
+            <Text style={styles.link}>
+              {strings('app_information.contact_us')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
