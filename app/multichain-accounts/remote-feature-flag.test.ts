@@ -84,7 +84,7 @@ describe('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns true when the feature flag is meets all conditions', () => {
+    it('returns true when the feature flag meets all conditions', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_1_FLAG]: state1Mock,
@@ -130,7 +130,7 @@ describe('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns true when the feature flag is meets all conditions', () => {
+    it('returns true when the feature flag meets all conditions', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           [STATE_2_FLAG]: state2Mock,
@@ -159,6 +159,41 @@ describe('Multichain Accounts Feature Flag', () => {
           },
         },
         mockState2FeatureVersionsToCheck,
+      );
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isMultichainAccountsRemoteFeatureEnabled - Local override', () => {
+    it('returns true when the override is enabled', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          [STATE_2_FLAG]: disabledStateMock,
+        },
+        mockState2FeatureVersionsToCheck,
+        'true',
+      );
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the override is disabled', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          [STATE_2_FLAG]: disabledStateMock,
+        },
+        mockState2FeatureVersionsToCheck,
+        'false',
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the override is undefined', () => {
+      const result = isMultichainAccountsRemoteFeatureEnabled(
+        {
+          [STATE_2_FLAG]: disabledStateMock,
+        },
+        mockState2FeatureVersionsToCheck,
+        undefined,
       );
       expect(result).toBe(false);
     });
