@@ -47,6 +47,37 @@ class RealmSingleton {
 
 const getRealmInstance = (): Realm => RealmSingleton.getInstance();
 
+// 🧪 TEST UTILITY: Definitively determine if object is live Realm object
+const RealmObjectTester = {
+  isLiveRealmObject(obj: any): boolean {
+    if (!obj || typeof obj !== 'object') {
+      return false;
+    }
+
+    // Test 1: Check for Realm's isValid method (most reliable indicator)
+    const hasIsValidMethod = typeof obj.isValid === 'function';
+    
+    // Test 2: Check constructor name (Realm uses Dictionary, List, etc.)
+    const constructorName = obj.constructor?.name;
+    const isRealmConstructor = constructorName && !['Object', 'Array'].includes(constructorName);
+    
+    // Test 3: Check for other Realm-specific methods
+    const hasObjectSchemaMethod = typeof obj.objectSchema === 'function';
+    const hasLinkingObjectsMethod = typeof obj.linkingObjects === 'function';
+    
+    // If any Realm-specific indicators are present, it's a live object
+    const isLive = hasIsValidMethod || isRealmConstructor || hasObjectSchemaMethod || hasLinkingObjectsMethod;
+    
+    // Log test details for transparency
+    console.log(`🧪 [REALM TESTER] hasIsValidMethod: ${hasIsValidMethod}`);
+    console.log(`🧪 [REALM TESTER] constructorName: ${constructorName} (isRealmConstructor: ${isRealmConstructor})`);
+    console.log(`🧪 [REALM TESTER] hasObjectSchemaMethod: ${hasObjectSchemaMethod}`);
+    console.log(`🧪 [REALM TESTER] Final result: ${isLive ? 'LIVE REALM OBJECT' : 'PLAIN OBJECT'}`);
+    
+    return isLive;
+  }
+};
+
 const KeyTransformUtils = {
   encodeObjectKeys(obj: any): any {
     if (obj === null || typeof obj !== 'object') {
@@ -133,16 +164,51 @@ const RealmPersistentStorage = {
       if (persistedItem) {
         const itemData = (persistedItem as any).data;
 
+        // 🧪 COMPARISON TEST: Check both parent object and .data property
+        const isParentLive = RealmObjectTester.isLiveRealmObject(persistedItem);
+        const isDataLive = RealmObjectTester.isLiveRealmObject(itemData);
+        
+        console.log(`🧪 [PARENT TEST] persistedItem -> ${isParentLive ? '🔴 LIVE REALM OBJECT' : '🟢 PLAIN OBJECT'}`);
+        console.log(`🧪 [DATA TEST] persistedItem.data -> ${isDataLive ? '🔴 LIVE REALM OBJECT' : '🟢 PLAIN OBJECT'}`);
+        
+        // 🔍 DEBUG: Detailed comparison
+        console.log(`🔍 [PARENT DEBUG] persistedItem constructor: ${persistedItem?.constructor?.name}`);
+        console.log(`🔍 [DATA DEBUG] itemData constructor: ${itemData?.constructor?.name}`);
+        console.log(`🔍 [DATA DEBUG] itemData.isValid (if managed): ${itemData?.isValid?.()}`);
+        console.log(`🔍 [DATA DEBUG] itemData keys: ${Object.keys(itemData || {}).slice(0, 5)}`);
+
         // Convert managed Realm object to plain object first
         let plainObject: any;
         if (typeof itemData === 'object' && itemData !== null) {
-          plainObject = JSON.parse(JSON.stringify(itemData));
+          // 🔍 DEBUG: Compare before and after conversion
+          const beforeStringify = Date.now();
+          const stringified = JSON.stringify(itemData);
+          const afterStringify = Date.now();
+          plainObject = JSON.parse(stringified);
+          const afterParse = Date.now();
+          
+          console.log(`🔍 [REALM DEBUG] JSON.stringify took: ${afterStringify - beforeStringify}ms`);
+          console.log(`🔍 [REALM DEBUG] JSON.parse took: ${afterParse - afterStringify}ms`);
+          console.log(`🔍 [REALM DEBUG] Total conversion: ${afterParse - beforeStringify}ms`);
+          
+          // 🧪 TEST: Verify conversion worked - should now be plain object
+          const isPlainAfterConversion = RealmObjectTester.isLiveRealmObject(plainObject);
+          console.log(`🧪 [CONVERSION TEST] After JSON conversion -> ${isPlainAfterConversion ? '❌ STILL LIVE' : '✅ NOW PLAIN OBJECT'}`);
 
           // Check if this was a transformed object and decode if needed
           if (key === 'persist:PermissionController' || key === 'persist:SnapController') {
             const decodedObject = KeyTransformUtils.decodeObjectKeys(plainObject);
+            
+            // 🧪 FINAL TEST: Verify returned object is plain
+            const isFinalObjectPlain = !RealmObjectTester.isLiveRealmObject(decodedObject);
+            console.log(`🧪 [FINAL TEST] Decoded object -> ${isFinalObjectPlain ? '✅ PLAIN' : '❌ STILL LIVE'}`);
+            
             return decodedObject;
           }
+
+          // 🧪 FINAL TEST: Verify returned object is plain
+          const isFinalObjectPlain = !RealmObjectTester.isLiveRealmObject(plainObject);
+          console.log(`🧪 [FINAL TEST] Returned object -> ${isFinalObjectPlain ? '✅ PLAIN' : '❌ STILL LIVE'}`);
 
           return plainObject;
         } else {
