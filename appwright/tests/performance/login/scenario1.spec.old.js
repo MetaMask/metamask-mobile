@@ -27,7 +27,6 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   AddNewHdAccountComponent.device = device;
 
   await login(device, 'login', 120000);
-  await dismissSystemDialogs(device);
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
@@ -42,7 +41,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on new account created until the Token list is visible',
   );
 
-  await WalletMainScreen.isTokenVisible('Ethereum');
+  await WalletMainScreen.isTokenVisible('ETH');
   screen1Timer.start();
   await WalletMainScreen.tapIdenticon();
   await AccountListComponent.isComponentDisplayed();
@@ -50,10 +49,10 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   screen2Timer.start();
   await AccountListComponent.tapCreateAccountButton();
   screen2Timer.stop();
-  await AccountListComponent.tapOnAccountByName('Account 4');
+  //await AccountListComponent.tapOnAccountByName('Account 4');
 
   screen3Timer.start();
-  await WalletMainScreen.isTokenVisible('Ethereum');
+  await WalletMainScreen.isTokenVisible('ETH');
   screen3Timer.stop();
 
   performanceTracker.addTimer(screen1Timer);

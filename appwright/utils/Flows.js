@@ -139,7 +139,7 @@ export async function login(device, scenarioType, timeout = 10000) {
   await LoginScreen.typePassword(password, timeout);
   await LoginScreen.tapUnlockButton();
 
-  // Execute modals dismissal in parallel - they will resolve in order of appearance
+  await device.waitForTimeout(5000);
   await dismissMultichainAccountsIntroModal(device);
   await dismissGTMModal(device);
   await dismissSystemDialogs(device);
@@ -173,11 +173,11 @@ export async function dismissMultichainAccountsIntroModal(
 
 export async function tapPerpsBottomSheetGotItButton(device, timeout = 5000) {
   // Only skip perps onboarding on Android devices
-  if (!AppwrightSelectors.isAndroid(device)) {
-    console.log('Skipping perps onboarding skip - not an Android device');
-    return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
-  }
-
+  // if (!AppwrightSelectors.isAndroid(device)) {
+  //   console.log('Skipping perps onboarding skip - not an Android device');
+  //   return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
+  // }
+  await dismissMultichainAccountsIntroModal(device);
   console.log('Looking for perps onboarding button...');
   const button = await AppwrightSelectors.getElementByID(
     device,

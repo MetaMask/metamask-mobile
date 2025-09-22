@@ -299,44 +299,118 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-// Mock Button enums
-jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
-  ButtonSize: {
-    Lg: 'Lg',
-  },
-  ButtonVariants: {
-    Primary: 'Primary',
-  },
-}));
+// Mock Button component and enums
+jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+
+  const MockButton = ({
+    label,
+    onPress,
+    isDisabled,
+    loading,
+    style,
+  }: {
+    label: string;
+    onPress: () => void;
+    isDisabled?: boolean;
+    loading?: boolean;
+    style?: unknown;
+  }) => (
+    <TouchableOpacity
+      style={style}
+      onPress={onPress}
+      disabled={isDisabled || loading}
+    >
+      <Text>{loading ? 'Loading...' : label}</Text>
+    </TouchableOpacity>
+  );
+
+  return {
+    __esModule: true,
+    default: MockButton,
+    ButtonSize: {
+      Lg: 'Lg',
+    },
+    ButtonVariants: {
+      Primary: 'Primary',
+    },
+  };
+});
 
 // Mock Keypad component
 jest.mock('../../../../../components/Base/Keypad', () => {
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+
+  // Mock compound component structure
+  const MockKeypadRow = ({ children }: { children: React.ReactNode }) => (
+    <View>{children}</View>
+  );
+
+  const MockKeypadButton = ({
+    children,
+    onPress,
+  }: {
+    children: React.ReactNode;
+    onPress?: () => void;
+  }) => (
+    <TouchableOpacity onPress={onPress}>
+      <Text>{children}</Text>
+    </TouchableOpacity>
+  );
+
+  const MockKeypadDeleteButton = ({
+    onPress,
+    onLongPress,
+    testID,
+  }: {
+    onPress?: () => void;
+    onLongPress?: () => void;
+    testID?: string;
+  }) => (
+    <TouchableOpacity
+      testID={testID}
+      onPress={onPress}
+      onLongPress={onLongPress}
+    >
+      <Text>Del</Text>
+    </TouchableOpacity>
+  );
+
+  const MockKeypad = ({
+    value,
+    onChange,
+    currency,
+    decimals,
+    children,
+  }: {
+    value: string;
+    onChange: ({ value }: { value: string; valueAsNumber: number }) => void;
+    currency: string;
+    decimals: number;
+    children?: React.ReactNode;
+  }) => (
+    <View testID="keypad">
+      <Text testID="keypad-value">{value}</Text>
+      <Text testID="keypad-currency">{currency}</Text>
+      <Text testID="keypad-decimals">{decimals}</Text>
+      <TouchableOpacity
+        testID="keypad-test-button"
+        onPress={() => onChange({ value: '123.45', valueAsNumber: 123.45 })}
+      >
+        <Text>Test Keypad Input</Text>
+      </TouchableOpacity>
+      {children}
+    </View>
+  );
+
+  // Attach sub-components to main component
+  MockKeypad.Row = MockKeypadRow;
+  MockKeypad.Button = MockKeypadButton;
+  MockKeypad.DeleteButton = MockKeypadDeleteButton;
+
   return {
     __esModule: true,
-    default: ({
-      value,
-      onChange,
-      currency,
-      decimals,
-    }: {
-      value: string;
-      onChange: ({ value }: { value: string; valueAsNumber: number }) => void;
-      currency: string;
-      decimals: number;
-    }) => (
-      <View testID="keypad">
-        <Text testID="keypad-value">{value}</Text>
-        <Text testID="keypad-currency">{currency}</Text>
-        <Text testID="keypad-decimals">{decimals}</Text>
-        <TouchableOpacity
-          testID="keypad-test-button"
-          onPress={() => onChange({ value: '123.45', valueAsNumber: 123.45 })}
-        >
-          <Text>Test Keypad Input</Text>
-        </TouchableOpacity>
-      </View>
-    ),
+    default: MockKeypad,
   };
 });
 
@@ -368,6 +442,10 @@ jest.mock('./PerpsTPSLBottomSheet.styles', () => ({
     helperText: { marginTop: 4 },
     keypadContainer: { paddingHorizontal: 16, paddingVertical: 8 },
     scrollContent: { flex: 1 },
+    doneButton: {
+      width: '100%',
+      marginBottom: 8,
+    },
   }),
 }));
 
@@ -894,7 +972,7 @@ describe('PerpsTPSLBottomSheet', () => {
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
       // Assert - Component renders correctly even with validation errors
-      const confirmButton = screen.getByText('perps.tpsl.set');
+      const confirmButton = screen.getByText('perps.tpsl.done');
       expect(confirmButton).toBeOnTheScreen();
 
       // Note: The actual button disable behavior depends on the component implementation
@@ -1076,7 +1154,7 @@ describe('PerpsTPSLBottomSheet', () => {
         <PerpsTPSLBottomSheet {...defaultProps} onConfirm={mockOnConfirm} />,
       );
 
-      const confirmButton = screen.getByText('perps.tpsl.set');
+      const confirmButton = screen.getByText('perps.tpsl.done');
 
       // Act
       fireEvent.press(confirmButton);
@@ -1092,7 +1170,7 @@ describe('PerpsTPSLBottomSheet', () => {
         <PerpsTPSLBottomSheet {...defaultProps} onConfirm={mockOnConfirm} />,
       );
 
-      const confirmButton = screen.getByText('perps.tpsl.set');
+      const confirmButton = screen.getByText('perps.tpsl.done');
 
       // Act
       fireEvent.press(confirmButton);
@@ -1106,7 +1184,7 @@ describe('PerpsTPSLBottomSheet', () => {
       const mockOnClose = jest.fn();
       render(<PerpsTPSLBottomSheet {...defaultProps} onClose={mockOnClose} />);
 
-      const confirmButton = screen.getByText('perps.tpsl.set');
+      const confirmButton = screen.getByText('perps.tpsl.done');
 
       // Act
       fireEvent.press(confirmButton);

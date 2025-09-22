@@ -77,11 +77,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import {
-  getDecimalChainId,
-  isTestNet,
-  isPerDappSelectedNetworkEnabled,
-} from '../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -977,11 +973,7 @@ export class Engine {
         } as SelectedNetworkControllerState & {
           activeDappNetwork: string | null;
         }),
-      useRequestQueuePreference: isPerDappSelectedNetworkEnabled(),
-      // TODO we need to modify core PreferencesController for better cross client support
-      onPreferencesStateChange: (
-        listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
-      ) => listener({ useRequestQueue: isPerDappSelectedNetworkEnabled() }),
+
       domainProxyMap: new DomainProxyMap(),
     });
 
@@ -1500,7 +1492,6 @@ export class Engine {
         fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
         fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
         supportedChainIds: swapsSupportedChainIds,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
