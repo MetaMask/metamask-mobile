@@ -49,6 +49,7 @@ import {
   snapsRegistryInit,
 } from '../controllers/snaps';
 import { TransactionControllerInit } from '../controllers/transaction-controller';
+import { GatorPermissionsControllerInit } from '../controllers/gator-permissions-controller/gator-permissions-controller-init';
 import { createMockControllerInitFunction } from './test-utils';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
 import { AppMetadataController } from '@metamask/app-metadata-controller';
@@ -66,6 +67,7 @@ import { multichainAccountServiceInit } from '../controllers/multichain-account-
 import { networkEnablementControllerInit } from '../controllers/network-enablement-controller/network-enablement-controller-init';
 import { rewardsControllerInit } from '../controllers/rewards-controller';
 import { RewardsController } from '../controllers/rewards-controller/RewardsController';
+import { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -104,6 +106,9 @@ jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
 jest.mock('../controllers/bridge-controller/bridge-controller-init');
 jest.mock(
   '../controllers/bridge-status-controller/bridge-status-controller-init',
+);
+jest.mock(
+  '../controllers/gator-permissions-controller/gator-permissions-controller-init',
 );
 
 describe('initModularizedControllers', () => {
@@ -164,7 +169,9 @@ describe('initModularizedControllers', () => {
     networkEnablementControllerInit,
   );
   const mockRewardsControllerInit = jest.mocked(rewardsControllerInit);
-
+  const mockGatorPermissionsControllerInit = jest.mocked(
+    GatorPermissionsControllerInit,
+  );
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -205,6 +212,7 @@ describe('initModularizedControllers', () => {
           BridgeController: mockBridgeControllerInit,
           BridgeStatusController: mockBridgeStatusControllerInit,
           RewardsController: mockRewardsControllerInit,
+          GatorPermissionsController: mockGatorPermissionsControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -289,6 +297,9 @@ describe('initModularizedControllers', () => {
     });
     mockRewardsControllerInit.mockReturnValue({
       controller: {} as unknown as RewardsController,
+    });
+    mockGatorPermissionsControllerInit.mockReturnValue({
+      controller: {} as unknown as GatorPermissionsController,
     });
   });
 
