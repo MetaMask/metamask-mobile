@@ -3,6 +3,8 @@
  * Clean, focused test suite for PerpsController
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import {
   PerpsController,
   getDefaultPerpsControllerState,
@@ -43,7 +45,7 @@ describe('PerpsController', () => {
           registerEventHandler: jest.fn(),
           registerInitialEventPayload: jest.fn(),
         }),
-      } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      } as unknown as any,
       state: getDefaultPerpsControllerState(),
     });
   });
@@ -429,9 +431,10 @@ describe('PerpsController', () => {
     it('should withdraw successfully', async () => {
       const withdrawParams = {
         amount: '100',
-        destination: '0x1234567890123456789012345678901234567890',
+        destination:
+          '0x1234567890123456789012345678901234567890' as `0x${string}`,
         assetId:
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as `${string}:${string}/${string}:${string}/${string}`,
       };
 
       const mockWithdrawResult = {
@@ -505,9 +508,10 @@ describe('PerpsController', () => {
       const mockRoutes = [
         {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x1234567890123456789012345678901234567890',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as `${string}:${string}/${string}:${string}/${string}`,
+          chainId: 'eip155:42161' as `${string}:${string}`,
+          contractAddress:
+            '0x1234567890123456789012345678901234567890' as `0x${string}`,
           constraints: {
             minAmount: '10',
             maxAmount: '1000000',
@@ -625,7 +629,7 @@ describe('PerpsController', () => {
       // Mock the controller as initialized
       (controller as any).isInitialized = true;
       (controller as any).providers = new Map([['hyperliquid', mockProvider]]);
-      mockProvider.disconnect.mockResolvedValue(undefined);
+      mockProvider.disconnect.mockResolvedValue({ success: true });
 
       await controller.disconnect();
 
@@ -652,6 +656,8 @@ describe('PerpsController', () => {
           symbol: 'BTC',
           fundingRate: '0.0001',
           timestamp: 1640995200000,
+          amountUsd: '100',
+          rate: '0.0001',
         },
       ];
 
@@ -667,7 +673,7 @@ describe('PerpsController', () => {
     });
 
     it('should get order fills with parameters', async () => {
-      const params = { limit: 10, user: '0x123' };
+      const params = { limit: 10, user: '0x123' as `0x${string}` };
       const mockOrderFills = [
         {
           orderId: 'order-123',
@@ -837,9 +843,10 @@ describe('PerpsController', () => {
       const mockRoutes = [
         {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x1234567890123456789012345678901234567890',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as `${string}:${string}/${string}:${string}/${string}`,
+          chainId: 'eip155:42161' as `${string}:${string}`,
+          contractAddress:
+            '0x1234567890123456789012345678901234567890' as `0x${string}`,
           constraints: {
             minAmount: '10',
             maxAmount: '1000000',
@@ -942,7 +949,8 @@ describe('PerpsController', () => {
     it('should validate withdrawal', async () => {
       const withdrawParams = {
         amount: '100',
-        destination: '0x1234567890123456789012345678901234567890',
+        destination:
+          '0x1234567890123456789012345678901234567890' as `0x${string}`,
       };
 
       const mockValidationResult = {
@@ -995,9 +1003,10 @@ describe('PerpsController', () => {
         coin: 'BTC',
         size: '1.0',
         entryPrice: '50000',
+        asset: 'BTC',
       };
 
-      const mockMargin = '2500';
+      const mockMargin = 2500;
 
       // Mock the controller as initialized
       (controller as any).isInitialized = true;
@@ -1025,6 +1034,11 @@ describe('PerpsController', () => {
         makerFee: '0.0001',
         takerFee: '0.0005',
         totalFee: '0.05',
+        feeToken: 'USDC',
+        feeAmount: 0.05,
+        feeRate: 0.0005,
+        protocolFeeRate: 0.0003,
+        metamaskFeeRate: 0.0002,
       };
 
       // Mock the controller as initialized
