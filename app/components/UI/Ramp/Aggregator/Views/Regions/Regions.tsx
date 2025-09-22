@@ -46,8 +46,8 @@ const RegionsView = () => {
   const {
     setSelectedRegion,
     setSelectedFiatCurrencyId,
+    selectedAsset,
     sdkError,
-    selectedChainId,
     isBuy,
     isSell,
     rampType,
@@ -73,18 +73,21 @@ const RegionsView = () => {
   }, [showRegionModal, setIsPristine]);
 
   const handleCancelPress = useCallback(() => {
+    const chainId = selectedAsset?.network?.chainId;
+    if (!chainId) return;
+
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Region Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: chainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Region Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: chainId,
       });
     }
-  }, [isBuy, selectedChainId, trackEvent]);
+  }, [isBuy, trackEvent, selectedAsset]);
 
   useEffect(() => {
     navigation.setOptions(

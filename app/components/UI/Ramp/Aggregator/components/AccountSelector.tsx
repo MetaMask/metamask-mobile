@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { isCaipChainId, toCaipChainId } from '@metamask/utils';
 
 import SelectorButton from '../../../../Base/SelectorButton';
 import Avatar, {
@@ -18,10 +17,6 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { formatAddress } from '../../../../../util/address';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import { createAddressSelectorNavDetails } from '../../../../Views/AddressSelector/AddressSelector';
-import { getRampNetworks } from '../../../../../reducers/fiatOrders';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import { selectChainId } from '../../../../../selectors/networkController';
-
 const styles = StyleSheet.create({
   selector: {
     flexShrink: 1,
@@ -38,41 +33,19 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const selectedChainId = useSelector(selectChainId);
   const accountName = useAccountName();
-
-  const selectedFormattedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-
-  const rampNetworks = useSelector(getRampNetworks);
-
-  const selectedCaipChainId = isCaipChainId(selectedChainId)
-    ? selectedChainId
-    : toCaipChainId('eip155', selectedChainId);
-
-  const rampNetworksCaipIds = rampNetworks.map((network) => {
-    if (isCaipChainId(network.chainId)) {
-      return network.chainId;
-    }
-    return toCaipChainId('eip155', network.chainId);
-  });
 
   const openAccountSelector = useCallback(
     () =>
       navigation.navigate(
         ...createAddressSelectorNavDetails({
           isEvmOnly,
-          displayOnlyCaipChainIds: rampNetworksCaipIds,
         }),
       ),
-    [isEvmOnly, navigation, rampNetworksCaipIds],
+    [isEvmOnly, navigation],
   );
 
-  const shortenedAddress = formatAddress(
-    selectedFormattedAddress || '',
-    'short',
-  );
+  const shortenedAddress = formatAddress(selectedAddress || '', 'short');
 
   const displayedAddress = accountName
     ? `(${shortenedAddress})`
@@ -84,14 +57,12 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
       style={styles.selector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
     >
-      {selectedAddress && selectedFormattedAddress ? (
+      {selectedAddress ? (
         <>
           <Avatar
-            variant={AvatarVariant.Network}
+            variant={AvatarVariant.Account}
             size={AvatarSize.Xs}
-            imageSource={getNetworkImageSource({
-              chainId: selectedCaipChainId,
-            })}
+            accountAddress={selectedAddress}
           />
           <Text
             variant={TextVariant.BodyMDMedium}

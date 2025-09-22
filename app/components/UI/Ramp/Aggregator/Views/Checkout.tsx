@@ -40,14 +40,8 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 );
 
 const CheckoutWebView = () => {
-  const {
-    selectedAddress,
-    selectedChainId,
-    selectedAsset,
-    sdkError,
-    callbackBaseUrl,
-    isBuy,
-  } = useRampSDK();
+  const { selectedAsset, selectedAddress, sdkError, callbackBaseUrl, isBuy } =
+    useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
@@ -62,26 +56,29 @@ const CheckoutWebView = () => {
   const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
+    const chainId = selectedAsset?.network?.chainId;
+    if (!chainId) return;
+
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Provider Webview',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: chainId,
         provider_onramp: provider.name,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Provider Webview',
-        chain_id_source: selectedChainId,
+        chain_id_source: chainId,
         provider_offramp: provider.name,
       });
     }
-  }, [isBuy, provider.name, selectedChainId, trackEvent]);
+  }, [isBuy, provider.name, selectedAsset?.network?.chainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: provider.name },
+        { title: provider.name, showNetwork: false },
         colors,
         handleCancelPress,
       ),
@@ -89,25 +86,18 @@ const CheckoutWebView = () => {
   }, [navigation, colors, handleCancelPress, provider.name]);
 
   useEffect(() => {
-    if (!customOrderId) {
+    if (!customOrderId || !selectedAsset?.network?.chainId) {
       return;
     }
     const customOrderIdData = createCustomOrderIdData(
       customOrderId,
-      selectedAsset?.network?.chainId || selectedChainId,
+      selectedAsset.network.chainId,
       selectedAddress,
       isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
-  }, [
-    customOrderId,
-    dispatch,
-    isBuy,
-    selectedAddress,
-    selectedChainId,
-    selectedAsset,
-  ]);
+  }, [customOrderId, dispatch, isBuy, selectedAsset, selectedAddress]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
