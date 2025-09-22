@@ -216,6 +216,9 @@ app/core/OAuthService                                       @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 
+# Delegation team
+app/core/Engine/controllers/gator-permissions-controller    @MetaMask/delegation
+
 # QA Team - E2E Framework
 e2e/api-mocking/                             @MetaMask/qa
 e2e/fixtures/                                @MetaMask/qa
