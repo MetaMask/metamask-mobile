@@ -45,6 +45,11 @@ describe('useMultichainAccountsIntroModal', () => {
             remoteFeatureFlags: {
               enableMultichainAccounts: {
                 enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+              enableMultichainAccountsState2: {
+                enabled: true,
                 featureVersion: '2',
                 minimumVersion: '1.0.0',
               },
@@ -79,6 +84,11 @@ describe('useMultichainAccountsIntroModal', () => {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+              enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
                 minimumVersion: '1.0.0',
@@ -117,6 +127,11 @@ describe('useMultichainAccountsIntroModal', () => {
             remoteFeatureFlags: {
               enableMultichainAccounts: {
                 enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+              enableMultichainAccountsState2: {
+                enabled: true,
                 featureVersion: '2',
                 minimumVersion: '1.0.0',
               },
@@ -152,7 +167,12 @@ describe('useMultichainAccountsIntroModal', () => {
             remoteFeatureFlags: {
               enableMultichainAccounts: {
                 enabled: false, // Feature disabled
-                featureVersion: '2',
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+              enableMultichainAccountsState2: {
+                enabled: false, // Feature disabled
+                featureVersion: '1',
                 minimumVersion: '1.0.0',
               },
             },
@@ -179,6 +199,11 @@ describe('useMultichainAccountsIntroModal', () => {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+              enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
                 minimumVersion: '1.0.0',

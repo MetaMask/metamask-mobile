@@ -34,9 +34,9 @@ export const assertMultichainAccountsFeatureFlagType = (
   'enabled' in value &&
   typeof value.enabled === 'boolean' &&
   'featureVersion' in value &&
-  value.featureVersion !== undefined &&
+  (typeof value.featureVersion === 'string' || value.featureVersion === null) &&
   'minimumVersion' in value &&
-  value.minimumVersion !== undefined;
+  (typeof value.minimumVersion === 'string' || value.minimumVersion === null);
 
 /**
  * Checks if the multichain accounts feature is enabled based on remote feature flags.
@@ -69,10 +69,12 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
 
   const { enabled, featureVersion, minimumVersion } = enableMultichainAccounts;
 
+  if (!enabled || featureVersion === null || minimumVersion === null) {
+    return false;
+  }
+
   return (
-    enabled &&
     featureVersion === featureVersionToCheck &&
-    // @ts-expect-error if enabled is true, featureVersion and minimumVersion are guaranteed to be strings
     compareVersions.compare(minimumVersion, APP_VERSION, '<=')
   );
 };
