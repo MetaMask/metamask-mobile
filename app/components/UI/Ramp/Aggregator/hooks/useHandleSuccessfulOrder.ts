@@ -2,11 +2,13 @@ import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import NotificationManager from '../../../../../core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { hexToBN, toHexadecimal } from '../../../../../util/number';
 
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { getNotificationDetails } from '../utils';
@@ -19,6 +21,7 @@ function useHandleSuccessfulOrder() {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const trackEvent = useAnalytics();
+  const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const handleDispatchUserWalletProtection = useCallback(() => {
     dispatch(protectWalletModalVisible());
@@ -70,13 +73,26 @@ function useHandleSuccessfulOrder() {
             },
           });
         } else {
+          const chainIdFromProvider = (order?.data as Order)?.cryptoCurrency
+            ?.network?.chainId;
           trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
             ...payload,
             provider_onramp: (order?.data as Order)?.provider?.name,
-            chain_id_destination: (order?.data as Order)?.cryptoCurrency
-              ?.network?.chainId,
+            chain_id_destination: chainIdFromProvider,
             has_zero_currency_destination_balance: false,
-            has_zero_native_balance: true, // TODO: Replace with actual balance check
+            has_zero_native_balance: accountsByChainId[
+              toHexadecimal(chainIdFromProvider)
+            ][order.account]?.balance
+              ? (
+                  hexToBN(
+                    accountsByChainId[toHexadecimal(chainIdFromProvider)][
+                      order.account
+                    ].balance,
+                    // TODO: Replace "any" with type
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  ) as any
+                )?.isZero?.()
+              : undefined,
             currency_source: (order?.data as Order)?.fiatCurrency?.symbol,
             currency_destination: (order?.data as Order)?.cryptoCurrency
               ?.symbol,
@@ -84,7 +100,13 @@ function useHandleSuccessfulOrder() {
         }
       });
     },
-    [dispatchThunk, handleDispatchUserWalletProtection, navigation, trackEvent],
+    [
+      dispatchThunk,
+      handleDispatchUserWalletProtection,
+      navigation,
+      trackEvent,
+      accountsByChainId,
+    ],
   );
 
   return handleSuccessfulOrder;

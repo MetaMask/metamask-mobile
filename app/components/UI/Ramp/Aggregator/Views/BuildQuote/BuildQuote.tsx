@@ -88,6 +88,7 @@ import { selectRampWalletAddress } from '../../../../../../selectors/ramp';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import Engine from '../../../../../../core/Engine';
 import { store } from '../../../../../../store';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -223,7 +224,7 @@ const BuildQuote = () => {
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
     fromAddress: selectedAddress,
-    chainId: selectedAsset?.network?.chainId || '1', // Default to mainnet if not available
+    chainId: selectedAsset?.network?.chainId || CHAIN_IDS.MAINNET,
     amount,
     decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
     isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
@@ -348,12 +349,12 @@ const BuildQuote = () => {
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_destination: selectedAsset?.network?.chainId || '1',
+        chain_id_destination: selectedAsset?.network?.chainId || 'unknown',
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_source: selectedAsset?.network?.chainId || '1',
+        chain_id_source: selectedAsset?.network?.chainId || 'unknown',
       });
     }
   }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
@@ -622,14 +623,14 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_source: currentFiatCurrency.symbol,
           currency_destination: selectedAsset.symbol,
-          chain_id_destination: selectedAsset.network?.chainId || '1',
+          chain_id_destination: selectedAsset.network?.chainId || 'unknown',
         });
       } else {
         trackEvent('OFFRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
           currency_destination: currentFiatCurrency.symbol,
           currency_source: selectedAsset.symbol,
-          chain_id_source: selectedAsset.network?.chainId || '1',
+          chain_id_source: selectedAsset.network?.chainId || 'unknown',
         });
       }
     }
