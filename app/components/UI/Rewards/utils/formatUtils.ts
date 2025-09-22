@@ -11,6 +11,22 @@ import { getTimeDifferenceFromNow } from '../../../../util/date';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
+ * Formats a number to a string with locale-specific formatting.
+ * @param value - The number to format.
+ * @returns The formatted number as a string.
+ */
+export const formatNumber = (value: number | null): string => {
+  if (value === null || value === undefined) {
+    return '0';
+  }
+  try {
+    return getIntlNumberFormatter(I18n.locale).format(value);
+  } catch {
+    return String(value);
+  }
+};
+
+/**
  * Formats a timestamp for rewards date
  * @param timestamp - Unix timestamp in milliseconds
  * @returns Formatted date string with time
@@ -29,11 +45,19 @@ export const formatRewardsDate = (
 
 export const formatTimeRemaining = (endDate: Date): string | null => {
   const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
-  return hours <= 0
-    ? minutes <= 0
-      ? null
-      : `${minutes}m`
-    : `${days}d ${hours}h`;
+
+  // No time remaining
+  if (hours <= 0 && minutes <= 0) {
+    return null;
+  }
+
+  // Only minutes remaining
+  if (hours <= 0) {
+    return `${minutes}m`;
+  }
+
+  // Hours and days remaining
+  return `${days}d ${hours}h`;
 };
 
 export const PerpsEventType = {
@@ -81,7 +105,11 @@ const getPerpsEventDetails = (
     return undefined;
 
   const { amount, decimals, symbol } = payload.asset;
-  const formattedAmount = formatUnits(BigInt(amount), decimals);
+  const rawAmount = formatUnits(BigInt(amount), decimals);
+  // Limit to at most 2 decimal places without padding zeros
+  const formattedAmount = formatNumber(
+    parseFloat(Number(rawAmount).toFixed(3)),
+  );
 
   switch (payload.type) {
     case PerpsEventType.OPEN_POSITION:
@@ -112,7 +140,11 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
     return undefined;
 
   const { amount, decimals, symbol } = payload.srcAsset;
-  const formattedAmount = formatUnits(BigInt(amount), decimals);
+  const rawAmount = formatUnits(BigInt(amount), decimals);
+  // Limit to at most 2 decimal places without padding zeros
+  const formattedAmount = formatNumber(
+    parseFloat(Number(rawAmount).toFixed(3)),
+  );
 
   return `${formattedAmount} ${symbol} to ${
     payload.destAsset?.symbol || 'Unknown'
@@ -187,17 +219,6 @@ export const getEventDetails = (
   }
 };
 
-export const formatNumber = (value: number | null): string => {
-  if (value === null || value === undefined) {
-    return '0';
-  }
-  try {
-    return getIntlNumberFormatter(I18n.locale).format(value);
-  } catch (e) {
-    return String(value);
-  }
-};
-
 // Get icon name with fallback to Star if invalid
 export const getIconName = (iconName: string): IconName =>
   Object.values(IconName).includes(iconName as IconName)
@@ -234,7 +255,7 @@ export const formatUrl = (url: string): string => {
     }
     // For other protocols (file:, mailto:, etc.), return the original URL
     return cleanedUrl;
-  } catch (e) {
+  } catch {
     // Fallback: manually strip protocol and query strings for http/https
     if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
       let cleanUrl = cleanedUrl.replace(/^https?:\/\//, '');

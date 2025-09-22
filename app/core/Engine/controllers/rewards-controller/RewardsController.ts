@@ -42,6 +42,9 @@ import {
   parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
+import { base58 } from 'ethers/lib/utils';
+import { isNonEvmAddress } from '../../../Multichain/utils';
+import { signSolanaRewardsMessage } from './utils/solana-snap';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -388,7 +391,7 @@ export class RewardsController extends BaseController<
    */
   #getActiveBoosts(
     subscriptionId: string,
-    seasonId: string = CURRENT_SEASON_ID,
+    seasonId: string,
   ): ActiveBoostsState | null {
     const compositeKey = this.#createSeasonSubscriptionCompositeKey(
       seasonId,
@@ -405,7 +408,7 @@ export class RewardsController extends BaseController<
    */
   #getUnlockedRewards(
     subscriptionId: string,
-    seasonId: string = CURRENT_SEASON_ID,
+    seasonId: string,
   ): UnlockedRewardsState | null {
     const compositeKey = this.#createSeasonSubscriptionCompositeKey(
       seasonId,
@@ -423,7 +426,20 @@ export class RewardsController extends BaseController<
   ): Promise<string> {
     const message = `rewards,${account.address},${timestamp}`;
 
-    return await this.#signEvmMessage(account, message);
+    if (isSolanaAddress(account.address)) {
+      const result = await signSolanaRewardsMessage(
+        account.address,
+        Buffer.from(message, 'utf8').toString('base64'),
+      );
+      return `0x${Buffer.from(base58.decode(result.signature)).toString(
+        'hex',
+      )}`;
+    } else if (!isNonEvmAddress(account.address)) {
+      const result = await this.#signEvmMessage(account, message);
+      return result;
+    }
+
+    throw new Error('Unsupported account type for signing rewards message');
   }
 
   async #signEvmMessage(
@@ -467,7 +483,7 @@ export class RewardsController extends BaseController<
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      if (errorMessage && !errorMessage?.includes('Engine does not exis')) {
+      if (errorMessage && !errorMessage?.includes('Engine does not exist')) {
         Logger.log(
           'RewardsController: Silent authentication failed:',
           error instanceof Error ? error.message : String(error),
@@ -480,8 +496,8 @@ export class RewardsController extends BaseController<
    * Check if silent authentication should be skipped
    */
   #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
-    // Skip for hardware and Solana accounts
-    if (isHardwareAccount(address) || isSolanaAddress(address)) return true;
+    // Skip for hardware
+    if (isHardwareAccount(address)) return true;
 
     const now = Date.now();
 
@@ -1322,14 +1338,6 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       Logger.log('RewardsController: Rewards feature is disabled');
-      return false;
-    }
-
-    // Check if account is non-EVM (Solana) and throw error
-    if (isSolanaAddress?.(account.address)) {
-      Logger.log(
-        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
-      );
       return false;
     }
 
