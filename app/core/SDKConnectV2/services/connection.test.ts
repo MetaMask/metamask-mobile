@@ -11,6 +11,7 @@ import {
 } from '@metamask/mobile-wallet-protocol-core';
 import { KVStore } from '../store/kv-store';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
+import { ConnectionInfo } from '../types/connection-info';
 
 jest.mock('@metamask/mobile-wallet-protocol-wallet-client');
 jest.mock('@metamask/mobile-wallet-protocol-core', () => ({
@@ -33,6 +34,26 @@ const MockedRPCBridgeAdapter = RPCBridgeAdapter as jest.MockedClass<
   typeof RPCBridgeAdapter
 >;
 
+const mockConnectionRequest: ConnectionRequest = {
+  sessionRequest: {
+    id: 'test-session-id',
+    publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
+    mode: 'trusted',
+    expiresAt: 1757410033264,
+    channel: 'channel-id',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any,
+  metadata: {
+    dapp: { name: 'Test DApp', url: 'https://test.dapp' },
+    sdk: { version: '1.0.0', platform: 'JavaScript' },
+  },
+};
+
+const mockConnectionInfo: ConnectionInfo = {
+  id: mockConnectionRequest.sessionRequest.id,
+  metadata: mockConnectionRequest.metadata,
+};
+
 describe('Connection', () => {
   let mockKeyManager: KeyManager;
   let mockWalletClientInstance: jest.Mocked<WalletClient>;
@@ -41,20 +62,6 @@ describe('Connection', () => {
   let onBridgeResponseCallback: (payload: unknown) => void;
 
   const RELAY_URL = 'wss://test-relay.example.com';
-  const mockConnectionRequest: ConnectionRequest = {
-    sessionRequest: {
-      id: 'test-session-id',
-      publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
-      mode: 'trusted',
-      expiresAt: 1757410033264,
-      channel: 'channel-id',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
-    metadata: {
-      dapp: { name: 'Test DApp', url: 'https://test.dapp' },
-      sdk: { version: '1.0.0', platform: 'JavaScript' },
-    },
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -105,7 +112,7 @@ describe('Connection', () => {
   describe('create', () => {
     it('should correctly initialize dependencies and create a Connection instance', async () => {
       const connection = await Connection.create(
-        mockConnectionRequest,
+        mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
       );
@@ -122,13 +129,13 @@ describe('Connection', () => {
       });
 
       expect(connection).toBeInstanceOf(Connection);
-      expect(connection.id).toBe(mockConnectionRequest.sessionRequest.id);
-      expect(connection.metadata).toBe(mockConnectionRequest.metadata);
+      expect(connection.id).toBe(mockConnectionInfo.id);
+      expect(connection.info.metadata).toBe(mockConnectionInfo.metadata);
       expect(connection.client).toBe(mockWalletClientInstance);
       expect(connection.bridge).toBe(mockBridgeInstance);
 
-      // Verify bridge is created with the connection
-      expect(MockedRPCBridgeAdapter).toHaveBeenCalledWith(connection);
+      // Verify bridge is created with the connection info
+      expect(MockedRPCBridgeAdapter).toHaveBeenCalledWith(mockConnectionInfo);
 
       // Verify event listeners are set up
       expect(mockWalletClientInstance.on).toHaveBeenCalledWith(
@@ -145,7 +152,7 @@ describe('Connection', () => {
   describe('connect', () => {
     it('should call connect on its WalletClient with the sessionRequest', async () => {
       const connection = await Connection.create(
-        mockConnectionRequest,
+        mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
       );
@@ -163,7 +170,7 @@ describe('Connection', () => {
 
   describe('Message Forwarding', () => {
     it('should forward messages from the dApp (via client) to the bridge', async () => {
-      await Connection.create(mockConnectionRequest, mockKeyManager, RELAY_URL);
+      await Connection.create(mockConnectionInfo, mockKeyManager, RELAY_URL);
 
       const dAppPayload = { id: 1, method: 'eth_accounts', params: [] };
       // Simulate the WalletClient receiving a message
@@ -174,7 +181,7 @@ describe('Connection', () => {
     });
 
     it('should forward responses from the bridge to the dApp (via client)', async () => {
-      await Connection.create(mockConnectionRequest, mockKeyManager, RELAY_URL);
+      await Connection.create(mockConnectionInfo, mockKeyManager, RELAY_URL);
 
       const walletPayload = { id: 1, result: ['0x123'] };
       // Simulate the RPCBridgeAdapter emitting a response
@@ -190,7 +197,7 @@ describe('Connection', () => {
   describe('disconnect', () => {
     it('should call disconnect on its WalletClient, dispose the bridge, and remove listeners', async () => {
       const connection = await Connection.create(
-        mockConnectionRequest,
+        mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
       );

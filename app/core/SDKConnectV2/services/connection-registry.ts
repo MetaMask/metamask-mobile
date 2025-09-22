@@ -8,6 +8,7 @@ import {
 import { IConnectionStore } from '../types/connection-store';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { Connection } from './connection';
+import { ConnectionInfo } from '../types/connection-info';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -93,11 +94,12 @@ export class ConnectionRegistry {
 
     try {
       const connreq = this.parseConnectionRequest(url);
+      const conninfo = this.toConnectionInfo(connreq);
       this.hostapp.showLoading();
-      conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
+      conn = await Connection.create(conninfo, this.keymanager, this.RELAY_URL);
       await conn.connect(connreq.sessionRequest);
       this.connections.set(conn.id, conn);
-      await this.store.save({ id: conn.id, metadata: connreq.metadata });
+      await this.store.save(conninfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
       console.warn(
         `[SDKConnectV2] Connection with ${connreq.metadata.dapp.name} successfully established.`,
@@ -153,6 +155,13 @@ export class ConnectionRegistry {
     }
 
     return connreq;
+  }
+
+  private toConnectionInfo(connreq: ConnectionRequest): ConnectionInfo {
+    return {
+      id: connreq.sessionRequest.id,
+      metadata: connreq.metadata,
+    };
   }
 
   /**

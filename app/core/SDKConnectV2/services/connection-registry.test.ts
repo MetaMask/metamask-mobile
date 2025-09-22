@@ -5,6 +5,7 @@ import { ConnectionStore } from '../store/connection-store';
 import { KeyManager } from './key-manager';
 import { Connection } from './connection';
 import { ConnectionRequest } from '../types/connection-request';
+import { ConnectionInfo } from '../types/connection-info';
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -24,6 +25,21 @@ const mockConnectionRequest: ConnectionRequest = {
     expiresAt: 1757410033264,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
+  metadata: {
+    dapp: {
+      name: 'Test DApp',
+      url: 'https://test.dapp',
+    },
+    sdk: {
+      version: '2.0.0',
+      platform: 'JavaScript',
+    },
+  },
+};
+
+// A valid, sample connection request payload for use in tests
+const mockConnectionInfo: ConnectionInfo = {
+  id: 'test-conn-id',
   metadata: {
     dapp: {
       name: 'Test DApp',
@@ -122,7 +138,7 @@ describe('ConnectionRegistry', () => {
 
       // Connection is created and established with correct parameters
       expect(Connection.create).toHaveBeenCalledWith(
-        mockConnectionRequest,
+        mockConnectionInfo,
         mockKeyManager,
         RELAY_URL,
       );
