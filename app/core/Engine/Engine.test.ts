@@ -754,7 +754,7 @@ describe('Engine', () => {
     const networkState = engine.context.NetworkController.state;
 
     // Assert - Ethereum network name remains unchanged for existing users
-    expect(networkState.networkConfigurationsByChainId['0xe708'].name).toBe(
+    expect(networkState.networkConfigurationsByChainId['0x1'].name).toBe(
       'Ethereum Mainnet',
     );
 
