@@ -108,15 +108,18 @@ describe('ConnectionRegistry', () => {
     mockStore.delete = jest.fn().mockResolvedValue(undefined);
     mockStore.get = jest.fn().mockResolvedValue(null);
 
-    mockConnection = {
+    mockConnection = ({
       id: mockConnectionRequest.sessionRequest.id,
-      metadata: mockConnectionRequest.metadata,
+      info: {
+        id: mockConnectionRequest.sessionRequest.id,
+        metadata: mockConnectionRequest.metadata,
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client: {} as any,
       connect: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
       resume: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<Connection>;
+    } as unknown) as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
   });
@@ -149,7 +152,7 @@ describe('ConnectionRegistry', () => {
       // Connection data is persisted to storage
       expect(mockStore.save).toHaveBeenCalledWith({
         id: mockConnection.id,
-        metadata: mockConnection.metadata,
+        metadata: mockConnection.info.metadata,
       });
 
       // UI is synchronized with the new connection

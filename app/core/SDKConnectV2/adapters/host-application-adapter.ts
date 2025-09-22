@@ -40,14 +40,14 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
       const connectionProps: ConnectionProps & { isV2: boolean } = {
         id: connection.id,
         otherPublicKey: '',
-        origin: connection.metadata.dapp.url,
+        origin: connection.info.metadata.dapp.url,
         originatorInfo: {
-          title: connection.metadata.dapp.name,
-          url: connection.metadata.dapp.url,
-          icon: connection.metadata.dapp.icon,
-          dappId: connection.metadata.dapp.name,
-          apiVersion: connection.metadata.sdk.version,
-          platform: connection.metadata.sdk.platform,
+          title: connection.info.metadata.dapp.name,
+          url: connection.info.metadata.dapp.url,
+          icon: connection.info.metadata.dapp.icon,
+          dappId: connection.info.metadata.dapp.name,
+          apiVersion: connection.info.metadata.sdk.version,
+          platform: connection.info.metadata.sdk.platform,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };
