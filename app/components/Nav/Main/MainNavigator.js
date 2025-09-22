@@ -47,7 +47,9 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
-import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
+import RewardsNavigator, {
+  RewardsModalStack,
+} from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -118,6 +120,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -248,19 +251,9 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-const RewardsHome = () => {
-  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
-
-  if (!isRewardsEnabled) {
-    return null;
-  }
-
-  return <RewardsNavigator />;
-};
-
-const RewardsModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsHome} />
+const RewardsHome = () => (
+  <Stack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
     <Stack.Screen
       name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
       component={RewardsBottomSheetModal}
@@ -506,6 +499,7 @@ const HomeTabs = () => {
 
   const accountsLength = useSelector(selectAccountsLength);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+  const rewardsSubscription = useSelector(selectRewardsSubscriptionId);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -607,10 +601,12 @@ const HomeTabs = () => {
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
     const currentRoute = state.routes[state.index];
+
     // Hide tab bar for rewards onboarding splash screen
     if (
-      currentRoute.name?.startsWith('REWARDS_ONBOARDING') &&
-      !isRewardsEnabled
+      currentRoute.name?.startsWith('Rewards') &&
+      isRewardsEnabled &&
+      !rewardsSubscription
     ) {
       return null;
     }
@@ -655,7 +651,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
-          component={RewardsModalFlow}
+          component={RewardsHome}
           layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       ) : (

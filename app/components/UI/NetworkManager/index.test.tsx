@@ -19,6 +19,60 @@ const mockDismissModal = jest.fn();
 const mockOnOpenBottomSheet = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 
+// Mock keyring API dependencies first to prevent import errors
+jest.mock('@metamask/keyring-utils', () => ({
+  definePattern: jest.fn(),
+}));
+
+jest.mock('@metamask/keyring-api', () => ({
+  BtcScope: {
+    Mainnet: 'btc:mainnet',
+    Testnet: 'btc:testnet',
+  },
+  SolScope: {
+    Mainnet: 'solana:mainnet',
+    Testnet: 'solana:testnet',
+    Devnet: 'solana:devnet',
+  },
+}));
+
+// Mock @metamask/utils with all necessary functions
+jest.mock('@metamask/utils', () => ({
+  parseCaipChainId: (caipChainId: string) => ({
+    namespace: 'eip155',
+    reference: caipChainId.split(':')[1],
+  }),
+  hasProperty: (obj: unknown, prop: string) =>
+    obj !== null && typeof obj === 'object' && prop in obj,
+  isObject: (value: unknown) =>
+    value !== null && typeof value === 'object' && !Array.isArray(value),
+}));
+
+// Mock @metamask/rpc-errors to prevent import chain issues
+jest.mock('@metamask/rpc-errors', () => ({
+  rpcErrors: {
+    provider: {
+      userRejectedRequest: () => ({ code: 4001, message: 'User rejected' }),
+    },
+  },
+  getMessageFromCode: jest.fn(() => 'Error message'),
+}));
+
+// Mock @metamask/transaction-controller
+jest.mock('@metamask/transaction-controller', () => ({
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+    GOERLI: '0x5',
+    SEPOLIA: '0xaa36a7',
+  },
+  TransactionController: jest.fn(),
+}));
+
+// Mock controller-utils
+jest.mock('@metamask/controller-utils', () => ({
+  toHex: (value: string | number) => `0x${value.toString(16)}`,
+}));
+
 // Mock external dependencies
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -96,6 +150,12 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     disableNetwork: mockDisableNetwork,
+    enabledNetworksByNamespace: {
+      eip155: {
+        '0x1': true,
+        '0x89': true,
+      },
+    },
   }),
 }));
 
@@ -137,8 +197,30 @@ jest.mock('../../../selectors/networkController', () => ({
   ),
 }));
 
+// Mock feature flag selectors
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
+}));
+
+// Mock popular networks to prevent import chain issues
+jest.mock('../../../constants/popular-networks', () => ({
+  POPULAR_NETWORK_CHAIN_IDS: {
+    ETHEREUM_MAINNET: '0x1',
+    POLYGON_MAINNET: '0x89',
+    ARBITRUM_MAINNET: '0xa4b1',
+  },
+}));
+
+// Mock custom networks
+jest.mock('../../../util/networks/customNetworks', () => ({
+  // Mock any functions from custom networks
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -164,16 +246,7 @@ jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: (chainId: string) => ({ removedChainId: chainId }),
 }));
 
-jest.mock('@metamask/utils', () => ({
-  parseCaipChainId: (caipChainId: string) => ({
-    namespace: 'eip155',
-    reference: caipChainId.split(':')[1],
-  }),
-}));
-
-jest.mock('@metamask/controller-utils', () => ({
-  toHex: (value: string | number) => `0x${value}`,
-}));
+// These are now defined above
 
 // Component mocks with simplified functionality
 jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
@@ -497,6 +570,17 @@ describe('NetworkManager Component', () => {
   const store = mockStore({
     networkController: {
       networkConfigurations: mockNetworkConfigurations,
+    },
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          // Mock feature flags
+          flags: {},
+        },
+        NetworkController: {
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+        },
+      },
     },
   });
 

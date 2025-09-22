@@ -6857,9 +6857,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^43.0.0":
-  version: 43.1.0
-  resolution: "@metamask/bridge-controller@npm:43.1.0"
+"@metamask/bridge-controller@npm:^43.2.0":
+  version: 43.2.0
+  resolution: "@metamask/bridge-controller@npm:43.2.0"
   dependencies:
     "@ethersproject/address": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
@@ -6884,7 +6884,7 @@ __metadata:
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 9d892a2a2d0638e191040d2e337676889e944eead1831ad6c0bf2c0ac7e4487cfa0699223aba476c2fb57d8c590c9d30589876e41ed292e76a9fefb143cd783b
+  checksum: 47cc0a8b1274703ae3e1c20785228bfb36a2904a8531a7dc2fa50f857515012e1bb5a4cffbabc78bd9a2b90e443eab9b21f1481bc0379650cf79c802b4c74b00
   languageName: node
   linkType: hard
 
@@ -7811,19 +7811,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/network-enablement-controller@npm:1.1.0"
+"@metamask/network-enablement-controller@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@metamask/network-enablement-controller@npm:1.2.0"
   dependencies:
-    "@metamask/base-controller": ^8.3.0
-    "@metamask/controller-utils": ^11.12.0
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
     "@metamask/utils": ^11.8.0
     reselect: ^5.1.1
   peerDependencies:
     "@metamask/multichain-network-controller": ^0.11.0
     "@metamask/network-controller": ^24.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: e1bb8f129635d0713524c5032bd13f5bae0d4d2810a7d49e989f8c32d0040131a039f890da2434ae4746d3e26b3afe1d64ce686c7b5b2a287a087b125242a7e8
+  checksum: da89146cadabb11a312561f6ac5f068220d567a6f21e1be51ded2750eb642b62a8f12659926168a254e9ffd8f3b26581d738730377ab3ac0c6bd05cd28809634
   languageName: node
   linkType: hard
 
@@ -8436,7 +8436,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.3.10":
+"@metamask/solana-wallet-snap@npm:^2.3.9":
   version: 2.3.10
   resolution: "@metamask/solana-wallet-snap@npm:2.3.10"
   checksum: 2d425dadd05cb9c3d4376af80cbce7e9bd49402c562da424b99689b686d3c503d0f12f9177480d1d2426b635bb20b79269f33e4625c3cbcfbdefe69763b6c655
@@ -33690,7 +33690,7 @@ __metadata:
     "@metamask/assets-controllers": ^75.2.0
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.0.0
-    "@metamask/bridge-controller": ^43.0.0
+    "@metamask/bridge-controller": ^43.2.0
     "@metamask/bridge-status-controller": ^43.0.0
     "@metamask/browser-passworder": ^5.0.0
     "@metamask/build-utils": ^1.0.0
@@ -33738,7 +33738,7 @@ __metadata:
     "@metamask/multichain-network-controller": ^0.10.0
     "@metamask/multichain-transactions-controller": ^5.0.0
     "@metamask/network-controller": ^24.1.0
-    "@metamask/network-enablement-controller": ^1.1.0
+    "@metamask/network-enablement-controller": ^1.2.0
     "@metamask/notification-services-controller": ^18.1.0
     "@metamask/object-multiplex": ^1.1.0
     "@metamask/permission-controller": ^11.0.6
@@ -33770,7 +33770,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": ^13.5.0
     "@metamask/snaps-sdk": ^9.3.0
     "@metamask/snaps-utils": ^11.5.0
-    "@metamask/solana-wallet-snap": ^2.3.10
+    "@metamask/solana-wallet-snap": ^2.3.9
     "@metamask/solana-wallet-standard": ^0.5.1
     "@metamask/stake-sdk": ^3.2.0
     "@metamask/swappable-obj-proxy": ^2.1.0
