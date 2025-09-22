@@ -40,9 +40,8 @@ exports[`ExpandedMessage should render correctly 1`] = `
         {
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 16,
-          "fontWeight": "600",
           "textAlign": "center",
         }
       }
@@ -81,9 +80,8 @@ exports[`ExpandedMessage should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "CentraNo1-Bold",
+          "fontFamily": "Geist Bold",
           "fontSize": 16,
-          "fontWeight": "600",
           "textAlign": "center",
         }
       }

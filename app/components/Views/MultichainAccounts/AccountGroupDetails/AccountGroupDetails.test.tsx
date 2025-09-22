@@ -6,7 +6,10 @@ import { AccountGroupDetails } from './AccountGroupDetails';
 
 import { AccountDetailsIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 
-import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
+import {
+  isHDOrFirstPartySnapAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
 import {
   createMockAccountGroup,
   createMockInternalAccount,
@@ -15,6 +18,7 @@ import {
   createMockState,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -41,6 +45,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../util/address', () => ({
   isHDOrFirstPartySnapAccount: jest.fn(),
+  isHardwareAccount: jest.fn(),
   toFormattedAddress: jest.fn((address) => address),
   areAddressesEqual: jest.fn((addr1, addr2) => addr1 === addr2),
 }));
@@ -110,6 +115,7 @@ describe('AccountGroupDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (isHDOrFirstPartySnapAccount as jest.Mock).mockReturnValue(true);
+    (isHardwareAccount as jest.Mock).mockReturnValue(false);
   });
 
   const defaultProps = {
@@ -347,5 +353,97 @@ describe('AccountGroupDetails', () => {
     expect(
       getByTestId(AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR),
     ).toBeTruthy();
+  });
+
+  it('hides private key button for hardware wallet accounts', () => {
+    (isHardwareAccount as jest.Mock).mockReturnValue(true);
+
+    const mockLedgerAccount = createMockInternalAccount(
+      'ledger-account-1',
+      '0x1234567890123456789012345678901234567890',
+      'Ledger Account',
+    );
+    mockLedgerAccount.metadata.keyring.type = KeyringTypes.ledger;
+
+    const mockLedgerAccountGroup = createMockAccountGroup(
+      'keyring:ledger-wallet/0',
+      'Ledger Account Group',
+      ['ledger-account-1'],
+    );
+
+    const ledgerState = {
+      ...mockState,
+      engine: {
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'ledger-account-1': mockLedgerAccount,
+              },
+              selectedAccount: 'ledger-account-1',
+            },
+          },
+        },
+      },
+    };
+
+    const { queryByTestId } = renderWithProvider(
+      <AccountGroupDetails
+        {...defaultProps}
+        route={{ params: { accountGroup: mockLedgerAccountGroup } }}
+      />,
+      { state: ledgerState },
+    );
+
+    // Verify that the private key button is NOT visible for hardware wallet accounts
+    expect(queryByTestId(AccountDetailsIds.PRIVATE_KEYS_LINK)).toBeNull();
+  });
+
+  it('shows private key button for non-hardware wallet accounts', () => {
+    // Mock isHardwareAccount to return false for non-hardware wallets
+    (isHardwareAccount as jest.Mock).mockReturnValue(false);
+
+    // Create a mock HD account (non-hardware wallet)
+    const mockHDAccount = createMockInternalAccount(
+      'hd-account-1',
+      '0x1234567890123456789012345678901234567890',
+      'HD Account',
+    );
+    mockHDAccount.metadata.keyring.type = KeyringTypes.hd;
+
+    const mockHDAccountGroup = createMockAccountGroup(
+      'keyring:hd-wallet/0',
+      'HD Account Group',
+      ['hd-account-1'],
+    );
+
+    const hdState = {
+      ...mockState,
+      engine: {
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'hd-account-1': mockHDAccount,
+              },
+              selectedAccount: 'hd-account-1',
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails
+        {...defaultProps}
+        route={{ params: { accountGroup: mockHDAccountGroup } }}
+      />,
+      { state: hdState },
+    );
+
+    // Verify that the private key button IS visible for non-hardware wallet accounts
+    expect(getByTestId(AccountDetailsIds.PRIVATE_KEYS_LINK)).toBeTruthy();
   });
 });

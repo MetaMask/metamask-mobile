@@ -6,7 +6,7 @@ import React, {
   useRef,
   useContext,
 } from 'react';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -79,9 +79,6 @@ const RewardsDashboard: React.FC = () => {
   // Ref for TabsList to control active tab programmatically
   const tabsListRef = useRef<TabsListRef>(null);
 
-  // Force TabsList remount after navigation to ensure fresh state
-  const [remountTrigger, setRemountTrigger] = useState(false);
-
   // Use the link account hook
   const { linkAccount } = useLinkAccount();
 
@@ -140,14 +137,6 @@ const RewardsDashboard: React.FC = () => {
     }
   }, [activeTab, tabOptions]);
 
-  // Resync TabsList when screen comes into focus (navigation)
-  useFocusEffect(
-    useCallback(() => {
-      // Force TabsList remount to ensure fresh state after navigation
-      setRemountTrigger((prev) => !prev);
-    }, []),
-  );
-
   const handleTabChange = useCallback(
     ({ i }: { i: number }) => {
       const newTab = tabOptions[i]?.value as RewardsTab;
@@ -186,7 +175,7 @@ const RewardsDashboard: React.FC = () => {
 
             <Box flexDirection={BoxFlexDirection.Row}>
               <ButtonIcon
-                iconName={IconNameDS.UserCircle}
+                iconName={IconNameDS.UserCircleAdd}
                 size={ButtonIconSize.Lg}
                 disabled={!subscriptionId}
                 testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
@@ -306,7 +295,6 @@ const RewardsDashboard: React.FC = () => {
 
           {/* Tab View */}
           <TabsList
-            key={`tabs-${remountTrigger}`}
             ref={tabsListRef}
             initialActiveIndex={getActiveIndex()}
             onChangeTab={handleTabChange}
