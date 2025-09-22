@@ -59,6 +59,14 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 12,
       marginBottom: 24,
     },
+    loadingButtonLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loadingSpinner: {
+      marginRight: 8,
+    },
   });
 };
 
