@@ -211,7 +211,6 @@ describe('Engine', () => {
         lastError: null,
         lastUpdateTimestamp: 0,
         notifications: [],
-        positions: [],
       },
     };
 
