@@ -1,5 +1,11 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
-import { ScrollView, View, Linking, TouchableOpacity } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import { ScrollView, View, TouchableOpacity } from 'react-native';
 import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
@@ -20,19 +26,14 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
-import Icon, {
-  IconName,
-  IconColor,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import AppConstants from '../../../core/AppConstants';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import createStyles from './index.styles';
-import CelebratingFox from '../../../animations/Celebrating_Fox.json';
-import SearchingFox from '../../../animations/Searching_Fox.json';
-import LottieView, { AnimationObject } from 'lottie-react-native';
+import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-commonjs, @typescript-eslint/no-var-requires
+const OnboardingLoaderAnimation = require('../../../animations/onboarding_loader.riv');
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Logger from '../../../util/Logger';
 
@@ -42,7 +43,6 @@ import { PopularList } from '../../../util/networks/customNetworks';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { useDispatch, useSelector } from 'react-redux';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
-import { capitalize } from 'lodash';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
@@ -59,18 +59,22 @@ interface OnboardingSuccessProps {
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
-  successFlow,
+  successFlow: _successFlow,
 }) => {
   const navigation = useNavigation();
 
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = createStyles(colors);
 
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
 
   const isSocialLogin =
     authConnection === AuthConnection.Google ||
     authConnection === AuthConnection.Apple;
+
+  // Rive animation refs and state
+  const riveRef = useRef<RiveRef>(null);
+  const [animationStep, setAnimationStep] = useState(1);
 
   useLayoutEffect(() => {
     navigation.setOptions(
@@ -84,9 +88,41 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     });
   };
 
-  const handleLink = () => {
-    Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
-  };
+  // Auto-navigation for social login users
+  const handleAutoNavigate = useCallback(() => {
+    onDone();
+  }, [onDone]);
+
+  // Start Rive animation with dark mode support
+  const startRiveAnimation = useCallback(() => {
+    try {
+      if (riveRef.current) {
+        // Set dark mode state
+        // Commenting out as per user request
+        // const isDarkMode = themeAppearance === 'dark';
+        // riveRef.current.setInputState('OnboardingLoader', 'Dark', isDarkMode);
+
+        // Start animation
+        riveRef.current.fireState('OnboardingLoader', 'Start');
+
+        // Animation sequence timing
+        setTimeout(() => setAnimationStep(2), 1000); // Step 2: Animation playing
+        setTimeout(() => {
+          setAnimationStep(3); // Step 3: Complete
+
+          // Auto-navigate for social login users
+          if (isSocialLogin) {
+            setTimeout(() => handleAutoNavigate(), 1000);
+          }
+        }, 3000);
+      }
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Error triggering Rive onboarding animation',
+      );
+    }
+  }, [handleAutoNavigate, isSocialLogin]);
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
@@ -104,157 +140,59 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     onDone();
   }, [onDone]);
 
-  const renderContent = () => {
-    switch (successFlow) {
-      case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
-      case ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
-        return (
-          <>
-            <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
-              {strings('onboarding_success.title')}
-            </Text>
-            <View style={styles.imageWrapper}>
-              <LottieView
-                style={styles.walletReadyImage}
-                autoPlay
-                loop
-                source={SearchingFox as AnimationObject}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.descriptionWrapper}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('onboarding_success.description')}
-                {'\n'}
-                {'\n'}
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Info}
-                    onPress={handleLink}
-                  >
-                    {strings('onboarding_success.learn_how')}
-                  </Text>
-                  {' ' + strings('onboarding_success.description_continued')}
-                </Text>
-              </Text>
-            </View>
-          </>
-        );
-      case ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP:
-        return (
-          <>
-            <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
-              {strings('onboarding_success.remind_later')}
-            </Text>
-            <View style={styles.imageWrapper}>
-              <LottieView
-                style={styles.walletReadyImage}
-                autoPlay
-                loop
-                source={SearchingFox as AnimationObject}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.descriptionWrapper}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('onboarding_success.remind_later_description')}
-              </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('onboarding_success.remind_later_description2')}
-                <Text variant={TextVariant.BodyMDMedium}>
-                  {' ' + strings('onboarding_success.setting_security_privacy')}
-                </Text>
-              </Text>
-            </View>
-          </>
-        );
-      default:
-        return (
-          <>
-            <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
-              {strings('onboarding_success.import_title')}
-            </Text>
-            <View style={styles.imageWrapper}>
-              <LottieView
-                style={styles.walletReadyImage}
-                autoPlay
-                loop
-                source={CelebratingFox as AnimationObject}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.descriptionWrapper}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {isSocialLogin
-                  ? strings(
-                      'onboarding_success.import_description_social_login',
-                      {
-                        authConnection: capitalize(authConnection) || '',
-                      },
-                    )
-                  : strings('onboarding_success.import_description')}
-              </Text>
-              {isSocialLogin ? (
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings(
-                    'onboarding_success.import_description_social_login_2',
-                  )}
-                </Text>
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  <Text
-                    color={TextColor.Primary}
-                    onPress={handleLink}
-                    testID={OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID}
-                  >
-                    {strings('onboarding_success.learn_how')}{' '}
-                  </Text>
-                  {strings('onboarding_success.import_description2')}
-                </Text>
-              )}
-            </View>
-          </>
-        );
-    }
-  };
+  useEffect(() => {
+    // Start Rive animation after component mounts
+    const timer = setTimeout(() => {
+      startRiveAnimation();
+    }, 500);
 
-  const renderFooter = () => (
-    <View style={styles.footerWrapper}>
-      <View style={styles.footer}>
+    return () => clearTimeout(timer);
+  }, [startRiveAnimation]);
+
+  const renderContent = () => (
+      <View style={styles.animationContainer}>
+        {/* Rive Animation */}
+        <Rive
+          ref={riveRef}
+          source={OnboardingLoaderAnimation}
+          fit={Fit.Cover}
+          alignment={Alignment.Center}
+          style={styles.riveAnimation}
+        />
+
+        {/* Text Overlay */}
+        <View style={styles.textOverlay}>
+          <Text
+            variant={TextVariant.DisplayMD}
+            style={styles.textTitle}
+            color={TextColor.Default}
+          >
+            {animationStep === 3
+              ? strings('onboarding_success.wallet_ready')
+              : strings('onboarding_success.setting_up_wallet')}
+          </Text>
+        </View>
+      </View>
+    );
+
+  const renderFooter = () => {
+    // Only show for SRP users, not social login users
+    if (isSocialLogin) return null;
+
+    return (
+      <View style={styles.footerWrapper}>
         <TouchableOpacity
-          style={[styles.linkWrapper]}
+          style={styles.footerLink}
           onPress={goToDefaultSettings}
           testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
         >
-          <View style={styles.row}>
-            <Icon
-              name={IconName.Setting}
-              size={IconSize.Lg}
-              color={IconColor.Default}
-            />
-            <Text color={TextColor.Default} variant={TextVariant.BodyMDMedium}>
-              {strings('onboarding_success.manage_default_settings')}
-            </Text>
-          </View>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Lg}
-            color={IconColor.Alternative}
-          />
+          <Text color={TextColor.Primary} variant={TextVariant.BodyMD}>
+            {strings('onboarding_success.manage_default_settings')}
+          </Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <ScrollView
@@ -266,16 +204,19 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           {renderContent()}
           {renderFooter()}
         </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-            label={strings('onboarding_success.done')}
-            variant={ButtonVariants.Primary}
-            onPress={handleOnDone}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-          />
-        </View>
+        {/* Only show Done button for SRP users */}
+        {!isSocialLogin && (
+          <View style={styles.buttonWrapper}>
+            <Button
+              testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
+              label={strings('onboarding_success.done')}
+              variant={ButtonVariants.Primary}
+              onPress={handleOnDone}
+              size={ButtonSize.Lg}
+              width={ButtonWidthTypes.Full}
+            />
+          </View>
+        )}
       </View>
     </ScrollView>
   );

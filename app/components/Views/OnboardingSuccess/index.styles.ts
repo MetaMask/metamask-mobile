@@ -121,6 +121,28 @@ const createStyles = (colors: ThemeColors) =>
       rowGap: 0,
       justifyContent: 'flex-start',
     },
+    // New Rive animation styles
+    animationContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 32,
+    },
+    riveAnimation: {
+      width: 300,
+      height: 300,
+      alignSelf: 'center',
+    },
+    textOverlay: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+      marginTop: 24,
+    },
+    footerLink: {
+      alignItems: 'center',
+      paddingVertical: 12,
+    },
   });
 
 export default createStyles;
