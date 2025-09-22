@@ -171,7 +171,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
       <Box twClassName="gap-3">
         {[...Array(3)].map((_, index) => (
           <Box
-            key={index}
+            key={`account-skeleton-${index}`}
             twClassName="flex-row items-center gap-3 py-3 px-4 rounded-lg"
           >
             <Skeleton height={40} width={40} style={tw.style('rounded-full')} />
