@@ -79,8 +79,7 @@ describe('Multichain Accounts Feature Flag', () => {
           // @ts-expect-error Testing undefined flag
           [STATE_1_FLAG]: undefined,
         },
-        STATE_1_FLAG,
-        MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+        mockState1FeatureVersionsToCheck,
       );
       expect(result).toBe(false);
     });
