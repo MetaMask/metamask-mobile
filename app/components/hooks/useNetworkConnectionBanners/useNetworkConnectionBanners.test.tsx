@@ -73,17 +73,33 @@ const mockEnabledNetworksByNamespace = {
   },
 };
 
+const NETWORK_CLIENT_ID_1 = 'network-client-1';
+const NETWORK_CLIENT_ID_89 = 'network-client-89';
+
 const mockNetworkMetadata = {
-  '0x1': { status: NetworkStatus.Available },
-  '0x89': { status: NetworkStatus.Unavailable },
+  [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Available },
+  [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Unavailable },
 };
 
 const mockNetworkController = {
   state: {
     networksMetadata: mockNetworkMetadata,
   },
+  findNetworkClientIdByChainId: jest.fn((chainId: Hex) => {
+    const clientIdMap: Record<Hex, string> = {
+      '0x1': NETWORK_CLIENT_ID_1,
+      '0x89': NETWORK_CLIENT_ID_89,
+    };
+    return clientIdMap[chainId];
+  }),
   getNetworkConfigurationByNetworkClientId: jest.fn(
-    (chainId: Hex) => mockNetworkConfigurationByChainId[chainId],
+    (networkClientId: string) => {
+      const configMap: Record<string, NetworkConfiguration> = {
+        [NETWORK_CLIENT_ID_1]: mockNetworkConfigurationByChainId['0x1'],
+        [NETWORK_CLIENT_ID_89]: mockNetworkConfigurationByChainId['0x89'],
+      };
+      return configMap[networkClientId];
+    },
   ),
 };
 
@@ -356,10 +372,9 @@ describe('useNetworkConnectionBanners', () => {
     });
 
     it('should not show banner for available networks', () => {
-      // Make all networks available
       const availableNetworkMetadata = {
-        '0x1': { status: NetworkStatus.Available },
-        '0x89': { status: NetworkStatus.Available },
+        [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Available },
+        [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Available },
       };
 
       const mockEngineWithAvailableNetworks = {
@@ -395,6 +410,13 @@ describe('useNetworkConnectionBanners', () => {
     it('should skip networks without configuration', () => {
       const mockNetworkControllerWithoutConfig = {
         ...mockNetworkController,
+        findNetworkClientIdByChainId: jest.fn((chainId: Hex) => {
+          const clientIdMap: Record<Hex, string> = {
+            '0x1': NETWORK_CLIENT_ID_1,
+            '0x89': NETWORK_CLIENT_ID_89,
+          };
+          return clientIdMap[chainId];
+        }),
         getNetworkConfigurationByNetworkClientId: jest.fn(() => undefined),
       };
 
