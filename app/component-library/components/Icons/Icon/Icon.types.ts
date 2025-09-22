@@ -256,6 +256,7 @@ export enum IconName {
   Refresh = 'Refresh',
   RemoveMinus = 'RemoveMinus',
   Report = 'Report',
+  RewardsFox = 'RewardsFox',
   Rocket = 'Rocket',
   SaveFilled = 'SaveFilled',
   Save = 'Save',

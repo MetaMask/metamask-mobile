@@ -10,6 +10,7 @@ import Engine from '../../../../core/Engine';
 import type { PointsBoostDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Logger from '../../../../util/Logger';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 /**
  * Custom hook to fetch and manage active points boosts data from the rewards API
@@ -71,4 +72,10 @@ export const useActivePointsBoosts = (): void => {
   useEffect(() => {
     fetchActivePointsBoosts();
   }, [fetchActivePointsBoosts]);
+
+  // Listen for events that should trigger a refetch of active boosts
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    fetchActivePointsBoosts,
+  );
 };
