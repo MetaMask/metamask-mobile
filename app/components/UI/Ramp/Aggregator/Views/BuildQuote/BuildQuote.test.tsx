@@ -33,6 +33,18 @@ const mockEngineContext = {
   MultichainNetworkController: {
     setActiveNetwork: mockSetActiveNetwork,
   },
+  AccountsController: {
+    getSelectedAccount: jest.fn(() => ({
+      id: 'test-account-id',
+      address: '0x123456789',
+      scopes: ['eip155:1'],
+    })),
+    getAccountByAddress: jest.fn(),
+    setSelectedAccount: jest.fn(),
+  },
+  PreferencesController: {
+    setSelectedAddress: jest.fn(),
+  },
 };
 jest.mock('../../../../../../core/Engine', () => ({
   get context() {
@@ -613,6 +625,35 @@ describe('BuildQuote View', () => {
 
       expect(mockSetActiveNetwork).not.toHaveBeenCalled();
       expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockEthereumToken);
+    });
+
+    it('executes account switching logic when selecting Solana asset', async () => {
+      const solanaAsset = {
+        ...mockCryptoCurrenciesData[0],
+        id: 'solana-usdc',
+        network: {
+          ...mockCryptoCurrenciesData[0].network,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          chainName: 'Solana',
+          shortName: 'Solana',
+          active: true,
+        },
+        symbol: 'USDC',
+        name: 'Solana USDC',
+      };
+
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        cryptoCurrencies: [mockCryptoCurrenciesData[0], solanaAsset],
+      };
+
+      render(BuildQuote);
+      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
+      await act(async () => {
+        fireEvent.press(getByRoleButton('Solana USDC'));
+      });
+
+      expect(mockSetSelectedAsset).toHaveBeenCalledWith(solanaAsset);
     });
   });
 
