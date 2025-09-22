@@ -71,11 +71,11 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
 
     const { enabled, featureVersion, minimumVersion } =
       enableMultichainAccounts;
-    if (!enabled || featureVersion === null || minimumVersion === null) {
-      return false;
-    }
 
     const result =
+      enabled &&
+      featureVersion !== null &&
+      minimumVersion !== null &&
       featureVersion === featVersion &&
       compareVersions.compare(minimumVersion, APP_VERSION, '<=');
 
