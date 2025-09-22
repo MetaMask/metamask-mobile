@@ -5,6 +5,7 @@ import {
   TextVariant,
   Text,
   FontWeight,
+  BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import ProgressBar from 'react-native-progress/Bar';
 import { strings } from '../../../../../../locales/i18n';
@@ -93,7 +94,10 @@ const SeasonStatus: React.FC = () => {
 
           {/* Tier name */}
           <Box flexDirection={BoxFlexDirection.Column}>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-alternative -mb-1"
+            >
               {strings('rewards.level')} {currentTierOrder}
             </Text>
             <Text variant={TextVariant.BodyMd} twClassName="text-default">
@@ -105,7 +109,10 @@ const SeasonStatus: React.FC = () => {
         {/* Season ends */}
         {!!seasonEndDate && !!timeRemaining && (
           <Box flexDirection={BoxFlexDirection.Column}>
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-alternative -mb-1"
+            >
               {strings('rewards.season_ends')}
             </Text>
             <Text
@@ -133,6 +140,7 @@ const SeasonStatus: React.FC = () => {
               height={16}
               borderColor={theme.colors.accent01.normal}
               borderRadius={10}
+              borderWidth={0}
               unfilledColor="transparent"
             />
           </Box>
@@ -148,6 +156,7 @@ const SeasonStatus: React.FC = () => {
               height={16}
               borderColor={theme.colors.background.section}
               borderRadius={10}
+              borderWidth={0}
               unfilledColor={theme.colors.background.section}
             />
           </Box>
@@ -157,21 +166,23 @@ const SeasonStatus: React.FC = () => {
       {/* Bottom Row - Points Summary */}
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="gap-2 justify-between items-center -mt-1"
+        twClassName="gap-2 justify-between items-center mt-1"
       >
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+        <Box
+          alignItems={BoxAlignItems.Center}
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="gap-2"
+        >
           <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
 
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
             <Text
-              variant={TextVariant.BodyLg}
-              fontWeight={FontWeight.Bold}
-              style={tw.style({ fontSize: 22 })}
+              style={tw.style({ fontSize: 22, fontWeight: FontWeight.Bold })}
             >
               {formatNumber(balanceTotal)}
             </Text>
 
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+            <Text variant={TextVariant.HeadingMd}>
               {!balanceTotal || balanceTotal > 1
                 ? strings('rewards.points').toLowerCase()
                 : strings('rewards.point').toLowerCase()}
