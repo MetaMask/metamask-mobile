@@ -97,11 +97,11 @@ export const AddressList = () => {
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
         style={styles.header}
-        endAccessory={
+        startAccessory={
           <ButtonIcon
             testID={AddressListIds.GO_BACK}
-            iconName={IconName.Close}
-            size={ButtonIconSize.Lg}
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
             iconProps={{ color: MMDSIconColor.IconDefault }}
             onPress={() => navigation.goBack()}
           />
