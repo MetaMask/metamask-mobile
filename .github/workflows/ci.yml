@@ -226,6 +226,7 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'qa'
+      keystore_target: 'qa'
     secrets: inherit
 
   e2e-smoke-tests-android:

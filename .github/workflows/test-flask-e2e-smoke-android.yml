@@ -25,6 +25,7 @@ jobs:
     with:
       build_type: 'flask'
       metamask_environment: 'e2e'
+      keystore_target: 'flask'
     secrets: inherit
   
   e2e-smoke-tests-android:

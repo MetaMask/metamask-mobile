@@ -24,7 +24,12 @@ on:
       metamask_environment:
         description: 'The environment to build for'
         required: false
-        default: 'e2e'
+        default: 'qa'
+        type: string
+      keystore_target:
+        description: 'The target to use for the keystore'
+        required: false
+        default: 'qa'
         type: string
 
 jobs:
@@ -48,7 +53,7 @@ jobs:
           platform: android
           setup-simulator: false
           configure-keystores: true
-          target: qa # we're using the qa keystore for e2e builds
+          target: ${{ inputs.keystore_target }} # qa for taget=main and flask for target=flask
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
