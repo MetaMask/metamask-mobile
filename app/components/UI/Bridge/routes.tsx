@@ -10,6 +10,7 @@ import BridgeView from './Views/BridgeView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
+import RecipientSelectorModal from './components/RecipientSelectorModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -63,6 +64,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BLOCKAID_MODAL}
       component={BlockaidModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL}
+      component={RecipientSelectorModal}
     />
   </ModalStack.Navigator>
 );

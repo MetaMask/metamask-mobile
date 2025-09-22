@@ -54,7 +54,6 @@ import ButtonIcon from '../../../../../component-library/components/Buttons/Butt
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -146,8 +145,6 @@ const BridgeView = () => {
   }, []);
 
   useInitialSlippage();
-
-  const hasDestinationPicker = isEvmSolanaBridge;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -499,22 +496,12 @@ const BridgeView = () => {
           showsVerticalScrollIndicator={false}
         >
           <Box style={styles.dynamicContent}>
-            <Box style={styles.destinationAccountSelectorContainer}>
-              {hasDestinationPicker && <DestinationAccountSelector />}
-            </Box>
-
             {shouldDisplayQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>
             ) : shouldDisplayKeypad ? (
-              <Box
-                style={[
-                  styles.keypadContainer,
-                  hasDestinationPicker &&
-                    styles.keypadContainerWithDestinationPicker,
-                ]}
-              >
+              <Box style={styles.keypadContainer}>
                 <Keypad
                   style={styles.keypad}
                   value={sourceAmount || '0'}
