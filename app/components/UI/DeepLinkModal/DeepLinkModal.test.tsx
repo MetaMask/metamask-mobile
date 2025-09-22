@@ -10,6 +10,7 @@ import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useNavigation } from '@react-navigation/native';
 import { Linking, Platform } from 'react-native';
+import mockedDefaultUseMetrics from '../../../components/hooks/useMetrics/__mocks__/useMetrics';
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
@@ -32,19 +33,11 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../components/hooks/useMetrics');
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+const mockUseMetrics = jest.mocked(useMetrics);
+mockUseMetrics.mockReturnValue({
+  ...mockedDefaultUseMetrics(),
   trackEvent: mockTrackEvent,
   createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
 });
 
 jest.mock('../../../util/metrics', () =>

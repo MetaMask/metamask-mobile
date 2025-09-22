@@ -9,6 +9,7 @@ import { getTokenDetails } from '../../../../../../../../../util/address';
 import { backgroundState } from '../../../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../../../util/test/renderWithProvider';
 import { useMetrics } from '../../../../../../../../hooks/useMetrics';
+import mockedDefaultUseMetrics from '../../../../../../../../hooks/useMetrics/__mocks__/useMetrics';
 import { MetricsEventBuilder } from '../../../../../../../../../core/Analytics/MetricsEventBuilder';
 
 const mockInitialState = {
@@ -40,20 +41,13 @@ jest.mock('../../../../../../../../../util/address', () => ({
   ).renderShortAddress,
 }));
 
+const mockUseMetrics = jest.mocked(useMetrics);
 describe('SimulationValueDisplay', () => {
   beforeEach(() => {
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+    mockUseMetrics.mockReturnValue({
+      ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
     });
   });
 

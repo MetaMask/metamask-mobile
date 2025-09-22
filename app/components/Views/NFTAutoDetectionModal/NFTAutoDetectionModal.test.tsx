@@ -9,6 +9,7 @@ import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import mockedDefaultUseMetrics from '../../hooks/useMetrics/__mocks__/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const setUseNftDetectionSpy = jest.spyOn(
@@ -44,18 +45,12 @@ jest.mock('../../hooks/useMetrics');
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+const mockUseMetrics = jest.mocked(useMetrics);
+mockUseMetrics.mockReturnValue({
+  ...mockedDefaultUseMetrics(),
   trackEvent: mockTrackEvent,
   createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
   addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
 });
 
 const Stack = createStackNavigator();

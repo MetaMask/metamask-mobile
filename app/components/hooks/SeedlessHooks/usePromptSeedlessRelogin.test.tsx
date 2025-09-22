@@ -37,10 +37,11 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock imports
 import { useMetrics } from '../useMetrics';
+import mockedDefaultUseMetrics from '../useMetrics/__mocks__/useMetrics';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { useDeleteWallet } from '../DeleteWallet';
 
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseMetrics = jest.mocked(useMetrics);
 const mockUseSignOut = useSignOut as jest.MockedFunction<typeof useSignOut>;
 const mockUseDeleteWallet = useDeleteWallet as jest.MockedFunction<
   typeof useDeleteWallet
@@ -58,17 +59,8 @@ describe('usePromptSeedlessRelogin', () => {
   const mockResetWalletState = jest.fn();
   const mockDeleteUser = jest.fn();
   const mockMetrics = {
+    ...mockedDefaultUseMetrics(),
     isEnabled: jest.fn().mockReturnValue(true),
-    trackEvent: jest.fn(),
-    enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    getMetaMetricsId: jest.fn(),
-    createEventBuilder: jest.fn(),
   };
 
   const initialState = {

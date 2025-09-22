@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux';
 
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import mockedDefaultUseMetrics from '../../../components/hooks/useMetrics/__mocks__/useMetrics';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -42,18 +43,11 @@ jest.mock('../../hooks/DisplayName/useDisplayName');
 jest.mock('../../../core/redux/slices/confirmationMetrics');
 jest.mock('../../../components/hooks/useMetrics');
 const mockTrackEvent = jest.fn();
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+const mockUseMetrics = jest.mocked(useMetrics);
+mockUseMetrics.mockReturnValue({
+  ...mockedDefaultUseMetrics(),
   trackEvent: mockTrackEvent,
   createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
 });
 
 jest.mock('../../../selectors/networkController');

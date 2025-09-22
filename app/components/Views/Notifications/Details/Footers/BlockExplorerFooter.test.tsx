@@ -9,6 +9,7 @@ import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../../../components/hooks/useMetrics';
+import mockedDefaultUseMetrics from '../../../../../components/hooks/useMetrics/__mocks__/useMetrics';
 import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
 import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
@@ -25,22 +26,14 @@ jest.mock('../../../../../util/notifications', () => ({
   getBlockExplorerByChainId: jest.fn(),
 }));
 
-jest.mock('../../../../../components/hooks/useMetrics');
-
 const trackEventMock = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+jest.mock('../../../../../components/hooks/useMetrics');
+const mockUseMetrics = jest.mocked(useMetrics);
+mockUseMetrics.mockReturnValue({
+  ...mockedDefaultUseMetrics(),
   trackEvent: trackEventMock,
   createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
 });
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({

@@ -19,6 +19,7 @@ import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import Engine from '../../../../../core/Engine';
+import mockedDefaultUseMetrics from '../../../../hooks/useMetrics/__mocks__/useMetrics';
 
 jest.mock('../../../../hooks/useMetrics');
 jest.mock('../../hooks/useEarnTokens', () => ({
@@ -200,23 +201,16 @@ const renderComponent = (token: TokenI, state = initialState) =>
   renderWithProvider(<EarnEmptyStateCta token={token} />, {
     state,
   });
+const mockUseMetrics = jest.mocked(useMetrics);
 
 describe('EmptyStateCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+    mockUseMetrics.mockReturnValue({
+      ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
     });
 
     (

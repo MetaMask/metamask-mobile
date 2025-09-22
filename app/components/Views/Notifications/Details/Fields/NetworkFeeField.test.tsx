@@ -6,7 +6,7 @@ import { processNotification } from '@metamask/notification-services-controller/
 import { createMockNotificationEthReceived } from '@metamask/notification-services-controller/notification-services/mocks';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
 import { useMetrics } from '../../../../hooks/useMetrics';
-
+import mockedDefaultUseMetrics from '../../../../hooks/useMetrics/__mocks__/useMetrics';
 jest.mock('../../../../../util/notifications/methods/common', () => ({
   getNetworkFees: () =>
     Promise.resolve({
@@ -27,6 +27,8 @@ const MOCK_NOTIFICATION = processNotification(
 
 jest.mock('./NetworkFeeField');
 
+const mockUseMetrics = jest.mocked(useMetrics);
+
 describe('NetworkFeeField', () => {
   const setIsCollapsed = jest.fn();
   const isCollapsed = false;
@@ -34,18 +36,10 @@ describe('NetworkFeeField', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+    mockUseMetrics.mockReturnValue({
+      ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: jest.fn(),
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
     });
   });
 

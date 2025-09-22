@@ -7,6 +7,7 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import mockedDefaultUseMetrics from '../../../../components/hooks/useMetrics/__mocks__/useMetrics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
@@ -52,18 +53,12 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 );
 
 const mockTrackEvent = jest.fn();
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+
+const mockUseMetrics = jest.mocked(useMetrics);
+mockUseMetrics.mockReturnValue({
+  ...mockedDefaultUseMetrics(),
   trackEvent: mockTrackEvent,
   createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
 });
 
 const mockNavigate = jest.fn();

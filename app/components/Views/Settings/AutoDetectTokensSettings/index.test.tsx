@@ -11,6 +11,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import AssetSettings from '.';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
 import { useMetrics } from '../../../hooks/useMetrics';
+import mockedDefaultUseMetrics from '../../../hooks/useMetrics/__mocks__/useMetrics';
 
 let mockSetUseTokenDetection: jest.Mock;
 
@@ -36,18 +37,11 @@ jest.mock('../../../hooks/useMetrics');
 
 const mockAddTraitsToUser = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: jest.fn(),
-  createEventBuilder: jest.fn(),
-  enable: jest.fn(),
+const mockUseMetrics = jest.mocked(useMetrics);
+
+mockUseMetrics.mockReturnValue({
+  ...mockedDefaultUseMetrics(),
   addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
 });
 
 describe('AssetSettings', () => {

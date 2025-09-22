@@ -3,23 +3,16 @@ import { useConnectionHandler } from './useConnectionHandler';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../components/hooks/useMetrics';
-
-jest.mock('../../components/hooks/useMetrics');
+import mockedDefaultUseMetrics from '../../components/hooks/useMetrics/__mocks__/useMetrics';
 
 const mockTrackEvent = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+jest.mock('../../components/hooks/useMetrics');
+const mockUseMetrics = jest.mocked(useMetrics);
+mockUseMetrics.mockReturnValue({
+  ...mockedDefaultUseMetrics(),
   trackEvent: mockTrackEvent,
   createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
 });
 
 describe('useConnectionHandler', () => {
