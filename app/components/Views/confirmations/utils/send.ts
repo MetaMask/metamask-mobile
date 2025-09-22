@@ -10,7 +10,6 @@ import { addHexPrefix } from 'ethereumjs-util';
 import { encode } from '@metamask/abi-utils';
 import { toHex } from '@metamask/controller-utils';
 
-import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
@@ -49,8 +48,7 @@ export function isValidPositiveNumericString(str: string) {
   try {
     const num = new BigNumber(str);
     return num.isGreaterThanOrEqualTo(new BigNumber(0));
-  } catch (err) {
-    Logger.log('Invalid number value received: ', str);
+  } catch {
     return false;
   }
 }
