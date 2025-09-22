@@ -45,7 +45,7 @@ const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-carousel-dark.riv');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-import Character from '../../images/perps_onboarding_character.png';
+import Character from 'app/images/character_3x.png';
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
@@ -86,6 +86,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
             flex: 1,
           }}
           resizeMode="contain"
+          testID={PerpsTutorialSelectorsIDs.CHARACTER_IMAGE}
         />
       ),
     },
