@@ -30,7 +30,11 @@ const NftImageAndNetworkBadge = ({
   const { styles } = useStyles(styleSheet, {});
   const { networkName, networkImage } = useNetworkInfo(chainId);
 
-  const { image, tokenId, collection: { imageUrl } = {} } = nft ?? {};
+  const {
+    image,
+    tokenId,
+    collection: { imageUrl } = {},
+  } = nft ?? { collection: {} };
   const showPlaceholder = !nft || !chainId?.length || (!image && !imageUrl);
 
   const onPress = useCallback(() => {

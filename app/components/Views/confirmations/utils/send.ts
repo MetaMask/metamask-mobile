@@ -8,7 +8,6 @@ import {
 } from '@metamask/transaction-controller';
 import { addHexPrefix } from 'ethereumjs-util';
 import { encode } from '@metamask/abi-utils';
-import { toHex } from '@metamask/controller-utils';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
@@ -101,7 +100,7 @@ function generateERC20TransferData({ toAddress = '0x0', amount = '0x0' }) {
 function generateERC721TransferData({
   toAddress = '0x0',
   fromAddress = '0x0',
-  tokenId = '0x0',
+  tokenId = '0',
 }) {
   return (
     TRANSFER_FROM_FUNCTION_SIGNATURE +
@@ -161,7 +160,7 @@ export const prepareEVMTransaction = (
     trxnParams.data = generateERC721TransferData({
       fromAddress: from,
       toAddress: to,
-      tokenId: asset.tokenId ? toHex(asset.tokenId) : '0x0',
+      tokenId: asset.tokenId ?? '0',
     });
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
@@ -169,8 +168,8 @@ export const prepareEVMTransaction = (
     trxnParams.data = generateERC1155TransferData({
       fromAddress: from,
       toAddress: to,
-      tokenId: asset.tokenId ? toHex(asset.tokenId) : '0x0',
-      amount: toHex(value ?? 1),
+      tokenId: asset.tokenId ?? '0',
+      amount: value,
     });
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
