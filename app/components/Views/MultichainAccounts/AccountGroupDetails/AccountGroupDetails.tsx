@@ -37,7 +37,10 @@ import {
   selectIconSeedAddressByAccountGroupId,
 } from '../../../../selectors/multichainAccounts/accounts';
 import { AccountGroupType } from '@metamask/account-api';
-import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
+import {
+  isHDOrFirstPartySnapAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
@@ -115,6 +118,11 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
 
   const canExportMnemonic = useMemo(
     () => (account ? isHDOrFirstPartySnapAccount(account) : false),
+    [account],
+  );
+
+  const isHardwareWallet = useMemo(
+    () => (account ? isHardwareAccount(account.address) : false),
     [account],
   );
 
@@ -237,38 +245,42 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
             />
           </Box>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.privateKeys}
-          testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
-          onPress={() => {
-            navigation.navigate(
-              ...createPrivateKeyListNavigationDetails({
-                groupId: id,
-                title: strings(
-                  'multichain_accounts.account_details.private_keys',
-                ),
-              }),
-            );
-          }}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('multichain_accounts.account_details.private_keys')}
-          </Text>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
+        {!isHardwareWallet && (
+          <TouchableOpacity
+            style={styles.privateKeys}
+            testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
+            onPress={() => {
+              navigation.navigate(
+                ...createPrivateKeyListNavigationDetails({
+                  groupId: id,
+                  title: strings(
+                    'multichain_accounts.account_details.private_keys',
+                  ),
+                }),
+              );
+            }}
           >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {strings('multichain_accounts.account_details.unlock_to_reveal')}
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('multichain_accounts.account_details.private_keys')}
             </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={8}
+            >
+              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                {strings(
+                  'multichain_accounts.account_details.unlock_to_reveal',
+                )}
+              </Text>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Md}
+                color={colors.text.alternative}
+              />
+            </Box>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={styles.smartAccount}
           testID={AccountDetailsIds.SMART_ACCOUNT_LINK}
