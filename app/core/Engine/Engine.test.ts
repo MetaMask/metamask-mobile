@@ -45,6 +45,9 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
   selectSmartTransactionsEnabled: jest.fn().mockReturnValue(false),
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
+  selectPendingSmartTransactionsForSelectedAccountGroup: jest
+    .fn()
+    .mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
   ...jest.requireActual('../../selectors/settings'),

@@ -106,7 +106,11 @@ export function EditAmount({
   }, [autoKeyboard, inputChanged, handleInputPress]);
 
   const handleChange = useCallback((amount: string) => {
-    const newAmount = amount.replace(/^0+/, '') || '0';
+    let newAmount = amount.replace(/^0+/, '') || '0';
+
+    if (newAmount.startsWith('.') || newAmount.startsWith(',')) {
+      newAmount = '0' + newAmount;
+    }
 
     if (newAmount.length >= MAX_LENGTH) {
       return;
