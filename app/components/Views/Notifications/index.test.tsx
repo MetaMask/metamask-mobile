@@ -51,6 +51,7 @@ const mockMetrics = {
 const mockedMetrics = jest.mocked(useMetrics);
 mockedMetrics.mockReturnValue({
   ...mockedDefaultUseMetrics(),
+  ...mockMetrics,
 });
 
 const mockInitialState: DeepPartial<RootState> = {
