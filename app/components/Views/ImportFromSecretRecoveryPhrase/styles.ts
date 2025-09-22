@@ -130,18 +130,6 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       ...fontStyles.normal,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_weak: {
-      color: colors.error.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_good: {
-      color: colors.primary.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_strong: {
-      color: colors.success.default,
-    },
     input: {
       paddingVertical: Platform.select({
         ios: 4,
