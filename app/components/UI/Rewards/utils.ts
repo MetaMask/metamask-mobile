@@ -29,6 +29,10 @@ export const handleRewardsErrorMessage = (error: unknown) => {
     return SOLANA_SIGNUP_NOT_SUPPORTED;
   }
 
+  if (message.includes('Failed to claim reward')) {
+    return 'Failed to claim reward. Please try again shortly.';
+  }
+
   if (
     message.includes('not available') ||
     message.includes('Network request failed')

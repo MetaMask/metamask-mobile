@@ -94,7 +94,8 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     [enabledNetworks, networksByCaipChainId],
   );
 
-  // For now there is no use case to have it disabled,
+  // For now there is no use case to have it disabled
+  // but leaving it here since it might be useful
   const isDisabled: boolean = false;
 
   const hasEnabledNetworks = enabledNetworks.length > 0;
