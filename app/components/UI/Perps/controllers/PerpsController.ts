@@ -36,7 +36,10 @@ import {
 import type { CandleData } from '../types';
 import { CandlePeriod } from '../constants/chartConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
+import {
+  DATA_LAKE_API_CONFIG,
+  PERPS_CONSTANTS,
+} from '../constants/perpsConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -80,6 +83,10 @@ import { getEnvironment } from './utils';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { RemoteFeatureFlagControllerStateChangeEvent } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.d.cts';
 
+// Simple wait utility
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Error codes for PerpsController
  * These codes are returned to the UI layer for translation
@@ -121,10 +128,12 @@ export type PerpsControllerState = {
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
 
   // Account data (persisted) - using HyperLiquid property names
-  positions: Position[];
   accountState: AccountState | null;
 
-  // Perps balances per provider for portfolio display
+  // Current positions
+  positions: Position[];
+
+  // Perps balances per provider for portfolio display (historical data)
   perpsBalances: {
     [provider: string]: {
       totalValue: string; // Current total account value (cash + positions) in USD
@@ -184,8 +193,8 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
   isTestnet: __DEV__, // Default to testnet in dev
   connectionStatus: 'disconnected',
-  positions: [],
   accountState: null,
+  positions: [],
   perpsBalances: {},
   pendingOrders: [],
   depositInProgress: false,
@@ -210,15 +219,15 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
  * State metadata for the PerpsController
  */
 const metadata = {
-  positions: {
+  accountState: {
     includeInStateLogs: true,
     persist: true,
     anonymous: false,
     usedInUi: true,
   },
-  accountState: {
+  positions: {
     includeInStateLogs: true,
-    persist: true,
+    persist: false,
     anonymous: false,
     usedInUi: true,
   },
@@ -683,6 +692,9 @@ export class PerpsController extends BaseController<
     // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
     // - Some might use different wallet patterns: new GMXProvider({ signer })
     // - Some might not need auth at all: new DydxProvider()
+
+    // Wait for WebSocket transport to be ready before marking as initialized
+    await wait(PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
 
     this.isInitialized = true;
     DevLogger.log('PerpsController: Providers initialized successfully', {
@@ -1558,22 +1570,6 @@ export class PerpsController extends BaseController<
 
       // Only update state if the provider call succeeded
       this.update((state) => {
-        state.positions = positions;
-        // Update perps balances if we have account state
-        if (state.accountState) {
-          const providerKey = this.state.activeProvider;
-          // Preserve existing historical data if available
-          const existingBalance = state.perpsBalances[providerKey];
-          state.perpsBalances[providerKey] = {
-            totalValue: state.accountState.totalValue || '0',
-            unrealizedPnl: state.accountState.unrealizedPnl || '0',
-            accountValue1dAgo:
-              existingBalance?.accountValue1dAgo ||
-              state.accountState.totalValue ||
-              '0',
-            lastUpdated: Date.now(),
-          };
-        }
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
@@ -1706,14 +1702,6 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.accountState = accountState;
-        // Update perps balances for the active provider
-        const providerKey = this.state.activeProvider;
-        state.perpsBalances[providerKey] = {
-          totalValue: accountState.totalValue || '0',
-          unrealizedPnl: accountState.unrealizedPnl || '0',
-          accountValue1dAgo: historicalPortfolioToUse.accountValue1dAgo || '0',
-          lastUpdated: Date.now(),
-        };
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
@@ -2184,31 +2172,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Update perps balances for the current provider
-   * Called when account state changes
-   */
-  updatePerpsBalances(
-    accountState: AccountState,
-    accountValue1dAgo?: string,
-  ): void {
-    const providerKey = this.state.activeProvider;
-    this.update((state) => {
-      // Preserve existing historical data if not provided
-      const existingBalance = state.perpsBalances[providerKey];
-      state.perpsBalances[providerKey] = {
-        totalValue: accountState.totalValue || '0',
-        unrealizedPnl: accountState.unrealizedPnl || '0',
-        accountValue1dAgo:
-          accountValue1dAgo ||
-          existingBalance?.accountValue1dAgo ||
-          accountState.totalValue ||
-          '0',
-        lastUpdated: Date.now(),
-      };
-    });
-  }
-
-  /**
    * Configure live data throttling
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
@@ -2294,7 +2257,6 @@ export class PerpsController extends BaseController<
 
       // Clear Redux state immediately to reset UI
       this.update((state) => {
-        state.positions = [];
         state.accountState = null;
         state.pendingOrders = [];
         state.lastError = null;
@@ -2664,5 +2626,13 @@ export class PerpsController extends BaseController<
 
       return { success: false, error: errorMessage };
     }
+  }
+
+  /**
+   * Check if the controller is currently reinitializing
+   * @returns true if providers are being reinitialized
+   */
+  public isCurrentlyReinitializing(): boolean {
+    return this.isReinitializing;
   }
 }

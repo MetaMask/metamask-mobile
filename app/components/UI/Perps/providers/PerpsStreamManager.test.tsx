@@ -84,6 +84,7 @@ describe('PerpsStreamManager', () => {
       subscribeToOrders: mockSubscribeToOrders,
       subscribeToPositions: mockSubscribeToPositions,
       subscribeToAccount: mockSubscribeToAccount,
+      isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
     } as unknown as typeof mockEngine.context.PerpsController;
 
     mockDevLogger.log = jest.fn();
@@ -648,13 +649,13 @@ describe('PerpsStreamManager', () => {
       // Should notify with empty data after clearing
       expect(onUpdate).toHaveBeenCalledWith({});
 
-      // Should reconnect after delay
+      // Should not reconnect after clearing cache
       act(() => {
         jest.advanceTimersByTime(100);
       });
 
       await waitFor(() => {
-        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -848,7 +849,7 @@ describe('PerpsStreamManager', () => {
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
-    it('should reconnect after clearing cache if there are active subscribers', async () => {
+    it('should not reconnect after clearing cache even with active subscribers', async () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
@@ -869,14 +870,14 @@ describe('PerpsStreamManager', () => {
         testStreamManager.prices.clearCache();
       });
 
-      // Advance timer to trigger reconnection
+      // Advance timer to verify no reconnection happens
       act(() => {
         jest.advanceTimersByTime(100);
       });
 
-      // Should reconnect
+      // Should not reconnect after clearing cache
       await waitFor(() => {
-        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
       });
     });
 
