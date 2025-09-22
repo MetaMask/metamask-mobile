@@ -303,6 +303,7 @@
     "@metamask/utils": "^11.4.2",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
+    "@nozbe/watermelondb": "^0.28.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.1",
     "@react-native-community/checkbox": "^0.5.20",
@@ -494,6 +495,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/eslint-parser": "^7.25.1",
+    "@babel/plugin-proposal-decorators": "^7.28.0",
     "@babel/preset-env": "^7.25.3",
     "@babel/register": "^7.24.6",
     "@babel/runtime": "^7.25.0",

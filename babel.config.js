@@ -8,6 +8,7 @@ module.exports = {
   presets: ['babel-preset-expo'],
   // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
   plugins: [
+    ['@babel/plugin-proposal-decorators', { legacy: true }],
     [
       'react-compiler',
       {
