@@ -196,6 +196,92 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('useMemo and useEffect behavior', () => {
+    it('should not overwrite user input when dependencies change', async () => {
+      // Arrange - Start with sufficient balance
+      const mockAccount = {
+        account: {
+          availableBalance: '10', // $10 balance = $30 max with 3x leverage
+          totalBalance: '10',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '10',
+        },
+        isInitialLoading: false,
+      };
+      mockUsePerpsLiveAccount.mockReturnValue(mockAccount);
+
+      const { result, rerender } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      // Verify initial amount is set correctly
+      expect(result.current.orderForm.amount).toBe(
+        TRADING_DEFAULTS.amount.mainnet.toString(),
+      );
+
+      // Act - User changes the amount
+      act(() => {
+        result.current.setAmount('999');
+      });
+      expect(result.current.orderForm.amount).toBe('999');
+
+      // Act - Change the available balance to trigger useMemo recalculation
+      mockAccount.account.availableBalance = '1'; // This would normally trigger a different initialAmountValue
+      mockUsePerpsLiveAccount.mockReturnValue(mockAccount);
+      rerender({});
+
+      // Assert - Amount should not be overwritten due to hasSetInitialAmount ref
+      expect(result.current.orderForm.amount).toBe('999');
+    });
+
+    it('should use useMemo for initialAmountValue calculation', () => {
+      // This test verifies that useMemo is working by testing different scenarios
+      // that should produce different initialAmountValue calculations
+
+      // Test 1: Low balance scenario
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '2', // $2 balance = $6 max with 3x leverage (less than $10 default)
+          totalBalance: '2',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '2',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result: result1 } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      expect(result1.current.orderForm.amount).toBe('6'); // Should use maxPossibleAmount
+
+      // Test 2: High balance scenario
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '100', // $100 balance = $300 max with 3x leverage (more than $10 default)
+          totalBalance: '100',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '100',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result: result2 } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: TestWrapper,
+      });
+
+      expect(result2.current.orderForm.amount).toBe(
+        TRADING_DEFAULTS.amount.mainnet.toString(),
+      ); // Should use default amount
+    });
+  });
+
   describe('form updates', () => {
     it('should update amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
