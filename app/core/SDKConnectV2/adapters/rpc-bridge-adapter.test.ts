@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Engine from '../../Engine';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import { Connection } from '../services/connection';
+import { ConnectionInfo } from '../types/connection-info';
 import { RPCBridgeAdapter } from './rpc-bridge-adapter';
 import { whenEngineReady } from '../utils/is-engine-ready';
 
@@ -27,7 +27,7 @@ const mockedEngine = Engine as any;
 
 describe('RPCBridgeAdapter', () => {
   let adapter: RPCBridgeAdapter;
-  let mockConnection: Connection;
+  let mockConnection: ConnectionInfo;
   let mockMessenger: any;
   let onUnlockCallback: () => void;
   let backgroundBridgeInstance: any;
@@ -42,7 +42,7 @@ describe('RPCBridgeAdapter', () => {
         dapp: { name: 'MockDApp', url: 'https://mockdapp.com' },
         sdk: { version: '1.0', platform: 'mobile' },
       },
-    } as Connection;
+    };
 
     mockMessenger = {
       subscribe: jest.fn((eventName, callback) => {
