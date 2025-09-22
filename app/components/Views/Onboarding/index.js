@@ -400,6 +400,7 @@ class Onboarding extends PureComponent {
       OAuthLoginService.resetOauthState();
     }
     await this.props.metrics.enableSocialLogin(false);
+    // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
     trace({ name: TraceName.OnboardingCreateWallet });
