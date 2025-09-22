@@ -23,36 +23,31 @@ if [ -f "$SUMMARY_FILE" ]; then
             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/jobs" 2>/dev/null)
         
         if [ $? -eq 0 ] && [ -n "$jobStatuses" ]; then
-            # Check individual platform job statuses
-            androidOnboardingFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("Android") and contains("Onboarding")) | .conclusion' | grep -c "failure" || echo "0")
-            iosOnboardingFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("iOS") and contains("Onboarding")) | .conclusion' | grep -c "failure" || echo "0")
-            androidImportedWalletFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("Android") and contains("Imported Wallet")) | .conclusion' | grep -c "failure" || echo "0")
-            iosImportedWalletFailed=$(echo "$jobStatuses" | jq -r '.jobs[] | select(.name | contains("iOS") and contains("Imported Wallet")) | .conclusion' | grep -c "failure" || echo "0")
+            # Function to get job status for a specific platform and test type
+            get_job_status() {
+                local platform="$1"
+                local test_type="$2"
+                
+                # Get job conclusion (failure, skipped, success, etc.)
+                local conclusion=$(echo "$jobStatuses" | jq -r ".jobs[] | select(.name | contains(\"$platform\") and contains(\"$test_type\")) | .conclusion" | head -1)
+                
+                # Check if job exists at all
+                local exists=$(echo "$jobStatuses" | jq -r ".jobs[] | select(.name | contains(\"$platform\") and contains(\"$test_type\")) | .name" | wc -l)
+                
+                if [ "$conclusion" = "failure" ]; then
+                    echo ":x: FAILED"
+                elif [ "$conclusion" = "skipped" ] || [ "$exists" -eq 0 ]; then
+                    echo ":fast_forward: SKIPPED"
+                else
+                    echo ":white_check_mark: PASSED"
+                fi
+            }
             
-            # Set status for each platform and test type
-            if [ "$androidOnboardingFailed" -gt 0 ]; then
-                androidOnboardingStatus=":x: FAILED"
-            else
-                androidOnboardingStatus=":white_check_mark: PASSED"
-            fi
-            
-            if [ "$iosOnboardingFailed" -gt 0 ]; then
-                iosOnboardingStatus=":x: FAILED"
-            else
-                iosOnboardingStatus=":white_check_mark: PASSED"
-            fi
-            
-            if [ "$androidImportedWalletFailed" -gt 0 ]; then
-                androidImportedWalletStatus=":x: FAILED"
-            else
-                androidImportedWalletStatus=":white_check_mark: PASSED"
-            fi
-            
-            if [ "$iosImportedWalletFailed" -gt 0 ]; then
-                iosImportedWalletStatus=":x: FAILED"
-            else
-                iosImportedWalletStatus=":white_check_mark: PASSED"
-            fi
+            # Get status for each platform and test type
+            androidOnboardingStatus=$(get_job_status "Android" "Onboarding")
+            iosOnboardingStatus=$(get_job_status "iOS" "Onboarding")
+            androidImportedWalletStatus=$(get_job_status "Android" "Imported Wallet")
+            iosImportedWalletStatus=$(get_job_status "iOS" "Imported Wallet")
         else
             # Fallback if API call fails
             androidOnboardingStatus=":question: UNKNOWN"
@@ -80,22 +75,25 @@ if [ -f "$SUMMARY_FILE" ]; then
     
     SUMMARY+="---------------\n\n"
     SUMMARY+="*Devices Tested:*\n"
-    if [ "$androidCount" -gt 0 ]; then
-        SUMMARY+="• Android:\n"
-        while IFS= read -r device; do
-            if [ -n "$device" ]; then
-                SUMMARY+="  • $device\n"
-            fi
-        done <<< "$androidDevices"
-    fi
-    if [ "$iosCount" -gt 0 ]; then
-        SUMMARY+="• iOS:\n"
-        while IFS= read -r device; do
-            if [ -n "$device" ]; then
-                SUMMARY+="  • $device\n"
-            fi
-        done <<< "$iosDevices"
-    fi
+    
+    # Function to add device list for a platform
+    add_device_list() {
+        local platform="$1"
+        local devices="$2"
+        local count="$3"
+        
+        if [ "$count" -gt 0 ]; then
+            SUMMARY+="• $platform:\n"
+            while IFS= read -r device; do
+                if [ -n "$device" ]; then
+                    SUMMARY+="  • $device\n"
+                fi
+            done <<< "$devices"
+        fi
+    }
+    
+    add_device_list "Android" "$androidDevices" "$androidCount"
+    add_device_list "iOS" "$iosDevices" "$iosCount"
     SUMMARY+="\n"
     SUMMARY+="---------------\n\n"
     SUMMARY+="*Test Results:*\n"
