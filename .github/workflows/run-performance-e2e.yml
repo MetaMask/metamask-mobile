@@ -189,7 +189,7 @@ jobs:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: inputs.browserstack_app_url_android_imported_wallet != '' || (needs.trigger-android-dual-versions.result == 'success')
+    if: always() && (inputs.browserstack_app_url_android_imported_wallet != '' || (needs.trigger-android-dual-versions.result == 'success'))
     with:
       platform: android
       build_type: imported-wallet
@@ -204,7 +204,7 @@ jobs:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: inputs.browserstack_app_url_ios_imported_wallet != '' || (needs.trigger-ios-dual-versions.result == 'success')
+    if: always() && (inputs.browserstack_app_url_ios_imported_wallet != '' || (needs.trigger-ios-dual-versions.result == 'success'))
     with:
       platform: ios
       build_type: imported-wallet
