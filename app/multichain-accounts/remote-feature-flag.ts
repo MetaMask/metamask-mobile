@@ -16,9 +16,11 @@ const APP_VERSION = packageJson.version;
 const enableMultichainAccountsState2Local =
   process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2;
 
-export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
-export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';
+export const MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
+export const MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';
 
+export const STATE_1_FLAG = 'enableMultichainAccounts';
+export const STATE_2_FLAG = 'enableMultichainAccountsState2';
 /**
  * Asserts that the given value is a valid MultichainAccountsFeatureFlag.
  * @param value - The value to check.
@@ -32,48 +34,49 @@ export const assertMultichainAccountsFeatureFlagType = (
   'enabled' in value &&
   typeof value.enabled === 'boolean' &&
   'featureVersion' in value &&
-  (typeof value.featureVersion === 'string' || value.featureVersion === null) &&
+  value.featureVersion !== undefined &&
   'minimumVersion' in value &&
-  (typeof value.minimumVersion === 'string' || value.minimumVersion === null);
+  value.minimumVersion !== undefined;
 
 /**
  * Checks if the multichain accounts feature is enabled based on remote feature flags.
  *
  * @param remoteFeatureFlags - The remote feature flags to check against.
- * @param featureVersionsToCheck - The versions of the feature to check against.
+ * @param featureVersionToCheck - The version of the feature to check against.
  * @returns True if the multichain accounts feature is enabled for any specified versions, false otherwise.
  */
 export const isMultichainAccountsRemoteFeatureEnabled = (
   remoteFeatureFlags: FeatureFlags,
-  featureVersionsToCheck: string[],
+  featureKey: keyof FeatureFlags,
+  featureVersionToCheck: string,
+  override?: string,
 ) => {
-  // Overrides the multichain accounts state 2 enabled flag based on the feature versions.
   if (
-    enableMultichainAccountsState2Local !== undefined &&
-    featureVersionsToCheck.includes(MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2)
+    override !== undefined &&
+    featureVersionToCheck === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2
   ) {
-    return enableMultichainAccountsState2Local === 'true';
+    return override === 'true';
   }
 
-  const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
+  const enableMultichainAccounts = remoteFeatureFlags[featureKey];
+
   if (
     !enableMultichainAccounts ||
     !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)
   ) {
-    return false;
+    return true;
   }
 
   const { enabled, featureVersion, minimumVersion } = enableMultichainAccounts;
 
-  if (!enabled || !minimumVersion || !featureVersion) {
+  if (!enabled) {
     return false;
   }
 
-  // Check if the feature is enabled for any of the specified versions
-  return featureVersionsToCheck.some(
-    (featureVersionToCheck) =>
-      featureVersion === featureVersionToCheck &&
-      compareVersions.compare(minimumVersion, APP_VERSION, '<='),
+  // @ts-expect-error if enabled is true, featureVersion and minimumVersion are guaranteed to be strings
+  return (
+    featureVersion === featureVersionToCheck &&
+    compareVersions.compare(minimumVersion, APP_VERSION, '<=')
   );
 };
 
@@ -89,16 +92,20 @@ function getRemoteFeatureFlags(): FeatureFlags {
  * Returns true if the feature is enabled for state 1 or state 2.
  */
 export const isMultichainAccountsState1Enabled = () =>
-  isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
-    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
-    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
-  ]);
+  isMultichainAccountsRemoteFeatureEnabled(
+    getRemoteFeatureFlags(),
+    STATE_1_FLAG,
+    MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  );
 
 /**
  * Check if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
 export const isMultichainAccountsState2Enabled = () =>
-  isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
-    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
-  ]);
+  isMultichainAccountsRemoteFeatureEnabled(
+    getRemoteFeatureFlags(),
+    STATE_2_FLAG,
+    MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    enableMultichainAccountsState2Local,
+  );
