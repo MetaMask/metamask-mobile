@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Dimensions, Image, TouchableOpacity } from 'react-native';
+import { Dimensions, Image, TouchableOpacity, Platform } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -87,7 +87,7 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
     <TouchableOpacity onPress={handleBoostTap} activeOpacity={0.8}>
       <Box
         style={[
-          tw.style('rounded-xl p-4 mr-4 h-32 relative'),
+          tw.style('rounded-xl max-w-60 p-4 mr-2 h-32 relative'),
           {
             width: CARD_WIDTH,
             backgroundColor: boost.backgroundColor || tw.color('bg-default'),
@@ -160,7 +160,7 @@ const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
         {strings('rewards.active_boosts.title')}
       </Text>
       {count !== null && (
-        <Box twClassName="bg-text-muted rounded-full w-6 h-6 items-center justify-center">
+        <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
           <Text variant={TextVariant.BodySm} twClassName="text-default">
             {count}
           </Text>
@@ -202,20 +202,22 @@ const ActiveBoosts: React.FC = () => {
     activeBoosts: activeBoosts?.length,
   });
 
-  // Local pan sink to capture horizontal swipes and prevent parent tab swipe
+  // Platform-specific gesture handling to prevent parent tab swipe
   const scrollNativeGesture = useMemo(() => Gesture.Native(), []);
-  const panSink = useMemo(
-    () =>
-      Gesture.Pan()
+  const panSink = useMemo(() => {
+    if (Platform.OS === 'android')
+      return Gesture.Pan()
         .minDistance(1)
         .activeOffsetX([-2, 2])
         .failOffsetY([-8, 8])
         .simultaneousWithExternalGesture(scrollNativeGesture)
-        .runOnJS(true),
-    [scrollNativeGesture],
-  );
+        .runOnJS(true);
+  }, [scrollNativeGesture]);
   const combinedGesture = useMemo(
-    () => Gesture.Simultaneous(scrollNativeGesture, panSink),
+    () =>
+      panSink
+        ? Gesture.Simultaneous(scrollNativeGesture, panSink)
+        : scrollNativeGesture,
     [scrollNativeGesture, panSink],
   );
 
