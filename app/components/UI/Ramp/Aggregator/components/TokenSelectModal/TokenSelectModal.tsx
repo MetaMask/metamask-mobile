@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
+import { useSelector } from 'react-redux';
 
 import Text, {
   TextVariant,
@@ -35,6 +36,12 @@ import { selectTokenSelectors } from '../../../../../../../e2e/selectors/Ramps/S
 import { useRampSDK } from '../../sdk';
 
 import styleSheet from './TokenSelectModal.styles';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { isCaipChainId } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import Engine from '../../../../../../core/Engine';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -54,8 +61,10 @@ function TokenSelectModal() {
 
   const { tokens } = useParams<TokenSelectModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
-
-  const { setSelectedAsset } = useRampSDK();
+  const networksByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+  const { setSelectedAsset, selectedChainId } = useRampSDK();
 
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -87,11 +96,42 @@ function TokenSelectModal() {
   );
 
   const handleSelectTokenCallback = useCallback(
-    (token: CryptoCurrency) => {
-      setSelectedAsset(token);
+    async (newAsset: CryptoCurrency) => {
+      if (
+        newAsset.network?.chainId &&
+        newAsset.network.chainId !== selectedChainId
+      ) {
+        const assetCaipChainId = isCaipChainId(newAsset.network.chainId)
+          ? newAsset.network.chainId
+          : toEvmCaipChainId(toHex(newAsset.network.chainId));
+
+        const networkConfiguration = networksByCaipChainId[
+          assetCaipChainId
+        ] as NetworkConfiguration;
+
+        if (networkConfiguration) {
+          const { rpcEndpoints, defaultRpcEndpointIndex } =
+            networkConfiguration;
+          let networkClientId;
+
+          if (!rpcEndpoints || rpcEndpoints.length === 0) {
+            networkClientId = assetCaipChainId;
+          } else {
+            const { networkClientId: endpointNetworkClientId } =
+              rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
+            networkClientId = endpointNetworkClientId;
+          }
+
+          const { MultichainNetworkController } = Engine.context;
+
+          await MultichainNetworkController.setActiveNetwork(networkClientId);
+        }
+      }
+
+      setSelectedAsset(newAsset);
       sheetRef.current?.onCloseBottomSheet();
     },
-    [setSelectedAsset],
+    [setSelectedAsset, selectedChainId, networksByCaipChainId],
   );
 
   const scrollToTop = useCallback(() => {
@@ -117,31 +157,31 @@ function TokenSelectModal() {
 
   const renderToken = useCallback(
     ({ item: token }: { item: CryptoCurrency }) => (
-        <ListItemSelect
-          onPress={() => handleSelectTokenCallback(token)}
-          accessibilityRole="button"
-          accessible
-        >
-          <ListItemColumn widthType={WidthType.Auto}>
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={<BadgeNetwork name={token.network?.shortName} />}
-            >
-              <AvatarToken
-                name={token.name}
-                imageSource={{ uri: token.logo }}
-                size={AvatarSize.Md}
-              />
-            </BadgeWrapper>
-          </ListItemColumn>
-          <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
-              {token.name}
-            </Text>
-          </ListItemColumn>
-        </ListItemSelect>
-      ),
+      <ListItemSelect
+        onPress={() => handleSelectTokenCallback(token)}
+        accessibilityRole="button"
+        accessible
+      >
+        <ListItemColumn widthType={WidthType.Auto}>
+          <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={<BadgeNetwork name={token.network?.shortName} />}
+          >
+            <AvatarToken
+              name={token.name}
+              imageSource={{ uri: token.logo }}
+              size={AvatarSize.Md}
+            />
+          </BadgeWrapper>
+        </ListItemColumn>
+        <ListItemColumn widthType={WidthType.Fill}>
+          <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+          <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
+            {token.name}
+          </Text>
+        </ListItemColumn>
+      </ListItemSelect>
+    ),
     [colors.text.alternative, handleSelectTokenCallback],
   );
 
@@ -181,9 +221,9 @@ function TokenSelectModal() {
       <FlatList
         style={styles.list}
         ref={listRef}
-        data={searchTokenResults || []}
+        data={searchTokenResults}
         renderItem={renderToken}
-        keyExtractor={(item) => item.id || 'unknown'}
+        keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
