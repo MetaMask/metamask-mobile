@@ -14,11 +14,11 @@ import { useNetworkConnectionBanners } from '../../hooks/useNetworkConnectionBan
 import { strings } from '../../../../locales/i18n';
 
 /**
- * Slow RPC Connection Banner
+ * Network Connection Banner
  *
  * Shows when any network takes more than 5 seconds to initialize.
  */
-const SlowRpcConnectionBanner: React.FC = () => {
+const NetworkConnectionBanner: React.FC = () => {
   const { visible, currentNetwork, editRpc } = useNetworkConnectionBanners();
 
   if (!visible || !currentNetwork) {
@@ -45,7 +45,7 @@ const SlowRpcConnectionBanner: React.FC = () => {
             twClassName="text-default flex-1"
             numberOfLines={1}
           >
-            {strings('slow_rpc_connection_banner.still_connecting_network', {
+            {strings('network_connection_banner.still_connecting_network', {
               networkName: currentNetwork.name,
             })}
           </Text>
@@ -57,11 +57,11 @@ const SlowRpcConnectionBanner: React.FC = () => {
           disabled={false}
           twClassName="shrink-0"
         >
-          {strings('slow_rpc_connection_banner.edit_rpc')}
+          {strings('network_connection_banner.edit_rpc')}
         </Button>
       </Box>
     </Box>
   );
 };
 
-export default SlowRpcConnectionBanner;
+export default NetworkConnectionBanner;

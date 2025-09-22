@@ -10,7 +10,7 @@ export enum NetworkConnectionBannersActionType {
 }
 
 /**
- * Action to show the slow RPC connection banner
+ * Action to show the network connection banner
  * chainId is required to identify which network is slow
  */
 export interface ShowSlowRpcConnectionBannerAction extends Action {
@@ -19,7 +19,7 @@ export interface ShowSlowRpcConnectionBannerAction extends Action {
 }
 
 /**
- * Action to hide the slow RPC connection banner
+ * Action to hide the network connection banner
  * No parameters needed - just hides the currently visible banner
  */
 export interface HideSlowRpcConnectionBannerAction extends Action {
@@ -33,7 +33,7 @@ export type NetworkConnectionBannersAction =
 /**
  * showSlowRpcConnectionBanner action creator
  * @param {Hex} chainId: the chain id of the network that is slow
- * @returns {ShowSlowRpcConnectionBannerAction} - the action object to show the slow rpc connection banner
+ * @returns {ShowSlowRpcConnectionBannerAction} - the action object to show the network connection banner
  */
 export function showSlowRpcConnectionBanner(
   chainId: Hex,
@@ -46,7 +46,7 @@ export function showSlowRpcConnectionBanner(
 
 /**
  * hideSlowRpcConnectionBanner action creator
- * @returns {HideSlowRpcConnectionBannerAction} - the action object to hide the slow rpc connection banner
+ * @returns {HideSlowRpcConnectionBannerAction} - the action object to hide the network connection banner
  */
 export function hideSlowRpcConnectionBanner(): HideSlowRpcConnectionBannerAction {
   return {

@@ -302,7 +302,7 @@ describe('useNetworkConnectionBanners', () => {
   });
 
   describe('network monitoring effect', () => {
-    it('should show banner for slow network after timeout', () => {
+    it('should show banner for network after timeout', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: false,
         chainId: undefined,

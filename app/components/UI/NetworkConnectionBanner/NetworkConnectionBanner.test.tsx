@@ -5,7 +5,7 @@ import {
   RpcEndpointType,
 } from '@metamask/network-controller';
 
-import SlowRpcConnectionBanner from './SlowRpcConnectionBanner';
+import NetworkConnectionBanner from './NetworkConnectionBanner';
 import { useNetworkConnectionBanners } from '../../hooks/useNetworkConnectionBanners';
 import { strings } from '../../../../locales/i18n';
 
@@ -13,7 +13,7 @@ jest.mock('../../hooks/useNetworkConnectionBanners');
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn(
     (key: string, params?: Record<string, string | undefined>) => {
-      if (key === 'slow_rpc_connection_banner.still_connecting_network') {
+      if (key === 'network_connection_banner.still_connecting_network') {
         const networkName = params?.networkName;
         if (networkName === undefined || networkName === null) {
           return 'Still connecting to network';
@@ -23,7 +23,7 @@ jest.mock('../../../../locales/i18n', () => ({
         }
         return `Still connecting to ${networkName}`;
       }
-      if (key === 'slow_rpc_connection_banner.edit_rpc') {
+      if (key === 'network_connection_banner.edit_rpc') {
         return 'Edit RPC';
       }
       return key;
@@ -66,7 +66,7 @@ const mockNetworkConfiguration: NetworkConfiguration = {
   nativeCurrency: 'ETH',
 };
 
-describe('SlowRpcConnectionBanner', () => {
+describe('NetworkConnectionBanner', () => {
   const mockEditRpc = jest.fn();
 
   beforeEach(() => {
@@ -82,7 +82,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { queryByTestId } = render(<SlowRpcConnectionBanner />);
+      const { queryByTestId } = render(<NetworkConnectionBanner />);
 
       expect(queryByTestId('animated-spinner')).toBeNull();
     });
@@ -95,7 +95,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { queryByTestId } = render(<SlowRpcConnectionBanner />);
+      const { queryByTestId } = render(<NetworkConnectionBanner />);
 
       expect(queryByTestId('animated-spinner')).toBeNull();
     });
@@ -108,7 +108,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { queryByTestId } = render(<SlowRpcConnectionBanner />);
+      const { queryByTestId } = render(<NetworkConnectionBanner />);
 
       expect(queryByTestId('animated-spinner')).toBeNull();
     });
@@ -125,7 +125,7 @@ describe('SlowRpcConnectionBanner', () => {
     });
 
     it('should render the banner with correct structure', () => {
-      const { getByTestId, getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
 
       expect(getByTestId('animated-spinner')).toBeTruthy();
       expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
@@ -133,7 +133,7 @@ describe('SlowRpcConnectionBanner', () => {
     });
 
     it('should display spinner with correct size', () => {
-      const { getByTestId } = render(<SlowRpcConnectionBanner />);
+      const { getByTestId } = render(<NetworkConnectionBanner />);
 
       const spinner = getByTestId('animated-spinner');
       const sizeText = getByTestId('spinner-size');
@@ -144,25 +144,25 @@ describe('SlowRpcConnectionBanner', () => {
     });
 
     it('should display network name in the message', () => {
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
     });
 
     it('should call strings with correct parameters', () => {
-      render(<SlowRpcConnectionBanner />);
+      render(<NetworkConnectionBanner />);
 
       expect(strings).toHaveBeenCalledWith(
-        'slow_rpc_connection_banner.still_connecting_network',
+        'network_connection_banner.still_connecting_network',
         { networkName: 'Ethereum Mainnet' },
       );
       expect(strings).toHaveBeenCalledWith(
-        'slow_rpc_connection_banner.edit_rpc',
+        'network_connection_banner.edit_rpc',
       );
     });
 
     it('should call editRpc when Edit RPC button is pressed', () => {
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       const editButton = getByText('Edit RPC');
       fireEvent.press(editButton);
@@ -171,7 +171,7 @@ describe('SlowRpcConnectionBanner', () => {
     });
 
     it('should render button with correct variant and properties', () => {
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       const editButton = getByText('Edit RPC');
       expect(editButton).toBeTruthy();
@@ -193,7 +193,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       expect(getByText('Still connecting to Polygon Mainnet')).toBeTruthy();
     });
@@ -211,7 +211,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       expect(getByText('Still connecting to Test-Network (Beta)')).toBeTruthy();
     });
@@ -229,7 +229,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       expect(
         getByText(
@@ -248,7 +248,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       // The banner should be accessible with proper text content
       expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
@@ -263,7 +263,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       const editButton = getByText('Edit RPC');
       expect(editButton).toBeTruthy();
@@ -288,7 +288,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       expect(getByText('Still connecting to network')).toBeTruthy();
     });
@@ -306,7 +306,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       expect(getByText('Still connecting to ')).toBeTruthy();
     });
@@ -319,7 +319,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { getByText } = render(<SlowRpcConnectionBanner />);
+      const { getByText } = render(<NetworkConnectionBanner />);
 
       const editButton = getByText('Edit RPC');
 
@@ -343,7 +343,7 @@ describe('SlowRpcConnectionBanner', () => {
       });
 
       const { rerender, queryByTestId, getByTestId } = render(
-        <SlowRpcConnectionBanner />,
+        <NetworkConnectionBanner />,
       );
 
       expect(queryByTestId('animated-spinner')).toBeNull();
@@ -356,7 +356,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      rerender(<SlowRpcConnectionBanner />);
+      rerender(<NetworkConnectionBanner />);
 
       expect(getByTestId('animated-spinner')).toBeTruthy();
     });
@@ -370,7 +370,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      const { rerender, getByText } = render(<SlowRpcConnectionBanner />);
+      const { rerender, getByText } = render(<NetworkConnectionBanner />);
 
       expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
 
@@ -388,7 +388,7 @@ describe('SlowRpcConnectionBanner', () => {
         editRpc: mockEditRpc,
       });
 
-      rerender(<SlowRpcConnectionBanner />);
+      rerender(<NetworkConnectionBanner />);
 
       expect(getByText('Still connecting to Polygon Mainnet')).toBeTruthy();
     });

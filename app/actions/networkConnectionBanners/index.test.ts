@@ -17,7 +17,7 @@ describe('networkConnectionBanners', () => {
   });
 
   describe('showSlowRpcConnectionBanner', () => {
-    it('should create an action to show the slow RPC connection banner with valid chainId', () => {
+    it('should create an action to show the network connection banner with valid chainId', () => {
       const chainId = '0x1';
 
       expect(showSlowRpcConnectionBanner(chainId)).toEqual({
@@ -28,7 +28,7 @@ describe('networkConnectionBanners', () => {
   });
 
   describe('hideSlowRpcConnectionBanner', () => {
-    it('should create an action to hide the slow RPC connection banner', () => {
+    it('should create an action to hide the network connection banner', () => {
       expect(hideSlowRpcConnectionBanner()).toEqual({
         type: NetworkConnectionBannersActionType.HIDE_SLOW_RPC_CONNECTION_BANNER,
       });

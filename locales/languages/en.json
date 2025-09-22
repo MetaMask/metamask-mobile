@@ -6058,7 +6058,7 @@
       "swap_approval": "Approve tokens"
     }
   },
-  "slow_rpc_connection_banner": {
+  "network_connection_banner": {
     "still_connecting_network": "Still connecting to {{networkName}}...",
     "edit_rpc": "Edit RPC"
   }
