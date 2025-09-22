@@ -10,8 +10,7 @@ import { ConnectionInfo } from '../types/connection-info';
 
 export class RPCBridgeAdapter
   extends EventEmitter
-  implements IRPCBridgeAdapter
-{
+  implements IRPCBridgeAdapter {
   private readonly conninfo: ConnectionInfo;
   private client: BackgroundBridge | null = null;
   private messenger: BaseControllerMessenger | null = null;
@@ -139,7 +138,7 @@ export class RPCBridgeAdapter
         }),
       isMainFrame: true,
       getApprovedHosts: () => ({
-        [this.conninfo.metadata.dapp.url]: true, // FIXME: I copied this from the SDKConnect v1, does this make sense?
+        [this.conninfo.metadata.dapp.url]: true,
       }),
       isWalletConnect: false,
       wcRequestActions: undefined,
