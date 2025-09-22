@@ -173,10 +173,10 @@ describe('initModularizedControllers', () => {
   );
   const mockRewardsControllerInit = jest.mocked(rewardsControllerInit);
   const mockPredictControllerInit = jest.mocked(predictControllerInit);
-
   const mockGatorPermissionsControllerInit = jest.mocked(
     GatorPermissionsControllerInit,
   );
+
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -306,7 +306,7 @@ describe('initModularizedControllers', () => {
     });
     mockPredictControllerInit.mockReturnValue({
       controller: {} as unknown as PredictController,
-    }),
+    });
     mockGatorPermissionsControllerInit.mockReturnValue({
       controller: {} as unknown as GatorPermissionsController,
     });
