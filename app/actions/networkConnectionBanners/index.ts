@@ -28,7 +28,7 @@ export interface HideNetworkConnectionBannerAction extends Action {
   type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER;
 }
 
-export type NetworkConnectionBannersAction =
+export type NetworkConnectionBannerAction =
   | ShowNetworkConnectionBannerAction
   | HideNetworkConnectionBannerAction;
 

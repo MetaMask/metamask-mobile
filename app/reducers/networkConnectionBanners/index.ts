@@ -1,7 +1,7 @@
 import { Hex } from '@metamask/utils';
 import {
   NetworkConnectionBannersActionType,
-  NetworkConnectionBannersAction,
+  NetworkConnectionBannerAction,
 } from '../../actions/networkConnectionBanners';
 import { NetworkConnectionBannerStatus } from '../../components/UI/NetworkConnectionBanner/types';
 
@@ -26,12 +26,12 @@ export const initialState: NetworkConnectionBannersState = {
 /**
  * Reducer to Network Connection Banners relative event
  * @param {NetworkConnectionBannersState} state: the state of the Network Connection Banners event flow, default to initialState
- * @param {NetworkConnectionBannersAction} action: the action object contain type and payload to change state.
+ * @param {NetworkConnectionBannerAction} action: the action object contain type and payload to change state.
  * @returns {NetworkConnectionBannersState}: the new state of the Network Connection Banners event flow
  */
 const networkConnectionBannersReducer = (
   state = initialState,
-  action: NetworkConnectionBannersAction = {
+  action: NetworkConnectionBannerAction = {
     type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER,
   },
 ) => {

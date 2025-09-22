@@ -7,39 +7,8 @@ import {
 
 import NetworkConnectionBanner from './NetworkConnectionBanner';
 import { useNetworkConnectionBanners } from '../../hooks/useNetworkConnectionBanners';
-import { strings } from '../../../../locales/i18n';
 
 jest.mock('../../hooks/useNetworkConnectionBanners');
-jest.mock('../../../../locales/i18n', () => ({
-  strings: jest.fn(
-    (key: string, params?: Record<string, string | undefined>) => {
-      if (key === 'network_connection_banner.still_connecting_network') {
-        const networkName = params?.networkName;
-        if (networkName === undefined || networkName === null) {
-          return 'Still connecting to network';
-        }
-        if (networkName === '') {
-          return 'Still connecting to ';
-        }
-        return `Still connecting to ${networkName}`;
-      }
-      if (key === 'network_connection_banner.network_not_available') {
-        const networkName = params?.networkName;
-        if (networkName === undefined || networkName === null) {
-          return 'Network not available';
-        }
-        if (networkName === '') {
-          return 'Network not available';
-        }
-        return `${networkName} is not available`;
-      }
-      if (key === 'network_connection_banner.edit_rpc') {
-        return 'Edit RPC';
-      }
-      return key;
-    },
-  ),
-}));
 
 jest.mock('../AnimatedSpinner', () => ({
   __esModule: true,
@@ -143,7 +112,9 @@ describe('NetworkConnectionBanner', () => {
         const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
 
         expect(getByTestId('animated-spinner')).toBeTruthy();
-        expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
+        expect(
+          getByText('Still connecting to Ethereum Mainnet...'),
+        ).toBeTruthy();
         expect(getByText('Edit RPC')).toBeTruthy();
       });
 
@@ -161,19 +132,9 @@ describe('NetworkConnectionBanner', () => {
       it('should display network name in the message', () => {
         const { getByText } = render(<NetworkConnectionBanner />);
 
-        expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
-      });
-
-      it('should call strings with correct parameters for slow status', () => {
-        render(<NetworkConnectionBanner />);
-
-        expect(strings).toHaveBeenCalledWith(
-          'network_connection_banner.still_connecting_network',
-          { networkName: 'Ethereum Mainnet' },
-        );
-        expect(strings).toHaveBeenCalledWith(
-          'network_connection_banner.edit_rpc',
-        );
+        expect(
+          getByText('Still connecting to Ethereum Mainnet...'),
+        ).toBeTruthy();
       });
 
       it('should call editRpc when Edit RPC button is pressed', () => {
@@ -208,7 +169,9 @@ describe('NetworkConnectionBanner', () => {
         const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
 
         expect(getByTestId('animated-spinner')).toBeTruthy();
-        expect(getByText('Ethereum Mainnet is not available')).toBeTruthy();
+        expect(
+          getByText('Network Ethereum Mainnet is not available'),
+        ).toBeTruthy();
         expect(getByText('Edit RPC')).toBeTruthy();
       });
 
@@ -226,19 +189,9 @@ describe('NetworkConnectionBanner', () => {
       it('should display network name in the message', () => {
         const { getByText } = render(<NetworkConnectionBanner />);
 
-        expect(getByText('Ethereum Mainnet is not available')).toBeTruthy();
-      });
-
-      it('should call strings with correct parameters for unavailable status', () => {
-        render(<NetworkConnectionBanner />);
-
-        expect(strings).toHaveBeenCalledWith(
-          'network_connection_banner.network_not_available',
-          { networkName: 'Ethereum Mainnet' },
-        );
-        expect(strings).toHaveBeenCalledWith(
-          'network_connection_banner.edit_rpc',
-        );
+        expect(
+          getByText('Network Ethereum Mainnet is not available'),
+        ).toBeTruthy();
       });
 
       it('should call editRpc when Edit RPC button is pressed', () => {
@@ -271,7 +224,9 @@ describe('NetworkConnectionBanner', () => {
 
         const { rerender, getByText } = render(<NetworkConnectionBanner />);
 
-        expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
+        expect(
+          getByText('Still connecting to Ethereum Mainnet...'),
+        ).toBeTruthy();
 
         // Change to unavailable status
         mockUseNetworkConnectionBanners.mockReturnValue({
@@ -284,7 +239,9 @@ describe('NetworkConnectionBanner', () => {
 
         rerender(<NetworkConnectionBanner />);
 
-        expect(getByText('Ethereum Mainnet is not available')).toBeTruthy();
+        expect(
+          getByText('Network Ethereum Mainnet is not available'),
+        ).toBeTruthy();
       });
 
       it('should update message when status changes from unavailable to slow', () => {
@@ -299,7 +256,9 @@ describe('NetworkConnectionBanner', () => {
 
         const { rerender, getByText } = render(<NetworkConnectionBanner />);
 
-        expect(getByText('Ethereum Mainnet is not available')).toBeTruthy();
+        expect(
+          getByText('Network Ethereum Mainnet is not available'),
+        ).toBeTruthy();
 
         // Change to slow status
         mockUseNetworkConnectionBanners.mockReturnValue({
@@ -312,7 +271,9 @@ describe('NetworkConnectionBanner', () => {
 
         rerender(<NetworkConnectionBanner />);
 
-        expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
+        expect(
+          getByText('Still connecting to Ethereum Mainnet...'),
+        ).toBeTruthy();
       });
     });
   });
@@ -335,7 +296,7 @@ describe('NetworkConnectionBanner', () => {
 
       const { getByText } = render(<NetworkConnectionBanner />);
 
-      expect(getByText('Still connecting to Polygon Mainnet')).toBeTruthy();
+      expect(getByText('Still connecting to Polygon Mainnet...')).toBeTruthy();
     });
 
     it('should handle network with special characters in name', () => {
@@ -354,7 +315,9 @@ describe('NetworkConnectionBanner', () => {
 
       const { getByText } = render(<NetworkConnectionBanner />);
 
-      expect(getByText('Still connecting to Test-Network (Beta)')).toBeTruthy();
+      expect(
+        getByText('Still connecting to Test-Network (Beta)...'),
+      ).toBeTruthy();
     });
 
     it('should handle network with very long name', () => {
@@ -375,7 +338,7 @@ describe('NetworkConnectionBanner', () => {
 
       expect(
         getByText(
-          'Still connecting to Very Long Network Name That Might Cause Layout Issues',
+          'Still connecting to Very Long Network Name That Might Cause Layout Issues...',
         ),
       ).toBeTruthy();
     });
@@ -394,7 +357,7 @@ describe('NetworkConnectionBanner', () => {
       const { getByText } = render(<NetworkConnectionBanner />);
 
       // The banner should be accessible with proper text content
-      expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
+      expect(getByText('Still connecting to Ethereum Mainnet...')).toBeTruthy();
       expect(getByText('Edit RPC')).toBeTruthy();
     });
 
@@ -419,44 +382,6 @@ describe('NetworkConnectionBanner', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle network with undefined name gracefully for slow status', () => {
-      const networkWithoutName: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        name: undefined as unknown as string,
-      };
-
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
-        currentNetwork: networkWithoutName,
-        editRpc: mockEditRpc,
-      });
-
-      const { getByText } = render(<NetworkConnectionBanner />);
-
-      expect(getByText('Still connecting to network')).toBeTruthy();
-    });
-
-    it('should handle network with undefined name gracefully for unavailable status', () => {
-      const networkWithoutName: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        name: undefined as unknown as string,
-      };
-
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'unavailable',
-        currentNetwork: networkWithoutName,
-        editRpc: mockEditRpc,
-      });
-
-      const { getByText } = render(<NetworkConnectionBanner />);
-
-      expect(getByText('Network not available')).toBeTruthy();
-    });
-
     it('should handle network with empty name for slow status', () => {
       const networkWithEmptyName: NetworkConfiguration = {
         ...mockNetworkConfiguration,
@@ -473,7 +398,7 @@ describe('NetworkConnectionBanner', () => {
 
       const { getByText } = render(<NetworkConnectionBanner />);
 
-      expect(getByText('Still connecting to ')).toBeTruthy();
+      expect(getByText('Still connecting to ...')).toBeTruthy();
     });
 
     it('should handle network with empty name for unavailable status', () => {
@@ -492,7 +417,7 @@ describe('NetworkConnectionBanner', () => {
 
       const { getByText } = render(<NetworkConnectionBanner />);
 
-      expect(getByText('Network not available')).toBeTruthy();
+      expect(getByText('Network  is not available')).toBeTruthy();
     });
 
     it('should handle multiple rapid button presses', () => {
@@ -560,7 +485,7 @@ describe('NetworkConnectionBanner', () => {
 
       const { rerender, getByText } = render(<NetworkConnectionBanner />);
 
-      expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
+      expect(getByText('Still connecting to Ethereum Mainnet...')).toBeTruthy();
 
       // Switch to Polygon
       const polygonNetwork: NetworkConfiguration = {
@@ -579,7 +504,7 @@ describe('NetworkConnectionBanner', () => {
 
       rerender(<NetworkConnectionBanner />);
 
-      expect(getByText('Still connecting to Polygon Mainnet')).toBeTruthy();
+      expect(getByText('Still connecting to Polygon Mainnet...')).toBeTruthy();
     });
   });
 });

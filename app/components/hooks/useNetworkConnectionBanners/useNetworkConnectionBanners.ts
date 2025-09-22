@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Hex, hexToNumber, KnownCaipNamespace } from '@metamask/utils';
+import { Hex, hexToNumber } from '@metamask/utils';
 import {
   NetworkConfiguration,
   NetworkStatus,
@@ -15,8 +15,8 @@ import {
   showNetworkConnectionBanner,
 } from '../../../actions/networkConnectionBanners';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
-import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 
 const SLOW_BANNER_TIMEOUT = 5 * 1000; // 5 seconds
 const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
@@ -30,7 +30,6 @@ const useNetworkConnectionBanners = (): {
 } => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const { enabledNetworksByNamespace } = useNetworkEnablement();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { visible, chainId, status } = useSelector(
     selectNetworkConnectionBannersState,
@@ -43,13 +42,7 @@ const useNetworkConnectionBanners = (): {
   const networkConfigurationByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const evmEnabledNetworksChainIds = useMemo(
-    () =>
-      Object.entries(enabledNetworksByNamespace[KnownCaipNamespace.Eip155])
-        .filter(([, isEnabled]) => isEnabled)
-        .map(([networkChainId]) => networkChainId as Hex),
-    [enabledNetworksByNamespace],
-  );
+  const evmEnabledNetworksChainIds = useSelector(selectEVMEnabledNetworks);
   const currentNetwork = useMemo(
     () => (chainId ? networkConfigurationByChainId[chainId] : undefined),
     [networkConfigurationByChainId, chainId],
@@ -92,7 +85,6 @@ const useNetworkConnectionBanners = (): {
       const networksMetadata =
         Engine.context.NetworkController.state.networksMetadata;
 
-      let hasUnavailableNetwork = false;
       let firstUnavailableNetwork: {
         chainId: Hex;
         status: NetworkConnectionBannerStatus;
@@ -116,20 +108,16 @@ const useNetworkConnectionBanners = (): {
             continue;
           }
 
-          // Store the first unavailable network we find
-          if (!firstUnavailableNetwork) {
-            firstUnavailableNetwork = {
-              chainId: evmEnabledNetworkChainId,
-              status: timeoutType,
-            };
-          }
+          firstUnavailableNetwork = {
+            chainId: evmEnabledNetworkChainId,
+            status: timeoutType,
+          };
 
-          hasUnavailableNetwork = true;
           break; // Only show one banner at a time
         }
       }
 
-      if (hasUnavailableNetwork && firstUnavailableNetwork) {
+      if (firstUnavailableNetwork) {
         // Show/update banner if:
         // 1. No banner is currently visible, OR
         // 2. Banner is visible but for a different network, OR

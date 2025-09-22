@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import {
   NetworkConfiguration,
   NetworkStatus,
@@ -15,13 +15,13 @@ import Engine from '../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../useMetrics';
 import { selectNetworkConnectionBannersState } from '../../../selectors/networkConnectionBanners';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
-import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import Routes from '../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
 jest.mock('../../../core/Engine');
-jest.mock('../useNetworkEnablement/useNetworkEnablement');
+jest.mock('../../../selectors/networkEnablementController');
 jest.mock('../useMetrics');
 jest.mock('../../../selectors/networkConnectionBanners');
 jest.mock('../../../selectors/networkController');
@@ -59,13 +59,6 @@ const mockNetworkConfigurationByChainId: Record<Hex, NetworkConfiguration> = {
     name: 'Polygon Mainnet',
   },
 };
-
-const mockEnabledNetworksByNamespace = Object.freeze({
-  [KnownCaipNamespace.Eip155]: {
-    '0x1': true,
-    '0x89': true,
-  },
-});
 
 const NETWORK_CLIENT_ID_1 = 'network-client-1';
 const NETWORK_CLIENT_ID_89 = 'network-client-89';
@@ -115,9 +108,7 @@ describe('useNetworkConnectionBanners', () => {
 
     // Setup mocks
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    (useNetworkEnablement as jest.Mock).mockReturnValue({
-      enabledNetworksByNamespace: mockEnabledNetworksByNamespace,
-    });
+    jest.mocked(selectEVMEnabledNetworks).mockReturnValue(['0x1', '0x89']);
     jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
       visible: false,
       chainId: undefined,
@@ -758,16 +749,12 @@ describe('useNetworkConnectionBanners', () => {
 
       // The hook should compute enabled networks internally
       // We can't directly test the internal computation, but we can verify
-      // that the effect runs with the correct dependencies
-      expect(useNetworkEnablement).toHaveBeenCalled();
+      // that the selector is called
+      expect(selectEVMEnabledNetworks).toHaveBeenCalled();
     });
 
     it('should handle empty enabled networks', () => {
-      (useNetworkEnablement as jest.Mock).mockReturnValue({
-        enabledNetworksByNamespace: {
-          [KnownCaipNamespace.Eip155]: {},
-        },
-      });
+      jest.mocked(selectEVMEnabledNetworks).mockReturnValue([]);
 
       jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
         visible: false,
