@@ -1,14 +1,10 @@
 #!/usr/bin/env node
-
 /**
  * Android E2E APK Repack Script using @expo/repack-app
- *
- * Simple implementation following official documentation exactly.
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 /**
  * Logger utility
@@ -37,36 +33,49 @@ function getFileSize(filePath) {
 }
 
 /**
- * Main repack process - following official documentation exactly
+ * Get CI keystore configuration from environment
+ */
+function getCiKeystoreConfig() {
+  // CI environment provides keystore configuration via setup-e2e-env
+  const keystorePath = process.env.ANDROID_KEYSTORE_PATH || 'android/app/debug.keystore';
+  const keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD || 'android';
+  const keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS || 'androiddebugkey';
+  const keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD || 'android';
+
+  logger.info(`Using keystore: ${keystorePath}`);
+  logger.info(`Using key alias: ${keyAlias}`);
+
+  return {
+    keyStorePath: keystorePath,
+    keyStorePassword: `pass:${keystorePassword}`,
+    keyAlias,
+    keyPassword: `pass:${keyPassword}`,
+  };
+}
+
+/**
+ * Main repack process using CI keystore configuration
  */
 async function main() {
   const startTime = Date.now();
 
   try {
-    // Configuration for both APKs
+    // Configuration for main APK only
     const mainSourceApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
     const mainRepackedApk = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
     const mainFinalApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
-    const testSourceApk = 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk';
-    const testRepackedApk = 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest-repack.apk';
-    const testFinalApk = 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk';
     const sourcemapOutputPath = 'sourcemaps/android/index.android.bundle.map';
 
-    logger.info('🚀 Starting Android E2E APK repack process (BOTH APKs)...');
+    logger.info('🚀 Starting Android E2E APK repack process...');
     logger.info(`Main Source APK: ${mainSourceApk}`);
-    logger.info(`Test Source APK: ${testSourceApk}`);
-    logger.info(`Repacking both APKs with matching signatures...`);
+    logger.info(`Using CI keystore configuration for signature compatibility...`);
 
-    // Verify both source APKs exist
+    // Verify main source APK exists
     if (!fs.existsSync(mainSourceApk)) {
       throw new Error(`Main APK not found: ${mainSourceApk}`);
     }
-    if (!fs.existsSync(testSourceApk)) {
-      throw new Error(`Test APK not found: ${testSourceApk}`);
-    }
 
     logger.info(`Main APK size: ${getFileSize(mainSourceApk)}`);
-    logger.info(`Test APK size: ${getFileSize(testSourceApk)}`);
 
     // Ensure sourcemap directory exists
     const sourcemapDir = path.dirname(sourcemapOutputPath);
@@ -85,16 +94,11 @@ async function main() {
       logger.info(`Created working directory: ${mainWorkingDir}`);
     }
 
-    // Common signing configuration for both APKs to ensure matching signatures
-    const signingOptions = {
-      keyStorePath: 'android/app/debug.keystore',
-      keyStorePassword: 'pass:android',
-      keyAlias: 'androiddebugkey', 
-      keyPassword: 'pass:android',
-    };
+    // Get CI keystore configuration (same as original build)
+    const signingOptions = getCiKeystoreConfig();
 
-    // Step 1: Repack main APK with updated JavaScript bundle
-    logger.info('⏱️  Step 1: Repacking main APK with updated JavaScript...');
+    // Repack main APK with updated JavaScript bundle using CI keystore
+    logger.info('⏱️  Repacking main APK with updated JavaScript and CI keystore...');
     await repackAppAndroidAsync({
       platform: 'android',
       projectRoot: process.cwd(),
@@ -102,59 +106,31 @@ async function main() {
       outputPath: mainRepackedApk,
       workingDirectory: mainWorkingDir,
       verbose: true,
-      androidSigningOptions: signingOptions,
+      androidSigningOptions: signingOptions, // Use same keystore as original build
       exportEmbedOptions: {
         sourcemapOutput: sourcemapOutputPath,
       },
       env: process.env,
     });
 
-    // Step 2: Re-sign test APK to match signature (can't use repack - it's not a React Native app)
-    logger.info('⏱️  Step 2: Re-signing test APK to match signature...');
-
-    // Copy test APK to temp location for re-signing
-    fs.copyFileSync(testSourceApk, testRepackedApk);
-
-    try {
-      // First, remove existing signature
-      logger.info('Removing existing signature from test APK...');
-      execSync(`zip -d "${testRepackedApk}" META-INF/\\*.SF META-INF/\\*.RSA META-INF/\\*.DSA || true`, { stdio: 'inherit' });
-
-      // Re-sign with same keystore as main APK
-      logger.info('Re-signing test APK with matching keystore...');
-      execSync(`jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore android/app/debug.keystore -storepass android "${testRepackedApk}" androiddebugkey`, { stdio: 'inherit' });
-
-      logger.success('Test APK re-signing completed successfully');
-
-    } catch (error) {
-      logger.error(`Test APK re-signing failed: ${error.message}`);
-      // Don't fail the entire process - try to continue with mismatched signatures
-      logger.warn('Continuing with potentially mismatched signatures - E2E tests may fail');
-    }
-
-    // Verify both repacked APKs were created
+    // Verify repacked APK was created
     if (!fs.existsSync(mainRepackedApk)) {
       throw new Error(`Repacked main APK not found: ${mainRepackedApk}`);
     }
-    if (!fs.existsSync(testRepackedApk)) {
-      throw new Error(`Repacked test APK not found: ${testRepackedApk}`);
-    }
 
-    // Copy both repacked APKs to final locations that CI expects
-    logger.info('Copying repacked APKs to final locations for CI...');
+    // Copy repacked APK to final location that CI expects
+    logger.info('Copying repacked APK to final location for CI...');
     fs.copyFileSync(mainRepackedApk, mainFinalApk);
-    fs.copyFileSync(testRepackedApk, testFinalApk);
 
-    // Clean up temporary files and directories
+    // Clean up temporary files
     fs.unlinkSync(mainRepackedApk);
-    fs.unlinkSync(testRepackedApk);
     fs.rmSync(mainWorkingDir, { recursive: true, force: true });
-    logger.info('Cleaned up temporary APK files and working directories');
+    logger.info('Cleaned up temporary files');
 
     const duration = Math.round((Date.now() - startTime) / 1000);
-    logger.success(`🎉 BOTH APKs repack completed in ${duration}s`);
+    logger.success(`🎉 APK repack completed in ${duration}s`);
     logger.success(`Main APK: ${mainFinalApk} (${getFileSize(mainFinalApk)})`);
-    logger.success(`Test APK: ${testFinalApk} (${getFileSize(testFinalApk)})`);
+    logger.success(`Test APK: Original (matching signature via CI keystore)`);
 
     // Check sourcemap
     if (fs.existsSync(sourcemapOutputPath)) {
