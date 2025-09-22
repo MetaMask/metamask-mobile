@@ -66,6 +66,17 @@ jest.mock('../../../multichain-accounts/discovery', () => ({
     mockDiscoverAccounts(...args),
 }));
 
+const mockSyncAccountTreeWithUserStorage = jest.fn().mockResolvedValue({
+  discoveredAccountsCount: 0,
+  error: '',
+});
+
+jest.mock('../../../actions/identity', () => ({
+  syncAccountTreeWithUserStorage: (
+    ...args: Parameters<typeof mockSyncAccountTreeWithUserStorage>
+  ) => mockSyncAccountTreeWithUserStorage(...args),
+}));
+
 const mockNavigate = jest.fn();
 
 const mockRoute = jest.fn().mockReturnValue({
@@ -120,6 +131,7 @@ describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
     mockImportAdditionalAccounts.mockReset();
     mockIsMultichainAccountsState2Enabled.mockReset();
+    mockSyncAccountTreeWithUserStorage.mockReset();
   });
 
   it('renders matching snapshot when successFlow is BACKED_UP_SRP', () => {
@@ -167,7 +179,7 @@ describe('OnboardingSuccessComponent', () => {
     });
   });
 
-  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', () => {
+  it('(state 2) - calls syncAccountTreeWithUserStorage but does not import additional accounts when onDone is called', () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
@@ -180,7 +192,11 @@ describe('OnboardingSuccessComponent', () => {
     button.props.onPress();
 
     expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
-    expect(mockDiscoverAccounts).toHaveBeenCalled();
+    expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalledWith({
+      ensureDoneAtLeastOnce: true,
+      alsoDiscoverAndCreateAccounts: true,
+      entropySourceIdToDiscover: 'mock-keyring-id',
+    });
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {

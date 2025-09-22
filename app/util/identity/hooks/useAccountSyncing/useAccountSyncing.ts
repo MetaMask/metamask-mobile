@@ -5,12 +5,12 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
-import Engine from '../../../../core/Engine';
 import {
   selectIsBackupAndSyncEnabled,
   selectIsAccountSyncingEnabled,
   selectIsSignedIn,
 } from '../../../../selectors/identity';
+import { syncAccountTreeWithUserStorage } from '../../../../actions/identity';
 
 /**
  * A utility used internally to decide if account syncing should be dispatched
@@ -54,7 +54,7 @@ export const useAccountSyncing = () => {
       if (!shouldDispatchAccountSyncing) {
         return;
       }
-      await Engine.context.AccountTreeController.syncWithUserStorage();
+      await syncAccountTreeWithUserStorage();
     };
     action().catch((error) => {
       console.error('Error dispatching account syncing:', error);

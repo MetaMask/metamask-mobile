@@ -19,9 +19,6 @@ async function _discoverAccounts(
   // HACK: Force Snap keyring instantiation.
   await Engine.getSnapKeyring();
 
-  // Ensure the account tree is synced with user storage before discovering accounts.
-  await Engine.context.AccountTreeController.syncWithUserStorageAtLeastOnce();
-
   // NOTE: For now, we need to upcast this type, because for now it uses the
   // `MultichainAccountWallet` type from the `account-api` (which is not aligned
   // with the one coming from the service).

@@ -5,17 +5,12 @@ import {
   useShouldDispatchAccountSyncing,
 } from './useAccountSyncing';
 
-const mockSyncWithUserStorage = jest.fn<Promise<unknown>, []>();
+const mockSyncAccountTreeWithUserStorage = jest.fn<Promise<unknown>, []>();
 
-jest.mock('../../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      AccountTreeController: {
-        syncWithUserStorage: jest.fn(() => mockSyncWithUserStorage()),
-      },
-    },
-  },
+jest.mock('../../../../actions/identity', () => ({
+  syncAccountTreeWithUserStorage: jest.fn(() =>
+    mockSyncAccountTreeWithUserStorage(),
+  ),
 }));
 
 interface ArrangeMocksMetamaskStateOverrides {
@@ -147,7 +142,7 @@ describe('useAccountSyncing', () => {
 
     await act(async () => dispatchAccountSyncing());
 
-    expect(mockSyncWithUserStorage).toHaveBeenCalled();
+    expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
     expect(shouldDispatchAccountSyncing).toBe(true);
   });
 
@@ -164,7 +159,7 @@ describe('useAccountSyncing', () => {
 
     await act(async () => dispatchAccountSyncing());
 
-    expect(mockSyncWithUserStorage).not.toHaveBeenCalled();
+    expect(mockSyncAccountTreeWithUserStorage).not.toHaveBeenCalled();
     expect(shouldDispatchAccountSyncing).toBe(false);
   });
 });

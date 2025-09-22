@@ -22,9 +22,9 @@ import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
-import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { captureException } from '@sentry/core';
+import { syncAccountTreeWithUserStorage } from '../identity';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -151,9 +151,13 @@ export async function importNewSecretRecoveryPhrase(
       let capturedError;
       try {
         // We need to dispatch a full sync here since this is a new SRP
-        await Engine.context.AccountTreeController.syncWithUserStorage();
         // Then we discover accounts
-        discoveredAccountsCount = await discoverAccounts(newKeyring.id);
+        const { discoveredAccountsCount: count } =
+          await syncAccountTreeWithUserStorage({
+            alsoDiscoverAndCreateAccounts: true,
+            entropySourceIdToDiscover: newKeyring.id,
+          });
+        discoveredAccountsCount = count;
       } catch (error) {
         capturedError = new Error(
           `Unable to sync, discover and create accounts: ${error}`,
