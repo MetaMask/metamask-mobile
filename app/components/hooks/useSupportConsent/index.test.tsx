@@ -51,6 +51,12 @@ describe('useSupportConsent', () => {
     getId: jest.fn(() => 'test-id'),
     getParent: jest.fn(),
     getState: jest.fn(),
+    dangerouslyGetParent: jest.fn(),
+    dangerouslyGetState: jest.fn(),
+    setParams: jest.fn(),
+    setOptions: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
   };
   let originalEnv: string | undefined;
 
