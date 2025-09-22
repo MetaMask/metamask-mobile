@@ -84,7 +84,6 @@ interface AssetOverviewProps {
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
   displayBridgeButton?: boolean;
-  swapsIsLive?: boolean;
   networkName?: string;
 }
 
@@ -93,7 +92,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   displayBuyButton,
   displaySwapsButton,
   displayBridgeButton,
-  swapsIsLive,
   networkName,
 }: AssetOverviewProps) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
@@ -427,7 +425,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
-            swapsIsLive={swapsIsLive}
+            chainId={chainId}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}
             onBuy={onBuy}

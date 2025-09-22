@@ -22,6 +22,10 @@ export const PerpsEventProperties = {
   LIMIT_PRICE: 'Limit Price',
   FEES: 'Fees',
   FEE: 'Fee',
+  METAMASK_FEE: 'MetaMask Fee',
+  METAMASK_FEE_RATE: 'MetaMask Fee Rate',
+  DISCOUNT_PERCENTAGE: 'Discount Percentage',
+  ESTIMATED_REWARDS: 'estimatedRewards',
   ASSET_PRICE: 'Asset Price',
   COMPLETION_DURATION: 'completionDuration',
 
@@ -32,6 +36,7 @@ export const PerpsEventProperties = {
   UNREALIZED_PNL_PERCENT: 'Unrealized %PnL',
   CLOSE_VALUE: 'Close value',
   CLOSE_PERCENTAGE: 'Close percentage',
+  CLOSE_TYPE: 'Close type',
   PERCENTAGE_CLOSED: 'Percentage closed',
   PNL_DOLLAR: '$PnL',
   PNL_PERCENT: '%PnL',
@@ -61,7 +66,6 @@ export const PerpsEventProperties = {
   TAKE_PROFIT_PRICE: 'Take Profit Price',
   TAKE_PROFIT_PERCENT: 'Take Profit %',
   POSITION_SIZE: 'Position size',
-  ESTIMATED_REWARDS: 'estimatedRewards',
   POSITION_AGE: 'position age',
 
   // Notification properties
@@ -141,5 +145,9 @@ export const PerpsEventValues = {
     TP_EXECUTED: 'TP executed',
     SL_EXECUTED: 'SL executed',
     LIMIT_ORDER_EXECUTED: 'Limit order executed',
+  },
+  CLOSE_TYPE: {
+    FULL: 'full',
+    PARTIAL: 'partial',
   },
 } as const;
