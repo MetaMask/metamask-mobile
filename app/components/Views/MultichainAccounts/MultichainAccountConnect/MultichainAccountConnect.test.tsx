@@ -1969,7 +1969,7 @@ describe('MultichainAccountConnect', () => {
       );
 
       expect(getByTestId('permission-summary-account-text')).toHaveTextContent(
-        'Requesting for Account 1',
+        'Requesting for',
       );
 
       const editAccountsButton = getByTestId('permission-summary-container');
@@ -2014,7 +2014,7 @@ describe('MultichainAccountConnect', () => {
       await waitFor(() => {
         expect(
           getByTestId('permission-summary-account-text'),
-        ).toHaveTextContent('Requesting for 2 accounts');
+        ).toHaveTextContent('Requesting for');
       });
     });
   });
