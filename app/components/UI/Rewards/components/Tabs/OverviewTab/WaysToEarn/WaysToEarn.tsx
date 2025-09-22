@@ -217,7 +217,7 @@ export const WaysToEarn = () => {
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
             <ButtonBase
-              twClassName="h-16 px-4 py-4 bg-inherit"
+              twClassName="h-auto px-4 py-4 bg-inherit"
               onPress={() => handleEarningWayPress(wayToEarn)}
             >
               <Box
