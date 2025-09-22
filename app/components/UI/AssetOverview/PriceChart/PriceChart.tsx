@@ -62,6 +62,7 @@ const PriceChart = ({
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
 
   const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
+  const [lastTap, setLastTap] = useState<number | null>(null); // For double-tap detection
   const { styles, theme } = useStyles(styleSheet, {});
 
   useEffect(() => {
@@ -116,6 +117,19 @@ const PriceChart = ({
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderTerminationRequest: () => true,
       onPanResponderGrant: (evt: GestureResponderEvent) => {
+        const now = Date.now();
+        const DOUBLE_TAP_DELAY = 300; // milliseconds
+
+        // Check for double-tap to reset chart
+        if (lastTap && now - lastTap < DOUBLE_TAP_DELAY) {
+          // Double-tap detected - reset to current price
+          updatePosition(-1);
+          setLastTap(null);
+          return;
+        }
+
+        setLastTap(now);
+
         // save current touch for the next move
         prevTouch.current = {
           x: evt.nativeEvent.locationX,
@@ -140,7 +154,7 @@ const PriceChart = ({
 
       onPanResponderRelease: () => {
         setIsChartBeingTouched(false);
-        updatePosition(-1);
+        // Don't reset position - keep the selected price visible
       },
     }),
   );
