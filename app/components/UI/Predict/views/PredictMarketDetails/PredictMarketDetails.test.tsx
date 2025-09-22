@@ -71,7 +71,8 @@ jest.mock('../../../Navbar', () => ({
 
 jest.mock('../../utils/format', () => ({
   formatPrice: jest.fn(
-    (value: number, options?: { maximumDecimals?: number }) => `$${value.toFixed(options?.maximumDecimals || 2)}`,
+    (value: number, options?: { maximumDecimals?: number }) =>
+      `$${value.toFixed(options?.maximumDecimals || 2)}`,
   ),
 }));
 
