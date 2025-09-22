@@ -744,6 +744,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
         [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
         [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
         [PerpsEventProperties.ORDER_SIZE]: positionSize,
+        [PerpsEventProperties.MARGIN_USED]: marginRequired,
+        [PerpsEventProperties.LIMIT_PRICE]:
+          orderForm.type === 'limit' ? orderForm.limitPrice : null,
+        [PerpsEventProperties.FEES]: feeResults.totalFee,
+        [PerpsEventProperties.ASSET_PRICE]: currentPrice?.price,
       });
 
       // Check if TP/SL should be handled separately (for new positions or position flips)
