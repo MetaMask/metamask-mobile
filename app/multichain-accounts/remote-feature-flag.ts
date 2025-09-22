@@ -52,39 +52,35 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
     featureKey: keyof FeatureFlags;
   }[],
   override?: string,
-) => {
-  for (const { version: featVersion, featureKey } of featureVersionsToCheck) {
-    if (
-      override !== undefined &&
-      featVersion === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2
-    ) {
-      return override === 'true';
-    }
+): boolean => {
+  const overrideForVersion2 =
+    override !== undefined &&
+    override === 'true' &&
+    featureVersionsToCheck.some(
+      ({ version }) => version === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    );
 
-    const enableMultichainAccounts = remoteFeatureFlags[featureKey];
-    if (
-      !enableMultichainAccounts ||
-      !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)
-    ) {
+  if (overrideForVersion2) {
+    return true;
+  }
+
+  return featureVersionsToCheck.some(({ version, featureKey }) => {
+    const featureFlag = remoteFeatureFlags[featureKey];
+
+    if (!featureFlag || !assertMultichainAccountsFeatureFlagType(featureFlag)) {
       return false;
     }
 
-    const { enabled, featureVersion, minimumVersion } =
-      enableMultichainAccounts;
+    const { enabled, featureVersion, minimumVersion } = featureFlag;
 
-    const result =
+    return (
       enabled &&
+      featureVersion === version &&
       featureVersion !== null &&
       minimumVersion !== null &&
-      featureVersion === featVersion &&
-      compareVersions.compare(minimumVersion, APP_VERSION, '<=');
-
-    if (result) {
-      return true;
-    }
-  }
-
-  return false;
+      compareVersions.compare(minimumVersion, APP_VERSION, '<=')
+    );
+  });
 };
 
 /**
