@@ -695,6 +695,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
         [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
         [PerpsEventProperties.ORDER_SIZE]: positionSize,
         [PerpsEventProperties.MARGIN_USED]: marginRequired,
+        [PerpsEventProperties.LIMIT_PRICE]:
+          orderForm.type === 'limit' ? orderForm.limitPrice : null,
+        [PerpsEventProperties.FEES]: feeResults.totalFee,
+        [PerpsEventProperties.ASSET_PRICE]: currentPrice?.price,
       });
 
       const tpParams = orderForm.takeProfitPrice?.trim()
@@ -789,18 +793,20 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.direction,
     orderForm.type,
     orderForm.leverage,
+    orderForm.limitPrice,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
-    orderForm.limitPrice,
     positionSize,
     marginRequired,
+    feeResults.totalFee,
+    currentPrice?.price,
     assetData.price,
     navigation,
     navigationMarketData,
+    existingPosition,
     executeOrder,
     showToast,
     PerpsToastOptions.formValidation.orderForm,
-    existingPosition,
     updatePositionTPSL,
   ]);
 
