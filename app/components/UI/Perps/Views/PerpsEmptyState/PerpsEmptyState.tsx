@@ -27,5 +27,3 @@ export const PerpsEmptyState: React.FC<PerpsEmptyStateProps> = ({
     />
   );
 };
-
-export default PerpsEmptyState;
