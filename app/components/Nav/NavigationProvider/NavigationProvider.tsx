@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { NavigationContainer, Theme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useTheme } from '../../../util/theme';
 import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';

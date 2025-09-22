@@ -1423,10 +1423,12 @@ export function getNetworkNavbarOptions(
   disableNetwork = false,
   contentOffset = 0,
   networkName = '',
+  includesTopInset = false,
 ) {
   return {
     header: () => (
       <HeaderBase
+        includesTopInset={includesTopInset}
         startAccessory={
           <ButtonIcon
             style={styles.headerLeftButton}

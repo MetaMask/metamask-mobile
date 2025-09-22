@@ -60,7 +60,6 @@ import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/Activ
 import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 
-import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -114,57 +113,83 @@ import ReferralRewardsView from '../../UI/Rewards/Views/RewardsReferralView';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import type { RootParamList } from '../../../util/navigation/types';
 import type { RootState } from '../../../reducers';
+import { useTheme } from '../../../util/theme';
 
 const Stack = createStackNavigator<RootParamList>();
 const Tab = createBottomTabNavigator();
 
-const AssetStack = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={'Asset'} component={Asset} />
-    <Stack.Screen name={'AssetDetails'} component={AssetDetails} />
-  </Stack.Navigator>
-);
+const AssetStack = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name={'Asset'} component={Asset} />
+      <Stack.Screen name={'AssetDetails'} component={AssetDetails} />
+    </Stack.Navigator>
+  );
+};
 /* eslint-enable react/prop-types */
 
-const WalletTabStackFlow = () => (
-  <Stack.Navigator initialRouteName={'WalletView'}>
-    <Stack.Screen name="WalletView" component={Wallet} />
-    <Stack.Screen name="AddAsset" component={AddAsset} />
-    <Stack.Screen name="Collectible" component={Collectible} />
-    <Stack.Screen name="ConfirmAddAsset" component={ConfirmAddAsset} />
-    <Stack.Screen
-      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-      component={RevealPrivateCredential}
-    />
-  </Stack.Navigator>
-);
+const WalletTabStackFlow = () => {
+  const { colors } = useTheme();
 
-const TransactionsHome = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.TRANSACTIONS_VIEW}
-      component={ActivityView}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.TRANSACTION_DETAILS}
-      component={TransactionDetails}
-    />
-    <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
-    <Stack.Screen
-      name={Routes.DEPOSIT.ORDER_DETAILS}
-      component={DepositOrderDetails}
-    />
-    <Stack.Screen
-      name={Routes.RAMP.SEND_TRANSACTION}
-      component={SendTransaction}
-    />
-    <Stack.Screen
-      name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
-      component={BridgeTransactionDetails}
-    />
-  </Stack.Navigator>
-);
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+      initialRouteName={'WalletView'}
+    >
+      <Stack.Screen name="WalletView" component={Wallet} />
+      <Stack.Screen name="AddAsset" component={AddAsset} />
+      <Stack.Screen name="Collectible" component={Collectible} />
+      <Stack.Screen name="ConfirmAddAsset" component={ConfirmAddAsset} />
+      <Stack.Screen
+        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateCredential}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const TransactionsHome = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen
+        name={Routes.TRANSACTIONS_VIEW}
+        component={ActivityView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.TRANSACTION_DETAILS}
+        component={TransactionDetails}
+      />
+      <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
+      <Stack.Screen
+        name={Routes.DEPOSIT.ORDER_DETAILS}
+        component={DepositOrderDetails}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.SEND_TRANSACTION}
+        component={SendTransaction}
+      />
+      <Stack.Screen
+        name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
+        component={BridgeTransactionDetails}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const RewardsHome = () => {
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
@@ -189,28 +214,32 @@ const RewardsHome = () => {
 };
 
 /* eslint-disable react/prop-types */
-const BrowserFlow = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.BROWSER.VIEW}
-    screenOptions={{
-      cardStyle: { backgroundColor: importedColors.transparent },
-      presentation: 'modal',
-    }}
-  >
-    <Stack.Screen
-      name={Routes.BROWSER.VIEW}
-      component={Browser}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.BROWSER.ASSET_LOADER}
-      component={AssetLoader}
-      options={{ headerShown: false, animationEnabled: false }}
-    />
-    <Stack.Screen name="SwapsAmountView" component={SwapsAmountView} />
-    <Stack.Screen name="SwapsQuotesView" component={SwapsQuotesView} />
-  </Stack.Navigator>
-);
+const BrowserFlow = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator
+      initialRouteName={Routes.BROWSER.VIEW}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+        presentation: 'modal',
+      }}
+    >
+      <Stack.Screen
+        name={Routes.BROWSER.VIEW}
+        component={Browser}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.BROWSER.ASSET_LOADER}
+        component={AssetLoader}
+        options={{ headerShown: false, animationEnabled: false }}
+      />
+      <Stack.Screen name="SwapsAmountView" component={SwapsAmountView} />
+      <Stack.Screen name="SwapsQuotesView" component={SwapsQuotesView} />
+    </Stack.Navigator>
+  );
+};
 
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 const SnapsSettingsStack = () => (
@@ -238,90 +267,108 @@ const NotificationsOptInStack = () => (
   </Stack.Navigator>
 );
 
-const SettingsFlow = () => (
-  <Stack.Navigator initialRouteName={'Settings'}>
-    <Stack.Screen name="Settings" component={Settings} />
-    <Stack.Screen name="GeneralSettings" component={GeneralSettings} />
-    <Stack.Screen name="AdvancedSettings" component={AdvancedSettings} />
-    <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
-    <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
-    <Stack.Screen name="SecuritySettings" component={SecuritySettings} />
+const SettingsFlow = () => {
+  const { colors } = useTheme();
 
-    <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
-    <Stack.Screen
-      name={Routes.RAMP.ACTIVATION_KEY_FORM}
-      component={RampActivationKeyForm}
-    />
-    {
-      /**
-       * This screen should only accessed in test mode.
-       * It is used to test the AES crypto functions.
-       *
-       * If this is in production, it is a bug.
-       */
-      isTest && (
-        <Stack.Screen name="AesCryptoTestForm" component={AesCryptoTestForm} />
-      )
-    }
-    <Stack.Screen
-      name="ExperimentalSettings"
-      component={ExperimentalSettings}
-    />
-    <Stack.Screen name="NetworksSettings" component={NetworksSettings} />
-    <Stack.Screen name="CompanySettings" component={AppInformation} />
-    {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
-      <Stack.Screen
-        name={Routes.SETTINGS.DEVELOPER_OPTIONS}
-        component={DeveloperOptions}
-      />
-    )}
-
-    <Stack.Screen name="ContactsSettings" component={Contacts} />
-    <Stack.Screen name="ContactForm" component={ContactForm} />
-    <Stack.Screen
-      name="AccountPermissionsAsFullScreen"
-      component={AccountPermissions}
-      options={{ headerShown: false }}
-      initialParams={{
-        initialScreen: AccountPermissionsScreens.PermissionsSummary,
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: 'white' },
       }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-      component={RevealPrivateCredential}
-    />
-    <Stack.Screen
-      name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
-      component={WalletConnectSessions}
-    />
-    <Stack.Screen name="ResetPassword" component={ResetPassword} />
-    <Stack.Screen name="WalletRecovery" component={WalletRecovery} />
-    <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
-    <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-    <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-    <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
-    <Stack.Screen name="EnterPasswordSimple" component={EnterPasswordSimple} />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.BACKUP_AND_SYNC}
-      component={BackupAndSyncSettings}
-    />
-    {
-      ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
-    }
-    <Stack.Screen
-      name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
-      component={SnapsSettingsStack}
-      options={{ headerShown: false }}
-    />
-    {
-      ///: END:ONLY_INCLUDE_IF
-    }
-  </Stack.Navigator>
-);
+      initialRouteName={'Settings'}
+    >
+      <Stack.Screen name="Settings" component={Settings} />
+      <Stack.Screen name="GeneralSettings" component={GeneralSettings} />
+      <Stack.Screen name="AdvancedSettings" component={AdvancedSettings} />
+      <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
+      <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
+      <Stack.Screen name="SecuritySettings" component={SecuritySettings} />
+
+      <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
+      <Stack.Screen
+        name={Routes.RAMP.ACTIVATION_KEY_FORM}
+        component={RampActivationKeyForm}
+      />
+      {
+        /**
+         * This screen should only accessed in test mode.
+         * It is used to test the AES crypto functions.
+         *
+         * If this is in production, it is a bug.
+         */
+        isTest && (
+          <Stack.Screen
+            name="AesCryptoTestForm"
+            component={AesCryptoTestForm}
+          />
+        )
+      }
+      <Stack.Screen
+        name="ExperimentalSettings"
+        component={ExperimentalSettings}
+      />
+      <Stack.Screen name="NetworksSettings" component={NetworksSettings} />
+      <Stack.Screen name="CompanySettings" component={AppInformation} />
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <Stack.Screen
+          name={Routes.SETTINGS.DEVELOPER_OPTIONS}
+          component={DeveloperOptions}
+        />
+      )}
+
+      <Stack.Screen name="ContactsSettings" component={Contacts} />
+      <Stack.Screen name="ContactForm" component={ContactForm} />
+      <Stack.Screen
+        name="AccountPermissionsAsFullScreen"
+        component={AccountPermissions}
+        options={{ headerShown: false }}
+        initialParams={{
+          initialScreen: AccountPermissionsScreens.PermissionsSummary,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateCredential}
+      />
+      <Stack.Screen
+        name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
+        component={WalletConnectSessions}
+      />
+      <Stack.Screen name="ResetPassword" component={ResetPassword} />
+      <Stack.Screen name="WalletRecovery" component={WalletRecovery} />
+      <Stack.Screen
+        name="AccountBackupStep1B"
+        component={AccountBackupStep1B}
+      />
+      <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
+      <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
+      <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+      <Stack.Screen
+        name="EnterPasswordSimple"
+        component={EnterPasswordSimple}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NOTIFICATIONS}
+        component={NotificationsSettings}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.BACKUP_AND_SYNC}
+        component={BackupAndSyncSettings}
+      />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+      }
+      <Stack.Screen
+        name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
+        component={SnapsSettingsStack}
+        options={{ headerShown: false }}
+      />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
+    </Stack.Navigator>
+  );
+};
 
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -453,7 +500,9 @@ const HomeTabs = () => {
 
   return (
     <Tab.Navigator
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false,
+      }}
       initialRouteName={Routes.WALLET.HOME}
       tabBar={(props) => renderTabBar(props as CustomTabBarProps)}
     >

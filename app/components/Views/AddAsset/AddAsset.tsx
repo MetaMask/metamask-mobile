@@ -147,6 +147,11 @@ const AddAsset = ({ route }: AddAssetProps) => {
             true,
             navigation,
             colors,
+            undefined,
+            false,
+            0,
+            '',
+            true,
           ),
     );
   }, [assetType, colors, navigation]);
