@@ -60,6 +60,18 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
+// Mock metrics
+jest.mock('../../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: jest.fn().mockReturnValue({
+        build: jest.fn(),
+      }),
+    }),
+  }),
+}));
+
 // Mock multichain utils
 jest.mock('../../../../../../core/Multichain/utils', () => ({
   isSolanaAccount: jest.fn(() => false),

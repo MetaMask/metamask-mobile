@@ -129,7 +129,6 @@ export const createStyles = (theme: Theme) =>
       fontSize: 12,
       letterSpacing: 0.5,
       fontFamily: fontStyles.bold.fontFamily,
-      fontWeight: fontStyles.bold.fontWeight,
     },
     revealModalText: {
       marginBottom: 24,
