@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 import SelectorButton from '../../../../Base/SelectorButton';
@@ -13,10 +12,11 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 
 import { useAccountName } from '../../../../hooks/useAccountName';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { formatAddress } from '../../../../../util/address';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import { createAddressSelectorNavDetails } from '../../../../Views/AddressSelector/AddressSelector';
+import { useRampSDK } from '../sdk';
+
 const styles = StyleSheet.create({
   selector: {
     flexShrink: 1,
@@ -30,9 +30,7 @@ const styles = StyleSheet.create({
 
 const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const navigation = useNavigation();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const { selectedAddress } = useRampSDK();
   const accountName = useAccountName();
 
   const openAccountSelector = useCallback(
