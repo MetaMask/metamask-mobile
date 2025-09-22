@@ -130,11 +130,7 @@ const AppInformation = ({ navigation }: AppInformationProps) => {
     >
       <ScrollView contentContainerStyle={styles.wrapperContent}>
         <View style={styles.logoWrapper}>
-          <Image
-            source={foxImage}
-            style={styles.image}
-            resizeMethod={'auto'}
-          />
+          <Image source={foxImage} style={styles.image} resizeMethod={'auto'} />
           <Text style={styles.versionInfo}>{appInfo}</Text>
           {isQa ? (
             <Text style={styles.branchInfo}>
