@@ -326,4 +326,21 @@ describe('MultichainAccountsConnectedList', () => {
       expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('Selected Account Visual Indicator', () => {
+    it('renders account list with structure to support selected state indicators', () => {
+      // Given a list of connected accounts
+      const { getByText, toJSON } = renderMultichainAccountsConnectedList();
+
+      // When rendering the list
+      // Then the accounts should be displayed
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Account 2')).toBeTruthy();
+
+      // The component passes isSelected prop to AccountListCell based on selectedAccountGroup
+      // AccountListCell passes this to AccountCell which conditionally renders check icon
+      // This test verifies the component structure supports selection indicators
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
 });
