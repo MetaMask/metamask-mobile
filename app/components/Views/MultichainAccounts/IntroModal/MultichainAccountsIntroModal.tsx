@@ -23,6 +23,7 @@ import styleSheet from './MultichainAccountsIntroModal.styles';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './MultichainAccountsIntroModal.testIds';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
+import { captureException } from '@sentry/react-native';
 
 // Minimum timeout duration for wallet alignment process (2 seconds)
 const WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS = 2000;
@@ -49,6 +50,7 @@ const MultichainAccountsIntroModal = () => {
           error as Error,
           'Error aligning wallet in multichain accounts intro modal',
         );
+        captureException(error as Error);
       }
     };
 
@@ -94,6 +96,7 @@ const MultichainAccountsIntroModal = () => {
       ]);
     } catch (error) {
       Logger.error(error as Error, 'Error in multichain accounts intro modal');
+      captureException(error as Error);
       // Still proceed to accounts even if there's an error
     } finally {
       dispatch(setMultichainAccountsIntroModalSeen(true));
