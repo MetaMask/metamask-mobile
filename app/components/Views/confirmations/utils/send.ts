@@ -202,7 +202,7 @@ export function formatToFixedDecimals(
 
     let newValue = `${intPart}.${fracPart}`;
     if (trimTrailingZero) {
-      newValue = newValue.replace(/\.?[0]+$/, '');
+      newValue = newValue.replace(/\.?0+$/, '');
     }
     return newValue.replace(/\.?[.]+$/, '');
   }
@@ -257,7 +257,7 @@ export const getLayer1GasFeeForSend = async ({
   chainId: Hex;
   from: Hex;
   value: string;
-}): Promise<Hex | undefined> => {
+}) => {
   const txParams = {
     chainId,
     from,
