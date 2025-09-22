@@ -182,7 +182,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
     cryptocurrency: 'ETH',
     currency: 'USD',
-    network: '1',
+    network: 'eip155:1',
     data: {
       cryptoCurrency: {
         decimals: 18,

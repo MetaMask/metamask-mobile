@@ -24,7 +24,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-1',
     account: MOCK_ADDRESS,
-    network: 'eip155:1',
+    network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.COMPLETED,
@@ -47,7 +47,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-2',
     account: MOCK_ADDRESS,
-    network: 'eip155:1',
+    network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'SELL',
     state: FIAT_ORDER_STATES.PENDING,
@@ -70,7 +70,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-3',
     account: MOCK_ADDRESS,
-    network: 'eip155:1',
+    network: '1',
     cryptoAmount: '0.01231324',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.PENDING,
@@ -93,7 +93,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-order-4',
     account: MOCK_ADDRESS,
-    network: 'eip155:1',
+    network: '1',
     orderType: 'BUY',
     state: FIAT_ORDER_STATES.PENDING,
     provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -113,7 +113,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-deposit-order-1',
     account: MOCK_ADDRESS,
-    network: 'eip155:1',
+    network: '1',
     cryptoAmount: '100',
     orderType: DepositOrderType.Deposit,
     state: FIAT_ORDER_STATES.COMPLETED,
@@ -130,7 +130,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
   {
     id: 'test-deposit-order-2',
     account: MOCK_ADDRESS,
-    network: 'eip155:1',
+    network: '1',
     cryptoAmount: '20',
     orderType: DepositOrderType.Deposit,
     state: FIAT_ORDER_STATES.CREATED,
