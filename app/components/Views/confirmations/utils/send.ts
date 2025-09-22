@@ -1,5 +1,5 @@
 import BN from 'bnjs4';
-import { toHex } from '@metamask/controller-utils';
+import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
 import {
@@ -7,6 +7,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { addHexPrefix } from 'ethereumjs-util';
+import { toHex } from '@metamask/controller-utils';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
@@ -33,6 +34,15 @@ const captureSendStartedEvent = (location: string) => {
       .build(),
   );
 };
+
+export function isValidPositiveNumericString(str: string) {
+  try {
+    const num = new BigNumber(str);
+    return num.isGreaterThanOrEqualTo(new BigNumber(0));
+  } catch (err) {
+    return false;
+  }
+}
 
 export const handleSendPageNavigation = (
   navigate: <RouteName extends string>(
