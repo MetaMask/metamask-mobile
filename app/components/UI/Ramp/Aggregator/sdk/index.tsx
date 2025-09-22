@@ -15,12 +15,13 @@ import {
   CryptoCurrency,
   Payment,
 } from '@consensys/on-ramp-sdk';
+import { CaipChainId, isCaipChainId } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { toHex } from '@metamask/controller-utils';
 
 import Logger from '../../../../../util/Logger';
 
 import {
-  selectedAddressSelector,
-  chainIdSelector,
   fiatOrdersGetStartedAgg,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersRegionAGG,
@@ -36,6 +37,7 @@ import { RampIntent, RampType, Region } from '../types';
 import I18n, { I18nEvents } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import useActivationKeys from '../hooks/useActivationKeys';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { selectNickname } from '../../../../../selectors/networkController';
 
 const isDevelopment =
@@ -107,7 +109,6 @@ export interface RampSDK {
   setGetStarted: (getStartedFlag: boolean) => void;
 
   selectedAddress: string;
-  selectedChainId: string;
   selectedNetworkName?: string;
 
   isBuy: boolean;
@@ -135,6 +136,28 @@ const appConfig = {
   POLLING_INTERVAL_HIGHLIGHT: 10000,
   POLLING_CYCLES: 6,
 };
+
+function getCaipChainIdFromCryptoCurrency(
+  cryptoCurrency: CryptoCurrency | null,
+): CaipChainId | null {
+  if (!cryptoCurrency?.network?.chainId) {
+    return null;
+  }
+
+  if (isCaipChainId(cryptoCurrency.network.chainId)) {
+    return cryptoCurrency.network.chainId;
+  }
+
+  try {
+    return toEvmCaipChainId(toHex(cryptoCurrency.network.chainId));
+  } catch (error) {
+    console.warn(
+      'getCaipChainIdFromCryptoCurrency: Invalid chainId format:',
+      cryptoCurrency.network.chainId,
+    );
+    return null;
+  }
+}
 
 const SDKContext = createContext<RampSDK | undefined>(undefined);
 
@@ -171,8 +194,6 @@ export const RampSDKProvider = ({
   );
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
   const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
-  const selectedAddress = useSelector(selectedAddressSelector);
-  const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkNickname = useSelector(selectNickname);
   const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
@@ -193,6 +214,10 @@ export const RampSDKProvider = ({
   const [selectedAsset, setSelectedAsset] = useState<CryptoCurrency | null>(
     INITIAL_SELECTED_ASSET,
   );
+
+  const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
+  const selectedAddress = useRampAccountAddress(caipChainId);
+
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
     INITIAL_PAYMENT_METHOD_ID,
   );
@@ -283,7 +308,6 @@ export const RampSDKProvider = ({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error - Ramps team ownership"
       selectedAddress,
-      selectedChainId,
       selectedNetworkName,
 
       isBuy,
@@ -304,7 +328,6 @@ export const RampSDKProvider = ({
       sdkError,
       selectedAddress,
       selectedAsset,
-      selectedChainId,
       selectedFiatCurrencyId,
       selectedNetworkName,
       selectedPaymentMethodId,
