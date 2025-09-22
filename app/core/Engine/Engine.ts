@@ -2301,11 +2301,6 @@ export class Engine {
         return await NetworkController.lookupNetwork(networkClientId);
       }),
     );
-
-    Logger.log(
-      'Looked up enabled networks:',
-      NetworkController.state.networksMetadata,
-    );
   }
 }
 
