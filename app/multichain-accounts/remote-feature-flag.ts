@@ -66,7 +66,7 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
   return featureVersionsToCheck.some(({ version, featureKey }) => {
     const featureFlag = remoteFeatureFlags[featureKey];
 
-    if (!featureFlag || !assertMultichainAccountsFeatureFlagType(featureFlag)) {
+    if (!assertMultichainAccountsFeatureFlagType(featureFlag)) {
       return false;
     }
 
