@@ -41,60 +41,6 @@ class AIE2ETagsSelector {
     .map(tag => tag.replace(':', '').trim())
     .filter(tag => tag.length > 0);
   private isQuietMode: boolean = false;
-  private readonly fileCategories = {
-    ignore: [
-      // Documentation
-      '**/*.md', 'docs/', 'README*', 'CHANGELOG*', 'RELEASE.MD', 'LICENSE', 'attribution.txt',
-
-      // CI/Build system (not affecting app functionality)
-      '.github/', '**/*.yml', 'bitrise.yml', 'codecov.yml', 'crowdin.yml', 'sonar-project.properties',
-
-      // Build scripts and utilities
-      'scripts/', 'patches/',
-
-      // Asset files
-      '*.svg', '*.png', '*.jpg', '*.jpeg', '*.gif', '*.ico',
-
-      // Build artifacts
-      'build/', 'dist/', 'coverage/', '.nyc_output/', 'android/build/', 'ios/build/',
-      'android/.gradle/', 'android/app/build/', 'node_modules/',
-
-      // IDE files
-      '*.project', '.classpath', '*.iml', '.vscode/', '.idea/',
-
-      // Test artifacts
-      'e2e/reports/', 'e2e/artifacts/', 'test-results/',
-
-      // Logs and temp files
-      '*.log', '*.tmp', '*.cache', '.env*',
-    ],
-
-    // High-impact shared files that should trigger comprehensive analysis
-    highImpact: [
-      'package.json', 'metro.config.js', 'tsconfig.json', 'babel.config.js', 'yarn.lock'
-    ],
-
-    // App-specific areas for granular analysis
-    appAreas: [
-      'app/core/Engine/', 'app/core/Authentication/', 'app/core/BackgroundBridge/',
-      'app/components/Views/confirmations/', 'app/components/Views/Confirmations/',
-      'app/actions/identity/', 'app/components/UI/AccountSelector/',
-      'app/components/UI/Perps/', 'app/components/Views/Swaps/', 'app/components/Views/Bridge/',
-      'app/components/UI/Rewards/', 'app/components/Views/Rewards/',
-      'app/util/networks/', 'app/util/transaction-controller/',
-      'app/components/Nav/', 'app/components/UI/Navbar/', 'app/components/UI/TabBar/',
-      'app/components/UI/Notification/', 'app/util/notifications/',
-      'app/util/analytics/', 'app/core/Analytics/',
-      'app/store/', 'app/reducers/', 'app/actions/'
-    ],
-
-    // Platform-specific files
-    android: ['android/'],
-    ios: ['ios/'],
-
-    // E2E test infrastructure
-    e2eTests: ['e2e/specs/', 'e2e/pages/', 'e2e/selectors/']
-  };
 
   constructor() {
     if (this.availableTags.length === 0) {
@@ -114,43 +60,103 @@ class AIE2ETagsSelector {
     }
   }
 
-  private filterRelevantFiles(files: string[]): string[] {
-    return files.filter(file => {
-      for (const pattern of this.fileCategories.ignore) {
-        if (this.matchesPattern(file, pattern)) {
-          return false;
-        }
+  private filterRelevantFiles(files: string[]): {
+    relevantFiles: string[];
+    filteredOutCount: number;
+    summary: Record<string, number>;
+    hasCriticalDependencyChanges: boolean;
+  } {
+    // Check for critical dependency changes that warrant full testing
+    const hasCriticalDependencyChanges = files.some(file =>
+      file.includes('yarn.lock') ||
+      file.includes('package-lock.json') ||
+      file === 'package.json'  // Root package.json changes
+    );
+
+    const relevantFiles = files.filter(file => {
+      // Always keep app/ code files
+      if (file.startsWith('app/') &&
+          !file.includes('/images/') &&
+          !file.includes('/fonts/')) {
+        return true;
       }
+
+      // Keep E2E related files
+      if (file.includes('e2e/')) {
+        return true;
+      }
+
+      // Keep critical dependency files
+      if (file.includes('yarn.lock') ||
+          file.includes('package-lock.json') ||
+          file.includes('package.json')) {
+        return true;
+      }
+
+      // Keep important config files
+      if (file.includes('metro.config') ||
+          file.includes('babel.config') ||
+          file.includes('tsconfig') ||
+          file.includes('.env')) {
+        return true;
+      }
+
+      // Keep smart-e2e workflow changes
+      if (file.includes('.github/workflows/smart-e2e')) {
+        return true;
+      }
+
+      // Filter out irrelevant files
+      if (file.includes('README.md') ||
+          file.includes('CHANGELOG.md') ||
+          file.includes('docs/') ||
+          file.endsWith('.md') ||
+          file.endsWith('.png') ||
+          file.endsWith('.jpg') ||
+          file.endsWith('.jpeg') ||
+          file.endsWith('.svg') ||
+          file.endsWith('.gif') ||
+          file.includes('app/images/') ||
+          file.includes('app/fonts/') ||
+          file.includes('node_modules/')) {
+        return false;
+      }
+
       return true;
     });
+
+    const summary = {
+      app: relevantFiles.filter(f => f.startsWith('app/')).length,
+      e2e: relevantFiles.filter(f => f.includes('e2e/')).length,
+      dependencies: relevantFiles.filter(f =>
+        f.includes('yarn.lock') ||
+        f.includes('package.json') ||
+        f.includes('package-lock.json')
+      ).length,
+      config: relevantFiles.filter(f =>
+        f.includes('.config') ||
+        f.includes('tsconfig') ||
+        f.includes('.env')
+      ).length,
+      other: relevantFiles.length -
+             relevantFiles.filter(f =>
+               f.startsWith('app/') ||
+               f.includes('e2e/') ||
+               f.includes('package.json') ||
+               f.includes('yarn.lock') ||
+               f.includes('.config')
+             ).length
+    };
+
+    return {
+      relevantFiles,
+      filteredOutCount: files.length - relevantFiles.length,
+      summary,
+      hasCriticalDependencyChanges
+    };
   }
 
 
-  private matchesPattern(file: string, pattern: string): boolean {
-    if (pattern.includes('*')) {
-      // Handle wildcard patterns like **/*.md, *.svg
-      const regexPattern = pattern
-        .replace(/\./g, '\\.')
-        .replace(/\*\*/g, '.*')  // ** matches any path depth
-        .replace(/\*/g, '[^/]*') // * matches within path segment
-        .replace(/\?/g, '.');
-      const regex = new RegExp(`^${regexPattern}$|/${regexPattern}$`);
-      return regex.test(file);
-    } else if (pattern.endsWith('/')) {
-      // Directory patterns like .github/, docs/
-      const dirPattern = pattern.slice(0, -1); // Remove trailing slash
-      return file.startsWith(dirPattern + '/') || file.includes('/' + dirPattern + '/');
-    }
-      // Exact file patterns like LICENSE, README*
-      if (pattern.includes('*')) {
-        // Handle simple wildcards like README*
-        const regexPattern = pattern.replace(/\*/g, '.*');
-        const regex = new RegExp(`^${regexPattern}$`);
-        return regex.test(file.split('/').pop() || ''); // Check filename only
-      }
-      return file === pattern || file.endsWith('/' + pattern);
-
-  }
 
 
   /**
@@ -181,18 +187,7 @@ class AIE2ETagsSelector {
         this.log(`📊 Found ${changedFiles.length} branch-specific changes (${targetBranch}...HEAD)`);
       }
 
-      let stagedFiles: string[] = [];
-      try {
-        stagedFiles = execSync('git diff --cached --name-only', {
-          encoding: 'utf8',
-          stdio: ['ignore', 'pipe', 'ignore'] // Suppress stderr
-        }).trim().split('\n').filter(f => f);
-      } catch {
-        // Staged files check can fail in some CI environments, that's ok
-        stagedFiles = [];
-      }
-
-      return [...new Set([...changedFiles, ...stagedFiles])].filter(f => f);
+      return changedFiles.filter(f => f);
     } catch (error: any) {
       this.warn(`Error getting changed files: ${error.message}`);
       return [];
@@ -202,16 +197,16 @@ class AIE2ETagsSelector {
   /**
    * Analyze with Claude AI
    */
-  private async analyzeWithAI(changedFiles: string[]): Promise<AIAnalysis> {
+  private async analyzeWithAI(changedFiles: string[], filterResult: ReturnType<typeof this.filterRelevantFiles>): Promise<AIAnalysis> {
     try {
       const { Anthropic } = await import('@anthropic-ai/sdk');
       const apiKey = process.env.E2E_CLAUDE_API_KEY!;
       const anthropic = new Anthropic({ apiKey });
 
-      const prompt = this.buildAIPrompt(changedFiles);
+      const prompt = this.buildAIPrompt(changedFiles, filterResult);
 
       this.log('🤖 Starting AI analysis...');
-      this.log(`📝 Analyzing ${changedFiles.length} changed files`);
+      this.log(`📝 Analyzing ${changedFiles.length} relevant files (${filterResult.filteredOutCount} filtered out)`);
 
       const response = await anthropic.messages.create({
         model:  'claude-4-sonnet-20250514',
@@ -244,231 +239,57 @@ class AIE2ETagsSelector {
   }
 
   /**
-   * Build AI prompt with categorized file analysis
+   * Build AI prompt with clean file analysis
    */
-  private buildAIPrompt(changedFiles: string[]): string {
-    const fileCount = changedFiles.length;
-    const availableTagsStr = this.availableTags.join(', ');
+  private buildAIPrompt(changedFiles: string[], filterResult: ReturnType<typeof this.filterRelevantFiles>): string {
+    const { summary, hasCriticalDependencyChanges } = filterResult;
 
-    // Categorize files for better AI context
-    const categorizedFiles = this.categorizeChangedFiles(changedFiles);
-    const fileBreakdown = this.formatFileBreakdown(categorizedFiles);
+    return `Analyze these file changes to select appropriate MetaMask Mobile E2E smoke test tags:
 
-    return `You are an expert E2E test strategist analyzing MetaMask mobile app changes to recommend optimal test coverage.
+CHANGE SUMMARY:
+- Total files: ${changedFiles.length + filterResult.filteredOutCount} (filtered out ${filterResult.filteredOutCount} irrelevant files)
+- App code: ${summary.app} files
+- E2E tests: ${summary.e2e} files
+- Dependencies: ${summary.dependencies} files ${hasCriticalDependencyChanges ? '⚠️ CRITICAL' : ''}
+- Config: ${summary.config} files
+- Other: ${summary.other} files
 
-AVAILABLE TAGS: ${availableTagsStr}
+${hasCriticalDependencyChanges ? `
+🚨 DEPENDENCY CHANGES DETECTED:
+Dependencies were updated (yarn.lock/package.json changes). This typically warrants
+running ALL smoke test tags due to potential wide-reaching effects.
+` : ''}
 
-CHANGED FILES ANALYSIS (${fileCount} total):
-${fileBreakdown}
+RELEVANT CHANGED FILES:
+${changedFiles.join('\n')}
 
-FILES BY CATEGORY:
-${Object.entries(categorizedFiles).map(([category, files]) =>
-  files.length > 0 ? `${category.toUpperCase()}: ${files.length} files\n${files.slice(0, 5).map(f => `  - ${f}`).join('\n')}${files.length > 5 ? `\n  ... +${files.length - 5} more` : ''}` : ''
-).filter(s => s).join('\n\n')}
+Available smoke test tags: ${this.availableTags.join(', ')}
 
-ANALYSIS FRAMEWORK:
-1. **Risk Assessment**:
-   - Low (1-5 files): Isolated changes, minimal risk
-   - Medium (6-15 files): Moderate scope, cross-feature impact
-   - High (16+ files): Major changes, high regression risk
+${hasCriticalDependencyChanges ?
+  'RECOMMENDATION: Consider selecting ALL smoke test tags due to dependency changes.' :
+  'Based on the file paths and change patterns, select the most appropriate smoke test tags...'
+}
 
-2. **Granular Area Mapping** (be selective, don't default to running everything) - Use this as a guide to map changed files to areas:
-   - **HIGHIMPACT**: package.json, metro.config.js, babel.config.js, yarn.lock → Include SmokeWalletPlatform (infrastructure changes)
-   - **APPCORE**: app/core/Engine/, app/core/Authentication/, app/store/, app/reducers/ → SmokeWalletPlatform (only for core engine/state)
-   - **APPCONFIRMATIONS**: app/components/Views/confirmations/ → SmokeConfirmations, SmokeConfirmationsRedesigned
-   - **APPIDENTITY**: app/actions/identity/, app/components/UI/AccountSelector/ → SmokeIdentity, SmokeAccounts
-   - **APPTRADING**: app/components/UI/Perps/, app/components/Views/Swaps/, app/components/Views/Bridge/ → SmokeTrade, SmokeSwaps
-   - **APPREWARDS**: app/components/UI/Rewards/, app/components/Views/Rewards/ → Consider if reward features affected
-   - **APPUI**: app/components/Nav/, app/components/UI/Navbar/, app/components/UI/TabBar/ → SmokeWalletUX, SmokeWalletPlatform
-   - **APPWALLET**: wallet/balance/asset/token related files → SmokeAssets, SmokeWalletPlatform
-   - **APPOTHER**: Other app/ files → Analyze path carefully, be conservative (don't over-select)
-   - **ANDROID/IOS**: Platform-specific changes → Consider core stability but be targeted
-   - **E2ETESTS**: Test infrastructure → Include SmokeWalletPlatform only if major test framework changes
-
-3. **Smart Selection Rules** (BE SELECTIVE):
-   - **Don't default to running all tests** - analyze actual file paths and impact
-   - **Consider "no tests needed"** for very low-risk changes (docs, minor configs, linting)
-   - **CRITICAL: Transaction confirmation changes** - ANY change that could affect the transaction confirmation flow should trigger SmokeConfirmations and SmokeConfirmationsRedesigned. This includes:
-     • Transaction controllers, signers, or approval logic
-     • Gas fee calculations or estimation
-     • Network switching or RPC changes
-     • Wallet state management that affects balances/transactions
-     • Payment flows, send/receive functionality
-     • Smart contract interactions or dapp connections
-     • Security-related changes (encryption, keyring, authentication)
-   - Only include SmokeWalletPlatform for true infrastructure/core engine changes
-   - Match tags to specific affected areas based on file paths
-   - For minor UI changes, consider if E2E tests are even needed
-   - For app/components changes, look at the specific component path to determine impact
-   - Balance coverage vs cost - prefer targeted testing over comprehensive
-   - If only 1-2 files changed in specific area, select only relevant tags
-
-4. **"No Tests Needed" Scenarios** (return empty selectedTags array):
-   - **Documentation only**: README, CHANGELOG, .md files, docs/
-   - **Linting/formatting**: .eslintignore, .prettierrc, formatting fixes
-   - **Build scripts**: scripts/ changes that don't affect app functionality
-   - **CI workflows**: .github/ changes (unless they affect app builds)
-   - **Minor config**: Small configuration tweaks that don't impact app logic
-   - **Asset files**: Images, icons, SVGs that don't affect functionality
-   - **Comments/typing**: Code comment updates, TypeScript interface changes only
-
-5. **NON NEGOTIABLE**
-- Run ALL tags when the yarn.lock changes - This is a HIGH RISK change that could impact any part of the app
+SELECTION GUIDELINES:
+- yarn.lock/package.json changes → Consider ALL tags (high risk)
+- Use file paths to infer affected areas (e.g., app/core, app/components, app/screens, app/services, etc.)
+- Match file names to tag keywords (e.g., Wallet, Swaps, Send, Receive, Settings, Security, etc.)
+- config/ or e2e/ changes → Consider ALL tags (high risk)
+- Small UI changes in app/components/ → Low risk, minimal tags
+- Choose SmokeWalletPlatform at a minimum for broad infrastructure changes when some uncertainty exists
+- Avoid over-selecting tags to keep tests efficient
+- Return no tags for purely documentation or non-impactful changes
 
 RESPOND WITH JSON ONLY:
 {
   "riskLevel": "low|medium|high",
-  "selectedTags": ["SmokeCore", "..."] // Use empty array [] if no tests needed,
+  "selectedTags": ["SmokeWalletPlatform", "..."],
   "areas": ["core", "..."],
-  "reasoning": "Detailed explanation: (1) What areas changed based on file analysis (2) Why these specific tags were chosen OR why no tests are needed (3) Risk factors considered",
-  "confidence": 85 // How confident you are in this recommendation (0-100)
+  "reasoning": "Brief explanation of why these tags were selected",
+  "confidence": 85 // Confidence level 0-100
 }`;
   }
 
-  /**
-   * Categorize changed files based on production patterns
-   */
-  private categorizeChangedFiles(changedFiles: string[]): {
-    highImpact: string[];
-    android: string[];
-    ios: string[];
-    e2eTests: string[];
-    appCore: string[];
-    appIdentity: string[];
-    appTrading: string[];
-    appConfirmations: string[];
-    appWallet: string[];
-    appRewards: string[];
-    appUI: string[];
-    appOther: string[];
-    other: string[];
-  } {
-    const categories = {
-      highImpact: [] as string[],
-      android: [] as string[],
-      ios: [] as string[],
-      e2eTests: [] as string[],
-      appCore: [] as string[],
-      appIdentity: [] as string[],
-      appTrading: [] as string[],
-      appConfirmations: [] as string[],
-      appWallet: [] as string[],
-      appRewards: [] as string[],
-      appUI: [] as string[],
-      appOther: [] as string[],
-      other: [] as string[]
-    };
-
-    for (const file of changedFiles) {
-      const fileLower = file.toLowerCase();
-
-      if (this.fileCategories.highImpact.some(pattern => this.matchesPattern(file, pattern))) {
-        categories.highImpact.push(file);
-      } else if (this.fileCategories.android.some(pattern => this.matchesPattern(file, pattern))) {
-        categories.android.push(file);
-      } else if (this.fileCategories.ios.some(pattern => this.matchesPattern(file, pattern))) {
-        categories.ios.push(file);
-      } else if (this.fileCategories.e2eTests.some(pattern => this.matchesPattern(file, pattern))) {
-        categories.e2eTests.push(file);
-      } else if (file.startsWith('app/')) {
-        if (this.matchesAppPattern(file, ['app/core/Engine/', 'app/core/Authentication/', 'app/core/BackgroundBridge/', 'app/store/', 'app/reducers/'])) {
-          categories.appCore.push(file);
-        } else if (this.matchesAppPattern(file, ['app/actions/identity/', 'app/components/UI/AccountSelector/'])) {
-          categories.appIdentity.push(file);
-        } else if (this.matchesAppPattern(file, ['app/components/UI/Perps/', 'app/components/Views/Swaps/', 'app/components/Views/Bridge/'])) {
-          categories.appTrading.push(file);
-        } else if (this.matchesAppPattern(file, ['app/components/Views/confirmations/', 'app/components/Views/Confirmations/'])) {
-          categories.appConfirmations.push(file);
-        } else if (this.matchesAppPattern(file, ['app/components/UI/Rewards/', 'app/components/Views/Rewards/'])) {
-          categories.appRewards.push(file);
-        } else if (this.matchesAppPattern(file, ['app/components/Nav/', 'app/components/UI/Navbar/', 'app/components/UI/TabBar/'])) {
-          categories.appUI.push(file);
-        } else if (fileLower.includes('wallet') || fileLower.includes('balance') || fileLower.includes('asset') || fileLower.includes('token')) {
-          categories.appWallet.push(file);
-        } else {
-          categories.appOther.push(file);
-        }
-      } else {
-        categories.other.push(file);
-      }
-    }
-
-    return categories;
-  }
-
-  /**
-   * Check if app file matches specific app area patterns
-   */
-  private matchesAppPattern(file: string, patterns: string[]): boolean {
-    return patterns.some(pattern => file.startsWith(pattern));
-  }
-
-  /**
-   * Format file breakdown for AI prompt
-   */
-  private formatFileBreakdown(categorizedFiles: ReturnType<typeof this.categorizeChangedFiles>): string {
-    const breakdown: string[] = [];
-
-    Object.entries(categorizedFiles).forEach(([category, files]) => {
-      if (files.length > 0) {
-        breakdown.push(`${category.toUpperCase()}: ${files.length} files`);
-      }
-    });
-
-    return breakdown.join(', ') || 'No files categorized';
-  }
-
-  /**
-   * Legacy categorization method for compatibility
-   */
-  private categorizeFiles(changedFiles: string[]): {
-    core: string[];
-    identity: string[];
-    trading: string[];
-    confirmations: string[];
-    wallet: string[];
-    rewards: string[];
-    ui: string[];
-    other: string[];
-  } {
-    const categories = {
-      core: [] as string[],
-      identity: [] as string[],
-      trading: [] as string[],
-      confirmations: [] as string[],
-      wallet: [] as string[],
-      rewards: [] as string[],
-      ui: [] as string[],
-      other: [] as string[]
-    };
-
-    for (const file of changedFiles) {
-      const fileLower = file.toLowerCase();
-
-      if (fileLower.includes('engine') || fileLower.includes('core') || fileLower.includes('store') || fileLower.includes('reducer')) {
-        categories.core.push(file);
-      } else if (fileLower.includes('identity') || fileLower.includes('auth') || fileLower.includes('account') || fileLower.includes('multisrp')) {
-        categories.identity.push(file);
-      } else if (fileLower.includes('trade') || fileLower.includes('swap') || fileLower.includes('bridge') || fileLower.includes('perps')) {
-        categories.trading.push(file);
-      } else if (fileLower.includes('confirmation') || fileLower.includes('confirm') ||
-                 fileLower.includes('transaction') || fileLower.includes('approval') || fileLower.includes('signer') ||
-                 fileLower.includes('gasfee') || fileLower.includes('gas-fee') || fileLower.includes('send') ||
-                 fileLower.includes('payment') || fileLower.includes('keyring') || fileLower.includes('rpc')) {
-        categories.confirmations.push(file);
-      } else if (fileLower.includes('wallet') || fileLower.includes('balance') || fileLower.includes('asset') || fileLower.includes('token')) {
-        categories.wallet.push(file);
-      } else if (fileLower.includes('reward')) {
-        categories.rewards.push(file);
-      } else if (fileLower.includes('navigation') || fileLower.includes('tabbar') || fileLower.includes('overlay') || fileLower.includes('component')) {
-        categories.ui.push(file);
-      } else {
-        categories.other.push(file);
-      }
-    }
-
-    return categories;
-  }
 
 
   /**
@@ -614,7 +435,8 @@ RESPOND WITH JSON ONLY:
     this.isQuietMode = options.output === 'json' || options.output === 'tags';
 
     const allChangedFiles = this.getChangedFiles(options.baseBranch, options.includeMainChanges);
-    const changedFiles = this.filterRelevantFiles(allChangedFiles);
+    const filterResult = this.filterRelevantFiles(allChangedFiles);
+    const { relevantFiles: changedFiles } = filterResult;
 
     this.log(`📁 Found ${allChangedFiles.length} total files, ${changedFiles.length} relevant for analysis`);
 
@@ -633,7 +455,7 @@ RESPOND WITH JSON ONLY:
         process.exit(1);
       }
 
-      analysis = await this.analyzeWithAI(changedFiles);
+      analysis = await this.analyzeWithAI(changedFiles, filterResult);
       if (!analysis) {
         console.error('❌ AI analysis failed - unable to proceed');
         process.exit(1);
@@ -705,7 +527,8 @@ RESPOND WITH JSON ONLY:
         })),
         changedFiles: {
           total: allChangedFiles.length,
-          relevant: changedFiles.length
+          relevant: changedFiles.length,
+          filteredOut: filterResult.filteredOutCount
         },
         reasoning: analysis.reasoning,
         confidence: analysis.confidence
