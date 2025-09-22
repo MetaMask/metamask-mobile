@@ -1,9 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import BackgroundTimer from 'react-native-background-timer';
-import Device from '../../../../util/device';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 interface UsePerpsConnectionLifecycleParams {
   isVisible?: boolean;
@@ -19,12 +15,13 @@ interface UsePerpsConnectionLifecycleReturn {
 /**
  * Hook that manages the Perps WebSocket connection lifecycle based on:
  * - Tab visibility (connect when visible, disconnect when hidden)
- * - App state (disconnect after 20s when backgrounded)
+ * - App state (disconnect when backgrounded)
  *
  * This hook ensures optimal battery and network usage by:
- * - Immediately disconnecting when tab is not visible
- * - Delaying disconnection by 20s when app is backgrounded (for quick returns)
- * - Using BackgroundTimer to ensure timers run even when app is suspended
+ * - Connecting when tab becomes visible and app is active
+ * - Disconnecting when tab is hidden or app is backgrounded
+ * - The 20-second grace period is handled by PerpsConnectionManager
+ * - Provides immediate response to visibility changes
  */
 export function usePerpsConnectionLifecycle({
   isVisible,
@@ -34,49 +31,6 @@ export function usePerpsConnectionLifecycle({
 }: UsePerpsConnectionLifecycleParams): UsePerpsConnectionLifecycleReturn {
   const hasConnected = useRef(false);
   const lastAppState = useRef<AppStateStatus>(AppState.currentState);
-  const backgroundDisconnectTimer = useRef<number | null>(null);
-
-  // Helper to cancel background timer
-  const cancelBackgroundTimer = useCallback(() => {
-    if (backgroundDisconnectTimer.current) {
-      if (Device.isAndroid()) {
-        BackgroundTimer.clearTimeout(backgroundDisconnectTimer.current);
-      } else {
-        clearTimeout(backgroundDisconnectTimer.current);
-        BackgroundTimer.stop();
-      }
-      backgroundDisconnectTimer.current = null;
-    }
-  }, []);
-
-  // Helper to schedule background disconnection
-  const scheduleBackgroundDisconnection = useCallback(() => {
-    // Cancel any existing timer to prevent multiple timers
-    cancelBackgroundTimer();
-
-    DevLogger.log(
-      `usePerpsConnectionLifecycle: Scheduling disconnection in ${PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY}ms`,
-    );
-
-    if (Device.isIos()) {
-      // iOS: Start background timer, schedule with setTimeout, then stop immediately
-      BackgroundTimer.start();
-      backgroundDisconnectTimer.current = setTimeout(() => {
-        hasConnected.current = false;
-        onDisconnect();
-        backgroundDisconnectTimer.current = null;
-      }, PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY) as unknown as number;
-      // Stop immediately after scheduling (not in the callback)
-      BackgroundTimer.stop();
-    } else if (Device.isAndroid()) {
-      // Android uses BackgroundTimer.setTimeout directly
-      backgroundDisconnectTimer.current = BackgroundTimer.setTimeout(() => {
-        hasConnected.current = false;
-        onDisconnect();
-        backgroundDisconnectTimer.current = null;
-      }, PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY);
-    }
-  }, [onDisconnect, cancelBackgroundTimer]);
 
   // Handle connection based on current state
   const handleConnection = useCallback(async () => {
@@ -93,14 +47,6 @@ export function usePerpsConnectionLifecycle({
     }
   }, [onConnect, onError]);
 
-  // Handle disconnection
-  const handleDisconnection = useCallback(() => {
-    if (hasConnected.current) {
-      hasConnected.current = false;
-      onDisconnect();
-    }
-  }, [onDisconnect]);
-
   // Handle tab visibility changes
   useEffect(() => {
     if (isVisible === undefined) {
@@ -109,9 +55,9 @@ export function usePerpsConnectionLifecycle({
     }
 
     if (isVisible === false && hasConnected.current) {
-      // Tab is not visible - disconnect immediately
-      cancelBackgroundTimer(); // Cancel any pending background timer
-      handleDisconnection();
+      // Tab is not visible - disconnect (grace period handled by PerpsConnectionManager)
+      hasConnected.current = false;
+      onDisconnect();
     } else if (
       isVisible === true &&
       !hasConnected.current &&
@@ -126,7 +72,7 @@ export function usePerpsConnectionLifecycle({
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isVisible, cancelBackgroundTimer, handleConnection, handleDisconnection]);
+  }, [isVisible, handleConnection, onDisconnect]);
 
   // Handle app state changes (background/foreground)
   useEffect(() => {
@@ -136,16 +82,14 @@ export function usePerpsConnectionLifecycle({
         nextAppState.match(/inactive|background/) &&
         hasConnected.current
       ) {
-        // App going to background - schedule disconnection
-        scheduleBackgroundDisconnection();
+        // App going to background - disconnect (grace period handled by PerpsConnectionManager)
+        hasConnected.current = false;
+        onDisconnect();
       } else if (
         lastAppState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        // App coming to foreground
-        cancelBackgroundTimer();
-
-        // Reconnect if needed and visible
+        // App coming to foreground - reconnect if needed and visible
         if (
           !hasConnected.current &&
           (isVisible === true || isVisible === undefined)
@@ -163,14 +107,8 @@ export function usePerpsConnectionLifecycle({
     );
     return () => {
       subscription.remove();
-      cancelBackgroundTimer();
     };
-  }, [
-    isVisible,
-    scheduleBackgroundDisconnection,
-    cancelBackgroundTimer,
-    handleConnection,
-  ]);
+  }, [isVisible, handleConnection, onDisconnect]);
 
   // Initial connection on mount (if visible)
   useEffect(() => {
@@ -184,7 +122,6 @@ export function usePerpsConnectionLifecycle({
         hasConnected.current = false;
         onDisconnect();
       }
-      cancelBackgroundTimer();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Intentionally only run on mount/unmount

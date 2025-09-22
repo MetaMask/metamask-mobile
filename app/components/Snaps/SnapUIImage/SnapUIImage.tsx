@@ -1,11 +1,11 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React from 'react';
-import { ImageStyle, StyleProp, View } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
 export interface SnapUIImageProps {
   value: string;
-  style?: StyleProp<ImageStyle>;
+  style?: StyleProp<ViewStyle>;
   width?: number;
   height?: number;
   borderRadius?: number;

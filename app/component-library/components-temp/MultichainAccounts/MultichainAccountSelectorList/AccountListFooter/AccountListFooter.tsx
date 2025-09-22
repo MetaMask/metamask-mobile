@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useState, useEffect, useMemo } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -19,8 +19,16 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
 import { AccountWalletId } from '@metamask/account-api';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import createStyles from './AccountListFooter.styles';
 import Engine from '../../../../../core/Engine';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../../../util/trace';
+import { useAccountsOperationsLoadingStates } from '../../../../../util/accounts/useAccountsOperationsLoadingStates';
 
 interface AccountListFooterProps {
   walletId: AccountWalletId;
@@ -31,11 +39,40 @@ const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const { styles } = useStyles(createStyles, {});
+    const {
+      isAccountSyncingInProgress,
+      loadingMessage: accountOperationLoadingMessage,
+    } = useAccountsOperationsLoadingStates();
+
+    const isLoadingState = isLoading || isAccountSyncingInProgress;
+
+    const actionLabel = useMemo(() => {
+      if (isAccountSyncingInProgress) {
+        return accountOperationLoadingMessage;
+      }
+
+      if (isLoadingState) {
+        return strings('multichain_accounts.wallet_details.creating_account');
+      }
+
+      return strings('multichain_accounts.wallet_details.create_account');
+    }, [
+      isLoadingState,
+      accountOperationLoadingMessage,
+      isAccountSyncingInProgress,
+    ]);
 
     // Get wallet information to find the keyringId
     const walletsMap = useSelector(selectWalletsMap);
     const wallet = walletsMap?.[walletId];
     const walletInfo = useWalletInfo(wallet);
+
+    // End trace when the loading finishes
+    useEffect(() => {
+      if (!isLoading) {
+        endTrace({ name: TraceName.CreateMultichainAccount });
+      }
+    }, [isLoading]);
 
     const handleCreateAccount = useCallback(async () => {
       if (!walletInfo?.keyringId) {
@@ -44,7 +81,6 @@ const AccountListFooter = memo(
           'Cannot create account without keyring ID',
         );
         setIsLoading(false);
-
         return;
       }
 
@@ -73,6 +109,12 @@ const AccountListFooter = memo(
     }, [walletInfo?.keyringId, onAccountCreated]);
 
     const handlePress = useCallback(() => {
+      // Start the trace before setting the loading state
+      trace({
+        name: TraceName.CreateMultichainAccount,
+        op: TraceOperation.AccountCreate,
+      });
+
       // Force immediate state update
       setIsLoading(true);
 
@@ -87,14 +129,14 @@ const AccountListFooter = memo(
         <TouchableOpacity
           style={[
             styles.button,
-            (isLoading || !walletInfo?.keyringId) && styles.buttonDisabled,
+            (isLoadingState || !walletInfo?.keyringId) && styles.buttonDisabled,
           ]}
           onPress={handlePress}
-          disabled={isLoading || !walletInfo?.keyringId}
+          disabled={isLoadingState || !walletInfo?.keyringId}
           activeOpacity={0.7}
         >
           <View style={styles.iconContainer}>
-            {isLoading ? (
+            {isLoadingState ? (
               <AnimatedSpinner size={SpinnerSize.SM} />
             ) : (
               <Icon
@@ -104,10 +146,12 @@ const AccountListFooter = memo(
               />
             )}
           </View>
-          <Text variant={TextVariant.BodyMd} style={styles.buttonText}>
-            {isLoading
-              ? strings('multichain_accounts.wallet_details.creating_account')
-              : strings('multichain_accounts.wallet_details.create_account')}
+          <Text
+            variant={TextVariant.BodyMd}
+            style={styles.buttonText}
+            testID={AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT}
+          >
+            {actionLabel}
           </Text>
         </TouchableOpacity>
       </View>

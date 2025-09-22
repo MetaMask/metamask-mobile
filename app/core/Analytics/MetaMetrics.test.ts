@@ -7,6 +7,7 @@ import {
   METAMETRICS_DELETION_REGULATION_ID,
   METAMETRICS_ID,
   METRICS_OPT_IN,
+  METRICS_OPT_IN_SOCIAL_LOGIN,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 import axios, { AxiosError, AxiosResponse } from 'axios';
@@ -16,11 +17,20 @@ import {
   ISegmentClient,
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
+import { segmentPersistor } from './SegmentPersistor';
+import { createClient } from '@segment/analytics-react-native';
 
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();
+
+jest.mock('./SegmentPersistor', () => ({
+  segmentPersistor: {
+    get: jest.fn(),
+    set: jest.fn(),
+  },
+}));
 
 jest.mock('axios');
 
@@ -74,6 +84,40 @@ describe('MetaMetrics', () => {
       expect(metaMetrics2).toBeInstanceOf(MetaMetrics);
       expect(metaMetrics2).toBe(metaMetrics);
     });
+    it('uses custom persistor for Segment client', async () => {
+      // Reset instance to ensure fresh test
+      TestMetaMetrics.resetInstance();
+
+      const metaMetrics = TestMetaMetrics.getInstance();
+      await metaMetrics.configure();
+      await metaMetrics.enable();
+
+      const event = MetricsEventBuilder.createEventBuilder({
+        category: 'test event',
+      }).build();
+
+      metaMetrics.trackEvent(event);
+
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+
+      // Verify that track is called (event is queued)
+      expect(segmentMockClient.track).toHaveBeenCalledWith(event.name, {
+        anonymous: false,
+      });
+
+      // The key test: verify that createClient was called with our custom persistor
+      // This proves that the Segment client was initialized with our persistor
+      expect(createClient).toHaveBeenCalledWith(
+        expect.objectContaining({
+          storePersistor: segmentPersistor,
+        }),
+      );
+
+      // Test that the client can flush (send queued events)
+      await metaMetrics.flush();
+      expect(segmentMockClient.flush).toHaveBeenCalled();
+    });
   });
 
   describe('Configuration', () => {
@@ -85,6 +129,25 @@ describe('MetaMetrics', () => {
       StorageWrapper.getItem = jest.fn().mockRejectedValue(new Error('error'));
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeFalsy();
+    });
+
+    describe('flush policy configuration', () => {
+      it('creates flush policies with default values', () => {
+        TestMetaMetrics.resetInstance();
+        jest.clearAllMocks();
+
+        TestMetaMetrics.getInstance();
+
+        // Verify that createClient was called with flush policies
+        expect(createClient).toHaveBeenCalledWith(
+          expect.objectContaining({
+            flushPolicies: expect.arrayContaining([
+              expect.objectContaining({ count: 20 }), // default event limit
+              expect.objectContaining({ interval: 30000 }), // default 30 seconds in milliseconds
+            ]),
+          }),
+        );
+      });
     });
   });
 
@@ -182,6 +245,140 @@ describe('MetaMetrics', () => {
 
       // check that the tracking was called
       expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('enableSocialLogin', () => {
+    beforeEach(() => {
+      TestMetaMetrics.resetInstance();
+      jest.clearAllMocks();
+    });
+
+    it('enables social login metrics', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.enableSocialLogin(true);
+
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+    });
+
+    it('disables social login metrics', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.enableSocialLogin(false);
+
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        DENIED,
+      );
+      expect(metaMetrics.isEnabled()).toBeFalsy();
+    });
+
+    it('enables social login metrics by default when no parameter provided', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.enableSocialLogin();
+
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+    });
+
+    it('handles storage error gracefully when enabling social login metrics', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Storage error'),
+      );
+
+      await metaMetrics.enableSocialLogin(true);
+
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+      // The method should not throw, but handle the error gracefully
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('handles storage error gracefully when disabling social login metrics', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Storage error'),
+      );
+
+      await metaMetrics.enableSocialLogin(false);
+
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        DENIED,
+      );
+      // The method should not throw, but handle the error gracefully
+      expect(metaMetrics.isEnabled()).toBeFalsy();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('maintains social login state across multiple calls', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      jest.clearAllMocks();
+
+      // Enable social login
+      await metaMetrics.enableSocialLogin(true);
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+
+      // Disable social login
+      await metaMetrics.enableSocialLogin(false);
+      expect(metaMetrics.isEnabled()).toBeFalsy();
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        DENIED,
+      );
+
+      // Re-enable social login
+      await metaMetrics.enableSocialLogin(true);
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+
+      // Verify all enableSocialLogin calls were made
+      expect(StorageWrapper.setItem).toHaveBeenCalledTimes(3);
+      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+        1,
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+        2,
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        DENIED,
+      );
+      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+        3,
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
     });
   });
 
@@ -459,7 +656,7 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        2,
+        3,
         MIXPANEL_METAMETRICS_ID,
       );
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
@@ -479,10 +676,10 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        2,
+        3,
         MIXPANEL_METAMETRICS_ID,
       );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
       expect(StorageWrapper.setItem).not.toHaveBeenCalled();
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
     });
@@ -500,7 +697,7 @@ describe('MetaMetrics', () => {
         METAMETRICS_ID,
         '',
       );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
       expect(await metaMetrics.getMetaMetricsId()).toEqual(metricsId);
     });
 

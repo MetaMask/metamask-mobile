@@ -19,7 +19,7 @@ type NotificationStrings =
 const t = (name: NotificationStrings, params?: object) =>
   strings(name, params) ?? '';
 
-const translations: TranslationKeys = {
+const walletTranslations: TranslationKeys = {
   pushPlatformNotificationsFundsSentTitle: () =>
     t('notifications.push_notification_content.funds_sent_title'),
   pushPlatformNotificationsFundsSentDescriptionDefault: () =>
@@ -90,6 +90,84 @@ const translations: TranslationKeys = {
     t(
       'notifications.push_notification_content.lido_withdrawal_completed_description',
     ),
+};
+
+const perpTranslations = {
+  perpsPositionLiquidatedTitle: () =>
+    t(
+      'notifications.push_notification_content.perps_position_liquidated_title',
+    ),
+  perpsPositionLiquidatedDescriptionLong: (symbol: string) =>
+    t(
+      'notifications.push_notification_content.perps_position_liquidated_description_long',
+      {
+        symbol,
+      },
+    ),
+  perpsPositionLiquidatedDescriptionShort: (symbol: string) =>
+    t(
+      'notifications.push_notification_content.perps_position_liquidated_description_short',
+      {
+        symbol,
+      },
+    ),
+  perpsStopLossTriggeredTitle: () =>
+    t(
+      'notifications.push_notification_content.perps_stop_loss_triggered_title',
+    ),
+  perpsStopLossTriggeredDescriptionLong: (symbol: string) =>
+    t(
+      'notifications.push_notification_content.perps_stop_loss_triggered_description_long',
+      {
+        symbol,
+      },
+    ),
+  perpsStopLossTriggeredDescriptionShort: (symbol: string) =>
+    t(
+      'notifications.push_notification_content.perps_stop_loss_triggered_description_short',
+      {
+        symbol,
+      },
+    ),
+  perpsLimitOrderFilledTitle: () =>
+    t('notifications.push_notification_content.perps_limit_order_filled_title'),
+  perpsLimitOrderFilledDescriptionLong: (symbol: string) =>
+    t(
+      'notifications.push_notification_content.perps_limit_order_filled_description_long',
+      {
+        symbol,
+      },
+    ),
+  perpsLimitOrderFilledDescriptionShort: (symbol: string) =>
+    t(
+      'notifications.push_notification_content.perps_limit_order_filled_description_short',
+      {
+        symbol,
+      },
+    ),
+  perpsTakeProfitTriggeredTitle: () =>
+    t(
+      'notifications.push_notification_content.perps_take_profit_triggered_title',
+    ),
+  perpsTakeProfitTriggeredDescriptionLong: (symbol: string) =>
+    t(
+      'notifications.push_notification_content.perps_take_profit_triggered_description_long',
+      {
+        symbol,
+      },
+    ),
+  perpsTakeProfitTriggeredDescriptionShort: (symbol: string) =>
+    t(
+      'notifications.push_notification_content.perps_take_profit_triggered_description_short',
+      {
+        symbol,
+      },
+    ),
+};
+
+const translations = {
+  ...walletTranslations,
+  ...perpTranslations,
 };
 
 export function createNotificationMessage(notification: INotification) {

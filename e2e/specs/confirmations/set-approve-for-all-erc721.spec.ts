@@ -14,6 +14,8 @@ import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import WalletView from '../../pages/wallet/WalletView';
 
 describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -66,6 +68,10 @@ describe(SmokeConfirmations('ERC721 token'), () => {
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
+
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.changeNetworkTo('Localhost');
 
         // Assert that the ERC721 activity is an set approve for all and it is confirmed
         await Assertions.expectTextDisplayed(

@@ -13,6 +13,7 @@ import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
 import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 import { expect as appwrightExpect } from 'appwright';
+import { NETWORK_SELECTOR_TEST_IDS } from '../../app/constants/networkSelector.js';
 
 class SendScreen {
   get device() {
@@ -28,6 +29,14 @@ class SendScreen {
       return Selectors.getElementByPlatform(SEND_SCREEN_ID);
     } else {
       return AppwrightSelectors.getElementByID(this._device, SEND_SCREEN_ID);
+    }
+  }
+
+  get networkPicker() {
+    if (!this._device) {
+      return Selectors.getElementByPlatform(NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER);
     }
   }
 
@@ -62,6 +71,15 @@ class SendScreen {
 
   get addAddressButton() {
     return Selectors.getElementByPlatform(ADD_ADDRESS_BUTTON);
+  }
+
+  async openNetworkPicker() {
+    if (!this._device) {
+      await Gestures.waitAndTap(await this.networkPicker);
+    } else {
+      const element = await this.networkPicker;
+      await element.tap();
+    }
   }
 
   async typeAddressInSendAddressField(address) {

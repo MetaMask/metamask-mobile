@@ -1,22 +1,17 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectSubscriptionId } from '../../../../reducers/rewards/selectors';
-import { setReferralDetails } from '../../../../reducers/rewards';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import {
+  setReferralDetails,
+  setReferralDetailsLoading,
+} from '../../../../reducers/rewards';
 import Engine from '../../../../core/Engine';
 import type { SubscriptionReferralDetailsState } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Logger from '../../../../util/Logger';
 
-export interface UseReferralDetailsResult {
-  isLoading: boolean;
-  error: string | null;
-  fetchReferralDetails: () => Promise<void>;
-}
-
-export const useReferralDetails = (): UseReferralDetailsResult => {
+export const useReferralDetails = (): null => {
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const subscriptionId = useSelector(selectSubscriptionId);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   const fetchReferralDetails = useCallback(async (): Promise<void> => {
     if (!subscriptionId) {
@@ -25,8 +20,7 @@ export const useReferralDetails = (): UseReferralDetailsResult => {
     }
 
     try {
-      setIsLoading(true);
-      setError(null);
+      dispatch(setReferralDetailsLoading(true));
 
       const referralDetails: SubscriptionReferralDetailsState | null =
         await Engine.controllerMessenger.call(
@@ -51,21 +45,18 @@ export const useReferralDetails = (): UseReferralDetailsResult => {
         );
       }
     } catch (fetchError) {
-      const errorMessage =
-        fetchError instanceof Error ? fetchError.message : 'Unknown error';
       Logger.log(
         'useReferralDetails: Failed to fetch referral details:',
-        errorMessage,
+        fetchError instanceof Error ? fetchError.message : 'Unknown error',
       );
-      setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      dispatch(setReferralDetailsLoading(false));
     }
   }, [dispatch, subscriptionId]);
 
-  return {
-    isLoading,
-    error,
-    fetchReferralDetails,
-  };
+  useEffect(() => {
+    fetchReferralDetails();
+  }, [fetchReferralDetails]);
+
+  return null;
 };

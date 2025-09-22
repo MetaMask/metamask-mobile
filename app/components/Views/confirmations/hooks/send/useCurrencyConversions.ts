@@ -1,14 +1,11 @@
 import { CaipAssetType, Hex } from '@metamask/utils';
+import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../../../reducers';
-import {
-  balanceToFiatNumber,
-  getCurrencySymbol,
-  limitToMaximumDecimalPlaces,
-} from '../../../../../util/number';
+import { getCurrencySymbol, isDecimal } from '../../../../../util/number';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import {
   selectConversionRateByChainId,
@@ -17,6 +14,7 @@ import {
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
+import { convertCurrency } from '../../utils/send';
 
 interface ConversionArgs {
   amount?: string;
@@ -32,22 +30,33 @@ export const getFiatValueFn = ({
   conversionRate,
   decimals,
   exchangeRate,
-}: ConversionArgs) =>
-  balanceToFiatNumber(amount ?? 0, conversionRate ?? 1, exchangeRate, decimals);
+}: ConversionArgs) => {
+  if (!amount || !isDecimal(amount)) {
+    return '0.00';
+  }
+
+  return convertCurrency(
+    amount ?? '0',
+    (conversionRate ?? 1) * (exchangeRate ?? 1),
+    decimals,
+    2,
+  ).toString();
+};
 
 export const getFiatDisplayValueFn = ({
   amount,
   conversionRate,
   currentCurrency,
   exchangeRate,
+  decimals,
 }: ConversionArgs) => {
   const amt = amount
     ? getFiatValueFn({
-        conversionRate,
-        exchangeRate,
         amount: amount ?? '0',
-        decimals: 2,
-      }).toFixed(2)
+        conversionRate,
+        decimals,
+        exchangeRate,
+      })
     : '0.00';
   return `${getCurrencySymbol(currentCurrency)} ${amt}`;
 };
@@ -58,24 +67,18 @@ export const getNativeValueFn = ({
   decimals,
   exchangeRate,
 }: ConversionArgs) => {
-  let amt = amount ? parseFloat(amount) : 0;
-  amt = Number.isNaN(amt) ? 0 : amt;
-  const nativeValue = amt / ((conversionRate ?? 1) * exchangeRate);
-  return limitToMaximumDecimalPlaces(nativeValue, decimals ?? 0);
-};
+  if (!amount || !isDecimal(amount)) {
+    return '0';
+  }
 
-export const getNativeDisplayValueFn = ({
-  amount,
-  asset,
-  conversionRate,
-  exchangeRate,
-}: ConversionArgs) =>
-  `${asset?.symbol} ${getNativeValueFn({
-    conversionRate,
-    exchangeRate,
-    amount: amount ?? '0',
-    decimals: 5,
-  })}`;
+  const rate = (conversionRate ?? 1) * (exchangeRate ?? 1);
+  return convertCurrency(
+    amount ?? '0',
+    rate === 0 ? 0 : 1 / rate,
+    2,
+    decimals,
+  ).toString();
+};
 
 export const useCurrencyConversions = () => {
   const { asset, chainId } = useSendContext();
@@ -87,7 +90,6 @@ export const useCurrencyConversions = () => {
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId as Hex),
   );
-
   const exchangeRate = useMemo(
     () =>
       asset?.address
@@ -97,64 +99,66 @@ export const useCurrencyConversions = () => {
   );
 
   const conversionRate = useMemo(() => {
-    if (!asset?.address) {
+    const assetAddress = asset?.address ?? (asset as AssetType)?.assetId;
+    if (!assetAddress) {
       return 0;
     }
-    if (isEvmAddress(asset?.address)) {
-      return conversionRateEvm ?? 0;
+    if ((asset as AssetType)?.fiat?.conversionRate) {
+      return (asset as AssetType)?.fiat?.conversionRate ?? 0;
+    }
+    if (isEvmAddress(assetAddress)) {
+      if ((asset as AssetType)?.isNative) {
+        return conversionRateEvm ?? 0;
+      }
+      return 0;
     }
     return parseFloat(
-      multichainAssetsRates[asset?.address as CaipAssetType]?.rate ?? 0,
+      multichainAssetsRates[assetAddress as CaipAssetType]?.rate ?? 0,
     );
-  }, [asset?.address, conversionRateEvm, multichainAssetsRates]);
+  }, [asset, conversionRateEvm, multichainAssetsRates]);
 
   const getFiatDisplayValue = useCallback(
     (amount: string) =>
       getFiatDisplayValueFn({
+        amount,
         conversionRate,
-        exchangeRate,
         currentCurrency,
-        amount,
-      }),
-    [conversionRate, exchangeRate, currentCurrency],
-  );
-
-  const getNativeDisplayValue = useCallback(
-    (amount: string) =>
-      getNativeDisplayValueFn({
-        asset: asset as AssetType,
-        conversionRate,
+        decimals: (asset as AssetType)?.decimals,
         exchangeRate,
-        amount,
       }),
-    [asset, conversionRate, exchangeRate],
+    [asset, conversionRate, exchangeRate, currentCurrency],
   );
 
   const getFiatValue = useCallback(
     (amount: string) =>
       getFiatValueFn({
-        conversionRate,
-        exchangeRate,
         amount,
+        conversionRate,
+        decimals: (asset as AssetType)?.decimals,
+        exchangeRate,
       }),
-    [conversionRate, exchangeRate],
+    [asset, conversionRate, exchangeRate],
   );
 
   const getNativeValue = useCallback(
     (amount: string) =>
       getNativeValueFn({
-        conversionRate,
-        exchangeRate,
         amount,
+        conversionRate,
+        decimals: (asset as AssetType)?.decimals,
+        exchangeRate,
       }),
-    [conversionRate, exchangeRate],
+    [asset, conversionRate, exchangeRate],
   );
 
   return {
-    fiatCurrencySymbol: getCurrencySymbol(currentCurrency),
+    conversionSupportedForAsset:
+      conversionRate * (exchangeRate ?? 0) !== 0 &&
+      asset?.standard !== ERC1155 &&
+      asset?.standard !== ERC721,
+    fiatCurrencySymbol: currentCurrency?.toUpperCase(),
     getFiatDisplayValue,
     getFiatValue,
-    getNativeDisplayValue,
     getNativeValue,
   };
 };

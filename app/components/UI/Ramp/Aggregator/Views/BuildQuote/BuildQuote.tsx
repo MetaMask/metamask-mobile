@@ -60,7 +60,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectTicker } from '../../../../../../selectors/networkController';
@@ -1050,7 +1050,6 @@ const BuildQuote = () => {
           </StyledButton>
         </ScreenLayout.Content>
       </Animated.View>
-
       <FiatSelectModal
         isVisible={isFiatSelectorModalVisible}
         dismiss={toggleFiatSelectorModal as () => void}

@@ -83,7 +83,7 @@ describe('handleSendMessage', () => {
       isAnalyticsTrackedRpcMethod as jest.Mock;
 
     beforeEach(() => {
-      mockRpcQueueManagerGetId.mockReturnValue('eth_requestAccounts'); // Example tracked method
+      mockRpcQueueManagerGetId.mockReturnValue(RPC_METHODS.ETH_REQUESTACCOUNTS); // Example tracked method
       mockIsAnalyticsTrackedRpcMethod.mockReturnValue(true);
       mockConnection.originatorInfo = {
         anonId: 'test-anon-id',
@@ -315,6 +315,7 @@ describe('handleSendMessage', () => {
         });
 
         expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+          isPostNetworkSwitch: false,
           screen: 'ReturnToDappModal',
         });
       });
@@ -339,6 +340,33 @@ describe('handleSendMessage', () => {
       });
 
       expect(mockConnection.trigger).toBe('resume');
+    });
+  });
+
+  describe('Confirmation popup message', () => {
+    beforeEach(() => {
+      mockRpcQueueManagerGetId.mockReturnValue(
+        RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
+      );
+      // mockCanRedirect.mockReturnValue(true);
+      mockBatchRPCManagerGetById.mockReturnValue(undefined);
+    });
+    it('should handle specific behavior for network switch', async () => {
+      mockConnection.trigger = 'deeplink';
+
+      await handleSendMessage({
+        msg: {
+          data: {
+            id: 1,
+          },
+        },
+        connection: mockConnection,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+        isPostNetworkSwitch: true,
+        screen: 'ReturnToDappModal',
+      });
     });
   });
 });

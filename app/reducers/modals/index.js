@@ -1,6 +1,6 @@
 const initialState = {
   networkModalVisible: false,
-  shouldNetworkSwitchPopToWallet: true,
+  shouldNetworkSwitchPopToWallet: false,
   collectibleContractModalVisible: false,
   dappTransactionModalVisible: false,
   signMessageModalVisible: true,

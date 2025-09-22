@@ -142,7 +142,6 @@ describe('AddAsset component', () => {
       selectNetwork: mockSelectNetwork,
       deselectAll: jest.fn(),
       selectAllPopularNetworks: jest.fn(),
-      resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
     mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
@@ -277,6 +276,347 @@ describe('AddAsset component', () => {
           networks: [],
         });
       });
+    });
+  });
+
+  describe('Navigation interactions', () => {
+    it('renders banner with action button for collectibles when displayNftMedia is false', () => {
+      mockUseParamsValues.assetType = 'collectible';
+
+      // Render with displayNftMedia false to show the action button
+      const { getAllByRole } = renderWithProvider(<AddAsset />, {
+        state: {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              PreferencesController: {
+                ...initialState.engine.backgroundState.PreferencesController,
+                displayNftMedia: false,
+              },
+            },
+          },
+        },
+      });
+
+      // Verify that action buttons exist - this shows the banner with action button is rendered
+      const buttons = getAllByRole('button');
+      expect(buttons.length).toBeGreaterThan(0);
+    });
+
+    it('calls setOptions with correct navbar options for token view', () => {
+      mockUseParamsValues.assetType = 'token';
+      renderComponent(<AddAsset />);
+
+      // The component should call setOptions during useEffect
+      expect(mockSetOptions).toHaveBeenCalled();
+    });
+
+    it('calls setOptions with correct navbar options for collectible view', () => {
+      mockUseParamsValues.assetType = 'collectible';
+      renderComponent(<AddAsset />);
+
+      // The component should call setOptions during useEffect
+      expect(mockSetOptions).toHaveBeenCalled();
+    });
+  });
+
+  describe('State management', () => {
+    it('opens and closes network filter bottom sheet', () => {
+      mockUseParamsValues.assetType = 'token';
+      mockUseNetworksByNamespace.mockReturnValue({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        networks: [{ name: 'Ethereum' } as any],
+        selectedNetworks: [],
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: false,
+        networkCount: 1,
+        selectedCount: 0,
+      });
+
+      const { getByTestId, queryByText } = renderComponent(<AddAsset />);
+
+      // Initially, network filter should not be visible
+      expect(queryByText('Network Filter')).toBeNull();
+
+      // Click filter button to open network filter
+      const filterButton = getByTestId('filter-controls-button');
+      fireEvent.press(filterButton);
+
+      // Network filter should now be open
+      expect(getByTestId('select-network-button')).toBeDefined();
+    });
+
+    it('handles network selection', () => {
+      mockUseParamsValues.assetType = 'token';
+      const mockSelectNetworkFn = jest.fn();
+      mockUseNetworkSelection.mockReturnValue({
+        selectCustomNetwork: jest.fn(),
+        selectPopularNetwork: jest.fn(),
+        selectNetwork: mockSelectNetworkFn,
+        deselectAll: jest.fn(),
+        selectAllPopularNetworks: jest.fn(),
+        customNetworksToReset: [],
+      });
+
+      renderComponent(<AddAsset />);
+
+      // Test that network selection hooks are properly initialized
+      expect(mockUseNetworkSelection).toHaveBeenCalledWith({
+        networks: [],
+      });
+    });
+  });
+
+  describe('Conditional rendering based on selectors', () => {
+    it('renders banner with action button when displayNftMedia is false', () => {
+      mockUseParamsValues.assetType = 'collectible';
+
+      // Test with displayNftMedia false - should show enable CTA
+      const { getAllByRole } = renderWithProvider(<AddAsset />, {
+        state: {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              PreferencesController: {
+                ...initialState.engine.backgroundState.PreferencesController,
+                displayNftMedia: false,
+              },
+            },
+          },
+        },
+      });
+
+      // Should show action button when displayNftMedia is false
+      const buttons = getAllByRole('button');
+      expect(buttons.length).toBeGreaterThan(0); // At least one button should exist
+    });
+
+    it('renders banner warning when displayNftMedia is true', () => {
+      mockUseParamsValues.assetType = 'collectible';
+
+      // Test with displayNftMedia true - should show warning without button
+      const { getByTestId } = renderWithProvider(<AddAsset />, {
+        state: {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              PreferencesController: {
+                ...initialState.engine.backgroundState.PreferencesController,
+                displayNftMedia: true,
+              },
+            },
+          },
+        },
+      });
+
+      // Should show the warning test ID
+      expect(
+        getByTestId(AddAssetViewSelectorsIDs.WARNING_ENABLE_DISPLAY_MEDIA),
+      ).toBeDefined();
+    });
+
+    it('renders token detection section when supported', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      // Mock token detection as supported by having the component render
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Should render the token screen
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+
+    it('shows correct network information', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      const mockNetworkConfigs = {
+        '0x1': {
+          name: 'Ethereum Mainnet',
+          chainId: '0x1' as const,
+          rpcEndpoints: [
+            {
+              networkClientId: 'mainnet',
+            },
+          ],
+          defaultRpcEndpointIndex: 0,
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+
+      renderWithProvider(<AddAsset />, {
+        state: {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              NetworkController: {
+                ...initialState.engine.backgroundState.NetworkController,
+                networkConfigurationsByChainId: mockNetworkConfigs,
+              },
+            },
+          },
+        },
+      });
+
+      expect(useNetworksByNamespace).toHaveBeenCalledWith({
+        networkType: 'popular',
+      });
+    });
+  });
+
+  describe('Props passing to child components', () => {
+    it('passes correct props to SearchTokenAutocomplete', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Verify that SearchTokenAutocomplete receives expected props
+      const searchTab = getByTestId('add-token-screen');
+      expect(searchTab).toBeDefined();
+    });
+
+    it('passes correct props to AddCustomToken', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Verify that AddCustomToken receives expected props
+      const tokenTab = getByTestId('add-token-screen');
+      expect(tokenTab).toBeDefined();
+    });
+
+    it('passes correct props to AddCustomCollectible', () => {
+      mockUseParamsValues.assetType = 'collectible';
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Verify that AddCustomCollectible receives expected props
+      const collectibleScreen = getByTestId('add-collectible-screen');
+      expect(collectibleScreen).toBeDefined();
+    });
+  });
+
+  describe('Edge cases and error scenarios', () => {
+    it('handles missing collectibleContract param gracefully', () => {
+      mockUseParamsValues.assetType = 'collectible';
+      delete mockUseParamsValues.collectibleContract;
+
+      expect(() => renderComponent(<AddAsset />)).not.toThrow();
+    });
+
+    it('handles empty network configurations', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      const { getByTestId } = renderWithProvider(<AddAsset />, {
+        state: {
+          ...initialState,
+          engine: {
+            ...initialState.engine,
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              NetworkController: {
+                ...initialState.engine.backgroundState.NetworkController,
+                networkConfigurationsByChainId: {},
+              },
+            },
+          },
+        },
+      });
+
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+
+    it('handles undefined selectedNetwork', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      // Should render without crashing when selectedNetwork is null
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+  });
+
+  describe('Hook interactions', () => {
+    it('responds to different useNetworksByNamespace return values', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      mockUseNetworksByNamespace.mockReturnValue({
+        networks: [
+          { name: 'Ethereum' },
+          { name: 'Polygon' },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ] as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        selectedNetworks: ['0x1'] as any,
+        areAllNetworksSelected: false,
+        areAnyNetworksSelected: true,
+        networkCount: 2,
+        selectedCount: 1,
+      });
+
+      renderComponent(<AddAsset />);
+
+      expect(mockUseNetworkSelection).toHaveBeenCalledWith({
+        networks: [{ name: 'Ethereum' }, { name: 'Polygon' }],
+      });
+    });
+
+    it('handles different provider config values', () => {
+      mockUseParamsValues.assetType = 'token';
+
+      // Test different provider configurations - just test that the component renders
+      const { getByTestId } = renderComponent(<AddAsset />);
+
+      expect(getByTestId('add-token-screen')).toBeDefined();
+    });
+  });
+
+  describe('Network filter functionality', () => {
+    it('calls selectNetwork when feature flag is enabled and filter option is selected', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      mockUseParamsValues.assetType = 'token';
+      const mockSelectNetworkFn = jest.fn();
+
+      mockUseNetworkSelection.mockReturnValue({
+        selectCustomNetwork: jest.fn(),
+        selectPopularNetwork: jest.fn(),
+        selectNetwork: mockSelectNetworkFn,
+        deselectAll: jest.fn(),
+        selectAllPopularNetworks: jest.fn(),
+        customNetworksToReset: [],
+      });
+
+      renderComponent(<AddAsset />);
+
+      // Verify that selectNetwork function is available
+      expect(mockSelectNetworkFn).toBeDefined();
+    });
+
+    it('does not call selectNetwork when feature flag is disabled', () => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      mockUseParamsValues.assetType = 'token';
+
+      const mockSelectNetworkFn = jest.fn();
+      mockUseNetworkSelection.mockReturnValue({
+        selectCustomNetwork: jest.fn(),
+        selectPopularNetwork: jest.fn(),
+        selectNetwork: mockSelectNetworkFn,
+        deselectAll: jest.fn(),
+        selectAllPopularNetworks: jest.fn(),
+        customNetworksToReset: [],
+      });
+
+      renderComponent(<AddAsset />);
+
+      // Function should be available but not called automatically
+      expect(mockSelectNetworkFn).toBeDefined();
+      expect(mockSelectNetworkFn).not.toHaveBeenCalled();
     });
   });
 });

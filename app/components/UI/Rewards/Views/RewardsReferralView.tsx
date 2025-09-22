@@ -7,7 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
-import { useRewardsEngineControllerSync } from '../hooks/useRewardsEngineControllerSync';
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
@@ -15,7 +15,7 @@ const ReferralRewardsView: React.FC = () => {
   const { colors } = useTheme();
 
   // Sync rewards controller state with UI store
-  useRewardsEngineControllerSync();
+  useSeasonStatus();
 
   // Set navigation title with back button
   useEffect(() => {

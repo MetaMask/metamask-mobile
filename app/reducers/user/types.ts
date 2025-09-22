@@ -19,4 +19,5 @@ export interface UserState {
   appServicesReady: boolean;
   existingUser: boolean;
   isConnectionRemoved: boolean;
+  multichainAccountsIntroModalSeen: boolean;
 }

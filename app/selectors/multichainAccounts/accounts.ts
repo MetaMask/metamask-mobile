@@ -10,7 +10,7 @@ import {
 } from '@metamask/account-api';
 import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
-import { EthAccountType } from '@metamask/keyring-api';
+import { EthAccountType, EthScope } from '@metamask/keyring-api';
 
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
@@ -304,6 +304,133 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
       };
     },
   );
+
+/**
+ * Selector factory to get an icon seed address for an account group.
+ * Priority:
+ * 1) First EVM account address (any scope starting with 'eip155:')
+ * 2) If no EVM account, fallback to the first internal account address in the group
+ * 3) Otherwise throw an error
+ *
+ */
+export const selectIconSeedAddressByAccountGroupId = (
+  groupId: AccountGroupId,
+) =>
+  createDeepEqualSelector(
+    [
+      selectAccountTreeControllerState,
+      selectInternalAccountsById,
+      selectInternalAccountsByGroupId,
+    ],
+    (
+      accountTreeState: AccountTreeControllerState,
+      internalAccountsMap: Record<AccountId, InternalAccount>,
+      internalAccountsByGroupId,
+    ): string => {
+      // Prefer an EVM account address if present
+      const evmAccount = findInternalAccountByScope(
+        accountTreeState,
+        internalAccountsMap,
+        groupId,
+        EthScope.Mainnet,
+      );
+      if (evmAccount?.address) {
+        return evmAccount.address;
+      }
+
+      // Fallback to the first available internal account in the group
+      const accountsInGroup = internalAccountsByGroupId(groupId);
+      if (accountsInGroup.length > 0) {
+        return accountsInGroup[0].address;
+      }
+
+      throw new Error(
+        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${groupId}`,
+      );
+    },
+  );
+
+/**
+ * Efficient selector to get icon seed addresses for multiple account groups at once.
+ * This selector is optimized for batch operations and avoids creating multiple selectors.
+ *
+ * Priority for each group:
+ * 1) First EVM account address (any scope starting with 'eip155:')
+ * 2) If no EVM account, fallback to the first internal account address in the group
+ * 3) Otherwise returns undefined for that group
+ *
+ * @param state - The Redux root state
+ * @param accountGroupIds - Array of account group IDs to get icon seed addresses for
+ * @returns Record mapping account group IDs to their icon seed addresses
+ */
+export const selectIconSeedAddressesByAccountGroupIds = createDeepEqualSelector(
+  [
+    selectAccountTreeControllerState,
+    selectInternalAccountsById,
+    (_state: RootState, accountGroupIds: AccountGroupId[]) => accountGroupIds,
+  ],
+  (
+    accountTreeState: AccountTreeControllerState,
+    internalAccountsMap: Record<AccountId, InternalAccount>,
+    accountGroupIds: AccountGroupId[],
+  ): Record<AccountGroupId, string> => {
+    const result: Record<AccountGroupId, string> = {} as Record<
+      AccountGroupId,
+      string
+    >;
+
+    if (!accountTreeState?.accountTree?.wallets) {
+      return result;
+    }
+
+    for (const groupId of accountGroupIds) {
+      try {
+        // Prefer an EVM account address if present
+        const evmAccount = findInternalAccountByScope(
+          accountTreeState,
+          internalAccountsMap,
+          groupId,
+          EthScope.Mainnet,
+        );
+
+        if (evmAccount?.address) {
+          result[groupId] = evmAccount.address;
+          continue;
+        }
+
+        // Fallback to the first available internal account in the group
+        const walletId = getWalletIdFromAccountGroup(groupId);
+        const wallet = accountTreeState.accountTree.wallets[walletId];
+
+        if (!wallet) {
+          continue;
+        }
+
+        const accountGroup =
+          wallet.groups[groupId as keyof typeof wallet.groups];
+
+        if (!accountGroup || accountGroup.accounts.length === 0) {
+          continue;
+        }
+
+        const firstAccountId = accountGroup.accounts[0];
+        const firstAccount = internalAccountsMap[firstAccountId];
+
+        if (firstAccount?.address) {
+          result[groupId] = firstAccount.address;
+        }
+      } catch (error) {
+        // Skip this group if there's an error, don't throw
+        console.warn(
+          `Failed to get icon seed address for group ${groupId}:`,
+          error,
+        );
+      }
+    }
+
+    return result;
+  },
+);
 
 /**
  * Selector to get account groups by a list of addresses.

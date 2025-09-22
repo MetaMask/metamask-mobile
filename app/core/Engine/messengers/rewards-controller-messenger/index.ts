@@ -10,6 +10,13 @@ import {
   RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
+  RewardsDataServiceGenerateChallengeAction,
+  RewardsDataServiceOptinAction,
+  RewardsDataServiceLogoutAction,
+  RewardsDataServiceFetchGeoLocationAction,
+  RewardsDataServiceValidateReferralCodeAction,
+  RewardsDataServiceMobileJoinAction,
+  RewardsDataServiceOptOutAction,
 } from '../../controllers/rewards-controller/services';
 import {
   RewardsControllerActions,
@@ -18,19 +25,40 @@ import {
 import {
   AccountsControllerGetSelectedMultichainAccountAction,
   AccountsControllerSelectedAccountChangeEvent,
+  AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
+import {
+  RewardsDataServiceGetOptInStatusAction,
+  RewardsDataServiceGetPointsEventsAction,
+  RewardsDataServiceGetActivePointsBoostsAction,
+  RewardsDataServiceGetUnlockedRewardsAction,
+  RewardsDataServiceClaimRewardAction,
+} from '../../controllers/rewards-controller/services/rewards-data-service';
 
 const name = 'RewardsController';
 
 // Don't reexport as per guidelines
 type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
+  | AccountsControllerListMultichainAccountsAction
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
+  | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
-  | RewardsDataServiceGetReferralDetailsAction;
+  | RewardsDataServiceGetReferralDetailsAction
+  | RewardsDataServiceGenerateChallengeAction
+  | RewardsDataServiceOptinAction
+  | RewardsDataServiceLogoutAction
+  | RewardsDataServiceFetchGeoLocationAction
+  | RewardsDataServiceValidateReferralCodeAction
+  | RewardsDataServiceMobileJoinAction
+  | RewardsDataServiceGetOptInStatusAction
+  | RewardsDataServiceOptOutAction
+  | RewardsDataServiceGetActivePointsBoostsAction
+  | RewardsDataServiceGetUnlockedRewardsAction
+  | RewardsDataServiceClaimRewardAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -42,7 +70,7 @@ export type RewardsControllerMessenger = RestrictedMessenger<
   RewardsControllerActions | AllowedActions,
   RewardsControllerEvents | AllowedEvents,
   AllowedActions['type'],
-  AllowedEvents['type']
+  AllowedEvents['type'] // ← This was wrong!
 >;
 
 export function getRewardsControllerMessenger(
@@ -55,12 +83,25 @@ export function getRewardsControllerMessenger(
     name,
     allowedActions: [
       'AccountsController:getSelectedMultichainAccount',
+      'AccountsController:listMultichainAccounts',
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
+      'RewardsDataService:getPointsEvents',
       'RewardsDataService:estimatePoints',
       'RewardsDataService:getPerpsDiscount',
       'RewardsDataService:getSeasonStatus',
       'RewardsDataService:getReferralDetails',
+      'RewardsDataService:generateChallenge',
+      'RewardsDataService:optin',
+      'RewardsDataService:logout',
+      'RewardsDataService:fetchGeoLocation',
+      'RewardsDataService:validateReferralCode',
+      'RewardsDataService:mobileJoin',
+      'RewardsDataService:getOptInStatus',
+      'RewardsDataService:optOut',
+      'RewardsDataService:getActivePointsBoosts',
+      'RewardsDataService:getUnlockedRewards',
+      'RewardsDataService:claimReward',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',

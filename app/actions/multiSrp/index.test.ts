@@ -12,7 +12,8 @@ import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, EntropySourceId, SolScope } from '@metamask/keyring-api';
+import { waitFor } from '@testing-library/react-native';
 
 const testAddress = '0x123';
 const mockExpectedAccount = createMockInternalAccount(
@@ -31,6 +32,7 @@ const mockControllerMessenger = jest.fn();
 const mockAddDiscoveredAccounts = jest.fn();
 const mockGetAccountByAddress = jest.fn().mockReturnValue(mockExpectedAccount);
 const mockRemoveAccount = jest.fn();
+const mockSyncAccountTreeWithUserStorage = jest.fn();
 
 // Mock for seedless onboarding
 const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
@@ -88,6 +90,20 @@ jest.mock('../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   },
 }));
 
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
+jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
+}));
+
+const mockDiscoverAccounts = jest.fn();
+
+jest.mock('../../multichain-accounts/discovery', () => ({
+  discoverAccounts: (entropySource: EntropySourceId) =>
+    mockDiscoverAccounts(entropySource),
+}));
+
 jest.mock('../../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -109,6 +125,9 @@ jest.mock('../../core/Engine', () => ({
         keyringId: string,
       ) => mockAddNewSecretData(seed, type, keyringId),
     },
+    AccountTreeController: {
+      syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
+    },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
   setAccountLabel: (address: string, label: string) =>
@@ -125,6 +144,7 @@ describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
   });
 
   describe('importNewSecretRecoveryPhrase', () => {
@@ -158,6 +178,86 @@ describe('MultiSRP Actions', () => {
       expect(result).toEqual({
         address: testAddress,
         discoveredAccountsCount: 10,
+      });
+    });
+
+    it('(state 2) - successfully imports a new secret recovery phrase and returns account details', async () => {
+      // Arrange
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        getAccounts: () => [testAddress],
+        id: 'keyring-id-123',
+      });
+      mockDiscoverAccounts.mockResolvedValue(5);
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const mockCallback = jest.fn();
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(
+        testMnemonic,
+        undefined,
+        mockCallback,
+      );
+
+      // Assert synchronous return
+      expect(mockAddNewKeyring).toHaveBeenCalledWith(ExtendedKeyringTypes.hd, {
+        mnemonic: testMnemonic,
+        numberOfAccounts: 1,
+      });
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+      expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
+      expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 0, // Returns 0 immediately for multichain accounts state 2
+      });
+
+      // Assert callback receives the actual discovered accounts count
+      await waitFor(() => {
+        expect(mockCallback).toHaveBeenCalledWith({
+          address: testAddress,
+          discoveredAccountsCount: 5,
+        });
+      });
+    });
+
+    it('(state 2) - gracefully handle errors during discovery with new SRP', async () => {
+      // Arrange
+      mockGetKeyringsByType.mockResolvedValue([]);
+      mockAddNewKeyring.mockResolvedValue({
+        getAccounts: () => [testAddress],
+        id: 'keyring-id-123',
+      });
+      mockDiscoverAccounts.mockRejectedValue(new Error('Discovery failed'));
+      mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const mockCallback = jest.fn();
+
+      // Act
+      const result = await importNewSecretRecoveryPhrase(
+        testMnemonic,
+        undefined,
+        mockCallback,
+      );
+
+      // Assert synchronous return
+      expect(mockSyncAccountTreeWithUserStorage).toHaveBeenCalled();
+      expect(mockDiscoverAccounts).toHaveBeenCalledWith('keyring-id-123');
+      expect(result).toEqual({
+        address: testAddress,
+        discoveredAccountsCount: 0, // Returns 0 immediately, actual discovery happens async
+      });
+
+      // Assert callback receives 0 when discovery fails
+      await waitFor(() => {
+        expect(mockCallback).toHaveBeenCalledWith({
+          address: testAddress,
+          discoveredAccountsCount: 0, // Discovery has failed, so callback gets 0
+          error: expect.any(Error),
+        });
       });
     });
 

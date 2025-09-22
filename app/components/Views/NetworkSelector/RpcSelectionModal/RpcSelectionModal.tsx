@@ -165,6 +165,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       onClose={closeRpcModal}
       shouldNavigateBack={false}
     >
+      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
       <BottomSheetHeader style={styles.baseHeader}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('app_settings.select_rpc_url')}{' '}
@@ -179,13 +180,21 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
             size: AvatarSize.Sm,
             style: { marginRight: 0 },
           }}
+          // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+          // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
           style={styles.cellBorder}
         >
-          <Text style={styles.alternativeText} variant={TextVariant.BodyMD}>
+          <Text
+            // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+            // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+            style={styles.alternativeText}
+            variant={TextVariant.BodyMD}
+          >
             {showMultiRpcSelectModal.networkName}
           </Text>
         </Cell>
       </BottomSheetHeader>
+      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
       <View style={styles.rpcMenu}>
         {rpcEndpoints.map(
           ({
@@ -210,7 +219,9 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
                 handleRpcSelect(networkClientId, chainId as `0x${string}`)
               }
             >
+              {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
               <View style={styles.rpcText}>
+                {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
                 <Text style={styles.textCentred}>
                   {hideKeyFromUrl(hideProtocolFromUrl(url))}
                 </Text>

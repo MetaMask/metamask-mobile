@@ -3,24 +3,34 @@ import { TextInput, View } from 'react-native';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './edit-amount.styles';
-import { DepositKeyboard } from '../deposit-keyboard';
+import { DepositKeyboard, DepositKeyboardSkeleton } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { getCurrencySymbol } from '../../../../../util/number';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
 import { Alert } from '../../types/alerts';
+import { PERPS_CURRENCY } from '../../constants/perps';
+import { AlertKeys } from '../../constants/alerts';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const MAX_LENGTH = 28;
+
+const ON_CHANGE_ALERTS = [
+  AlertKeys.PerpsDepositMinimum,
+  AlertKeys.InsufficientPayTokenBalance,
+];
 
 export interface EditAmountProps {
   alerts?: Alert[];
   autoKeyboard?: boolean;
   children?: (amountHuman: string) => React.ReactNode;
+  isLoading?: boolean;
   onChange?: (amount: string) => void;
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
@@ -31,28 +41,41 @@ export function EditAmount({
   alerts,
   autoKeyboard = false,
   children,
+  isLoading,
   onChange,
   onKeyboardShow,
   onKeyboardHide,
   onKeyboardDone,
 }: EditAmountProps) {
-  const fiatCurrency = useSelector(selectCurrentCurrency);
+  const fiatCurrency = PERPS_CURRENCY;
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
   const { payToken } = useTransactionPayToken();
-  const { fiatUnformatted, updateTokenAmount } = useTokenAmount();
+  const { updateTokenAmount } = useTokenAmount();
   const transactionMeta = useTransactionMetadataRequest();
-  const [amountFiat, setAmountFiat] = useState<string>(fiatUnformatted ?? '0');
+  const [amountFiat, setAmountFiat] = useState<string>('0');
 
   const tokenAddress = transactionMeta?.txParams?.to as Hex;
   const chainId = transactionMeta?.chainId as Hex;
-  const fiatRate = useTokenFiatRate(tokenAddress, chainId);
+  const fiatRate = useTokenFiatRate(tokenAddress, chainId, fiatCurrency);
 
   const inputRef = createRef<TextInput>();
-  const hasAlert = Boolean(alerts?.length) && inputChanged;
   const fiatSymbol = getCurrencySymbol(fiatCurrency);
   const amountLength = amountFiat.length;
+  const currentAlert = alerts?.[0];
+
+  const hasAlert =
+    Boolean(currentAlert) &&
+    (!ON_CHANGE_ALERTS.includes(currentAlert?.key as AlertKeys) ||
+      inputChanged);
+
+  const alertKeyboard = hasAlert
+    ? currentAlert?.title ?? (currentAlert?.message as string)
+    : undefined;
+
+  const alertMessage =
+    hasAlert && currentAlert?.title ? currentAlert?.message : undefined;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -83,7 +106,11 @@ export function EditAmount({
   }, [autoKeyboard, inputChanged, handleInputPress]);
 
   const handleChange = useCallback((amount: string) => {
-    const newAmount = amount.replace(/^0+/, '') || '0';
+    let newAmount = amount.replace(/^0+/, '') || '0';
+
+    if (newAmount.startsWith('.') || newAmount.startsWith(',')) {
+      newAmount = '0' + newAmount;
+    }
 
     if (newAmount.length >= MAX_LENGTH) {
       return;
@@ -132,6 +159,10 @@ export function EditAmount({
     [handleChange, tokenFiatAmount],
   );
 
+  if (isLoading) {
+    return <EditAmountSkeleton>{children?.('')}</EditAmountSkeleton>;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.primaryContainer}>
@@ -154,9 +185,15 @@ export function EditAmount({
           />
         </View>
         {children?.(amountHuman)}
+        {showKeyboard && alertMessage && (
+          <Text variant={TextVariant.BodySM} style={styles.alertMessage}>
+            {alertMessage}
+          </Text>
+        )}
       </View>
       {showKeyboard && (
         <DepositKeyboard
+          alertMessage={alertKeyboard}
           value={amountFiat}
           hasInput={hasAmount}
           onChange={handleChange}
@@ -164,6 +201,29 @@ export function EditAmount({
           onPercentagePress={handlePercentagePress}
         />
       )}
+    </View>
+  );
+}
+
+export function EditAmountSkeleton({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { styles } = useStyles(styleSheet, {
+    amountLength: 1,
+    hasAlert: false,
+  });
+
+  return (
+    <View style={styles.container} testID="edit-amount-skeleton">
+      <View style={styles.primaryContainer}>
+        <View style={styles.inputContainer}>
+          <Skeleton height={70} width={80} />
+        </View>
+        {children}
+      </View>
+      <DepositKeyboardSkeleton />
     </View>
   );
 }

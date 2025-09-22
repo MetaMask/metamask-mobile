@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { useSelector } from 'react-redux';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -41,6 +42,8 @@ import {
   CustomNetworkItem,
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 
 const CustomNetworkSelector = ({
   openModal,
@@ -50,13 +53,21 @@ const CustomNetworkSelector = ({
   const { styles } = useStyles(createStyles, { colors });
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   // Use custom hooks for network management
-  const { networks } = useNetworksByNamespace({
+  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Custom,
   });
-  const { selectCustomNetwork } = useNetworkSelection({
+
+  const { networksToUse } = useNetworksToUse({
     networks,
+    networkType: NetworkType.Custom,
+    areAllNetworksSelected,
+  });
+
+  const { selectCustomNetwork } = useNetworkSelection({
+    networks: networksToUse,
   });
 
   const goToNetworkSettings = useCallback(() => {
@@ -70,7 +81,7 @@ const CustomNetworkSelector = ({
     ({ item }) => {
       const { name, caipChainId, networkTypeOrRpcUrl, isSelected } = item;
       const rawChainId = parseCaipChainId(caipChainId).reference;
-      const chainId = toHex(rawChainId);
+      const chainId = isEvmSelected ? toHex(rawChainId) : rawChainId;
 
       const handlePress = async () => {
         await selectCustomNetwork(caipChainId, dismissModal);
@@ -107,7 +118,7 @@ const CustomNetworkSelector = ({
         </View>
       );
     },
-    [selectCustomNetwork, openModal, dismissModal],
+    [selectCustomNetwork, openModal, dismissModal, isEvmSelected],
   );
 
   const renderFooter = useCallback(
@@ -134,7 +145,7 @@ const CustomNetworkSelector = ({
   return (
     <ScrollView style={styles.container}>
       <FlashList
-        data={networks}
+        data={networksToUse}
         renderItem={renderNetworkItem}
         keyExtractor={(item) => item.caipChainId}
         ListFooterComponent={renderFooter}

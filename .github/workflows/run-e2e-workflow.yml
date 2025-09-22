@@ -37,12 +37,13 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
     env:
+      PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
@@ -59,6 +60,7 @@ jobs:
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEEDLESS_ONBOARDING_ENABLED: 'true'
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
       SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
@@ -90,7 +92,6 @@ jobs:
           setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
           configure-keystores: false
-          sd-card-size: 8192
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
@@ -138,22 +139,19 @@ jobs:
             exit 1
           fi
 
-      - name: Clean environment before tests (iOS only)
+      - name: Setup iOS artifacts from build job
         if: ${{ inputs.platform == 'ios' }}
         run: |
-          echo "🧹 Cleaning iOS environment before E2E tests..."
+          echo "🏗 Setting up iOS artifacts from build job..."
+          
+          # Create required directories
+          mkdir -p ios/build/Build/Products/Release-iphonesimulator/
 
-          # Clean up lock files (iOS-specific issue)
-          find . -name "*.lock" -type f -delete 2>/dev/null || true
-
-          # Reset iOS simulator
-          xcrun simctl shutdown all 2>/dev/null || true
-          xcrun simctl erase all 2>/dev/null || true
-
-          # Clean any hanging processes
-          pkill -f "Metro\|node\|npm" 2>/dev/null || true
-
-          echo "✅ iOS environment cleaned"
+      - name: Download iOS build artifacts
+        if: ${{ inputs.platform == 'ios' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
 
       - name: Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}

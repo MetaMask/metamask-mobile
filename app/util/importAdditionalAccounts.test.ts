@@ -10,6 +10,8 @@ const mockEthQuery = {
   getBalance: jest.fn(),
 };
 
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
 jest.mock('../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -18,6 +20,11 @@ jest.mock('../core/Engine', () => ({
       ),
     },
   },
+}));
+
+jest.mock('../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
 }));
 
 jest.mock('./networks/global-network', () => ({
@@ -111,6 +118,16 @@ describe('importAdditionalAccounts', () => {
       expect(mockKeyring.addAccounts).toHaveBeenCalledTimes(2);
       expect(mockKeyring.removeAccount).toHaveBeenCalledTimes(1);
       expect(mockKeyring.removeAccount).toHaveBeenCalledWith('0x5678');
+    });
+  });
+
+  describe('(state 2) - when state 2 enabled', () => {
+    it('does not run EVM account discovery', async () => {
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      await importAdditionalAccounts();
+
+      expect(mockKeyring.addAccounts).not.toHaveBeenCalled();
     });
   });
 });

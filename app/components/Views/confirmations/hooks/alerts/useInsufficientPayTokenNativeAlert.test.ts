@@ -1,4 +1,3 @@
-import { renderHook } from '@testing-library/react-native';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
@@ -6,27 +5,34 @@ import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNativeAlert';
 import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { selectTickerByChainId } from '../../../../../selectors/networkController';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionTotalFiat');
-jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
+jest.mock('../tokens/useTokenWithBalance');
+jest.mock('../../../../../selectors/networkController');
 
 const CHAIN_ID_MOCK = '0x123';
 const BALANCE_FIAT = 123.45;
+const TICKER_MOCK = 'TST';
 
 function runHook() {
-  return renderHook(() => useInsufficientPayTokenNativeAlert());
+  return renderHookWithProvider(() => useInsufficientPayTokenNativeAlert());
 }
 
 describe('useInsufficientPayTokenNativeAlert', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionTotalFiatMock = jest.mocked(useTransactionTotalFiat);
-  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
+  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
+  const selectTickerByChainIdMock = jest.mocked(selectTickerByChainId);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    selectTickerByChainIdMock.mockReturnValue(TICKER_MOCK);
   });
 
   it('returns alert if native balance less than quote network fees', () => {
@@ -34,16 +40,14 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       payToken: { chainId: CHAIN_ID_MOCK },
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
-    useTokensWithBalanceMock.mockReturnValue([
-      {
-        address: NATIVE_TOKEN_ADDRESS,
-        chainId: CHAIN_ID_MOCK,
-        tokenFiatAmount: BALANCE_FIAT,
-      },
-    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+    useTokenWithBalanceMock.mockReturnValue({
+      address: NATIVE_TOKEN_ADDRESS,
+      chainId: CHAIN_ID_MOCK,
+      tokenFiatAmount: BALANCE_FIAT,
+    } as unknown as ReturnType<typeof useTokenWithBalance>);
 
     useTransactionTotalFiatMock.mockReturnValue({
-      quoteNetworkFee: `${BALANCE_FIAT + 0.01}`,
+      totalNetworkFeeMax: `${BALANCE_FIAT + 0.01}`,
     } as unknown as ReturnType<typeof useTransactionTotalFiat>);
 
     const { result } = runHook();
@@ -52,7 +56,40 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       {
         key: AlertKeys.InsufficientPayTokenNative,
         field: RowAlertKey.PayWith,
-        message: strings('alert_system.insufficient_pay_token_native.message'),
+        message: strings('alert_system.insufficient_pay_token_native.message', {
+          ticker: TICKER_MOCK,
+        }),
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ]);
+  });
+
+  it('returns alert if native balance less than total and pay token is native', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { chainId: CHAIN_ID_MOCK, address: NATIVE_TOKEN_ADDRESS },
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    useTokenWithBalanceMock.mockReturnValue({
+      address: NATIVE_TOKEN_ADDRESS,
+      chainId: CHAIN_ID_MOCK,
+      tokenFiatAmount: BALANCE_FIAT,
+    } as unknown as ReturnType<typeof useTokenWithBalance>);
+
+    useTransactionTotalFiatMock.mockReturnValue({
+      totalNetworkFeeMax: `${BALANCE_FIAT}`,
+      total: `${BALANCE_FIAT + 0.01}`,
+    } as unknown as ReturnType<typeof useTransactionTotalFiat>);
+
+    const { result } = runHook();
+
+    expect(result.current).toEqual([
+      {
+        key: AlertKeys.InsufficientPayTokenNative,
+        field: RowAlertKey.PayWith,
+        message: strings('alert_system.insufficient_pay_token_native.message', {
+          ticker: TICKER_MOCK,
+        }),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -64,13 +101,11 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       payToken: { chainId: CHAIN_ID_MOCK },
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
-    useTokensWithBalanceMock.mockReturnValue([
-      {
-        address: NATIVE_TOKEN_ADDRESS,
-        chainId: CHAIN_ID_MOCK,
-        tokenFiatAmount: BALANCE_FIAT,
-      },
-    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+    useTokenWithBalanceMock.mockReturnValue({
+      address: NATIVE_TOKEN_ADDRESS,
+      chainId: CHAIN_ID_MOCK,
+      tokenFiatAmount: BALANCE_FIAT,
+    } as unknown as ReturnType<typeof useTokenWithBalance>);
 
     useTransactionTotalFiatMock.mockReturnValue({
       quoteNetworkFee: `${BALANCE_FIAT}`,
@@ -86,13 +121,11 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       payToken: undefined,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
-    useTokensWithBalanceMock.mockReturnValue([
-      {
-        address: NATIVE_TOKEN_ADDRESS,
-        chainId: CHAIN_ID_MOCK,
-        tokenFiatAmount: BALANCE_FIAT,
-      },
-    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+    useTokenWithBalanceMock.mockReturnValue({
+      address: NATIVE_TOKEN_ADDRESS,
+      chainId: CHAIN_ID_MOCK,
+      tokenFiatAmount: BALANCE_FIAT,
+    } as unknown as ReturnType<typeof useTokenWithBalance>);
 
     useTransactionTotalFiatMock.mockReturnValue({
       quoteNetworkFee: `${BALANCE_FIAT + 0.01}`,

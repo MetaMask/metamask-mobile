@@ -487,6 +487,7 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
       },
       destChainId: 1151111081099710,
       destTokenAmount: '22051125394',
+      minDestTokenAmount: '21952114140',
       destAsset: {
         address: '0x0000000000000000000000000000000000000000',
         chainId: 1151111081099710,
@@ -608,6 +609,7 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
       },
       destChainId: 8453,
       destTokenAmount: '990753945481277500',
+      minDestTokenAmount: '981246386526364825',
       destAsset: {
         address: '0x0000000000000000000000000000000000000000',
         chainId: 8453,

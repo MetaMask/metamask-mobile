@@ -4,7 +4,10 @@ import Device from '../../../../../util/device';
 
 const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = Dimensions.get('window');
 
-const createStyles = (params: { theme: Theme }) =>
+const createStyles = (params: {
+  theme: Theme;
+  vars: { shouldShowSkipButton: boolean };
+}) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -72,6 +75,10 @@ const createStyles = (params: { theme: Theme }) =>
       paddingHorizontal: 16,
       paddingVertical: 16,
     },
+    fundsInfoText: {
+      textAlign: 'center',
+      color: params.theme.colors.text.alternative,
+    },
     buttonRow: {
       flexDirection: 'column',
       alignItems: 'stretch',
@@ -81,6 +88,7 @@ const createStyles = (params: { theme: Theme }) =>
       paddingHorizontal: 16,
       marginBottom: 16,
       alignSelf: 'center',
+      opacity: params.vars.shouldShowSkipButton ? 1 : 0,
     },
     continueButton: {
       width: '100%',

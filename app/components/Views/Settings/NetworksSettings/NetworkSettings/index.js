@@ -24,6 +24,7 @@ import Networks, {
   isPortfolioViewEnabled,
   isValidNetworkName,
   getDecimalChainId,
+  isWhitelistedSymbol,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -1179,7 +1180,14 @@ export class NetworkSettings extends PureComponent {
    * Validates that symbol match with the chainId, setting a warningSymbol if is invalid
    */
   validateSymbol = (chainToMatch = null) => {
-    const { ticker, networkList } = this.state;
+    const { ticker, networkList, chainId } = this.state;
+
+    if (isWhitelistedSymbol(chainId, ticker)) {
+      return this.setState({
+        warningSymbol: undefined,
+        validatedSymbol: !!ticker,
+      });
+    }
 
     const { useSafeChainsListValidation } = this.props;
 
@@ -2446,7 +2454,7 @@ export class NetworkSettings extends PureComponent {
                             </View>
                           }
                           secondaryText={
-                            formattedName ? formatNetworkRpcUrl(rpcUrl) : ''
+                            formattedName ? formatNetworkRpcUrl(url) : ''
                           }
                           showSecondaryTextIcon={false}
                           isSelected={rpcUrl === url}

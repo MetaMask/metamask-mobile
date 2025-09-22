@@ -9,6 +9,7 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
+import { addTransaction } from '../../util/transaction-controller';
 
 jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
@@ -53,6 +54,7 @@ function setupBackgroundBridge(url, isMMSDK = false) {
     PermissionController,
     SelectedNetworkController,
     NetworkController,
+    TransactionController,
   } = Engine.context;
 
   const mockAddress = '0x0';
@@ -94,6 +96,17 @@ function setupBackgroundBridge(url, isMMSDK = false) {
   });
   SelectedNetworkController.getProviderAndBlockTracker.mockReturnValue({
     provider: {},
+  });
+
+  // Setup transaction controller mocks
+  TransactionController.addTransaction.mockResolvedValue({
+    bind: jest.fn(),
+  });
+  TransactionController.addTransactionBatch.mockResolvedValue({
+    bind: jest.fn(),
+  });
+  TransactionController.isAtomicBatchSupported.mockResolvedValue({
+    bind: jest.fn(),
   });
 
   // Mock getPermittedAccounts to return the address
