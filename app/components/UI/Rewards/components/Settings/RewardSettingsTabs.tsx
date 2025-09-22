@@ -167,11 +167,18 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   }) => renderAccountItem(account, true);
 
   if (isLoadingOptInSummary) {
+    // Create an array of unique identifiers for skeleton items
+    const skeletonItems = [
+      { id: 'account-skeleton-1' },
+      { id: 'account-skeleton-2' },
+      { id: 'account-skeleton-3' },
+    ];
+
     return (
       <Box twClassName="gap-3">
-        {[...Array(3)].map((_, index) => (
+        {skeletonItems.map((item) => (
           <Box
-            key={`account-skeleton-${index}`}
+            key={item.id}
             twClassName="flex-row items-center gap-3 py-3 px-4 rounded-lg"
           >
             <Skeleton height={40} width={40} style={tw.style('rounded-full')} />
