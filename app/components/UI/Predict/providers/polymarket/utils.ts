@@ -167,6 +167,9 @@ export const deriveApiKey = async ({ address }: { address: string }) => {
     method: 'GET',
     headers,
   });
+  if (!response.ok) {
+    throw new Error('Failed to derive API key');
+  }
   const apiKeyRaw = await response.json();
   return apiKeyRaw as ApiKeyCreds;
 };
@@ -198,6 +201,9 @@ export const getTickSize = async ({ tokenId }: { tokenId: string }) => {
       method: 'GET',
     },
   );
+  if (!response.ok) {
+    throw new Error('Failed to get tick size');
+  }
   const responseData = await response.json();
   return responseData as TickSizeResponse;
 };
@@ -208,6 +214,9 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   const response = await fetch(`${CLOB_ENDPOINT}/book?token_id=${tokenId}`, {
     method: 'GET',
   });
+  if (!response.ok) {
+    throw new Error('Failed to get order book');
+  }
   const responseData = await response.json();
   return responseData;
 };
@@ -678,6 +687,10 @@ export const getMarketsFromPolymarketApi = async (
     : `${GAMMA_API_ENDPOINT}/events/pagination?${queryParamsEvents}`;
 
   const response = await fetch(endpoint);
+
+  if (!response.ok) {
+    throw new Error('Failed to get markets');
+  }
   const data = await response.json();
 
   DevLogger.log('Polymarket response data:', data);
@@ -706,6 +719,9 @@ export const getMarketFromPolymarketApi = async ({
   const response = await fetch(
     `${GAMMA_API_ENDPOINT}/markets?condition_ids=${conditionId}`,
   );
+  if (!response.ok) {
+    throw new Error('Failed to get market');
+  }
   const responseData = await response.json();
   const market = responseData[0];
   return market as PolymarketApiMarket;

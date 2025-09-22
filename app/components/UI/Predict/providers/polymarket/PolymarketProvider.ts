@@ -186,6 +186,9 @@ export class PolymarketProvider implements PredictProvider {
         },
       },
     );
+    if (!response.ok) {
+      throw new Error('Failed to get positions');
+    }
     const positionsData = (await response.json()) as PolymarketPosition[];
     const parsedPositions = parsePolymarketPositions({
       positions: positionsData,

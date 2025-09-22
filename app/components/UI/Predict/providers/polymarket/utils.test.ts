@@ -349,6 +349,7 @@ describe('polymarket utils', () => {
   describe('deriveApiKey', () => {
     it('should derive API key successfully', async () => {
       const mockResponse = {
+        ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
       };
       mockFetch.mockResolvedValue(mockResponse);
@@ -381,6 +382,7 @@ describe('polymarket utils', () => {
   describe('createApiKey', () => {
     it('should create API key successfully', async () => {
       const mockResponse = {
+        ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
         status: 200,
       };
@@ -403,10 +405,12 @@ describe('polymarket utils', () => {
 
     it('should derive API key when creation returns 400', async () => {
       const createResponse = {
+        ok: false,
         json: jest.fn().mockResolvedValue({}),
         status: 400,
       };
       const deriveResponse = {
+        ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
       };
 
@@ -469,6 +473,7 @@ describe('polymarket utils', () => {
       };
 
       const mockResponse = {
+        ok: true,
         json: jest.fn().mockResolvedValue(mockTickSizeResponse),
       };
       mockFetch.mockResolvedValue(mockResponse);
@@ -506,6 +511,7 @@ describe('polymarket utils', () => {
       };
 
       const mockResponse = {
+        ok: true,
         json: jest.fn().mockResolvedValue(mockOrderBook),
       };
       mockFetch.mockResolvedValue(mockResponse);
@@ -687,6 +693,7 @@ describe('polymarket utils', () => {
 
     beforeEach(() => {
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(mockOrderBook),
       });
     });
@@ -704,6 +711,7 @@ describe('polymarket utils', () => {
     it('should throw error for missing asks on buy', async () => {
       const orderBookWithoutAsks = { bids: mockOrderBook.bids };
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(orderBookWithoutAsks),
       });
 
@@ -715,6 +723,7 @@ describe('polymarket utils', () => {
     it('should throw error for missing bids on sell', async () => {
       const orderBookWithoutBids = { asks: mockOrderBook.asks };
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(orderBookWithoutBids),
       });
 
@@ -725,6 +734,7 @@ describe('polymarket utils', () => {
 
     it('should throw error for missing orderbook', async () => {
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(null),
       });
 
@@ -1297,6 +1307,7 @@ describe('polymarket utils', () => {
       };
 
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
@@ -1315,6 +1326,7 @@ describe('polymarket utils', () => {
       };
 
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
@@ -1340,6 +1352,7 @@ describe('polymarket utils', () => {
       };
 
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 
@@ -1358,6 +1371,7 @@ describe('polymarket utils', () => {
 
     it('should return empty array for invalid response', async () => {
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue({}),
       });
 
@@ -1398,6 +1412,7 @@ describe('polymarket utils', () => {
       const mockResponse = [mockMarket];
 
       mockFetch.mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(mockResponse),
       });
 

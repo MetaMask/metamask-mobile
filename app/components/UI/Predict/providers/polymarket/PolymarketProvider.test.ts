@@ -156,6 +156,7 @@ describe('PolymarketProvider', () => {
     (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
       .fn()
       .mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue([]),
       });
 
@@ -228,6 +229,7 @@ describe('PolymarketProvider', () => {
     (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
       .fn()
       .mockResolvedValue({
+        ok: true,
         json: jest.fn().mockResolvedValue(mockApiResponse),
       });
 
@@ -253,6 +255,7 @@ describe('PolymarketProvider', () => {
     const provider = createProvider();
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
     const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
       json: jest.fn().mockResolvedValue([]),
     });
     (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
@@ -278,6 +281,7 @@ describe('PolymarketProvider', () => {
     const provider = createProvider();
     const originalFetch = globalThis.fetch as typeof fetch | undefined;
     const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
       json: jest.fn().mockResolvedValue([]),
     });
     (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
