@@ -181,3 +181,20 @@ export const FUNDING_RATE_CONFIG = {
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
+
+/**
+ * Development-only configuration for testing and debugging
+ * These constants are only active when __DEV__ is true
+ */
+export const DEVELOPMENT_CONFIG = {
+  // Magic number to simulate fee discount state (20% discount)
+  SIMULATE_FEE_DISCOUNT_AMOUNT: 41,
+
+  // Magic number to simulate rewards error state (set order amount to this value)
+  SIMULATE_REWARDS_ERROR_AMOUNT: 42,
+
+  // Magic number to simulate rewards loading state
+  SIMULATE_REWARDS_LOADING_AMOUNT: 43,
+
+  // Future: Add other development helpers as needed
+} as const;

@@ -1,34 +1,24 @@
 import { useEffect, useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import { setSeasonStatus } from '../../../../actions/rewards';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setSeasonStatusLoading } from '../../../../reducers/rewards';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
-
-export interface UseSeasonStatusOptions {
-  /**
-   * Season ID to fetch status for
-   * If not provided, will not fetch data
-   */
-  seasonId?: string;
-
-  /**
-   * Subscription ID for authentication
-   * If not provided, will not fetch data
-   */
-  subscriptionId?: string;
-}
+import { selectSeasonId } from '../../../../reducers/rewards/selectors';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 /**
  * Custom hook to fetch and manage season status data from the rewards API
  * Uses the RewardsController to get data from the rewards data service
  */
-export const useSeasonStatus = (options: UseSeasonStatusOptions = {}): null => {
-  const { seasonId, subscriptionId } = options;
+export const useSeasonStatus = (): void => {
+  const seasonId = useSelector(selectSeasonId);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
 
   const fetchSeasonStatus = useCallback(async (): Promise<void> => {
-    // Don't fetch if required parameters are missing
+    // Don't fetch if no subscriptionId
     if (!subscriptionId) {
       dispatch(setSeasonStatus(null));
       dispatch(setSeasonStatusLoading(false));
@@ -58,5 +48,8 @@ export const useSeasonStatus = (options: UseSeasonStatusOptions = {}): null => {
     fetchSeasonStatus();
   }, [fetchSeasonStatus]);
 
-  return null;
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    fetchSeasonStatus,
+  );
 };

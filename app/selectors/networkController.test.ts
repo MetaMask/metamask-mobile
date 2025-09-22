@@ -258,6 +258,11 @@ describe('networkSelectors', () => {
                 },
               },
             },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bitcoinTestnetsEnabled: true,
+              },
+            },
           },
         },
       } as unknown as RootState;
@@ -312,6 +317,89 @@ describe('networkSelectors', () => {
         stateWithOnlyPopularNetworks,
       );
       expect(result).toHaveLength(0);
+    });
+
+    it('should not include bitcoin testnets when feature flag is disabled', () => {
+      const stateWithVariousNetworks = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              ...mockState.engine.backgroundState.NetworkController,
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  nativeCurrency: 'ETH',
+                  name: 'Ethereum Mainnet',
+                  rpcEndpoints: [],
+                },
+                '0x12345': {
+                  chainId: '0x12345',
+                  nativeCurrency: 'CUSTOM',
+                  name: 'Custom Network',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'custom-1',
+                      type: 'custom',
+                      url: 'https://custom-rpc.com',
+                    },
+                  ],
+                },
+                '0x67890': {
+                  chainId: '0x67890',
+                  nativeCurrency: 'TEST',
+                  name: 'Test Network',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'custom-2',
+                      type: 'custom',
+                      url: 'https://test-rpc.com',
+                    },
+                  ],
+                },
+              },
+            },
+            MultichainNetworkController: {
+              ...mockState.engine.backgroundState.MultichainNetworkController,
+              multichainNetworkConfigurationsByChainId: {
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                  nativeCurrency: 'SOL',
+                  name: 'Solana Mainnet',
+                  rpcEndpoints: [],
+                },
+                'bip122:000000000933ea01ad0ee984209779ba': {
+                  chainId: 'bip122:000000000933ea01ad0ee984209779ba',
+                  nativeCurrency: 'BTC',
+                  name: 'Bitcoin Testnet',
+                  rpcEndpoints: [],
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bitcoinTestnetsEnabled: false,
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectCustomNetworkConfigurationsByCaipChainId(
+        stateWithVariousNetworks,
+      );
+
+      // Only include the 2 custom networks
+      expect(result).toHaveLength(2);
+      // Bitcoin testnet
+      expect(result.map((n) => n.chainId)).not.toContain(
+        'bip122:000000000933ea01ad0ee984209779ba',
+      );
+      // Custom networks
+      expect(result.map((n) => n.chainId)).toContain('0x12345');
+      expect(result.map((n) => n.chainId)).toContain('0x67890');
     });
   });
 

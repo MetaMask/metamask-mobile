@@ -11,7 +11,11 @@ import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { parseCaipChainId, CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { debounce } from 'lodash';
@@ -49,6 +53,7 @@ import {
   SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/index.ts';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -80,6 +85,9 @@ const NetworkMultiSelectList = ({
   const selectedChainId = useSelector(selectChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -87,9 +95,10 @@ const NetworkMultiSelectList = ({
     (): ProcessedNetwork[] =>
       networks.map((network) => {
         const parsedCaipChainId = parseCaipChainId(network.caipChainId);
-        const chainId = isEvmSelected
-          ? toHex(parsedCaipChainId.reference)
-          : parsedCaipChainId.reference;
+        const chainId =
+          parsedCaipChainId.namespace === KnownCaipNamespace.Eip155
+            ? toHex(parsedCaipChainId.reference)
+            : parsedCaipChainId.reference;
 
         return {
           ...network,
@@ -100,7 +109,7 @@ const NetworkMultiSelectList = ({
           isSelected: areAllNetworksSelected ? false : network.isSelected,
         };
       }),
-    [areAllNetworksSelected, networks, isEvmSelected],
+    [areAllNetworksSelected, networks],
   );
 
   const combinedData: NetworkListItem[] = useMemo(() => {
@@ -113,7 +122,10 @@ const NetworkMultiSelectList = ({
       data.push(...filteredNetworks);
     }
 
-    if (selectAllNetworksComponent && isEvmSelected) {
+    if (
+      (selectAllNetworksComponent && isEvmSelected) ||
+      isMultichainAccountsState2Enabled
+    ) {
       data.unshift({
         id: SELECT_ALL_NETWORKS_SECTION_ID,
         type: NetworkListItemType.SelectAllNetworksListItem,
@@ -135,6 +147,7 @@ const NetworkMultiSelectList = ({
     additionalNetworksComponent,
     selectAllNetworksComponent,
     isEvmSelected,
+    isMultichainAccountsState2Enabled,
   ]);
 
   const contentContainerStyle = useMemo(
@@ -245,6 +258,7 @@ const NetworkMultiSelectList = ({
 
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
+
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell

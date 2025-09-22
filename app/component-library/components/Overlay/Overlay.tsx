@@ -18,7 +18,12 @@ import styleSheet from './Overlay.styles';
 import { OverlayProps } from './Overlay.types';
 import { DEFAULT_OVERLAY_ANIMATION_DURATION } from './Overlay.constants';
 
-const Overlay: React.FC<OverlayProps> = ({ style, onPress, color }) => {
+const Overlay: React.FC<OverlayProps> = ({
+  style,
+  onPress,
+  color,
+  duration,
+}) => {
   const { styles } = useStyles(styleSheet, { style, color });
   const opacityVal = useSharedValue(0);
   const animatedStyles = useAnimatedStyle(
@@ -29,7 +34,7 @@ const Overlay: React.FC<OverlayProps> = ({ style, onPress, color }) => {
   );
 
   opacityVal.value = withTiming(1, {
-    duration: DEFAULT_OVERLAY_ANIMATION_DURATION,
+    duration: duration ?? DEFAULT_OVERLAY_ANIMATION_DURATION,
     easing: Easing.linear,
   });
 

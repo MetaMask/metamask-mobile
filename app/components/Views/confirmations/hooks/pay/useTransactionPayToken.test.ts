@@ -13,6 +13,7 @@ import {
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../tokens/useTokenWithBalance');
 
@@ -33,14 +34,21 @@ const PAY_TOKEN_MOCK: ConfirmationMetricsReducer.TransactionPayToken = {
 const BRIDGE_TOKEN_MOCK = {
   address: tokenAddress1Mock,
   balance: '123.456',
+  balanceFiat: '$456.12',
   decimals: 4,
   chainId: ChainId.mainnet,
   tokenFiatAmount: 456.123,
 } as unknown as BridgeToken;
 
 function runHook({
+  currency,
   payToken,
-}: { payToken?: ConfirmationMetricsReducer.TransactionPayToken } = {}) {
+  type,
+}: {
+  currency?: string;
+  payToken?: ConfirmationMetricsReducer.TransactionPayToken;
+  type?: TransactionType;
+} = {}) {
   const mockState = cloneDeep(STATE_MOCK);
 
   if (payToken) {
@@ -50,6 +58,24 @@ function runHook({
         [TRANSACTION_ID_MOCK]: payToken,
       },
     };
+  }
+
+  if (currency) {
+    mockState.engine.backgroundState.CurrencyRateController = {
+      currentCurrency: currency,
+      currencyRates: {
+        ETH: {
+          conversionDate: 1732887955.694,
+          conversionRate: 2,
+          usdConversionRate: 4,
+        },
+      },
+    };
+  }
+
+  if (type) {
+    mockState.engine.backgroundState.TransactionController.transactions[0].type =
+      type;
   }
 
   return renderHookWithProvider(useTransactionPayToken, {
@@ -78,6 +104,20 @@ describe('useTransactionPayToken', () => {
 
     expect(result.current.payToken).toStrictEqual({
       ...BRIDGE_TOKEN_MOCK,
+      balanceRaw: '1234560',
+    });
+  });
+
+  it('returns USD balance if perps deposit', () => {
+    const { result } = runHook({
+      currency: 'gbp',
+      payToken: PAY_TOKEN_MOCK,
+      type: TransactionType.perpsDeposit,
+    });
+
+    expect(result.current.payToken).toStrictEqual({
+      ...BRIDGE_TOKEN_MOCK,
+      balanceFiat: '$912.25',
       balanceRaw: '1234560',
     });
   });

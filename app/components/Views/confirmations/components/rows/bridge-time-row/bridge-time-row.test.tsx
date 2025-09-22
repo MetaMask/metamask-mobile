@@ -1,5 +1,4 @@
 import React from 'react';
-import { View as MockView } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { BridgeTimeRow } from './bridge-time-row';
 import { merge } from 'lodash';
@@ -10,12 +9,6 @@ import {
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { TransactionBridgeQuote } from '../../../utils/bridge';
 import { ConfirmationMetricsState } from '../../../../../../core/redux/slices/confirmationMetrics';
-
-jest.mock('../../../../../UI/AnimatedSpinner', () => ({
-  __esModule: true,
-  ...jest.requireActual('../../../../../UI/AnimatedSpinner'),
-  default: () => <MockView testID="bridge-time-spinner">{`Spinner`}</MockView>,
-}));
 
 function render({
   quotes = [],
@@ -48,6 +41,12 @@ describe('BridgeTimeRow', () => {
     jest.resetAllMocks();
   });
 
+  afterEach(() => {
+    // Clean up any running animations to prevent Jest teardown issues
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
   it('renders total estimated time', async () => {
     const { getByText } = render({
       quotes: [
@@ -63,8 +62,8 @@ describe('BridgeTimeRow', () => {
     expect(getByText(`25 sec`)).toBeDefined();
   });
 
-  it('renders spinner if quotes loading', async () => {
+  it('renders skeleton if quotes loading', async () => {
     const { getByTestId } = render({ isLoading: true });
-    expect(getByTestId(`bridge-time-spinner`)).toBeDefined();
+    expect(getByTestId(`bridge-time-row-skeleton`)).toBeDefined();
   });
 });

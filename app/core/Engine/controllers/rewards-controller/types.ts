@@ -343,8 +343,29 @@ export type SeasonTierDto = {
   id: string;
   name: string;
   pointsNeeded: number;
-  // Add other tier properties as needed
+  image: ThemeImage;
+  levelNumber: string;
+  rewards: SeasonRewardDto[];
 };
+
+export interface SeasonRewardDto {
+  id: string;
+  name: string;
+  shortDescription: string;
+  longDescription: string;
+  shortUnlockedDescription: string;
+  longUnlockedDescription: string;
+  claimUrl?: string;
+  iconName: string;
+  rewardType: SeasonRewardType;
+}
+
+export enum SeasonRewardType {
+  GENERIC = 'GENERIC',
+  PERPS_DISCOUNT = 'PERPS_DISCOUNT',
+  POINTS_BOOST = 'POINTS_BOOST',
+  ALPHA_FOX_INVITE = 'ALPHA_FOX_INVITE',
+}
 
 export interface SeasonDto {
   id: string;
@@ -371,6 +392,66 @@ export interface SubscriptionReferralDetailsDto {
   totalReferees: number;
 }
 
+export interface PointsBoostEnvelopeDto {
+  boosts: PointsBoostDto[];
+}
+
+export interface PointsBoostDto {
+  id: string;
+  name: string;
+  icon: ThemeImage;
+  boostBips: number;
+  seasonLong: boolean;
+  startDate?: string;
+  endDate?: string;
+  backgroundColor: string;
+}
+
+export interface RewardDto {
+  id: string;
+  seasonRewardId: string;
+  claimStatus: RewardClaimStatus;
+  claim?: RewardClaim;
+}
+
+export type RewardClaimData =
+  | PointsBoostRewardData
+  | AlphaFoxInviteRewardData
+  | null;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PointsBoostRewardData = {
+  seasonPointsBonusId: string;
+  activeUntil: string; // reward expiration date
+  activeFrom: string; // claim date
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type AlphaFoxInviteRewardData = {
+  telegramHandle: string;
+};
+
+export interface RewardClaim {
+  id: string;
+  rewardId: string;
+  accountId: string;
+  data: RewardClaimData;
+}
+
+export enum RewardClaimStatus {
+  UNCLAIMED = 'UNCLAIMED',
+  CLAIMED = 'CLAIMED',
+}
+
+export interface ThemeImage {
+  lightModeUrl: string;
+  darkModeUrl: string;
+}
+
+export interface ClaimRewardDto {
+  data?: Record<string, string>;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionReferralDetailsState = {
   referralCode: string;
@@ -380,12 +461,38 @@ export type SubscriptionReferralDetailsState = {
 
 // Serializable versions for state storage (Date objects converted to timestamps)
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonRewardDtoState = {
+  id: string;
+  name: string;
+  shortDescription: string;
+  longDescription: string;
+  shortUnlockedDescription: string;
+  longUnlockedDescription: string;
+  claimUrl?: string;
+  iconName: string;
+  rewardType: SeasonRewardType;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonTierDtoState = {
+  id: string;
+  name: string;
+  pointsNeeded: number;
+  image: {
+    lightModeUrl: string;
+    darkModeUrl: string;
+  };
+  levelNumber: string;
+  rewards: SeasonRewardDtoState[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonDtoState = {
   id: string;
   name: string;
   startDate: number; // timestamp
   endDate: number; // timestamp
-  tiers: SeasonTierDto[];
+  tiers: SeasonTierDtoState[];
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -397,8 +504,8 @@ export type SeasonStatusBalanceDtoState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonTierState = {
-  currentTier: SeasonTierDto;
-  nextTier: SeasonTierDto | null;
+  currentTier: SeasonTierDtoState;
+  nextTier: SeasonTierDtoState | null;
   nextTierPointsNeeded: number | null;
 };
 
@@ -408,6 +515,40 @@ export type SeasonStatusState = {
   balance: SeasonStatusBalanceDtoState;
   tier: SeasonTierState;
   lastFetched?: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ActiveBoostsState = {
+  boosts: {
+    id: string;
+    name: string;
+    icon: {
+      lightModeUrl: string;
+      darkModeUrl: string;
+    };
+    boostBips: number;
+    seasonLong: boolean;
+    startDate?: string;
+    endDate?: string;
+    backgroundColor: string;
+  }[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type UnlockedRewardsState = {
+  rewards: {
+    id: string;
+    seasonRewardId: string;
+    claimStatus: RewardClaimStatus;
+    claim?: {
+      id: string;
+      rewardId: string;
+      accountId: string; // Changed from bigint to string for JSON serialization
+      data: RewardClaimData;
+    };
+  }[];
+  lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -431,15 +572,46 @@ export type RewardsControllerState = {
     [subscriptionId: string]: SubscriptionReferralDetailsState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
+  activeBoosts: { [compositeId: string]: ActiveBoostsState };
+  unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
 };
+
+/**
+ * Event emitted when an account is linked to a subscription
+ */
+export interface RewardsControllerAccountLinkedEvent {
+  type: 'RewardsController:accountLinked';
+  payload: [
+    {
+      subscriptionId: string;
+      account: CaipAccountId;
+    },
+  ];
+}
+
+/**
+ * Event emitted when a reward is claimed
+ */
+export interface RewardsControllerRewardClaimedEvent {
+  type: 'RewardsController:rewardClaimed';
+  payload: [
+    {
+      rewardId: string;
+      subscriptionId: string;
+    },
+  ];
+}
 
 /**
  * Events that can be emitted by the RewardsController
  */
-export interface RewardsControllerEvents {
-  type: 'RewardsController:stateChange';
-  payload: [RewardsControllerState, Patch[]];
-}
+export type RewardsControllerEvents =
+  | {
+      type: 'RewardsController:stateChange';
+      payload: [RewardsControllerState, Patch[]];
+    }
+  | RewardsControllerAccountLinkedEvent
+  | RewardsControllerRewardClaimedEvent;
 
 /**
  * Patch type for state changes
@@ -478,10 +650,10 @@ export interface PerpsDiscountData {
    */
   hasOptedIn: boolean;
   /**
-   * The discount percentage as a number
-   * @example 5.5
+   * The discount percentage in basis points
+   * @example 550
    */
-  discount: number;
+  discountBips: number;
 }
 
 /**
@@ -531,7 +703,7 @@ export interface RewardsControllerEstimatePointsAction {
 }
 
 /**
- * Action for getting perps fee discount for an account
+ * Action for getting perps fee discount in bips for an account
  */
 export interface RewardsControllerGetPerpsDiscountAction {
   type: 'RewardsController:getPerpsDiscountForAccount';
@@ -616,6 +788,37 @@ export interface RewardsControllerOptOutAction {
 }
 
 /**
+ * Action for getting active points boosts
+ */
+export interface RewardsControllerGetActivePointsBoostsAction {
+  type: 'RewardsController:getActivePointsBoosts';
+  handler: (
+    seasonId: string,
+    subscriptionId: string,
+  ) => Promise<PointsBoostDto[]>;
+}
+
+/**
+ * Action for getting unlocked rewards for a season
+ */
+export interface RewardsControllerGetUnlockedRewardsAction {
+  type: 'RewardsController:getUnlockedRewards';
+  handler: (seasonId: string, subscriptionId: string) => Promise<RewardDto[]>;
+}
+
+/**
+ * Action for claiming a reward
+ */
+export interface RewardsControllerClaimRewardAction {
+  type: 'RewardsController:claimReward';
+  handler: (
+    rewardId: string,
+    subscriptionId: string,
+    dto?: ClaimRewardDto,
+  ) => Promise<void>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -634,7 +837,10 @@ export type RewardsControllerActions =
   | RewardsControllerValidateReferralCodeAction
   | RewardsControllerLinkAccountToSubscriptionAction
   | RewardsControllerGetCandidateSubscriptionIdAction
-  | RewardsControllerOptOutAction;
+  | RewardsControllerOptOutAction
+  | RewardsControllerGetActivePointsBoostsAction
+  | RewardsControllerGetUnlockedRewardsAction
+  | RewardsControllerClaimRewardAction;
 
 export const CURRENT_SEASON_ID = 'current';
 
