@@ -9,6 +9,7 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Wallet]: IconName.Home,
   [TabBarIconKey.Browser]: IconName.Explore,
   [TabBarIconKey.Actions]: IconName.SwapVertical,
+  [TabBarIconKey.Trade]: IconName.Add,
   [TabBarIconKey.Activity]: IconName.Activity,
   [TabBarIconKey.Setting]: IconName.Setting,
   [TabBarIconKey.Rewards]: IconName.Star,
@@ -17,7 +18,8 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
 export const LABEL_BY_TAB_BAR_ICON_KEY = {
   [TabBarIconKey.Wallet]: 'bottom_nav.home',
   [TabBarIconKey.Browser]: 'bottom_nav.browser',
-  [TabBarIconKey.Actions]: '',
+  [TabBarIconKey.Actions]: 'bottom_nav.trade',
+  [TabBarIconKey.Trade]: 'bottom_nav.trade',
   [TabBarIconKey.Activity]: 'bottom_nav.activity',
   [TabBarIconKey.Setting]: 'bottom_nav.settings',
   [TabBarIconKey.Rewards]: 'bottom_nav.rewards',

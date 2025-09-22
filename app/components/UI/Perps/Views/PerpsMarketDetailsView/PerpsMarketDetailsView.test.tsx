@@ -22,6 +22,16 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
 
+// Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
+jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: jest.fn(),
+}));
+
+// Get reference to the mocked function
+const mockUsePerpsLiveAccount = jest.requireMock(
+  '../../hooks/stream/usePerpsLiveAccount',
+).usePerpsLiveAccount;
+
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
@@ -349,6 +359,18 @@ describe('PerpsMarketDetailsView', () => {
       unrealizedPnl: '0.00',
     });
 
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        availableBalance: '1000',
+        totalBalance: '1000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '1000',
+      },
+      isInitialLoading: false,
+    });
+
     mockUseHasExistingPosition.mockReturnValue({
       hasPosition: false,
       isLoading: false,
@@ -536,6 +558,18 @@ describe('PerpsMarketDetailsView', () => {
         totalBalance: '0.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
       });
 
       const { getByText, getByTestId, queryByTestId } = renderWithProvider(
@@ -940,6 +974,18 @@ describe('PerpsMarketDetailsView', () => {
         unrealizedPnl: '0.00',
       });
 
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
+      });
+
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -957,9 +1003,12 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
     });
 
     it('shows geo block modal when long button is pressed and user is not eligible', () => {
@@ -1041,6 +1090,18 @@ describe('PerpsMarketDetailsView', () => {
         totalBalance: '0.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
       });
 
       const { getByTestId, getByText } = renderWithProvider(

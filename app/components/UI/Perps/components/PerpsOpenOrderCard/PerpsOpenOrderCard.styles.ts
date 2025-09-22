@@ -104,6 +104,29 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 4,
       marginRight: 4,
     },
+
+    // Chart activity indicator styles
+    indicatorContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 6,
+      gap: 4,
+    },
+    activeChartIndicator: {
+      borderRadius: 16,
+      paddingHorizontal: 8,
+      paddingVertical: 0,
+    },
+    tpIndicator: {
+      backgroundColor: colors.success.default, // Light Green - matches chart TP line color
+    },
+    slIndicator: {
+      backgroundColor: colors.background.muted, // Dark Gray - matches chart SL line color
+    },
+    activeChartText: {
+      fontSize: 8,
+      fontWeight: '600',
+    },
   });
 };
 

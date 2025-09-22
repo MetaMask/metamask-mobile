@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import Button, {
   ButtonSize,
@@ -64,20 +64,26 @@ import { selectPerpsEligibility } from '../../selectors/perpsController';
 const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   order,
   onCancel,
+  onSelect,
   disabled = false,
   expanded = false,
   showIcon = false,
   rightAccessory,
+  isActiveOnChart = false,
+  activeType,
+  isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  // Used to prevent rapid clicks on the cancel button before it has time to re-render.
+  const isLocallyCancellingRef = useRef(false);
+
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+
   const isEligible = useSelector(selectPerpsEligibility);
 
-  // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
-    // For reduce-only orders (TP/SL), show them as closing positions
     let direction: OpenOrderCardDerivedData['direction'];
     if (order.reduceOnly || order.isTrigger) {
       // This is a TP/SL order closing a position
@@ -106,31 +112,57 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       sizeInUSD,
       fillPercentage,
     };
-  }, [order]);
+  }, [
+    order.reduceOnly,
+    order.isTrigger,
+    order.side,
+    order.originalSize,
+    order.price,
+    order.filledSize,
+  ]);
 
-  // Early return for non-open orders - this component only handles open orders
-  if (order.status !== 'open') {
-    return null;
+  // Allows for retries if cancellation fails.
+  if (!isCancelling) {
+    isLocallyCancellingRef.current = false;
   }
 
-  const handleCancelPress = () => {
+  const handleCancelPress = useCallback(() => {
+    if (isLocallyCancellingRef.current) {
+      return;
+    }
+
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
     }
+
+    // Set local state immediately to prevent rapid clicks
+    isLocallyCancellingRef.current = true;
 
     DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
       orderId: order.orderId,
     });
 
     onCancel?.(order);
-  };
+  }, [isEligible, onCancel, order]);
+
+  const handleCardPress = useCallback(() => {
+    if (onSelect) {
+      onSelect(order.orderId);
+    }
+  }, [onSelect, order.orderId]);
+
+  // Early return for non-open orders - this component only handles open orders
+  if (order.status !== 'open') {
+    return null;
+  }
 
   return (
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
-      disabled={expanded}
+      disabled={isLocallyCancellingRef.current || disabled}
+      onPress={handleCardPress}
     >
       {/* Header - Always shown */}
       <View style={[styles.header, expanded && styles.headerExpanded]}>
@@ -147,6 +179,35 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {order.detailedOrderType || derivedData.direction}
             </Text>
+            {/* Chart activity indicators */}
+            {isActiveOnChart && (
+              <View style={styles.indicatorContainer}>
+                {activeType === 'TP' || activeType === 'BOTH' ? (
+                  <View
+                    style={[styles.activeChartIndicator, styles.tpIndicator]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Inverse}
+                    >
+                      {strings('perps.tp_on_chart')}
+                    </Text>
+                  </View>
+                ) : null}
+                {activeType === 'SL' || activeType === 'BOTH' ? (
+                  <View
+                    style={[styles.activeChartIndicator, styles.slIndicator]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Default}
+                    >
+                      {strings('perps.sl_on_chart')}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            )}
             {/* Fill percentage badge with icon */}
             {derivedData.fillPercentage > 0 &&
               derivedData.fillPercentage < 100 && (
@@ -244,15 +305,12 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             {order.isTrigger && order.reduceOnly && (
               <View style={[styles.bodyItem, styles.bodyItemReduceOnly]}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.order.reduce_only')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {strings('perps.order.yes')}
                 </Text>
               </View>
@@ -270,7 +328,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             width={ButtonWidthTypes.Full}
             label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
-            disabled={disabled}
+            isDisabled={isLocallyCancellingRef.current || disabled}
+            loading={isLocallyCancellingRef.current || disabled}
             style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />

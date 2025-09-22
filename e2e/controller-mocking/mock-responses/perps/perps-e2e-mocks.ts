@@ -97,6 +97,8 @@ export class PerpsE2EMockService {
           maxLeverage: 40,
           returnOnEquity: '0.05', // 5%
           cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
         {
           coin: 'BTC',
@@ -110,6 +112,8 @@ export class PerpsE2EMockService {
           maxLeverage: 40,
           returnOnEquity: '-0.02', // -2%
           cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
         {
           coin: 'SOL',
@@ -123,6 +127,8 @@ export class PerpsE2EMockService {
           maxLeverage: 40,
           returnOnEquity: '0.10', // 10%
           cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
     } else {
@@ -146,6 +152,8 @@ export class PerpsE2EMockService {
             sinceChange: '0',
             sinceOpen: '0',
           },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         },
       ];
     }
@@ -243,6 +251,8 @@ export class PerpsE2EMockService {
         sinceChange: '0',
         sinceOpen: '0',
       },
+      takeProfitCount: 0,
+      stopLossCount: 0,
     };
 
     // Add to mock state
@@ -647,6 +657,8 @@ export class PerpsE2EMockService {
               sinceChange: '0',
               sinceOpen: '0',
             },
+            takeProfitCount: 0,
+            stopLossCount: 0,
           };
           this.mockPositions.push(newPosition);
 

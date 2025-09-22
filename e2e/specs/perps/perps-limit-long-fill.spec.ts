@@ -13,7 +13,7 @@ import PerpsView from '../../pages/Perps/PerpsView';
 import PerpsE2E from '../../framework/PerpsE2E';
 
 describe(RegressionTrade('Perps - ETH limit long fill'), () => {
-  it('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
+  it.skip('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()

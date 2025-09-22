@@ -121,6 +121,8 @@ const mockPositions: Position[] = [
     },
     takeProfitPrice: '2200',
     stopLossPrice: '1900',
+    takeProfitCount: 0,
+    stopLossCount: 0,
   },
   {
     coin: 'BTC',
@@ -141,6 +143,8 @@ const mockPositions: Position[] = [
       sinceOpen: '5',
       sinceChange: '2',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   },
 ];
 

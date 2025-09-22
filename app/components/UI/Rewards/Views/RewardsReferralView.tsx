@@ -8,21 +8,14 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
-import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { useSelector } from 'react-redux';
-import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   // Sync rewards controller state with UI store
-  useSeasonStatus({
-    subscriptionId: subscriptionId || '',
-    seasonId: CURRENT_SEASON_ID,
-  });
+  useSeasonStatus();
 
   // Set navigation title with back button
   useEffect(() => {
