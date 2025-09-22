@@ -530,7 +530,6 @@ export class PredictController extends BaseController<
 
       // Only update state if the provider call succeeded
       this.update((state) => {
-        state.positions = positions;
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
