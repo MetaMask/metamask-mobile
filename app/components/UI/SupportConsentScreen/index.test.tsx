@@ -33,7 +33,8 @@ jest.mock('@metamask/design-system-react-native', () => ({
 // Mock the component library components
 jest.mock('../../../component-library/components/Buttons/Button', () => {
   const ReactActual = jest.requireActual('react');
-  const { TouchableOpacity: TouchableOpacityActual } = jest.requireActual('react-native');
+  const { TouchableOpacity: TouchableOpacityActual } =
+    jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
@@ -99,7 +100,8 @@ jest.mock(
 
 jest.mock('../../../component-library/components/Checkbox/Checkbox', () => {
   const ReactActual = jest.requireActual('react');
-  const { TouchableOpacity: TouchableOpacityActual } = jest.requireActual('react-native');
+  const { TouchableOpacity: TouchableOpacityActual } =
+    jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
