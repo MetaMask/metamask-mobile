@@ -218,7 +218,7 @@ app/reducers/onboarding                                     @MetaMask/web3auth
 
 # Delegation team
 app/core/Engine/controllers/gator-permissions-controller    @MetaMask/delegation
-
+app/core/Engine/messengers/gator-permissions-controller-messenger      @MetaMask/delegation
 # QA Team - E2E Framework
 e2e/api-mocking/                             @MetaMask/qa
 e2e/fixtures/                                @MetaMask/qa
