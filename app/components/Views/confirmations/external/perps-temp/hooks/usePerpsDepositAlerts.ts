@@ -16,7 +16,7 @@ export function usePerpsDepositAlerts({
 
   const insufficientTokenFundsAlert = useInsufficientPayTokenBalanceAlert({
     amountOverrides: {
-      [ARBITRUM_USDC_ADDRESS]: pendingTokenAmount ?? '0',
+      [ARBITRUM_USDC_ADDRESS.toLowerCase()]: pendingTokenAmount ?? '0',
     },
   });
 
