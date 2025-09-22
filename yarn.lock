@@ -4895,10 +4895,10 @@
     "@metamask/keyring-utils" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.18.0":
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.18.0.tgz#5cd1dad79871a94bdf8c751305467484dfac3a5e"
-  integrity sha512-VN4bpoVzLI4zM9xMTudwv7o3CcMZPDN5XSwNmOGwu40bUisT3xIYlB+5G2jSjfMCAWqGLfy7+bBD1+x71WxcoA==
+"@metamask/account-tree-controller@^0.18.1":
+  version "0.18.1"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.18.1.tgz#156bd42dacec292de8e509b33f0268a0f0282b3f"
+  integrity sha512-j0C5uZDn6/B9//SZEnrTAlL1zdMprHg7EpzdQ7IhzbCtE+IunkwaGbhSgkN3AFPnAKp5dNsreZwpTUVrGgIQpQ==
   dependencies:
     "@metamask/base-controller" "^8.4.0"
     "@metamask/snaps-sdk" "^9.0.0"
@@ -5487,16 +5487,6 @@
     "@noble/hashes" "^1.3.2"
     "@scure/base" "^1.0.0"
 
-"@metamask/keyring-api@^18.0.0":
-  version "18.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-18.0.0.tgz#d377d6045dbcf6db95b89179f81d4cb4158f845d"
-  integrity sha512-3KxZmyNZnof715inJ72QSB43pNBLcAguLU31FOjc5tfNVJzzeqKKSWUftuD4AkJhX7XrT/9KRNF+PXZK+wvYng==
-  dependencies:
-    "@metamask/keyring-utils" "^3.0.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.1.0"
-    bitcoin-address-validation "^2.2.3"
-
 "@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.0":
   version "20.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.1.1.tgz#4fdf9b3e9b81a653bf827f57b0c8b61574e3cc50"
@@ -5537,15 +5527,6 @@
     immer "^9.0.6"
     lodash "^4.17.21"
     ulid "^2.3.0"
-
-"@metamask/keyring-internal-api@^6.2.0":
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-6.2.0.tgz#646e2e435243ebd6652bf03e8570d1b51e846ed5"
-  integrity sha512-ntHsVWEiGRjbqIS/jooOI9NCc5EAYcT9zo1Nnzlf/azKbUCNJdzjB67FK383mo8KN93GjW/wd5IzaXXexeo+GA==
-  dependencies:
-    "@metamask/keyring-api" "^18.0.0"
-    "@metamask/keyring-utils" "^3.0.0"
-    "@metamask/superstruct" "^3.1.0"
 
 "@metamask/keyring-internal-api@^8.0.0", "@metamask/keyring-internal-api@^8.1.0":
   version "8.1.0"
@@ -5600,7 +5581,7 @@
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
 
-"@metamask/keyring-utils@^3.0.0", "@metamask/keyring-utils@^3.1.0":
+"@metamask/keyring-utils@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-3.1.0.tgz#77473fbf4ad4314096a0722161765e90a30bee3d"
   integrity sha512-ZsmtlCKZQo27xDXbPFM06u0NgTRwIVFJsHju2vPX4XGtEGh1Rd/gNGu8TePJGuTWbgvUVEvnk29c0njudbMprA==
@@ -5697,20 +5678,6 @@
     "@open-rpc/meta-schema" "^1.14.6"
     "@open-rpc/schema-utils-js" "^2.0.5"
     jsonschema "^1.4.1"
-
-"@metamask/multichain-network-controller@^0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.10.0.tgz#acaf910285c82dc813470bf7f345bb485e366dde"
-  integrity sha512-OTGr62t3coxqg+B5q3m7VpnLdMzczo3jMNaHuhDZUHcvGJ234h4MryB/PD9Etp4qIqYVb2iZ7nr0vSeXAwmC6A==
-  dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.11.0"
-    "@metamask/keyring-api" "^18.0.0"
-    "@metamask/keyring-internal-api" "^6.2.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.4.2"
-    "@solana/addresses" "^2.0.0"
-    lodash "^4.17.21"
 
 "@metamask/multichain-network-controller@^0.12.0":
   version "0.12.0"
