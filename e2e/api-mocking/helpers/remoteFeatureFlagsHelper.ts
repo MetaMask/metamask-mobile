@@ -247,11 +247,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
       featureVersion: '1',
       minimumVersion: '7.53.0',
     },
-    enableMultichainAccountsState2: {
-      enabled: true,
-      featureVersion: '2',
-      minimumVersion: '7.57.0',
-    },
   },
   {
     mobileMinimumVersions: {
