@@ -458,7 +458,7 @@ describe('PerpsMarketBalanceActions', () => {
       });
     });
 
-    it('is disabled when balance is empty', () => {
+    it('is hidden when balance is empty', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
         account: { ...defaultPerpsAccount, totalBalance: '0' },
@@ -466,13 +466,12 @@ describe('PerpsMarketBalanceActions', () => {
         error: null,
       });
 
-      const { getByTestId } = render(<PerpsMarketBalanceActions />);
-      const withdrawButton = getByTestId(
-        PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
-      );
+      const { queryByTestId } = render(<PerpsMarketBalanceActions />);
 
       // Act & Assert
-      expect(withdrawButton.props.accessibilityState.disabled).toBe(true);
+      expect(
+        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not proceed with withdraw when user is ineligible', async () => {
@@ -526,7 +525,7 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('Eligibility Logic', () => {
-    it('renders buttons regardless of eligibility status', () => {
+    it('renders add funds button regardless of eligibility status', () => {
       // Arrange - Test with ineligible user
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectPerpsEligibility) return false;
@@ -536,10 +535,11 @@ describe('PerpsMarketBalanceActions', () => {
       // Act
       const { getByTestId } = render(<PerpsMarketBalanceActions />);
 
-      // Assert - Buttons should still render
+      // Assert - Add funds button should still render
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeOnTheScreen();
+      // Withdraw button should render when balance > 0 (defaultPerpsAccount has balance)
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON),
       ).toBeOnTheScreen();
