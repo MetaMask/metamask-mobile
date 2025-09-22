@@ -5,6 +5,7 @@ import AccountListFooter from './AccountListFooter';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
+import { useAccountsOperationsLoadingStates } from '../../../../../util/accounts/useAccountsOperationsLoadingStates';
 import Logger from '../../../../../util/Logger';
 
 // Mock dependencies
@@ -33,11 +34,22 @@ jest.mock('../../../../../components/UI/AnimatedSpinner', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../../util/accounts/useAccountsOperationsLoadingStates',
+  () => ({
+    useAccountsOperationsLoadingStates: jest.fn(),
+  }),
+);
+
 // Mock InteractionManager
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn();
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
+const mockUseAccountsOperationsLoadingStates =
+  useAccountsOperationsLoadingStates as jest.MockedFunction<
+    typeof useAccountsOperationsLoadingStates
+  >;
 
 describe('AccountListFooter', () => {
   const mockWalletId = 'keyring:test-wallet-id' as const;
@@ -77,6 +89,12 @@ describe('AccountListFooter', () => {
     });
 
     (useWalletInfo as jest.Mock).mockReturnValue(mockWalletInfo);
+
+    mockUseAccountsOperationsLoadingStates.mockReturnValue({
+      isAccountSyncingInProgress: false,
+      areAnyOperationsLoading: false,
+      loadingMessage: undefined,
+    });
 
     (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
       (callback: unknown) => {
@@ -312,6 +330,139 @@ describe('AccountListFooter', () => {
       await waitFor(() => {
         expect(onAccountCreated).toHaveBeenCalledWith('new-account-group-id');
       });
+    });
+  });
+
+  describe('Loading States Integration', () => {
+    it('shows syncing message when account syncing is in progress', () => {
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Syncing...')).toBeOnTheScreen();
+    });
+
+    it('shows creating account message when local loading is active', async () => {
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByText('Create account'));
+
+      await waitFor(() => {
+        expect(getByText('Creating account...')).toBeOnTheScreen();
+      });
+    });
+
+    it('prioritizes syncing message over local loading', async () => {
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByText('Syncing...'));
+
+      // Should still show syncing message, not creating account message
+      expect(getByText('Syncing...')).toBeOnTheScreen();
+    });
+
+    it('shows spinner when any loading state is active', async () => {
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      // When account syncing is in progress, should show spinner
+      expect(getByText('Syncing...')).toBeOnTheScreen();
+    });
+
+    it('shows default create account text when no loading states are active', () => {
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Create account')).toBeOnTheScreen();
+    });
+
+    it('handles loading state transitions correctly', () => {
+      // Start with no loading
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: false,
+        areAnyOperationsLoading: false,
+        loadingMessage: undefined,
+      });
+
+      const { getByText, rerender } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Create account')).toBeOnTheScreen();
+
+      // Simulate account syncing starting
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      rerender(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Syncing...')).toBeOnTheScreen();
+
+      // Simulate syncing completing
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: false,
+        areAnyOperationsLoading: false,
+        loadingMessage: undefined,
+      });
+
+      rerender(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(getByText('Create account')).toBeOnTheScreen();
     });
   });
 });

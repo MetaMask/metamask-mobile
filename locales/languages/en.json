@@ -1165,8 +1165,6 @@
     "tpsl": {
       "title": "Take profit and stop loss",
       "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
-      "set": "Set",
-      "updating": "Updating...",
       "off": "Off",
       "current_price": "Current price",
       "leverage": "Leverage",
@@ -1188,7 +1186,7 @@
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
       "below": "below",
-      "dismiss_tpsl_keypad": "Dismiss"
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -5510,11 +5508,12 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
         "view_accounts_button": "View accounts",
-        "learn_more_button": "Learn more"
+        "learn_more_button": "Learn more",
+        "setting_up_accounts": "Setting up your accounts"
       },
       "learn_more": {
         "title": "Learn more",
@@ -5524,6 +5523,7 @@
       },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "Account Details",
       "account_name": "Account Name",
@@ -5787,13 +5787,14 @@
     },
 
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
+ "tab_linked_accounts": "Linked ({{count}})",
+      "tab_unlinked_accounts": "Unlinked ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
