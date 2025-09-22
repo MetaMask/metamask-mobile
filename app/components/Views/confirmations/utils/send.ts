@@ -8,6 +8,7 @@ import {
 } from '@metamask/transaction-controller';
 import { addHexPrefix } from 'ethereumjs-util';
 import { encode } from '@metamask/abi-utils';
+import { toHex } from '@metamask/controller-utils';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
@@ -169,7 +170,7 @@ export const prepareEVMTransaction = (
       fromAddress: from,
       toAddress: to,
       tokenId: asset.tokenId ?? '0',
-      amount: value,
+      amount: toHex(value ?? 1),
     });
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
