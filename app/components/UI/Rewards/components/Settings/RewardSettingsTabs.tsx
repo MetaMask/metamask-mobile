@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useRef,
-  useEffect,
-  useState,
-  useMemo,
-} from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { FlatList, ListRenderItem, View, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
@@ -55,7 +49,6 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     refresh: fetchOptInStatus,
   } = useRewardOptinSummary();
   const tw = useTailwind();
-  const unlinkedAccountsListRef = useRef<FlatList>(null);
 
   // Local state to track accounts that have been linked but not yet refetched from server
   const [locallyLinkedAccounts, setLocallyLinkedAccounts] = useState<
@@ -85,37 +78,6 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
       ),
     [unlinkedAccounts, locallyLinkedAccounts],
   );
-
-  // Scroll to current account in unlinked accounts list when tab becomes active
-  const scrollToCurrentAccountInUnlinkedList = useCallback(() => {
-    if (!selectedAccount || !computedUnlinkedAccounts.length) return;
-
-    const currentAccountIndex = computedUnlinkedAccounts.findIndex(
-      (account: InternalAccount) => account.address === selectedAccount.address,
-    );
-
-    if (currentAccountIndex >= 0 && unlinkedAccountsListRef.current) {
-      // Add small delay to ensure the list is rendered
-      setTimeout(() => {
-        unlinkedAccountsListRef.current?.scrollToIndex({
-          index: currentAccountIndex,
-          animated: true,
-          viewPosition: 0.5, // Center the item in the view
-        });
-      }, 100);
-    }
-  }, [selectedAccount, computedUnlinkedAccounts]);
-
-  // Scroll to current account when unlinked accounts change
-  useEffect(() => {
-    if (!isLoadingOptInSummary && !hasErrorOptInSummary) {
-      scrollToCurrentAccountInUnlinkedList();
-    }
-  }, [
-    isLoadingOptInSummary,
-    hasErrorOptInSummary,
-    scrollToCurrentAccountInUnlinkedList,
-  ]);
 
   // Handle link account press with double-press prevention
   const handleLinkAccountPress = useCallback(
@@ -259,7 +221,8 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
             data={computedLinkedAccounts}
             keyExtractor={(item) => item.id}
             renderItem={renderLinkedAccountItem}
-            showsVerticalScrollIndicator
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('gap-3 pt-4')}
           />
         ) : (
@@ -288,14 +251,11 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
         {computedUnlinkedAccounts.length > 0 ? (
           <Box twClassName="flex-1 relative">
             <FlatList
-              ref={unlinkedAccountsListRef}
               data={computedUnlinkedAccounts}
               keyExtractor={(item) => item.id}
               renderItem={renderUnlinkedAccountItem}
-              showsVerticalScrollIndicator
-              onScrollToIndexFailed={() => {
-                // Do nothing
-              }}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
               contentContainerStyle={tw.style('gap-3 pt-4')}
             />
 

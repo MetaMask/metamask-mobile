@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
+import { ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -67,57 +68,73 @@ const RewardsSettingsView: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
-      <SafeAreaView style={tw.style('flex-1 bg-default px-4 -mt-8')}>
-        <Box twClassName="flex-1 gap-6">
-          {/* Section 1: Connect Multiple Accounts */}
-          <Box twClassName="gap-4">
-            <Box twClassName="gap-2">
-              <Text variant={TextVariant.HeadingMd}>
-                {strings('rewards.settings.subtitle')}
-              </Text>
-            </Box>
-          </Box>
+      <SafeAreaView style={tw.style('flex-1 bg-default -mt-8')}>
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('px-4 pb-4')}
+          showsVerticalScrollIndicator={false}
+        >
+          <Box twClassName="gap-6">
+            {/* Section 1: Connect Multiple Accounts */}
+            <Box twClassName="gap-4">
+              <Box twClassName="gap-2">
+                <Text variant={TextVariant.HeadingMd}>
+                  {strings('rewards.settings.subtitle')}
+                </Text>
 
-          {/* Current Account Not Opted In Banner */}
-          {hasAccountOptedIn === false && (
-            <Box twClassName="-mx-4">
-              <Banner
-                variant={BannerVariant.Alert}
-                severity={BannerAlertSeverity.Info}
-                title={strings('rewards.unlinked_account_info.title')}
-                description={strings(
-                  'rewards.unlinked_account_info.description',
-                )}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-alternative"
+                >
+                  {strings('rewards.settings.description')}
+                </Text>
+              </Box>
+            </Box>
+
+            {/* Current Account Not Opted In Banner */}
+            {hasAccountOptedIn === false && (
+              <Box twClassName="-mx-4">
+                <Banner
+                  variant={BannerVariant.Alert}
+                  severity={BannerAlertSeverity.Info}
+                  title={strings('rewards.unlinked_account_info.title')}
+                  description={strings(
+                    'rewards.unlinked_account_info.description',
+                  )}
+                />
+              </Box>
+            )}
+
+            {/* Section 2: Account Tabs */}
+            <RewardSettingsTabs initialTabIndex={initialTabIndex} />
+
+            {/* Section 3: Opt Out */}
+            <Box twClassName="gap-4 flex-col">
+              <Box twClassName="gap-2">
+                <Text variant={TextVariant.HeadingSm}>
+                  {strings('rewards.optout.title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-alternative"
+                >
+                  {strings('rewards.optout.description')}
+                </Text>
+              </Box>
+
+              <Button
+                variant={ButtonVariants.Secondary}
+                label={strings('rewards.optout.confirm')}
+                isDisabled={isOptingOut}
+                isDanger
+                width={null as unknown as number}
+                onPress={() =>
+                  showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW)
+                }
               />
             </Box>
-          )}
-
-          {/* Section 2: Account Tabs */}
-          <RewardSettingsTabs initialTabIndex={initialTabIndex} />
-
-          {/* Section 3: Opt Out */}
-          <Box twClassName="gap-4 flex-col mb-4">
-            <Box twClassName="gap-2">
-              <Text variant={TextVariant.HeadingSm}>
-                {strings('rewards.optout.title')}
-              </Text>
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {strings('rewards.optout.description')}
-              </Text>
-            </Box>
-
-            <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('rewards.optout.confirm')}
-              isDisabled={isOptingOut}
-              isDanger
-              width={null as unknown as number}
-              onPress={() =>
-                showOptoutBottomSheet(Routes.REWARDS_SETTINGS_VIEW)
-              }
-            />
           </Box>
-        </Box>
+        </ScrollView>
 
         {/* Toast for success feedback */}
         <Toast ref={toastRef} />
