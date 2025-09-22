@@ -15,14 +15,15 @@ import {
  * @returns Boolean indicating if the multichain accounts feature is enabled for the specified versions.
  */
 const createMultichainAccountsStateSelector = (
-  featureKey: keyof FeatureFlags,
-  featureVersion: string,
+  featureVersionsToCheck: {
+    version: string;
+    featureKey: keyof FeatureFlags;
+  }[],
 ) =>
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags): boolean =>
     isMultichainAccountsRemoteFeatureEnabled(
       remoteFeatureFlags,
-      featureKey,
-      featureVersion,
+      featureVersionsToCheck,
     ),
   );
 
@@ -31,17 +32,25 @@ const createMultichainAccountsStateSelector = (
  * Returns true if the feature is enabled for state 1 or state 2.
  */
 export const selectMultichainAccountsState1Enabled =
-  createMultichainAccountsStateSelector(
-    STATE_1_FLAG,
-    MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-  );
+  createMultichainAccountsStateSelector([
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+      featureKey: STATE_1_FLAG,
+    },
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      featureKey: STATE_2_FLAG,
+    },
+  ]);
 
 /**
  * Selector to check if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
 export const selectMultichainAccountsState2Enabled =
-  createMultichainAccountsStateSelector(
-    STATE_2_FLAG,
-    MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-  );
+  createMultichainAccountsStateSelector([
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      featureKey: STATE_2_FLAG,
+    },
+  ]);

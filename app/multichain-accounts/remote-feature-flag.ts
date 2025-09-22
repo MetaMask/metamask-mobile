@@ -47,36 +47,44 @@ export const assertMultichainAccountsFeatureFlagType = (
  */
 export const isMultichainAccountsRemoteFeatureEnabled = (
   remoteFeatureFlags: FeatureFlags,
-  featureKey: keyof FeatureFlags,
-  featureVersionToCheck: string,
+  featureVersionsToCheck: {
+    version: string;
+    featureKey: keyof FeatureFlags;
+  }[],
   override?: string,
 ) => {
-  if (
-    override !== undefined &&
-    featureVersionToCheck === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2
-  ) {
-    return override === 'true';
+  for (const { version: featVersion, featureKey } of featureVersionsToCheck) {
+    if (
+      override !== undefined &&
+      featVersion === MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2
+    ) {
+      return override === 'true';
+    }
+
+    const enableMultichainAccounts = remoteFeatureFlags[featureKey];
+    if (
+      !enableMultichainAccounts ||
+      !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)
+    ) {
+      return false;
+    }
+
+    const { enabled, featureVersion, minimumVersion } =
+      enableMultichainAccounts;
+    if (!enabled || featureVersion === null || minimumVersion === null) {
+      return false;
+    }
+
+    const result =
+      featureVersion === featVersion &&
+      compareVersions.compare(minimumVersion, APP_VERSION, '<=');
+
+    if (result) {
+      return true;
+    }
   }
 
-  const enableMultichainAccounts = remoteFeatureFlags[featureKey];
-
-  if (
-    !enableMultichainAccounts ||
-    !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)
-  ) {
-    return false;
-  }
-
-  const { enabled, featureVersion, minimumVersion } = enableMultichainAccounts;
-
-  if (!enabled || featureVersion === null || minimumVersion === null) {
-    return false;
-  }
-
-  return (
-    featureVersion === featureVersionToCheck &&
-    compareVersions.compare(minimumVersion, APP_VERSION, '<=')
-  );
+  return false;
 };
 
 /**
@@ -87,34 +95,35 @@ function getRemoteFeatureFlags(): FeatureFlags {
 }
 
 /**
- * Check if multichain accounts state 1 is enabled.
+ * Checks if multichain accounts state 1 is enabled.
  * Returns true if the feature is enabled for state 1 or state 2.
  */
 export const isMultichainAccountsState1Enabled = () => {
   const remoteFeatureFlags = getRemoteFeatureFlags();
-  return (
-    isMultichainAccountsRemoteFeatureEnabled(
-      remoteFeatureFlags,
-      STATE_1_FLAG,
-      MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-    ) ||
-    isMultichainAccountsRemoteFeatureEnabled(
-      remoteFeatureFlags,
-      STATE_2_FLAG,
-      MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-      enableMultichainAccountsState2Local,
-    )
-  );
+  return isMultichainAccountsRemoteFeatureEnabled(remoteFeatureFlags, [
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+      featureKey: STATE_1_FLAG,
+    },
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      featureKey: STATE_2_FLAG,
+    },
+  ]);
 };
 
 /**
- * Check if multichain accounts state 2 is enabled.
+ * Checks if multichain accounts state 2 is enabled.
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
 export const isMultichainAccountsState2Enabled = () =>
   isMultichainAccountsRemoteFeatureEnabled(
     getRemoteFeatureFlags(),
-    STATE_2_FLAG,
-    MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    [
+      {
+        version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+        featureKey: STATE_2_FLAG,
+      },
+    ],
     enableMultichainAccountsState2Local,
   );

@@ -29,6 +29,20 @@ const state2Mock = {
   minimumVersion: '14.0.0',
 };
 
+const mockState1FeatureVersionsToCheck = [
+  {
+    version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+    featureKey: STATE_1_FLAG,
+  },
+];
+
+const mockState2FeatureVersionsToCheck = [
+  {
+    version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    featureKey: STATE_2_FLAG,
+  },
+];
+
 describe('Multichain Accounts Feature Flag', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -76,8 +90,7 @@ describe('Multichain Accounts Feature Flag', () => {
         {
           [STATE_1_FLAG]: state1Mock,
         },
-        STATE_1_FLAG,
-        MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+        mockState1FeatureVersionsToCheck,
       );
       expect(result).toBe(true);
     });
@@ -87,8 +100,7 @@ describe('Multichain Accounts Feature Flag', () => {
         {
           [STATE_1_FLAG]: disabledStateMock,
         },
-        STATE_1_FLAG,
-        MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+        mockState1FeatureVersionsToCheck,
       );
       expect(result).toBe(false);
     });
@@ -98,11 +110,10 @@ describe('Multichain Accounts Feature Flag', () => {
         {
           [STATE_1_FLAG]: {
             ...state1Mock,
-            featureVersion: '2',
+            featureVersion: '3',
           },
         },
-        STATE_1_FLAG,
-        MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+        mockState1FeatureVersionsToCheck,
       );
       expect(result).toBe(false);
     });
@@ -115,8 +126,7 @@ describe('Multichain Accounts Feature Flag', () => {
           // @ts-expect-error Testing undefined flag
           [STATE_2_FLAG]: undefined,
         },
-        STATE_2_FLAG,
-        MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+        mockState2FeatureVersionsToCheck,
       );
       expect(result).toBe(false);
     });
@@ -126,8 +136,7 @@ describe('Multichain Accounts Feature Flag', () => {
         {
           [STATE_2_FLAG]: state2Mock,
         },
-        STATE_2_FLAG,
-        MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+        mockState2FeatureVersionsToCheck,
       );
       expect(result).toBe(true);
     });
@@ -137,8 +146,7 @@ describe('Multichain Accounts Feature Flag', () => {
         {
           [STATE_2_FLAG]: disabledStateMock,
         },
-        STATE_2_FLAG,
-        MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+        mockState2FeatureVersionsToCheck,
       );
       expect(result).toBe(false);
     });
@@ -151,8 +159,7 @@ describe('Multichain Accounts Feature Flag', () => {
             featureVersion: '1',
           },
         },
-        STATE_2_FLAG,
-        MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+        mockState2FeatureVersionsToCheck,
       );
       expect(result).toBe(false);
     });
