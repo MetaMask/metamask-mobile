@@ -186,6 +186,7 @@ import receivedSVG from './assets/received.svg';
 import refreshSVG from './assets/refresh.svg';
 import removeminusSVG from './assets/remove-minus.svg';
 import reportSVG from './assets/report.svg';
+import rewardsfoxSVG from './assets/rewards-fox.svg';
 import rocketSVG from './assets/rocket.svg';
 import savefilledSVG from './assets/save-filled.svg';
 import saveSVG from './assets/save.svg';
@@ -463,6 +464,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Refresh]: refreshSVG,
   [IconName.RemoveMinus]: removeminusSVG,
   [IconName.Report]: reportSVG,
+  [IconName.RewardsFox]: rewardsfoxSVG,
   [IconName.Rocket]: rocketSVG,
   [IconName.SaveFilled]: savefilledSVG,
   [IconName.Save]: saveSVG,
