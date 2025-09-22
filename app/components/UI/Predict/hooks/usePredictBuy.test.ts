@@ -97,7 +97,7 @@ describe('usePredictBuy', () => {
         outcomeTokenId: 'outcome-token-789',
         size: 100,
       });
-      expect(result.current.loading).toBe(true);
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toEqual(mockOrderResult);
       expect(result.current.currentOrder).toBe(null); // No order in activeOrders yet
@@ -119,7 +119,7 @@ describe('usePredictBuy', () => {
         outcomeTokenId: 'outcome-token-789',
         size: 100,
       });
-      expect(result.current.loading).toBe(true);
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toBe(null);
       expect(result.current.currentOrder).toBe(null);
@@ -244,7 +244,7 @@ describe('usePredictBuy', () => {
 
       expect(result.current.result).not.toBe(null);
       expect(result.current.error).toBeUndefined();
-      expect(result.current.loading).toBe(true);
+      expect(result.current.loading).toBe(false);
       expect(result.current.currentOrder).toBe(null);
 
       // Reset

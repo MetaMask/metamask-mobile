@@ -150,6 +150,8 @@ export function usePredictBuy(
         });
 
         onError?.(errorMessage, currentOrder);
+      } finally {
+        setIsPlacing(false);
       }
     },
     [reset, toastRef, buy, onError, currentOrder],

@@ -141,7 +141,7 @@ describe('usePredictSell', () => {
       expect(mockSell).toHaveBeenCalledWith({
         position: mockPosition,
       });
-      expect(result.current.loading).toBe(true);
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toEqual(mockSellResult);
       expect(result.current.currentOrder).toBeUndefined(); // No order in activeOrders yet
@@ -160,7 +160,7 @@ describe('usePredictSell', () => {
       expect(mockSell).toHaveBeenCalledWith({
         position: mockPosition,
       });
-      expect(result.current.loading).toBe(true); // Loading remains true on error (isPlacing not reset)
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toBe(null);
       expect(result.current.currentOrder).toBe(null);
@@ -334,7 +334,7 @@ describe('usePredictSell', () => {
 
       expect(result.current.result).not.toBe(null);
       expect(result.current.error).toBeUndefined();
-      expect(result.current.loading).toBe(true); // Loading is true during order placement
+      expect(result.current.loading).toBe(false);
       expect(result.current.currentOrder).toBeUndefined();
 
       // Reset
@@ -344,7 +344,7 @@ describe('usePredictSell', () => {
 
       expect(result.current.result).toBe(null);
       expect(result.current.error).toBeUndefined();
-      expect(result.current.loading).toBe(false); // Loading should be false after reset
+      expect(result.current.loading).toBe(false);
       expect(result.current.currentOrder).toBe(null);
     });
   });

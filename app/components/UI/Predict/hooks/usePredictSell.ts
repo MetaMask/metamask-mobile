@@ -148,6 +148,8 @@ export function usePredictSell(
         });
 
         onError?.(errorMessage, currentOrder);
+      } finally {
+        setIsPlacing(false);
       }
     },
     [reset, toastRef, sell, onError, currentOrder],
