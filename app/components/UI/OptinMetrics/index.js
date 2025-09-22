@@ -193,7 +193,7 @@ class OptinMetrics extends PureComponent {
     /**
      * Tracks the basic usage checkbox's checked state.
      */
-    isBasicUsageChecked: false,
+    isBasicUsageChecked: true,
   };
 
   getStyles = () => {
@@ -328,33 +328,12 @@ class OptinMetrics extends PureComponent {
   };
 
   /**
-   * Callback on press cancel
-   */
-  onCancel = async () => {
-    setTimeout(async () => {
-      const { clearOnboardingEvents, metrics, setDataCollectionForMarketing } =
-        this.props;
-      // Ensure marketing data collection is explicitly disabled when declining metrics
-      setDataCollectionForMarketing(false);
-      // if users refuses tracking, get rid of the stored events
-      // and never send them to Segment
-      // and disable analytics
-      clearOnboardingEvents();
-      await metrics.enable(false);
-      await setupSentry(); // Re-setup Sentry with enabled: false
-      discardBufferedTraces();
-      updateCachedConsent(false);
-    }, 200);
-    this.continue();
-  };
-
-  /**
    * Callback on press confirm
    */
   onConfirm = async () => {
     const { events, metrics, setDataCollectionForMarketing } = this.props;
 
-    await metrics.enable();
+    await metrics.enable(this.state.isBasicUsageChecked);
     await setupSentry(); // Re-setup Sentry with enabled: true
     await flushBufferedTraces();
     updateCachedConsent(true);
@@ -601,7 +580,7 @@ class OptinMetrics extends PureComponent {
             </View>
             <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Default}
+              color={TextColor.Alternative}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
               }

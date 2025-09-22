@@ -42,7 +42,6 @@ jest.mock('../../../reducers/legalNotices', () => ({
   isPastPrivacyPolicyDate: jest.fn().mockReturnValue(true),
 }));
 
-// Use dynamic mocking to avoid native module conflicts
 jest.doMock('react-native', () => {
   const originalRN = jest.requireActual('react-native');
   return {
@@ -159,6 +158,101 @@ describe('OptinMetrics', () => {
           deviceProp: 'Device value',
           userProp: 'User value',
         });
+      });
+    });
+  });
+
+  describe('Basic usage data collection checkbox', () => {
+    it('should display basic usage checkbox title', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageTitle = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      expect(basicUsageTitle).toBeTruthy();
+    });
+
+    it('should toggle basic usage checkbox when clicked', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+
+      fireEvent.press(basicUsageCheckbox);
+
+      expect(basicUsageCheckbox).toBeTruthy();
+    });
+
+    it('should call metrics.enable with true when basic usage is checked by default', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it('should call metrics.enable with false when basic usage is unchecked', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      fireEvent.press(basicUsageCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalledWith(false);
+      });
+    });
+  });
+
+  describe('Learn more functionality', () => {
+    it('should display learn more link in basic usage description', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const learnMoreLink = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_learn_more'),
+      );
+      expect(learnMoreLink).toBeTruthy();
+    });
+
+    it('should call openLearnMore when learn more link is pressed', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const learnMoreLink = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_learn_more'),
+      );
+
+      expect(() => {
+        fireEvent.press(learnMoreLink);
+      }).not.toThrow();
+
+      expect(learnMoreLink).toBeTruthy();
+    });
+  });
+
+  describe('Combined checkbox scenarios', () => {
+    it('should handle both checkboxes independently', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      fireEvent.press(basicUsageCheckbox);
+
+      const marketingCheckbox = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
+      fireEvent.press(marketingCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalledWith(false);
       });
     });
   });

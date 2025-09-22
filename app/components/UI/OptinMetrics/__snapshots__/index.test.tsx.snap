@@ -277,7 +277,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -331,8 +331,8 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#121314",
+                                          "backgroundColor": "#4459ff",
+                                          "borderColor": "#4459ff",
                                           "borderRadius": 4,
                                           "borderWidth": 2,
                                           "height": 20,
@@ -340,7 +340,25 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                           "width": 20,
                                         }
                                       }
-                                    />
+                                    >
+                                      <SvgMock
+                                        accessibilityRole="checkbox"
+                                        accessible={true}
+                                        color="#ffffff"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="CheckBold"
+                                        onPress={[Function]}
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        testID="checkbox-icon-component"
+                                        width={20}
+                                      />
+                                    </View>
                                   </TouchableOpacity>
                                   <View
                                     style={
@@ -975,7 +993,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -1029,8 +1047,8 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#121314",
+                                          "backgroundColor": "#4459ff",
+                                          "borderColor": "#4459ff",
                                           "borderRadius": 4,
                                           "borderWidth": 2,
                                           "height": 20,
@@ -1038,7 +1056,25 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                           "width": 20,
                                         }
                                       }
-                                    />
+                                    >
+                                      <SvgMock
+                                        accessibilityRole="checkbox"
+                                        accessible={true}
+                                        color="#ffffff"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="CheckBold"
+                                        onPress={[Function]}
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        testID="checkbox-icon-component"
+                                        width={20}
+                                      />
+                                    </View>
                                   </TouchableOpacity>
                                   <View
                                     style={
@@ -1785,7 +1821,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -1839,8 +1875,8 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       style={
                                         {
                                           "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#121314",
+                                          "backgroundColor": "#4459ff",
+                                          "borderColor": "#4459ff",
                                           "borderRadius": 4,
                                           "borderWidth": 2,
                                           "height": 20,
@@ -1848,7 +1884,25 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                           "width": 20,
                                         }
                                       }
-                                    />
+                                    >
+                                      <SvgMock
+                                        accessibilityRole="checkbox"
+                                        accessible={true}
+                                        color="#ffffff"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="CheckBold"
+                                        onPress={[Function]}
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        testID="checkbox-icon-component"
+                                        width={20}
+                                      />
+                                    </View>
                                   </TouchableOpacity>
                                   <View
                                     style={
