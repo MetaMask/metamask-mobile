@@ -20,7 +20,7 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xl
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
     outputs:
