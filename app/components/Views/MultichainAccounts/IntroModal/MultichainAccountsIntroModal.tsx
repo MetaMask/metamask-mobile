@@ -33,6 +33,8 @@ const MultichainAccountsIntroModal = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [isAligning, setIsAligning] = useState(false);
+  const [isInitialAlignmentRunning, setIsInitialAlignmentRunning] =
+    useState(true);
 
   // Store the alignWallets promise so it can be reused
   const alignWalletsPromise = React.useMemo(
@@ -51,6 +53,8 @@ const MultichainAccountsIntroModal = () => {
           'Error aligning wallet in multichain accounts intro modal',
         );
         captureException(error as Error);
+      } finally {
+        setIsInitialAlignmentRunning(false);
       }
     };
 
@@ -127,11 +131,14 @@ const MultichainAccountsIntroModal = () => {
           >
             {strings('multichain_accounts.intro.title')}
           </Text>
-          <ButtonIcon
-            onPress={handleClose}
-            iconName={IconName.Close}
-            testID={MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON}
-          />
+          {!isInitialAlignmentRunning && (
+            <ButtonIcon
+              onPress={isAligning ? undefined : handleClose}
+              iconName={IconName.Close}
+              testID={MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON}
+              disabled={isAligning}
+            />
+          )}
         </View>
 
         <ScrollView
