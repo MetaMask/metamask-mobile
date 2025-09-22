@@ -24,7 +24,7 @@ import TextField, {
 } from '../../../../../component-library/components/Form/TextField';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import {
   REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
   REWARDS_ONBOARD_TERMS_URL,
@@ -32,7 +32,7 @@ import {
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const { optin, optinError, optinLoading } = useOptin();
   const {
     referralCode,
@@ -192,7 +192,7 @@ const OnboardingStep4: React.FC = () => {
           : ''
       }
       onNextDisabled={
-        (!referralCodeIsValid && !!referralCode) || hasAccountedOptedIn === true
+        (!referralCodeIsValid && !!referralCode) || !!subscriptionId
       }
       nextButtonText={strings('rewards.onboarding.step4_confirm')}
       renderStepInfo={renderStepInfo}

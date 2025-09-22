@@ -1,12 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../reducers/rewards/types';
-import {
-  selectOnboardingActiveStep,
-  selectOptinAllowedForGeo,
-} from '../../../reducers/rewards/selectors';
+import { selectOnboardingActiveStep } from '../../../reducers/rewards/selectors';
 import OnboardingIntroStep from './components/Onboarding/OnboardingIntroStep';
 import OnboardingStep1 from './components/Onboarding/OnboardingStep1';
 import OnboardingStep2 from './components/Onboarding/OnboardingStep2';
@@ -15,29 +12,28 @@ import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
 import { useNavigation } from '@react-navigation/native';
 import { setOnboardingActiveStep } from '../../../reducers/rewards';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const account = useSelector(selectSelectedInternalAccount);
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
 
   useGeoRewardsMetadata();
 
+  // Reset onboarding step when component mounts/account changes to prevent stale state
   useEffect(() => {
-    if (hasAccountedOptedIn === true) {
-      navigation.navigate(Routes.REWARDS_DASHBOARD);
-      dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-    } else if (!optinAllowedForGeo) {
+    if (account && !subscriptionId) {
       dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
     }
-  }, [hasAccountedOptedIn, navigation, dispatch, optinAllowedForGeo]);
+  }, [account, subscriptionId, dispatch]);
 
-  const getInitialRoute = () => {
+  const getInitialRoute = useCallback(() => {
     switch (activeStep) {
       case OnboardingStep.INTRO:
         return Routes.REWARDS_ONBOARDING_INTRO;
@@ -52,7 +48,19 @@ const OnboardingNavigator: React.FC = () => {
       default:
         return Routes.REWARDS_ONBOARDING_INTRO;
     }
-  };
+  }, [activeStep]);
+
+  useEffect(() => {
+    if (subscriptionId) {
+      dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
+      navigation.navigate(Routes.REWARDS_DASHBOARD);
+    } else if (subscriptionId === null) {
+      // Only navigate to onboarding intro if subscription ID is explicitly null
+      // Don't navigate during the loading state (subscriptionId === 'pending')
+      navigation.navigate(Routes.REWARDS_ONBOARDING_INTRO);
+    }
+    // If subscriptionId is 'pending' or 'error', don't navigate to prevent flashing
+  }, [subscriptionId, navigation, dispatch]);
 
   return (
     <Stack.Navigator initialRouteName={getInitialRoute()}>

@@ -19,10 +19,7 @@ import {
 } from '../../../actions/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 const Stack = createStackNavigator();
 
@@ -58,7 +55,6 @@ const AuthErrorView = () => {
 
 const RewardsNavigator: React.FC = () => {
   const account = useSelector(selectSelectedInternalAccount);
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
 
@@ -68,12 +64,7 @@ const RewardsNavigator: React.FC = () => {
   // Determine initial route - always start with onboarding intro step initially
   const getInitialRoute = () => {
     // If user has already opted in and has a valid subscription candidate ID, go to dashboard
-    if (
-      hasAccountedOptedIn === true &&
-      subscriptionId &&
-      subscriptionId !== 'pending' &&
-      subscriptionId !== 'error'
-    ) {
+    if (subscriptionId) {
       return Routes.REWARDS_DASHBOARD;
     }
 
@@ -93,11 +84,6 @@ const RewardsNavigator: React.FC = () => {
     return <AuthErrorView />;
   }
 
-  const isValidSubscriptionCandidateId =
-    Boolean(subscriptionId) &&
-    subscriptionId !== 'error' &&
-    subscriptionId !== 'pending';
-
   return (
     <Stack.Navigator initialRouteName={getInitialRoute()}>
       <Stack.Screen
@@ -105,7 +91,7 @@ const RewardsNavigator: React.FC = () => {
         component={OnboardingNavigator}
         options={{ headerShown: false }}
       />
-      {hasAccountedOptedIn === true || isValidSubscriptionCandidateId ? (
+      {subscriptionId ? (
         <>
           <Stack.Screen
             name={Routes.REWARDS_DASHBOARD}
