@@ -1,0 +1,10 @@
+diff --git a/node_modules/expo-sensors/android/src/main/AndroidManifest.xml b/node_modules/expo-sensors/android/src/main/AndroidManifest.xml
+index ad6aaa9..6421626 100644
+--- a/node_modules/expo-sensors/android/src/main/AndroidManifest.xml
++++ b/node_modules/expo-sensors/android/src/main/AndroidManifest.xml
+@@ -1,3 +1,4 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+-  <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
++  # TODO: Remove this as the permission is not used for the shake detection needed 
++  <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" tools:node="remove"/>
+ </manifest>
