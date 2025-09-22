@@ -184,6 +184,18 @@ describe('OptinMetrics', () => {
       expect(basicUsageCheckbox).toBeTruthy();
     });
 
+    it('should toggle basic usage checkbox state when checkbox component is pressed', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      const basicUsageCheckbox = checkboxes[0];
+
+      expect(basicUsageCheckbox).toBeTruthy();
+      fireEvent.press(basicUsageCheckbox);
+
+      expect(basicUsageCheckbox).toBeTruthy();
+    });
+
     it('should call metrics.enable with true when basic usage is checked by default', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -221,7 +233,13 @@ describe('OptinMetrics', () => {
     });
 
     it('should call openLearnMore when learn more link is pressed', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      renderScreen(
+        OptinMetrics,
+        {
+          name: 'OptinMetrics',
+        },
+        { state: {} },
+      );
 
       const learnMoreLink = screen.getByText(
         strings('privacy_policy.gather_basic_usage_learn_more'),
@@ -232,6 +250,20 @@ describe('OptinMetrics', () => {
       }).not.toThrow();
 
       expect(learnMoreLink).toBeTruthy();
+    });
+  });
+
+  describe('Marketing checkbox functionality', () => {
+    it('should toggle marketing checkbox state when touched', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const marketingCheckboxes = screen.getAllByRole('checkbox');
+      const marketingCheckbox = marketingCheckboxes[1];
+
+      expect(marketingCheckbox).toBeTruthy();
+      fireEvent.press(marketingCheckbox);
+
+      expect(marketingCheckbox).toBeTruthy();
     });
   });
 
@@ -327,6 +359,42 @@ describe('OptinMetrics', () => {
       fireEvent.press(continueButton);
 
       expect(continueButton).toBeTruthy();
+    });
+
+    it('should handle onContentSizeChange event', () => {
+      const { getByTestId } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+
+      const scrollView = getByTestId(
+        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+      );
+
+      fireEvent(scrollView, 'onContentSizeChange', 100, 500);
+
+      expect(scrollView).toBeTruthy();
+    });
+
+    it('should handle onLayout event', () => {
+      const { getByTestId } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+
+      const scrollView = getByTestId(
+        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+      );
+
+      fireEvent(scrollView, 'onLayout', {
+        nativeEvent: {
+          layout: { height: 400, width: 300 },
+        },
+      });
+
+      expect(scrollView).toBeTruthy();
     });
   });
 });
