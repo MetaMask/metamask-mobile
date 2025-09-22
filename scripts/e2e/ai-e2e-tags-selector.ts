@@ -35,6 +35,18 @@ interface ParsedArgs {
 }
 
 class AIE2ETagsSelector {
+  // Tags that are actually used in existing pipelines (run-e2e-smoke-tests-*.yml)
+  private readonly pipelineTags = [
+    "SmokeAccounts",
+    "SmokeConfirmations",
+    "SmokeConfirmationsRedesigned",
+    "SmokeIdentity",
+    "SmokeNetworkAbstractions",
+    "SmokeNetworkExpansion",
+    "SmokeTrade",
+    "SmokeWalletPlatform"
+  ];
+
   private readonly availableTags = Object.values(tags)
     .filter(tag => typeof tag === 'string' && tag.startsWith('Smoke'))
     .map(tag => tag.replace(':', '').trim())
@@ -45,6 +57,20 @@ class AIE2ETagsSelector {
     if (this.availableTags.length === 0) {
       throw new Error('No available Smoke tags found in e2e/tags.js');
     }
+  }
+
+  /**
+   * Get the list of smoke tags that are actually used in CI pipelines
+   */
+  public getPipelineTags(): string[] {
+    return [...this.pipelineTags];
+  }
+
+  /**
+   * Get the list of available smoke tags that are NOT used in pipelines
+   */
+  public getUnusedTags(): string[] {
+    return this.availableTags.filter(tag => !this.pipelineTags.includes(tag));
   }
 
   private log(message: string): void {
@@ -262,7 +288,7 @@ running ALL smoke test tags due to potential wide-reaching effects.
 RELEVANT CHANGED FILES:
 ${changedFiles.join('\n')}
 
-Available smoke test tags: ${this.availableTags.join(', ')}
+Available smoke test tags (used in pipelines): ${this.pipelineTags.join(', ')}
 
 ${hasCriticalDependencyChanges ?
   'RECOMMENDATION: Consider selecting ALL smoke test tags due to dependency changes.' :
@@ -270,14 +296,18 @@ ${hasCriticalDependencyChanges ?
 }
 
 SELECTION GUIDELINES:
-- yarn.lock/package.json changes → Consider ALL tags (high risk)
-- Use file paths to infer affected areas (e.g., app/core, app/components, app/screens, app/services, etc.)
-- Match file names to tag keywords (e.g., Wallet, Swaps, Send, Receive, Settings, Security, etc.)
-- config/ or e2e/ changes → Consider ALL tags (high risk)
-- Small UI changes in app/components/ → Low risk, minimal tags
-- Choose SmokeWalletPlatform at a minimum for broad infrastructure changes when some uncertainty exists
-- Avoid over-selecting tags to keep tests efficient
-- Return no tags for purely documentation or non-impactful changes
+- yarn.lock/package.json changes → Consider ALL pipeline tags (high risk)
+- app/core/, app/store/, app/reducers/ → SmokeWalletPlatform
+- app/components/Views/confirmations/ → SmokeConfirmations, SmokeConfirmationsRedesigned
+- app/components/*Account*, app/util/*account* → SmokeAccounts
+- app/components/*Swap*, app/util/*swap* → SmokeTrade
+- app/components/*Identity*, app/util/*identity* → SmokeIdentity
+- app/util/networks/, app/components/*Network* → SmokeNetworkAbstractions, SmokeNetworkExpansion
+- config/ or e2e/ changes → Consider ALL pipeline tags (high risk)
+- Small UI changes → Low risk, minimal tags
+- Documentation only → No tests needed (empty array)
+- Choose SmokeWalletPlatform for broad infrastructure changes
+- ONLY suggest tags from the pipeline list above
 
 RESPOND WITH JSON ONLY:
 {
@@ -408,11 +438,13 @@ RESPOND WITH JSON ONLY:
         }
         const parsed = JSON.parse(jsonText);
 
-        // Validate and clean response
+        // Validate and clean response - only allow pipeline tags
+        const filteredTags = Array.isArray(parsed.selectedTags) ?
+          parsed.selectedTags.filter((tag: string) => this.pipelineTags.includes(tag)) : [];
+
         return {
           riskLevel: (['low', 'medium', 'high'].includes(parsed.riskLevel)) ? parsed.riskLevel : 'medium',
-          selectedTags: Array.isArray(parsed.selectedTags) ?
-                       parsed.selectedTags.filter((tag: string) => this.availableTags.includes(tag)) : [],
+          selectedTags: filteredTags,
           areas: Array.isArray(parsed.areas) ? parsed.areas : [],
           reasoning: parsed.reasoning || 'AI analysis completed',
           confidence: Math.min(100, Math.max(0, parsed.confidence || 75))
@@ -576,6 +608,9 @@ RESPOND WITH JSON ONLY:
         case '--include-main':
           options.includeMainChanges = true;
           break;
+        case '--show-tags':
+          this.showTagComparison();
+          process.exit(0);
         case '--help':
         case '-h':
           this.printHelp();
@@ -584,6 +619,24 @@ RESPOND WITH JSON ONLY:
     }
 
     return options;
+  }
+
+  private showTagComparison(): void {
+    console.log('📊 SMOKE TAGS COMPARISON');
+    console.log('========================');
+    console.log();
+
+    console.log(`✅ USED IN PIPELINES (${this.pipelineTags.length} tags):`);
+    this.pipelineTags.forEach(tag => console.log(`   ${tag}`));
+
+    const unusedTags = this.getUnusedTags();
+    console.log();
+    console.log(`❌ AVAILABLE BUT NOT USED IN PIPELINES (${unusedTags.length} tags):`);
+    unusedTags.forEach(tag => console.log(`   ${tag}`));
+
+    console.log();
+    console.log('💡 The AI selector now only recommends tags that are used in pipelines');
+    console.log('   to avoid suggesting tests that cannot run in CI.');
   }
 
   private printHelp(): void {
@@ -602,6 +655,7 @@ Options:
   -v, --verbose               Verbose output with AI reasoning
   -o, --output <format>       Output format (default|json|tags)
   --include-main-changes       Include more changes from main branch (extends analysis window)
+  --show-tags                 Show comparison of pipeline vs available tags
   -h, --help                 Show this help
 
 Features:
@@ -611,6 +665,7 @@ Features:
   🔄 Automatic fallback to keyword analysis
   ⚙️ CI matrix strategy with test splitting
   🎯 Context-aware test selection
+  🏷️ Only recommends tags that are used in existing pipelines
 
 Environment:
   E2E_CLAUDE_API_KEY             Claude API key for AI analysis (optional)
@@ -621,6 +676,9 @@ Examples:
 
   # Tags only output for CI integration
   node scripts/smart-e2e-selector-ai.ts --output tags
+
+  # Show which tags are used in pipelines
+  node scripts/smart-e2e-selector-ai.ts --show-tags
 `);
   }
 }
