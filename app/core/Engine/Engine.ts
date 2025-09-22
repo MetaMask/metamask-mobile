@@ -2294,12 +2294,12 @@ export class Engine {
       .map(([networkChainId]) => networkChainId as Hex);
 
     await Promise.allSettled(
-      chainIds.map(async (networkChainId) => {
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          networkChainId as Hex,
-        );
-        return await NetworkController.lookupNetwork(networkClientId);
-      }),
+      chainIds
+        .map((chainId) =>
+          NetworkController.findNetworkClientIdByChainId(chainId as Hex),
+        )
+        .filter((id): id is string => !!id)
+        .map((id) => NetworkController.lookupNetwork(id)),
     );
   }
 }
