@@ -40,6 +40,14 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
   useInvalidateByRewardEvents: jest.fn(),
 }));
 
+// Mock React Navigation hooks
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn((callback) => {
+    // Simulate the focus effect by calling the callback immediately
+    callback();
+  }),
+}));
+
 describe('useSeasonStatus', () => {
   const mockDispatch = jest.fn();
   const mockUseDispatch = useDispatch as jest.MockedFunction<
