@@ -6,7 +6,7 @@ import NetworkSwitcher from '../Views/NetworkSwitcher';
 import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
-import TokenSelectModal from '../components/TokenSelectModal';
+import TokenSelectModal from '../components/TokenSelectModal/TokenSelectModal';
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';

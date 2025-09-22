@@ -1,8 +1,8 @@
 import React from 'react';
-import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
-import TokenSelecModal from './TokenSelecModal';
-import Routes from '../../../../../../../constants/navigation/Routes';
-import initialRootState from '../../../../../../../util/test/initial-root-state';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import TokenSelectModal from './TokenSelectModal';
+import Routes from '../../../../../../constants/navigation/Routes';
+import initialRootState from '../../../../../../util/test/initial-root-state';
 
 function render(component: React.ComponentType) {
   return renderScreen(
@@ -16,13 +16,21 @@ function render(component: React.ComponentType) {
   );
 }
 
-describe('TokenSelecModal', () => {
+const mockSetSelectedAsset = jest.fn();
+
+jest.mock('../../sdk', () => ({
+  useRampSDK: () => ({
+    setSelectedAsset: mockSetSelectedAsset,
+  }),
+}));
+
+describe('TokenSelectModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders the modal with the correct title and description', () => {
-    const { toJSON } = render(TokenSelecModal);
+    const { toJSON } = render(TokenSelectModal);
     expect(toJSON()).toMatchSnapshot();
   });
 });

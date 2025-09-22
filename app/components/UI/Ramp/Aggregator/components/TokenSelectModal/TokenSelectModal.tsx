@@ -15,8 +15,7 @@ import ListItemSelect from '../../../../../../component-library/components/List/
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import TokenIcon from '../../../../Swaps/components/TokenIcon';
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import BadgeWrapper, {
   BadgePosition,
@@ -42,6 +41,7 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../../../../core/Engine';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -73,6 +73,54 @@ function TokenSelectModal() {
 
   const { colors } = useTheme();
 
+  const getNetworkImageForToken = useCallback(
+    (token: CryptoCurrency) => {
+      if (!token.network?.chainId) return undefined;
+
+      try {
+        // Convert chain ID to hex format safely
+        let numericChainId: number;
+        if (typeof token.network.chainId === 'number') {
+          numericChainId = token.network.chainId;
+        } else {
+          numericChainId = parseInt(String(token.network.chainId), 10);
+          if (isNaN(numericChainId)) {
+            console.warn(
+              'Invalid chain ID for token:',
+              token.symbol,
+              token.network.chainId,
+            );
+            return undefined;
+          }
+        }
+
+        const hexChainId = toHex(numericChainId);
+
+        const caipChainId = isCaipChainId(token.network.chainId)
+          ? token.network.chainId
+          : toEvmCaipChainId(hexChainId);
+
+        const networkConfig = networksByCaipChainId[
+          caipChainId
+        ] as NetworkConfiguration;
+        const networkType = networkConfig?.rpcEndpoints?.[0]?.type || 'custom';
+
+        return getNetworkImageSource({
+          networkType,
+          chainId: hexChainId,
+        });
+      } catch (error) {
+        console.warn(
+          'Error getting network image for token:',
+          token.symbol,
+          error,
+        );
+        return undefined;
+      }
+    },
+    [networksByCaipChainId],
+  );
+
   const tokenFuse = useMemo(
     () =>
       new Fuse(tokens, {
@@ -90,8 +138,8 @@ function TokenSelectModal() {
   const searchTokenResults = useMemo(
     () =>
       searchString.length > 0
-        ? tokenFuse.search(searchString)?.slice(0, MAX_TOKENS_RESULTS)
-        : tokens,
+        ? tokenFuse.search(searchString)?.slice(0, MAX_TOKENS_RESULTS) || []
+        : tokens || [],
     [searchString, tokenFuse, tokens],
   );
 
@@ -165,13 +213,14 @@ function TokenSelectModal() {
         <ListItemColumn widthType={WidthType.Auto}>
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
-            badgeElement={<BadgeNetwork name={token.network?.shortName} />}
+            badgeElement={
+              <BadgeNetwork
+                name={token.network?.shortName}
+                imageSource={getNetworkImageForToken(token)}
+              />
+            }
           >
-            <AvatarToken
-              name={token.name}
-              imageSource={{ uri: token.logo }}
-              size={AvatarSize.Md}
-            />
+            <TokenIcon symbol={token.symbol} icon={token.logo} medium />
           </BadgeWrapper>
         </ListItemColumn>
         <ListItemColumn widthType={WidthType.Fill}>
@@ -182,7 +231,11 @@ function TokenSelectModal() {
         </ListItemColumn>
       </ListItemSelect>
     ),
-    [colors.text.alternative, handleSelectTokenCallback],
+    [
+      colors.text.alternative,
+      handleSelectTokenCallback,
+      getNetworkImageForToken,
+    ],
   );
 
   const renderEmptyList = useCallback(
@@ -223,7 +276,9 @@ function TokenSelectModal() {
         ref={listRef}
         data={searchTokenResults}
         renderItem={renderToken}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) =>
+          item.id || `${item.symbol}-${item.address || 'native'}`
+        }
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
