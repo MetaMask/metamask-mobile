@@ -10,7 +10,6 @@ import { useSelector } from 'react-redux';
 import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import ScrollableTabView, {
   TabBarProps,
 } from '@tommasini/react-native-scrollable-tab-view';

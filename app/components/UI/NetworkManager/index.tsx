@@ -4,11 +4,9 @@ import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import ScrollableTabView, {
   ChangeTabProperties,
 } from '@tommasini/react-native-scrollable-tab-view';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import DefaultTabBar from '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 import { CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';

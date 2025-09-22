@@ -2,7 +2,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { View } from 'react-native';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import ScrollableTabView, {
   TabBarProps,
 } from '@tommasini/react-native-scrollable-tab-view';

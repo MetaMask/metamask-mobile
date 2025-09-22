@@ -9,7 +9,6 @@ import React, {
 } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
