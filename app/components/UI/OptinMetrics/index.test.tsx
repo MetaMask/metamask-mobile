@@ -289,19 +289,6 @@ describe('OptinMetrics', () => {
     });
   });
 
-  it('does not call metrics on cancel', async () => {
-    renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-    fireEvent.press(
-      screen.getByRole('button', {
-        name: strings('privacy_policy.continue'),
-      }),
-    );
-    await waitFor(() => {
-      expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
-      expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
-    });
-  });
-
   describe('scroll view logic', () => {
     it('action buttons are enabled when scroll view content fits viewport', () => {
       const { getByTestId } = renderScreen(

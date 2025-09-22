@@ -336,7 +336,7 @@ class OptinMetrics extends PureComponent {
     await metrics.enable(this.state.isBasicUsageChecked);
     await setupSentry(); // Re-setup Sentry with enabled: true
     await flushBufferedTraces();
-    updateCachedConsent(true);
+    updateCachedConsent(this.state.isBasicUsageChecked);
 
     setDataCollectionForMarketing(this.state.isCheckboxChecked);
 
