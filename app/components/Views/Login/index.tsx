@@ -283,7 +283,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     track(MetaMetricsEvents.VAULT_CORRUPTION_DETECTED, {
       error_type: 'vault_corruption_handling',
       context: 'vault_corruption_recovery_attempt',
-      oauth_login: oauthLoginSuccess,
+      oauth_login: isComingFromOauthOnboarding,
     });
 
     // No need to check password requirements here, it will be checked in onLogin
@@ -326,7 +326,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         error_type: 'vault_corruption_handling_failed',
         error_message: (e as Error).message,
         context: 'vault_corruption_recovery_failed',
-        oauth_login: oauthLoginSuccess,
+        oauth_login: isComingFromOauthOnboarding,
       });
 
       Logger.error(e as Error);
@@ -574,7 +574,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           : 'json_parse_error',
         error_message: loginErrorMessage,
         context: 'login_authentication',
-        oauth_login: oauthLoginSuccess,
+        oauth_login: isComingFromOauthOnboarding,
       });
 
       await handleVaultCorruption();
