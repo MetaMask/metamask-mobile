@@ -21,12 +21,6 @@ class MetaMetricsOptIn {
     );
   }
 
-  get noThanksButton(): DetoxElement {
-    return Matchers.getElementByID(
-      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID,
-    );
-  }
-
   async swipeContentUp(): Promise<void> {
     await Gestures.swipe(this.optInMetricsContent, 'up', {
       speed: 'fast',
@@ -39,13 +33,6 @@ class MetaMetricsOptIn {
     await this.swipeContentUp();
     await Gestures.waitAndTap(this.iAgreeButton, {
       elemDescription: 'Opt-in Metrics I Agree Button',
-    });
-  }
-
-  async tapNoThanksButton(): Promise<void> {
-    await this.swipeContentUp();
-    await Gestures.waitAndTap(this.noThanksButton, {
-      elemDescription: 'Opt-in Metrics No Thanks Button',
     });
   }
 }

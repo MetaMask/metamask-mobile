@@ -42,7 +42,7 @@ describe(RegressionWalletPlatform('Start Exploring'), () => {
   it('should be able to opt-out of the onboarding-wizard', async () => {
     await OnboardingView.tapCreateWallet();
     await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container);
-    await MetaMetricsOptIn.tapNoThanksButton();
+    await MetaMetricsOptIn.tapAgreeButton();
     await Assertions.expectElementToBeVisible(CreatePasswordView.container);
   });
 

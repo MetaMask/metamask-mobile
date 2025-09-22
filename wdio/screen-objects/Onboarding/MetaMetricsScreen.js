@@ -37,16 +37,6 @@ class MetaMetricsScreen{
     }
   }
 
-  get noThanksButton() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId(
-        MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID,
-      );
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID);
-    }
-  }
-
   async isScreenTitleVisible() {
     if (!this._device) {
       await expect(this.screenTitle).toBeDisplayed();
