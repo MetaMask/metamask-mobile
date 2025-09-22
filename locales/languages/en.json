@@ -1110,8 +1110,10 @@
       "confirmed": "Order Confirmed",
       "cancelling_order": "Cancelling order",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "Cancelling {{detailedOrderType}} order",
       "order_cancelled": "Order cancelled",
       "failed_to_cancel_order": "Failed to cancel order",
+      "order_still_active": "Order still active",
       "funds_have_been_returned_to_you": "Funds have been returned to you",
       "funds_are_available_to_trade": "Funds are available to trade",
       "close_order_still_active": "Close order still active",
@@ -1120,7 +1122,8 @@
       "order_placed": "Order placed",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "Order failed",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
+      "order_cancelled_success": "{{detailedOrderType}} order cancelled"
     },
     "close_position": {
       "title": "Close position",
@@ -1147,7 +1150,9 @@
       "success_title": "Position Closed Successfully",
       "position_closed": "Position closed",
       "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "Close Position Failed",
+      "failed_to_close_position": "Failed to close position",
+      "failed_to_partially_close_position": "Failed to partially close position",
+      "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
@@ -1182,7 +1187,8 @@
       "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
-      "below": "below"
+      "below": "below",
+      "dismiss_tpsl_keypad": "Dismiss"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1510,7 +1516,9 @@
     "points": "Points",
     "unable_to_load": "Couldn't load",
     "points_error": "We can't load points right now",
-    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later."
+    "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later.",
+    "tp_on_chart": "TP on Chart",
+    "sl_on_chart": "SL on Chart"
   },
   "receive": {
     "title": "Receive"
@@ -4958,7 +4966,7 @@
     "earn_eth_rewards": "Earn ETH rewards.",
     "earn_eth_rewards_description": "Start earning as soon as you stake. Rewards compound automatically.",
     "flexible_unstaking": "Flexible unstaking.",
-    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more": "Learn more",
     "got_it": "Got it",
@@ -4994,7 +5002,7 @@
       "geo_blocked": "You’re located in a region where unstaking or staking isn’t permitted.",
       "approximately": "approximately"
     },
-    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 11 days.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "Max",
     "staking_from": "Staking from",
     "advanced_details": "Advanced details",
@@ -5018,7 +5026,7 @@
       }
     },
     "use_max": "Use max",
-    "estimated_unstaking_time": "1 to 11 days",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
     "select_a_token_to_deposit": "Select a token to deposit",
@@ -5125,7 +5133,7 @@
     },
     "unstaking_time": {
       "title": "Unstaking time",
-      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5349,10 +5357,14 @@
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
     "swap_to": "Swap to",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
     "fee_disclaimer": "Includes 0.875% MM fee",
+    "no_mm_fee": "No MM fee",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
     "price_impact_info_title": "Price Impact",
@@ -5498,11 +5510,12 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
         "view_accounts_button": "View accounts",
-        "learn_more_button": "Learn more"
+        "learn_more_button": "Learn more",
+        "setting_up_accounts": "Setting up your accounts"
       },
       "learn_more": {
         "title": "Learn more",
@@ -5512,6 +5525,7 @@
       },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "Account Details",
       "account_name": "Account Name",
@@ -5737,7 +5751,7 @@
 
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
-      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
+      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
       "checking_opt_in": "Checking opt-in for accounts...",
@@ -5745,6 +5759,7 @@
       "intro_skip": "Not now",
 
       "step_confirm": "Next",
+      "step_skip": "Skip",
 
       "step1_title": "Earn points on every trade",
       "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
@@ -5760,13 +5775,17 @@
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
+      "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
       "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
-      "step4_legal_disclaimer_learn_more": "Learn more."
+      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+      "step4_legal_disclaimer_3":". We'll track onchain activity to reward you automatically –",
+      "step4_legal_disclaimer_4":"learn more"
+
     },
 
     "settings": {
@@ -5835,8 +5854,10 @@
         "points": "Get 20% from friends you refer"
       }
     },
-
     "referral": {
+      "referral_code": "Referral code",
+      "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Refer a friend",
         "share_referral_subject": "Join MetaMask Rewards"
@@ -5853,12 +5874,20 @@
     "season_1": "Season 1",
     "upcoming_rewards": {
       "title": "Upcoming rewards",
-      "points_needed": "{{points}} points"
+      "points_needed": "{{points}} points",
+      "cta_label": "Got it",
+      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
     },
     "unlocked_rewards": {
       "title": "Unlocked rewards",
       "empty": "No rewards yet. \nEarn points and level up.",
-      "see_ways_to_earn": "See ways to earn"
+      "see_ways_to_earn": "See ways to earn",
+      "cta_label": "Claim now",
+      "cta_request_invite": "Request invite",
+      "claim_label": "Claim",
+      "claimed_label": "Claimed",
+      "reward_claimed": "Reward claimed",
+      "expired": "Expired"
     }
   },
   "time": {
