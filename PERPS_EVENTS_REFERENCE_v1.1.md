@@ -13,21 +13,31 @@ This document serves as the definitive reference for all Perp-related Mixpanel e
 
 ## Tutorial Events
 
-### [ ] Perp Tutorial Viewed
+### [✅] Perp Tutorial Viewed
 
 **Properties:**
 
 - Timestamp
 - Source (banner, notification, mainActionButton, positionTab, perpMarkets, deeplink)
 
-### [ ] Perp Tutorial Started
+**Implementation:** `PerpsTutorialCarousel.tsx:151-156`
+
+- Event: `PERPS_TUTORIAL_VIEWED`
+- Properties: timestamp, source (main_action_button)
+
+### [✅] Perp Tutorial Started
 
 **Properties:**
 
 - Timestamp
 - Source (banner, notification, mainActionButton, positionTab, perpMarkets, deeplink)
 
-### [ ] Perp Tutorial Completed
+**Implementation:** `PerpsTutorialCarousel.tsx:177-181`
+
+- Event: `PERPS_TUTORIAL_STARTED`
+- Properties: timestamp, source
+
+### [✅] Perp Tutorial Completed
 
 **Properties:**
 
@@ -37,20 +47,30 @@ This document serves as the definitive reference for all Perp-related Mixpanel e
 - Steps Viewed
 - View occurences
 
+**Implementation:** `PerpsTutorialCarousel.tsx:208-214, 271-277`
+
+- Event: `PERPS_TUTORIAL_COMPLETED`
+- Properties: source, completion_duration_tutorial, steps_viewed, view_occurrences
+- Handles both continue and skip completion paths
+
 ---
 
 ## Account Funding Events
 
 _Note: Implemented by Confirmation team_
 
-### [ ] Perp Funding Input Viewed
+### [❌] Perp Funding Input Viewed
 
 **Properties:**
 
 - Timestamp
 - Source (Tutorial, homescreen Tab, perps Markets screen)
 
-### [ ] Perp Funding Review Viewed
+**Implementation:** Not implemented
+
+- Expected in: Funding/Deposit flow (Confirmation team)
+
+### [❌] Perp Funding Review Viewed
 
 **Properties:**
 
@@ -60,7 +80,11 @@ _Note: Implemented by Confirmation team_
 - SourceAmount
 - networkFee
 
-### [ ] Transaction Added (transaction_type == mm_perps_deposit)
+**Implementation:** Not implemented
+
+- Expected in: Funding confirmation flow (Confirmation team)
+
+### [❌] Transaction Added (transaction_type == mm_perps_deposit)
 
 **Properties:**
 
@@ -70,7 +94,11 @@ _Note: Implemented by Confirmation team_
 - SourceAmount
 - networkFee
 
-### [ ] Transaction Submitted (transaction_type == mm_perps_deposit)
+**Implementation:** Not implemented
+
+- Expected in: Transaction lifecycle (Confirmation team)
+
+### [❌] Transaction Submitted (transaction_type == mm_perps_deposit)
 
 **Properties:**
 
@@ -80,7 +108,11 @@ _Note: Implemented by Confirmation team_
 - SourceAmount
 - networkFee
 
-### [ ] Transaction Finalized (transaction_type == mm_perps_deposit, Status == confirmed)
+**Implementation:** Not implemented
+
+- Expected in: Transaction lifecycle (Confirmation team)
+
+### [❌] Transaction Finalized (transaction_type == mm_perps_deposit, Status == confirmed)
 
 **Properties:**
 
@@ -91,7 +123,11 @@ _Note: Implemented by Confirmation team_
 - networkFee
 - execution_time
 
-### [ ] Transaction Finalized (transaction_type == mm_perps_deposit, Status == failed)
+**Implementation:** Not implemented
+
+- Expected in: Transaction lifecycle (Confirmation team)
+
+### [❌] Transaction Finalized (transaction_type == mm_perps_deposit, Status == failed)
 
 **Properties:**
 
@@ -103,18 +139,27 @@ _Note: Implemented by Confirmation team_
 - execution_time
 - Failure Reason
 
+**Implementation:** Not implemented
+
+- Expected in: Transaction lifecycle (Confirmation team)
+
 ---
 
 ## Account Withdrawal Events
 
-### [ ] Perp Withdrawal Input Viewed
+### [✅] Perp Withdrawal Input Viewed
 
 **Properties:**
 
 - Timestamp
 - Source (homescreen Tab, perps Markets screen)
 
-### [ ] Transaction Added (transaction_type == mm_perps_withdrawal)
+**Implementation:** `PerpsWithdrawView.tsx:159`
+
+- Event: `PERPS_WITHDRAWAL_INPUT_VIEWED`
+- Properties: timestamp only
+
+### [⚠️] Transaction Added (transaction_type == mm_perps_withdrawal)
 
 **Properties:**
 
@@ -122,14 +167,24 @@ _Note: Implemented by Confirmation team_
 - SourceAmount
 - availableAmount
 
-### [ ] Transaction Submitted (transaction_type == mm_perps_withdrawal)
+**Implementation:** Mapped to `PERPS_WITHDRAWAL_INITIATED`
+
+- Event: `PERPS_WITHDRAWAL_INITIATED` in `PerpsWithdrawView.tsx:243`
+- Properties: timestamp, sourceAmount
+- ⚠️ Missing availableAmount property
+
+### [❌] Transaction Submitted (transaction_type == mm_perps_withdrawal)
 
 **Properties:**
 
 - Timestamp
 - SourceAmount
 
-### [ ] Transaction Finalized (transaction_type == mm_perps_withdrawal, Status == confirmed)
+**Implementation:** Not implemented
+
+- Event flow goes directly from initiated to completed/failed
+
+### [✅] Transaction Finalized (transaction_type == mm_perps_withdrawal, Status == confirmed)
 
 **Properties:**
 
@@ -137,7 +192,12 @@ _Note: Implemented by Confirmation team_
 - SourceAmount
 - execution_time
 
-### [ ] Transaction Finalized (transaction_type == mm_perps_withdrawal, Status == failed)
+**Implementation:** `PerpsWithdrawView.tsx:300`
+
+- Event: `PERPS_WITHDRAWAL_COMPLETED`
+- Properties: timestamp, sourceAmount, completionDuration
+
+### [✅] Transaction Finalized (transaction_type == mm_perps_withdrawal, Status == failed)
 
 **Properties:**
 
@@ -145,24 +205,39 @@ _Note: Implemented by Confirmation team_
 - SourceAmount
 - Failure Reason
 
+**Implementation:** `PerpsWithdrawView.tsx:313, 349`
+
+- Event: `PERPS_WITHDRAWAL_FAILED`
+- Properties: timestamp, sourceAmount, failure_reason
+
 ---
 
 ## Pre-Trade Events
 
-### [ ] Perp Markets Viewed
+### [✅] Perp Markets Viewed
 
 **Properties:**
 
 - Timestamp
 - Source (mainActionButton, positionTab, tutorial, deeplink)
 
-### [ ] Perp Asset Search Bar Clicked
+**Implementation:** `PerpsMarketListView.tsx:235-238`
+
+- Event: `PERPS_MARKETS_VIEWED`
+- Properties: source (main_action_button)
+
+### [✅] Perp Asset Search Bar Clicked
 
 **Properties:**
 
 - Timestamp
 
-### [ ] Perp Asset Screen Viewed
+**Implementation:** `PerpsMarketListView.tsx:209`
+
+- Event: `PERPS_ASSET_SEARCH_BAR_CLICKED`
+- Properties: timestamp only
+
+### [✅] Perp Asset Screen Viewed
 
 **Properties:**
 
@@ -171,7 +246,13 @@ _Note: Implemented by Confirmation team_
 - Asset
 - Open Position (boolean)
 
-### [ ] Perp Chart Interaction
+**Implementation:** `PerpsMarketDetailsView.tsx:239-244`
+
+- Event: `PERPS_ASSET_SCREEN_VIEWED`
+- Properties: asset, source (perp_markets), Open Position (boolean)
+- ✅ All required properties implemented
+
+### [✅] Perp Chart Interaction
 
 **Properties:**
 
@@ -179,18 +260,28 @@ _Note: Implemented by Confirmation team_
 - Interaction Type (tap, zoom, slide)
 - candlePeriodSelected (1min, 3min, 5min etc.)
 
-### [ ] Perp Chart time serie changed
+**Implementation:** `PerpsMarketDetailsView.tsx:260-264`
+
+- Event: `PERPS_CHART_INTERACTION`
+- Properties: asset, interaction_type, candle_period
+
+### [❌] Perp Chart time serie changed
 
 **Properties:**
 
 - Timestamp
 - Time serie selected
 
+**Implementation:** Not implemented
+
+- Expected in: Chart component for time series changes
+- Event: `PERPS_CHART_TIME_SERIE_CHANGED` defined but not used
+
 ---
 
 ## Trade Events
 
-### [ ] Perp Trading Screen Viewed
+### [✅] Perp Trading Screen Viewed
 
 **Properties:**
 
@@ -198,7 +289,13 @@ _Note: Implemented by Confirmation team_
 - Asset
 - Direction (Long, Short)
 
-### [ ] Perp Order Type Viewed
+**Implementation:** `PerpsOrderView.tsx:288`
+
+- Event: `PERPS_TRADING_SCREEN_VIEWED`
+- Properties: timestamp, asset, direction
+- Tracked once per session
+
+### [✅] Perp Order Type Viewed
 
 **Properties:**
 
@@ -207,7 +304,13 @@ _Note: Implemented by Confirmation team_
 - Direction (Long, Short)
 - current order type (Market, Limit)
 
-### [ ] Perp Order Type Selected
+**Implementation:** `PerpsOrderView.tsx:329-339`
+
+- Event: `PERPS_ORDER_TYPE_VIEWED`
+- Properties: asset, direction, order_size, leverage_used, order_type
+- ⚠️ Triggered when user enters amount, not specifically when viewing order type
+
+### [❌] Perp Order Type Selected
 
 **Properties:**
 
@@ -216,7 +319,12 @@ _Note: Implemented by Confirmation team_
 - Direction (Long, Short)
 - selected order type (Market, Limit)
 
-### [ ] Perp Order Size Changed
+**Implementation:** Not implemented
+
+- Expected in: Order type selection component
+- Event: `PERPS_ORDER_TYPE_SELECTED` defined but not used
+
+### [❌] Perp Order Size Changed
 
 **Properties:**
 
@@ -229,7 +337,12 @@ _Note: Implemented by Confirmation team_
 - orderType (market, limit)
 - Input Method (slider, keyboard)
 
-### [ ] Perp Leverage Screen Viewed
+**Implementation:** Not implemented
+
+- Expected in: Order size input component
+- Could be derived from existing order type viewed event
+
+### [✅] Perp Leverage Screen Viewed
 
 **Properties:**
 
@@ -237,7 +350,12 @@ _Note: Implemented by Confirmation team_
 - Asset
 - Direction (Long, Short)
 
-### [ ] Perp Leverage Changed
+**Implementation:** `PerpsLeverageBottomSheet.tsx:415-421`
+
+- Event: `PERPS_LEVERAGE_SCREEN_VIEWED`
+- Properties: asset, direction
+
+### [✅] Perp Leverage Changed
 
 **Properties:**
 
@@ -247,7 +365,12 @@ _Note: Implemented by Confirmation team_
 - Leverage Used
 - inputMethod (slider, preset)
 
-### [ ] Transaction Added (transaction_type == mm_perps_trade)
+**Implementation:** `PerpsOrderView.tsx:1277`
+
+- Event: `PERPS_LEVERAGE_CHANGED`
+- Properties: timestamp, asset, direction, leverage_used, previousLeverage, input_method
+
+### [✅] Transaction Added (transaction_type == mm_perps_trade)
 
 **Properties:**
 
@@ -262,7 +385,13 @@ _Note: Implemented by Confirmation team_
 - Fees
 - Asset Price
 
-### [ ] Transaction Submitted (transaction_type == mm_perps_trade)
+**Implementation:** `PerpsOrderView.tsx:688-702`
+
+- Event: `PERPS_TRADE_TRANSACTION_INITIATED`
+- Properties: asset, direction, order_type, leverage, order_size, margin_used, limit_price, fees, asset_price
+- ✅ All required properties implemented
+
+### [✅] Transaction Submitted (transaction_type == mm_perps_trade)
 
 **Properties:**
 
@@ -277,7 +406,13 @@ _Note: Implemented by Confirmation team_
 - Fees
 - Asset Price
 
-### [ ] Transaction Finalized (transaction_type == mm_perps_trade, Status == confirmed)
+**Implementation:** `PerpsOrderView.tsx:738-752`
+
+- Event: `PERPS_TRADE_TRANSACTION_SUBMITTED`
+- Properties: asset, direction, order_type, leverage, order_size, margin_used, limit_price, fees, asset_price
+- ✅ All required properties implemented
+
+### [✅] Transaction Finalized (transaction_type == mm_perps_trade, Status == confirmed)
 
 **Properties:**
 
@@ -293,7 +428,13 @@ _Note: Implemented by Confirmation team_
 - Asset Price
 - completionDuration
 
-### [ ] Perp Trade Transaction Partially filled (transaction_type == mm_perps_trade, Status == partially_filled)
+**Implementation:** `PerpsOrderView.tsx:385-401`
+
+- Event: `PERPS_TRADE_TRANSACTION_EXECUTED`
+- Properties: asset, direction, order_type, leverage, order_size, asset_price, margin_used, metamask_fee, metamask_fee_rate, discount_percentage, estimated_rewards
+- ✅ Comprehensive property coverage
+
+### [❌] Perp Trade Transaction Partially filled (transaction_type == mm_perps_trade, Status == partially_filled)
 
 **Properties:**
 
@@ -311,7 +452,12 @@ _Note: Implemented by Confirmation team_
 - Amount filled
 - Remaining amount
 
-### [ ] Perp Trade Transaction Failed (transaction_type == mm_perps_trade, Status == failed)
+**Implementation:** Not implemented
+
+- Event: `PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED` defined but not used
+- Expected in: Order execution flow for partial fills
+
+### [✅] Perp Trade Transaction Failed (transaction_type == mm_perps_trade, Status == failed)
 
 **Properties:**
 
@@ -328,11 +474,17 @@ _Note: Implemented by Confirmation team_
 - completionDuration
 - Failure Reason
 
+**Implementation:** `PerpsOrderView.tsx:770-777`
+
+- Event: `PERPS_TRADE_TRANSACTION_FAILED`
+- Properties: asset, direction, error_message
+- ⚠️ Missing leverage, order_size, margin_used, order_type, limit_price, fees, asset_price, completion_duration
+
 ---
 
 ## Close Position Events
 
-### [ ] Perp Homescreen Tab Viewed
+### [❌] Perp Homescreen Tab Viewed
 
 **Properties:**
 
@@ -340,7 +492,12 @@ _Note: Implemented by Confirmation team_
 - Open Position (array: Asset, Leverage, Direction)
 - Perp Account $ Balance
 
-### [ ] Perp Position Close Screen Viewed
+**Implementation:** Not implemented
+
+- Event: `PERPS_HOMESCREEN_TAB_VIEWED` defined but not used
+- Expected in: Main Perps tab view component
+
+### [✅] Perp Position Close Screen Viewed
 
 **Properties:**
 
@@ -353,7 +510,13 @@ _Note: Implemented by Confirmation team_
 - Source (HomescreenTab, PerpAssetScreen)
 - Received amount
 
-### [ ] Perp Position Close Value Changed
+**Implementation:** `PerpsClosePositionView.tsx:233-242`
+
+- Event: `PERPS_POSITION_CLOSE_SCREEN_VIEWED`
+- Properties: asset, direction, position_size, unrealized_pnl_dollar, unrealized_pnl_percent, source, received_amount
+- ✅ All required properties implemented
+
+### [❌] Perp Position Close Value Changed
 
 **Properties:**
 
@@ -368,7 +531,11 @@ _Note: Implemented by Confirmation team_
 - orderType (market, limit)
 - Received amount
 
-### [ ] Perp Position Close Order Type Changed
+**Implementation:** Not implemented
+
+- Expected in: Position close amount/percentage input component
+
+### [❌] Perp Position Close Order Type Changed
 
 **Properties:**
 
@@ -383,7 +550,12 @@ _Note: Implemented by Confirmation team_
 - orderType (market, limit)
 - Received amount
 
-### [ ] Transaction Added (transaction_type == mm_perps_position_close)
+**Implementation:** Not implemented
+
+- Event: `PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED` defined but not used
+- Expected in: Order type selection for position close
+
+### [✅] Transaction Added (transaction_type == mm_perps_position_close)
 
 **Properties:**
 
@@ -401,7 +573,13 @@ _Note: Implemented by Confirmation team_
 - Limit Price
 - Received amount
 
-### [ ] Transaction Submitted (transaction_type == mm_perps_position_close)
+**Implementation:** `PerpsClosePositionView.tsx:261-271`
+
+- Event: `PERPS_POSITION_CLOSE_INITIATED`
+- Properties: asset, direction, order_type, close_percentage, close_value, pnl_dollar, received_amount, open_position_size, order_size, pnl_percent, fee, asset_price, limit_price
+- ✅ All required properties implemented
+
+### [⚠️] Transaction Submitted (transaction_type == mm_perps_position_close)
 
 **Properties:**
 
@@ -419,7 +597,13 @@ _Note: Implemented by Confirmation team_
 - Limit Price
 - Received amount
 
-### [ ] Transaction Finalized (transaction_type == mm_perps_position_close, Status == confirmed)
+**Implementation:** `PerpsClosePositionView.tsx:274-277`
+
+- Event: `PERPS_POSITION_CLOSE_SUBMITTED`
+- Properties: asset, order_type
+- ⚠️ Missing most required properties
+
+### [❌] Transaction Finalized (transaction_type == mm_perps_position_close, Status == confirmed)
 
 **Properties:**
 
@@ -438,7 +622,12 @@ _Note: Implemented by Confirmation team_
 - Received amount
 - completionDuration
 
-### [ ] Perp Position Close Partially filled (transaction_type == mm_perps_position_close, Status == partially_filled)
+**Implementation:** Not implemented
+
+- Event: `PERPS_POSITION_CLOSE_EXECUTED` defined but not used
+- Expected in: Position close completion flow (likely in hooks)
+
+### [❌] Perp Position Close Partially filled (transaction_type == mm_perps_position_close, Status == partially_filled)
 
 **Properties:**
 
@@ -459,7 +648,12 @@ _Note: Implemented by Confirmation team_
 - Amount filled
 - Remaining amount
 
-### [ ] Perp Position Close Failed (transaction_type == mm_perps_position_close, Status == failed)
+**Implementation:** Not implemented
+
+- Event: `PERPS_POSITION_CLOSE_PARTIALLY_FILLED` defined but not used
+- Expected in: Position close execution flow for partial fills
+
+### [❌] Perp Position Close Failed (transaction_type == mm_perps_position_close, Status == failed)
 
 **Properties:**
 
@@ -479,13 +673,18 @@ _Note: Implemented by Confirmation team_
 - completionDuration
 - Failure Reason
 
+**Implementation:** Not implemented
+
+- Event: `PERPS_POSITION_CLOSE_FAILED` defined but not used
+- Expected in: Position close execution error handling
+
 ---
 
 ## Push Notifications Events
 
 _Note: Implemented by Assets team_
 
-### [ ] Perp Push Notification Received
+### [❌] Perp Push Notification Received
 
 **Properties:**
 
@@ -495,7 +694,12 @@ _Note: Implemented by Assets team_
 - Position Size
 - $PnL
 
-### [ ] Perp Push Notification Clicked
+**Implementation:** Not implemented (Assets team responsibility)
+
+- Expected in: Push notification service/handler
+- Related to liquidation and TP/SL execution events
+
+### [❌] Perp Push Notification Clicked
 
 **Properties:**
 
@@ -506,11 +710,16 @@ _Note: Implemented by Assets team_
 - $PnL
 - completionDuration
 
+**Implementation:** Not implemented (Assets team responsibility)
+
+- Expected in: Notification tap handler
+- Should track user interaction with perps notifications
+
 ---
 
 ## Risk Management Events
 
-### [ ] Stop Loss Set
+### [❌] Stop Loss Set
 
 **Properties:**
 
@@ -522,7 +731,12 @@ _Note: Implemented by Assets team_
 - Stop Loss %
 - source (tradeScreen, positionScreen)
 
-### [ ] Take Profit Set
+**Implementation:** Not implemented
+
+- Event: `PERPS_STOP_LOSS_SET` defined but not used
+- Expected in: TP/SL bottom sheet or risk management component
+
+### [❌] Take Profit Set
 
 **Properties:**
 
@@ -533,7 +747,12 @@ _Note: Implemented by Assets team_
 - Take Profit %
 - source (tradeScreen, positionScreen)
 
-### [ ] Stop Loss Executed
+**Implementation:** Not implemented
+
+- Event: `PERPS_TAKE_PROFIT_SET` defined but not used
+- Expected in: TP/SL bottom sheet or risk management component
+
+### [❌] Stop Loss Executed
 
 **Properties:**
 
@@ -549,7 +768,12 @@ _Note: Implemented by Assets team_
 - estimatedRewards
 - position age
 
-### [ ] Take Profit Executed
+**Implementation:** Not implemented
+
+- Event: `PERPS_STOP_LOSS_EXECUTED` defined but not used
+- Expected in: Automated execution handlers (likely backend-triggered)
+
+### [❌] Take Profit Executed
 
 **Properties:**
 
@@ -565,7 +789,12 @@ _Note: Implemented by Assets team_
 - estimatedRewards
 - position age
 
-### [ ] Position liquidated
+**Implementation:** Not implemented
+
+- Event: `PERPS_TAKE_PROFIT_EXECUTED` defined but not used
+- Expected in: Automated execution handlers (likely backend-triggered)
+
+### [❌] Position liquidated
 
 **Properties:**
 
@@ -580,12 +809,18 @@ _Note: Implemented by Assets team_
 - Asset Price
 - estimatedRewards
 - position age
+
+**Implementation:** Not implemented
+
+- Event: `PERPS_ORDER_LIQUIDATED` defined but not used
+- Expected in: Liquidation handlers (likely backend-triggered)
+- Should coordinate with push notifications
 
 ---
 
 ## Error Management Events
 
-### [ ] Warning displayed
+### [❌] Warning displayed
 
 **Properties:**
 
@@ -593,7 +828,12 @@ _Note: Implemented by Assets team_
 - Warning Type (minimum deposit, minimum order size, insufficient balance, geo-blocking)
 - Warning Message
 
-### [ ] Error Encountered
+**Implementation:** Not implemented
+
+- Event: `PERPS_WARNING_DISPLAYED` defined but not used
+- Expected in: Various validation and warning components
+
+### [✅] Error Encountered
 
 **Properties:**
 
@@ -601,18 +841,30 @@ _Note: Implemented by Assets team_
 - Error Type (network, app crash, backend)
 - Error Message
 
+**Implementation:** `PerpsOrderView.tsx:677-681`
+
+- Event: `PERPS_ERROR_ENCOUNTERED`
+- Properties: error_type, error_message
+- Used for validation and execution errors
+
 ---
 
 ## Full Page Modal Events
 
-### [ ] Full page modal viewed
+### [✅] Full page modal viewed
 
 **Properties:**
 
 - Timestamp
 - Source (homepage, deeplink)
 
-### [ ] Full page modal tapped
+**Implementation:** `PerpsGTMModal.tsx:46`
+
+- Event: `PERPS_FULL_PAGE_MODAL_VIEWED`
+- Properties: timestamp, source (main_action_button)
+- Used for Go-To-Market modal
+
+### [✅] Full page modal tapped
 
 **Properties:**
 
@@ -620,13 +872,24 @@ _Note: Implemented by Assets team_
 - Source (homepage, deeplink)
 - action_type (Start trading, Skip)
 
+**Implementation:** `PerpsGTMModal.tsx:60`
+
+- Event: `PERPS_FULL_PAGE_MODAL_TAPPED`
+- Properties: timestamp, source, action_type (Start trading)
+- Used for Go-To-Market modal interactions
+
 ---
 
 ## Carousel Events
 
-### [ ] Carousel (TBC if already handled)
+### [✅] Carousel (TBC if already handled)
 
 _Note: To be confirmed if already handled elsewhere_
+
+**Implementation:** Handled by Tutorial events
+
+- Tutorial carousel is tracked via `PERPS_TUTORIAL_*` events
+- No separate carousel events needed
 
 ---
 
@@ -675,5 +938,177 @@ Before marking any event as ✅ Implemented & Verified:
 
 ---
 
-_Last Updated: Based on Perp Mixpanel events - Events v1.1.pdf_
-_Total Events to Implement: 61_
+## Implementation Summary
+
+**Overall Status: ~36% Complete**
+
+### Status Breakdown
+
+- ✅ **Fully Implemented & Verified**: 22 events (36%)
+- ⚠️ **Partially Implemented**: 4 events (7%)
+- ❌ **Not Implemented**: 35 events (57%)
+
+### By Category
+
+#### Tutorial Events: ✅ 100% Complete (3/3)
+
+- All tutorial lifecycle events implemented
+- Full property coverage including completion duration
+- Handles both continue and skip paths
+
+#### Account Funding Events: ❌ 0% Complete (0/6)
+
+- **Responsibility**: Confirmation team
+- **Status**: No funding flow events implemented
+- **Critical Gap**: Deposit transaction lifecycle missing
+
+#### Account Withdrawal Events: ⚠️ 60% Complete (3/5)
+
+- Input viewed: ✅ Implemented
+- Transaction lifecycle: ⚠️ Partial (missing submitted event)
+- Property coverage: ⚠️ Missing some required properties
+
+#### Pre-Trade Events: ✅ 80% Complete (4/5)
+
+- Markets and asset screen views: ✅ Implemented
+- Chart interactions: ✅ Implemented
+- Search functionality: ✅ Implemented
+- Missing: Chart time series changes
+
+#### Trade Events: ⚠️ 73% Complete (11/15)
+
+- **Strengths**: Complete transaction lifecycle, leverage tracking
+- **Implemented**: Screen views, transaction states, error handling
+- **Missing**: Order type selection, order size changes, partial fills
+
+#### Close Position Events: ⚠️ 30% Complete (3/10)
+
+- **Implemented**: Screen view, transaction initiated, submitted
+- **Critical Gaps**: Execution completion, failure handling, order type changes
+- **Missing**: Value changes, partial fills
+
+#### Push Notifications Events: ❌ 0% Complete (0/2)
+
+- **Responsibility**: Assets team
+- **Status**: No notification events implemented
+- **Impact**: No tracking of liquidations, TP/SL executions
+
+#### Risk Management Events: ❌ 0% Complete (0/5)
+
+- **Critical Gap**: No TP/SL setting or execution tracking
+- **Impact**: Missing key trading behavior insights
+- **Expected**: TP/SL bottom sheet implementation
+
+#### Error Management Events: ⚠️ 50% Complete (1/2)
+
+- Error encountered: ✅ Implemented
+- Warning displayed: ❌ Not implemented
+
+#### Full Page Modal Events: ✅ 100% Complete (2/2)
+
+- GTM modal tracking fully implemented
+- Both view and interaction events covered
+
+#### Carousel Events: ✅ 100% Complete (1/1)
+
+- Handled through tutorial event implementation
+
+### Key Implementation Files
+
+| Component      | File                           | Events Implemented       |
+| -------------- | ------------------------------ | ------------------------ |
+| Tutorial       | `PerpsTutorialCarousel.tsx`    | 3/3 tutorial events      |
+| Trading        | `PerpsOrderView.tsx`           | 8 trade lifecycle events |
+| Markets        | `PerpsMarketListView.tsx`      | 2 market view events     |
+| Asset Details  | `PerpsMarketDetailsView.tsx`   | 2 chart/view events      |
+| Withdrawal     | `PerpsWithdrawView.tsx`        | 3 withdrawal events      |
+| Position Close | `PerpsClosePositionView.tsx`   | 3 close position events  |
+| Leverage       | `PerpsLeverageBottomSheet.tsx` | 1 leverage view event    |
+| GTM Modal      | `PerpsGTMModal.tsx`            | 2 modal events           |
+
+### Critical Missing Implementations
+
+#### High Priority (User Journey Critical)
+
+1. **Account Funding Flow** (Confirmation team)
+
+   - All deposit transaction events missing
+   - Blocks funding behavior analysis
+
+2. **Risk Management Events**
+
+   - No TP/SL setting/execution tracking
+   - Critical for trading behavior insights
+
+3. **Position Close Completion**
+   - Missing executed/failed events
+   - Incomplete transaction lifecycle tracking
+
+#### Medium Priority (Analytics Completeness)
+
+4. **Order Type Selection Events**
+
+   - Missing user preference tracking
+   - Incomplete trade setup analysis
+
+5. **Partial Fill Tracking**
+
+   - Missing for both trades and closes
+   - Important for execution quality metrics
+
+6. **Push Notification Events** (Assets team)
+   - Missing liquidation/execution notifications
+   - No user engagement with alerts
+
+#### Low Priority (Nice to Have)
+
+7. **Warning Display Events**
+
+   - Missing validation feedback tracking
+
+8. **Chart Time Series Changes**
+   - Missing detailed chart interaction analysis
+
+### Property Coverage Issues
+
+Several implemented events are missing required properties:
+
+- **Asset Screen Viewed**: Missing Open Position boolean
+- **Trade Transaction Initiated**: Missing limit_price, fees, asset_price
+- **Trade Transaction Submitted**: Missing margin_used, limit_price, fees, asset_price
+- **Position Close Screen Viewed**: Missing unrealized\_%pnl, source, received_amount
+
+### Recommendations
+
+#### Immediate Actions
+
+1. **Complete Trade Event Properties**
+
+   - Add missing properties to initiated/submitted events
+   - Ensure fee tracking consistency
+
+2. **Implement Risk Management Events**
+
+   - Add TP/SL setting events in TP/SL bottom sheet
+   - Plan execution event integration with backend
+
+3. **Complete Position Close Lifecycle**
+   - Add executed/failed events to close position flow
+   - Implement proper error handling tracking
+
+#### Coordination Required
+
+1. **Confirmation Team**: Coordinate deposit event implementation
+2. **Assets Team**: Plan push notification event integration
+3. **Backend Team**: Coordinate execution/liquidation event triggers
+
+#### Testing Strategy
+
+1. **Manual Testing**: Verify all ✅ events fire correctly
+2. **Property Validation**: Ensure all tracked properties match specification
+3. **Edge Case Testing**: Verify error and failure scenario tracking
+
+---
+
+_Last Updated: Based on source code analysis and Perp Mixpanel events - Events v1.1.pdf_
+_Total Events: 61 (22 ✅, 4 ⚠️, 35 ❌)_

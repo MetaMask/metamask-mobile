@@ -148,6 +148,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const isSubmittingRef = useRef(false);
   const hasShownSubmittedToastRef = useRef(false);
+  const orderStartTimeRef = useRef<number>(0);
 
   const { account } = usePerpsLiveAccount();
 
@@ -398,6 +399,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
           [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
             feeResults?.feeDiscountPercentage,
           [PerpsEventProperties.ESTIMATED_REWARDS]: feeResults?.estimatedPoints,
+          [PerpsEventProperties.COMPLETION_DURATION]:
+            Date.now() - orderStartTimeRef.current,
         });
 
         showToast(
@@ -663,6 +666,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     }
     isSubmittingRef.current = true;
 
+    orderStartTimeRef.current = Date.now();
+
     try {
       // Validation errors are shown in the UI
       if (!orderValidation.isValid) {
@@ -782,6 +787,16 @@ const PerpsOrderViewContentBase: React.FC = () => {
           orderForm.direction === 'long'
             ? PerpsEventValues.DIRECTION.LONG
             : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
+        [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+        [PerpsEventProperties.ORDER_SIZE]: positionSize,
+        [PerpsEventProperties.MARGIN_USED]: marginRequired,
+        [PerpsEventProperties.LIMIT_PRICE]:
+          orderForm.type === 'limit' ? orderForm.limitPrice : null,
+        [PerpsEventProperties.FEES]: feeResults.totalFee,
+        [PerpsEventProperties.ASSET_PRICE]: currentPrice?.price,
+        [PerpsEventProperties.COMPLETION_DURATION]:
+          Date.now() - orderStartTimeRef.current,
         [PerpsEventProperties.ERROR_MESSAGE]:
           error instanceof Error ? error.message : 'Unknown error',
       });
