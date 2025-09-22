@@ -1,11 +1,13 @@
 import { StyleSheet } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
+import { colors as importedColors } from '../../../styles/common';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     root: {
       flexGrow: 1,
-      paddingBottom: 32,
+      paddingBottom: 16,
+      backgroundColor: importedColors.gettingStartedTextColor,
     },
     contentContainer: {
       flexDirection: 'column',
@@ -18,12 +20,9 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: 16,
     },
     buttonWrapper: {
-      paddingHorizontal: 16,
-      marginTop: 'auto',
-      flex: 1,
-      justifyContent: 'flex-end',
-      height: '100%',
-      marginBottom: 16,
+      paddingHorizontal: 0,
+      marginTop: 4,
+      marginBottom: 8,
     },
     emoji: {
       textAlign: 'center',
@@ -58,6 +57,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     textTitle: {
       marginBottom: 24,
+      textAlign: 'center',
     },
     imageWrapper: {
       display: 'flex',
@@ -92,7 +92,8 @@ const createStyles = (colors: ThemeColors) =>
       marginTop: 24,
     },
     footerWrapper: {
-      marginVertical: 24,
+      marginTop: 12,
+      marginBottom: 0,
       flexDirection: 'column',
       rowGap: 16,
     },
@@ -141,7 +142,14 @@ const createStyles = (colors: ThemeColors) =>
     },
     footerLink: {
       alignItems: 'center',
-      paddingVertical: 12,
+      paddingVertical: 0,
+    },
+    subtitle: {
+      fontSize: 16,
+      textAlign: 'center',
+      marginTop: 16,
+      lineHeight: 22,
+      color: colors.text.alternative,
     },
   });
 
