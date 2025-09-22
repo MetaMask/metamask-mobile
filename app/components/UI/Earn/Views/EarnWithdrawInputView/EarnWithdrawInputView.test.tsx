@@ -4,6 +4,7 @@ import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import mockedDefaultUseMetrics from '../../../../hooks/useMetrics/__mocks__/useMetrics';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
@@ -419,6 +420,7 @@ describe('EarnWithdrawInputView', () => {
 
     // Setup global useMetrics mock for all tests
     useMetricsMock.mockReturnValue({
+      ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useMetrics>);

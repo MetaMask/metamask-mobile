@@ -23,6 +23,7 @@ import {
 } from '@metamask/transaction-controller';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../../../hooks/useMetrics';
+import mockedDefaultUseMetrics from '../../../../hooks/useMetrics/__mocks__/useMetrics';
 // eslint-disable-next-line import/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
@@ -211,6 +212,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     );
 
     useMetricsMock.mockReturnValue({
+      ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useMetrics>);
