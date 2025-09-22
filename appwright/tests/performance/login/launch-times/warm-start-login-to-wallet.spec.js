@@ -1,7 +1,7 @@
 import { test } from '../../../../fixtures/performance-test.js';
 import TimerHelper from '../../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
-import { onboardingFlowImportSRP } from '../../../../utils/Flows.js';
+import { login } from '../../../../utils/Flows.js';
 
 import AppwrightSelectors from '../../../../../wdio/helpers/AppwrightSelectors.js';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
@@ -24,7 +24,7 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
   ExternalWebsitesScreen.device = device;
   AccountApprovalModal.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
+  await login(device, 'login');
 
   await TabBarModal.tapBrowserButton();
 

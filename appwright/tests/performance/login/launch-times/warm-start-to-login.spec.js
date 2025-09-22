@@ -2,7 +2,7 @@ import { test } from '../../../../fixtures/performance-test.js';
 import TimerHelper from '../../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
 import {
-  onboardingFlowImportSRP,
+  login,
   dismissMultichainAccountsIntroModal,
 } from '../../../../utils/Flows.js';
 
@@ -27,7 +27,7 @@ test('Measure Warm Start: Warm Start to Login Screen', async ({
   ExternalWebsitesScreen.device = device;
   AccountApprovalModal.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await login(device, 'login');
 
   const timer1 = new TimerHelper(
     'Time since the user open the app again and the login screen appears',

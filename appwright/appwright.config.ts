@@ -47,7 +47,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-android',
-      testMatch: '**/tests/performance/login/*.spec.js',
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -61,7 +61,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-ios',
-      testMatch: '**/tests/performance/login/*.spec.js',
+      testMatch: '**/tests/performance/login/**/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {

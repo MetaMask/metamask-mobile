@@ -143,6 +143,7 @@ export async function login(device, scenarioType, timeout = 10000) {
   await dismissMultichainAccountsIntroModal(device);
   await dismissGTMModal(device);
   await dismissSystemDialogs(device);
+  await WalletMainScreen.isMainWalletViewVisible();
 
   // Wait for app to settle after unlock
 }

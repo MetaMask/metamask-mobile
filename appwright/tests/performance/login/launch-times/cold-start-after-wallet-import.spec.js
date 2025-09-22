@@ -14,7 +14,7 @@ import CreatePasswordScreen from '../../../../../wdio/screen-objects/Onboarding/
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import { onboardingFlowImportSRP } from '../../../../utils/Flows.js';
+import { login } from '../../../../utils/Flows.js';
 import SendScreen from '../../../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
@@ -46,7 +46,7 @@ test('Cold Start after importing a wallet', async ({
   AmountScreen.device = device;
   LoginScreen.device = device;
   MultichainAccountEducationModal.device = device;
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
+  await login(device, 'login');
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
   await AppwrightSelectors.terminateApp(device);
