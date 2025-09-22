@@ -94,9 +94,8 @@ const MultichainAccountsIntroModal = () => {
           setTimeout(() => resolve(), WALLET_ALIGNMENT_MINIMUM_TIMEOUT_MS);
         }),
       ]);
-    } catch (error) {
-      Logger.error(error as Error, 'Error in multichain accounts intro modal');
-      captureException(error as Error);
+    } catch {
+      // No need to capture exception here, it's already captured in useEffect
       // Still proceed to accounts even if there's an error
     } finally {
       dispatch(setMultichainAccountsIntroModalSeen(true));

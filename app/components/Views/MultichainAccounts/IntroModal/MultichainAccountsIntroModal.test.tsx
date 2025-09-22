@@ -6,6 +6,8 @@ import MultichainAccountsIntroModal, {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './testIds';
+import { captureException } from '@sentry/react-native';
+import Engine from '../../../../core/Engine';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -34,6 +36,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
 jest.mock('../../AccountSelector', () => ({
   createAccountSelectorNavDetails: jest.fn(() => ['AccountSelector', {}]),
 }));
@@ -46,6 +52,11 @@ const renderWithProviders = (
 describe('MultichainAccountsIntroModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the alignWallets mock to return a resolved promise by default
+    const { MultichainAccountService } = Engine.context;
+    (MultichainAccountService.alignWallets as jest.Mock).mockResolvedValue(
+      undefined,
+    );
   });
 
   it('renders correctly with all elements', () => {
@@ -212,6 +223,41 @@ describe('MultichainAccountsIntroModal', () => {
         },
         { timeout: 5000 },
       );
+    });
+
+    it('calls captureException only once when alignWallets promise fails and user clicks view accounts button', async () => {
+      const mockAlignWallets = jest
+        .fn()
+        .mockRejectedValue(new Error('Alignment failed'));
+      const { MultichainAccountService } = Engine.context;
+      MultichainAccountService.alignWallets = mockAlignWallets;
+
+      const { getByTestId } = renderWithProviders(
+        <MultichainAccountsIntroModal />,
+      );
+
+      const viewAccountsButton = getByTestId(
+        MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.VIEW_ACCOUNTS_BUTTON,
+      );
+
+      // Wait for the useEffect to trigger the captureException call
+      await waitFor(() => {
+        expect(captureException).toHaveBeenCalledTimes(1);
+      });
+
+      // Click the view accounts button - should NOT trigger another captureException call
+      await act(async () => {
+        fireEvent.press(viewAccountsButton);
+      });
+
+      // Wait for the handleViewAccounts function to complete
+      await waitFor(() => {
+        expect(captureException).toHaveBeenCalledTimes(1); // Still only 1 call
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+
+      // Verify the single call was made with an Error object
+      expect(captureException).toHaveBeenCalledWith(expect.any(Error));
     });
 
     it('shows loading state and text on button during alignment', async () => {
