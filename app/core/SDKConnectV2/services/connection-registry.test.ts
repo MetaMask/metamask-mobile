@@ -108,7 +108,7 @@ describe('ConnectionRegistry', () => {
     mockStore.delete = jest.fn().mockResolvedValue(undefined);
     mockStore.get = jest.fn().mockResolvedValue(null);
 
-    mockConnection = ({
+    mockConnection = {
       id: mockConnectionRequest.sessionRequest.id,
       info: {
         id: mockConnectionRequest.sessionRequest.id,
@@ -119,7 +119,7 @@ describe('ConnectionRegistry', () => {
       connect: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
       resume: jest.fn().mockResolvedValue(undefined),
-    } as unknown) as jest.Mocked<Connection>;
+    } as unknown as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
   });
