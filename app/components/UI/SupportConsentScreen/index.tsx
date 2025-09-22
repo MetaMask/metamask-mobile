@@ -17,6 +17,7 @@ import {
 import Button, {
   ButtonVariants,
   ButtonSize,
+  ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
@@ -92,21 +93,25 @@ const SupportConsentScreen: React.FC = () => {
           justifyContent={BoxJustifyContent.Between}
           twClassName="gap-3"
         >
-          <Button
-            variant={ButtonVariants.Secondary}
-            size={ButtonSize.Lg}
-            onPress={handleDecline}
-            style={{ flex: 1 }}
-            label={strings('support_consent.decline')}
-          />
+          <Box twClassName="flex-1">
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              onPress={handleDecline}
+              width={ButtonWidthTypes.Full}
+              label={strings('support_consent.decline')}
+            />
+          </Box>
 
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            onPress={handleConsent}
-            style={{ flex: 1 }}
-            label={strings('support_consent.consent')}
-          />
+          <Box twClassName="flex-1">
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              onPress={handleConsent}
+              width={ButtonWidthTypes.Full}
+              label={strings('support_consent.consent')}
+            />
+          </Box>
         </Box>
       </Box>
     </BottomSheet>
