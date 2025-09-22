@@ -16,6 +16,7 @@ import {
   TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import {
+  ClientId,
   SmartTransactionsController,
   type SmartTransaction,
 } from '@metamask/smart-transactions-controller';
@@ -171,9 +172,7 @@ function withRequest<ReturnValue>(
     trackMetaMetricsEvent: jest.fn(),
     getMetaMetricsProps: jest.fn(),
     getFeatureFlags: jest.fn(),
-    // TODO: Export ClientId as value from `smart-transactions-controller` package
-    // @ts-expect-error ClientId is currently exported as type
-    clientId: 'mobile',
+    clientId: ClientId.Mobile,
   });
 
   const getFeesSpy = jest
