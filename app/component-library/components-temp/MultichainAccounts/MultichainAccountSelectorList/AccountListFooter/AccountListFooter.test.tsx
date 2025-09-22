@@ -7,7 +7,8 @@ import { useSelector } from 'react-redux';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
 import { useAccountsOperationsLoadingStates } from '../../../../../util/accounts/useAccountsOperationsLoadingStates';
 import Logger from '../../../../../util/Logger';
-import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
+import { AccountWalletType } from '@metamask/account-api';
+import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
@@ -60,7 +61,7 @@ describe('AccountListFooter', () => {
     id: mockWalletId,
     metadata: { name: 'Test Wallet' },
     groups: {},
-    type: 'keyring' as const,
+    type: AccountWalletType.Entropy,
   };
 
   const mockWalletInfo = {
@@ -79,11 +80,10 @@ describe('AccountListFooter', () => {
       MultichainAccountService: mockMultichainAccountService,
     };
 
+    // Always return the mock wallet by default
     (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-      if (
-        typeof selector === 'function' &&
-        selector.name === 'selectWalletsMap'
-      ) {
+      // Check if this is the selectWalletsMap selector by comparing the function reference
+      if (selector === selectWalletsMap) {
         return { [mockWalletId]: mockWallet };
       }
       return {};
@@ -334,26 +334,8 @@ describe('AccountListFooter', () => {
     });
   });
 
-  describe('Account Type Filtering', () => {
-    it('renders create account button only for HD accounts', () => {
-      const mockWalletInfoWithHdAccounts = {
-        keyringId: mockKeyringId,
-        accounts: [
-          {
-            address: '0x123',
-            metadata: {
-              keyring: {
-                type: ExtendedKeyringTypes.hd,
-              },
-            },
-          },
-        ],
-      };
-
-      (useWalletInfo as jest.Mock).mockReturnValue(
-        mockWalletInfoWithHdAccounts,
-      );
-
+  describe('Wallet Type Filtering', () => {
+    it('renders create account button only for Entropy wallet type', () => {
       const { getByText } = render(
         <AccountListFooter
           walletId={mockWalletId}
@@ -414,55 +396,33 @@ describe('AccountListFooter', () => {
       expect(getByText('Create account')).toBeOnTheScreen();
     });
 
-    it('does not render create account button for imported or hardware accounts', () => {
+    it('does not render create account button for non-Entropy wallet types', () => {
       const testCases = [
         {
-          name: 'imported accounts',
-          accounts: [
-            {
-              address: '0x123',
-              metadata: { keyring: { type: ExtendedKeyringTypes.simple } },
-            },
-          ],
+          name: 'Keyring wallet type',
+          walletType: AccountWalletType.Keyring,
         },
         {
-          name: 'Ledger hardware accounts',
-          accounts: [
-            {
-              address: '0x123',
-              metadata: { keyring: { type: ExtendedKeyringTypes.ledger } },
-            },
-          ],
-        },
-        {
-          name: 'QR hardware accounts',
-          accounts: [
-            {
-              address: '0x123',
-              metadata: { keyring: { type: ExtendedKeyringTypes.qr } },
-            },
-          ],
-        },
-        {
-          name: 'mixed HD and imported accounts',
-          accounts: [
-            {
-              address: '0x123',
-              metadata: { keyring: { type: ExtendedKeyringTypes.hd } },
-            },
-            {
-              address: '0x456',
-              metadata: { keyring: { type: ExtendedKeyringTypes.simple } },
-            },
-          ],
+          name: 'Snap wallet type',
+          walletType: AccountWalletType.Snap,
         },
       ];
 
-      testCases.forEach(({ accounts }) => {
-        (useWalletInfo as jest.Mock).mockReturnValue({
-          keyringId: mockKeyringId,
-          accounts,
-        });
+      testCases.forEach(({ walletType }) => {
+        const mockNonEntropyWallet = {
+          ...mockWallet,
+          type: walletType,
+        };
+
+        // Override the selector mock for this test
+        (useSelector as jest.Mock).mockImplementationOnce(
+          (selector: unknown) => {
+            if (selector === selectWalletsMap) {
+              return { [mockWalletId]: mockNonEntropyWallet };
+            }
+            return {};
+          },
+        );
 
         const { queryByText } = render(
           <AccountListFooter
@@ -473,6 +433,25 @@ describe('AccountListFooter', () => {
 
         expect(queryByText('Create account')).not.toBeOnTheScreen();
       });
+    });
+
+    it('does not render create account button when wallet is undefined', () => {
+      // Override the selector mock for this test
+      (useSelector as jest.Mock).mockImplementationOnce((selector: unknown) => {
+        if (selector === selectWalletsMap) {
+          return { [mockWalletId]: undefined };
+        }
+        return {};
+      });
+
+      const { queryByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      expect(queryByText('Create account')).not.toBeOnTheScreen();
     });
   });
 });
