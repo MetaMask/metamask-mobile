@@ -168,7 +168,6 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
             style={
               {
                 "alignItems": "flex-start",
-                "alignItems": "flex-start",
                 "flex": 1,
               }
             }
