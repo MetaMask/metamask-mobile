@@ -14,6 +14,7 @@ import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
 import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
+import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../app/components/Views/MultichainAccounts/IntroModal/testIds.js';
 
 /**
  * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
@@ -146,7 +147,7 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   //   console.log('Skipping perps onboarding skip - not an Android device');
   //   return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
   // }
-
+  await dismissMultichainAccountsIntroModal(device);
   console.log('Looking for perps onboarding button...');
   const button = await AppwrightSelectors.getElementByID(
     device,
@@ -154,4 +155,17 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   );
   await button.tap();
   console.log('Perps onboarding dismissed');
+}
+
+export async function dismissMultichainAccountsIntroModal(
+  device,
+  timeout = 5000,
+) {
+  const closeButton = await AppwrightSelectors.getElementByID(
+    device,
+    MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
+  );
+  if (await closeButton.isVisible({ timeout })) {
+    await closeButton.tap();
+  }
 }
