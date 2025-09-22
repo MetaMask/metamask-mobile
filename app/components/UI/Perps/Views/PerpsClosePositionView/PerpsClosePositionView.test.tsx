@@ -442,16 +442,14 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - receiveAmount = (initialMargin + effectivePnL) - fees
-      // effectivePnL = (150 - 100) * 1 = 50
-      // effectiveMargin = 1000 + 50 = 1050
-      // receiveAmount = 1050 - 50 = 1000
+      // Assert - receiveAmount = initialMargin - fees (P&L is shown separately in UI)
+      // receiveAmount = 1000 - 50 = 950
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 1000 in the display (margin + P&L - fees)
-      expect(getByText(/1,000/)).toBeDefined();
+      // Look for 950 in the display (margin - fees, P&L shown separately)
+      expect(getByText('$950.00')).toBeDefined();
     });
 
     it('calculates receive amount correctly for partial close percentages', () => {
@@ -488,16 +486,14 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // For 100% close (default):
-      // effectivePnL = (75 - 100) * 2 = -50
-      // effectiveMargin = 2000 + (-50) = 1950
-      // receiveAmount = 1950 - 25 = 1925
+      // For 100% close (default) with new calculation:
+      // receiveAmount = initialMargin - fees = 2000 - 25 = 1975
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 1925 in the display (effective margin - fees)
-      expect(getByText(/1,925/)).toBeDefined();
+      // Look for 1975 in the display (initial margin - fees)
+      expect(getByText(/1,975/)).toBeDefined();
     });
   });
 
@@ -1874,6 +1870,15 @@ describe('PerpsClosePositionView', () => {
         '', // Empty string when closePercentage is 100
         'market',
         undefined,
+        {
+          error: null,
+          isLoadingMetamaskFee: false,
+          metamaskFee: 0,
+          metamaskFeeRate: 0,
+          protocolFee: 45,
+          protocolFeeRate: 0.00045,
+          totalFee: 45,
+        },
       );
     });
 
