@@ -32,8 +32,8 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 // Mock the component library components
 jest.mock('../../../component-library/components/Buttons/Button', () => {
-  const React = jest.requireActual('react');
-  const { TouchableOpacity } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity: TouchableOpacityActual } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
@@ -45,10 +45,10 @@ jest.mock('../../../component-library/components/Buttons/Button', () => {
       onPress: () => void;
       [key: string]: unknown;
     }) =>
-      React.createElement(
-        TouchableOpacity,
+      ReactActual.createElement(
+        TouchableOpacityActual,
         { ...props, onPress, testID: 'Button' },
-        React.createElement('Text', {}, label),
+        ReactActual.createElement('Text', {}, label),
       ),
     ButtonVariants: {
       Primary: 'Primary',
@@ -66,7 +66,7 @@ jest.mock('../../../component-library/components/Buttons/Button', () => {
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
   () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     return {
       __esModule: true,
       default: ({
@@ -75,7 +75,7 @@ jest.mock(
       }: {
         children: React.ReactNode;
         [key: string]: unknown;
-      }) => React.createElement('BottomSheet', props, children),
+      }) => ReactActual.createElement('BottomSheet', props, children),
     };
   },
 );
@@ -83,7 +83,7 @@ jest.mock(
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader',
   () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     return {
       __esModule: true,
       default: ({
@@ -92,14 +92,14 @@ jest.mock(
       }: {
         children: React.ReactNode;
         [key: string]: unknown;
-      }) => React.createElement('BottomSheetHeader', props, children),
+      }) => ReactActual.createElement('BottomSheetHeader', props, children),
     };
   },
 );
 
 jest.mock('../../../component-library/components/Checkbox/Checkbox', () => {
-  const React = jest.requireActual('react');
-  const { TouchableOpacity } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity: TouchableOpacityActual } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
@@ -111,10 +111,10 @@ jest.mock('../../../component-library/components/Checkbox/Checkbox', () => {
       onPress: () => void;
       [key: string]: unknown;
     }) =>
-      React.createElement(
-        TouchableOpacity,
+      ReactActual.createElement(
+        TouchableOpacityActual,
         { ...props, onPress, testID: 'Checkbox' },
-        React.createElement('Text', {}, label),
+        ReactActual.createElement('Text', {}, label),
       ),
   };
 });
