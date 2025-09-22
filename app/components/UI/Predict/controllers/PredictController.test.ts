@@ -154,28 +154,18 @@ describe('PredictController', () => {
     it('should initialize with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
-        expect(controller.state.positions).toEqual([]);
         expect(controller.state.eligibility).toEqual({});
       });
     });
 
     it('should initialize with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        positions: [
-          {
-            marketId: 'm1',
-            outcome: 'YES',
-            size: '10',
-            averagePrice: '0.55',
-            pnl: '1.2',
-          } as any,
-        ],
+        eligibility: { polymarket: false },
       };
 
       withController(
         ({ controller }) => {
-          expect(controller.state.positions).toHaveLength(1);
-          expect((controller.state.positions[0] as any).marketId).toBe('m1');
+          expect(controller.state.eligibility).toEqual({ polymarket: false });
         },
         { state: customState },
       );
@@ -224,34 +214,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('should get positions and update state', async () => {
-      const mockPositions = [
-        {
-          marketId: 'm1',
-          outcome: 'YES',
-          size: '5',
-          averagePrice: '0.45',
-          pnl: '0.5',
-        },
-      ];
-
-      await withController(async ({ controller }) => {
-        mockPolymarketProvider.getPositions.mockResolvedValue(
-          mockPositions as any,
-        );
-
-        const result = await controller.getPositions({
-          address: '0x1234567890123456789012345678901234567890',
-          providerId: 'polymarket',
-        });
-
-        expect(result).toEqual(mockPositions as any);
-        expect(controller.state.positions).toEqual(mockPositions as any);
-        expect(controller.state.lastError).toBeNull();
-        expect(mockPolymarketProvider.getPositions).toHaveBeenCalled();
-      });
-    });
-
     it('should handle errors when getting positions', async () => {
       await withController(async ({ controller }) => {
         const errorMessage = 'Positions fetch failed';
@@ -266,7 +228,6 @@ describe('PredictController', () => {
           }),
         ).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
-        expect(controller.state.positions).toEqual([]);
       });
     });
   });
