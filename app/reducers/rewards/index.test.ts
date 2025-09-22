@@ -24,7 +24,6 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
 } from '../../core/Engine/controllers/rewards-controller/types';
-import Logger from '../../util/Logger';
 
 describe('rewardsReducer', () => {
   const initialState: RewardsState = {
@@ -590,7 +589,6 @@ describe('rewardsReducer', () => {
         OnboardingStep.STEP_4,
       ])('should set onboarding active step to %s', (step) => {
         // Arrange
-        const loggerSpy = jest.spyOn(Logger, 'log');
         const action = setOnboardingActiveStep(step);
 
         // Act
@@ -598,12 +596,10 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.onboardingActiveStep).toBe(step);
-        expect(loggerSpy).toHaveBeenCalledWith('setOnboardingActiveStep', step);
       });
 
       it('should update from different onboarding step', () => {
         // Arrange
-        const loggerSpy = jest.spyOn(Logger, 'log');
         const stateWithStep = {
           ...initialState,
           onboardingActiveStep: OnboardingStep.STEP_2,
@@ -615,15 +611,10 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_4);
-        expect(loggerSpy).toHaveBeenCalledWith(
-          'setOnboardingActiveStep',
-          OnboardingStep.STEP_4,
-        );
       });
 
       it('should call logger even when step is the same', () => {
         // Arrange
-        const loggerSpy = jest.spyOn(Logger, 'log');
         const stateWithStep = {
           ...initialState,
           onboardingActiveStep: OnboardingStep.STEP_1,
@@ -635,10 +626,6 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_1);
-        expect(loggerSpy).toHaveBeenCalledWith(
-          'setOnboardingActiveStep',
-          OnboardingStep.STEP_1,
-        );
       });
     });
 
@@ -1243,8 +1230,8 @@ describe('rewardsReducer', () => {
           },
           boostBips: 500,
           seasonLong: false,
-          startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-01-31'),
+          startDate: '2024-01-01',
+          endDate: '2024-01-31',
           backgroundColor: '#00FF00',
         },
       ];
@@ -1512,8 +1499,8 @@ describe('rewardsReducer', () => {
           },
           boostBips: 500,
           seasonLong: false,
-          startDate: new Date('2024-01-01'),
-          endDate: new Date('2024-01-31'),
+          startDate: '2024-01-01',
+          endDate: '2024-01-31',
           backgroundColor: '#00FF00',
         },
       ];

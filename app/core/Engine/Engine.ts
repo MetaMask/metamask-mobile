@@ -1503,7 +1503,6 @@ export class Engine {
         fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
         fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
         supportedChainIds: swapsSupportedChainIds,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController

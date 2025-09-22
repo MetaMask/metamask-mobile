@@ -185,8 +185,8 @@ export const createStyles = (colors: Theme['colors']) =>
       paddingHorizontal: 8,
       width: '100%',
     },
-    keypadDismissButton: {
+    doneButton: {
       width: '100%',
-      marginVertical: 12,
+      marginBottom: 8,
     },
   });

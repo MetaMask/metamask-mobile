@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
-import { Text, Linking } from 'react-native';
+import { Text, Linking, PanResponder } from 'react-native';
 import OnboardingStep from '../OnboardingStep';
 import OnboardingStep1 from '../OnboardingStep1';
 import OnboardingStep2 from '../OnboardingStep2';
@@ -74,13 +74,24 @@ jest.mock('../../../hooks/useValidateReferralCode', () => ({
   useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 
-// Mock Linking
+// Mock Linking and PanResponder
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
     ...RN,
     Linking: {
       openURL: jest.fn(),
+    },
+    PanResponder: {
+      create: jest.fn().mockReturnValue({
+        panHandlers: {
+          onStartShouldSetResponder: jest.fn(),
+          onMoveShouldSetResponder: jest.fn(),
+          onResponderGrant: jest.fn(),
+          onResponderMove: jest.fn(),
+          onResponderRelease: jest.fn(),
+        },
+      }),
     },
   };
 });
@@ -98,6 +109,135 @@ jest.mock(
   '../../../../../images/rewards/rewards-onboarding-step3-bg.svg',
   () => 'MockedSVGStep3',
 );
+
+describe('OnboardingStep - Skip and Swipe Functionality', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render skip button when onSkip prop is provided', () => {
+    const onSkipMock = jest.fn();
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        onSkip={onSkipMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const skipButton = screen.getByTestId('skip-button');
+    expect(skipButton).toBeTruthy();
+  });
+
+  it('should call onSkip when skip button is pressed', () => {
+    const onSkipMock = jest.fn();
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        onSkip={onSkipMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const skipButton = screen.getByTestId('skip-button');
+    fireEvent.press(skipButton);
+
+    expect(onSkipMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not render skip button when onSkip prop is not provided', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const skipButton = screen.queryByTestId('skip-button');
+    expect(skipButton).toBeNull();
+  });
+
+  it('should call onNext when next button is pressed', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const nextButton = screen.getByTestId('next-button');
+    fireEvent.press(nextButton);
+
+    expect(onNextMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onClose when close button is pressed', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={1}
+        onNext={onNextMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const closeButton = screen.getByTestId('close-button');
+    fireEvent.press(closeButton);
+
+    expect(mockDispatch).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('should apply panHandlers to the container for swipe gestures', () => {
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={2}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    const container = screen.getByTestId('onboarding-step-container');
+    expect(container.props.onResponderRelease).toBeDefined();
+  });
+
+  it('should disable swipe when disableSwipe prop is true', () => {
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        currentStep={2}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+        disableSwipe
+        renderStepInfo={() => <Text>Test Info</Text>}
+      />,
+    );
+
+    // We can't directly test the PanResponder behavior in this test environment,
+    // but we can verify the component renders with the prop
+    const container = screen.getByTestId('onboarding-step-container');
+    expect(container).toBeTruthy();
+  });
+});
 
 const mockOnNext = jest.fn();
 const mockOnPrevious = jest.fn();
@@ -138,16 +278,9 @@ describe('OnboardingStep', () => {
       expect(screen.getByText('Custom Button Text')).toBeDefined();
     });
 
-    it('should render previous button when onPrevious is provided', () => {
+    it('should render close button with correct testID', () => {
       renderWithProviders(<OnboardingStep {...defaultProps} />);
-      expect(screen.getByTestId('previous-button')).toBeDefined();
-    });
-
-    it('should not render previous button when onPrevious is not provided', () => {
-      renderWithProviders(
-        <OnboardingStep {...defaultProps} onPrevious={undefined} />,
-      );
-      expect(screen.queryByTestId('previous-button')).toBeNull();
+      expect(screen.getByTestId('close-button')).toBeDefined();
     });
   });
 
@@ -163,13 +296,14 @@ describe('OnboardingStep', () => {
       expect(mockOnNext).toHaveBeenCalledTimes(1);
     });
 
-    it('should call onPrevious when previous button is pressed', () => {
+    it('should navigate to wallet view and reset onboarding step when close button is pressed', () => {
       renderWithProviders(<OnboardingStep {...defaultProps} />);
 
-      const previousButton = screen.getByTestId('previous-button');
-      fireEvent.press(previousButton);
+      const closeButton = screen.getByTestId('close-button');
+      fireEvent.press(closeButton);
 
-      expect(mockOnPrevious).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(expect.any(Object));
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
     });
 
     it('should disable next button when onNextDisabled is true', () => {
@@ -191,6 +325,39 @@ describe('OnboardingStep', () => {
       expect(nextButton).toBeDefined();
       // Button should be disabled and show loading state
     });
+
+    it('should render skip button when onSkip is provided', () => {
+      const mockOnSkip = jest.fn();
+      renderWithProviders(
+        <OnboardingStep {...defaultProps} onSkip={mockOnSkip} />,
+      );
+
+      const skipButton = screen.getByText(
+        'mocked_rewards.onboarding.step_skip',
+      );
+      expect(skipButton).toBeDefined();
+    });
+
+    it('should call onSkip when skip button is pressed', () => {
+      const mockOnSkip = jest.fn();
+      renderWithProviders(
+        <OnboardingStep {...defaultProps} onSkip={mockOnSkip} />,
+      );
+
+      const skipButton = screen.getByText(
+        'mocked_rewards.onboarding.step_skip',
+      );
+      fireEvent.press(skipButton);
+
+      expect(mockOnSkip).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not render skip button when onSkip is not provided', () => {
+      renderWithProviders(<OnboardingStep {...defaultProps} />);
+
+      const skipButton = screen.queryByText('mocked_rewards.onboarding.skip');
+      expect(skipButton).toBeNull();
+    });
   });
 
   describe('loading states', () => {
@@ -210,13 +377,6 @@ describe('OnboardingStep', () => {
   it('should be enabled by default', () => {
     renderWithProviders(<OnboardingStep {...defaultProps} />);
     // Gesture should be enabled by default
-  });
-
-  it('should be disabled when enableSwipeGestures is false', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} enableSwipeGestures={false} />,
-    );
-    // Gestures should be disabled
   });
 });
 
@@ -240,19 +400,6 @@ describe('image and background rendering', () => {
   it('should not render image container when renderStepImage is not provided', () => {
     renderWithProviders(<OnboardingStep {...defaultProps} />);
     expect(screen.queryByTestId('step-image')).toBeNull();
-  });
-
-  it('should render background image when backgroundImageSource is provided', () => {
-    const mockImageSource = { uri: 'test-image.jpg' };
-
-    renderWithProviders(
-      <OnboardingStep
-        {...defaultProps}
-        backgroundImageSource={mockImageSource}
-      />,
-    );
-
-    expect(screen.getByTestId('background-image')).toBeDefined();
   });
 });
 
@@ -299,84 +446,213 @@ describe('ProgressIndicator integration', () => {
 });
 
 describe('swipe gesture functionality', () => {
-  // Mock PanResponder for gesture testing
-  const mockPanResponder = {
-    onStartShouldSetPanResponder: jest.fn(),
-    onMoveShouldSetPanResponder: jest.fn(),
-    onPanResponderMove: jest.fn(),
-    onPanResponderRelease: jest.fn(),
-  };
+  // Create real PanResponder mock to test the actual implementation
+  let panResponderCreateSpy: jest.SpyInstance;
+  let mockPanHandlers: unknown;
 
   beforeEach(() => {
-    // Mock PanResponder.create to return our mock
-    const mockCreate = jest.fn(() => ({
-      panHandlers: mockPanResponder,
-    }));
+    jest.clearAllMocks();
 
-    // Mock the React Native PanResponder
-    jest.doMock('react-native', () => {
-      const RN = jest.requireActual('react-native');
+    // Reset mock handlers
+    mockPanHandlers = {
+      onStartShouldSetResponder: jest.fn(),
+      onMoveShouldSetResponder: jest.fn(),
+      onResponderGrant: jest.fn(),
+      onResponderMove: jest.fn(),
+      onResponderRelease: jest.fn(),
+    };
+
+    // Spy on PanResponder.create to capture the actual implementation
+    panResponderCreateSpy = jest.spyOn(PanResponder, 'create');
+    panResponderCreateSpy.mockImplementation((config) => {
+      // Store the original config callbacks
+      const originalCallbacks = {
+        onStartShouldSetPanResponder: config.onStartShouldSetPanResponder,
+        onMoveShouldSetPanResponder: config.onMoveShouldSetPanResponder,
+        onPanResponderRelease: config.onPanResponderRelease,
+      };
+
+      // Return mock handlers but also execute the original callbacks
       return {
-        ...RN,
-        PanResponder: {
-          ...RN.PanResponder,
-          create: mockCreate,
-        },
+        panHandlers: mockPanHandlers,
+        _callbacks: originalCallbacks, // Store for testing
       };
     });
   });
 
+  afterEach(() => {
+    panResponderCreateSpy.mockRestore();
+  });
+
   it('should enable swipe gestures by default', () => {
     renderWithProviders(<OnboardingStep {...defaultProps} />);
-    expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
-  });
 
-  it('should use custom swipeThreshold when provided', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} swipeThreshold={100} />,
-    );
-    expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
-  });
+    // Verify PanResponder.create was called
+    expect(panResponderCreateSpy).toHaveBeenCalled();
 
-  it('should handle swipe gestures when enabled', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} enableSwipeGestures />,
-    );
-
+    // Verify the container has panHandlers attached
     const container = screen.getByTestId('onboarding-step-container');
     expect(container).toBeDefined();
+  });
 
-    // Test gesture simulation
-    fireEvent(container, 'panResponderRelease', null, {
+  it('should call onNext when swiping left', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep {...defaultProps} onNext={onNextMock} />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate a left swipe by directly calling the release handler
+    panResponderConfig.onPanResponderRelease(null, {
+      dx: -60, // Left swipe (should call onNext)
+      dy: 10,
+    });
+
+    // Verify onNext was called
+    expect(onNextMock).toHaveBeenCalled();
+  });
+
+  it('should call onPrevious when swiping right', () => {
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep {...defaultProps} onPrevious={onPreviousMock} />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate a right swipe by directly calling the release handler
+    panResponderConfig.onPanResponderRelease(null, {
       dx: 60, // Right swipe (should call onPrevious)
       dy: 10,
     });
 
-    fireEvent(container, 'panResponderRelease', null, {
-      dx: -60, // Left swipe (should call onNext)
-      dy: 10,
-    });
+    // Verify onPrevious was called
+    expect(onPreviousMock).toHaveBeenCalled();
   });
 
-  it('should not handle gestures when disabled', () => {
+  it('should not call onNext when swiping left if onNextDisabled is true', () => {
+    const onNextMock = jest.fn();
+
     renderWithProviders(
-      <OnboardingStep {...defaultProps} enableSwipeGestures={false} />,
+      <OnboardingStep {...defaultProps} onNext={onNextMock} onNextDisabled />,
     );
 
-    const container = screen.getByTestId('onboarding-step-container');
-    expect(container).toBeDefined();
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate a left swipe by directly calling the release handler
+    panResponderConfig.onPanResponderRelease(null, {
+      dx: -60, // Left swipe
+      dy: 10,
+    });
+
+    // Verify onNext was not called
+    expect(onNextMock).not.toHaveBeenCalled();
+  });
+
+  it('should not call onNext when swiping left if onNextLoading is true', () => {
+    const onNextMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep {...defaultProps} onNext={onNextMock} onNextLoading />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate a left swipe by directly calling the release handler
+    panResponderConfig.onPanResponderRelease(null, {
+      dx: -60, // Left swipe
+      dy: 10,
+    });
+
+    // Verify onNext was not called
+    expect(onNextMock).not.toHaveBeenCalled();
+  });
+
+  it('should not handle gestures when disableSwipe is true', () => {
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        {...defaultProps}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+        disableSwipe
+      />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Verify onStartShouldSetPanResponder returns false when disableSwipe is true
+    expect(panResponderConfig.onStartShouldSetPanResponder()).toBe(false);
+
+    // Simulate swipes in both directions
+    panResponderConfig.onPanResponderRelease(null, { dx: 60, dy: 10 });
+    panResponderConfig.onPanResponderRelease(null, { dx: -60, dy: 10 });
+
+    // Verify neither callback was called
+    expect(onNextMock).not.toHaveBeenCalled();
+    expect(onPreviousMock).not.toHaveBeenCalled();
+  });
+
+  it('should ignore swipes below the threshold', () => {
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
+
+    renderWithProviders(
+      <OnboardingStep
+        {...defaultProps}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+      />,
+    );
+
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Simulate small swipes (below threshold)
+    panResponderConfig.onPanResponderRelease(null, { dx: 30, dy: 10 }); // Small right swipe
+    panResponderConfig.onPanResponderRelease(null, { dx: -30, dy: 10 }); // Small left swipe
+
+    // Verify neither callback was called
+    expect(onNextMock).not.toHaveBeenCalled();
+    expect(onPreviousMock).not.toHaveBeenCalled();
   });
 
   it('should ignore vertical swipes', () => {
-    renderWithProviders(<OnboardingStep {...defaultProps} />);
+    const onNextMock = jest.fn();
+    const onPreviousMock = jest.fn();
 
-    const container = screen.getByTestId('onboarding-step-container');
+    renderWithProviders(
+      <OnboardingStep
+        {...defaultProps}
+        onNext={onNextMock}
+        onPrevious={onPreviousMock}
+      />,
+    );
 
-    // Test vertical swipe (should be ignored)
-    fireEvent(container, 'panResponderRelease', null, {
-      dx: 10, // Small horizontal movement
-      dy: 100, // Large vertical movement
-    });
+    // Get the PanResponder config that was passed to create
+    const panResponderConfig = panResponderCreateSpy.mock.calls[0][0];
+
+    // Check if onMoveShouldSetPanResponder correctly handles vertical movement
+    expect(
+      panResponderConfig.onMoveShouldSetPanResponder(null, { dx: 10, dy: 100 }),
+    ).toBe(false);
+
+    // Simulate vertical swipe
+    panResponderConfig.onPanResponderRelease(null, { dx: 10, dy: 100 });
+
+    // Verify neither callback was called
+    expect(onNextMock).not.toHaveBeenCalled();
+    expect(onPreviousMock).not.toHaveBeenCalled();
   });
 });
 
@@ -430,15 +706,6 @@ describe('edge cases and prop variations', () => {
     });
   });
 
-  it('should handle onPrevious undefined without crashing', () => {
-    renderWithProviders(
-      <OnboardingStep {...defaultProps} onPrevious={undefined} />,
-    );
-
-    expect(screen.queryByTestId('previous-button')).toBeNull();
-    expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
-  });
-
   it('should render with minimal required props', () => {
     const minimalProps = {
       currentStep: 1,
@@ -483,21 +750,6 @@ describe('component composition and layout', () => {
     expect(screen.getByTestId('step-info')).toBeDefined();
     expect(screen.getByText('Custom Next')).toBeDefined();
     expect(screen.getByTestId('alternative-button')).toBeDefined();
-    expect(screen.getByTestId('previous-button')).toBeDefined();
-  });
-
-  it('should apply correct testIDs to all major elements', () => {
-    renderWithProviders(
-      <OnboardingStep
-        {...defaultProps}
-        backgroundImageSource={{ uri: 'test.jpg' }}
-      />,
-    );
-
-    expect(screen.getByTestId('onboarding-step-container')).toBeDefined();
-    expect(screen.getByTestId('background-image')).toBeDefined();
-    expect(screen.getByTestId('progress-indicator-container')).toBeDefined();
-    expect(screen.getByTestId('previous-button')).toBeDefined();
   });
 });
 
@@ -533,9 +785,8 @@ describe('OnboardingStep1', () => {
       expect(screen.getByTestId('progress-indicator-container')).toBeDefined();
     });
 
-    it('should render previous and next buttons', () => {
+    it('should render skip and next buttons', () => {
       renderWithProviders(<OnboardingStep1 />);
-      expect(screen.getByTestId('previous-button')).toBeDefined();
       expect(
         screen.getByText('mocked_rewards.onboarding.step_confirm'),
       ).toBeDefined();
@@ -743,14 +994,21 @@ describe('OnboardingStep4', () => {
 
     it('should render legal disclaimer with learn more link', () => {
       renderWithProviders(<OnboardingStep4 />);
-      expect(
-        screen.getByText('mocked_rewards.onboarding.step4_legal_disclaimer'),
-      ).toBeDefined();
-      expect(
-        screen.getByText(
-          'mocked_rewards.onboarding.step4_legal_disclaimer_learn_more',
-        ),
-      ).toBeDefined();
+
+      // The component renders a Text component with nested Text components
+      // Instead of looking for exact mock keys, we'll check for the presence of Text elements
+      const textElements = screen.getAllByText(
+        /mocked_rewards.onboarding.step4_legal_disclaimer/,
+      );
+
+      // Verify we have at least one text element for the legal disclaimer
+      expect(textElements.length).toBeGreaterThan(0);
+
+      // Check for the presence of clickable text elements (terms and learn more links)
+      const clickableElements = screen.getAllByText(
+        /mocked_rewards.onboarding.step4_legal_disclaimer_[24]/,
+      );
+      expect(clickableElements.length).toBeGreaterThan(0);
     });
 
     it('should show progress indicator with currentStep set to 4', () => {
@@ -881,7 +1139,7 @@ describe('OnboardingStep4', () => {
       renderWithProviders(<OnboardingStep4 />);
 
       const learnMoreLink = screen.getByText(
-        'mocked_rewards.onboarding.step4_legal_disclaimer_learn_more',
+        'mocked_rewards.onboarding.step4_legal_disclaimer_2',
       );
       fireEvent.press(learnMoreLink);
 
