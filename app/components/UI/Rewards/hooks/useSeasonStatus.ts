@@ -36,7 +36,7 @@ export const useSeasonStatus = (): void => {
       );
 
       dispatch(setSeasonStatus(statusData));
-    } catch (err) {
+    } catch {
       // Keep existing data on error to prevent UI flash
       dispatch(setSeasonStatus(null));
     } finally {

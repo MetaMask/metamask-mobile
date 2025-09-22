@@ -1035,7 +1035,7 @@ export class RewardsController extends BaseController<
     try {
       // First try: direct toHex conversion
       hexMessage = toHex(challengeResponse.message);
-    } catch (error) {
+    } catch {
       // Fallback: use Buffer to convert to hex if toHex fails
       hexMessage =
         '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
