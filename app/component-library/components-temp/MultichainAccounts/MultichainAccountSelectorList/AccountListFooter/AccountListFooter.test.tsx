@@ -435,11 +435,11 @@ describe('AccountListFooter', () => {
           ],
         },
         {
-          name: 'Trezor hardware accounts',
+          name: 'QR hardware accounts',
           accounts: [
             {
               address: '0x123',
-              metadata: { keyring: { type: ExtendedKeyringTypes.trezor } },
+              metadata: { keyring: { type: ExtendedKeyringTypes.qr } },
             },
           ],
         },

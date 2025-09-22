@@ -129,11 +129,7 @@ const AccountListFooter = memo(
       () =>
         walletInfo?.accounts?.some((account) => {
           const keyringType = account.metadata?.keyring?.type;
-          return (
-            keyringType === ExtendedKeyringTypes.simple ||
-            keyringType === ExtendedKeyringTypes.ledger ||
-            keyringType === ExtendedKeyringTypes.trezor
-          );
+          return keyringType !== ExtendedKeyringTypes.hd;
         }),
       [walletInfo?.accounts],
     );
