@@ -118,7 +118,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('324'),
-    nickname: 'zkSync',
+    nickname: 'zkSync Era',
     rpcUrl: `https://mainnet.era.zksync.io`,
     ticker: 'ETH',
     warning: true,
