@@ -444,7 +444,7 @@ describe('formatUtils', () => {
         });
       });
 
-      it('handles PERPS event with decimal result', () => {
+      it('handles PERPS event with decimal result (1.5 should display as 1.5, not 1.50)', () => {
         const event = createMockEvent('PERPS', {
           type: PerpsEventType.OPEN_POSITION,
           direction: 'LONG',
@@ -462,6 +462,104 @@ describe('formatUtils', () => {
           title: 'Opened position',
           details: 'Long 1.5 ETH',
           icon: IconName.Candlestick,
+        });
+      });
+
+      it('formats PERPS event amounts to at most 3 decimal places (1.23456 should display as 1.235)', () => {
+        const event = createMockEvent('PERPS', {
+          type: PerpsEventType.OPEN_POSITION,
+          direction: 'LONG',
+          asset: {
+            symbol: 'ETH',
+            amount: '1234560000000000000', // 1.23456 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
+          },
+        });
+
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        expect(result).toEqual({
+          title: 'Opened position',
+          details: 'Long 1.235 ETH',
+          icon: IconName.Candlestick,
+        });
+      });
+
+      it('formats whole numbers without decimal places (50 should display as 50, not 50.00)', () => {
+        const event = createMockEvent('PERPS', {
+          type: PerpsEventType.OPEN_POSITION,
+          direction: 'LONG',
+          asset: {
+            symbol: 'ETH',
+            amount: '50000000000000000000', // 50 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
+          },
+        });
+
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        expect(result).toEqual({
+          title: 'Opened position',
+          details: 'Long 50 ETH',
+          icon: IconName.Candlestick,
+        });
+      });
+
+      it('formats SWAP event amounts to at most 3 decimal places', () => {
+        const event = createMockEvent('SWAP', {
+          srcAsset: {
+            symbol: 'ETH',
+            amount: '1234560000000000000', // 1.23456 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
+            iconUrl: 'https://example.com/eth.png',
+          },
+          destAsset: {
+            symbol: 'USDC',
+            amount: '2000000000', // 2000 USDC with 6 decimals
+            decimals: 6,
+            type: 'eip155:1/slip44:60',
+            iconUrl: 'https://example.com/usdc.png',
+          },
+        });
+
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        expect(result).toEqual({
+          title: 'Swap',
+          details: '1.235 ETH to USDC',
+          icon: IconName.SwapVertical,
+          badgeImageUri: 'https://example.com/eth.png',
+        });
+      });
+
+      it('formats SWAP event with whole numbers without decimal places (50 should display as 50, not 50.00)', () => {
+        const event = createMockEvent('SWAP', {
+          srcAsset: {
+            symbol: 'ETH',
+            amount: '50000000000000000000', // 50 ETH with 18 decimals
+            decimals: 18,
+            type: 'eip155:1/slip44:60',
+            iconUrl: 'https://example.com/eth.png',
+          },
+          destAsset: {
+            symbol: 'USDC',
+            amount: '100000000', // 100 USDC with 6 decimals
+            decimals: 6,
+            type: 'eip155:1/slip44:60',
+            iconUrl: 'https://example.com/usdc.png',
+          },
+        });
+
+        const result = getEventDetails(event, TEST_ADDRESS);
+
+        expect(result).toEqual({
+          title: 'Swap',
+          details: '50 ETH to USDC',
+          icon: IconName.SwapVertical,
+          badgeImageUri: 'https://example.com/eth.png',
         });
       });
     });
