@@ -44,6 +44,8 @@ export function isValidPositiveNumericString(str: string) {
     const num = new BigNumber(str);
     return num.isGreaterThanOrEqualTo(new BigNumber(0));
   } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log('Invalid number value received: ', str);
     return false;
   }
 }
@@ -267,10 +269,10 @@ export const getLayer1GasFeeForSend = async ({
     from,
     value: fromTokenMinUnits(value, asset.decimals),
   };
-  return (await fetchEstimatedMultiLayerL1Fee(undefined, {
+  return await fetchEstimatedMultiLayerL1Fee(undefined, {
     txParams,
     chainId,
-  })) as Hex | undefined;
+  });
 };
 
 export const convertCurrency = (
