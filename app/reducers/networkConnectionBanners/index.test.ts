@@ -1,6 +1,6 @@
 import {
-  showSlowRpcConnectionBanner,
-  hideSlowRpcConnectionBanner,
+  showNetworkConnectionBanner,
+  hideNetworkConnectionBanner,
 } from '../../actions/networkConnectionBanners';
 
 import reducer, { NetworkConnectionBannersState } from '.';
@@ -8,6 +8,7 @@ import reducer, { NetworkConnectionBannersState } from '.';
 const initialState: Readonly<NetworkConnectionBannersState> = {
   visible: false,
   chainId: undefined,
+  status: undefined,
 };
 
 describe('networkConnectionBanners reducer', () => {
@@ -21,6 +22,7 @@ describe('networkConnectionBanners reducer', () => {
       const existingState = {
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       } as const;
       const unknownAction = {
         type: 'UNKNOWN_ACTION_TYPE',
@@ -45,54 +47,65 @@ describe('networkConnectionBanners reducer', () => {
   });
 
   describe('SHOW_SLOW_RPC_CONNECTION_BANNER', () => {
-    it('should show banner with chainId when action is dispatched', () => {
+    it('should show banner with chainId and status when action is dispatched', () => {
       const chainId = '0x1';
-      const action = showSlowRpcConnectionBanner(chainId);
+      const action = showNetworkConnectionBanner({
+        chainId,
+        status: 'slow',
+      });
 
       const result = reducer(initialState, action);
 
       expect(result).toStrictEqual({
         visible: true,
         chainId,
+        status: 'slow',
       });
     });
 
-    it('should update existing state when banner is already visible', () => {
+    it('should update existing state when banner is already visible with chainId and status', () => {
       const existingState = {
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       } as const;
 
       const newChainId = '0x89';
-      const action = showSlowRpcConnectionBanner(newChainId);
+      const action = showNetworkConnectionBanner({
+        chainId: newChainId,
+        status: 'slow',
+      });
 
       const result = reducer(existingState, action);
 
       expect(result).toStrictEqual({
         visible: true,
         chainId: newChainId,
+        status: 'slow',
       });
     });
   });
 
   describe('HIDE_SLOW_RPC_CONNECTION_BANNER', () => {
-    it('should hide banner and clear chainId when action is dispatched', () => {
+    it('should hide banner and clear chainId and status when action is dispatched', () => {
       const existingState = {
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       } as const;
-      const action = hideSlowRpcConnectionBanner();
+      const action = hideNetworkConnectionBanner();
 
       const result = reducer(existingState, action);
 
       expect(result).toStrictEqual({
         visible: false,
         chainId: undefined,
+        status: undefined,
       });
     });
 
     it('should maintain hidden state when banner is already hidden', () => {
-      const action = hideSlowRpcConnectionBanner();
+      const action = hideNetworkConnectionBanner();
 
       const result = reducer(initialState, action);
 
@@ -103,14 +116,18 @@ describe('networkConnectionBanners reducer', () => {
   describe('state transitions', () => {
     it('should handle complete show-hide cycle', () => {
       const chainId = '0x89';
-      const showAction = showSlowRpcConnectionBanner(chainId);
-      const hideAction = hideSlowRpcConnectionBanner();
+      const showAction = showNetworkConnectionBanner({
+        chainId,
+        status: 'slow',
+      });
+      const hideAction = hideNetworkConnectionBanner();
 
       const afterShow = reducer(initialState, showAction);
 
       expect(afterShow).toStrictEqual({
         visible: true,
         chainId,
+        status: 'slow',
       });
 
       const afterHide = reducer(afterShow, hideAction);
@@ -118,6 +135,7 @@ describe('networkConnectionBanners reducer', () => {
       expect(afterHide).toStrictEqual({
         visible: false,
         chainId: undefined,
+        status: undefined,
       });
     });
   });
@@ -127,8 +145,9 @@ describe('networkConnectionBanners reducer', () => {
       const originalState = {
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       } as const;
-      const action = hideSlowRpcConnectionBanner();
+      const action = hideNetworkConnectionBanner();
 
       const result = reducer(originalState, action);
 
@@ -136,11 +155,15 @@ describe('networkConnectionBanners reducer', () => {
       expect(originalState).toStrictEqual({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       });
     });
 
     it('should return new state object for show action', () => {
-      const action = showSlowRpcConnectionBanner('0x89');
+      const action = showNetworkConnectionBanner({
+        chainId: '0x89',
+        status: 'slow',
+      });
 
       const result = reducer(initialState, action);
 
@@ -148,6 +171,7 @@ describe('networkConnectionBanners reducer', () => {
       expect(result).toStrictEqual({
         visible: true,
         chainId: '0x89',
+        status: 'slow',
       });
     });
   });

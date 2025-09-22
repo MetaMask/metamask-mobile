@@ -3,6 +3,7 @@ import {
   NetworkConnectionBannersActionType,
   NetworkConnectionBannersAction,
 } from '../../actions/networkConnectionBanners';
+import { NetworkConnectionBannerStatus } from '../../components/UI/NetworkConnectionBanner/types';
 
 /**
  * Interface for defining what properties will be defined in store
@@ -10,6 +11,7 @@ import {
 export interface NetworkConnectionBannersState {
   visible: boolean;
   chainId?: Hex;
+  status?: NetworkConnectionBannerStatus;
 }
 
 /**
@@ -17,6 +19,7 @@ export interface NetworkConnectionBannersState {
  */
 export const initialState: NetworkConnectionBannersState = {
   visible: false,
+  status: undefined,
   chainId: undefined,
 };
 
@@ -29,21 +32,23 @@ export const initialState: NetworkConnectionBannersState = {
 const networkConnectionBannersReducer = (
   state = initialState,
   action: NetworkConnectionBannersAction = {
-    type: NetworkConnectionBannersActionType.HIDE_SLOW_RPC_CONNECTION_BANNER,
+    type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER,
   },
 ) => {
   switch (action.type) {
-    case NetworkConnectionBannersActionType.SHOW_SLOW_RPC_CONNECTION_BANNER:
+    case NetworkConnectionBannersActionType.SHOW_NETWORK_CONNECTION_BANNER:
       return {
         ...state,
         visible: true,
         chainId: action.chainId,
+        status: action.status,
       };
-    case NetworkConnectionBannersActionType.HIDE_SLOW_RPC_CONNECTION_BANNER:
+    case NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER:
       return {
         ...state,
         visible: false,
         chainId: undefined,
+        status: undefined,
       };
     default:
       return state;

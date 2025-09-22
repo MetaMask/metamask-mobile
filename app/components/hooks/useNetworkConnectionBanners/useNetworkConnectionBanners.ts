@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex, hexToNumber, KnownCaipNamespace } from '@metamask/utils';
 import {
@@ -11,25 +11,35 @@ import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../useMetrics';
 import {
-  hideSlowRpcConnectionBanner,
-  showSlowRpcConnectionBanner,
+  hideNetworkConnectionBanner,
+  showNetworkConnectionBanner,
 } from '../../../actions/networkConnectionBanners';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
+import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
 
-const BANNER_TIMEOUT = 5000; // 5 seconds - shows banner
+const SLOW_BANNER_TIMEOUT = 5 * 1000; // 5 seconds
+const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
 
 const useNetworkConnectionBanners = (): {
   visible: boolean;
   chainId: Hex | undefined;
   currentNetwork: NetworkConfiguration | undefined;
+  status: NetworkConnectionBannerStatus | undefined;
   editRpc: () => void;
 } => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { enabledNetworksByNamespace } = useNetworkEnablement();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { visible, chainId } = useSelector(selectNetworkConnectionBannersState);
+  const { visible, chainId, status } = useSelector(
+    selectNetworkConnectionBannersState,
+  );
+  const visibleRef = useRef(visible);
+
+  useEffect(() => {
+    visibleRef.current = visible;
+  }, [visible]);
   const networkConfigurationByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -67,23 +77,27 @@ const useNetworkConnectionBanners = (): {
 
     // Tracking the event
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.SLOW_RPC_MONITORING_BANNER_EDIT_RPC_CLICKED,
-      )
+      createEventBuilder(MetaMetricsEvents.SLOW_RPC_BANNER_EDIT_RPC_CLICKED)
         .addProperties({
           chain_id_caip: `eip155:${hexToNumber(currentNetwork.chainId)}`,
         })
         .build(),
     );
 
-    dispatch(hideSlowRpcConnectionBanner());
+    dispatch(hideNetworkConnectionBanner());
   }
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    const checkNetworkStatus = (timeoutType: NetworkConnectionBannerStatus) => {
       const networksMetadata =
         Engine.context.NetworkController.state.networksMetadata;
+
       let hasUnavailableNetwork = false;
+      let firstUnavailableNetwork: {
+        chainId: Hex;
+        status: NetworkConnectionBannerStatus;
+      } | null = null;
+
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
         const networkClientId =
           Engine.context.NetworkController.findNetworkClientIdByChainId(
@@ -99,42 +113,86 @@ const useNetworkConnectionBanners = (): {
             );
 
           if (!networkConfig) {
-            hasUnavailableNetwork = true;
             continue;
           }
 
-          // Show the banner for the first slow network only
-          if (!visible) {
-            dispatch(showSlowRpcConnectionBanner(evmEnabledNetworkChainId));
-
-            trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.SLOW_RPC_MONITORING_BANNER_EDIT_RPC_CLICKED,
-              )
-                .addProperties({
-                  chain_id_caip: `eip155:${hexToNumber(
-                    evmEnabledNetworkChainId,
-                  )}`,
-                })
-                .build(),
-            );
-
-            break;
+          // Store the first unavailable network we find
+          if (!firstUnavailableNetwork) {
+            firstUnavailableNetwork = {
+              chainId: evmEnabledNetworkChainId,
+              status: timeoutType,
+            };
           }
+
+          hasUnavailableNetwork = true;
+          break; // Only show one banner at a time
         }
       }
 
-      if (visible && !hasUnavailableNetwork) {
-        dispatch(hideSlowRpcConnectionBanner());
+      if (hasUnavailableNetwork && firstUnavailableNetwork) {
+        // Show/update banner if:
+        // 1. No banner is currently visible, OR
+        // 2. Banner is visible but for a different network, OR
+        // 3. Banner is visible for the same network but with a different status
+        const shouldShowBanner =
+          !visibleRef.current ||
+          (visibleRef.current && chainId !== firstUnavailableNetwork.chainId) ||
+          (visibleRef.current &&
+            chainId === firstUnavailableNetwork.chainId &&
+            status !== firstUnavailableNetwork.status);
+
+        if (shouldShowBanner) {
+          dispatch(
+            showNetworkConnectionBanner({
+              chainId: firstUnavailableNetwork.chainId,
+              status: firstUnavailableNetwork.status,
+            }),
+          );
+
+          trackEvent(
+            createEventBuilder(
+              firstUnavailableNetwork.status === 'slow'
+                ? MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN
+                : MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
+            )
+              .addProperties({
+                chain_id_caip: `eip155:${hexToNumber(
+                  firstUnavailableNetwork.chainId,
+                )}`,
+              })
+              .build(),
+          );
+        }
+      } else if (visibleRef.current) {
+        // Hide banner if no networks are unavailable
+        dispatch(hideNetworkConnectionBanner());
       }
-    }, BANNER_TIMEOUT);
+    };
 
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [evmEnabledNetworksChainIds, createEventBuilder, dispatch, trackEvent]);
+    // Set up slow banner timeout (5 seconds)
+    const slowTimeout = setTimeout(() => {
+      checkNetworkStatus('slow');
+    }, SLOW_BANNER_TIMEOUT);
 
-  return { visible, chainId, currentNetwork, editRpc };
+    // Set up unavailable banner timeout (30 seconds)
+    const unavailableTimeout = setTimeout(() => {
+      checkNetworkStatus('unavailable');
+    }, UNAVAILABLE_BANNER_TIMEOUT);
+
+    return () => {
+      clearTimeout(slowTimeout);
+      clearTimeout(unavailableTimeout);
+    };
+  }, [
+    evmEnabledNetworksChainIds,
+    dispatch,
+    createEventBuilder,
+    trackEvent,
+    chainId,
+    status,
+  ]);
+
+  return { visible, chainId, status, currentNetwork, editRpc };
 };
 
 export default useNetworkConnectionBanners;

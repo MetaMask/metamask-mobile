@@ -1,55 +1,63 @@
 import { Hex } from '@metamask/utils';
 import { Action } from 'redux';
-
+import { NetworkConnectionBannerStatus } from '../../components/UI/NetworkConnectionBanner/types';
 /**
  * Different action types available for different RPC event flow
  */
 export enum NetworkConnectionBannersActionType {
-  SHOW_SLOW_RPC_CONNECTION_BANNER = 'SHOW_SLOW_RPC_CONNECTION_BANNER',
-  HIDE_SLOW_RPC_CONNECTION_BANNER = 'HIDE_SLOW_RPC_CONNECTION_BANNER',
+  SHOW_NETWORK_CONNECTION_BANNER = 'SHOW_NETWORK_CONNECTION_BANNER',
+  HIDE_NETWORK_CONNECTION_BANNER = 'HIDE_NETWORK_CONNECTION_BANNER',
 }
 
 /**
  * Action to show the network connection banner
- * chainId is required to identify which network is slow
+ * chainId is required to identify which network is having the issue
+ * status is required to identify the status of the network connection banner
  */
-export interface ShowSlowRpcConnectionBannerAction extends Action {
-  type: NetworkConnectionBannersActionType.SHOW_SLOW_RPC_CONNECTION_BANNER;
+export interface ShowNetworkConnectionBannerAction extends Action {
+  type: NetworkConnectionBannersActionType.SHOW_NETWORK_CONNECTION_BANNER;
   chainId: Hex;
+  status: NetworkConnectionBannerStatus;
 }
 
 /**
  * Action to hide the network connection banner
  * No parameters needed - just hides the currently visible banner
  */
-export interface HideSlowRpcConnectionBannerAction extends Action {
-  type: NetworkConnectionBannersActionType.HIDE_SLOW_RPC_CONNECTION_BANNER;
+export interface HideNetworkConnectionBannerAction extends Action {
+  type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER;
 }
 
 export type NetworkConnectionBannersAction =
-  | ShowSlowRpcConnectionBannerAction
-  | HideSlowRpcConnectionBannerAction;
+  | ShowNetworkConnectionBannerAction
+  | HideNetworkConnectionBannerAction;
 
 /**
- * showSlowRpcConnectionBanner action creator
- * @param {Hex} chainId: the chain id of the network that is slow
- * @returns {ShowSlowRpcConnectionBannerAction} - the action object to show the network connection banner
+ * showNetworkConnectionBanner action creator
+ * @param {Hex} chainId: the chain id of the network that is having the issue
+ * @param {NetworkConnectionBannerStatus} status: the status of the network connection banner
+ * @returns {ShowNetworkConnectionBannerAction} - the action object to show the network connection banner
  */
-export function showSlowRpcConnectionBanner(
-  chainId: Hex,
-): ShowSlowRpcConnectionBannerAction {
+export function showNetworkConnectionBanner({
+  chainId,
+  status,
+}: {
+  chainId: Hex;
+  status: NetworkConnectionBannerStatus;
+}): ShowNetworkConnectionBannerAction {
   return {
-    type: NetworkConnectionBannersActionType.SHOW_SLOW_RPC_CONNECTION_BANNER,
+    type: NetworkConnectionBannersActionType.SHOW_NETWORK_CONNECTION_BANNER,
     chainId,
+    status,
   };
 }
 
 /**
- * hideSlowRpcConnectionBanner action creator
- * @returns {HideSlowRpcConnectionBannerAction} - the action object to hide the network connection banner
+ * hideNetworkConnectionBanner action creator
+ * @returns {HideNetworkConnectionBannerAction} - the action object to hide the network connection banner
  */
-export function hideSlowRpcConnectionBanner(): HideSlowRpcConnectionBannerAction {
+export function hideNetworkConnectionBanner(): HideNetworkConnectionBannerAction {
   return {
-    type: NetworkConnectionBannersActionType.HIDE_SLOW_RPC_CONNECTION_BANNER,
+    type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER,
   };
 }

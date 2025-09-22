@@ -31,12 +31,6 @@ const mockNavigation = {
   navigate: jest.fn(),
 };
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn(() => ({ event: 'test-event', properties: {} })),
-}));
-
 const mockNetworkConfiguration: NetworkConfiguration = {
   chainId: '0x1',
   name: 'Ethereum Mainnet',
@@ -64,14 +58,14 @@ const mockNetworkConfigurationByChainId: Record<Hex, NetworkConfiguration> = {
     chainId: '0x89',
     name: 'Polygon Mainnet',
   },
-} as const;
+};
 
-const mockEnabledNetworksByNamespace = {
+const mockEnabledNetworksByNamespace = Object.freeze({
   [KnownCaipNamespace.Eip155]: {
     '0x1': true,
     '0x89': true,
   },
-};
+});
 
 const NETWORK_CLIENT_ID_1 = 'network-client-1';
 const NETWORK_CLIENT_ID_89 = 'network-client-89';
@@ -112,30 +106,42 @@ const mockEngine = {
 
 describe('useNetworkConnectionBanners', () => {
   let store: ReturnType<typeof mockStore>;
+  let stableTrackEvent: jest.Mock;
+  let stableCreateEventBuilder: jest.Mock;
 
-  beforeEach(() => {
+  const setupMocks = () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
     // Setup mocks
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    Engine.lookupEnabledNetworks = mockEngine.lookupEnabledNetworks;
-    // @ts-expect-error - Mocking Engine for testing
-    Engine.context = mockEngine.context;
     (useNetworkEnablement as jest.Mock).mockReturnValue({
       enabledNetworksByNamespace: mockEnabledNetworksByNamespace,
     });
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    });
-    (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
+    jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
       visible: false,
       chainId: undefined,
     });
-    (
-      selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock
-    ).mockReturnValue(mockNetworkConfigurationByChainId);
+    jest
+      .mocked(selectEvmNetworkConfigurationsByChainId)
+      .mockReturnValue(mockNetworkConfigurationByChainId);
+
+    // Mock Engine methods directly (safer than spyOn after jest.mock)
+    Engine.lookupEnabledNetworks = mockEngine.lookupEnabledNetworks;
+    // @ts-expect-error - Mocking Engine for testing
+    Engine.context = mockEngine.context;
+
+    // Mock the useMetrics hook to return stable functions
+    stableTrackEvent = jest.fn();
+    stableCreateEventBuilder = jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn(() => ({ event: 'test-event', properties: {} })),
+    }));
+
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: stableTrackEvent,
+      createEventBuilder: stableCreateEventBuilder,
+    });
 
     store = mockStore({
       networkConnectionBanners: {
@@ -143,11 +149,12 @@ describe('useNetworkConnectionBanners', () => {
         chainId: undefined,
       },
     });
-  });
+  };
 
-  afterEach(() => {
+  const cleanupMocks = () => {
     jest.useRealTimers();
-  });
+    jest.restoreAllMocks();
+  };
 
   const renderHookWithProvider = () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -156,6 +163,14 @@ describe('useNetworkConnectionBanners', () => {
 
     return renderHook(() => useNetworkConnectionBanners(), { wrapper });
   };
+
+  beforeEach(() => {
+    setupMocks();
+  });
+
+  afterEach(() => {
+    cleanupMocks();
+  });
 
   describe('initial state', () => {
     it('should return initial values', () => {
@@ -179,6 +194,7 @@ describe('useNetworkConnectionBanners', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       });
 
       const { result } = renderHookWithProvider();
@@ -190,6 +206,7 @@ describe('useNetworkConnectionBanners', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: false,
         chainId: undefined,
+        status: undefined,
       });
 
       const { result } = renderHookWithProvider();
@@ -200,7 +217,8 @@ describe('useNetworkConnectionBanners', () => {
     it('should return undefined when chainId is not found in configurations', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
-        chainId: '0x999' as Hex,
+        chainId: '0x999',
+        status: 'slow',
       });
 
       const { result } = renderHookWithProvider();
@@ -214,6 +232,7 @@ describe('useNetworkConnectionBanners', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       });
 
       const { result } = renderHookWithProvider();
@@ -236,6 +255,7 @@ describe('useNetworkConnectionBanners', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       });
 
       const { result } = renderHookWithProvider();
@@ -244,16 +264,17 @@ describe('useNetworkConnectionBanners', () => {
         result.current.editRpc();
       });
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SLOW_RPC_MONITORING_BANNER_EDIT_RPC_CLICKED,
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SLOW_RPC_BANNER_EDIT_RPC_CLICKED,
       );
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(stableTrackEvent).toHaveBeenCalled();
     });
 
-    it('should dispatch hideSlowRpcConnectionBanner when currentNetwork exists', () => {
+    it('should dispatch hideNetworkConnectionBanner when currentNetwork exists', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       });
 
       const { result } = renderHookWithProvider();
@@ -264,7 +285,7 @@ describe('useNetworkConnectionBanners', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('HIDE_SLOW_RPC_CONNECTION_BANNER');
+      expect(actions[0].type).toBe('HIDE_NETWORK_CONNECTION_BANNER');
     });
 
     it('should not navigate when currentNetwork is undefined', () => {
@@ -280,7 +301,7 @@ describe('useNetworkConnectionBanners', () => {
       });
 
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(stableTrackEvent).not.toHaveBeenCalled();
     });
 
     it('should use fallback RPC URL when defaultEndpointIndex is not available', () => {
@@ -317,30 +338,32 @@ describe('useNetworkConnectionBanners', () => {
     });
   });
 
-  describe('network monitoring effect', () => {
-    it('should show banner for network after timeout', () => {
-      (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
+  describe('useEffect', () => {
+    it('should show network connection banner after timeout', () => {
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
         visible: false,
         chainId: undefined,
+        status: undefined,
       });
 
       renderHookWithProvider();
 
-      // Fast-forward time to trigger the timeout
       act(() => {
         jest.advanceTimersByTime(5000);
       });
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('SHOW_SLOW_RPC_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x89'); // Polygon network is blocked
+      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[0].chainId).toBe('0x89'); // Polygon network is unavailable
+      expect(actions[0].status).toBe('slow');
     });
 
-    it('should not show banner if already visible', () => {
-      (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
+    it('should not show banner if already visible for the same network', () => {
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
         visible: true,
-        chainId: '0x1',
+        chainId: '0x89', // Same as the unavailable network in our mock
+        status: 'slow',
       });
 
       renderHookWithProvider();
@@ -353,8 +376,280 @@ describe('useNetworkConnectionBanners', () => {
       expect(actions).toHaveLength(0);
     });
 
+    it('should update banner if already visible for a different network', () => {
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: true,
+        chainId: '0x1', // Different from the unavailable network (0x89)
+        status: 'slow',
+      });
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[0].chainId).toBe('0x89'); // Should update to the actual problematic network
+      expect(actions[0].status).toBe('slow');
+    });
+
+    it('should update banner when problematic network changes', () => {
+      // Start with banner visible for 0x89
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'slow',
+      });
+
+      // Mock that 0x89 is now available but 0x1 is unavailable
+      const updatedNetworkMetadata = {
+        [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Unavailable },
+        [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Available },
+      };
+
+      // @ts-expect-error - Mocking Engine for testing
+      Engine.context = {
+        NetworkController: {
+          ...mockNetworkController,
+          state: {
+            networksMetadata: updatedNetworkMetadata,
+          },
+        },
+      };
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[0].chainId).toBe('0x1'); // Should update to the new problematic network
+      expect(actions[0].status).toBe('slow');
+    });
+
+    it('should hide banner when all networks become available', () => {
+      // Start with banner visible for 0x89
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'slow',
+      });
+
+      const allAvailableNetworkMetadata = {
+        [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Available },
+        [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Available },
+      };
+
+      const mockEngineWithAllAvailable = {
+        ...mockEngine,
+        context: {
+          NetworkController: {
+            ...mockNetworkController,
+            state: {
+              networksMetadata: allAvailableNetworkMetadata,
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error - Mocking Engine for testing
+      Engine.context = mockEngineWithAllAvailable.context;
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0].type).toBe('HIDE_NETWORK_CONNECTION_BANNER');
+    });
+
+    it('should show slow banner after 5 seconds for slow networks', () => {
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: false,
+        chainId: undefined,
+        status: undefined,
+      });
+
+      renderHookWithProvider();
+
+      // Fast-forward to 5 seconds (slow banner timeout)
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[0].chainId).toBe('0x89');
+      expect(actions[0].status).toBe('slow');
+    });
+
+    it('should show unavailable banner after 30 seconds for unavailable networks', () => {
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: false,
+        chainId: undefined,
+        status: undefined,
+      });
+
+      renderHookWithProvider();
+
+      // Fast-forward to 30 seconds (unavailable banner timeout)
+      act(() => {
+        jest.advanceTimersByTime(30000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(2); // Both slow and unavailable banners
+      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[0].chainId).toBe('0x89');
+      expect(actions[0].status).toBe('slow');
+
+      expect(actions[1].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[1].chainId).toBe('0x89');
+      expect(actions[1].status).toBe('unavailable');
+    });
+
+    it('should track correct events for slow banner', () => {
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: false,
+        chainId: undefined,
+        status: undefined,
+      });
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN,
+      );
+      expect(stableTrackEvent).toHaveBeenCalled();
+    });
+
+    it('should track correct events for unavailable banner', () => {
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: false,
+        chainId: undefined,
+        status: undefined,
+      });
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(30000);
+      });
+
+      // Should track both slow and unavailable events
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN,
+      );
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
+      );
+      expect(stableTrackEvent).toHaveBeenCalledTimes(2);
+    });
+
+    it('should update from slow to unavailable status when network becomes truly unavailable', () => {
+      // Start with slow banner visible
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'slow',
+      });
+
+      renderHookWithProvider();
+
+      // Fast-forward to 30 seconds to trigger unavailable banner
+      act(() => {
+        jest.advanceTimersByTime(30000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[0].chainId).toBe('0x89');
+      expect(actions[0].status).toBe('unavailable');
+    });
+
+    it('should update from unavailable to slow status when network improves', () => {
+      // Start with unavailable banner visible
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'unavailable',
+      });
+
+      renderHookWithProvider();
+
+      // Fast-forward to 5 seconds (slow banner timeout)
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(1);
+      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[0].chainId).toBe('0x89');
+      expect(actions[0].status).toBe('slow'); // Should update to slow status
+    });
+
+    it('should show unavailable banner for networks that are truly unavailable', () => {
+      const unavailableNetworkMetadata = {
+        [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Available },
+        [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Unavailable },
+      };
+
+      const mockEngineWithUnavailableNetwork = {
+        ...mockEngine,
+        context: {
+          NetworkController: {
+            ...mockNetworkController,
+            state: {
+              networksMetadata: unavailableNetworkMetadata,
+            },
+          },
+        },
+      };
+
+      // @ts-expect-error - Mocking Engine for testing
+      Engine.context = mockEngineWithUnavailableNetwork.context;
+
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: false,
+        chainId: undefined,
+      });
+
+      renderHookWithProvider();
+
+      // Fast-forward time to trigger the unavailable banner timeout (30 seconds)
+      act(() => {
+        jest.advanceTimersByTime(30000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(2);
+      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[0].chainId).toBe('0x89'); // Polygon network is unavailable
+      expect(actions[0].status).toBe('slow');
+
+      expect(actions[1].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
+      expect(actions[1].chainId).toBe('0x89'); // Polygon network is unavailable
+      expect(actions[1].status).toBe('unavailable');
+    });
+
     it('should track banner shown event when showing banner', () => {
-      (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
         visible: false,
         chainId: undefined,
       });
@@ -365,10 +660,10 @@ describe('useNetworkConnectionBanners', () => {
         jest.advanceTimersByTime(5000);
       });
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SLOW_RPC_MONITORING_BANNER_EDIT_RPC_CLICKED,
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN,
       );
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(stableTrackEvent).toHaveBeenCalled();
     });
 
     it('should not show banner for available networks', () => {
@@ -392,7 +687,7 @@ describe('useNetworkConnectionBanners', () => {
       // @ts-expect-error - Mocking Engine for testing
       Engine.context = mockEngineWithAvailableNetworks.context;
 
-      (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
         visible: false,
         chainId: undefined,
       });
@@ -430,7 +725,7 @@ describe('useNetworkConnectionBanners', () => {
       // @ts-expect-error - Mocking Engine for testing
       Engine.context = mockEngineWithoutConfig.context;
 
-      (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
         visible: false,
         chainId: undefined,
       });
@@ -445,14 +740,15 @@ describe('useNetworkConnectionBanners', () => {
       expect(actions).toHaveLength(0);
     });
 
-    it('should clean up timeout on unmount', () => {
+    it('should clean up both timeouts on unmount', () => {
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
 
       const { unmount } = renderHookWithProvider();
 
       unmount();
 
-      expect(clearTimeoutSpy).toHaveBeenCalled();
+      // Should be called twice - once for slow timeout, once for unavailable timeout
+      expect(clearTimeoutSpy).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -473,7 +769,7 @@ describe('useNetworkConnectionBanners', () => {
         },
       });
 
-      (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
         visible: false,
         chainId: undefined,
       });

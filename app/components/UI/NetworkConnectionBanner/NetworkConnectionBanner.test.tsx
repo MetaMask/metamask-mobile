@@ -23,6 +23,16 @@ jest.mock('../../../../locales/i18n', () => ({
         }
         return `Still connecting to ${networkName}`;
       }
+      if (key === 'network_connection_banner.network_not_available') {
+        const networkName = params?.networkName;
+        if (networkName === undefined || networkName === null) {
+          return 'Network not available';
+        }
+        if (networkName === '') {
+          return 'Network not available';
+        }
+        return `${networkName} is not available`;
+      }
       if (key === 'network_connection_banner.edit_rpc') {
         return 'Edit RPC';
       }
@@ -78,6 +88,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: false,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -91,6 +102,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: undefined,
         editRpc: mockEditRpc,
       });
@@ -104,6 +116,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: false,
         chainId: undefined,
+        status: 'slow',
         currentNetwork: undefined,
         editRpc: mockEditRpc,
       });
@@ -115,66 +128,192 @@ describe('NetworkConnectionBanner', () => {
   });
 
   describe('when banner is visible', () => {
-    beforeEach(() => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+    describe('with slow status', () => {
+      beforeEach(() => {
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+          currentNetwork: mockNetworkConfiguration,
+          editRpc: mockEditRpc,
+        });
+      });
+
+      it('should render the banner with correct structure', () => {
+        const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
+
+        expect(getByTestId('animated-spinner')).toBeTruthy();
+        expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
+        expect(getByText('Edit RPC')).toBeTruthy();
+      });
+
+      it('should display spinner with correct size', () => {
+        const { getByTestId } = render(<NetworkConnectionBanner />);
+
+        const spinner = getByTestId('animated-spinner');
+        const sizeText = getByTestId('spinner-size');
+
+        expect(spinner).toBeTruthy();
+        expect(sizeText).toBeTruthy();
+        expect(sizeText.props.children).toBe('SM');
+      });
+
+      it('should display network name in the message', () => {
+        const { getByText } = render(<NetworkConnectionBanner />);
+
+        expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
+      });
+
+      it('should call strings with correct parameters for slow status', () => {
+        render(<NetworkConnectionBanner />);
+
+        expect(strings).toHaveBeenCalledWith(
+          'network_connection_banner.still_connecting_network',
+          { networkName: 'Ethereum Mainnet' },
+        );
+        expect(strings).toHaveBeenCalledWith(
+          'network_connection_banner.edit_rpc',
+        );
+      });
+
+      it('should call editRpc when Edit RPC button is pressed', () => {
+        const { getByText } = render(<NetworkConnectionBanner />);
+
+        const editButton = getByText('Edit RPC');
+        fireEvent.press(editButton);
+
+        expect(mockEditRpc).toHaveBeenCalledTimes(1);
+      });
+
+      it('should render button with correct variant and properties', () => {
+        const { getByText } = render(<NetworkConnectionBanner />);
+
+        const editButton = getByText('Edit RPC');
+        expect(editButton).toBeTruthy();
       });
     });
 
-    it('should render the banner with correct structure', () => {
-      const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
+    describe('with unavailable status', () => {
+      beforeEach(() => {
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          visible: true,
+          chainId: '0x1',
+          status: 'unavailable',
+          currentNetwork: mockNetworkConfiguration,
+          editRpc: mockEditRpc,
+        });
+      });
 
-      expect(getByTestId('animated-spinner')).toBeTruthy();
-      expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
-      expect(getByText('Edit RPC')).toBeTruthy();
+      it('should render the banner with correct structure', () => {
+        const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
+
+        expect(getByTestId('animated-spinner')).toBeTruthy();
+        expect(getByText('Ethereum Mainnet is not available')).toBeTruthy();
+        expect(getByText('Edit RPC')).toBeTruthy();
+      });
+
+      it('should display spinner with correct size', () => {
+        const { getByTestId } = render(<NetworkConnectionBanner />);
+
+        const spinner = getByTestId('animated-spinner');
+        const sizeText = getByTestId('spinner-size');
+
+        expect(spinner).toBeTruthy();
+        expect(sizeText).toBeTruthy();
+        expect(sizeText.props.children).toBe('SM');
+      });
+
+      it('should display network name in the message', () => {
+        const { getByText } = render(<NetworkConnectionBanner />);
+
+        expect(getByText('Ethereum Mainnet is not available')).toBeTruthy();
+      });
+
+      it('should call strings with correct parameters for unavailable status', () => {
+        render(<NetworkConnectionBanner />);
+
+        expect(strings).toHaveBeenCalledWith(
+          'network_connection_banner.network_not_available',
+          { networkName: 'Ethereum Mainnet' },
+        );
+        expect(strings).toHaveBeenCalledWith(
+          'network_connection_banner.edit_rpc',
+        );
+      });
+
+      it('should call editRpc when Edit RPC button is pressed', () => {
+        const { getByText } = render(<NetworkConnectionBanner />);
+
+        const editButton = getByText('Edit RPC');
+        fireEvent.press(editButton);
+
+        expect(mockEditRpc).toHaveBeenCalledTimes(1);
+      });
+
+      it('should render button with correct variant and properties', () => {
+        const { getByText } = render(<NetworkConnectionBanner />);
+
+        const editButton = getByText('Edit RPC');
+        expect(editButton).toBeTruthy();
+      });
     });
 
-    it('should display spinner with correct size', () => {
-      const { getByTestId } = render(<NetworkConnectionBanner />);
+    describe('status transitions', () => {
+      it('should update message when status changes from slow to unavailable', () => {
+        // Start with slow status
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+          currentNetwork: mockNetworkConfiguration,
+          editRpc: mockEditRpc,
+        });
 
-      const spinner = getByTestId('animated-spinner');
-      const sizeText = getByTestId('spinner-size');
+        const { rerender, getByText } = render(<NetworkConnectionBanner />);
 
-      expect(spinner).toBeTruthy();
-      expect(sizeText).toBeTruthy();
-      expect(sizeText.props.children).toBe('SM');
-    });
+        expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
 
-    it('should display network name in the message', () => {
-      const { getByText } = render(<NetworkConnectionBanner />);
+        // Change to unavailable status
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          visible: true,
+          chainId: '0x1',
+          status: 'unavailable',
+          currentNetwork: mockNetworkConfiguration,
+          editRpc: mockEditRpc,
+        });
 
-      expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
-    });
+        rerender(<NetworkConnectionBanner />);
 
-    it('should call strings with correct parameters', () => {
-      render(<NetworkConnectionBanner />);
+        expect(getByText('Ethereum Mainnet is not available')).toBeTruthy();
+      });
 
-      expect(strings).toHaveBeenCalledWith(
-        'network_connection_banner.still_connecting_network',
-        { networkName: 'Ethereum Mainnet' },
-      );
-      expect(strings).toHaveBeenCalledWith(
-        'network_connection_banner.edit_rpc',
-      );
-    });
+      it('should update message when status changes from unavailable to slow', () => {
+        // Start with unavailable status
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          visible: true,
+          chainId: '0x1',
+          status: 'unavailable',
+          currentNetwork: mockNetworkConfiguration,
+          editRpc: mockEditRpc,
+        });
 
-    it('should call editRpc when Edit RPC button is pressed', () => {
-      const { getByText } = render(<NetworkConnectionBanner />);
+        const { rerender, getByText } = render(<NetworkConnectionBanner />);
 
-      const editButton = getByText('Edit RPC');
-      fireEvent.press(editButton);
+        expect(getByText('Ethereum Mainnet is not available')).toBeTruthy();
 
-      expect(mockEditRpc).toHaveBeenCalledTimes(1);
-    });
+        // Change to slow status
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+          currentNetwork: mockNetworkConfiguration,
+          editRpc: mockEditRpc,
+        });
 
-    it('should render button with correct variant and properties', () => {
-      const { getByText } = render(<NetworkConnectionBanner />);
+        rerender(<NetworkConnectionBanner />);
 
-      const editButton = getByText('Edit RPC');
-      expect(editButton).toBeTruthy();
+        expect(getByText('Still connecting to Ethereum Mainnet')).toBeTruthy();
+      });
     });
   });
 
@@ -189,6 +328,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x89',
+        status: 'slow',
         currentNetwork: polygonNetwork,
         editRpc: mockEditRpc,
       });
@@ -207,6 +347,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: specialNetwork,
         editRpc: mockEditRpc,
       });
@@ -225,6 +366,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: longNameNetwork,
         editRpc: mockEditRpc,
       });
@@ -244,6 +386,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -259,6 +402,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -275,7 +419,7 @@ describe('NetworkConnectionBanner', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle network with undefined name gracefully', () => {
+    it('should handle network with undefined name gracefully for slow status', () => {
       const networkWithoutName: NetworkConfiguration = {
         ...mockNetworkConfiguration,
         name: undefined as unknown as string,
@@ -284,6 +428,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: networkWithoutName,
         editRpc: mockEditRpc,
       });
@@ -293,7 +438,26 @@ describe('NetworkConnectionBanner', () => {
       expect(getByText('Still connecting to network')).toBeTruthy();
     });
 
-    it('should handle network with empty name', () => {
+    it('should handle network with undefined name gracefully for unavailable status', () => {
+      const networkWithoutName: NetworkConfiguration = {
+        ...mockNetworkConfiguration,
+        name: undefined as unknown as string,
+      };
+
+      mockUseNetworkConnectionBanners.mockReturnValue({
+        visible: true,
+        chainId: '0x1',
+        status: 'unavailable',
+        currentNetwork: networkWithoutName,
+        editRpc: mockEditRpc,
+      });
+
+      const { getByText } = render(<NetworkConnectionBanner />);
+
+      expect(getByText('Network not available')).toBeTruthy();
+    });
+
+    it('should handle network with empty name for slow status', () => {
       const networkWithEmptyName: NetworkConfiguration = {
         ...mockNetworkConfiguration,
         name: '',
@@ -302,6 +466,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: networkWithEmptyName,
         editRpc: mockEditRpc,
       });
@@ -311,10 +476,30 @@ describe('NetworkConnectionBanner', () => {
       expect(getByText('Still connecting to ')).toBeTruthy();
     });
 
+    it('should handle network with empty name for unavailable status', () => {
+      const networkWithEmptyName: NetworkConfiguration = {
+        ...mockNetworkConfiguration,
+        name: '',
+      };
+
+      mockUseNetworkConnectionBanners.mockReturnValue({
+        visible: true,
+        chainId: '0x1',
+        status: 'unavailable',
+        currentNetwork: networkWithEmptyName,
+        editRpc: mockEditRpc,
+      });
+
+      const { getByText } = render(<NetworkConnectionBanner />);
+
+      expect(getByText('Network not available')).toBeTruthy();
+    });
+
     it('should handle multiple rapid button presses', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -338,6 +523,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: false,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -352,6 +538,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -366,6 +553,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -384,6 +572,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         visible: true,
         chainId: '0x89',
+        status: 'slow',
         currentNetwork: polygonNetwork,
         editRpc: mockEditRpc,
       });
