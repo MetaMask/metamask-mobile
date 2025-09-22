@@ -178,6 +178,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import NftGrid from '../../UI/NftGrid';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -230,6 +231,7 @@ interface WalletTokensTabViewProps {
   }) => void;
   defiEnabled: boolean;
   collectiblesEnabled: boolean;
+  nftGridViewEnabled: boolean;
   navigationParams?: {
     shouldSelectPerpsTab?: boolean;
     initialTab?: string;
@@ -254,6 +256,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     onChangeTab,
     defiEnabled,
     collectiblesEnabled,
+    nftGridViewEnabled,
     navigationParams,
   } = props;
   const route = useRoute<RouteProp<ParamListBase, string>>();
@@ -302,7 +305,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     [navigation],
   );
 
-  const collectibleContractsTabProps = useMemo(
+  const nftsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
@@ -388,7 +391,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (defiEnabled && !enabledNetworksIsSolana) {
+    if (enabledNetworksIsSolana) {
+      return tabs;
+    }
+
+    if (defiEnabled) {
       tabs.push(
         <DeFiPositionsList
           {...defiPositionsTabProps}
@@ -397,12 +404,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (collectiblesEnabled && !enabledNetworksIsSolana) {
+    if (nftGridViewEnabled) {
+      tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
+    } else if (collectiblesEnabled) {
       tabs.push(
-        <CollectibleContracts
-          {...collectibleContractsTabProps}
-          key={collectibleContractsTabProps.key}
-        />,
+        <CollectibleContracts {...nftsTabProps} key={nftsTabProps.key} />,
       );
     }
 
@@ -415,7 +421,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
-    collectibleContractsTabProps,
+    nftGridViewEnabled,
+    nftsTabProps,
     enabledNetworksIsSolana,
   ]);
 
@@ -618,6 +625,8 @@ const Wallet = ({
     }
     return isEvmSelected;
   }, [isMultichainAccountsState2Enabled, isEvmSelected, allEnabledNetworks]);
+
+  const nftGridViewEnabled = process.env.NFT_GRID_VIEW === 'true';
 
   const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
 
@@ -1230,6 +1239,7 @@ const Wallet = ({
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
             collectiblesEnabled={collectiblesEnabled}
+            nftGridViewEnabled={nftGridViewEnabled}
             navigationParams={route.params}
           />
         </>
@@ -1256,6 +1266,7 @@ const Wallet = ({
       route.params,
       isCarouselBannersEnabled,
       collectiblesEnabled,
+      nftGridViewEnabled,
       chainId,
     ],
   );
