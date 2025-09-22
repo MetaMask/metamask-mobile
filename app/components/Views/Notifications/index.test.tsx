@@ -28,6 +28,7 @@ import NotificationsService from '../../../util/notifications/services/Notificat
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/wallet/NotificationsView.selectors';
+import mockedDefaultUseMetrics from '../../../components/hooks/useMetrics/__mocks__/useMetrics';
 
 const navigationMock = {
   navigate: jest.fn(),
@@ -45,8 +46,12 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
 const mockMetrics = {
   trackEvent: jest.fn(),
   createEventBuilder: jest.fn().mockReturnValue({ build: jest.fn() }),
-} as unknown as ReturnType<typeof useMetrics>;
-jest.mocked(useMetrics).mockReturnValue(mockMetrics);
+};
+
+const mockedMetrics = jest.mocked(useMetrics);
+mockedMetrics.mockReturnValue({
+  ...mockedDefaultUseMetrics(),
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   engine: {

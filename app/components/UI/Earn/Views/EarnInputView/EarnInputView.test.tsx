@@ -31,6 +31,7 @@ import {
 } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import mockedDefaultUseMetrics from '../../../../hooks/useMetrics/__mocks__/useMetrics';
 import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
@@ -381,9 +382,10 @@ describe('EarnInputView', () => {
       attemptDepositTransaction: jest.fn(),
     });
     useMetricsMock.mockReturnValue({
+      ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    });
 
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
 

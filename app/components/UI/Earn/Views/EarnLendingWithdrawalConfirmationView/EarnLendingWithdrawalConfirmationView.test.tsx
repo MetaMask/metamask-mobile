@@ -215,7 +215,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    });
   });
 
   it('matches snapshot', () => {

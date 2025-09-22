@@ -12,6 +12,7 @@ import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 
 // Internal dependencies.
 import { useMetrics } from '../../hooks/useMetrics';
+import mockedDefaultUseMetrics from '../../hooks/useMetrics/__mocks__/useMetrics';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import { trace, TraceName } from '../../../util/trace';
@@ -72,7 +73,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseMetrics = jest.mocked(useMetrics);
 const mockUseRampNetwork = useRampNetwork as jest.MockedFunction<
   typeof useRampNetwork
 >;
@@ -122,9 +123,10 @@ describe('FundActionMenu', () => {
     });
 
     mockUseMetrics.mockReturnValue({
+      ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-    } as never);
+    });
 
     mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });

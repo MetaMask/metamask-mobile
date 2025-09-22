@@ -423,7 +423,7 @@ describe('EarnWithdrawInputView', () => {
       ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    });
 
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,

@@ -6,6 +6,7 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import mockedDefaultUseMetrics from '../../../../hooks/useMetrics/__mocks__/useMetrics';
 import { EVENT_PROVIDERS } from '../../constants/events';
 import { Stake } from '../../sdk/stakeSdkProvider';
 import usePoolStakedDeposit from './index';
@@ -104,9 +105,10 @@ describe('usePoolStakedDeposit', () => {
 
   beforeEach(() => {
     useMetricsMock.mockReturnValue({
+      ...mockedDefaultUseMetrics(),
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    });
   });
 
   afterEach(() => {
