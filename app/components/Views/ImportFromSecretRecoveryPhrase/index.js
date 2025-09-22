@@ -16,7 +16,6 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import zxcvbn from 'zxcvbn';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -28,7 +27,6 @@ import {
 } from '../../../util/validators';
 import Logger from '../../../util/Logger';
 import {
-  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
@@ -130,7 +128,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordStrength, setPasswordStrength] = useState();
   const [biometryType, setBiometryType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -446,10 +443,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPasswordChange = (value) => {
-    const passInfo = zxcvbn(value);
-
     setPassword(value);
-    setPasswordStrength(passInfo.score);
     if (value === '') {
       setConfirmPassword('');
     }
@@ -463,8 +457,6 @@ const ImportFromSecretRecoveryPhrase = ({
     const { current } = confirmPasswordInput;
     current && current.focus();
   };
-
-  const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString(); // Get copied text
@@ -1015,25 +1007,6 @@ const ImportFromSecretRecoveryPhrase = ({
                   {strings('choose_password.must_be_at_least', {
                     number: MIN_PASSWORD_LENGTH,
                   })}
-                </Text>
-              )}
-              {Boolean(password) && password.length >= MIN_PASSWORD_LENGTH && (
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
-                >
-                  {strings('choose_password.password_strength')}
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles[`strength_${passwordStrengthWord}`]}
-                  >
-                    {' '}
-                    {strings(
-                      `choose_password.strength_${passwordStrengthWord}`,
-                    )}
-                  </Text>
                 </Text>
               )}
             </View>
