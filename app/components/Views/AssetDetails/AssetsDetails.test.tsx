@@ -16,6 +16,7 @@ jest.mock('../../../core/ClipboardManager', () => ({
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   getDecimalChainId: jest.fn(() => 1),
+  isPortfolioViewEnabled: jest.fn(() => true),
 }));
 
 jest.mock('@react-navigation/compat', () => ({
@@ -45,6 +46,29 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
+
+jest.mock('../../../selectors/accountsController', () => ({
+  selectLastSelectedEvmAccount: jest.fn(() => ({
+    address: '0x0', // MOCK_ADDRESS_1
+  })),
+  selectSelectedInternalAccountAddress: jest.fn(() => '0x0'), // MOCK_ADDRESS_1
+  selectSelectedInternalAccountFormattedAddress: jest.fn(() => '0x0'), // MOCK_ADDRESS_1
+  selectSelectedAccountGroupInternalAccounts: jest.fn(() => []),
+  selectInternalAccounts: jest.fn(() => ({})),
+  selectSelectedInternalAccount: jest.fn(() => ({
+    id: 'mock-account-id',
+    address: '0x0',
+  })),
+}));
+
+// Mock multichain accounts selectors
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountSections: jest.fn(() => []),
+    selectAccountTreeControllerState: jest.fn(() => ({})),
+  }),
+);
 
 const mockStore = configureMockStore();
 

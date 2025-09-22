@@ -322,11 +322,12 @@ const AssetOptions = (props: Props) => {
     const isNativeToken =
       isNativeCurrency || isNativeTokenAddress(address, networkId);
 
-    options.push({
-      label: strings('asset_details.options.view_on_portfolio'),
-      onPress: openPortfolio,
-      icon: IconName.Export,
-    });
+    !isNonEvmChainId(networkId) &&
+      options.push({
+        label: strings('asset_details.options.view_on_portfolio'),
+        onPress: openPortfolio,
+        icon: IconName.Export,
+      });
     Boolean(explorer.baseUrl) &&
       options.push({
         label: strings('asset_details.options.view_on_block'),
