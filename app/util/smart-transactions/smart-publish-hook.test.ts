@@ -10,10 +10,13 @@ import {
   TransactionMeta,
   WalletDevice,
   TransactionEnvelopeType,
+  TransactionControllerGetNonceLockAction,
+  TransactionControllerGetTransactionsAction,
+  TransactionControllerConfirmExternalTransactionAction,
+  TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import {
   SmartTransactionsController,
-  ClientId,
   type SmartTransaction,
 } from '@metamask/smart-transactions-controller';
 
@@ -144,25 +147,33 @@ function withRequest<ReturnValue>(
     ...options
   } = rest;
   const messenger = new Messenger<
-    NetworkControllerGetNetworkClientByIdAction | AllowedActions,
+    | NetworkControllerGetNetworkClientByIdAction
+    | TransactionControllerGetNonceLockAction
+    | TransactionControllerGetTransactionsAction
+    | TransactionControllerConfirmExternalTransactionAction
+    | TransactionControllerUpdateTransactionAction
+    | AllowedActions,
     NetworkControllerStateChangeEvent | AllowedEvents
   >();
 
   const smartTransactionsController = new SmartTransactionsController({
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     messenger: messenger.getRestricted({
       name: 'SmartTransactionsController',
-      allowedActions: ['NetworkController:getNetworkClientById'],
+      allowedActions: [
+        'NetworkController:getNetworkClientById',
+        'TransactionController:getNonceLock',
+        'TransactionController:getTransactions',
+        'TransactionController:confirmExternalTransaction',
+        'TransactionController:updateTransaction',
+      ],
       allowedEvents: ['NetworkController:stateChange'],
     }),
-    getNonceLock: jest.fn(),
-    confirmExternalTransaction: jest.fn(),
     trackMetaMetricsEvent: jest.fn(),
-    getTransactions: jest.fn(),
     getMetaMetricsProps: jest.fn(),
     getFeatureFlags: jest.fn(),
-    updateTransaction: jest.fn(),
-    clientId: ClientId.Mobile,
+    // TODO: Export ClientId as value from `smart-transactions-controller` package
+    // @ts-expect-error ClientId is currently exported as type
+    clientId: 'mobile',
   });
 
   const getFeesSpy = jest
