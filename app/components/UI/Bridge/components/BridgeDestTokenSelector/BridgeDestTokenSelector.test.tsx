@@ -16,6 +16,13 @@ import Engine from '../../../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
+import {
+  ARBITRUM_DISPLAY_NAME,
+  AVALANCHE_DISPLAY_NAME,
+  BASE_DISPLAY_NAME,
+  BNB_DISPLAY_NAME,
+  OPTIMISM_DISPLAY_NAME,
+} from '../../../../../core/Engine/constants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -120,7 +127,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Avalanche');
+    expect(result).toBe(AVALANCHE_DISPLAY_NAME);
   });
 
   it('returns nickname from PopularList for Arbitrum', () => {
@@ -131,7 +138,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Arbitrum');
+    expect(result).toBe(ARBITRUM_DISPLAY_NAME);
   });
 
   it('returns nickname from PopularList for BNB Smart Chain', () => {
@@ -142,7 +149,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('BNB Chain');
+    expect(result).toBe(BNB_DISPLAY_NAME);
   });
 
   it('returns nickname from PopularList for Base', () => {
@@ -153,7 +160,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Base');
+    expect(result).toBe(BASE_DISPLAY_NAME);
   });
 
   it('returns nickname from PopularList for OP', () => {
@@ -164,7 +171,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('OP');
+    expect(result).toBe(OPTIMISM_DISPLAY_NAME);
   });
 
   it('returns "Unknown Network" when network not found anywhere', () => {

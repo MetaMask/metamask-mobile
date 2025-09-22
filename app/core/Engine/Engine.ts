@@ -385,9 +385,10 @@ export class Engine {
       ].rpcEndpoints[0].failoverUrls =
         getFailoverUrlsForInfuraNetwork('base-mainnet');
 
-      // The core API returns popular networks with outdated names (e.g., "Linea Mainnet" instead of "Linea").
-      // Migration 178 handles renaming networks for existing users, while this ensures new users
-      // receive the correct, simplified "Popular" network names from the start.
+      // Update default popular network names
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId.mainnet
+      ].name = 'Ethereum';
       initialNetworkControllerState.networkConfigurationsByChainId[
         ChainId['linea-mainnet']
       ].name = 'Linea';
