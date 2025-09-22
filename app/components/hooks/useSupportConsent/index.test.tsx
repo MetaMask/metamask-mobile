@@ -43,6 +43,14 @@ describe('useSupportConsent', () => {
   const mockTitle = 'Test Title';
   const mockNavigation = {
     navigate: jest.fn(),
+    dispatch: jest.fn(),
+    reset: jest.fn(),
+    goBack: jest.fn(),
+    isFocused: jest.fn(() => true),
+    canGoBack: jest.fn(() => true),
+    getId: jest.fn(() => 'test-id'),
+    getParent: jest.fn(),
+    getState: jest.fn(),
   };
   let originalEnv: string | undefined;
 
