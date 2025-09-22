@@ -1,18 +1,12 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import {
+import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -44,7 +38,6 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_POSITION_VIEW,
 } from '../../utils/formatUtils';
-import { Button } from '@metamask/design-system-react-native';
 
 // Quick percentage buttons constants - RoE percentages
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
@@ -226,59 +219,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     }
   }, [isVisible, startMeasure, endMeasure]);
 
-  const handleConfirm = useCallback(() => {
-    // Parse the formatted prices back to plain numbers for storage
-    // Check for non-empty strings (empty strings should be treated as undefined)
-    const parseTakeProfitPrice = takeProfitPrice?.trim()
-      ? takeProfitPrice.replace(/[$,]/g, '')
-      : undefined;
-    const parseStopLossPrice = stopLossPrice?.trim()
-      ? stopLossPrice.replace(/[$,]/g, '')
-      : undefined;
-
-    // Track stop loss and take profit set events
-    if (parseStopLossPrice) {
-      track(MetaMetricsEvents.PERPS_STOP_LOSS_SET, {
-        [PerpsEventProperties.ASSET]: asset,
-        [PerpsEventProperties.DIRECTION]:
-          actualDirection === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(parseStopLossPrice),
-        [PerpsEventProperties.INPUT_METHOD]: slUsingPercentage
-          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
-          : PerpsEventValues.INPUT_METHOD.MANUAL,
-      });
-    }
-
-    if (parseTakeProfitPrice) {
-      track(MetaMetricsEvents.PERPS_TAKE_PROFIT_SET, {
-        [PerpsEventProperties.ASSET]: asset,
-        [PerpsEventProperties.DIRECTION]:
-          actualDirection === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.TAKE_PROFIT_PRICE]:
-          parseFloat(parseTakeProfitPrice),
-        [PerpsEventProperties.INPUT_METHOD]: tpUsingPercentage
-          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
-          : PerpsEventValues.INPUT_METHOD.MANUAL,
-      });
-    }
-
-    onConfirm(parseTakeProfitPrice, parseStopLossPrice);
-    // Don't close immediately - let the parent handle closing after update completes
-  }, [
-    takeProfitPrice,
-    stopLossPrice,
-    onConfirm,
-    actualDirection,
-    asset,
-    slUsingPercentage,
-    tpUsingPercentage,
-    track,
-  ]);
-
   // Handle close without saving
   const handleClose = useCallback(() => {
     onClose();
@@ -369,10 +309,67 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     setFocusedInput(null);
   }, [focusedInput]);
 
-  // Show overlay if updating
-  const showOverlay = isUpdating;
+  const handleConfirm = useCallback(() => {
+    if (focusedInput) {
+      dismissKeypad();
+    }
 
-  const confirmDisabled = !hasChanges || !isValid;
+    // Parse the formatted prices back to plain numbers for storage
+    // Check for non-empty strings (empty strings should be treated as undefined)
+    const parseTakeProfitPrice = takeProfitPrice?.trim()
+      ? takeProfitPrice.replace(/[$,]/g, '')
+      : undefined;
+    const parseStopLossPrice = stopLossPrice?.trim()
+      ? stopLossPrice.replace(/[$,]/g, '')
+      : undefined;
+
+    // Track stop loss and take profit set events
+    if (parseStopLossPrice) {
+      track(MetaMetricsEvents.PERPS_STOP_LOSS_SET, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          actualDirection === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(parseStopLossPrice),
+        [PerpsEventProperties.INPUT_METHOD]: slUsingPercentage
+          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
+          : PerpsEventValues.INPUT_METHOD.MANUAL,
+      });
+    }
+
+    if (parseTakeProfitPrice) {
+      track(MetaMetricsEvents.PERPS_TAKE_PROFIT_SET, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          actualDirection === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.TAKE_PROFIT_PRICE]:
+          parseFloat(parseTakeProfitPrice),
+        [PerpsEventProperties.INPUT_METHOD]: tpUsingPercentage
+          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
+          : PerpsEventValues.INPUT_METHOD.MANUAL,
+      });
+    }
+
+    onConfirm(parseTakeProfitPrice, parseStopLossPrice);
+    // Don't close immediately - let the parent handle closing after update completes
+  }, [
+    focusedInput,
+    takeProfitPrice,
+    stopLossPrice,
+    onConfirm,
+    dismissKeypad,
+    track,
+    asset,
+    actualDirection,
+    slUsingPercentage,
+    tpUsingPercentage,
+  ]);
+
+  const confirmDisabled = !hasChanges || !isValid || isUpdating;
+  const inputsDisabled = isUpdating;
 
   if (!isVisible) return null;
 
@@ -400,12 +397,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
             }
           }}
         >
-          {showOverlay && (
-            <View style={styles.overlay}>
-              <ActivityIndicator size="large" color={colors.primary.default} />
-            </View>
-          )}
-
           {/* Description text */}
           {!focusedInput && (
             <Text
@@ -477,7 +468,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   !takeProfitPrice && styles.percentageButtonOff,
                 ]}
                 onPress={handleTakeProfitOff}
-                disabled={!!focusedInput}
+                disabled={inputsDisabled || !!focusedInput}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {strings('perps.tpsl.off')}
@@ -495,6 +486,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
                     percentage,
                   )}
+                  disabled={inputsDisabled}
                 >
                   <Text
                     variant={TextVariant.BodySM}
@@ -529,7 +521,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  editable
+                  editable={!inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPrice');
                   }}
@@ -567,7 +559,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholder={strings('perps.tpsl.profit_roe_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  editable
+                  editable={!inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPercentage');
                   }}
@@ -615,7 +607,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   !stopLossPrice && styles.percentageButtonOff,
                 ]}
                 onPress={handleStopLossOff}
-                disabled={!!focusedInput}
+                disabled={inputsDisabled || !!focusedInput}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {strings('perps.tpsl.off')}
@@ -633,6 +625,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
                     percentage,
                   )}
+                  disabled={inputsDisabled}
                 >
                   <Text
                     variant={TextVariant.BodySM}
@@ -667,7 +660,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  editable
+                  editable={!inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPrice');
                   }}
@@ -705,7 +698,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   placeholder={strings('perps.tpsl.loss_roe_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  editable
+                  editable={!inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPercentage');
                   }}
@@ -737,35 +730,41 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
       <View style={styles.keypadFooter}>
         {focusedInput ? (
-          <View style={styles.keypadContainer}>
-            <Keypad
-              value={
-                focusedInput === 'takeProfitPrice'
-                  ? takeProfitPrice
-                  : focusedInput === 'takeProfitPercentage'
-                  ? formattedTakeProfitPercentage
-                  : focusedInput === 'stopLossPrice'
-                  ? stopLossPrice
-                  : formattedStopLossPercentage
-              }
-              onChange={handleKeypadChange}
-              // USD_PERPS is not a real currency - it's a custom configuration
-              // that allows 5 decimal places for crypto prices, overriding the
-              // default USD configuration which only allows 2 decimal places.
-              currency="USD_PERPS"
-              decimals={5}
+          <>
+            <Button
+              style={styles.doneButton}
+              label={strings('perps.tpsl.done')}
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              onPress={handleConfirm}
+              isDisabled={confirmDisabled}
+              loading={isUpdating}
             />
-            <Button onPress={dismissKeypad} style={styles.keypadDismissButton}>
-              {strings('perps.tpsl.dismiss_tpsl_keypad')}
-            </Button>
-          </View>
+            <View style={styles.keypadContainer}>
+              <Keypad
+                value={
+                  focusedInput === 'takeProfitPrice'
+                    ? takeProfitPrice
+                    : focusedInput === 'takeProfitPercentage'
+                    ? formattedTakeProfitPercentage
+                    : focusedInput === 'stopLossPrice'
+                    ? stopLossPrice
+                    : formattedStopLossPercentage
+                }
+                onChange={handleKeypadChange}
+                // USD_PERPS is not a real currency - it's a custom configuration
+                // that allows 5 decimal places for crypto prices, overriding the
+                // default USD configuration which only allows 2 decimal places.
+                currency="USD_PERPS"
+                decimals={5}
+              />
+            </View>
+          </>
         ) : (
           <BottomSheetFooter
             buttonPropsArray={[
               {
-                label: isUpdating
-                  ? strings('perps.tpsl.updating')
-                  : strings('perps.tpsl.set'),
+                label: strings('perps.tpsl.done'),
                 variant: ButtonVariants.Primary,
                 size: ButtonSize.Lg,
                 onPress: handleConfirm,
