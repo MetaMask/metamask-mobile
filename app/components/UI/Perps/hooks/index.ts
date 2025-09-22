@@ -41,6 +41,7 @@ export { useColorPulseAnimation } from './useColorPulseAnimation';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
+export { usePerpsRewards } from './usePerpsRewards';
 export { useHasExistingPosition } from './useHasExistingPosition';
 export { useMinimumOrderAmount } from './useMinimumOrderAmount';
 export { usePerpsOrderForm } from './usePerpsOrderForm';
