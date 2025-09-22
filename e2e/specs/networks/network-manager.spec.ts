@@ -9,19 +9,16 @@ import { DappVariants } from '../../framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Browser from '../../pages/Browser/BrowserView';
 import TestDApp from '../../pages/Browser/TestDApp';
-
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
+import { CustomNetworks } from '../../resources/networks.e2e';
+
+const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
 const isRemoveGlobalNetworkSelectorEnabled =
   process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
 const isMultichainAccountsState2Enabled =
   process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true';
-
-console.log(
-  'isMultichainAccountsState2Enabled',
-  isMultichainAccountsState2Enabled,
-);
 
 (isRemoveGlobalNetworkSelectorEnabled ? describe : describe.skip)(
   SmokeNetworkAbstractions('Network Manager'),
@@ -249,7 +246,6 @@ console.log(
       await withFixtures(
         {
           fixture: new FixtureBuilder()
-            .withPopularNetworks()
             .withTokensForAllPopularNetworks([
               {
                 address: '0x0000000000000000000000000000000000000000',
@@ -307,7 +303,6 @@ console.log(
       await withFixtures(
         {
           fixture: new FixtureBuilder()
-            .withPopularNetworks()
             .withTokensForAllPopularNetworks([
               {
                 address: '0x0000000000000000000000000000000000000000',
@@ -391,10 +386,10 @@ console.log(
           await TabBarComponent.tapBrowser();
           await Browser.navigateToTestDApp();
           await TestDApp.tapOpenNetworkPicker();
-          await TestDApp.tapNetworkByName(NetworkToCaipChainId.POLYGON);
+          await TestDApp.tapNetworkByName(POLYGON);
 
           // Verify the permission request UI
-          const expectedText = `Use your enabled networks Requesting for ${NetworkToCaipChainId.POLYGON} Mainnet`;
+          const expectedText = `Use your enabled networks Requesting for ${POLYGON} Mainnet`;
           await Assertions.expectElementToHaveLabel(
             ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
             expectedText,
