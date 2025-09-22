@@ -29,6 +29,7 @@ export const mockNetworkState = (
     );
   }
 
+  //Test
   const networkConfigurations = networks.map((network) => {
     const blockExplorer =
       !('blockExplorerUrl' in network) || network.blockExplorerUrl
