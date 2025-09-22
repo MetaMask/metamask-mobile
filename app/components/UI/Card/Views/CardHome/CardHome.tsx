@@ -55,6 +55,7 @@ import {
 } from '../../../../../component-library/components/Skeleton';
 import { isE2E } from '../../../../../util/test/utils';
 import useSupportedTokens from '../../../Ramp/Deposit/hooks/useSupportedTokens';
+import { LINEA_MAINNET } from '../../../Ramp/Deposit/constants/networks';
 
 const SkeletonLoading = (props: SkeletonProps) => {
   if (isE2E) return null;
@@ -125,7 +126,9 @@ const CardHome = () => {
     if (priorityToken?.symbol) {
       return depositSupportedTokens.find(
         (token) =>
-          token.symbol.toLowerCase() === priorityToken.symbol?.toLowerCase(),
+          token.symbol.toLowerCase() === priorityToken.symbol?.toLowerCase() &&
+          // Card feature only supports Linea for now
+          token.chainId === LINEA_MAINNET.chainId,
       );
     }
   }, [priorityToken, depositSupportedTokens]);
