@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAccounts } from '../../../hooks/useAccounts';
-import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   selectDestAddress,
   setDestAddress,
@@ -15,11 +14,13 @@ import {
   selectSelectedAccountGroup,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
+import { isNonEvmAddress } from '../../../../core/Multichain/utils';
 
-export const useRecipientInitialization = () => {
+export const useRecipientInitialization = (
+  hasInitializedRecipient: React.MutableRefObject<boolean>,
+) => {
   const dispatch = useDispatch();
   const { accounts } = useAccounts();
-  const hasInitialized = useRef(false);
   const currentlySelectedAccount = useSelector(selectSelectedAccountGroup);
 
   // Filter accounts using BIP-44 aware multichain selectors via account IDs
@@ -78,14 +79,15 @@ export const useRecipientInitialization = () => {
     // Check if current destAddress matches the network type
     const doesDestAddrMatchNetworkType =
       !destAddress ||
-      (isSolanaToEvm && !isSolanaAddress(destAddress)) ||
-      (isEvmToSolana && isSolanaAddress(destAddress));
+      (!isSolanaToEvm && !isEvmToSolana) ||
+      (isSolanaToEvm && !isNonEvmAddress(destAddress)) || // Solana→EVM: address should be EVM
+      (isEvmToSolana && isNonEvmAddress(destAddress)); // EVM→Solana: address should be Solana
 
     // Only initialize in these specific cases:
     // 1. Never initialized AND no destAddress set
     // 2. destAddress doesn't match the current network type (user switched networks)
     const shouldInitialize =
-      (!hasInitialized.current && !destAddress) ||
+      (!hasInitializedRecipient.current && !destAddress) ||
       !doesDestAddrMatchNetworkType;
 
     if (shouldInitialize) {
@@ -102,7 +104,7 @@ export const useRecipientInitialization = () => {
       }
 
       handleSelectAccount(defaultAccount.caipAccountId);
-      hasInitialized.current = true;
+      hasInitializedRecipient.current = true;
     }
   }, [
     destAddress,
@@ -111,7 +113,6 @@ export const useRecipientInitialization = () => {
     filteredAccounts,
     handleSelectAccount,
     currentlySelectedAccount,
+    hasInitializedRecipient,
   ]);
-
-  return { isInitialized: hasInitialized.current };
 };

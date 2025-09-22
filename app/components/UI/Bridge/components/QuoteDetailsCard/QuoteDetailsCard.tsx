@@ -34,7 +34,6 @@ import {
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useRewards } from '../../hooks/useRewards';
 import { useRewardsIconAnimation } from '../../hooks/useRewardsIconAnimation';
-import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 import { formatAddress } from '../../../../../util/address';
 
@@ -85,9 +84,6 @@ const QuoteDetailsCard: React.FC = () => {
     hasRewardsError,
     shouldShowRewardsRow,
   });
-
-  // Initialize recipient account for display
-  useRecipientInitialization();
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {

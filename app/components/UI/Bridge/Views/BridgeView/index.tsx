@@ -71,6 +71,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
+import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
 import ApprovalText from '../../components/ApprovalText';
 import { BigNumber } from 'bignumber.js';
 import { RootState } from '../../../../../reducers/index.ts';
@@ -132,6 +133,10 @@ const BridgeView = () => {
   const initialDestToken = route.params?.destToken;
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
+
+  // Initialize recipient account
+  const hasInitializedRecipient = useRef(false);
+  useRecipientInitialization(hasInitializedRecipient);
 
   useEffect(() => {
     if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
