@@ -141,6 +141,32 @@ function setupBackgroundBridge(url, isMMSDK = false) {
   return bridge;
 }
 
+const mockAccountTreeController = (accounts) => {
+  Engine.controllerMessenger.call = jest.fn().mockImplementation((method) => {
+    if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
+      return 'mainnet';
+    }
+
+    if (method === 'NetworkController:getNetworkClientById') {
+      return {
+        configuration: {
+          chainId: '0x1',
+          ticker: 'ETH',
+        },
+      };
+    }
+
+    if (
+      method === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+    ) {
+      return accounts;
+    }
+
+    // Default return for other methods
+    return undefined;
+  });
+};
+
 describe('BackgroundBridge', () => {
   const { KeyringController, PermissionController } = Engine.context;
 
@@ -663,6 +689,113 @@ describe('BackgroundBridge', () => {
           scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         },
       });
+    });
+  });
+
+  describe('handleSolanaAccountChangedFromSelectedAccountGroupChanges', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('emits nothing when AccountTreeController returns no accounts', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const handleSolanaAccountSpy = jest.spyOn(
+        bridge,
+        'handleSolanaAccountChangedFromSelectedAccountChanges',
+      );
+
+      mockAccountTreeController([]);
+
+      bridge.handleSolanaAccountChangedFromSelectedAccountGroupChanges();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(handleSolanaAccountSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits nothing when AccountTreeController returns only non-Solana accounts', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const handleSolanaAccountSpy = jest.spyOn(
+        bridge,
+        'handleSolanaAccountChangedFromSelectedAccountChanges',
+      );
+
+      const mockAccounts = [
+        { type: EthAccountType.Eoa, address: 'eth-address-1' },
+        { type: EthAccountType.Erc4337, address: 'eth-address-2' },
+      ];
+
+      mockAccountTreeController(mockAccounts);
+
+      bridge.handleSolanaAccountChangedFromSelectedAccountGroupChanges();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(handleSolanaAccountSpy).not.toHaveBeenCalled();
+    });
+
+    it('calls handleSolanaAccountChangedFromSelectedAccountChanges when AccountTreeController returns a Solana account', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const handleSolanaAccountSpy = jest.spyOn(
+        bridge,
+        'handleSolanaAccountChangedFromSelectedAccountChanges',
+      );
+
+      const mockSolanaAccount = {
+        type: SolAccountType.DataAccount,
+        address: 'solana-address-1',
+      };
+      const mockAccounts = [mockSolanaAccount];
+
+      mockAccountTreeController(mockAccounts);
+
+      bridge.handleSolanaAccountChangedFromSelectedAccountGroupChanges();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(handleSolanaAccountSpy).toHaveBeenCalledWith(mockSolanaAccount);
+    });
+
+    it('processes only the first Solana account when multiple valid Solana accounts exist', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const handleSolanaAccountSpy = jest.spyOn(
+        bridge,
+        'handleSolanaAccountChangedFromSelectedAccountChanges',
+      );
+
+      const mockSolanaAccount1 = {
+        type: SolAccountType.DataAccount,
+        address: 'first-solana-address',
+      };
+      const mockSolanaAccount2 = {
+        type: SolAccountType.DataAccount,
+        address: 'second-solana-address',
+      };
+      const mockSolanaAccount3 = {
+        type: SolAccountType.DataAccount,
+        address: 'third-solana-address',
+      };
+
+      mockAccountTreeController([
+        mockSolanaAccount1,
+        mockSolanaAccount2,
+        mockSolanaAccount3,
+      ]);
+
+      bridge.handleSolanaAccountChangedFromSelectedAccountGroupChanges();
+
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      );
+      expect(handleSolanaAccountSpy).toHaveBeenCalledWith(mockSolanaAccount1);
+      expect(handleSolanaAccountSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

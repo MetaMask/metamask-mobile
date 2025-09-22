@@ -88,6 +88,7 @@ import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { isRelaySupported } from '../RPCMethods/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
+import { AccountTreeController } from '@metamask/account-tree-controller';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -887,6 +888,11 @@ export class BackgroundBridge extends EventEmitter {
       `${AccountsController.name}:selectedAccountChange`,
       this.handleSolanaAccountChangedFromSelectedAccountChanges,
     );
+
+    controllerMessenger.subscribe(
+      `${AccountTreeController.name}:selectedAccountGroupChange`,
+      this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
+    );
   }
 
   /**
@@ -1056,6 +1062,20 @@ export class BackgroundBridge extends EventEmitter {
       if (parsedSolanaAddresses.includes(account.address)) {
         this._notifySolanaAccountChange([account.address]);
       }
+    }
+  };
+
+  handleSolanaAccountChangedFromSelectedAccountGroupChanges = () => {
+    const controllerMessenger = Engine.controllerMessenger;
+
+    const internalAccounts = controllerMessenger.call(
+      `AccountTreeController:getAccountsFromSelectedAccountGroup`,
+    );
+    const solanaAccount = internalAccounts.find(
+      (account) => account.type === SolAccountType.DataAccount,
+    );
+    if (solanaAccount) {
+      this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
     }
   };
 
