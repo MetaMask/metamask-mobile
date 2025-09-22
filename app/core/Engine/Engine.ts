@@ -2288,7 +2288,7 @@ export class Engine {
     const chainIds = Object.entries(
       NetworkEnablementController.state?.enabledNetworkMap?.[
         KnownCaipNamespace.Eip155
-      ],
+      ] ?? {},
     )
       .filter(([, isEnabled]) => isEnabled)
       .map(([networkChainId]) => networkChainId as Hex);

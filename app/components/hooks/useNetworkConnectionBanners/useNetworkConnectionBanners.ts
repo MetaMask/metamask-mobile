@@ -81,20 +81,25 @@ const useNetworkConnectionBanners = (): {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
+      const networksMetadata =
+        Engine.context.NetworkController.state.networksMetadata;
+      let hasUnavailableNetwork = false;
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
-        const networkMetadata =
-          Engine.context.NetworkController.state.networksMetadata[
-            evmEnabledNetworkChainId
-          ];
+        const networkClientId =
+          Engine.context.NetworkController.findNetworkClientIdByChainId(
+            evmEnabledNetworkChainId,
+          );
+        const networkMetadata = networksMetadata[networkClientId];
         const networkStatus = networkMetadata?.status;
 
         if (networkStatus !== NetworkStatus.Available) {
           const networkConfig =
             Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
-              evmEnabledNetworkChainId,
+              networkClientId,
             );
 
           if (!networkConfig) {
+            hasUnavailableNetwork = true;
             continue;
           }
 
@@ -117,6 +122,10 @@ const useNetworkConnectionBanners = (): {
             break;
           }
         }
+      }
+
+      if (visible && !hasUnavailableNetwork) {
+        dispatch(hideSlowRpcConnectionBanner());
       }
     }, BANNER_TIMEOUT);
 
