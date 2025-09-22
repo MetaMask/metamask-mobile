@@ -103,7 +103,10 @@ export const ActivityEventRow: React.FC<{
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
         >
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative max-w-[60%]"
+          >
             {eventDetails.details}
           </Text>
           <Text variant={TextVariant.BodySm} twClassName="text-alternative">
