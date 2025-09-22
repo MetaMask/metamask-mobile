@@ -77,6 +77,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const [dotsCount, setDotsCount] = useState(1);
   const hasAnimationStarted = useRef(false);
   const animationId = useRef<NodeJS.Timeout | null>(null);
+  const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
+  const finalTimeoutId = useRef<NodeJS.Timeout | null>(null);
+  const socialLoginTimeoutId = useRef<NodeJS.Timeout | null>(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -109,24 +112,27 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
       riveRef.current.fireState('OnboardingLoader', 'Start');
 
-      const dotsInterval = setInterval(() => {
+      dotsIntervalId.current = setInterval(() => {
         setDotsCount((prev) => (prev >= 3 ? 1 : prev + 1));
       }, 300);
 
       animationId.current = setTimeout(() => {
-        clearInterval(dotsInterval);
+        if (dotsIntervalId.current) {
+          clearInterval(dotsIntervalId.current);
+          dotsIntervalId.current = null;
+        }
         setAnimationStep(2);
       }, 1200);
 
-      setTimeout(() => {
+      finalTimeoutId.current = setTimeout(() => {
         setAnimationStep(3);
-        animationId.current = null;
+        finalTimeoutId.current = null;
 
         const currentIsSocialLogin =
           authConnection === AuthConnection.Google ||
           authConnection === AuthConnection.Apple;
         if (currentIsSocialLogin) {
-          setTimeout(() => onDone(), 1000);
+          socialLoginTimeoutId.current = setTimeout(() => onDone(), 1000);
         }
       }, 3000);
     } catch (error) {
@@ -158,9 +164,22 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     startRiveAnimation();
 
     return () => {
+      // Clear all timers
       if (animationId.current) {
         clearTimeout(animationId.current);
         animationId.current = null;
+      }
+      if (dotsIntervalId.current) {
+        clearInterval(dotsIntervalId.current);
+        dotsIntervalId.current = null;
+      }
+      if (finalTimeoutId.current) {
+        clearTimeout(finalTimeoutId.current);
+        finalTimeoutId.current = null;
+      }
+      if (socialLoginTimeoutId.current) {
+        clearTimeout(socialLoginTimeoutId.current);
+        socialLoginTimeoutId.current = null;
       }
     };
   }, [startRiveAnimation]);
