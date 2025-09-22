@@ -96,6 +96,32 @@ export const createMockWallet = (
 };
 
 /**
+ * Creates a mock Entropy wallet for testing
+ */
+export const createMockEntropyWallet = (
+  id: string,
+  name: string,
+  groups: AccountGroupObject[],
+): AccountWalletObject => {
+  const wallet = {
+    id: id as AccountWalletObject['id'],
+    type: AccountWalletType.Entropy,
+    metadata: {
+      name,
+      entropy: {
+        groupIndex: 0,
+      },
+    },
+    groups: groups.reduce((acc, group) => {
+      acc[group.id] = group;
+      return acc;
+    }, {} as Record<string, AccountGroupObject>),
+  };
+
+  return wallet as unknown as AccountWalletObject;
+};
+
+/**
  * Creates mock state with accounts and internal accounts
  */
 export const createMockState = (
@@ -103,7 +129,14 @@ export const createMockState = (
   internalAccounts: Record<string, InternalAccount>,
 ): RootState => {
   const walletMap = wallets.reduce((acc, wallet) => {
-    acc[`keyring:${wallet.id}`] = wallet;
+    const prefix =
+      wallet.type === AccountWalletType.Entropy ? 'entropy:' : 'keyring:';
+    const prefixedKey = `${prefix}${wallet.id}`;
+
+    // Store with both prefixed key (for selectors) and plain key (for AccountListFooter)
+    acc[prefixedKey] = wallet;
+    acc[wallet.id] = wallet;
+
     return acc;
   }, {} as Record<string, AccountWalletObject>);
 
