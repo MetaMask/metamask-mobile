@@ -16,7 +16,7 @@ describe('popularNetwork', () => {
       OP: toHex('10'),
       Palm: toHex('11297108109'),
       Polygon: toHex('137'),
-      zkSync: toHex('324'),
+      'zkSync Era': toHex('324'),
       Sei: toHex('1329'),
     };
 
