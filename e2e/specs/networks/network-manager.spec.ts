@@ -89,7 +89,6 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select and check the network in the base control bar
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-          await NetworkManager.closeNetworkManager();
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
@@ -103,7 +102,6 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select Avalanche and check if Ethereum is not selected
           await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA);
-          await NetworkManager.closeNetworkManager();
 
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.LINEA,
@@ -136,7 +134,6 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Tap localhost network and check base control bar text
           await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
-          await NetworkManager.closeNetworkManager();
 
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.LOCALHOST,
@@ -180,7 +177,6 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select Ethereum network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.SOLANA);
-          await NetworkManager.closeNetworkManager();
 
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.SOLANA,
@@ -208,7 +204,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
       );
     });
 
-    it('should filter tokens by enabled popular networks', async () => {
+    it('should filter tokens by selected network from list of enabled popular networks', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
@@ -225,7 +221,6 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select Ethereum network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-          await NetworkManager.closeNetworkManager();
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
@@ -265,11 +260,10 @@ const isRemoveGlobalNetworkSelectorEnabled =
           await NetworkManager.checkTabIsSelected('Custom');
 
           // Select a custom network (Linea Sepolia)
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.LINEA_SEPOLIA);
-          await NetworkManager.closeNetworkManager();
+          await NetworkManager.tapNetwork(NetworkToCaipChainId.LOCALHOST);
 
           await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.LINEA_SEPOLIA,
+            NetworkToCaipChainId.LOCALHOST,
           );
 
           // Verify tokens that should not be visible (from popular networks)
@@ -279,7 +273,7 @@ const isRemoveGlobalNetworkSelectorEnabled =
           }
 
           // Verify tokens that should be visible on custom networks
-          const expectedVisibleTokens = ['LineaETH'];
+          const expectedVisibleTokens = ['ETH'];
           for (const token of expectedVisibleTokens) {
             await NetworkManager.checkTokenIsVisible(token);
           }
@@ -316,7 +310,6 @@ const isRemoveGlobalNetworkSelectorEnabled =
 
           // Select Ethereum as the active network
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-          await NetworkManager.closeNetworkManager();
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
