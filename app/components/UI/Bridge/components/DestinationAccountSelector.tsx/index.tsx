@@ -55,15 +55,18 @@ const DestinationAccountSelector = () => {
     [dispatch, navigation],
   );
 
-  const filteredAccounts = useMemo(() => destinationAccounts.filter(
-      (account) =>
-        account.address.toLowerCase().includes(searchText.toLowerCase()) ||
-        account.name.toLowerCase().includes(searchText.toLowerCase()),
-    ), [destinationAccounts, searchText]);
+  const filteredAccounts = useMemo(
+    () =>
+      destinationAccounts.filter(
+        (account) =>
+          account.address.toLowerCase().includes(searchText.toLowerCase()) ||
+          account.name.toLowerCase().includes(searchText.toLowerCase()),
+      ),
+    [destinationAccounts, searchText],
+  );
 
   return (
     <Box style={styles.container}>
-      6v
       <Box>
         <TextFieldSearch
           placeholder="Search or paste address"
