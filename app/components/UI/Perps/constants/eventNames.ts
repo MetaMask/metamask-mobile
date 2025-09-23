@@ -85,6 +85,13 @@ export const PerpsEventProperties = {
   AMOUNT_FILLED: 'Amount filled',
   REMAINING_AMOUNT: 'Remaining amount',
   PERP_ACCOUNT_BALANCE: 'Perp Account $ Balance',
+
+  // Tutorial carousel navigation properties
+  PREVIOUS_SCREEN: 'previous_screen',
+  CURRENT_SCREEN: 'current_screen',
+  SCREEN_POSITION: 'screen_position',
+  TOTAL_SCREENS: 'total_screens',
+  NAVIGATION_METHOD: 'navigation_method',
 } as const;
 
 /**
@@ -155,5 +162,10 @@ export const PerpsEventValues = {
   CLOSE_TYPE: {
     FULL: 'full',
     PARTIAL: 'partial',
+  },
+  NAVIGATION_METHOD: {
+    SWIPE: 'swipe',
+    CONTINUE_BUTTON: 'continue_button',
+    PROGRESS_DOT: 'progress_dot',
   },
 } as const;

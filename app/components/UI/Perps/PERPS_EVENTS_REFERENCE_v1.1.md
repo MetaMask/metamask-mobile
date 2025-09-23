@@ -348,5 +348,7 @@ Status: ✅ Implemented
 
 ### Carousel
 
-Status: ❌ NOT IMPLEMENTED - No PERPS*CAROUSEL event found in codebase, only tutorial carousel events exist
-\_Note: Tutorial carousel events are already covered in Tutorial Events section*
+Status: ⚠️ Implemented - Added for tutorial navigation tracking (not in original spec)
+**Implementation:** MetaMetrics.events.ts + PerpsTutorialCarousel.tsx:215,301
+**Properties:** Timestamp, previous*screen, current_screen, screen_position, total_screens, navigation_method (swipe, continue_button)
+\_Note: This event tracks navigation within the tutorial carousel and was added to provide tutorial engagement insights not covered by the original Tutorial Events section*

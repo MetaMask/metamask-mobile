@@ -522,6 +522,7 @@ enum EVENT_NAME {
   PERPS_TUTORIAL_VIEWED = 'Perp Tutorial Viewed',
   PERPS_TUTORIAL_STARTED = 'Perp Tutorial Started',
   PERPS_TUTORIAL_COMPLETED = 'Perp Tutorial Completed',
+  PERPS_TUTORIAL_CAROUSEL_NAVIGATED = 'Perp Tutorial Carousel Navigated',
 
   // Account Funding Flow
   PERPS_FUNDING_INPUT_VIEWED = 'Perp Funding Input Viewed',
@@ -1366,10 +1367,13 @@ const events = {
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
   // Perps Events - Mapped to dashboard requirements (49 events total)
-  // Tutorial Flow (3 events)
+  // Tutorial Flow (4 events)
   PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
   PERPS_TUTORIAL_STARTED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_STARTED),
   PERPS_TUTORIAL_COMPLETED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_COMPLETED),
+  PERPS_TUTORIAL_CAROUSEL_NAVIGATED: generateOpt(
+    EVENT_NAME.PERPS_TUTORIAL_CAROUSEL_NAVIGATED,
+  ),
 
   // Account Funding Flow (2 events)
   PERPS_FUNDING_INPUT_VIEWED: generateOpt(
