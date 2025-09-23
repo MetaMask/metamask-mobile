@@ -1373,6 +1373,13 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
+      // Verify fresh fetch was logged
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh season status data via API call for subscriptionId & seasonId',
+        mockSubscriptionId,
+        mockSeasonId,
+      );
+
       // Expect the result to be the converted state object, not the original DTO
       expect(result).toBeDefined();
       expect(result?.balance.total).toBe(1500);
