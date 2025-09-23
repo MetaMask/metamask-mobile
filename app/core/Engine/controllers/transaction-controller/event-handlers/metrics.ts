@@ -16,7 +16,6 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetricsBuilder,
 } from '../types';
-import Logger from '../../../../../util/Logger';
 import { getMetaMaskPayProperties } from '../event_properties/metamask-pay';
 import Engine from '../../../Engine';
 import { createProjectLogger } from '@metamask/utils';
@@ -34,51 +33,57 @@ const createTransactionEventHandler =
     transactionMeta: TransactionMeta,
     transactionEventHandlerRequest: TransactionEventHandlerRequest,
   ) => {
-    const defaultTransactionMetricProperties =
-      await generateDefaultTransactionMetrics(
-        eventType,
-        transactionMeta,
-        transactionEventHandlerRequest,
+    try {
+      const defaultTransactionMetricProperties =
+        await generateDefaultTransactionMetrics(
+          eventType,
+          transactionMeta,
+          transactionEventHandlerRequest,
+        );
+
+      const metrics = {
+        properties: defaultTransactionMetricProperties.properties,
+        sensitiveProperties:
+          defaultTransactionMetricProperties.sensitiveProperties,
+      };
+
+      const allTransactions =
+        transactionEventHandlerRequest.getState()?.engine?.backgroundState
+          ?.TransactionController?.transactions ?? [];
+
+      const getUIMetrics = getConfirmationMetricProperties.bind(
+        null,
+        transactionEventHandlerRequest.getState,
       );
 
-    const metrics = {
-      properties: defaultTransactionMetricProperties.properties,
-      sensitiveProperties:
-        defaultTransactionMetricProperties.sensitiveProperties,
-    };
+      const getState = transactionEventHandlerRequest.getState;
 
-    const allTransactions =
-      transactionEventHandlerRequest.getState()?.engine?.backgroundState
-        ?.TransactionController?.transactions ?? [];
+      for (const builder of METRICS_BUILDERS) {
+        try {
+          const currentMetrics = builder({
+            transactionMeta,
+            allTransactions,
+            getUIMetrics,
+            getState,
+          });
 
-    const getUIMetrics = getConfirmationMetricProperties.bind(
-      null,
-      transactionEventHandlerRequest.getState,
-    );
-
-    const getState = transactionEventHandlerRequest.getState;
-
-    for (const builder of METRICS_BUILDERS) {
-      try {
-        const currentMetrics = builder({
-          transactionMeta,
-          allTransactions,
-          getUIMetrics,
-          getState,
-        });
-
-        merge(metrics, currentMetrics);
-      } catch (error) {
-        // Intentionally empty
+          merge(metrics, currentMetrics);
+        } catch (error) {
+          // Intentionally empty
+        }
       }
+
+      const event = generateEvent({
+        ...defaultTransactionMetricProperties,
+        ...metrics,
+      });
+
+      log('Event', event);
+
+      MetaMetrics.getInstance().trackEvent(event);
+    } catch (error) {
+      log('Error in transaction event handler', error);
     }
-
-    const event = generateEvent({
-      ...defaultTransactionMetricProperties,
-      ...metrics,
-    });
-
-    MetaMetrics.getInstance().trackEvent(event);
   };
 
 /**
@@ -129,68 +134,77 @@ export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ): Promise<void> {
-  if (
-    retryIfEngineNotInitialized(() => {
-      handleTransactionFinalizedEventForMetrics(
+  try {
+    if (
+      retryIfEngineNotInitialized(() => {
+        handleTransactionFinalizedEventForMetrics(
+          transactionMeta,
+          transactionEventHandlerRequest,
+        );
+      })
+    ) {
+      return;
+    }
+
+    // Generate default properties
+    const defaultTransactionMetricProperties =
+      await generateDefaultTransactionMetrics(
+        TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
         transactionMeta,
         transactionEventHandlerRequest,
       );
-    })
-  ) {
-    return;
-  }
 
-  // Generate default properties
-  const defaultTransactionMetricProperties =
-    await generateDefaultTransactionMetrics(
-      TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-      transactionMeta,
-      transactionEventHandlerRequest,
-    );
-
-  // Generate smart transaction properties if applicable
-  let smartTransactionProperties = { properties: {}, sensitiveProperties: {} };
-  try {
-    const { getState, initMessenger, smartTransactionsController } =
-      transactionEventHandlerRequest;
-    const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-      getState(),
-      transactionMeta.chainId,
-    );
-    if (shouldUseSmartTransaction) {
-      const smartMetrics = await getSmartTransactionMetricsProperties(
-        smartTransactionsController,
-        transactionMeta,
-        true,
-        initMessenger as unknown as BaseControllerMessenger,
+    // Generate smart transaction properties if applicable
+    let smartTransactionProperties = {
+      properties: {},
+      sensitiveProperties: {},
+    };
+    try {
+      const { getState, initMessenger, smartTransactionsController } =
+        transactionEventHandlerRequest;
+      const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+        getState(),
+        transactionMeta.chainId,
       );
-      smartTransactionProperties = {
-        properties: smartMetrics,
-        sensitiveProperties: {},
-      };
+      if (shouldUseSmartTransaction) {
+        const smartMetrics = await getSmartTransactionMetricsProperties(
+          smartTransactionsController,
+          transactionMeta,
+          true,
+          initMessenger as unknown as BaseControllerMessenger,
+        );
+        smartTransactionProperties = {
+          properties: smartMetrics,
+          sensitiveProperties: {},
+        };
+      }
+    } catch (error) {
+      log('Error getting smart transaction metrics', error);
     }
+
+    // Add RPC properties
+    const rpcProperties = generateRPCProperties(transactionMeta.chainId);
+
+    // Merge default, smart transaction, and RPC properties
+    const mergedEventProperties = merge(
+      {},
+      defaultTransactionMetricProperties,
+      smartTransactionProperties,
+      {
+        properties: rpcProperties.properties,
+        sensitiveProperties: rpcProperties.sensitiveProperties,
+      },
+    );
+
+    // Generate and track the event
+    const event = generateEvent(mergedEventProperties);
+
+    log('Finalized event', event);
+
+    MetaMetrics.getInstance().trackEvent(event);
   } catch (error) {
-    Logger.log('Error getting smart transaction metrics:', error);
+    log('Error in finalized transaction event handler', error);
   }
-
-  // Add RPC properties
-  const rpcProperties = generateRPCProperties(transactionMeta.chainId);
-
-  // Merge default, smart transaction, and RPC properties
-  const mergedEventProperties = merge(
-    {},
-    defaultTransactionMetricProperties,
-    smartTransactionProperties,
-    {
-      properties: rpcProperties.properties,
-      sensitiveProperties: rpcProperties.sensitiveProperties,
-    },
-  );
-
-  // Generate and track the event
-  const event = generateEvent(mergedEventProperties);
-
-  MetaMetrics.getInstance().trackEvent(event);
 }
 
 function retryIfEngineNotInitialized(fn: () => void): boolean {
