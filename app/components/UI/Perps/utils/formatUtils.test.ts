@@ -33,11 +33,13 @@ jest.mock('../../../../util/assets', () => ({
 }));
 
 // Mock the strings function
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const mockStrings: Record<string, string> = {
       today: 'Today',
       'notifications.yesterday': 'Yesterday',
+      'perps.today': 'Today',
+      'perps.yesterday': 'Yesterday',
     };
     return mockStrings[key] || key;
   },
