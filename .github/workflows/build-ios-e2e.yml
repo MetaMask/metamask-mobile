@@ -158,12 +158,12 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
-      - name: Repack App with JS updates using @expo/repack-app
+      - name: Repack App with JS updates
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
-          echo "📦 Repacking iOS app with updated JavaScript using @expo/repack-app..."
+          echo "📦 Repacking iOS app with updated JavaScript..."
 
-          # Use the optimized repack script which uses @expo/repack-app
+          # Use the optimized repack script
           yarn repack:ios
 
           # Verify the repacked app exists
