@@ -523,13 +523,6 @@ enum EVENT_NAME {
   PERPS_TUTORIAL_STARTED = 'Perp Tutorial Started',
   PERPS_TUTORIAL_COMPLETED = 'Perp Tutorial Completed',
 
-  // Account Funding Flow
-  PERPS_FUNDING_INPUT_VIEWED = 'Perp Funding Input Viewed',
-  PERPS_FUNDING_REVIEW_VIEWED = 'Perp Funding Review Viewed',
-  PERPS_FUNDING_INITIATED = 'Perp Funding Initiated',
-  PERPS_FUNDING_COMPLETED = 'Perp Funding Completed',
-  PERPS_FUNDING_FAILED = 'Perp Funding Failed',
-
   // Account Withdrawal Flow
   PERPS_WITHDRAWAL_INPUT_VIEWED = 'Perp Withdrawal Input Viewed',
   PERPS_WITHDRAWAL_INITIATED = 'Perp Withdrawal Initiated',
@@ -1366,17 +1359,6 @@ const events = {
   PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
   PERPS_TUTORIAL_STARTED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_STARTED),
   PERPS_TUTORIAL_COMPLETED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_COMPLETED),
-
-  // Account Funding Flow (5 events)
-  PERPS_FUNDING_INPUT_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_FUNDING_INPUT_VIEWED,
-  ),
-  PERPS_FUNDING_REVIEW_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_FUNDING_REVIEW_VIEWED,
-  ),
-  PERPS_FUNDING_INITIATED: generateOpt(EVENT_NAME.PERPS_FUNDING_INITIATED),
-  PERPS_FUNDING_COMPLETED: generateOpt(EVENT_NAME.PERPS_FUNDING_COMPLETED),
-  PERPS_FUNDING_FAILED: generateOpt(EVENT_NAME.PERPS_FUNDING_FAILED),
 
   // Account Withdrawal Flow (4 events)
   PERPS_WITHDRAWAL_INPUT_VIEWED: generateOpt(

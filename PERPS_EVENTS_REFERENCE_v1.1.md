@@ -7,16 +7,19 @@
 ### Perp Tutorial Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsTutorialCarousel.tsx:174
 **Properties:** Timestamp, Source (banner, notification, mainActionButton, positionTab, perpMarkets, deeplink)
 
 ### Perp Tutorial Started
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsTutorialCarousel.tsx:201,270
 **Properties:** Timestamp, Source (banner, notification, mainActionButton, positionTab, perpMarkets, deeplink)
 
 ### Perp Tutorial Completed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsTutorialCarousel.tsx:232,295
 **Properties:** Timestamp, Source (banner, notification, mainActionButton, positionTab, perpMarkets, deeplink), Completion Duration, Steps Viewed, View occurences
 
 ---
@@ -64,26 +67,30 @@ _Note: Withdrawal "transactions" are HyperLiquid SDK operations, not MetaMask on
 ### Perp Withdrawal Input Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsWithdrawView.tsx:159
 **Properties:** Timestamp, Source (homescreen Tab, perps Markets screen)
 
 ### Transaction Added transaction_type == mm_perps_withdrawal
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ⚠️ Implemented as PERPS_WITHDRAWAL_INITIATED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsWithdrawView.tsx:243
 **Properties:** Timestamp, SourceAmount, availableAmount
 
 ### Transaction Submitted transaction_type == mm_perps_withdrawal
 
-Status: ❌ Missing
+Status: ❌ Missing - No separate submitted event exists
 **Properties:** Timestamp, SourceAmount
 
 ### Transaction Finalized transaction_type == mm_perps_withdrawal Status == confirmed
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ⚠️ Implemented as PERPS_WITHDRAWAL_COMPLETED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsWithdrawView.tsx:300
 **Properties:** Timestamp, SourceAmount, execution_time
 
 ### Transaction Finalized transaction_type == mm_perps_withdrawal Status == failed
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ⚠️ Implemented as PERPS_WITHDRAWAL_FAILED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsWithdrawView.tsx:313,349
 **Properties:** Timestamp, SourceAmount, Failure Reason
 
 ---
@@ -93,26 +100,31 @@ Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 ### Perp Markets Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsMarketListView.tsx:235
 **Properties:** Timestamp, Source (mainActionButton, positionTab, tutorial, deeplink)
 
 ### Perp Asset Search Bar Clicked
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsMarketListView.tsx:209
 **Properties:** Timestamp
 
 ### Perp Asset Screen Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsMarketDetailsView.tsx:240
 **Properties:** Timestamp, Source (Perp market, perp market seach, positionTab, notification, deeplink), Asset, Open Position (boolean)
 
 ### Perp Chart Interaction
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsCandlePeriodSelector.tsx:77 + PerpsCandlePeriodBottomSheet.tsx:107 + PerpsMarketDetailsView.tsx:272
 **Properties:** Timestamp, Interaction Type (tap, zoom, slide), candlePeriodSelected (1min, 3min, 5min etc.)
 
 ### Perp Chart time serie changed
 
 Status: ✅ Implemented (via PERPS_CHART_INTERACTION)
+**Implementation:** Same as Perp Chart Interaction above
 **Properties:** Timestamp, Time serie selected
 
 ---
@@ -124,16 +136,19 @@ _Note: Trade "transactions" are HyperLiquid SDK operations, not MetaMask on-chai
 ### Perp Trading Screen Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsOrderView.tsx:289
 **Properties:** Timestamp, Asset, Direction (Long, Short)
 
 ### Perp Order Type Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsOrderView.tsx:330
 **Properties:** Timestamp, Asset, Direction (Long, Short), current order type (Market, Limit)
 
 ### Perp Order Type Selected
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsOrderTypeBottomSheet.tsx:66
 **Properties:** Timestamp, Asset, Direction (Long, Short), selected order type (Market, Limit)
 
 ### Perp Order Size Changed
@@ -144,36 +159,43 @@ Status: ❌ Skipped - Too much noise (slider interactions)
 ### Perp Leverage Screen Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsLeverageBottomSheet.tsx:415
 **Properties:** Timestamp, Asset, Direction (Long, Short)
 
 ### Perp Leverage Changed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsOrderView.tsx:1248
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage Used, inputMethod (slider, preset)
 
 ### Transaction Added transaction_type == mm_perps_trade
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_TRADE_TRANSACTION_INITIATED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts:778
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price
 
 ### Transaction Submitted transaction_type == mm_perps_trade
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_TRADE_TRANSACTION_SUBMITTED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts:808
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price
 
 ### Transaction Finalized transaction_type == mm_perps_trade Status == confirmed
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_TRADE_TRANSACTION_EXECUTED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts:844
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price, completionDuration
 
 ### Perp Trade Transaction Partially filled transaction_type == mm_perps_trade Status == partially_filled
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts (partially filled logic)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price, completionDuration, Amount filled, Remaining amount
 
 ### Perp Trade Transaction Failed transaction_type == mm_perps_trade Status == failed
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_TRADE_TRANSACTION_FAILED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts:897,942
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price, completionDuration, Failure Reason
 
 ---
@@ -185,11 +207,13 @@ _Note: Position close "transactions" are HyperLiquid SDK operations, not MetaMas
 ### Perp Homescreen Tab Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsTabView.tsx:103
 **Properties:** Timestamp, Open Position (array: Asset, Leverage, Direction), Perp Account $ Balance
 
 ### Perp Position Close Screen Viewed
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsClosePositionView.tsx:235
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Unrealized $PnL, Unrealized %PnL, Source (HomescreenTab, PerpAssetScreen), Received amount
 
 ### Perp Position Close Value Changed
@@ -204,27 +228,32 @@ Status: ❌ Skipped - Low priority UI interaction
 
 ### Transaction Added transaction_type == mm_perps_position_close
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_POSITION_CLOSE_INITIATED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts (closePosition method)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount
 
 ### Transaction Submitted transaction_type == mm_perps_position_close
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_POSITION_CLOSE_SUBMITTED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts (closePosition method)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount
 
 ### Transaction Finalized transaction_type == mm_perps_position_close Status == confirmed
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_POSITION_CLOSE_EXECUTED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts:1118
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration
 
 ### Perp Position Close Partially filled transaction_type == mm_perps_position_close Status == partially_filled
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_POSITION_CLOSE_PARTIALLY_FILLED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts:1084
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration, Amount filled, Remaining amount
 
 ### Perp Position Close Failed transaction_type == mm_perps_position_close Status == failed
 
-Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
+Status: ✅ Implemented as PERPS_POSITION_CLOSE_FAILED - Not on-chain (HyperLiquid direct)
+**Implementation:** MetaMetrics.events.ts + PerpsController.ts:1147,1183
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration, Failure Reason
 
 ---
@@ -250,11 +279,13 @@ Status: ❌ Missing
 ### Stop Loss Set
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsTPSLBottomSheet.tsx:328
 **Properties:** Timestamp, Asset, Direction (Long, Short), Position size, Stop Loss Price, Stop Loss %, source (tradeScreen, positionScreen)
 
 ### Take Profit Set
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsTPSLBottomSheet.tsx:342
 **Properties:** Timestamp, Asset, Position size, Take Profit Price, Take Profit %, source (tradeScreen, positionScreen)
 
 ### Stop Loss Executed
@@ -284,6 +315,7 @@ Status: ❌ Missing
 ### Error Encountered
 
 Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + usePerpsErrorTracking.ts + PerpsOrderView.tsx
 **Properties:** Timestamp, Error Type (network, app crash, backend), Error Message
 
 ---
@@ -292,12 +324,12 @@ Status: ✅ Implemented
 
 ### Full page modal viewed
 
-Status: ✅ Implemented
+Status: ❌ NOT IMPLEMENTED - No PERPS_FULL_PAGE_MODAL_VIEWED event found in codebase
 **Properties:** Timestamp, Source (homepage, deeplink)
 
 ### Full page modal tapped
 
-Status: ✅ Implemented
+Status: ❌ NOT IMPLEMENTED - No PERPS_FULL_PAGE_MODAL_TAPPED event found in codebase
 **Properties:** Timestamp, Source (homepage, deeplink), action_type (Start trading, Skip)
 
 ---
@@ -306,5 +338,5 @@ Status: ✅ Implemented
 
 ### Carousel
 
-Status: ✅ Implemented
-_TBC if already handled_
+Status: ❌ NOT IMPLEMENTED - No PERPS*CAROUSEL event found in codebase, only tutorial carousel events exist
+\_Note: Tutorial carousel events are already covered in Tutorial Events section*
