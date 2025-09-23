@@ -28,7 +28,6 @@ describe('useIsGaslessSupported', () => {
       chainId: '0x1',
       txParams: { from: '0x123', to: '0xabc' },
     } as unknown as TransactionMeta);
-    jest.clearAllMocks();
     isRelaySupportedMock.mockResolvedValue(false);
     isAtomicBatchSupportedMock.mockResolvedValue([]);
     isSendBundleSupportedMock.mockResolvedValue(false);

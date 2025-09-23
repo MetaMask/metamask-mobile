@@ -77,11 +77,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import {
-  getDecimalChainId,
-  isTestNet,
-  isPerDappSelectedNetworkEnabled,
-} from '../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -242,7 +238,10 @@ import { seedlessOnboardingControllerInit } from './controllers/seedless-onboard
 import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
+import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
+import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
+import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -296,6 +295,7 @@ export class Engine {
 
   accountsController: AccountsController;
   gasFeeController: GasFeeController;
+  gatorPermissionsController: GatorPermissionsController;
   keyringController: KeyringController;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
@@ -907,6 +907,10 @@ export class Engine {
           assetsContractController,
         ),
       includeStakedAssets: true,
+      accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
+        engine: { backgroundState: initialState },
+      }) as `0x${string}`[],
+      allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
     });
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
@@ -973,11 +977,7 @@ export class Engine {
         } as SelectedNetworkControllerState & {
           activeDappNetwork: string | null;
         }),
-      useRequestQueuePreference: isPerDappSelectedNetworkEnabled(),
-      // TODO we need to modify core PreferencesController for better cross client support
-      onPreferencesStateChange: (
-        listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
-      ) => listener({ useRequestQueue: isPerDappSelectedNetworkEnabled() }),
+
       domainProxyMap: new DomainProxyMap(),
     });
 
@@ -1148,6 +1148,7 @@ export class Engine {
         AppMetadataController: appMetadataControllerInit,
         ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
+        GatorPermissionsController: GatorPermissionsControllerInit,
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
@@ -1195,6 +1196,8 @@ export class Engine {
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
     const rewardsController = controllersByName.RewardsController;
+    const gatorPermissionsController =
+      controllersByName.GatorPermissionsController;
     const delegationController = controllersByName.DelegationController;
 
     // Initialize and store RewardsDataService
@@ -1211,6 +1214,7 @@ export class Engine {
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
+    this.gatorPermissionsController = gatorPermissionsController;
     this.transactionController = transactionController;
 
     const multichainNetworkController =
@@ -1462,10 +1466,12 @@ export class Engine {
         // TODO: This is long, can we decrease it?
         interval: 180000,
         state: initialState.TokenBalancesController,
-        useAccountsAPI: false,
         allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
         queryMultipleAccounts:
           preferencesController.state.isMultiAccountBalancesEnabled,
+        accountsApiChainIds: selectAssetsAccountApiBalancesEnabled({
+          engine: { backgroundState: initialState },
+        }) as `0x${string}`[],
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1496,7 +1502,6 @@ export class Engine {
         fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
         fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
         supportedChainIds: swapsSupportedChainIds,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1514,6 +1519,7 @@ export class Engine {
         fetchEstimatedMultiLayerL1Fee,
       }),
       GasFeeController: this.gasFeeController,
+      GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
       PermissionController: permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
@@ -1539,7 +1545,6 @@ export class Engine {
         chainId: getGlobalChainId(networkController),
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
           allowedActions: ['NetworkController:getNetworkClientById'],

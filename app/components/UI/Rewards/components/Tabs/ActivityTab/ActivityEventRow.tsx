@@ -18,11 +18,13 @@ import { getEventDetails, formatRewardsDate } from '../../../utils/formatUtils';
 
 export const ActivityEventRow: React.FC<{
   event: PointsEventDto;
-}> = ({ event }) => {
+  accountName: string | undefined;
+}> = ({ event, accountName }) => {
   const tw = useTailwind();
+
   const eventDetails = React.useMemo(
-    () => (event ? getEventDetails(event) : undefined),
-    [event],
+    () => (event ? getEventDetails(event, accountName) : undefined),
+    [event, accountName],
   );
 
   if (!event || !eventDetails) return <></>;
@@ -101,7 +103,10 @@ export const ActivityEventRow: React.FC<{
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
         >
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          <Text
+            variant={TextVariant.BodySm}
+            twClassName="text-alternative max-w-[60%]"
+          >
             {eventDetails.details}
           </Text>
           <Text variant={TextVariant.BodySm} twClassName="text-alternative">
