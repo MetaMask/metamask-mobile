@@ -92,7 +92,7 @@ class SendScreen {
   }
 
   async clickOnAccountByName(accountName) {
-    const account = await AppwrightSelectors.getElementByCatchAll(this._device, accountName);
+    const account = await AppwrightSelectors.getElementByContentDesc(this._device, accountName);
     await account.tap();
   }
 

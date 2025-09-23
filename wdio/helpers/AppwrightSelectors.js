@@ -29,7 +29,7 @@ export default class AppwrightSelectors {
   }
 
   static async getElementByContentDesc(device, text, timeout = 10000) {
-    const xpath = `//*[@content-desc='${text}']`;
+    const xpath = `//*[contains(@content-desc,'${text}')]`;
     return await AppwrightSelectors.getElementByXpath(device, xpath, timeout);
   }
 

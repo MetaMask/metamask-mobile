@@ -24,7 +24,7 @@ class ConfirmationScreen {
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'confirm-sign-and-send-transaction-confirm-snap-footer-button');
+    return AppwrightSelectors.getElementByID(this._device, 'confirm-button');
   }
 
   async isAccountSendToVisible() {
@@ -53,9 +53,9 @@ class ConfirmationScreen {
     //await confirmButton.tap();
   }
 
-  async isVisible() {
+  async isVisible(timeout = 10000) {
     const confirmButton = await this.confirmButton;
-    await appwrightExpect(confirmButton).toBeVisible();
+    await appwrightExpect(confirmButton).toBeVisible({ timeout });
   }
 }
 
