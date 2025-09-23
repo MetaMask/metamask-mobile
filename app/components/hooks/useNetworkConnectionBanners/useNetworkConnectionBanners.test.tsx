@@ -151,7 +151,10 @@ describe('useNetworkConnectionBanners', () => {
       <Provider store={store}>{children}</Provider>
     );
 
-    return renderHook(() => useNetworkConnectionBanners(), { wrapper });
+    return renderHook(() => useNetworkConnectionBanners(), {
+      wrapper,
+      initialProps: {},
+    });
   };
 
   beforeEach(() => {
@@ -505,14 +508,12 @@ describe('useNetworkConnectionBanners', () => {
 
     it('should track correct events for slow banner', () => {
       jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
-        visible: false,
+        visible: true,
+        chainId: '0x89',
+        status: 'slow',
       });
 
       renderHookWithProvider();
-
-      act(() => {
-        jest.advanceTimersByTime(5000);
-      });
 
       expect(stableCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN,
@@ -522,23 +523,28 @@ describe('useNetworkConnectionBanners', () => {
 
     it('should track correct events for unavailable banner', () => {
       jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
+        visible: true,
+        chainId: '0x89',
+        status: 'unavailable',
+      });
+
+      renderHookWithProvider();
+
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
+      );
+      expect(stableTrackEvent).toHaveBeenCalled();
+    });
+
+    it('should not track events when banner is not visible', () => {
+      jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
         visible: false,
       });
 
       renderHookWithProvider();
 
-      act(() => {
-        jest.advanceTimersByTime(30000);
-      });
-
-      // Should track both slow and unavailable events
-      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN,
-      );
-      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
-      );
-      expect(stableTrackEvent).toHaveBeenCalledTimes(2);
+      expect(stableCreateEventBuilder).not.toHaveBeenCalled();
+      expect(stableTrackEvent).not.toHaveBeenCalled();
     });
 
     it('should update from slow to unavailable status when network becomes truly unavailable', () => {
@@ -629,15 +635,14 @@ describe('useNetworkConnectionBanners', () => {
     });
 
     it('should track banner shown event when showing banner', () => {
+      // Mock the selector to return visible state directly
       jest.mocked(selectNetworkConnectionBannersState).mockReturnValue({
-        visible: false,
+        visible: true,
+        chainId: '0x89',
+        status: 'slow',
       });
 
       renderHookWithProvider();
-
-      act(() => {
-        jest.advanceTimersByTime(5000);
-      });
 
       expect(stableCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN,

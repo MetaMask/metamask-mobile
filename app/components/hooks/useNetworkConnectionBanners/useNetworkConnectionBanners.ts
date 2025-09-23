@@ -134,20 +134,6 @@ const useNetworkConnectionBanners = (): {
               status: firstUnavailableNetwork.status,
             }),
           );
-
-          trackEvent(
-            createEventBuilder(
-              firstUnavailableNetwork.status === 'slow'
-                ? MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN
-                : MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
-            )
-              .addProperties({
-                chain_id_caip: `eip155:${hexToNumber(
-                  firstUnavailableNetwork.chainId,
-                )}`,
-              })
-              .build(),
-          );
         }
       } else if (networkConnectionBannersState.visible) {
         // Hide banner if all networks are available
@@ -169,13 +155,25 @@ const useNetworkConnectionBanners = (): {
       clearTimeout(slowTimeout);
       clearTimeout(unavailableTimeout);
     };
-  }, [
-    evmEnabledNetworksChainIds,
-    dispatch,
-    networkConnectionBannersState,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [evmEnabledNetworksChainIds, dispatch, networkConnectionBannersState]);
+
+  useEffect(() => {
+    if (networkConnectionBannersState.visible) {
+      trackEvent(
+        createEventBuilder(
+          networkConnectionBannersState.status === 'slow'
+            ? MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN
+            : MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
+        )
+          .addProperties({
+            chain_id_caip: `eip155:${hexToNumber(
+              networkConnectionBannersState.chainId,
+            )}`,
+          })
+          .build(),
+      );
+    }
+  }, [networkConnectionBannersState, trackEvent, createEventBuilder]);
 
   return {
     networkConnectionBannersState,
