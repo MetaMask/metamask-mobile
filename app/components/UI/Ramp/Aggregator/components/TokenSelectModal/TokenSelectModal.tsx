@@ -37,10 +37,8 @@ import { useRampSDK } from '../../sdk';
 import styleSheet from './TokenSelectModal.styles';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { isCaipChainId } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
 import { getNetworkImageSource } from '../../../../../../util/networks';
+import { getCaipChainIdFromCryptoCurrency } from '../../utils';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -77,27 +75,8 @@ function TokenSelectModal() {
       if (!token.network?.chainId) return undefined;
 
       try {
-        // Convert chain ID to hex format safely
-        let numericChainId: number;
-        if (typeof token.network.chainId === 'number') {
-          numericChainId = token.network.chainId;
-        } else {
-          numericChainId = parseInt(String(token.network.chainId), 10);
-          if (isNaN(numericChainId)) {
-            console.warn(
-              'Invalid chain ID for token:',
-              token.symbol,
-              token.network.chainId,
-            );
-            return undefined;
-          }
-        }
-
-        const hexChainId = toHex(numericChainId);
-
-        const caipChainId = isCaipChainId(token.network.chainId)
-          ? token.network.chainId
-          : toEvmCaipChainId(hexChainId);
+        const caipChainId = getCaipChainIdFromCryptoCurrency(token);
+        if (!caipChainId) return undefined;
 
         const networkConfig = networksByCaipChainId[
           caipChainId
@@ -106,7 +85,7 @@ function TokenSelectModal() {
 
         return getNetworkImageSource({
           networkType,
-          chainId: hexChainId,
+          chainId: caipChainId,
         });
       } catch (error) {
         console.warn(
