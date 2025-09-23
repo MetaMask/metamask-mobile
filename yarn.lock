@@ -8436,7 +8436,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.3.9":
+"@metamask/solana-wallet-snap@npm:^2.3.10":
   version: 2.3.10
   resolution: "@metamask/solana-wallet-snap@npm:2.3.10"
   checksum: 2d425dadd05cb9c3d4376af80cbce7e9bd49402c562da424b99689b686d3c503d0f12f9177480d1d2426b635bb20b79269f33e4625c3cbcfbdefe69763b6c655
@@ -33771,7 +33771,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": ^13.5.0
     "@metamask/snaps-sdk": ^9.3.0
     "@metamask/snaps-utils": ^11.5.0
-    "@metamask/solana-wallet-snap": ^2.3.9
+    "@metamask/solana-wallet-snap": ^2.3.10
     "@metamask/solana-wallet-standard": ^0.5.1
     "@metamask/stake-sdk": ^3.2.0
     "@metamask/swappable-obj-proxy": ^2.1.0

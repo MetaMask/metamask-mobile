@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import DefaultTabBar from '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 import { fontStyles } from '../../styles/common';
 import { useTheme } from '../../util/theme';
