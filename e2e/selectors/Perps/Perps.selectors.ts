@@ -390,6 +390,7 @@ export const PerpsTutorialSelectorsIDs = {
   SKIP_BUTTON: 'perps-tutorial-skip-button',
   CAROUSEL: 'perps-tutorial-carousel',
   CARD: 'perps-tutorial-card',
+  CHARACTER_IMAGE: 'perps-tutorial-character-image',
 } as const;
 
 // ========================================

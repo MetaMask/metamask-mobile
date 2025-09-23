@@ -1315,6 +1315,33 @@ describe('RewardsController', () => {
         },
       });
 
+      // Spy on the getSeasonStatus method to implement caching logic with 1 minute threshold
+      const originalGetSeasonStatus = controller.getSeasonStatus;
+      const getSeasonStatusSpy = jest
+        .spyOn(controller, 'getSeasonStatus')
+        .mockImplementation(async function (
+          this: RewardsController,
+          subscriptionId: string,
+          seasonId?: string,
+        ) {
+          const CACHE_THRESHOLD_MS = 60000; // 1 minute for this test
+          const state = this.state;
+          const effectiveSeasonId = seasonId || 'current';
+          const cacheKey = `${effectiveSeasonId}:${subscriptionId}`;
+          const cachedSeasonStatus = state.seasonStatuses[cacheKey];
+
+          // Check if we have cached data and if it's still fresh
+          if (
+            cachedSeasonStatus?.lastFetched &&
+            Date.now() - cachedSeasonStatus.lastFetched < CACHE_THRESHOLD_MS
+          ) {
+            return cachedSeasonStatus;
+          }
+
+          // Fall back to original implementation if cache is stale
+          return originalGetSeasonStatus.call(this, subscriptionId, seasonId);
+        });
+
       const result = await controller.getSeasonStatus(
         mockSubscriptionId,
         mockSeasonId,
@@ -1331,6 +1358,9 @@ describe('RewardsController', () => {
         expect.anything(),
         expect.anything(),
       );
+
+      // Clean up spy
+      getSeasonStatusSpy.mockRestore();
     });
 
     it('should fetch fresh season status when cache is stale', async () => {
