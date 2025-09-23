@@ -23,7 +23,7 @@ on:
 jobs:
   needs-e2e-build:
     name: Check if builds will happen
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-small
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-med
     outputs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
