@@ -424,7 +424,7 @@ const solanaTxHistoryItem = {
   txMetaId: '4731011b-c021-46c8-9dbd-706d21ef6709',
 };
 
-describe('Migration 99: Update bridge txHistory for solana to use txHash as key and txMetaId', () => {
+describe('Migration 100: Update bridge txHistory for solana to use txHash as key and txMetaId', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
