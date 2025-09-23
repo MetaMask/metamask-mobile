@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useMemo } from 'react';
 import { FlatList, ListRenderItem, View, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -25,7 +24,6 @@ import Banner, {
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { TabViewProps } from '../../../Perps/components/PerpsMarketTabs/PerpsMarketTabs.types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../../hooks/useLinkAccount';
 
@@ -58,7 +56,6 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   const [linkingAccount, setLinkingAccount] = useState<InternalAccount | null>(
     null,
   );
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
   const { linkAccount, isLoading: isLinkingAccount } = useLinkAccount();
 
   // Compute final account lists with local state applied
@@ -106,54 +103,46 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
 
   // Shared account item component
   const renderAccountItem = useCallback(
-    (account: AccountWithOptInStatus, showLinkButton: boolean = false) => {
-      const isCurrentAccount = selectedAccount?.address === account.address;
-
-      return (
-        <Box
-          twClassName="flex-row items-center justify-between px-3 rounded-lg"
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          <Box twClassName="flex-1">
-            <AccountDisplayItem
-              account={account}
-              twClassName="p-3"
-              isCurrentAccount={isCurrentAccount}
-            />
-          </Box>
-
-          {showLinkButton && (
-            <Pressable
-              disabled={isLinkingAccount}
-              onPress={() => handleLinkAccountPress(account)}
-              style={() =>
-                tw.style(
-                  'px-4 py-2 rounded-lg bg-pressed min-h-[32px] justify-center items-center',
-                  isLinkingAccount && 'opacity-90',
-                )
-              }
-            >
-              <Box
-                twClassName="flex-row items-center gap-2"
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  twClassName="text-primary"
-                >
-                  {strings('rewards.settings.link_account_button')}
-                </Text>
-              </Box>
-            </Pressable>
-          )}
+    (account: AccountWithOptInStatus, showLinkButton: boolean = false) => (
+      <Box
+        twClassName="flex-row items-center justify-between rounded-lg"
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+      >
+        <Box twClassName="flex-1">
+          <AccountDisplayItem account={account} />
         </Box>
-      );
-    },
-    [selectedAccount, isLinkingAccount, handleLinkAccountPress, tw],
+
+        {showLinkButton && (
+          <Pressable
+            disabled={isLinkingAccount}
+            onPress={() => handleLinkAccountPress(account)}
+            style={() =>
+              tw.style(
+                'px-4 py-2 rounded-lg bg-pressed min-h-[32px] justify-center items-center',
+                isLinkingAccount && 'opacity-90',
+              )
+            }
+          >
+            <Box
+              twClassName="flex-row items-center gap-2"
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-primary"
+              >
+                {strings('rewards.settings.link_account_button')}
+              </Text>
+            </Box>
+          </Pressable>
+        )}
+      </Box>
+    ),
+    [isLinkingAccount, handleLinkAccountPress, tw],
   );
 
   // Render individual account item for linked accounts

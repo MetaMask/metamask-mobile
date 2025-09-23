@@ -143,14 +143,6 @@ describe('RewardsReferralView', () => {
       // Assert
       expect(getByTestId('error-boundary-referralrewardsview')).toBeTruthy();
     });
-
-    it('should wrap content in SafeAreaView', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      // Assert
-      expect(getByTestId('safe-area-view')).toBeTruthy();
-    });
   });
 
   describe('navigation', () => {
@@ -212,17 +204,6 @@ describe('RewardsReferralView', () => {
     });
   });
 
-  describe('styling', () => {
-    it('should apply correct styles to SafeAreaView', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-      const safeAreaView = getByTestId('safe-area-view');
-
-      // Assert - Check if Tailwind classes are applied correctly
-      expect(safeAreaView.props.style).toBeDefined();
-    });
-  });
-
   describe('error boundary integration', () => {
     it('should pass correct view prop to ErrorBoundary', () => {
       // Act
@@ -273,17 +254,6 @@ describe('RewardsReferralView', () => {
 
       // Assert
       expect(getByTestId('referral-details')).toBeTruthy();
-    });
-  });
-
-  describe('accessibility', () => {
-    it('should be accessible with screen readers', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-      const safeAreaView = getByTestId('safe-area-view');
-
-      // Assert - The component should be accessible
-      expect(safeAreaView).toBeTruthy();
     });
   });
 });

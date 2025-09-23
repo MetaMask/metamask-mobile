@@ -45,7 +45,7 @@ const ReferralDetails: React.FC = () => {
   };
 
   return (
-    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-8">
+    <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-4">
       <ReferralInfoSection />
       <ReferralStatsSection
         earnedPointsFromReferees={balanceRefereePortion}

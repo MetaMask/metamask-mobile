@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
+import { ScrollView } from 'react-native';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
@@ -28,9 +28,13 @@ const ReferralRewardsView: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="ReferralRewardsView">
-      <SafeAreaView style={tw.style('flex-1 bg-default px-4 -mt-8')}>
+      <ScrollView
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style('px-4 py-4')}
+        showsVerticalScrollIndicator={false}
+      >
         <ReferralDetails />
-      </SafeAreaView>
+      </ScrollView>
     </ErrorBoundary>
   );
 };

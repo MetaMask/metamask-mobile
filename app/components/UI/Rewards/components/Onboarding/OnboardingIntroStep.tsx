@@ -30,6 +30,7 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
+import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 /**
  * OnboardingIntroStep Component
@@ -167,8 +168,7 @@ const OnboardingIntroStep: React.FC = () => {
    */
   const renderActions = () => (
     <Box twClassName="gap-2 flex-col">
-      <Button
-        variant={ButtonVariant.Primary}
+      <ButtonHero
         size={ButtonSize.Lg}
         isLoading={optinAllowedForGeoLoading}
         loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
@@ -178,7 +178,7 @@ const OnboardingIntroStep: React.FC = () => {
         <Text twClassName="text-white">
           {strings('rewards.onboarding.intro_confirm')}
         </Text>
-      </Button>
+      </ButtonHero>
       <Button
         variant={ButtonVariant.Tertiary}
         size={ButtonSize.Lg}
