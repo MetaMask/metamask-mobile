@@ -52,9 +52,7 @@ test('Cold Start after importing a wallet', async ({
   await AppwrightSelectors.terminateApp(device);
   await AppwrightSelectors.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
-  await LoginScreen.typePassword('123456789');
-  await LoginScreen.tapTitle();
-  await LoginScreen.tapUnlockButton();
+  await login(device, 'login');
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on unlock button, until the app unlocks',

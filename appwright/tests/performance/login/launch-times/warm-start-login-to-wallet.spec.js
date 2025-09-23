@@ -48,9 +48,8 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
   await AppwrightSelectors.backgroundApp(device, 30);
   await AppwrightSelectors.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
-  await LoginScreen.typePassword('123456789');
-  await LoginScreen.tapTitle();
-  await LoginScreen.tapUnlockButton();
+  await login(device, 'login');
+
   const timer1 = new TimerHelper(
     'Time since the user clicks on unlock button, until the app unlocks',
   );
