@@ -937,14 +937,14 @@ export class RewardsController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
       if (error instanceof Error && error.message.includes('403')) {
-        this.#invalidateSubscriptionCache(subscriptionId);
-        this.#invalidateAccountsAndSubscriptions();
+        this.invalidateSubscriptionCache(subscriptionId);
+        this.invalidateAccountsAndSubscriptions();
       }
       throw error;
     }
   }
 
-  #invalidateAccountsAndSubscriptions() {
+  invalidateAccountsAndSubscriptions() {
     this.update((state: RewardsControllerState) => {
       if (state.activeAccount) {
         state.activeAccount = {
@@ -1438,7 +1438,7 @@ export class RewardsController extends BaseController<
       );
 
       // Invalidate cache for the linked account
-      this.#invalidateSubscriptionCache(updatedSubscription.id);
+      this.invalidateSubscriptionCache(updatedSubscription.id);
       // Emit event to trigger UI refresh
       this.messagingSystem.publish('RewardsController:accountLinked', {
         subscriptionId: updatedSubscription.id,
@@ -1699,7 +1699,7 @@ export class RewardsController extends BaseController<
       );
 
       // Invalidate cache for the active subscription
-      this.#invalidateSubscriptionCache(subscriptionId);
+      this.invalidateSubscriptionCache(subscriptionId);
 
       // Emit event to trigger UI refresh
       this.messagingSystem.publish('RewardsController:rewardClaimed', {
@@ -1725,10 +1725,7 @@ export class RewardsController extends BaseController<
    * @param subscriptionId - The subscription ID to invalidate cache for
    * @param seasonId - The season ID (defaults to current season)
    */
-  #invalidateSubscriptionCache(
-    subscriptionId: string,
-    seasonId?: string,
-  ): void {
+  invalidateSubscriptionCache(subscriptionId: string, seasonId?: string): void {
     if (seasonId) {
       // Invalidate specific season
       const compositeKey = this.#createSeasonSubscriptionCompositeKey(
