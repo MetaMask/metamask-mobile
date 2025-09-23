@@ -123,7 +123,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                     style={
                       {
                         "alignItems": "center",
-                        "borderColor": "transparent",
+                        "borderColor": "#4459ff",
                         "borderRadius": 8,
                         "borderWidth": 2,
                         "height": 36,
@@ -183,6 +183,21 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                     >
                       Account 1
                     </Text>
+                    <SvgMock
+                      color="#4459ff"
+                      fill="currentColor"
+                      height={20}
+                      name="CheckBold"
+                      style={
+                        {
+                          "height": 20,
+                          "marginLeft": 8,
+                          "width": 20,
+                        }
+                      }
+                      testID="multichain-account-cell-check-icon"
+                      width={20}
+                    />
                   </View>
                   <View
                     style={
