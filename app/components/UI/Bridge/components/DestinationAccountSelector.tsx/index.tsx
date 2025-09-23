@@ -12,6 +12,7 @@ import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { useDestinationAccounts } from '../../hooks/useDestinationAccounts';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
+import { areAddressesEqual } from '../../../../../util/address';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -31,8 +32,8 @@ const DestinationAccountSelector = () => {
   const privacyMode = useSelector(selectPrivacyMode);
 
   const destAddress = useSelector(selectDestAddress);
-  const selectedAccount = destinationAccounts.find(
-    (account) => account.address === destAddress,
+  const selectedAccount = destinationAccounts.find((account) =>
+    areAddressesEqual(account.address, destAddress),
   );
   const caipDestAddress = selectedAccount
     ? selectedAccount.caipAccountId
