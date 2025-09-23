@@ -15,7 +15,10 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 
 import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import {
+  selectShouldUseSmartTransaction,
+  selectSmartTransactionsEnabled,
+} from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
 import {
   submitSmartTransactionHook,
@@ -40,6 +43,8 @@ import {
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
 import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
+import { isSendBundleSupported } from '../../../RPCMethods/sentinel-api';
+import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -110,6 +115,12 @@ export const TransactionControllerInit: ControllerInitFunction<
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
+        isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
+          const { chainId } = transactionMeta;
+          const state = getState();
+
+          return !selectSmartTransactionsEnabled(state, chainId);
+        },
         isSimulationEnabled: () =>
           preferencesController.state.useTransactionSimulations,
         messenger: controllerMessenger,
@@ -151,28 +162,52 @@ async function publishHook({
   approvalController: ApprovalController;
   initMessenger: TransactionControllerInitMessenger;
   signedTransactionInHex: Hex;
-}): Promise<{ transactionHash: string }> {
+}): Promise<{ transactionHash?: string }> {
   const state = getState();
 
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
+  const sendBundleSupport = await isSendBundleSupported(
+    transactionMeta.chainId,
+  );
 
   await new PayHook({
     messenger: initMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
-  // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
-  return submitSmartTransactionHook({
-    transactionMeta,
-    transactionController,
-    smartTransactionsController,
-    shouldUseSmartTransaction,
-    approvalController,
-    controllerMessenger:
-      initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
-    featureFlags,
-    signedTransactionInHex,
-  });
+  if (!shouldUseSmartTransaction || !sendBundleSupport) {
+    const hook = new Delegation7702PublishHook({
+      isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
+        transactionController,
+      ),
+      messenger: initMessenger,
+    }).getHook();
+
+    return await hook(transactionMeta, signedTransactionInHex);
+  }
+
+  if (
+    shouldUseSmartTransaction &&
+    (sendBundleSupport || transactionMeta.selectedGasFeeToken !== undefined)
+  ) {
+    const result = await submitSmartTransactionHook({
+      transactionMeta,
+      transactionController,
+      smartTransactionsController,
+      shouldUseSmartTransaction,
+      approvalController,
+      controllerMessenger:
+        initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
+      featureFlags,
+      signedTransactionInHex,
+    });
+
+    if (result?.transactionHash) {
+      return result;
+    }
+  }
+
+  return { transactionHash: undefined };
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId?: Hex) {

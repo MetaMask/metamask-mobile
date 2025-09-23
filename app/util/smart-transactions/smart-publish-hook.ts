@@ -62,7 +62,7 @@ export interface SubmitSmartTransactionRequest {
         }
       | Record<string, never>;
   };
-  transactions: PublishBatchHookTransaction[];
+  transactions?: PublishBatchHookTransaction[];
 }
 
 const LOG_PREFIX = 'STX publishHook';
@@ -104,7 +104,7 @@ class SmartTransactionHook {
   #shouldStartApprovalRequest: boolean;
   #shouldUpdateApprovalRequest: boolean;
   #mobileReturnTxHashAsap: boolean;
-  #transactions: PublishBatchHookTransaction[];
+  #transactions?: PublishBatchHookTransaction[];
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
@@ -276,7 +276,7 @@ class SmartTransactionHook {
       LOG_PREFIX,
       'Started submit batch hook',
       'Transaction IDs:',
-      this.#transactions.map((tx) => tx.id).join(', '),
+      this.#transactions?.map((tx) => tx.id).join(', '),
     );
 
     try {
