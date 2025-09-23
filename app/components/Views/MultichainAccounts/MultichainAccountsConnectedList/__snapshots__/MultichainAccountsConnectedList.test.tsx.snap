@@ -172,6 +172,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       style={
                         {
                           "color": "#121314",
+                          "flex": 1,
                           "fontFamily": "Geist Bold",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -361,6 +362,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       style={
                         {
                           "color": "#121314",
+                          "flex": 1,
                           "fontFamily": "Geist Bold",
                           "fontSize": 16,
                           "letterSpacing": 0,
