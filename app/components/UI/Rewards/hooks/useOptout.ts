@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
@@ -12,6 +12,7 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 
 interface UseOptoutResult {
   optout: () => Promise<void>;
@@ -25,9 +26,10 @@ export const useOptout = (
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   const optout = useCallback(async () => {
-    if (isLoading) return;
+    if (isLoading || !subscriptionId) return;
 
     setIsLoading(true);
 
@@ -36,6 +38,7 @@ export const useOptout = (
 
       const success = await Engine.controllerMessenger.call(
         'RewardsController:optOut',
+        subscriptionId,
       );
 
       if (success) {
@@ -80,7 +83,7 @@ export const useOptout = (
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, dispatch, navigation, toastRef]);
+  }, [isLoading, dispatch, navigation, toastRef, subscriptionId]);
 
   const showOptoutBottomSheet = useCallback(
     (dismissRoute?: string) => {

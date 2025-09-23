@@ -166,10 +166,16 @@ const rewardsSlice = createSlice({
     },
 
     setReferralDetailsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.referralCode) {
+        return;
+      }
       state.referralDetailsLoading = action.payload;
     },
 
     setSeasonStatusLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.seasonStartDate) {
+        return;
+      }
       state.seasonStatusLoading = action.payload;
     },
 
@@ -220,6 +226,9 @@ const rewardsSlice = createSlice({
       state.activeBoostsError = false; // Reset error when successful
     },
     setActiveBoostsLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.activeBoosts.length > 0) {
+        return;
+      }
       state.activeBoostsLoading = action.payload;
     },
     setActiveBoostsError: (state, action: PayloadAction<boolean>) => {
@@ -229,6 +238,9 @@ const rewardsSlice = createSlice({
       state.unlockedRewards = action.payload;
     },
     setUnlockedRewardLoading: (state, action: PayloadAction<boolean>) => {
+      if (action.payload && state.unlockedRewards.length > 0) {
+        return;
+      }
       state.unlockedRewardLoading = action.payload;
     },
   },
