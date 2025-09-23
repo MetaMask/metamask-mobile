@@ -232,7 +232,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('alerts and disables marketing when turned off', async () => {
-        mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
         mockMetrics.isEnabled.mockReturnValue(true);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -260,7 +259,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(metaMetricsSwitch.props.value).toBe(false);
           expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith(false);
-          expect(mockMetrics.enableSocialLogin).toHaveBeenCalledWith(false);
+          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalled();
           expect(mockAlert).toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).not.toHaveBeenCalled();
           expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
@@ -269,7 +268,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
       it('keeps marketing off, adds traits to user and tracks event when turned on', async () => {
         mockMetrics.isEnabled.mockReturnValue(false);
-        mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
 
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -297,7 +295,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(metaMetricsSwitch.props.value).toBe(true);
           expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith();
-          expect(mockMetrics.enableSocialLogin).toHaveBeenCalledWith(true);
+          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalledWith();
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
             deviceProp: 'Device value',
