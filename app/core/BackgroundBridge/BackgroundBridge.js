@@ -88,6 +88,7 @@ import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { isRelaySupported } from '../RPCMethods/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
+import { AccountTreeController } from '@metamask/account-tree-controller';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -474,6 +475,10 @@ export class BackgroundBridge extends EventEmitter {
       controllerMessenger.unsubscribe(
         `${AccountsController.name}:selectedAccountChange`,
         this.handleSolanaAccountChangedFromSelectedAccountChanges,
+      );
+      controllerMessenger.unsubscribe(
+        `${AccountTreeController.name}:selectedAccountGroupChange`,
+        this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
       );
     }
 
@@ -887,6 +892,11 @@ export class BackgroundBridge extends EventEmitter {
       `${AccountsController.name}:selectedAccountChange`,
       this.handleSolanaAccountChangedFromSelectedAccountChanges,
     );
+
+    controllerMessenger.subscribe(
+      `${AccountTreeController.name}:selectedAccountGroupChange`,
+      this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
+    );
   }
 
   /**
@@ -1059,6 +1069,23 @@ export class BackgroundBridge extends EventEmitter {
     }
   };
 
+  handleSolanaAccountChangedFromSelectedAccountGroupChanges = () => {
+    const solanaAccount = this.getNonEvmAccountFromSelectedAccountGroup();
+    if (solanaAccount) {
+      this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
+    }
+  };
+
+  getNonEvmAccountFromSelectedAccountGroup() {
+    const controllerMessenger = Engine.controllerMessenger;
+
+    const [solanaAccount] = controllerMessenger.call(
+      `AccountTreeController:getAccountsFromSelectedAccountGroup`,
+      { type: SolAccountType.DataAccount },
+    );
+    return solanaAccount;
+  }
+
   sendNotificationEip1193(payload) {
     DevLogger.log(`BackgroundBridge::sendNotificationEip1193: `, payload);
     this.engine && this.engine.emit('notification', payload);
@@ -1190,6 +1217,16 @@ export class BackgroundBridge extends EventEmitter {
       sessionScopes[SolScope.Testnet];
 
     if (solanaAccountsChangedNotifications && solanaScope) {
+      const currentSolanaAccountFromSelectedAccountGroup =
+        this.getNonEvmAccountFromSelectedAccountGroup();
+
+      if (currentSolanaAccountFromSelectedAccountGroup) {
+        this._notifySolanaAccountChange([
+          currentSolanaAccountFromSelectedAccountGroup.address,
+        ]);
+        return;
+      }
+
       const { accounts } = solanaScope;
 
       const [accountIdToEmit] = sortMultichainAccountsByLastSelected(accounts);
