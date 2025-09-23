@@ -174,9 +174,10 @@ const OnboardingIntroStep: React.FC = () => {
         loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
-        textClassName={() => '!text-white'}
       >
-        {strings('rewards.onboarding.intro_confirm')}
+        <Text twClassName="text-white">
+          {strings('rewards.onboarding.intro_confirm')}
+        </Text>
       </Button>
       <Button
         variant={ButtonVariant.Tertiary}
@@ -184,9 +185,10 @@ const OnboardingIntroStep: React.FC = () => {
         isDisabled={candidateSubscriptionIdLoading || !!subscriptionId}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
-        textClassName={() => '!text-white'}
       >
-        {strings('rewards.onboarding.intro_skip')}
+        <Text twClassName="text-white">
+          {strings('rewards.onboarding.intro_skip')}
+        </Text>
       </Button>
     </Box>
   );

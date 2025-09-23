@@ -936,12 +936,8 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get season status:',
         error instanceof Error ? error.message : String(error),
       );
-      if (
-        error instanceof Error &&
-        error.message.includes('403') &&
-        this.state.activeAccount?.subscriptionId
-      ) {
-        this.#invalidateSubscriptionCache(subscriptionId, seasonId);
+      if (error instanceof Error && error.message.includes('403')) {
+        this.#invalidateSubscriptionCache(subscriptionId);
         this.#invalidateAccountsAndSubscriptions();
       }
       throw error;
@@ -958,10 +954,10 @@ export class RewardsController extends BaseController<
           account: state.activeAccount.account, // Ensure account is always present (never undefined)
         };
       }
-
       state.accounts = {};
       state.subscriptions = {};
     });
+    Logger.log('RewardsController: Invalidated accounts and subscriptions');
   }
 
   /**

@@ -9,7 +9,6 @@ import OnboardingStep1 from './components/Onboarding/OnboardingStep1';
 import OnboardingStep2 from './components/Onboarding/OnboardingStep2';
 import OnboardingStep3 from './components/Onboarding/OnboardingStep3';
 import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
-import { useNavigation } from '@react-navigation/native';
 import { setOnboardingActiveStep } from '../../../reducers/rewards';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
@@ -21,7 +20,6 @@ const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const account = useSelector(selectSelectedInternalAccount);
-  const navigation = useNavigation();
   const dispatch = useDispatch();
 
   useGeoRewardsMetadata();
@@ -49,18 +47,6 @@ const OnboardingNavigator: React.FC = () => {
         return Routes.REWARDS_ONBOARDING_INTRO;
     }
   }, [activeStep]);
-
-  useEffect(() => {
-    if (subscriptionId) {
-      dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-      navigation.navigate(Routes.REWARDS_DASHBOARD);
-    } else if (subscriptionId === null) {
-      // Only navigate to onboarding intro if subscription ID is explicitly null
-      // Don't navigate during the loading state (subscriptionId === 'pending')
-      navigation.navigate(Routes.REWARDS_ONBOARDING_INTRO);
-    }
-    // If subscriptionId is 'pending' or 'error', don't navigate to prevent flashing
-  }, [subscriptionId, navigation, dispatch]);
 
   return (
     <Stack.Navigator initialRouteName={getInitialRoute()}>

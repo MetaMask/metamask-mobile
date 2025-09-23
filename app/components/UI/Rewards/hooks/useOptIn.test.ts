@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useOptin } from './useOptIn';
 import Engine from '../../../../core/Engine';
 import { handleRewardsErrorMessage } from '../utils';
@@ -8,6 +8,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -23,6 +24,10 @@ jest.mock('../utils', () => ({
 describe('useOptIn', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
+  >;
+  const mockDispatch = jest.fn();
+  const mockUseDispatch = useDispatch as jest.MockedFunction<
+    typeof useDispatch
   >;
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
@@ -51,6 +56,7 @@ describe('useOptIn', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(mockAccount);
+    mockUseDispatch.mockReturnValue(mockDispatch);
   });
 
   describe('initial state', () => {
