@@ -18,7 +18,7 @@ import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
-import { AccountWalletId } from '@metamask/account-api';
+import { AccountWalletId, AccountWalletType } from '@metamask/account-api';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import createStyles from './AccountListFooter.styles';
 import Engine from '../../../../../core/Engine';
@@ -123,6 +123,10 @@ const AccountListFooter = memo(
         handleCreateAccount();
       });
     }, [handleCreateAccount]);
+
+    if (!wallet || wallet.type !== AccountWalletType.Entropy) {
+      return null;
+    }
 
     return (
       <View style={styles.container}>

@@ -15,6 +15,7 @@ import {
 import {
   createMockAccountGroup,
   createMockWallet,
+  createMockEntropyWallet,
   createMockState,
   createMockInternalAccountsFromGroups,
   createMockInternalAccountsWithAddresses,
@@ -649,19 +650,22 @@ describe('MultichainAccountSelectorList', () => {
   describe('Account Creation and Scrolling', () => {
     it('renders AccountListFooter with correct props', () => {
       const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
+        'entropy:wallet1/group1',
         'Account 1',
       );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
+        account1,
+      ]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
 
       const { getByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account1]}
         />,
-        { state: createMockState([wallet1], internalAccounts) },
+        { state: mockState },
       );
 
       // Verify the component renders correctly with AccountListFooter
@@ -671,15 +675,19 @@ describe('MultichainAccountSelectorList', () => {
 
     it('handles multiple wallets with AccountListFooter', () => {
       const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
+        'entropy:wallet1/group1',
         'Account 1',
       );
       const account2 = createMockAccountGroup(
-        'keyring:wallet2/group2',
+        'entropy:wallet2/group2',
         'Account 2',
       );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
-      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
+      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
+        account1,
+      ]);
+      const wallet2 = createMockEntropyWallet('wallet2', 'Wallet 2', [
+        account2,
+      ]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([
         account1,
@@ -701,10 +709,12 @@ describe('MultichainAccountSelectorList', () => {
 
     it('passes walletId to AccountListFooter', () => {
       const account1 = createMockAccountGroup(
-        'keyring:wallet1/group1',
+        'entropy:wallet1/group1',
         'Account 1',
       );
-      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
+        account1,
+      ]);
 
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
 
