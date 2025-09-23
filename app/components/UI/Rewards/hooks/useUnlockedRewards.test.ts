@@ -7,6 +7,12 @@ import {
 } from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 import { RewardClaimStatus } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useFocusEffect } from '@react-navigation/native';
+
+// Mock React Navigation hooks first
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -17,6 +23,8 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -33,8 +41,17 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectSeasonId: jest.fn(),
 }));
 
+// Mock the useInvalidateByRewardEvents hook
+const mockUseInvalidateByRewardEvents = jest.fn();
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: mockUseInvalidateByRewardEvents,
+}));
+
 describe('useUnlockedRewards', () => {
   const mockDispatch = jest.fn();
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
@@ -74,11 +91,15 @@ describe('useUnlockedRewards', () => {
       }
       return null;
     });
-  });
 
-  it('should return void', () => {
-    const { result } = renderHook(() => useUnlockedRewards());
-    expect(result.current).toBeUndefined();
+    // Reset the mocked hooks
+    mockUseFocusEffect.mockImplementation((callback) => {
+      // Simulate the focus effect by calling the callback immediately
+      callback();
+    });
+    mockUseInvalidateByRewardEvents.mockImplementation(() => {
+      // Mock implementation
+    });
   });
 
   it('should skip fetch when seasonId is missing', () => {
@@ -262,5 +283,31 @@ describe('useUnlockedRewards', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards([]));
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
     expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('should register focus effect callback', () => {
+    renderHook(() => useUnlockedRewards());
+
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it('should prevent duplicate fetch calls when already loading', async () => {
+    // First call will start loading
+    mockEngineCall.mockImplementation(
+      () =>
+        new Promise(() => {
+          // Never resolves
+        }),
+    );
+
+    renderHook(() => useUnlockedRewards());
+
+    // Trigger focus effect callback multiple times
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+    focusCallback();
+
+    // Should only be called once despite multiple focus triggers
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
   });
 });

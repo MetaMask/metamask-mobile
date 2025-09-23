@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react';
-import { Dimensions, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Dimensions, Image, TouchableOpacity, Platform } from 'react-native';
+import {
+  Gesture,
+  GestureDetector,
+  ScrollView,
+} from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -26,7 +31,6 @@ import {
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
-import Logger from '../../../../../../util/Logger';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -82,7 +86,7 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
     <TouchableOpacity onPress={handleBoostTap} activeOpacity={0.8}>
       <Box
         style={[
-          tw.style('rounded-xl p-4 mr-4 h-32 relative'),
+          tw.style('rounded-xl max-w-60 p-4 mr-2 h-32 relative'),
           {
             width: CARD_WIDTH,
             backgroundColor: boost.backgroundColor || tw.color('bg-default'),
@@ -155,7 +159,7 @@ const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
         {strings('rewards.active_boosts.title')}
       </Text>
       {count !== null && (
-        <Box twClassName="bg-text-muted rounded-full w-6 h-6 items-center justify-center">
+        <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
           <Text variant={TextVariant.BodySm} twClassName="text-default">
             {count}
           </Text>
@@ -190,12 +194,24 @@ const ActiveBoosts: React.FC = () => {
 
   const numBoosts = useMemo(() => activeBoosts?.length || 0, [activeBoosts]);
 
-  Logger.log('ActiveBoosts', {
-    isLoading,
-    numBoosts,
-    hasError,
-    activeBoosts: activeBoosts?.length,
-  });
+  // Platform-specific gesture handling to prevent parent tab swipe
+  const scrollNativeGesture = useMemo(() => Gesture.Native(), []);
+  const panSink = useMemo(() => {
+    if (Platform.OS === 'android')
+      return Gesture.Pan()
+        .minDistance(1)
+        .activeOffsetX([-2, 2])
+        .failOffsetY([-8, 8])
+        .simultaneousWithExternalGesture(scrollNativeGesture)
+        .runOnJS(true);
+  }, [scrollNativeGesture]);
+  const combinedGesture = useMemo(
+    () =>
+      panSink
+        ? Gesture.Simultaneous(scrollNativeGesture, panSink)
+        : scrollNativeGesture,
+    [scrollNativeGesture, panSink],
+  );
 
   if (!isLoading && !hasError && numBoosts === 0) {
     return null;
@@ -213,17 +229,19 @@ const ActiveBoosts: React.FC = () => {
       {isLoading || !activeBoosts ? (
         <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
       ) : hasError ? null /* Show active boosts */ : activeBoosts?.length ? ( // Show nothing if there's an error (just the banner)
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          snapToInterval={CARD_WIDTH + CARD_SPACING}
-          snapToAlignment="start"
-        >
-          {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
-            <BoostCard key={boost.id} boost={boost} index={index} />
-          ))}
-        </ScrollView>
+        <GestureDetector gesture={combinedGesture}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={CARD_WIDTH + CARD_SPACING}
+            snapToAlignment="start"
+          >
+            {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
+              <BoostCard key={boost.id} boost={boost} index={index} />
+            ))}
+          </ScrollView>
+        </GestureDetector>
       ) : (
         <></>
       )}

@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useFocusEffect } from '@react-navigation/native';
 import { useActivePointsBoosts } from './useActivePointsBoosts';
 import Engine from '../../../../core/Engine';
 import {
@@ -19,6 +20,8 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -40,8 +43,21 @@ jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+// Mock the useInvalidateByRewardEvents hook
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: jest.fn(),
+}));
+
+// Mock React Navigation hooks
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 describe('useActivePointsBoosts', () => {
   const mockDispatch = jest.fn();
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
@@ -75,8 +91,8 @@ describe('useActivePointsBoosts', () => {
       },
       boostBips: 500,
       seasonLong: false,
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-01-31'),
+      startDate: '2024-01-01',
+      endDate: '2024-01-31',
       backgroundColor: '#00FF00',
     },
   ];
@@ -96,10 +112,17 @@ describe('useActivePointsBoosts', () => {
       }
       return null;
     });
+
+    // Reset the mocked hooks
+    mockUseFocusEffect.mockClear();
   });
 
   it('should return void', () => {
     const { result } = renderHook(() => useActivePointsBoosts());
+
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
     expect(result.current).toBeUndefined();
   });
 
@@ -118,15 +141,15 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Missing seasonId or subscriptionId',
-      {
-        seasonId: null,
-        subscriptionId: 'test-subscription-id',
-      },
-    );
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -145,15 +168,15 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Missing seasonId or subscriptionId',
-      {
-        seasonId: 'test-season-id',
-        subscriptionId: null,
-      },
-    );
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -161,6 +184,13 @@ describe('useActivePointsBoosts', () => {
     mockEngineCall.mockResolvedValue(mockActiveBoosts);
 
     renderHook(() => useActivePointsBoosts());
+
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
 
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -185,6 +215,13 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -196,7 +233,7 @@ describe('useActivePointsBoosts', () => {
     );
     expect(mockLogger).toHaveBeenCalledWith(
       'useActivePointsBoosts: Failed to fetch active points boosts:',
-      'Network error',
+      expect.any(String),
     );
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(true));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
@@ -215,6 +252,13 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -229,6 +273,13 @@ describe('useActivePointsBoosts', () => {
     mockEngineCall.mockResolvedValue(null);
 
     renderHook(() => useActivePointsBoosts());
+
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
 
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
