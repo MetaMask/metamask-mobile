@@ -17,12 +17,12 @@ import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/
 import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../components/Avatars/Avatar/Avatar.types';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
+import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
@@ -43,10 +43,7 @@ const AccountCell = ({
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
-    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS,
-      params: { accountGroup },
-    });
+    navigate(...createAccountGroupDetailsNavigationDetails({ accountGroup }));
   }, [navigate, accountGroup]);
 
   const selectBalanceForGroup = useMemo(
