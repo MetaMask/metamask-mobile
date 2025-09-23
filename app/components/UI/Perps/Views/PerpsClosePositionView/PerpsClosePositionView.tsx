@@ -318,7 +318,6 @@ const PerpsClosePositionView: React.FC = () => {
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
-      feeResults,
     );
   };
 
@@ -419,6 +418,10 @@ const PerpsClosePositionView: React.FC = () => {
   const handleDonePress = () => {
     setIsInputFocused(false);
     setIsUserInputActive(false);
+  };
+
+  const handleSliderChange = (value: number) => {
+    setClosePercentage(value);
   };
 
   // Tooltip handlers
@@ -595,7 +598,7 @@ const PerpsClosePositionView: React.FC = () => {
           <View style={styles.sliderSection}>
             <PerpsSlider
               value={closePercentage}
-              onValueChange={setClosePercentage}
+              onValueChange={handleSliderChange}
               minimumValue={0}
               maximumValue={100}
               step={1}

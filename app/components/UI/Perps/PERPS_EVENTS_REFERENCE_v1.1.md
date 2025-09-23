@@ -170,7 +170,7 @@ Status: ✅ Implemented
 
 ### Perp Order Size Changed
 
-Status: ❌ Skipped - Too much noise (slider interactions)
+Status: 🚫 **CANCELED** - Product decision: Not needed
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Input Method (slider, keyboard)
 
 ### Perp Leverage Screen Viewed
@@ -235,12 +235,14 @@ Status: ✅ Implemented
 
 ### Perp Position Close Value Changed
 
-Status: ❌ Skipped - Too much noise (slider interactions)
-**Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Unrealized $PnL, Unrealized %PnL, Close value (amount), Close percentage (%), orderType (market, limit), Received amount
+Status: 🚫 **CANCELED** - Product decision: Not needed
+**Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Unrealized $PnL, Unrealized %PnL, Close value (amount), Close percentage (%), orderType (market, limit), Received amount, inputMethod (slider, keyboard, percentage_button)
 
 ### Perp Position Close Order Type Changed
 
-Status: ❌ Skipped - Low priority UI interaction
+Status: ⚠️ Not supported in current UI - Simplified interface
+**Original Spec:** Should track when users change between market/limit order types
+**Current Implementation:** UI no longer has order type selector - defaults to market order with optional limit price via bottom sheet
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Unrealized $PnL, Unrealized %PnL, Close value (amount), Close percentage (%), orderType (market, limit), Received amount
 
 ### Transaction Added transaction_type == mm_perps_position_close

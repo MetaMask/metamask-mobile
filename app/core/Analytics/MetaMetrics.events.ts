@@ -1441,7 +1441,7 @@ const events = {
     EVENT_NAME.PERPS_TRADE_TRANSACTION_FAILED,
   ),
 
-  // Close Position Flow (9 events)
+  // Close Position Flow (8 events)
   PERPS_HOMESCREEN_TAB_VIEWED: generateOpt(
     EVENT_NAME.PERPS_HOMESCREEN_TAB_VIEWED,
   ),
