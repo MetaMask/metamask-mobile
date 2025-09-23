@@ -5196,6 +5196,11 @@
     "@metamask/utils" "^11.2.0"
     lodash "^4.17.21"
 
+"@metamask/ens-resolver-snap@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@metamask/ens-resolver-snap/-/ens-resolver-snap-0.1.4.tgz#f95e3f11bfca6600dcd22d72dfeb5fed5703ffdc"
+  integrity sha512-pmt9SybPDEIsD92QXmcDYYa0dCrgTa+NwJdxz7Or7mnhcLK4jbf+ubwMc7v7OXWo8WUTzYRJzIh7h/5RFo0v+w==
+
 "@metamask/error-reporting-service@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/error-reporting-service/-/error-reporting-service-2.0.0.tgz#1a840150d1468bfb8779b77209f2acbbd31ae602"

@@ -81,8 +81,7 @@ export function useSnapNameResolution({
             }) as Promise<DomainLookupResult>,
         ),
       );
-
-      if (!cancelled) {
+      if (!cancelled && responses.length) {
         const resolutions = responses
           .filter(
             (response) => response.status === 'fulfilled' && response.value,

@@ -10,6 +10,11 @@ import {
   isValidHexAddress,
   toChecksumAddress,
 } from '../../../../util/address';
+import {
+  collectConfusables,
+  getConfusablesExplanations,
+  hasZeroWidthPoints,
+} from '../../../../util/confusables';
 
 export const shouldSkipValidation = ({
   toAddress,
@@ -82,8 +87,8 @@ export const validateHexAddress = async (
       );
       if (symbol) {
         return {
-          warning: strings('send.token_contract_warning'),
           toAddressValidated: toAddress,
+          warning: strings('send.token_contract_warning'),
         };
       }
     } catch (e) {
@@ -119,4 +124,30 @@ export const validateSolanaAddress = (
     };
   }
   return { toAddressValidated: toAddress };
+};
+
+export const getConfusableCharacterInfo = (toAddress: string) => {
+  const confusableCollection = collectConfusables(toAddress);
+  if (confusableCollection.length) {
+    const invalidAddressMessage = strings('transaction.invalid_address');
+    const confusableCharacterWarningMessage = `${strings(
+      'transaction.confusable_msg',
+    )} - ${getConfusablesExplanations(confusableCollection)}`;
+    const invisibleCharacterWarningMessage = strings(
+      'send.invisible_character_error',
+    );
+    const isError = confusableCollection.some(hasZeroWidthPoints);
+    if (isError) {
+      // Show ERROR for zero-width characters (more important than warning)
+      return {
+        error: invalidAddressMessage,
+        warning: invisibleCharacterWarningMessage,
+      };
+    }
+    // Show WARNING for confusable characters
+    return {
+      warning: confusableCharacterWarningMessage,
+    };
+  }
+  return {};
 };

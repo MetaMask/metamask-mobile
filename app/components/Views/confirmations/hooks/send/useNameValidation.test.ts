@@ -4,13 +4,17 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 // eslint-disable-next-line import/no-namespace
 import * as SnapNameResolution from '../../../../Snaps/hooks/useSnapNameResolution';
 // eslint-disable-next-line import/no-namespace
-import * as SendUtils from '../../utils/send';
+import * as SendValidationUtils from '../../utils/send-address-validations';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useSendContext } from '../../context/send-context';
 import { useNameValidation } from './useNameValidation';
 
 jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
+}));
+
+jest.mock('@metamask/bridge-controller', () => ({
+  formatChainIdToCaip: jest.fn(),
 }));
 
 const mockState = {
@@ -59,10 +63,12 @@ describe('useNameValidation', () => {
       chainId: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       to: 'test.sol',
     } as unknown as ReturnType<typeof useSendContext>);
-    jest.spyOn(SendUtils, 'getConfusableCharacterInfo').mockReturnValue({
-      error: 'dummy_error',
-      warning: 'dummy_warning',
-    });
+    jest
+      .spyOn(SendValidationUtils, 'getConfusableCharacterInfo')
+      .mockReturnValue({
+        error: 'dummy_error',
+        warning: 'dummy_warning',
+      });
     jest.spyOn(SnapNameResolution, 'useSnapNameResolution').mockReturnValue({
       results: [
         { resolvedAddress: 'dummy_address' } as unknown as AddressResolution,

@@ -1,4 +1,5 @@
 import { Hex } from '@metamask/utils';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -43,12 +44,12 @@ export const useToAddressValidation = () => {
       return await validateHexAddress(to, chainId as Hex);
     }
 
-    if (isSolanaSendType) {
+    if (isSolanaSendType && isSolanaAddress(to)) {
       return validateSolanaAddress(to);
     }
 
     if (isENS(to)) {
-      return validateName();
+      return await validateName();
     }
 
     return {
