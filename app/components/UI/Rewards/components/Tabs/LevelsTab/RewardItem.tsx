@@ -71,7 +71,11 @@ const RewardItem: React.FC<RewardItemProps> = ({
       if (hasExpired) {
         return (
           <Box twClassName="gap-1 flex-row items-center">
-            <Icon name={IconName.Clock} size={IconSize.Sm} />
+            <Icon
+              name={IconName.Clock}
+              size={IconSize.Sm}
+              twClassName="text-text-alternative"
+            />
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative"

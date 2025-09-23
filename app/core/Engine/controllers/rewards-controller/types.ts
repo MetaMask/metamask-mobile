@@ -627,7 +627,10 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (account: InternalAccount, referralCode?: string) => Promise<void>;
+  handler: (
+    account: InternalAccount,
+    referralCode?: string,
+  ) => Promise<string | null>;
 }
 
 /**
@@ -784,7 +787,7 @@ export interface RewardsControllerGetCandidateSubscriptionIdAction {
  */
 export interface RewardsControllerOptOutAction {
   type: 'RewardsController:optOut';
-  handler: () => Promise<boolean>;
+  handler: (subscriptionId: string) => Promise<boolean>;
 }
 
 /**

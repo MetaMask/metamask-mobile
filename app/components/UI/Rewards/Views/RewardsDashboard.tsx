@@ -38,7 +38,6 @@ import {
   selectRewardsSubscriptionId,
   selectHideUnlinkedAccountsBanner,
 } from '../../../../selectors/rewards';
-import { useSeasonStatus } from '../hooks/useSeasonStatus';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../hooks/useLinkAccount';
@@ -89,7 +88,6 @@ const RewardsDashboard: React.FC = () => {
   });
 
   // Sync rewards controller state with UI store
-  useSeasonStatus();
   useUnlockedRewards();
 
   // Set navigation title

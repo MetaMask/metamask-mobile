@@ -24,6 +24,17 @@ jest.mock('../../../../reducers/rewards', () => ({
   setGeoRewardsMetadataLoading: jest.fn(),
 }));
 
+// Mock React hooks
+jest.mock('react', () => ({
+  ...jest.requireActual('react'),
+  useCallback: jest.fn((fn) => fn),
+}));
+
+// Mock React Navigation hooks
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn((callback) => callback()),
+}));
+
 describe('useGeoRewardsMetadata', () => {
   const mockDispatch = jest.fn();
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
