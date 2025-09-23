@@ -139,6 +139,7 @@ export const PerpsEventValues = {
     TAP: 'tap',
     ZOOM: 'zoom',
     SLIDE: 'slide',
+    CANDLE_PERIOD_CHANGE: 'candle_period_change',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'PositionLiquidated',

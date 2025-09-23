@@ -110,7 +110,7 @@ Status: ✅ Implemented
 
 ### Perp Chart time serie changed
 
-Status: ❌ Missing
+Status: ✅ Implemented (via PERPS_CHART_INTERACTION)
 **Properties:** Timestamp, Time serie selected
 
 ---
@@ -134,7 +134,7 @@ Status: ✅ Implemented
 
 ### Perp Order Size Changed
 
-Status: ❌ Missing
+Status: ❌ Skipped - Too much noise (slider interactions)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Input Method (slider, keyboard)
 
 ### Perp Leverage Screen Viewed
@@ -188,12 +188,12 @@ Status: ✅ Implemented
 
 ### Perp Position Close Value Changed
 
-Status: ❌ Missing
+Status: ❌ Skipped - Too much noise (slider interactions)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Unrealized $PnL, Unrealized %PnL, Close value (amount), Close percentage (%), orderType (market, limit), Received amount
 
 ### Perp Position Close Order Type Changed
 
-Status: ❌ Missing
+Status: ❌ Skipped - Low priority UI interaction
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Unrealized $PnL, Unrealized %PnL, Close value (amount), Close percentage (%), orderType (market, limit), Received amount
 
 ### Transaction Added transaction_type == mm_perps_position_close
@@ -253,17 +253,17 @@ Status: ✅ Implemented
 
 ### Stop Loss Executed
 
-Status: ❌ Missing
+Status: ❌ Backend-triggered - Validation needed
 **Properties:** Timestamp, Direction (Long, Short), Asset, Leverage, Order Size, Margin used, orderType (market, limit), Fees, Asset Price, estimatedRewards, position age
 
 ### Take Profit Executed
 
-Status: ❌ Missing
+Status: ❌ Backend-triggered - Validation needed
 **Properties:** Timestamp, Direction (Long, Short), Asset, Leverage, Order Size, Margin used, orderType (market, limit), Fees, Asset Price, estimatedRewards, position age
 
 ### Position liquidated
 
-Status: ❌ Missing
+Status: ❌ Backend-triggered - Validation needed
 **Properties:** Timestamp, Direction (Long, Short), Asset, Leverage, Order Size, Margin used, orderType (market, limit), Fees, Asset Price, estimatedRewards, position age
 
 ---

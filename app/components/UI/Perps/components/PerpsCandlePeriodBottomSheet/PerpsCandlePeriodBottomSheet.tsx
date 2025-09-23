@@ -19,6 +19,12 @@ import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/s
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
@@ -42,6 +48,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { track } = usePerpsEventTracking();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
@@ -94,6 +101,14 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     : null;
 
   const handlePeriodSelect = (period: CandlePeriod) => {
+    // Track chart interaction event
+    const selectedPeriodLabel =
+      CANDLE_PERIODS.find((p) => p.value === period)?.label || period;
+    track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+      [PerpsEventProperties.INTERACTION_TYPE]:
+        PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGE,
+      [PerpsEventProperties.CANDLE_PERIOD]: selectedPeriodLabel,
+    });
     onPeriodChange?.(period);
     onClose();
   };

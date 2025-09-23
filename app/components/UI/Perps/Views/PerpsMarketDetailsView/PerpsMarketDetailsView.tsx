@@ -269,7 +269,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Track chart interaction
       track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
         [PerpsEventProperties.ASSET]: market?.symbol || '',
-        [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGE,
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 
