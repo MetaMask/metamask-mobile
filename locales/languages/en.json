@@ -1084,7 +1084,10 @@
         "entry_price": "Entry Price",
         "current_price": "Current price",
         "liquidation_price": "Liquidation Price",
-        "liquidation_distance": "Liquidation Distance"
+        "liquidation_distance": "Liquidation Distance",
+        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
+        "drops": "drops",
+        "rises": "rises"
       },
       "type": {
         "title": "Order Type",

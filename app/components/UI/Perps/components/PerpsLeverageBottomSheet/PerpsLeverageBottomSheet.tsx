@@ -622,13 +622,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
             >
-              You will be liquidated if price{' '}
-              {direction === 'long' ? 'drops' : 'rises'} by{' '}
-              {!isDragging && isCalculating ? (
-                <Skeleton height={16} width={40} />
-              ) : (
-                `${liquidationDropPercentage.toFixed(1)}%`
-              )}
+              {strings('perps.order.leverage_modal.liquidation_warning', {
+                direction:
+                  direction === 'long'
+                    ? strings('perps.order.leverage_modal.drops')
+                    : strings('perps.order.leverage_modal.rises'),
+                percentage:
+                  !isDragging && isCalculating ? (
+                    <Skeleton height={16} width={40} />
+                  ) : (
+                    `${liquidationDropPercentage.toFixed(1)}%`
+                  ),
+              })}
             </Text>
           </View>
         </View>
