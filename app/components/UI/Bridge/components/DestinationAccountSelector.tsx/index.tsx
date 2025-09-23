@@ -1,48 +1,42 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { setDestAddress } from '../../../../../core/redux/slices/bridge';
+import {
+  selectDestAddress,
+  setDestAddress,
+} from '../../../../../core/redux/slices/bridge';
 import { Box } from '../../../Box/Box';
 import { StyleSheet } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
-import { Theme } from '../../../../../util/theme/models';
 import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { useDestinationAccounts } from '../../hooks/useDestinationAccounts';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
-const createStyles = ({ colors }: Theme) =>
+const createStyles = () =>
   StyleSheet.create({
     container: {
       alignSelf: 'center',
       paddingHorizontal: 24,
-    },
-    cellContainer: {
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      borderRadius: 8,
-      overflow: 'hidden',
-    },
-    closeButtonContainer: {
-      flex: 1,
-      justifyContent: 'center',
-    },
-    avatarStyle: {
-      alignSelf: 'center',
-      marginRight: 10,
     },
   });
 
 const DestinationAccountSelector = () => {
   const dispatch = useDispatch();
   const { destinationAccounts, ensByAccountAddress } = useDestinationAccounts();
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const styles = createStyles();
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
 
   const privacyMode = useSelector(selectPrivacyMode);
+
+  const destAddress = useSelector(selectDestAddress);
+  const selectedAccount = destinationAccounts.find(
+    (account) => account.address === destAddress,
+  );
+  const caipDestAddress = selectedAccount
+    ? selectedAccount.caipAccountId
+    : undefined;
 
   const handleSelectAccount = useCallback(
     (caipAccountId: CaipAccountId | undefined) => {
@@ -77,7 +71,7 @@ const DestinationAccountSelector = () => {
           accounts={filteredAccounts}
           onSelectAccount={handleSelectAccount}
           ensByAccountAddress={ensByAccountAddress}
-          selectedAddresses={[]}
+          selectedAddresses={caipDestAddress ? [caipDestAddress] : []}
           privacyMode={privacyMode}
           isSelectWithoutMenu
         />
