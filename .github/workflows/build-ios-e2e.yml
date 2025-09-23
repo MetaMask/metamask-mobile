@@ -173,14 +173,15 @@ jobs:
             exit 1
           fi
 
-          echo "✅ iOS .app successfully repacked with @expo/repack-app"
+          echo "✅ iOS .app successfully repacked with direct bundle replacement"
           echo "📦 Final .app size: $(du -sh "$APP_PATH" | cut -f1)"
         env:
           # Pass ALL the same environment variables as the original build to ensure identical JS bundle
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: qa
+          METAMASK_ENVIRONMENT: main
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
+          IS_SIM_BUILD: "true"  # Critical for simulator builds
           E2E: "true"
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
