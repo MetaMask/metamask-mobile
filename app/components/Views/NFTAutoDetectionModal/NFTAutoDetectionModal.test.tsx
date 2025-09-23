@@ -8,7 +8,10 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
-import { MetaMetricsEvents , useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
+import {
+  MetaMetricsEvents,
+  useMetrics as mockUseMetrics,
+} from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const setUseNftDetectionSpy = jest.spyOn(
