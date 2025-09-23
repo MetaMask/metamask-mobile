@@ -161,7 +161,7 @@ describe('usePredictMarketData', () => {
     );
   });
 
-  it('should handle null market data', async () => {
+  it('handle null market data', async () => {
     mockGetMarkets.mockResolvedValue(null);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -175,7 +175,7 @@ describe('usePredictMarketData', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should handle empty market data array', async () => {
+  it('handle empty market data array', async () => {
     mockGetMarkets.mockResolvedValue([]);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -189,7 +189,7 @@ describe('usePredictMarketData', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should refetch data when calling refetch', async () => {
+  it('refetch data when calling refetch', async () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -208,7 +208,7 @@ describe('usePredictMarketData', () => {
     expect(mockGetMarkets).toHaveBeenCalledTimes(2);
   });
 
-  it('should maintain stable refetch function reference', () => {
+  it('maintain stable refetch function reference', () => {
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
     const { result, rerender } = renderHook(() => usePredictMarketData());

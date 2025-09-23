@@ -118,34 +118,29 @@ const initialState = {
   },
 };
 
-describe('PredictMarket', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+// Helper function to set up test environment
+function setupPredictMarketTest(market: PredictMarketType) {
+  jest.clearAllMocks();
+  return renderWithProvider(<PredictMarket market={market} />, {
+    state: initialState,
   });
+}
 
-  it('should render PredictMarketSingle for markets with one outcome', () => {
-    const { getByTestId } = renderWithProvider(
-      <PredictMarket market={mockSingleMarket} />,
-      { state: initialState },
-    );
+describe('PredictMarket', () => {
+  it('renders PredictMarketSingle for markets with one outcome', () => {
+    const { getByTestId } = setupPredictMarketTest(mockSingleMarket);
 
     expect(getByTestId('predict-market-single')).toBeOnTheScreen();
   });
 
-  it('should render PredictMarketMultiple for markets with multiple outcomes', () => {
-    const { getByTestId } = renderWithProvider(
-      <PredictMarket market={mockMultipleMarket} />,
-      { state: initialState },
-    );
+  it('renders PredictMarketMultiple for markets with multiple outcomes', () => {
+    const { getByTestId } = setupPredictMarketTest(mockMultipleMarket);
 
     expect(getByTestId('predict-market-multiple')).toBeOnTheScreen();
   });
 
-  it('should pass the market prop correctly to sub-components', () => {
-    const { getByText } = renderWithProvider(
-      <PredictMarket market={mockSingleMarket} />,
-      { state: initialState },
-    );
+  it('passes the market prop correctly to sub-components', () => {
+    const { getByText } = setupPredictMarketTest(mockSingleMarket);
 
     expect(
       getByText('PredictMarketSingle: Bitcoin Single Market'),

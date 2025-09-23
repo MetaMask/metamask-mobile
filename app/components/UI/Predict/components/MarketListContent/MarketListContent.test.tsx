@@ -142,40 +142,38 @@ const initialState = {
   },
 };
 
-describe('MarketListContent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUsePredictMarketData.mockReturnValue(defaultMockReturn);
+// Helper function to set up test environment
+function setupMarketListContentTest(
+  marketDataOverrides = {},
+  category: PredictCategory = 'trending',
+) {
+  jest.clearAllMocks();
+  mockUsePredictMarketData.mockReturnValue({
+    ...defaultMockReturn,
+    ...marketDataOverrides,
   });
+  return renderWithProvider(<MarketListContent category={category} />, {
+    state: initialState,
+  });
+}
 
+describe('MarketListContent', () => {
   describe('Loading States', () => {
-    it('should render loading skeleton when isFetching is true', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        ...defaultMockReturn,
+    it('renders loading skeleton when isFetching is true', () => {
+      const { getByTestId } = setupMarketListContentTest({
         isFetching: true,
       });
-
-      const { getByTestId } = renderWithProvider(
-        <MarketListContent category="trending" />,
-        { state: initialState },
-      );
 
       // Check for skeleton components in loading state
       expect(getByTestId('skeleton-loading-1')).toBeOnTheScreen();
       expect(getByTestId('skeleton-loading-2')).toBeOnTheScreen();
     });
 
-    it('should render footer loading skeleton when isFetchingMore is true', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        ...defaultMockReturn,
+    it('renders footer loading skeleton when isFetchingMore is true', () => {
+      const { getByTestId } = setupMarketListContentTest({
         marketData: [mockPredictMarket],
         isFetchingMore: true,
       });
-
-      const { getByTestId } = renderWithProvider(
-        <MarketListContent category="trending" />,
-        { state: initialState },
-      );
 
       // The footer skeleton should be rendered when fetching more
       expect(getByTestId('skeleton-footer-1')).toBeOnTheScreen();
@@ -184,45 +182,29 @@ describe('MarketListContent', () => {
   });
 
   describe('Error States', () => {
-    it('should render error state when there is an error', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        ...defaultMockReturn,
+    it('renders error state when there is an error', () => {
+      const { getByText } = setupMarketListContentTest({
         error: 'Failed to fetch markets',
       });
-
-      const { getByText } = renderWithProvider(
-        <MarketListContent category="trending" />,
-        { state: initialState },
-      );
 
       expect(getByText('Error: Failed to fetch markets')).toBeOnTheScreen();
     });
   });
 
   describe('Empty States', () => {
-    it('should render empty state when no markets are available', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        ...defaultMockReturn,
-        marketData: [],
-      });
-
-      const { getByText } = renderWithProvider(
-        <MarketListContent category="sports" />,
-        { state: initialState },
+    it('renders empty state when no markets are available', () => {
+      const { getByText } = setupMarketListContentTest(
+        { marketData: [] },
+        'sports',
       );
 
       expect(getByText('No sports markets available')).toBeOnTheScreen();
     });
 
-    it('should render empty state when marketData is null', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        ...defaultMockReturn,
-        marketData: null as unknown as PredictMarket[],
-      });
-
-      const { getByText } = renderWithProvider(
-        <MarketListContent category="crypto" />,
-        { state: initialState },
+    it('renders empty state when marketData is null', () => {
+      const { getByText } = setupMarketListContentTest(
+        { marketData: null as unknown as PredictMarket[] },
+        'crypto',
       );
 
       expect(getByText('No crypto markets available')).toBeOnTheScreen();
@@ -230,44 +212,27 @@ describe('MarketListContent', () => {
   });
 
   describe('Data Rendering', () => {
-    it('should render PredictMarket component for single outcome market', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        ...defaultMockReturn,
+    it('renders PredictMarket component for single outcome market', () => {
+      const { getByTestId } = setupMarketListContentTest({
         marketData: [mockPredictMarket],
       });
-
-      const { getByTestId } = renderWithProvider(
-        <MarketListContent category="trending" />,
-        { state: initialState },
-      );
 
       expect(getByTestId('predict-market-test-market-1')).toBeOnTheScreen();
     });
 
-    it('should render PredictMarket component for multiple outcome market', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        ...defaultMockReturn,
-        marketData: [mockPredictMarketMultiple],
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <MarketListContent category="crypto" />,
-        { state: initialState },
+    it('renders PredictMarket component for multiple outcome market', () => {
+      const { getByTestId } = setupMarketListContentTest(
+        { marketData: [mockPredictMarketMultiple] },
+        'crypto',
       );
 
       expect(getByTestId('predict-market-test-market-3')).toBeOnTheScreen();
     });
 
-    it('should render PredictMarket components for all markets regardless of outcome count', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        ...defaultMockReturn,
+    it('renders PredictMarket components for all markets regardless of outcome count', () => {
+      const { getByTestId } = setupMarketListContentTest({
         marketData: [mockPredictMarket, mockPredictMarketMultiple],
       });
-
-      const { getByTestId } = renderWithProvider(
-        <MarketListContent category="trending" />,
-        { state: initialState },
-      );
 
       expect(getByTestId('predict-market-test-market-1')).toBeOnTheScreen();
       expect(getByTestId('predict-market-test-market-3')).toBeOnTheScreen();
@@ -275,7 +240,7 @@ describe('MarketListContent', () => {
   });
 
   describe('Hook Integration', () => {
-    it('should call usePredictMarketData with correct parameters', () => {
+    it('calls usePredictMarketData with correct parameters', () => {
       const categories: PredictCategory[] = [
         'trending',
         'new',
@@ -285,9 +250,7 @@ describe('MarketListContent', () => {
       ];
 
       categories.forEach((category) => {
-        renderWithProvider(<MarketListContent category={category} />, {
-          state: initialState,
-        });
+        setupMarketListContentTest({}, category);
 
         expect(mockUsePredictMarketData).toHaveBeenCalledWith({
           category,

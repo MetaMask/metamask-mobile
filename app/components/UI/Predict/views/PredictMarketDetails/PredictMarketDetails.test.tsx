@@ -122,15 +122,9 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-describe('PredictMarketDetails', () => {
-  const mockNavigate = jest.fn();
-  const mockSetOptions = jest.fn();
-  const mockUseNavigation = useNavigation as jest.MockedFunction<
-    typeof useNavigation
-  >;
-  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
-
-  const mockPosition = {
+// Helper function to create mock position
+function createMockPosition(overrides = {}) {
+  return {
     id: 'position-1',
     marketId: 'market-1',
     outcomeId: 'outcome-1',
@@ -143,7 +137,25 @@ describe('PredictMarketDetails', () => {
     percentPnl: 20.4,
     initialValue: 125.25,
     avgPrice: 0.625,
+    ...overrides,
   };
+}
+
+// Helper function to setup test environment
+function setupPredictMarketDetailsTest(
+  positionOverrides = {},
+  routeOverrides = {},
+) {
+  jest.clearAllMocks();
+
+  const mockNavigate = jest.fn();
+  const mockSetOptions = jest.fn();
+  const mockUseNavigation = useNavigation as jest.MockedFunction<
+    typeof useNavigation
+  >;
+  const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
+
+  const mockPosition = createMockPosition(positionOverrides);
 
   const mockRoute = {
     key: 'PredictMarketDetails',
@@ -151,22 +163,31 @@ describe('PredictMarketDetails', () => {
     params: {
       position: mockPosition,
     },
+    ...routeOverrides,
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+  mockUseNavigation.mockReturnValue({
+    navigate: mockNavigate,
+    setOptions: mockSetOptions,
+  } as unknown as NavigationProp<ParamListBase>);
 
-    mockUseNavigation.mockReturnValue({
-      navigate: mockNavigate,
-      setOptions: mockSetOptions,
-    } as unknown as NavigationProp<ParamListBase>);
+  mockUseRoute.mockReturnValue(mockRoute);
 
-    mockUseRoute.mockReturnValue(mockRoute);
-  });
+  const result = render(<PredictMarketDetails />);
 
+  return {
+    ...result,
+    mockNavigate,
+    mockSetOptions,
+    mockPosition,
+    mockRoute,
+  };
+}
+
+describe('PredictMarketDetails', () => {
   describe('Component Rendering', () => {
     it('renders the component with correct structure', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       expect(screen.getByTestId('screen-view')).toBeOnTheScreen();
       expect(screen.getByText('Market Detail')).toBeOnTheScreen();
@@ -174,13 +195,13 @@ describe('PredictMarketDetails', () => {
     });
 
     it('displays position title correctly', () => {
-      render(<PredictMarketDetails />);
+      const { mockPosition } = setupPredictMarketDetailsTest();
 
       expect(screen.getByText(mockPosition.title)).toBeOnTheScreen();
     });
 
     it('displays position outcome correctly', () => {
-      render(<PredictMarketDetails />);
+      const { mockPosition } = setupPredictMarketDetailsTest();
 
       expect(
         screen.getByText(`Outcome: ${mockPosition.outcome}`),
@@ -188,13 +209,13 @@ describe('PredictMarketDetails', () => {
     });
 
     it('displays current value with proper formatting', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       expect(screen.getByText('Current Value: $150.75')).toBeOnTheScreen();
     });
 
     it('renders cash out button with correct properties', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       const cashOutButton = screen.getByTestId('cash-out-button');
       expect(cashOutButton).toBeOnTheScreen();
@@ -204,13 +225,13 @@ describe('PredictMarketDetails', () => {
 
   describe('Navigation Setup', () => {
     it('sets navigation options on mount', () => {
-      render(<PredictMarketDetails />);
+      const { mockSetOptions } = setupPredictMarketDetailsTest();
 
       expect(mockSetOptions).toHaveBeenCalledWith({});
     });
 
     it('calls getNavigationOptionsTitle with correct parameters', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
         'predict.title',
@@ -223,7 +244,7 @@ describe('PredictMarketDetails', () => {
 
   describe('Cash Out Functionality', () => {
     it('navigates to cash out modal when cash out button is pressed', () => {
-      render(<PredictMarketDetails />);
+      const { mockNavigate, mockPosition } = setupPredictMarketDetailsTest();
 
       const cashOutButton = screen.getByTestId('cash-out-button');
       fireEvent.press(cashOutButton);
@@ -235,7 +256,7 @@ describe('PredictMarketDetails', () => {
     });
 
     it('passes correct position data to cash out modal', () => {
-      render(<PredictMarketDetails />);
+      const { mockNavigate, mockPosition } = setupPredictMarketDetailsTest();
 
       const cashOutButton = screen.getByTestId('cash-out-button');
       fireEvent.press(cashOutButton);
@@ -251,7 +272,7 @@ describe('PredictMarketDetails', () => {
 
   describe('Data Display', () => {
     it('displays all position information correctly', () => {
-      render(<PredictMarketDetails />);
+      const { mockPosition } = setupPredictMarketDetailsTest();
 
       expect(screen.getByText('Market Detail')).toBeOnTheScreen();
       expect(screen.getByText(mockPosition.title)).toBeOnTheScreen();
@@ -262,7 +283,7 @@ describe('PredictMarketDetails', () => {
     });
 
     it('formats price with correct decimal places', () => {
-      render(<PredictMarketDetails />);
+      const { mockPosition } = setupPredictMarketDetailsTest();
 
       expect(formatPrice).toHaveBeenCalledWith(mockPosition.currentValue, {
         maximumDecimals: 2,
@@ -270,19 +291,13 @@ describe('PredictMarketDetails', () => {
     });
 
     it('handles different position data correctly', () => {
-      const differentPosition = {
-        ...mockPosition,
-        title: 'Will Ethereum reach $10k?',
-        outcome: 'No',
-        currentValue: 75.25,
-      };
-
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: { position: differentPosition },
-      });
-
-      render(<PredictMarketDetails />);
+      const { mockPosition: differentPosition } = setupPredictMarketDetailsTest(
+        {
+          title: 'Will Ethereum reach $10k?',
+          outcome: 'No',
+          currentValue: 75.25,
+        },
+      );
 
       expect(screen.getByText(differentPosition.title)).toBeOnTheScreen();
       expect(
@@ -294,13 +309,13 @@ describe('PredictMarketDetails', () => {
 
   describe('Component Props and Styling', () => {
     it('applies correct styles to content container', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       expect(useStyles).toHaveBeenCalledWith(expect.any(Function), {});
     });
 
     it('renders with proper text variants', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       const headingText = screen.getByText('Market Detail');
       const outcomeText = screen.getByText('Outcome: Yes');
@@ -314,66 +329,34 @@ describe('PredictMarketDetails', () => {
 
   describe('Edge Cases', () => {
     it('handles position with zero current value', () => {
-      const zeroValuePosition = {
-        ...mockPosition,
+      setupPredictMarketDetailsTest({
         currentValue: 0,
-      };
-
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: { position: zeroValuePosition },
       });
-
-      render(<PredictMarketDetails />);
 
       expect(screen.getByText('Current Value: $0.00')).toBeOnTheScreen();
     });
 
     it('handles position with very large current value', () => {
-      const largeValuePosition = {
-        ...mockPosition,
+      setupPredictMarketDetailsTest({
         currentValue: 999999.999,
-      };
-
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: { position: largeValuePosition },
       });
-
-      render(<PredictMarketDetails />);
 
       expect(screen.getByText('Current Value: $1000000.00')).toBeOnTheScreen();
     });
 
     it('handles position with empty title', () => {
-      const emptyTitlePosition = {
-        ...mockPosition,
+      setupPredictMarketDetailsTest({
         title: '',
-      };
-
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: { position: emptyTitlePosition },
       });
-
-      render(<PredictMarketDetails />);
 
       expect(screen.getByText('Outcome: Yes')).toBeOnTheScreen();
       expect(screen.getByText('Current Value: $150.75')).toBeOnTheScreen();
     });
 
     it('handles position with special characters in outcome', () => {
-      const specialOutcomePosition = {
-        ...mockPosition,
+      setupPredictMarketDetailsTest({
         outcome: 'Yes/No',
-      };
-
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: { position: specialOutcomePosition },
       });
-
-      render(<PredictMarketDetails />);
 
       expect(screen.getByText('Outcome: Yes/No')).toBeOnTheScreen();
     });
@@ -381,13 +364,13 @@ describe('PredictMarketDetails', () => {
 
   describe('Component Integration', () => {
     it('integrates with ScreenView component', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       expect(screen.getByTestId('screen-view')).toBeOnTheScreen();
     });
 
     it('integrates with internationalization', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       expect(strings).toHaveBeenCalledWith('predict.title');
     });
@@ -395,7 +378,7 @@ describe('PredictMarketDetails', () => {
 
   describe('Button Interaction', () => {
     it('button is pressable and responds to touch events', () => {
-      render(<PredictMarketDetails />);
+      const { mockNavigate } = setupPredictMarketDetailsTest();
 
       const cashOutButton = screen.getByTestId('cash-out-button');
 
@@ -407,7 +390,7 @@ describe('PredictMarketDetails', () => {
     });
 
     it('button maintains state after press', () => {
-      render(<PredictMarketDetails />);
+      setupPredictMarketDetailsTest();
 
       const cashOutButton = screen.getByTestId('cash-out-button');
 

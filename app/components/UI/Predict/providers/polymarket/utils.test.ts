@@ -107,7 +107,7 @@ describe('polymarket utils', () => {
   });
 
   describe('getPolymarketEndpoints', () => {
-    it('should return production endpoints', () => {
+    it('return production endpoints', () => {
       const endpoints = getPolymarketEndpoints();
       expect(endpoints).toEqual({
         GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -128,7 +128,7 @@ describe('polymarket utils', () => {
       jest.useRealTimers();
     });
 
-    it('should generate correct L1 headers', async () => {
+    it('generate correct L1 headers', async () => {
       const expectedHeaders = {
         POLY_ADDRESS: mockAddress,
         POLY_SIGNATURE: 'mock-signature',
@@ -167,7 +167,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle signing errors', async () => {
+    it('handle signing errors', async () => {
       const error = new Error('Signing failed');
       (
         Engine.context.KeyringController.signTypedMessage as jest.Mock
@@ -189,7 +189,7 @@ describe('polymarket utils', () => {
       jest.useRealTimers();
     });
 
-    it('should build HMAC signature without body', async () => {
+    it('build HMAC signature without body', async () => {
       const secret = 'test-secret';
       const timestamp = 1704067200;
       const method = 'GET';
@@ -217,7 +217,7 @@ describe('polymarket utils', () => {
       expect(signature).toBe('test-signature_'); // + -> -, / -> _
     });
 
-    it('should build HMAC signature with body', async () => {
+    it('build HMAC signature with body', async () => {
       const secret = 'test-secret';
       const timestamp = 1704067200;
       const method = 'POST';
@@ -244,7 +244,7 @@ describe('polymarket utils', () => {
       expect(signature).toBe('test-signature_');
     });
 
-    it('should handle empty secret', async () => {
+    it('handle empty secret', async () => {
       const mockHmac = {
         update: jest.fn().mockReturnThis(),
         digest: jest.fn().mockReturnValue('test+signature/'),
@@ -270,7 +270,7 @@ describe('polymarket utils', () => {
       jest.useRealTimers();
     });
 
-    it('should generate correct L2 headers', async () => {
+    it('generate correct L2 headers', async () => {
       const l2HeaderArgs: L2HeaderArgs = {
         method: 'POST',
         requestPath: '/order',
@@ -298,7 +298,7 @@ describe('polymarket utils', () => {
       });
     });
 
-    it('should use provided timestamp', async () => {
+    it('use provided timestamp', async () => {
       const l2HeaderArgs: L2HeaderArgs = {
         method: 'GET',
         requestPath: '/markets',
@@ -323,7 +323,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle undefined apiKey gracefully', async () => {
+    it('handle undefined apiKey gracefully', async () => {
       const l2HeaderArgs: L2HeaderArgs = {
         method: 'GET',
         requestPath: '/markets',
@@ -347,7 +347,7 @@ describe('polymarket utils', () => {
   });
 
   describe('deriveApiKey', () => {
-    it('should derive API key successfully', async () => {
+    it('derive API key successfully', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
@@ -369,7 +369,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle fetch errors', async () => {
+    it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
@@ -380,7 +380,7 @@ describe('polymarket utils', () => {
   });
 
   describe('createApiKey', () => {
-    it('should create API key successfully', async () => {
+    it('create API key successfully', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockApiKey),
@@ -403,7 +403,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should derive API key when creation returns 400', async () => {
+    it('derive API key when creation returns 400', async () => {
       const createResponse = {
         ok: false,
         json: jest.fn().mockResolvedValue({}),
@@ -424,7 +424,7 @@ describe('polymarket utils', () => {
       expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle creation errors', async () => {
+    it('handle creation errors', async () => {
       const error = new Error('Creation failed');
       mockFetch.mockRejectedValue(error);
 
@@ -435,14 +435,14 @@ describe('polymarket utils', () => {
   });
 
   describe('priceValid', () => {
-    it('should return true for valid prices', () => {
+    it('return true for valid prices', () => {
       expect(priceValid(0.5, '0.1')).toBe(true);
       expect(priceValid(0.6, '0.01')).toBe(true);
       expect(priceValid(0.05, '0.001')).toBe(true);
       expect(priceValid(0.9, '0.1')).toBe(true); // Upper bound for tickSize 0.1
     });
 
-    it('should return false for invalid prices', () => {
+    it('return false for invalid prices', () => {
       expect(priceValid(0.05, '0.1')).toBe(false); // Below minimum tick
       expect(priceValid(0.95, '0.1')).toBe(false); // Above 1 - minimum tick (0.9)
       expect(priceValid(1.5, '0.1')).toBe(false); // Above 1
@@ -467,7 +467,7 @@ describe('polymarket utils', () => {
   });
 
   describe('getTickSize', () => {
-    it('should fetch tick size successfully', async () => {
+    it('fetch tick size successfully', async () => {
       const mockTickSizeResponse: TickSizeResponse = {
         minimum_tick_size: '0.01',
       };
@@ -487,7 +487,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle fetch errors', async () => {
+    it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
@@ -498,7 +498,7 @@ describe('polymarket utils', () => {
   });
 
   describe('getOrderBook', () => {
-    it('should fetch order book successfully', async () => {
+    it('fetch order book successfully', async () => {
       const mockOrderBook = {
         bids: [
           { price: '0.4', size: '100' },
@@ -525,7 +525,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle fetch errors', async () => {
+    it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
@@ -542,33 +542,33 @@ describe('polymarket utils', () => {
       { price: '0.5', size: '100' },
     ];
 
-    it('should calculate buy market price for exact match', () => {
+    it('calculate buy market price for exact match', () => {
       const result = calculateBuyMarketPrice(askPositions, 100, OrderType.GTC);
       expect(result).toBe(0.55); // First position that makes sum >= 100
     });
 
-    it('should calculate buy market price for partial match', () => {
+    it('calculate buy market price for partial match', () => {
       const result = calculateBuyMarketPrice(askPositions, 150, OrderType.GTC);
       expect(result).toBe(0.6); // Highest price makes sum >= 150 (165 >= 150)
     });
 
-    it('should calculate buy market price for full match', () => {
+    it('calculate buy market price for full match', () => {
       const result = calculateBuyMarketPrice(askPositions, 300, OrderType.GTC);
       expect(result).toBe(0.6); // Sum never reaches 300 (165 < 300), return first position price
     });
 
-    it('should throw error for no match with FOK', () => {
+    it('throw error for no match with FOK', () => {
       expect(() =>
         calculateBuyMarketPrice(askPositions, 400, OrderType.FOK),
       ).toThrow('no match');
     });
 
-    it('should return last position price for no match with GTC', () => {
+    it('return last position price for no match with GTC', () => {
       const result = calculateBuyMarketPrice(askPositions, 400, OrderType.GTC);
       expect(result).toBe(0.6); // Sum never reaches 400, return first position price
     });
 
-    it('should throw error for empty positions', () => {
+    it('throw error for empty positions', () => {
       expect(() => calculateBuyMarketPrice([], 100, OrderType.GTC)).toThrow(
         'no match',
       );
@@ -582,33 +582,33 @@ describe('polymarket utils', () => {
       { price: '0.5', size: '100' },
     ];
 
-    it('should calculate sell market price for exact match', () => {
+    it('calculate sell market price for exact match', () => {
       const result = calculateSellMarketPrice(bidPositions, 100, OrderType.GTC);
       expect(result).toBe(0.5); // Highest position that makes sum >= 100
     });
 
-    it('should calculate sell market price for partial match', () => {
+    it('calculate sell market price for partial match', () => {
       const result = calculateSellMarketPrice(bidPositions, 150, OrderType.GTC);
       expect(result).toBe(0.45); // Second position makes sum >= 150
     });
 
-    it('should calculate sell market price for full match', () => {
+    it('calculate sell market price for full match', () => {
       const result = calculateSellMarketPrice(bidPositions, 300, OrderType.GTC);
       expect(result).toBe(0.4); // Total available equals 300, return first position price
     });
 
-    it('should throw error for no match with FOK', () => {
+    it('throw error for no match with FOK', () => {
       expect(() =>
         calculateSellMarketPrice(bidPositions, 400, OrderType.FOK),
       ).toThrow('no match');
     });
 
-    it('should return last position price for no match with GTC', () => {
+    it('return last position price for no match with GTC', () => {
       const result = calculateSellMarketPrice(bidPositions, 400, OrderType.GTC);
       expect(result).toBe(0.4); // Sum never reaches 400, return first position price
     });
 
-    it('should throw error for empty positions', () => {
+    it('throw error for empty positions', () => {
       expect(() => calculateSellMarketPrice([], 100, OrderType.GTC)).toThrow(
         'no match',
       );
@@ -616,19 +616,19 @@ describe('polymarket utils', () => {
   });
 
   describe('decimalPlaces', () => {
-    it('should return 0 for integers', () => {
+    it('return 0 for integers', () => {
       expect(decimalPlaces(5)).toBe(0);
       expect(decimalPlaces(100)).toBe(0);
       expect(decimalPlaces(0)).toBe(0);
     });
 
-    it('should return correct decimal places', () => {
+    it('return correct decimal places', () => {
       expect(decimalPlaces(5.1)).toBe(1);
       expect(decimalPlaces(5.123)).toBe(3);
       expect(decimalPlaces(5.123456)).toBe(6);
     });
 
-    it('should handle edge cases', () => {
+    it('handle edge cases', () => {
       expect(decimalPlaces(5.0)).toBe(0); // 5.0 is treated as integer
       expect(decimalPlaces(5.0)).toBe(0); // 5.000 is treated as integer
       expect(decimalPlaces(5.1)).toBe(1); // Actual decimal
@@ -637,29 +637,29 @@ describe('polymarket utils', () => {
   });
 
   describe('roundNormal', () => {
-    it('should return number when already rounded', () => {
+    it('return number when already rounded', () => {
       expect(roundNormal(5.12, 2)).toBe(5.12);
       expect(roundNormal(5.123, 3)).toBe(5.123);
     });
 
-    it('should round up', () => {
+    it('round up', () => {
       expect(roundNormal(5.125, 2)).toBe(5.13);
       expect(roundNormal(5.123456, 4)).toBe(5.1235);
     });
 
-    it('should round down', () => {
+    it('round down', () => {
       expect(roundNormal(5.124, 2)).toBe(5.12);
       expect(roundNormal(5.123454, 4)).toBe(5.1235);
     });
   });
 
   describe('roundDown', () => {
-    it('should return number when already rounded', () => {
+    it('return number when already rounded', () => {
       expect(roundDown(5.12, 2)).toBe(5.12);
       expect(roundDown(5.123, 3)).toBe(5.123);
     });
 
-    it('should always round down', () => {
+    it('always round down', () => {
       expect(roundDown(5.129, 2)).toBe(5.12);
       expect(roundDown(5.123456, 4)).toBe(5.1234);
       expect(roundDown(5.999, 2)).toBe(5.99);
@@ -667,12 +667,12 @@ describe('polymarket utils', () => {
   });
 
   describe('roundUp', () => {
-    it('should return number when already rounded', () => {
+    it('return number when already rounded', () => {
       expect(roundUp(5.12, 2)).toBe(5.12);
       expect(roundUp(5.123, 3)).toBe(5.123);
     });
 
-    it('should always round up', () => {
+    it('always round up', () => {
       expect(roundUp(5.121, 2)).toBe(5.13);
       expect(roundUp(5.123456, 4)).toBe(5.1235);
       expect(roundUp(5.001, 2)).toBe(5.01);
@@ -698,17 +698,17 @@ describe('polymarket utils', () => {
       });
     });
 
-    it('should calculate buy market price', async () => {
+    it('calculate buy market price', async () => {
       const result = await calculateMarketPrice('test-token', Side.BUY, 100);
       expect(result).toBe(0.6);
     });
 
-    it('should calculate sell market price', async () => {
+    it('calculate sell market price', async () => {
       const result = await calculateMarketPrice('test-token', Side.SELL, 100);
       expect(result).toBe(0.45); // Price where cumulative size reaches amount
     });
 
-    it('should throw error for missing asks on buy', async () => {
+    it('throw error for missing asks on buy', async () => {
       const orderBookWithoutAsks = { bids: mockOrderBook.bids };
       mockFetch.mockResolvedValue({
         ok: true,
@@ -720,7 +720,7 @@ describe('polymarket utils', () => {
       ).rejects.toThrow('no match');
     });
 
-    it('should throw error for missing bids on sell', async () => {
+    it('throw error for missing bids on sell', async () => {
       const orderBookWithoutBids = { asks: mockOrderBook.asks };
       mockFetch.mockResolvedValue({
         ok: true,
@@ -732,7 +732,7 @@ describe('polymarket utils', () => {
       ).rejects.toThrow('no match');
     });
 
-    it('should throw error for missing orderbook', async () => {
+    it('throw error for missing orderbook', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue(null),
@@ -743,7 +743,7 @@ describe('polymarket utils', () => {
       ).rejects.toThrow('no orderbook');
     });
 
-    it('should use default order type', async () => {
+    it('use default order type', async () => {
       const result = await calculateMarketPrice('test-token', Side.BUY, 100);
       expect(result).toBe(0.6);
     });
@@ -756,7 +756,7 @@ describe('polymarket utils', () => {
       amount: 4,
     };
 
-    it('should calculate BUY order amounts correctly', () => {
+    it('calculate BUY order amounts correctly', () => {
       const result = getMarketOrderRawAmounts(Side.BUY, 100, 0.5, roundConfig);
 
       expect(result.side).toBe(UtilsSide.BUY);
@@ -764,7 +764,7 @@ describe('polymarket utils', () => {
       expect(result.rawTakerAmt).toBe(200); // 100 / 0.5 - shares to receive
     });
 
-    it('should calculate SELL order amounts correctly', () => {
+    it('calculate SELL order amounts correctly', () => {
       const result = getMarketOrderRawAmounts(Side.SELL, 100, 0.5, roundConfig);
 
       expect(result.side).toBe(UtilsSide.SELL);
@@ -772,7 +772,7 @@ describe('polymarket utils', () => {
       expect(result.rawTakerAmt).toBe(50); // 100 * 0.5
     });
 
-    it('should handle decimal precision for BUY orders', () => {
+    it('handle decimal precision for BUY orders', () => {
       const result = getMarketOrderRawAmounts(
         Side.BUY,
         100.123456789,
@@ -784,7 +784,7 @@ describe('polymarket utils', () => {
       expect(result.rawTakerAmt).toBe(200.24); // roundDown(200.24, 4) after roundUp to 4 decimals
     });
 
-    it('should handle decimal precision for SELL orders', () => {
+    it('handle decimal precision for SELL orders', () => {
       const result = getMarketOrderRawAmounts(
         Side.SELL,
         100.123456789,
@@ -798,7 +798,7 @@ describe('polymarket utils', () => {
   });
 
   describe('generateSalt', () => {
-    it('should generate a valid hex salt', () => {
+    it('generate a valid hex salt', () => {
       const salt = generateSalt();
       expect(typeof salt).toBe('string');
       expect(salt.startsWith('0x')).toBe(true);
@@ -807,7 +807,7 @@ describe('polymarket utils', () => {
       expect(() => parseInt(salt.slice(2), 16)).not.toThrow();
     });
 
-    it('should generate different salts on multiple calls', () => {
+    it('generate different salts on multiple calls', () => {
       const salt1 = generateSalt();
       const salt2 = generateSalt();
       expect(salt1).not.toBe(salt2);
@@ -828,7 +828,7 @@ describe('polymarket utils', () => {
       price: 0.5,
     };
 
-    it('should build order creation args correctly', async () => {
+    it('build order creation args correctly', async () => {
       const result = await buildMarketOrderCreationArgs({
         signer: mockAddress,
         maker: mockAddress,
@@ -853,7 +853,7 @@ describe('polymarket utils', () => {
       });
     });
 
-    it('should handle custom taker address', async () => {
+    it('handle custom taker address', async () => {
       const customTaker = '0x1111111111111111111111111111111111111111';
       const result = await buildMarketOrderCreationArgs({
         signer: mockAddress,
@@ -866,7 +866,7 @@ describe('polymarket utils', () => {
       expect(result.taker).toBe(customTaker);
     });
 
-    it('should handle custom fee rate', async () => {
+    it('handle custom fee rate', async () => {
       const result = await buildMarketOrderCreationArgs({
         signer: mockAddress,
         maker: mockAddress,
@@ -878,7 +878,7 @@ describe('polymarket utils', () => {
       expect(result.feeRateBps).toBe('50');
     });
 
-    it('should handle custom nonce', async () => {
+    it('handle custom nonce', async () => {
       const result = await buildMarketOrderCreationArgs({
         signer: mockAddress,
         maker: mockAddress,
@@ -890,7 +890,7 @@ describe('polymarket utils', () => {
       expect(result.nonce).toBe('123');
     });
 
-    it('should handle undefined price (market order)', async () => {
+    it('handle undefined price (market order)', async () => {
       const marketOrder = { ...userMarketOrder, price: undefined };
       const result = await buildMarketOrderCreationArgs({
         signer: mockAddress,
@@ -906,12 +906,12 @@ describe('polymarket utils', () => {
   });
 
   describe('getContractConfig', () => {
-    it('should return Polygon mainnet contracts', () => {
+    it('return Polygon mainnet contracts', () => {
       const config = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
       expect(config).toEqual(MATIC_CONTRACTS);
     });
 
-    it('should throw error for unsupported chain', () => {
+    it('throw error for unsupported chain', () => {
       expect(() => getContractConfig(999)).toThrow(
         'MetaMask Predict is only supported on Polygon mainnet',
       );
@@ -934,7 +934,7 @@ describe('polymarket utils', () => {
       signatureType: SignatureType.EOA,
     };
 
-    it('should generate correct typed data structure', () => {
+    it('generate correct typed data structure', () => {
       const result = getOrderTypedData({
         order: orderData,
         chainId: POLYGON_MAINNET_CHAIN_ID,
@@ -973,7 +973,7 @@ describe('polymarket utils', () => {
   });
 
   describe('encodeApprove', () => {
-    it('should encode approve function call correctly', () => {
+    it('encode approve function call correctly', () => {
       const spender = '0x1234567890123456789012345678901234567890';
       const amount = BigInt(1000000);
 
@@ -985,7 +985,7 @@ describe('polymarket utils', () => {
       expect(() => parseInt(result.slice(2), 16)).not.toThrow();
     });
 
-    it('should handle string amounts', () => {
+    it('handle string amounts', () => {
       const spender = '0x1234567890123456789012345678901234567890';
       const amount = '1000000';
 
@@ -1038,7 +1038,7 @@ describe('polymarket utils', () => {
       });
     });
 
-    it('should submit CLOB order successfully', async () => {
+    it('submit CLOB order successfully', async () => {
       const result = await submitClobOrder({
         headers: mockHeaders,
         clobOrder: mockClobOrder,
@@ -1055,7 +1055,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle fetch errors', async () => {
+    it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
@@ -1099,7 +1099,7 @@ describe('polymarket utils', () => {
       ],
     };
 
-    it('should parse events correctly', () => {
+    it('parse events correctly', () => {
       const result = parsePolymarketEvents([mockEvent], mockCategory);
 
       expect(result).toHaveLength(1);
@@ -1142,7 +1142,7 @@ describe('polymarket utils', () => {
       });
     });
 
-    it('should handle closed events', () => {
+    it('handle closed events', () => {
       const closedEvent = {
         ...mockEvent,
         closed: true,
@@ -1159,7 +1159,7 @@ describe('polymarket utils', () => {
       expect(result[0].outcomes[0].status).toBe('closed');
     });
 
-    it('should handle null clobTokenIds', () => {
+    it('handle null clobTokenIds', () => {
       const eventWithNullTokens = {
         ...mockEvent,
         markets: [
@@ -1177,7 +1177,7 @@ describe('polymarket utils', () => {
       expect(result[0].outcomes[0].tokens).toEqual([]);
     });
 
-    it('should use market image when icon is not available', () => {
+    it('use market image when icon is not available', () => {
       const eventWithoutIcon = {
         ...mockEvent,
         markets: [
@@ -1236,7 +1236,7 @@ describe('polymarket utils', () => {
       },
     ];
 
-    it('should parse positions correctly', () => {
+    it('parse positions correctly', () => {
       const result = parsePolymarketPositions({ positions: mockPositions });
 
       expect(result).toHaveLength(2);
@@ -1265,7 +1265,7 @@ describe('polymarket utils', () => {
       });
     });
 
-    it('should handle empty positions array', () => {
+    it('handle empty positions array', () => {
       const result = parsePolymarketPositions({ positions: [] });
 
       expect(result).toEqual([]);
@@ -1301,7 +1301,7 @@ describe('polymarket utils', () => {
       ],
     };
 
-    it('should fetch markets without search parameters', async () => {
+    it('fetch markets without search parameters', async () => {
       const mockResponse = {
         data: [mockEvent],
       };
@@ -1320,7 +1320,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should fetch markets with search query', async () => {
+    it('fetch markets with search query', async () => {
       const mockResponse = {
         events: [mockEvent],
       };
@@ -1346,7 +1346,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle different categories', async () => {
+    it('handle different categories', async () => {
       const mockResponse = {
         data: [mockEvent],
       };
@@ -1369,7 +1369,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should return empty array for invalid response', async () => {
+    it('return empty array for invalid response', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         json: jest.fn().mockResolvedValue({}),
@@ -1380,7 +1380,7 @@ describe('polymarket utils', () => {
       expect(result).toEqual([]);
     });
 
-    it('should handle fetch errors', async () => {
+    it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 
@@ -1408,7 +1408,7 @@ describe('polymarket utils', () => {
       status: 'open',
     };
 
-    it('should fetch single market successfully', async () => {
+    it('fetch single market successfully', async () => {
       const mockResponse = [mockMarket];
 
       mockFetch.mockResolvedValue({
@@ -1426,7 +1426,7 @@ describe('polymarket utils', () => {
       );
     });
 
-    it('should handle fetch errors', async () => {
+    it('handle fetch errors', async () => {
       const error = new Error('Network error');
       mockFetch.mockRejectedValue(error);
 

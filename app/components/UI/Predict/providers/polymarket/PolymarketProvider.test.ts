@@ -315,7 +315,10 @@ describe('PolymarketProvider', () => {
       originalFetch;
   });
 
-  describe('prepareOrder', () => {
+  // Helper function to setup order test environment
+  function setupOrderTest() {
+    jest.clearAllMocks();
+
     const mockAddress = '0x1234567890123456789012345678901234567890';
     const mockSigner = {
       address: mockAddress,
@@ -361,72 +364,80 @@ describe('PolymarketProvider', () => {
       endDate: '2025-01-01T00:00:00Z',
     };
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-
-      // Setup default mocks
-      mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
-      mockSignTypedMessage.mockResolvedValue('0xsignature');
-      mockCreateApiKey.mockResolvedValue({
-        apiKey: 'test-api-key',
-        secret: 'test-secret',
-        passphrase: 'test-passphrase',
-      });
-
-      mockGetTickSize.mockResolvedValue({
-        minimum_tick_size: '0.01',
-      });
-      mockCalculateMarketPrice.mockResolvedValue(0.5);
-      mockPriceValid.mockReturnValue(true);
-
-      // Mock market data with valid JSON strings for fields that get parsed
-      mockGetMarketFromPolymarketApi.mockResolvedValue({
-        id: 'outcome-456',
-        conditionId: 'outcome-456',
-        negRisk: false,
-        clobTokenIds: '["token1", "token2"]', // Valid JSON string
-        outcomes: '["YES", "NO"]', // Valid JSON string
-        outcomePrices: '["0.5", "0.5"]', // Valid JSON string
-      });
-
-      mockBuildMarketOrderCreationArgs.mockReturnValue({
-        makerAmount: '1000000',
-        signature: '',
-        salt: '12345',
-        maker: mockAddress,
-        taker: '0x0000000000000000000000000000000000000000',
-        price: '500000000000000000',
-        size: '1000000',
-        side: 0,
-        orderType: 'FOK',
-      });
-
-      mockEncodeApprove.mockReturnValue('0xencoded');
-
-      mockGetContractConfig.mockReturnValue({
-        exchange: '0x1234567890123456789012345678901234567890',
-        negRiskExchange: '0x0987654321098765432109876543210987654321',
-        collateral: '0xCollateralAddress',
-      });
-
-      mockGetOrderTypedData.mockReturnValue({
-        types: {},
-        primaryType: 'Order',
-        domain: {},
-        message: {},
-      });
-
-      mockGetL2Headers.mockReturnValue({
-        POLY_ADDRESS: 'address',
-        POLY_SIGNATURE: 'signature',
-        POLY_TIMESTAMP: 'timestamp',
-        POLY_API_KEY: 'apiKey',
-        POLY_PASSPHRASE: 'passphrase',
-      });
+    // Setup default mocks
+    mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+    mockSignTypedMessage.mockResolvedValue('0xsignature');
+    mockCreateApiKey.mockResolvedValue({
+      apiKey: 'test-api-key',
+      secret: 'test-secret',
+      passphrase: 'test-passphrase',
     });
 
+    mockGetTickSize.mockResolvedValue({
+      minimum_tick_size: '0.01',
+    });
+    mockCalculateMarketPrice.mockResolvedValue(0.5);
+    mockPriceValid.mockReturnValue(true);
+
+    // Mock market data with valid JSON strings for fields that get parsed
+    mockGetMarketFromPolymarketApi.mockResolvedValue({
+      id: 'outcome-456',
+      conditionId: 'outcome-456',
+      negRisk: false,
+      clobTokenIds: '["token1", "token2"]', // Valid JSON string
+      outcomes: '["YES", "NO"]', // Valid JSON string
+      outcomePrices: '["0.5", "0.5"]', // Valid JSON string
+    });
+
+    mockBuildMarketOrderCreationArgs.mockReturnValue({
+      makerAmount: '1000000',
+      signature: '',
+      salt: '12345',
+      maker: mockAddress,
+      taker: '0x0000000000000000000000000000000000000000',
+      price: '500000000000000000',
+      size: '1000000',
+      side: 0,
+      orderType: 'FOK',
+    });
+
+    mockEncodeApprove.mockReturnValue('0xencoded');
+
+    mockGetContractConfig.mockReturnValue({
+      exchange: '0x1234567890123456789012345678901234567890',
+      negRiskExchange: '0x0987654321098765432109876543210987654321',
+      collateral: '0xCollateralAddress',
+    });
+
+    mockGetOrderTypedData.mockReturnValue({
+      types: {},
+      primaryType: 'Order',
+      domain: {},
+      message: {},
+    });
+
+    mockGetL2Headers.mockReturnValue({
+      POLY_ADDRESS: 'address',
+      POLY_SIGNATURE: 'signature',
+      POLY_TIMESTAMP: 'timestamp',
+      POLY_API_KEY: 'apiKey',
+      POLY_PASSPHRASE: 'passphrase',
+    });
+
+    // Apply any overrides to mocks if needed
+
+    return {
+      provider: createProvider(),
+      mockAddress,
+      mockSigner,
+      mockMarket,
+      mockPosition,
+    };
+  }
+
+  describe('prepareOrder', () => {
     it('successfully prepares a buy order and returns correct result', async () => {
-      const provider = createProvider();
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
       const orderParams: BuyOrderParams = {
         signer: mockSigner,
         market: mockMarket,
@@ -455,7 +466,7 @@ describe('PolymarketProvider', () => {
     });
 
     it('calls all required utility functions with correct parameters for buy order', async () => {
-      const provider = createProvider();
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
       const orderParams: BuyOrderParams = {
         signer: mockSigner,
         market: mockMarket,
@@ -476,9 +487,9 @@ describe('PolymarketProvider', () => {
     });
 
     it('throws error when price is invalid', async () => {
-      mockPriceValid.mockReturnValue(false);
+      const { provider, mockSigner, mockMarket } = setupOrderTest();
 
-      const provider = createProvider();
+      mockPriceValid.mockReturnValue(false);
       const orderParams: BuyOrderParams = {
         signer: mockSigner,
         market: mockMarket,
@@ -493,7 +504,7 @@ describe('PolymarketProvider', () => {
     });
 
     it('successfully prepares a sell order and returns correct result', async () => {
-      const provider = createProvider();
+      const { provider, mockSigner, mockPosition } = setupOrderTest();
       const orderParams: SellOrderParams = {
         signer: mockSigner,
         position: mockPosition,
@@ -519,7 +530,7 @@ describe('PolymarketProvider', () => {
     });
 
     it('calls all required utility functions with correct parameters for sell order', async () => {
-      const provider = createProvider();
+      const { provider, mockSigner, mockPosition } = setupOrderTest();
       const orderParams: SellOrderParams = {
         signer: mockSigner,
         position: mockPosition,
@@ -568,7 +579,7 @@ describe('PolymarketProvider', () => {
   });
 
   describe('submitOffchainTrade', () => {
-    beforeEach(() => {
+    function setupSubmitOffchainTradeTest() {
       jest.clearAllMocks();
       mockSubmitClobOrder.mockResolvedValue({
         success: true,
@@ -579,10 +590,11 @@ describe('PolymarketProvider', () => {
         takingAmount: '0',
         transactionsHashes: [],
       });
-    });
+      return { provider: createProvider() };
+    }
 
     it('successfully submits offchain trade', async () => {
-      const provider = createProvider();
+      const { provider } = setupSubmitOffchainTradeTest();
       const offchainTradeParams: OffchainTradeParams = {
         clobOrder: {
           order: {
@@ -624,12 +636,12 @@ describe('PolymarketProvider', () => {
     });
 
     it('handles submission failure', async () => {
+      const { provider } = setupSubmitOffchainTradeTest();
+
       mockSubmitClobOrder.mockResolvedValue({
         success: false,
         errorMsg: 'Submission failed',
       });
-
-      const provider = createProvider();
       const offchainTradeParams: OffchainTradeParams = {
         clobOrder: {
           order: {
@@ -667,16 +679,17 @@ describe('PolymarketProvider', () => {
   describe('isEligible', () => {
     const originalFetch = globalThis.fetch;
 
-    beforeEach(() => {
+    function setupIsEligibleTest() {
       jest.clearAllMocks();
-    });
+      return { provider: createProvider() };
+    }
 
     afterEach(() => {
       globalThis.fetch = originalFetch;
     });
 
     it('returns true when user is not geoblocked', async () => {
-      const provider = createProvider();
+      const { provider } = setupIsEligibleTest();
       const mockResponse = {
         json: jest.fn().mockResolvedValue({ blocked: false }),
       };
@@ -691,7 +704,7 @@ describe('PolymarketProvider', () => {
     });
 
     it('returns false when user is geoblocked', async () => {
-      const provider = createProvider();
+      const { provider } = setupIsEligibleTest();
       const mockResponse = {
         json: jest.fn().mockResolvedValue({ blocked: true }),
       };
@@ -706,7 +719,7 @@ describe('PolymarketProvider', () => {
     });
 
     it('returns false when API response does not contain blocked field', async () => {
-      const provider = createProvider();
+      const { provider } = setupIsEligibleTest();
       const mockResponse = {
         json: jest.fn().mockResolvedValue({}),
       };
@@ -721,7 +734,7 @@ describe('PolymarketProvider', () => {
     });
 
     it('returns false when API response blocked field is undefined', async () => {
-      const provider = createProvider();
+      const { provider } = setupIsEligibleTest();
       const mockResponse = {
         json: jest.fn().mockResolvedValue({ blocked: undefined }),
       };
@@ -736,7 +749,7 @@ describe('PolymarketProvider', () => {
     });
 
     it('returns false when fetch request fails', async () => {
-      const provider = createProvider();
+      const { provider } = setupIsEligibleTest();
       globalThis.fetch = jest
         .fn()
         .mockRejectedValue(new Error('Network error'));

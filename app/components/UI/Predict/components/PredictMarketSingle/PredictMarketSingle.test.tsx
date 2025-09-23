@@ -85,7 +85,7 @@ describe('PredictMarketSingle', () => {
     mockPlaceBuyOrder.mockClear();
   });
 
-  it('should render market information correctly', () => {
+  it('render market information correctly', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSingle market={mockMarket} />,
       { state: initialState },
@@ -99,7 +99,7 @@ describe('PredictMarketSingle', () => {
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('should call placeBuyOrder when buttons are pressed', () => {
+  it('call placeBuyOrder when buttons are pressed', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSingle market={mockMarket} />,
       { state: initialState },
@@ -125,7 +125,7 @@ describe('PredictMarketSingle', () => {
     });
   });
 
-  it('should handle missing or invalid market data gracefully', () => {
+  it('handle missing or invalid market data gracefully', () => {
     const invalidOutcome: PredictOutcome = {
       ...mockOutcome,
       title: null as unknown as string, // This should trigger "Unknown Market"

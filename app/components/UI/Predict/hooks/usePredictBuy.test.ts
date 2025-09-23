@@ -2,17 +2,25 @@ import { renderHook, act } from '@testing-library/react-native';
 import { usePredictBuy } from './usePredictBuy';
 import { Recurrence } from '../types';
 
-// Mock redux state container that tests can mutate between runs
+// Factory function to create mock state
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockState: any = {
-  engine: {
-    backgroundState: {
-      PredictController: {
-        activeOrders: {},
+function createMockState(overrides: any = {}): any {
+  return {
+    engine: {
+      backgroundState: {
+        PredictController: {
+          activeOrders: {},
+          ...overrides.PredictController,
+        },
+        ...overrides,
       },
     },
-  },
-};
+  };
+}
+
+// Create initial mock state
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mockState: any = createMockState();
 
 // Mock react-redux useSelector to evaluate selectors against our mock state
 jest.mock('react-redux', () => ({
@@ -28,8 +36,16 @@ jest.mock('./usePredictTrading', () => ({
   }),
 }));
 
-describe('usePredictBuy', () => {
-  const mockMarket = {
+// Helper function to setup test with mock state
+function setupUsePredictBuyTest(stateOverrides = {}, hookOptions = {}) {
+  jest.clearAllMocks();
+  mockState = createMockState(stateOverrides);
+  return renderHook(() => usePredictBuy(hookOptions));
+}
+
+// Helper function to create mock market
+function createMockMarket(overrides = {}) {
+  return {
     id: 'market-1',
     providerId: 'provider-123',
     slug: 'test-market',
@@ -40,24 +56,14 @@ describe('usePredictBuy', () => {
     recurrence: Recurrence.NONE,
     categories: [],
     outcomes: [],
+    ...overrides,
   };
+}
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockState = {
-      engine: {
-        backgroundState: {
-          PredictController: {
-            activeOrders: {},
-          },
-        },
-      },
-    };
-  });
-
+describe('usePredictBuy', () => {
   describe('initial state', () => {
     it('returns initial state correctly', () => {
-      const { result } = renderHook(() => usePredictBuy());
+      const { result } = setupUsePredictBuyTest();
 
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeUndefined();
@@ -71,7 +77,7 @@ describe('usePredictBuy', () => {
 
   describe('placeOrder', () => {
     const mockOrderParams = {
-      market: mockMarket,
+      market: createMockMarket(),
       outcomeId: 'outcome-456',
       outcomeTokenId: 'outcome-token-789',
       size: 100,
@@ -85,14 +91,14 @@ describe('usePredictBuy', () => {
     it('places order successfully and updates state', async () => {
       mockBuy.mockResolvedValue(mockOrderResult);
 
-      const { result } = renderHook(() => usePredictBuy());
+      const { result } = setupUsePredictBuyTest();
 
       await act(async () => {
         await result.current.placeBuyOrder(mockOrderParams);
       });
 
       expect(mockBuy).toHaveBeenCalledWith({
-        market: mockMarket,
+        market: createMockMarket(),
         outcomeId: 'outcome-456',
         outcomeTokenId: 'outcome-token-789',
         size: 100,
@@ -107,14 +113,14 @@ describe('usePredictBuy', () => {
       const mockError = new Error('Failed to place order');
       mockBuy.mockRejectedValue(mockError);
 
-      const { result } = renderHook(() => usePredictBuy());
+      const { result } = setupUsePredictBuyTest();
 
       await act(async () => {
         await result.current.placeBuyOrder(mockOrderParams);
       });
 
       expect(mockBuy).toHaveBeenCalledWith({
-        market: mockMarket,
+        market: createMockMarket(),
         outcomeId: 'outcome-456',
         outcomeTokenId: 'outcome-token-789',
         size: 100,
@@ -128,7 +134,7 @@ describe('usePredictBuy', () => {
     it('handles non-Error objects thrown from placeOrder', async () => {
       mockBuy.mockRejectedValue('String error');
 
-      const { result } = renderHook(() => usePredictBuy());
+      const { result } = setupUsePredictBuyTest();
 
       await act(async () => {
         await result.current.placeBuyOrder(mockOrderParams);
@@ -139,7 +145,7 @@ describe('usePredictBuy', () => {
     });
 
     it('clears previous error when starting new order', async () => {
-      const { result } = renderHook(() => usePredictBuy());
+      const { result } = setupUsePredictBuyTest();
 
       // First, set an error state
       mockBuy.mockRejectedValueOnce(new Error('First error'));
@@ -165,7 +171,7 @@ describe('usePredictBuy', () => {
 
   describe('callbacks', () => {
     const mockOrderParams = {
-      market: mockMarket,
+      market: createMockMarket(),
       outcomeId: 'outcome-456',
       outcomeTokenId: 'outcome-token-789',
       size: 100,
@@ -225,7 +231,7 @@ describe('usePredictBuy', () => {
 
   describe('reset', () => {
     it('resets all state to initial values', async () => {
-      const { result } = renderHook(() => usePredictBuy());
+      const { result } = setupUsePredictBuyTest();
 
       // Set some state
       mockBuy.mockResolvedValue({
@@ -235,7 +241,7 @@ describe('usePredictBuy', () => {
 
       await act(async () => {
         await result.current.placeBuyOrder({
-          market: mockMarket,
+          market: createMockMarket(),
           outcomeId: 'test',
           outcomeTokenId: 'test-token',
           size: 100,
@@ -261,7 +267,7 @@ describe('usePredictBuy', () => {
 
   describe('hook stability', () => {
     it('returns stable function references', () => {
-      const { result, rerender } = renderHook(() => usePredictBuy());
+      const { result, rerender } = setupUsePredictBuyTest();
 
       const initialPlaceOrder = result.current.placeBuyOrder;
       const initialReset = result.current.reset;

@@ -75,7 +75,7 @@ describe('PredictMarket', () => {
     mockPlaceBuyOrder.mockClear();
   });
 
-  it('should render market information correctly', () => {
+  it('render market information correctly', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketMultiple market={mockMarket} />,
       { state: initialState },
@@ -90,7 +90,7 @@ describe('PredictMarket', () => {
     expect(getByText(/\$1M.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('should call placeBuyOrder when buttons are pressed', () => {
+  it('call placeBuyOrder when buttons are pressed', () => {
     const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictMarketMultiple market={mockMarket} />,
       { state: initialState },
@@ -115,7 +115,7 @@ describe('PredictMarket', () => {
     });
   });
 
-  it('should handle missing or invalid market data gracefully', () => {
+  it('handle missing or invalid market data gracefully', () => {
     const marketWithMissingData: PredictMarket = {
       ...mockMarket,
       outcomes: [
@@ -142,7 +142,7 @@ describe('PredictMarket', () => {
     expect(getByText(/\$0.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('should handle multiple outcomes correctly', () => {
+  it('handle multiple outcomes correctly', () => {
     const marketWithMultipleOutcomes: PredictMarket = {
       ...mockMarket,
       outcomes: [

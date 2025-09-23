@@ -122,8 +122,9 @@ jest.mock('react-native', () => {
   };
 });
 
-describe('MarketsWonCard', () => {
-  const mockPositions: PredictPositionType[] = [
+// Helper function to create mock positions
+function createMockPositions(): PredictPositionType[] {
+  return [
     {
       conditionId: 'condition-1',
       outcomeIndex: 0,
@@ -141,39 +142,53 @@ describe('MarketsWonCard', () => {
       icon: 'https://example.com/icon3.png',
     } as PredictPositionType,
   ];
+}
 
-  const defaultProps = {
-    positions: mockPositions,
+// Helper function to create default props
+function createDefaultProps() {
+  return {
+    positions: createMockPositions(),
     numberOfMarketsWon: 2,
     totalClaimableAmount: 45.2,
     unrealizedAmount: 8.63,
     unrealizedPercent: 3.9,
     onClaimPress: jest.fn(),
   };
+}
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+// Helper function to set up test environment
+function setupMarketsWonCardTest(propsOverrides = {}) {
+  jest.clearAllMocks();
+  const defaultProps = createDefaultProps();
+  const props = {
+    ...defaultProps,
+    ...propsOverrides,
+  };
+  return {
+    ...renderWithProvider(<MarketsWonCard {...props} />),
+    props,
+    defaultProps,
+  };
+}
 
+describe('MarketsWonCard', () => {
   describe('Component Rendering', () => {
     it('renders the component with won markets row when numberOfMarketsWon is provided', () => {
-      renderWithProvider(<MarketsWonCard {...defaultProps} />);
+      setupMarketsWonCardTest();
 
       expect(screen.getByText('Won 2 markets')).toBeOnTheScreen();
       expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
     });
 
     it('renders singular form when numberOfMarketsWon is 1', () => {
-      renderWithProvider(
-        <MarketsWonCard {...defaultProps} numberOfMarketsWon={1} />,
-      );
+      setupMarketsWonCardTest({ numberOfMarketsWon: 1 });
 
       expect(screen.getByText('Won 1 market')).toBeOnTheScreen();
     });
 
     it('renders plural form when numberOfMarketsWon is greater than 1', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} numberOfMarketsWon={5} />,
+        <MarketsWonCard {...createDefaultProps()} numberOfMarketsWon={5} />,
       );
 
       expect(screen.getByText('Won 5 markets')).toBeOnTheScreen();
@@ -181,7 +196,7 @@ describe('MarketsWonCard', () => {
 
     it('does not show won markets row when numberOfMarketsWon is 0', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} numberOfMarketsWon={0} />,
+        <MarketsWonCard {...createDefaultProps()} numberOfMarketsWon={0} />,
       );
 
       expect(screen.queryByText('Won 0 markets')).not.toBeOnTheScreen();
@@ -189,14 +204,14 @@ describe('MarketsWonCard', () => {
     });
 
     it('renders the unrealized P&L row always', () => {
-      renderWithProvider(<MarketsWonCard {...defaultProps} />);
+      renderWithProvider(<MarketsWonCard {...createDefaultProps()} />);
 
       expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
       expect(screen.getByText('+$8.63 (+3.9%)')).toBeOnTheScreen();
     });
 
     it('does not show won markets row when numberOfMarketsWon is undefined', () => {
-      const { numberOfMarketsWon, ...propsWithoutWon } = defaultProps;
+      const { numberOfMarketsWon, ...propsWithoutWon } = createDefaultProps();
       renderWithProvider(<MarketsWonCard {...propsWithoutWon} />);
 
       expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
@@ -204,13 +219,13 @@ describe('MarketsWonCard', () => {
     });
 
     it('shows claim button only when totalClaimableAmount and onClaimPress are provided', () => {
-      renderWithProvider(<MarketsWonCard {...defaultProps} />);
+      renderWithProvider(<MarketsWonCard {...createDefaultProps()} />);
 
       expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
     });
 
     it('does not show claim button when onClaimPress is not provided', () => {
-      const { onClaimPress, ...propsWithoutCallback } = defaultProps;
+      const { onClaimPress, ...propsWithoutCallback } = createDefaultProps();
       renderWithProvider(<MarketsWonCard {...propsWithoutCallback} />);
 
       expect(screen.queryByText('Claim $45.20')).not.toBeOnTheScreen();
@@ -221,7 +236,7 @@ describe('MarketsWonCard', () => {
     it('formats unrealized amount with correct sign and decimal places', () => {
       renderWithProvider(
         <MarketsWonCard
-          {...defaultProps}
+          {...createDefaultProps()}
           unrealizedAmount={123.456}
           unrealizedPercent={5.67}
         />,
@@ -233,7 +248,7 @@ describe('MarketsWonCard', () => {
     it('formats negative unrealized amount correctly', () => {
       renderWithProvider(
         <MarketsWonCard
-          {...defaultProps}
+          {...createDefaultProps()}
           unrealizedAmount={-50.25}
           unrealizedPercent={-2.1}
         />,
@@ -245,7 +260,7 @@ describe('MarketsWonCard', () => {
     it('handles zero unrealized amount correctly', () => {
       renderWithProvider(
         <MarketsWonCard
-          {...defaultProps}
+          {...createDefaultProps()}
           unrealizedAmount={0}
           unrealizedPercent={0}
         />,
@@ -256,7 +271,10 @@ describe('MarketsWonCard', () => {
 
     it('formats claimable amount to 2 decimal places', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} totalClaimableAmount={123.456} />,
+        <MarketsWonCard
+          {...createDefaultProps()}
+          totalClaimableAmount={123.456}
+        />,
       );
 
       expect(screen.getByText('Claim $123.46')).toBeOnTheScreen();
@@ -264,7 +282,7 @@ describe('MarketsWonCard', () => {
 
     it('handles zero claimable amount correctly', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} totalClaimableAmount={0} />,
+        <MarketsWonCard {...createDefaultProps()} totalClaimableAmount={0} />,
       );
 
       expect(screen.getByText('Claim $0.00')).toBeOnTheScreen();
@@ -274,7 +292,7 @@ describe('MarketsWonCard', () => {
   describe('Conditional Rendering Logic', () => {
     it('shows won markets row when numberOfMarketsWon is greater than 0', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} numberOfMarketsWon={5} />,
+        <MarketsWonCard {...createDefaultProps()} numberOfMarketsWon={5} />,
       );
 
       expect(screen.getByText('Won 5 markets')).toBeOnTheScreen();
@@ -283,7 +301,7 @@ describe('MarketsWonCard', () => {
 
     it('hides won markets row when numberOfMarketsWon is 0', () => {
       renderWithProvider(
-        <MarketsWonCard {...defaultProps} numberOfMarketsWon={0} />,
+        <MarketsWonCard {...createDefaultProps()} numberOfMarketsWon={0} />,
       );
 
       expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
@@ -291,7 +309,7 @@ describe('MarketsWonCard', () => {
     });
 
     it('hides won markets row when numberOfMarketsWon is undefined', () => {
-      const { numberOfMarketsWon, ...propsWithoutWon } = defaultProps;
+      const { numberOfMarketsWon, ...propsWithoutWon } = createDefaultProps();
       renderWithProvider(<MarketsWonCard {...propsWithoutWon} />);
 
       expect(screen.queryByText(/Won \d+ markets/)).not.toBeOnTheScreen();
@@ -312,7 +330,7 @@ describe('MarketsWonCard', () => {
     it('handles very large unrealized amounts', () => {
       renderWithProvider(
         <MarketsWonCard
-          {...defaultProps}
+          {...createDefaultProps()}
           unrealizedAmount={999999.99}
           unrealizedPercent={999.9}
         />,
@@ -324,7 +342,7 @@ describe('MarketsWonCard', () => {
     it('handles very small unrealized amounts', () => {
       renderWithProvider(
         <MarketsWonCard
-          {...defaultProps}
+          {...createDefaultProps()}
           unrealizedAmount={0.01}
           unrealizedPercent={0.1}
         />,

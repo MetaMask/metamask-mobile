@@ -155,14 +155,14 @@ describe('PredictController', () => {
   }
 
   describe('constructor', () => {
-    it('should initialize with default state', () => {
+    it('initializes with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
         expect(controller.state.eligibility).toEqual({});
       });
     });
 
-    it('should initialize with custom state', () => {
+    it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
         eligibility: { polymarket: false },
       };
@@ -175,7 +175,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('should handle provider initialization errors in constructor', () => {
+    it('handles provider initialization errors in constructor', () => {
       // This tests the error handling in initializeProviders() called from constructor
       (PolymarketProvider as any).mockImplementation(() => {
         throw new Error('Provider initialization failed');
@@ -194,7 +194,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('should handle refreshEligibility errors in constructor', () => {
+    it('handles refreshEligibility errors in constructor', () => {
       // Mock isEligible to throw during constructor
       const originalIsEligible = mockPolymarketProvider.isEligible;
       mockPolymarketProvider.isEligible = jest
@@ -212,7 +212,7 @@ describe('PredictController', () => {
       mockPolymarketProvider.isEligible = originalIsEligible;
     });
 
-    it('should subscribe to transaction events in constructor', () => {
+    it('subscribes to transaction events in constructor', () => {
       withController(({ controller }) => {
         // The messenger in our test setup is mocked, so we verify the controller exists
         // and that the subscription setup works without throwing errors
@@ -229,7 +229,7 @@ describe('PredictController', () => {
   });
 
   describe('initialization', () => {
-    it('should clear existing providers before reinitializing', async () => {
+    it('clear existing providers before reinitializing', async () => {
       await withController(async ({ controller }) => {
         // First initialization should have polymarket provider
         expect((controller as any).providers.size).toBe(1);
@@ -252,7 +252,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should prevent double initialization with promise caching', async () => {
+    it('prevent double initialization with promise caching', async () => {
       await withController(async ({ controller }) => {
         // Reset initialization state
         (controller as any).isInitialized = false;
@@ -270,7 +270,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle initialization state correctly', async () => {
+    it('handle initialization state correctly', async () => {
       await withController(async ({ controller }) => {
         // Test that initialization completes successfully
         expect((controller as any).isInitialized).toBe(true);
@@ -280,7 +280,7 @@ describe('PredictController', () => {
   });
 
   describe('markets and positions', () => {
-    it('should get markets successfully', async () => {
+    it('get markets successfully', async () => {
       const mockMarkets = [
         {
           id: 'm1',
@@ -307,7 +307,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle errors when getting markets', async () => {
+    it('handle errors when getting markets', async () => {
       await withController(async ({ controller }) => {
         const errorMessage = 'Network error';
         mockPolymarketProvider.getMarkets.mockRejectedValue(
@@ -321,7 +321,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle errors when getting positions', async () => {
+    it('handle errors when getting positions', async () => {
       await withController(async ({ controller }) => {
         const errorMessage = 'Positions fetch failed';
         mockPolymarketProvider.getPositions.mockRejectedValue(
@@ -352,7 +352,7 @@ describe('PredictController', () => {
       outcomes: [],
     };
 
-    it('should place order via provider, connect if needed, and track active order (polymarket approving)', async () => {
+    it('place order via provider, connect if needed, and track active order (polymarket approving)', async () => {
       const mockTxMeta = { id: 'tx-1' } as any;
       await withController(async ({ controller }) => {
         // Prepare provider transaction data
@@ -414,7 +414,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should set status to approving for buy order', async () => {
+    it('set status to approving for buy order', async () => {
       const mockTxMeta = { id: 'tx-2' } as any;
       await withController(async ({ controller }) => {
         mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
@@ -457,7 +457,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should throw PLACE_ORDER_FAILED if provider returns no result', async () => {
+    it('throw PLACE_ORDER_FAILED if provider returns no result', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.prepareBuyOrder.mockResolvedValue(
           undefined as any,
@@ -475,7 +475,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should place sell order via provider and track active order (polymarket selling)', async () => {
+    it('place sell order via provider and track active order (polymarket selling)', async () => {
       const mockTxMeta = { id: 'sell-tx-1' } as any;
       await withController(async ({ controller }) => {
         const mockPosition = {
@@ -545,7 +545,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle sell order errors', async () => {
+    it('handle sell order errors', async () => {
       await withController(async ({ controller }) => {
         const mockPosition = {
           marketId: 'market-1',
@@ -583,7 +583,7 @@ describe('PredictController', () => {
       outcomes: [],
     };
 
-    it('should handle buy with multiple onchain params using addTransactionBatch', async () => {
+    it('handle buy with multiple onchain params using addTransactionBatch', async () => {
       const mockBatchId = 'batch-buy-123';
       await withController(async ({ controller }) => {
         // Prepare provider transaction data with multiple onchain params
@@ -669,7 +669,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle sell with multiple onchain params using addTransactionBatch', async () => {
+    it('handle sell with multiple onchain params using addTransactionBatch', async () => {
       const mockBatchId = 'batch-sell-123';
       await withController(async ({ controller }) => {
         const mockPosition = {
@@ -753,7 +753,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle batch transaction with NO_ONCHAIN_TRADE_PARAMS error', async () => {
+    it('handle batch transaction with NO_ONCHAIN_TRADE_PARAMS error', async () => {
       await withController(async ({ controller }) => {
         // Return order with empty onchain params
         mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
@@ -787,7 +787,7 @@ describe('PredictController', () => {
   });
 
   describe('transaction event handlers', () => {
-    it('should not modify state on transactionSubmitted for unknown transaction', () => {
+    it('not modify state on transactionSubmitted for unknown transaction', () => {
       withController(({ controller, messenger }) => {
         const initial = { ...controller.state };
         const event = {
@@ -809,7 +809,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should update transaction ID in active order on transactionConfirmed', () => {
+    it('update transaction ID in active order on transactionConfirmed', () => {
       withController(({ controller, messenger }) => {
         // Set up an active order with onchain trade params
         const batchId = 'batch-1';
@@ -868,7 +868,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should set order status to filled when all onchain transactions are confirmed (no offchain trade)', () => {
+    it('set order status to filled when all onchain transactions are confirmed (no offchain trade)', () => {
       withController(({ controller, messenger }) => {
         const batchId = 'batch-2';
         const txData = '0xdeadbeef';
@@ -923,7 +923,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should submit offchain trade when all onchain transactions are confirmed', async () => {
+    it('submit offchain trade when all onchain transactions are confirmed', async () => {
       await withController(async ({ controller, messenger }) => {
         const batchId = 'batch-3';
         const txData = '0xdeadbeef';
@@ -998,7 +998,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should set order status to error when offchain trade fails', async () => {
+    it('set order status to error when offchain trade fails', async () => {
       await withController(async ({ controller, messenger }) => {
         const batchId = 'batch-4';
         const txData = '0xdeadbeef';
@@ -1072,7 +1072,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should set order status to error when transaction not found in onchain params', () => {
+    it('set order status to error when transaction not found in onchain params', () => {
       withController(({ controller, messenger }) => {
         const batchId = 'batch-5';
         controller.updateStateForTesting((state) => {
@@ -1128,7 +1128,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle submitOffchainTrade throwing exception', async () => {
+    it('handle submitOffchainTrade throwing exception', async () => {
       await withController(async ({ controller, messenger }) => {
         const batchId = 'batch-exception';
         const txData = '0xdeadbeef';
@@ -1203,7 +1203,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle provider without submitOffchainTrade method', async () => {
+    it('handle provider without submitOffchainTrade method', async () => {
       await withController(async ({ controller, messenger }) => {
         const batchId = 'batch-no-method';
         const txData = '0xdeadbeef';
@@ -1276,7 +1276,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should set order status to error on transactionFailed', () => {
+    it('set order status to error on transactionFailed', () => {
       withController(({ controller, messenger }) => {
         const batchId = 'batch-6';
         controller.updateStateForTesting((state) => {
@@ -1318,7 +1318,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should not modify state on transactionConfirmed for unknown batchId', () => {
+    it('not modify state on transactionConfirmed for unknown batchId', () => {
       withController(({ controller, messenger }) => {
         const initial = { ...controller.state };
         const event = {
@@ -1341,7 +1341,7 @@ describe('PredictController', () => {
   });
 
   describe('deleteOrderToNotify', () => {
-    it('should remove order from notifications array', () => {
+    it('remove order from notifications array', () => {
       withController(({ controller }) => {
         const orderIdToRemove = 'order-1';
         const orderIdToKeep = 'order-2';
@@ -1367,7 +1367,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle removing order that does not exist', () => {
+    it('handle removing order that does not exist', () => {
       withController(({ controller }) => {
         const initialOrders = [
           { orderId: 'order-1', status: 'filled' },
@@ -1389,7 +1389,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle empty notifications array', () => {
+    it('handle empty notifications array', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
           state.notifications = [];
@@ -1416,7 +1416,7 @@ describe('PredictController', () => {
       outcomes: [],
     };
 
-    it('should throw PROVIDER_NOT_AVAILABLE when provider is missing in buy', async () => {
+    it('throw PROVIDER_NOT_AVAILABLE when provider is missing in buy', async () => {
       await withController(async ({ controller }) => {
         const result = await controller.buy({
           market: mockMarket,
@@ -1431,7 +1431,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should throw PROVIDER_NOT_AVAILABLE when provider is missing in sell', async () => {
+    it('throw PROVIDER_NOT_AVAILABLE when provider is missing in sell', async () => {
       await withController(async ({ controller }) => {
         const mockPosition = {
           marketId: 'market-1',
@@ -1450,7 +1450,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle missing provider in getMarkets', async () => {
+    it('handle missing provider in getMarkets', async () => {
       await withController(async ({ controller }) => {
         await expect(
           controller.getMarkets({
@@ -1461,7 +1461,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle missing provider in getPositions', async () => {
+    it('handle missing provider in getPositions', async () => {
       await withController(async ({ controller }) => {
         await expect(
           controller.getPositions({
@@ -1473,7 +1473,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle missing provider in transaction confirmed handler', () => {
+    it('handle missing provider in transaction confirmed handler', () => {
       withController(({ controller, messenger }) => {
         // Set up an active order with non-existent provider
         const batchId = 'batch-missing-provider';
@@ -1533,7 +1533,7 @@ describe('PredictController', () => {
   });
 
   describe('refreshEligibility', () => {
-    it('should update eligibility for all providers successfully', async () => {
+    it('update eligibility for all providers successfully', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.isEligible.mockResolvedValue(true);
 
@@ -1544,7 +1544,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle provider.isEligible() throwing error', async () => {
+    it('handle provider.isEligible() throwing error', async () => {
       await withController(async ({ controller }) => {
         const errorMessage = 'Eligibility check failed';
         mockPolymarketProvider.isEligible.mockRejectedValue(
@@ -1558,7 +1558,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should default to false when provider eligibility check fails', async () => {
+    it('default to false when provider eligibility check fails', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.isEligible.mockRejectedValue('Non-error object');
 
@@ -1568,7 +1568,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle multiple providers eligibility checks', async () => {
+    it('handle multiple providers eligibility checks', async () => {
       await withController(async ({ controller }) => {
         // Add a second mock provider to the internal providers map
         const mockSecondProvider = {
@@ -1596,7 +1596,7 @@ describe('PredictController', () => {
   });
 
   describe('multiple providers', () => {
-    it('should get markets from multiple providers when no providerId specified', async () => {
+    it('get markets from multiple providers when no providerId specified', async () => {
       await withController(async ({ controller }) => {
         const polymarketMarkets = [
           {
@@ -1646,7 +1646,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should get positions from multiple providers when no providerId specified', async () => {
+    it('get positions from multiple providers when no providerId specified', async () => {
       await withController(async ({ controller }) => {
         const polymarketPositions = [
           {
@@ -1698,7 +1698,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should filter results correctly when provider returns undefined', async () => {
+    it('filter results correctly when provider returns undefined', async () => {
       await withController(async ({ controller }) => {
         const polymarketMarkets = [
           {
@@ -1732,7 +1732,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should use default address from AccountsController in getPositions', async () => {
+    it('use default address from AccountsController in getPositions', async () => {
       await withController(async ({ controller }) => {
         const mockPositions = [
           {
@@ -1757,7 +1757,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should throw error when some providers in list do not exist', async () => {
+    it('throw error when some providers in list do not exist', async () => {
       await withController(async ({ controller }) => {
         await expect(
           controller.getMarkets({
@@ -1769,7 +1769,7 @@ describe('PredictController', () => {
   });
 
   describe('updateStateForTesting', () => {
-    it('should update state using provided updater function', () => {
+    it('update state using provided updater function', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
           state.eligibility = { polymarket: false };
@@ -1782,7 +1782,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle complex state updates', () => {
+    it('handle complex state updates', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
           state.activeOrders = {
@@ -1813,7 +1813,7 @@ describe('PredictController', () => {
   });
 
   describe('performInitialization', () => {
-    it('should initialize providers correctly', async () => {
+    it('initialize providers correctly', async () => {
       await withController(async ({ controller }) => {
         // Reset initialization state to test performInitialization
         (controller as any).isInitialized = false;
@@ -1829,7 +1829,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle provider initialization errors gracefully', async () => {
+    it('handle provider initialization errors gracefully', async () => {
       // Mock PolymarketProvider constructor to throw
       const originalPolymarketProvider = PolymarketProvider;
       (PolymarketProvider as any).mockImplementation(() => {
@@ -1853,7 +1853,7 @@ describe('PredictController', () => {
   });
 
   describe('handleTransactionSubmitted', () => {
-    it('should handle transaction submitted event without crashing', () => {
+    it('handle transaction submitted event without crashing', () => {
       withController(({ controller: _controller, messenger }) => {
         const event = {
           transactionMeta: {
@@ -1875,7 +1875,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('should handle transaction submitted for existing active order', () => {
+    it('handle transaction submitted for existing active order', () => {
       withController(({ controller, messenger }) => {
         const batchId = 'batch-1';
         const txId = 'tx1';
