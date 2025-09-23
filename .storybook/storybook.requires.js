@@ -128,6 +128,8 @@ const getStories = () => {
     "./app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx": require("../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx"),
     "./app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx"),
     "./app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx"),
+    "./app/components/Views/MultichainAccounts/MultichainAccountsConnectedList/MultichainAccountsConnectedList.stories.tsx": require("../app/components/Views/MultichainAccounts/MultichainAccountsConnectedList/MultichainAccountsConnectedList.stories.tsx"),
+    "./app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary.stories.tsx": require("../app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary.stories.tsx"),
     "./app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx": require("../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx"),
   };
 };

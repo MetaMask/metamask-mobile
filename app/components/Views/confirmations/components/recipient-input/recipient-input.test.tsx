@@ -2,8 +2,28 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { RecipientInput } from './recipient-input';
 import ClipboardManager from '../../../../../core/ClipboardManager';
+import { useSendContext } from '../../context/send-context/send-context';
+import { useToAddressValidation } from '../../hooks/send/useToAddressValidation';
+import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
+import { useSendActions } from '../../hooks/send/useSendActions';
+import { RecipientInput } from './recipient-input';
+
+jest.mock('../../context/send-context/send-context', () => ({
+  useSendContext: jest.fn(),
+}));
+
+jest.mock('../../hooks/send/useToAddressValidation', () => ({
+  useToAddressValidation: jest.fn(),
+}));
+
+jest.mock('../../hooks/send/metrics/useRecipientSelectionMetrics', () => ({
+  useRecipientSelectionMetrics: jest.fn(),
+}));
+
+jest.mock('../../hooks/send/useSendActions', () => ({
+  useSendActions: jest.fn(),
+}));
 
 jest.mock('../../../../../core/ClipboardManager', () => ({
   getString: jest.fn(),
@@ -21,15 +41,64 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+const noop = () => undefined;
+
 const mockClipboardManager = jest.mocked(ClipboardManager);
+const mockUseSendContext = jest.mocked(useSendContext);
+const mockUseToAddressValidation = jest.mocked(useToAddressValidation);
+const mockUseRecipientSelectionMetrics = jest.mocked(
+  useRecipientSelectionMetrics,
+);
+const mockUseSendActions = jest.mocked(useSendActions);
 
 describe('RecipientInput', () => {
-  const mockOnChangeText = jest.fn();
+  const mockUpdateTo = jest.fn();
+  const mockValidateToAddress = jest.fn();
+  const mockSetRecipientInputMethodPasted = jest.fn();
+  const mockSetRecipientInputMethodManual = jest.fn();
+  const mockCaptureRecipientSelected = jest.fn();
+  const mockHandleSubmitPress = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+
+    mockUseSendContext.mockReturnValue({
+      to: '',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseRecipientSelectionMetrics.mockReturnValue({
+      captureRecipientSelected: mockCaptureRecipientSelected,
+      setRecipientInputMethodManual: jest.fn(),
+      setRecipientInputMethodPasted: mockSetRecipientInputMethodPasted,
+      setRecipientInputMethodSelectAccount: jest.fn(),
+      setRecipientInputMethodSelectContact: jest.fn(),
+    });
+
+    mockUseSendActions.mockReturnValue({
+      handleSubmitPress: mockHandleSubmitPress,
+      handleCancelPress: jest.fn(),
+      handleBackPress: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -39,7 +108,11 @@ describe('RecipientInput', () => {
 
   it('renders with default placeholder and "To" label', () => {
     const { getByText, getByPlaceholderText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('To')).toBeOnTheScreen();
@@ -48,23 +121,85 @@ describe('RecipientInput', () => {
 
   it('displays paste button when input is empty', () => {
     const { getByText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('Paste')).toBeOnTheScreen();
   });
 
-  it('displays clear button when input has value', () => {
+  it('displays clear button when input has value and recipient is not selected from list', () => {
+    mockUseSendContext.mockReturnValue({
+      to: '0x123...',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
     const { getByText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} value="0x123..." />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('Clear')).toBeOnTheScreen();
   });
 
-  it('calls onChangeText when text input changes', () => {
+  it('displays paste button when recipient is selected from list even with value', () => {
+    mockUseSendContext.mockReturnValue({
+      to: '0x123...',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByText } = renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
+    );
+
+    expect(getByText('Paste')).toBeOnTheScreen();
+  });
+
+  it('calls requires callbacks when text input changes', () => {
+    mockUseRecipientSelectionMetrics.mockReturnValue({
+      captureRecipientSelected: jest.fn(),
+      setRecipientInputMethodManual: mockSetRecipientInputMethodManual,
+      setRecipientInputMethodPasted: jest.fn(),
+      setRecipientInputMethodSelectAccount: jest.fn(),
+      setRecipientInputMethodSelectContact: jest.fn(),
+    });
+
+    const mockSetIsRecipientSelectedFromList = jest.fn();
+    const mockSetPastedRecipient = jest.fn();
     const { getByPlaceholderText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={mockSetIsRecipientSelectedFromList}
+        setPastedRecipient={mockSetPastedRecipient}
+      />,
     );
 
     const textInput = getByPlaceholderText('Enter address to send to');
@@ -73,25 +208,36 @@ describe('RecipientInput', () => {
       '0x1234567890123456789012345678901234567890',
     );
 
-    expect(mockOnChangeText).toHaveBeenCalledWith(
+    expect(mockUpdateTo).toHaveBeenCalledWith(
       '0x1234567890123456789012345678901234567890',
     );
+    expect(mockSetIsRecipientSelectedFromList).toHaveBeenCalled();
+    expect(mockSetPastedRecipient).toHaveBeenCalledWith(undefined);
+    expect(mockSetRecipientInputMethodManual).toHaveBeenCalled();
   });
 
-  it('handles paste functionality successfully', async () => {
+  it('handles paste functionality updates input', async () => {
     const mockAddress = '0x1234567890123456789012345678901234567890';
     mockClipboardManager.getString.mockResolvedValue(mockAddress);
+    mockValidateToAddress.mockResolvedValue({ error: 'Invalid address' });
+    const mockSetIsRecipientSelectedFromList = jest.fn();
+    const mockSetPastedRecipient = jest.fn();
 
     const { getByText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={mockSetIsRecipientSelectedFromList}
+        setPastedRecipient={mockSetPastedRecipient}
+      />,
     );
 
     const pasteButton = getByText('Paste');
     fireEvent.press(pasteButton);
 
     await waitFor(() => {
-      expect(mockClipboardManager.getString).toHaveBeenCalledTimes(1);
-      expect(mockOnChangeText).toHaveBeenCalledWith(mockAddress);
+      expect(mockUpdateTo).toHaveBeenCalledWith(mockAddress);
+      expect(mockSetIsRecipientSelectedFromList).toHaveBeenCalled();
+      expect(mockSetPastedRecipient).toHaveBeenCalledWith(mockAddress);
     });
 
     jest.advanceTimersByTime(100);
@@ -101,16 +247,21 @@ describe('RecipientInput', () => {
     const mockAddress = '  0x1234567890123456789012345678901234567890  ';
     const trimmedAddress = '0x1234567890123456789012345678901234567890';
     mockClipboardManager.getString.mockResolvedValue(mockAddress);
+    mockValidateToAddress.mockResolvedValue({ error: 'Invalid address' });
 
     const { getByText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     const pasteButton = getByText('Paste');
     fireEvent.press(pasteButton);
 
     await waitFor(() => {
-      expect(mockOnChangeText).toHaveBeenCalledWith(trimmedAddress);
+      expect(mockUpdateTo).toHaveBeenCalledWith(trimmedAddress);
     });
   });
 
@@ -118,7 +269,11 @@ describe('RecipientInput', () => {
     mockClipboardManager.getString.mockResolvedValue('');
 
     const { getByText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     const pasteButton = getByText('Paste');
@@ -126,7 +281,8 @@ describe('RecipientInput', () => {
 
     await waitFor(() => {
       expect(mockClipboardManager.getString).toHaveBeenCalledTimes(1);
-      expect(mockOnChangeText).not.toHaveBeenCalled();
+      expect(mockUpdateTo).not.toHaveBeenCalled();
+      expect(mockValidateToAddress).not.toHaveBeenCalled();
     });
   });
 
@@ -136,7 +292,11 @@ describe('RecipientInput', () => {
     );
 
     const { getByText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     const pasteButton = getByText('Paste');
@@ -144,36 +304,110 @@ describe('RecipientInput', () => {
 
     await waitFor(() => {
       expect(mockClipboardManager.getString).toHaveBeenCalledTimes(1);
-      expect(mockOnChangeText).not.toHaveBeenCalled();
+      expect(mockUpdateTo).not.toHaveBeenCalled();
+      expect(mockValidateToAddress).not.toHaveBeenCalled();
     });
   });
 
   it('clears input when clear button is pressed', () => {
+    mockUseSendContext.mockReturnValue({
+      to: '0x123...',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
     const { getByText } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} value="0x123..." />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     const clearButton = getByText('Clear');
     fireEvent.press(clearButton);
 
-    expect(mockOnChangeText).toHaveBeenCalledWith('');
+    expect(mockUpdateTo).toHaveBeenCalledWith('');
 
     jest.advanceTimersByTime(100);
   });
 
-  it('maintains correct button state transition', () => {
+  it('maintains correct button state based on isRecipientSelectedFromList prop', () => {
+    mockUseSendContext.mockReturnValue({
+      to: '0x123...',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
     const { getByText, rerender } = renderWithProvider(
-      <RecipientInput onChangeText={mockOnChangeText} value="" />,
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
+    );
+
+    expect(getByText('Clear')).toBeOnTheScreen();
+
+    rerender(
+      <RecipientInput
+        isRecipientSelectedFromList
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
+    );
+    expect(getByText('Paste')).toBeOnTheScreen();
+  });
+
+  it('maintains correct button state transition from empty to filled input', () => {
+    const { getByText, rerender } = renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
     );
 
     expect(getByText('Paste')).toBeOnTheScreen();
 
-    rerender(<RecipientInput onChangeText={mockOnChangeText} value="0x123" />);
+    mockUseSendContext.mockReturnValue({
+      to: '0x123',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    rerender(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
+    );
 
     expect(getByText('Clear')).toBeOnTheScreen();
-
-    rerender(<RecipientInput onChangeText={mockOnChangeText} value="" />);
-
-    expect(getByText('Paste')).toBeOnTheScreen();
   });
 });

@@ -51,6 +51,7 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../../../util/transactions';
+import { TransactionType } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
@@ -729,9 +730,17 @@ class Amount extends PureComponent {
             : BNToHex(transaction.value),
       };
 
+      let transactionType;
+      if (isNativeToken(selectedAsset)) {
+        transactionType = TransactionType.simpleSend;
+      } else if (!selectedAsset.tokenId) {
+        transactionType = TransactionType.tokenMethodTransfer;
+      }
+
       await addTransaction(transactionParams, {
         origin: MMM_ORIGIN,
         networkClientId: globalNetworkClientId,
+        type: transactionType,
       });
       this.setState({ isRedesignedTransferTransactionLoading: false });
       navigation.navigate('SendFlowView', {

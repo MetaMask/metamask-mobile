@@ -18,6 +18,7 @@ import Button, {
 import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import { ClearPrivacyModalSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/ClearPrivacyModal.selectors';
+import { isSnapId } from '@metamask/snaps-utils';
 
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -25,10 +26,10 @@ const ClearPrivacy = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const clearApprovals = () => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { PermissionController } = Engine.context as any;
-    PermissionController?.clearState?.();
+    const { PermissionController } = Engine.context;
+    PermissionController.getSubjectNames()
+      .filter((subject) => !isSnapId(subject))
+      .forEach((subject) => PermissionController.revokeAllPermissions(subject));
     SDKConnect.getInstance().removeAll();
     setModalVisible(false);
   };

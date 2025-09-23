@@ -9,12 +9,14 @@ const mockState = {
 describe('useToAddressValidation', () => {
   it('return fields for to address error and warning', () => {
     const { result } = renderHookWithProvider(
-      () =>
-        useToAddressValidation('0x1234567890123456789012345678901234567890'),
+      () => useToAddressValidation(),
       mockState,
     );
     expect(result.current).toStrictEqual({
+      loading: true,
+      resolvedAddress: undefined,
       toAddressError: undefined,
+      toAddressValidated: undefined,
       toAddressWarning: undefined,
     });
   });

@@ -109,7 +109,6 @@ describe('CardAssetItem Component', () => {
       <CardAssetItem
         assetKey={mockAssetKey}
         privacyMode={false}
-        disabled
         onPress={mockOnPress}
       />
     ));
@@ -195,14 +194,6 @@ describe('CardAssetItem Component', () => {
     );
 
     expect(toJSON()).toBeNull();
-  });
-
-  it('renders with disabled state', () => {
-    const { toJSON } = renderWithProvider(() => (
-      <CardAssetItem assetKey={mockAssetKey} privacyMode={false} disabled />
-    ));
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles test network correctly', () => {

@@ -1,6 +1,7 @@
 // third party dependencies
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 import React, { useCallback } from 'react';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -41,7 +42,10 @@ import {
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
 
-const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
+const CustomNetworkSelector = ({
+  openModal,
+  dismissModal,
+}: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { navigate } = useNavigation();
@@ -68,8 +72,8 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
-      const handlePress = () => {
-        selectCustomNetwork(caipChainId);
+      const handlePress = async () => {
+        await selectCustomNetwork(caipChainId, dismissModal);
       };
 
       const handleMenuPress = () => {
@@ -103,7 +107,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
         </View>
       );
     },
-    [selectCustomNetwork, openModal],
+    [selectCustomNetwork, openModal, dismissModal],
   );
 
   const renderFooter = useCallback(
@@ -128,7 +132,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <FlashList
         data={networks}
         renderItem={renderNetworkItem}
@@ -140,7 +144,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
             safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
         }}
       />
-    </View>
+    </ScrollView>
   );
 };
 

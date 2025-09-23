@@ -6,7 +6,6 @@ import {
   RAMPS_COUNTRIES_RESPONSE,
   RAMPS_LIGHT_RESPONSE,
   RAMPS_AMOUNT_RESPONSE,
-  GAS_FEES_RESPONSE,
 } from './ramps-mocks';
 import { createGeolocationResponse } from './ramps-geolocation';
 import { RAMPS_QUOTE_RESPONSE } from './ramps-quotes-response';
@@ -97,14 +96,6 @@ export const setupRegionAwareOnRampMocks = async (
         /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/providers\/all\/quote\?.*$/,
       responseCode: 200,
       response: RAMPS_QUOTE_RESPONSE,
-    },
-
-    // 7. Gas fees endpoint for offramp transactions (both UAT and prod)
-    {
-      urlEndpoint:
-        /^https:\/\/gas\.api\.cx\.metamask\.io\/networks\/\d+\/suggestedGasFees$/,
-      responseCode: 200,
-      response: GAS_FEES_RESPONSE,
     },
   ];
 

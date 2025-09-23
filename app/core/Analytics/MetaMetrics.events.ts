@@ -22,16 +22,6 @@ export const generateOpt = (
   return { category: name };
 };
 
-const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
-  1: 'Welcome',
-  2: 'Accounts',
-  3: 'Account Name',
-  4: 'Notifications',
-  5: 'Main Navigation',
-  6: 'Browser',
-  7: 'Search',
-};
-
 /**
  * Analytics Tracking Events
  */
@@ -1903,4 +1893,4 @@ const legacyMetaMetricsEvents = {
 
 const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };
+export { MetaMetricsEvents, EVENT_NAME };

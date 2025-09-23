@@ -271,35 +271,6 @@ Set reasonable timeouts for event capture (typically 30 seconds):
 capturedEvents = await getEventsPayloads(mockServer, events, 30000);
 ```
 
-## Important: MetaMetrics Opt-in State
-
-When testing Segment events, it's crucial to ensure the MetaMetrics opt-in state is properly set. There are two scenarios to consider:
-
-### 1. Using Onboarding Fixture
-
-When using `withOnboardingFixture()`, the opt-in state is automatically set during the onboarding flow **WHEN THE ACCEPT BUTTON IS TAPPED**. No additional configuration is needed.
-
-```javascript
-await withFixtures({
-  fixture: new FixtureBuilder().withOnboardingFixture().build(),
-  // ... other config
-});
-```
-
-### 2. Using Injected State (Without Onboarding)
-
-When using injected state without the onboarding flow, you **must** explicitly set the MetaMetrics opt-in state using `withMetaMetricsOptIn()`:
-
-```javascript
-await withFixtures({
-  fixture: new FixtureBuilder()
-    .withFoo()
-    .withMetaMetricsOptIn() // Required when not using onboarding
-    .build(),
-  // ... other config
-});
-```
-
 Without this, Segment events will not be sent even if `sendMetaMetricsinE2E: true` is set in launch arguments.
 
 ## Troubleshooting

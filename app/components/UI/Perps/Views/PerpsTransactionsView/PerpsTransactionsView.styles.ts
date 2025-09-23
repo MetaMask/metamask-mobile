@@ -55,11 +55,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       minHeight: 72, // Consistent height for FlashList
     },
-    transactionIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-    },
     tokenIconContainer: {
       width: 36,
       height: 36,

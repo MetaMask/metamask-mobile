@@ -359,22 +359,27 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "PerpsController": {
         "accountState": null,
-        "activeDepositTransactions": {},
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
-        "currentDepositTxHash": null,
-        "depositError": null,
-        "depositStatus": "idle",
+        "depositInProgress": false,
+        "hasPlacedFirstOrder": {
+          "mainnet": false,
+          "testnet": false,
+        },
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
           "testnet": true,
         },
         "isTestnet": false,
+        "lastDepositResult": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
+        "lastWithdrawResult": null,
         "pendingOrders": [],
+        "perpsBalances": {},
         "positions": [],
+        "withdrawInProgress": false,
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -448,6 +453,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
       },
+      "RewardsController": {
+        "lastAuthTime": 0,
+        "lastAuthenticatedAccount": null,
+        "subscription": null,
+      },
       "SeedlessOnboardingController": {
         "accessToken": true,
         "encryptedKeyringEncryptionKey": true,
@@ -480,6 +490,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "vaultEncryptionSalt": true,
       },
       "SelectedNetworkController": {
+        "activeDappNetwork": null,
         "domains": {},
       },
       "SignatureController": {
@@ -985,22 +996,27 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "PerpsController": {
         "accountState": null,
-        "activeDepositTransactions": {},
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
-        "currentDepositTxHash": null,
-        "depositError": null,
-        "depositStatus": "idle",
+        "depositInProgress": false,
+        "hasPlacedFirstOrder": {
+          "mainnet": false,
+          "testnet": false,
+        },
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
           "testnet": true,
         },
         "isTestnet": false,
+        "lastDepositResult": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
+        "lastWithdrawResult": null,
         "pendingOrders": [],
+        "perpsBalances": {},
         "positions": [],
+        "withdrawInProgress": false,
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -1074,6 +1090,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
       },
+      "RewardsController": {
+        "lastAuthTime": 0,
+        "lastAuthenticatedAccount": null,
+        "subscription": null,
+      },
       "SeedlessOnboardingController": {
         "accessToken": false,
         "encryptedKeyringEncryptionKey": false,
@@ -1088,6 +1109,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "vaultEncryptionSalt": false,
       },
       "SelectedNetworkController": {
+        "activeDappNetwork": null,
         "domains": {},
       },
       "SignatureController": {

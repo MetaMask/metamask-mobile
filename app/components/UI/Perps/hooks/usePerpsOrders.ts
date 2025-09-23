@@ -32,16 +32,6 @@ export interface UsePerpsOrdersOptions {
    */
   params?: GetOrdersParams;
   /**
-   * Enable automatic polling for live updates
-   * @default false
-   */
-  enablePolling?: boolean;
-  /**
-   * Polling interval in milliseconds
-   * @default 30000 (30 seconds)
-   */
-  pollingInterval?: number;
-  /**
    * Skip initial data fetch on mount
    * @default false
    */
@@ -51,16 +41,13 @@ export interface UsePerpsOrdersOptions {
 /**
  * Custom hook to fetch and manage Perps orders from the controller
  * Provides loading states, error handling, and refresh functionality
+ * Note: This hook fetches historical order data. For real-time open orders,
+ * use usePerpsLiveOrders from the stream hooks.
  */
 export const usePerpsOrders = (
   options: UsePerpsOrdersOptions = {},
 ): UsePerpsOrdersResult => {
-  const {
-    params,
-    enablePolling = false,
-    pollingInterval = 30000, // 30 seconds default
-    skipInitialFetch = false,
-  } = options;
+  const { params, skipInitialFetch = false } = options;
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
@@ -116,17 +103,6 @@ export const usePerpsOrders = (
       fetchOrders();
     }
   }, [fetchOrders, skipInitialFetch]);
-
-  // Polling effect
-  useEffect(() => {
-    if (!enablePolling) return;
-
-    const intervalId = setInterval(() => {
-      fetchOrders(true);
-    }, pollingInterval);
-
-    return () => clearInterval(intervalId);
-  }, [enablePolling, pollingInterval, fetchOrders]);
 
   return {
     orders,

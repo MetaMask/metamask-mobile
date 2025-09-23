@@ -125,7 +125,7 @@ interface ProviderProps<T> {
 }
 
 export const callbackBaseUrl = isDevelopment
-  ? 'https://on-ramp.uat-api.cx.metamask.io/regions/fake-callback'
+  ? 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback'
   : 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
 
 export const callbackBaseDeeplink = 'metamask://';

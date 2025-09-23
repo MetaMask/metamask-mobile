@@ -20,6 +20,7 @@ export function getPerpsControllerMessenger(
     allowedActions: [
       'AccountsController:getSelectedAccount',
       'NetworkController:getState',
+      'AuthenticationController:getBearerToken',
     ],
   });
 }

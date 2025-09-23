@@ -11,6 +11,7 @@ import React, {
 // External dependencies.
 import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -144,8 +145,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const handleAddAccount = useCallback(() => {
-    setScreen(AccountSelectorScreens.AddAccountActions);
-  }, []);
+    if (isMultichainAccountsState2Enabled) {
+      setScreen(AccountSelectorScreens.MultichainAddWalletActions);
+    } else {
+      setScreen(AccountSelectorScreens.AddAccountActions);
+    }
+  }, [isMultichainAccountsState2Enabled]);
 
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
@@ -186,14 +191,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => [
       {
         variant: ButtonVariants.Secondary,
-        label: strings('account_actions.add_account_or_hardware_wallet'),
+        label: isMultichainAccountsState2Enabled
+          ? strings('multichain_accounts.add_wallet')
+          : strings('account_actions.add_account_or_hardware_wallet'),
         size: ButtonSize.Lg,
         width: ButtonWidthTypes.Full,
         onPress: handleAddAccount,
         testID: AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
       },
     ],
-    [handleAddAccount],
+    [handleAddAccount, isMultichainAccountsState2Enabled],
   );
 
   const renderAccountSelector = useCallback(
@@ -203,7 +210,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         {isMultichainAccountsState2Enabled && selectedAccountGroup ? (
           <MultichainAccountSelectorList
             onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroup={selectedAccountGroup}
+            selectedAccountGroups={[selectedAccountGroup]}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
         ) : (
@@ -243,16 +250,28 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [handleBackToSelector],
   );
 
+  const renderMultichainAddWalletActions = useCallback(
+    () => <MultichainAddWalletActions onBack={handleBackToSelector} />,
+    [handleBackToSelector],
+  );
+
   const renderAccountScreens = useCallback(() => {
     switch (screen) {
       case AccountSelectorScreens.AccountSelector:
         return renderAccountSelector();
       case AccountSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
+      case AccountSelectorScreens.MultichainAddWalletActions:
+        return renderMultichainAddWalletActions();
       default:
         return renderAccountSelector();
     }
-  }, [screen, renderAccountSelector, renderAddAccountActions]);
+  }, [
+    screen,
+    renderAccountSelector,
+    renderAddAccountActions,
+    renderMultichainAddWalletActions,
+  ]);
 
   return (
     <BottomSheet

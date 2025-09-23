@@ -24,8 +24,10 @@ import { strings } from '../../../../../../locales/i18n';
 
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
-import { usePerpsPrices, usePerpsPerformance } from '../../hooks';
+import { usePerpsPerformance } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -104,7 +106,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { track } = usePerpsEventTracking();
 
   // Subscribe to real-time price only when visible and we have an asset
-  const priceData = usePerpsPrices(isVisible && asset ? [asset] : [], {});
+  // Use 1s debounce for TP/SL bottom sheet
+  const priceData = usePerpsLivePrices({
+    symbols: isVisible && asset ? [asset] : [],
+    throttleMs: 1000,
+  });
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)
     : undefined;
@@ -472,7 +478,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               {strings('perps.tpsl.current_price')}
             </Text>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {currentPrice ? formatPrice(currentPrice) : '$---'}
+              {currentPrice
+                ? formatPrice(currentPrice)
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
           {position?.liquidationPrice && (
@@ -745,6 +753,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 };
 
 PerpsTPSLBottomSheet.displayName = 'PerpsTPSLBottomSheet';
+
+// Enable WDYR tracking in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsTPSLBottomSheet as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsTPSLBottomSheet',
+  };
+}
 
 export default memo(
   PerpsTPSLBottomSheet,

@@ -73,9 +73,6 @@ const mockInitialState = {
     primaryCurrency: 'ETH',
     basicFunctionalityEnabled: true,
   },
-  wizard: {
-    step: 1,
-  },
   browser: {
     tabs: mockTabs,
     activeTab: 1,

@@ -57,6 +57,9 @@ export const mockEvents = {
             transfer: false,
             approve: false,
           },
+          sendRedesign: {
+            enabled: false,
+          },
         },
       ],
       responseCode: 200,
@@ -81,6 +84,9 @@ export const mockEvents = {
             contract_interaction: true,
             transfer: true,
             approve: true,
+          },
+          sendRedesign: {
+            enabled: false,
           },
         },
         {
@@ -134,6 +140,22 @@ export const mockEvents = {
             contract_interaction: true,
             transfer: true,
             approve: true,
+          },
+          sendRedesign: {
+            enabled: false,
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
+    remoteFeatureFlagSendRedesignDisabled: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          sendRedesign: {
+            enabled: false,
           },
         },
       ],

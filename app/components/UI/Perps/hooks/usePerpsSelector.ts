@@ -8,7 +8,7 @@ import type { PerpsControllerState } from '../controllers/PerpsController';
  * @returns Selected data from PerpsController state
  */
 export function usePerpsSelector<T>(
-  selector: (state: PerpsControllerState | undefined) => T,
+  selector: (state: PerpsControllerState) => T,
 ): T {
   return useSelector((state: RootState) =>
     selector(state.engine?.backgroundState?.PerpsController),

@@ -13,16 +13,20 @@ export const TestSnapViewSelectorWebIDS = {
   connectDialogSnapButton: 'connectdialogs',
   connectErrorSnapButton: 'connecterrors',
   connectGetEntropyButton: 'connectGetEntropySnap',
+  connectGetFileButton: 'connectgetfile',
   connectGetPreferencesButton: 'connectpreferences',
   connectJsonRpcButton: 'connectjson-rpc',
   connectLifeCycleButton: 'connectlifecycle-hooks',
   connectImageButton: 'connectimages',
+  connectInteractiveButton: 'connectinteractive-ui',
   connectManageStateButton: 'connectmanage-state',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
   connectStateButton: 'connectstate',
   connectJsx: 'connectjsx',
   connectWasmButton: 'connectwasm',
+  createDialogButton: 'createDialogButton',
+  createDialogDisabledButton: 'createDisabledDialogButton',
   displayJsxButton: 'displayJsx',
   getBackgroundEventResultButton: 'getBackgroundEvents',
   getPreferencesButton: 'getPreferences',
@@ -42,6 +46,9 @@ export const TestSnapViewSelectorWebIDS = {
   sendConfirmationButton: 'sendConfirmationButton',
   sendCustomButton: 'sendCustomButton',
   sendErrorButton: 'sendError',
+  sendGetFileTextButton: 'sendGetFileTextButton',
+  sendGetFileBase64Button: 'sendGetFileBase64Button',
+  sendGetFileHexButton: 'sendGetFileHexButton',
   sendGetStateButton: 'sendGetState',
   sendGetUnencryptedStateButton: 'sendGetUnencryptedState',
   sendManageStateButton: 'sendManageState',
@@ -97,6 +104,11 @@ export const EntropyDropDownSelectorWebIDS = {
   networkDropDown: 'select-chain',
 };
 
+export const NativeDropdownSelectorWebIDS = {
+  snapUISelector: 'snap-ui-renderer__selector',
+  snapUIDropdown: 'snap-ui-renderer__dropdown',
+};
+
 export const TestSnapResultSelectorWebIDS = {
   bip44ResultSpan: 'bip44Result',
   bip44SignResultSpan: 'bip44SignResult',
@@ -112,6 +124,7 @@ export const TestSnapResultSelectorWebIDS = {
   encryptedStateResultSpan: 'encryptedStateResult',
   entropySignResultSpan: 'entropySignResult',
   getBackgroundEventsResultSpan: 'getBackgroundEventsResult',
+  fileResultSpan: 'getFileResult',
   getStateResultSpan: 'getStateResult',
   getStateUnencryptedResultSpan: 'getStateUnencryptedResult',
   installedSnapResultSpan: 'installedSnapsResult',

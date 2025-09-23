@@ -58,9 +58,6 @@ const DEFAULT_PERMISSIONS_SUMMARY_PROPS = {
 };
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState: {
       ...backgroundState,

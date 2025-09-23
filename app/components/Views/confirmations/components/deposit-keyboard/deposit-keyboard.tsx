@@ -9,10 +9,30 @@ import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
-const PERCENTAGE_BUTTONS = [10, 25, 50];
+const PERCENTAGE_BUTTONS = [
+  {
+    label: '10%',
+    value: 10,
+  },
+  {
+    label: '25%',
+    value: 25,
+  },
+  {
+    label: '50%',
+    value: 50,
+  },
+  {
+    label: 'Max',
+    value: 100,
+  },
+];
 
 export interface DepositKeyboardProps {
+  hasInput: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -20,11 +40,13 @@ export interface DepositKeyboardProps {
 }
 
 export function DepositKeyboard({
+  hasInput,
   onChange,
   onDonePress,
   onPercentagePress,
   value,
 }: DepositKeyboardProps) {
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const { styles } = useStyles(styleSheet, {});
 
   const valueString = value.toString();
@@ -36,6 +58,13 @@ export function DepositKeyboard({
     [onChange],
   );
 
+  const handlePercentagePress = useCallback(
+    (percentage: number) => {
+      onPercentagePress(percentage);
+    },
+    [onPercentagePress],
+  );
+
   return (
     <View>
       <Box
@@ -44,26 +73,31 @@ export function DepositKeyboard({
         justifyContent={JustifyContent.spaceBetween}
         gap={10}
       >
-        {PERCENTAGE_BUTTONS.map((percentage) => (
+        {!hasInput &&
+          PERCENTAGE_BUTTONS.map(({ label, value: buttonValue }) => (
+            <Button
+              key={buttonValue}
+              label={label}
+              style={styles.percentageButton}
+              onPress={() => handlePercentagePress(buttonValue)}
+              variant={ButtonVariants.Secondary}
+            />
+          ))}
+        {hasInput && (
           <Button
-            key={percentage}
-            label={`${percentage}%`}
+            testID="deposit-keyboard-done-button"
+            label={strings('confirm.deposit_edit_amount_done')}
             style={styles.percentageButton}
-            onPress={() => onPercentagePress(percentage)}
-            variant={ButtonVariants.Secondary}
+            onPress={onDonePress}
+            variant={ButtonVariants.Primary}
           />
-        ))}
-        <Button
-          label={strings('confirm.edit_amount_done')}
-          style={styles.percentageButton}
-          onPress={onDonePress}
-          variant={ButtonVariants.Secondary}
-        />
+        )}
       </Box>
       <KeypadComponent
         value={valueString}
         onChange={handleChange}
-        currency="native"
+        currency={currentCurrency}
+        decimals={2}
       />
     </View>
   );

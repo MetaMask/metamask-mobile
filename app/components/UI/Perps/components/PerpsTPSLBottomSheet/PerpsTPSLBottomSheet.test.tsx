@@ -47,13 +47,17 @@ jest.mock('../../../../../util/theme', () => ({
 
 // Mock hooks
 jest.mock('../../hooks', () => ({
-  usePerpsPrices: jest.fn(() => ({})), // Return empty object for prices
   usePerpsPerformance: jest.fn(() => ({
     startMeasure: jest.fn(),
     endMeasure: jest.fn(),
     measure: jest.fn(),
     measureAsync: jest.fn(),
   })),
+}));
+
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})), // Return empty object for prices
 }));
 
 // Mock format utilities

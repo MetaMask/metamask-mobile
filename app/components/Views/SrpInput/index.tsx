@@ -94,7 +94,7 @@ const TextField = React.forwardRef<
               {startAccessory}
             </View>
           )}
-          <View style={styles.input}>
+          <View style={[styles.input, styles.inputContainer]}>
             {inputElement ?? (
               <Input
                 textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}

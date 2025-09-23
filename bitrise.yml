@@ -44,6 +44,12 @@ pipelines:
       - bump_version_stage: {}
       - create_build_beta: {}
       - deploy_build_release: {}
+  #Releases MetaMask RC apps for release buil profiling
+  release_rc_builds_to_store_pipeline:
+    stages:
+      - bump_version_stage: {}
+      - create_build_rc: {}
+      - deploy_build_release: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
@@ -207,6 +213,10 @@ stages:
     workflows:
       - build_ios_main_prod: {}
       - build_ios_main_beta: {}
+      - build_ios_main_rc: {}
+  create_build_rc:
+    workflows:
+      - build_android_main_rc: {}
       - build_ios_main_rc: {}
   deploy_android_release:
     workflows:
@@ -1354,7 +1364,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
-          # run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1483,6 +1493,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1643,7 +1654,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          # run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1944,7 +1955,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          # run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -2095,6 +2106,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -2368,6 +2380,52 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
+      - script@1:
+          title: Prepare Android build outputs for caching
+          run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "=== Preparing Android cache ==="
+                echo "Current working directory: $(pwd)"
+                
+                # Create a clean cache directory structure
+                mkdir -p /tmp/android-cache/build/outputs
+                
+                if [ -d "android/app/build/outputs" ]; then
+                    echo "Copying Android build outputs to cache staging area..."
+                    cp -r android/app/build/outputs/* /tmp/android-cache/build/outputs/
+                    echo "Cache staging completed"
+                    
+                    echo "Cache contents:"
+                    find /tmp/android-cache -type f | head -10
+                    echo "Total cache size: $(du -sh /tmp/android-cache 2>/dev/null || echo 'Unknown')"
+                else
+                    echo "Warning: android/app/build/outputs not found!"
+                fi
+      - save-cache@1:
+          title: Save Android PR Build Cache
+          run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
+            - paths: |-
+                /tmp/android-cache
+      - script@1:
+          title: Save last successful build commit (Android)
+          run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Create a marker file with the current commit
+                mkdir -p /tmp/last-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
+                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+      - save-cache@1:
+          title: Save last successful build commit marker (Android)
+          run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-build-commit
 
   # Template for E2E Android builds
 
@@ -3149,6 +3207,30 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+      - save-cache@1:
+          title: Save iOS PR Build Cache
+          run_if: '{{and (getenv "IOS_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+            - paths: |-
+                ios/build/Build/Products/Release-iphonesimulator
+                ../Library/Detox/ios
+      - script@1:
+          title: Save last successful build commit
+          run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Create a marker file with the current commit
+                mkdir -p /tmp/last-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
+                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+      - save-cache@1:
+          title: Save last successful build commit marker
+          run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-build-commit
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
     after_run:
@@ -3584,16 +3666,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.54.2
+      VERSION_NAME: 7.55.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2390
+      VERSION_NUMBER: 2501
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.54.2
+      FLASK_VERSION_NAME: 7.55.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2390
+      FLASK_VERSION_NUMBER: 2501
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -301,8 +301,8 @@ exports[`TabBar renders correctly 1`] = `
               "height": 45,
               "justifyContent": "center",
               "paddingBottom": 4,
-              "paddingLeft": 8,
-              "paddingRight": 8,
+              "paddingLeft": 4,
+              "paddingRight": 4,
               "paddingTop": 4,
               "width": 45,
             }

@@ -6,21 +6,19 @@ import {
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { Hex } from '@metamask/utils';
 
-const MOCK_SIGNED_TRANSACTION_META = {
+const FROM_MOCK = '0x123';
+const CHAIN_ID_MOCK = '0x456' as Hex;
+
+const TRANSACTION_META_MOCK = {
   id: '1',
   status: TransactionStatus.signed,
   type: TransactionType.simpleSend,
-  from: '0x123',
-  to: '0x456',
-};
-
-const MOCK_APPROVED_TRANSACTION_META = {
-  id: '2',
-  status: TransactionStatus.approved,
-  type: TransactionType.simpleSend,
-  from: '0x123',
-  to: '0x456',
+  chainId: CHAIN_ID_MOCK,
+  txParams: {
+    from: FROM_MOCK,
+  },
 };
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
@@ -34,10 +32,11 @@ describe('useSignedOrSubmittedAlert', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     mockUseTransactionMetadataRequest.mockReturnValue({
-      id: '3',
+      ...TRANSACTION_META_MOCK,
+      id: '2',
       status: TransactionStatus.confirmed,
-      type: TransactionType.simpleSend,
     } as TransactionMeta);
   });
 
@@ -60,12 +59,6 @@ describe('useSignedOrSubmittedAlert', () => {
   });
 
   it('does not return alert if transaction metadata is present in the signed or approved transactions', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue({
-      id: '3',
-      status: TransactionStatus.approved,
-      type: TransactionType.simpleSend,
-    } as TransactionMeta);
-
     const { result } = renderHookWithProvider(
       () => useSignedOrSubmittedAlert(),
       {
@@ -75,9 +68,8 @@ describe('useSignedOrSubmittedAlert', () => {
               TransactionController: {
                 transactions: [
                   {
-                    id: '3',
-                    status: TransactionStatus.approved,
-                    type: TransactionType.simpleSend,
+                    ...TRANSACTION_META_MOCK,
+                    id: '2',
                   },
                 ],
               },
@@ -90,10 +82,13 @@ describe('useSignedOrSubmittedAlert', () => {
   });
 
   it.each([
-    ['signed', MOCK_SIGNED_TRANSACTION_META],
-    ['approved', MOCK_APPROVED_TRANSACTION_META],
+    ['signed', { ...TRANSACTION_META_MOCK, status: TransactionStatus.signed }],
+    [
+      'approved',
+      { ...TRANSACTION_META_MOCK, status: TransactionStatus.approved },
+    ],
   ])(
-    'returns alert if there is a %s transaction',
+    'returns alert if there is a %s transaction on same chain and account',
     (_status, transactionMeta) => {
       const { result } = renderHookWithProvider(
         () => useSignedOrSubmittedAlert(),
@@ -109,6 +104,7 @@ describe('useSignedOrSubmittedAlert', () => {
           },
         },
       );
+
       expect(result.current).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -119,4 +115,44 @@ describe('useSignedOrSubmittedAlert', () => {
       );
     },
   );
+
+  it('returns no alerts if on different chain', () => {
+    const { result } = renderHookWithProvider(
+      () => useSignedOrSubmittedAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [{ ...TRANSACTION_META_MOCK, chainId: '0x789' }],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alerts if from different account', () => {
+    const { result } = renderHookWithProvider(
+      () => useSignedOrSubmittedAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  { ...TRANSACTION_META_MOCK, txParams: { from: '0x456' } },
+                ],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toStrictEqual([]);
+  });
 });

@@ -162,6 +162,7 @@ export const handleSendMessage = async ({
     connection.trigger = 'resume';
     connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+      isPostNetworkSwitch: method === RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN,
     });
   } catch (err) {
     Logger.log(

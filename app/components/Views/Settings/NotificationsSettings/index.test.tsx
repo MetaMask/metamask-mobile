@@ -5,6 +5,10 @@ import NotificationsSettings from '.';
 import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 
+jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: jest.fn().mockReturnValue(true),
+}));
+
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,

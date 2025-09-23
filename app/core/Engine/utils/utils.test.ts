@@ -64,8 +64,11 @@ import { BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainAccountServiceInit } from '../controllers/multichain-account-service/multichain-account-service-init';
 import { networkEnablementControllerInit } from '../controllers/network-enablement-controller/network-enablement-controller-init';
+import { rewardsControllerInit } from '../controllers/rewards-controller';
+import { RewardsController } from '../controllers/rewards-controller/RewardsController';
 
 jest.mock('../controllers/accounts-controller');
+jest.mock('../controllers/rewards-controller');
 jest.mock('../controllers/app-metadata-controller');
 jest.mock('../controllers/approval-controller');
 jest.mock(
@@ -160,6 +163,7 @@ describe('initModularizedControllers', () => {
   const mockNetworkEnablementControllerInit = jest.mocked(
     networkEnablementControllerInit,
   );
+  const mockRewardsControllerInit = jest.mocked(rewardsControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -200,6 +204,7 @@ describe('initModularizedControllers', () => {
           PerpsController: mockPerpsControllerInit,
           BridgeController: mockBridgeControllerInit,
           BridgeStatusController: mockBridgeStatusControllerInit,
+          RewardsController: mockRewardsControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -281,6 +286,9 @@ describe('initModularizedControllers', () => {
     });
     mockBridgeStatusControllerInit.mockReturnValue({
       controller: {} as BridgeStatusController,
+    });
+    mockRewardsControllerInit.mockReturnValue({
+      controller: {} as unknown as RewardsController,
     });
   });
 

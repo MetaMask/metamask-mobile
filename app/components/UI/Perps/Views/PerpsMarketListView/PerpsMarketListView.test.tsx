@@ -7,7 +7,6 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
-import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import type { PerpsMarketData } from '../../controllers/types';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -196,6 +195,7 @@ describe('PerpsMarketListView', () => {
     setParams: jest.fn(),
   };
 
+  const { usePerpsMarkets } = jest.requireMock('../../hooks/usePerpsMarkets');
   const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
     typeof usePerpsMarkets
   >;

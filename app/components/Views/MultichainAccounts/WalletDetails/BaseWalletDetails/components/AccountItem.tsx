@@ -53,8 +53,6 @@ export const AccountItem: React.FC<AccountItemProps> = ({
       boxStyles.push(styles.firstAccountBox);
     } else if (index === totalItemsCount - 1) {
       boxStyles.push(styles.lastAccountBox);
-    } else {
-      boxStyles.push(styles.middleAccountBox as ViewStyle);
     }
   }
 

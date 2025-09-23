@@ -62,7 +62,7 @@ export const PERPS_CHART_CONFIG = {
     MINOR: 0.6,
   },
   INTERVAL_SELECTOR_OPACITY: 0.7,
-  GRID_LINE_COUNT: 6,
+  GRID_LINE_COUNT: 4, // Reduced for better distinctiveness with smaller datasets
   PADDING: {
     HORIZONTAL: 24, // Account for horizontal padding
     VERTICAL: 120, // Account for labels and padding
@@ -87,7 +87,7 @@ export const CHART_INTERVALS = [
  * Available time durations for chart view
  */
 export const TIME_DURATIONS = [
-  { label: '1HR', value: TimeDuration.ONE_HOUR },
+  { label: '1hr', value: TimeDuration.ONE_HOUR },
   { label: '1D', value: TimeDuration.ONE_DAY },
   { label: '1W', value: TimeDuration.ONE_WEEK },
   { label: '1M', value: TimeDuration.ONE_MONTH },
@@ -108,7 +108,7 @@ export const DURATION_CANDLE_PERIODS = {
       { label: '5min', value: CandlePeriod.FIVE_MINUTES }, // 12 candles
       { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES }, // 4 candles
     ],
-    default: CandlePeriod.THREE_MINUTES, // Good detail for 1 hour view
+    default: CandlePeriod.ONE_MINUTE, // 1-minute candles for development/testing
   },
   [TimeDuration.ONE_DAY]: {
     periods: [
@@ -178,8 +178,14 @@ export const CANDLE_PERIODS = [
 /**
  * Get available candle periods for a specific duration
  */
-export const getCandlePeriodsForDuration = (duration: TimeDuration | string) =>
-  DURATION_CANDLE_PERIODS[duration as TimeDuration]?.periods || [];
+export const getCandlePeriodsForDuration = (
+  duration: TimeDuration | string,
+) => {
+  const periods =
+    DURATION_CANDLE_PERIODS[duration as TimeDuration]?.periods || [];
+
+  return periods;
+};
 
 /**
  * Get the default candle period for a specific duration

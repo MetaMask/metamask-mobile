@@ -15,12 +15,19 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,
-      paddingVertical: 8,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
     },
     headerTitleContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+    },
+    backButtonWrapper: {
+      padding: 12, // Increases touch target to ~48x48
+      marginLeft: -12, // Compensate for padding to maintain visual alignment
+      marginRight: -12,
     },
     headerTitle: {
       textAlign: 'left',
@@ -48,7 +55,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingHorizontal: 16,
       marginBottom: 8,
-      marginTop: 30,
+      marginTop: 12,
     },
     listHeaderLeft: {
       flex: 1,

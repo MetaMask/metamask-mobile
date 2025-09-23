@@ -1,1 +1,1 @@
-export { AccountCell as default } from './AccountCell';
+export { default } from './AccountCell';

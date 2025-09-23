@@ -16,10 +16,6 @@ on:
         description: 'Whether the sourcemap was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
-
 jobs:
   build-android-apks:
     name: Build Android E2E APKs

@@ -242,8 +242,8 @@ class NotificationManager {
         // right after a transaction was confirmed
         const pollPromises = [
           AccountTrackerController.refresh([networkClientId]),
-          TokenBalancesController.updateBalancesByChainId({
-            chainId: transactionMeta.chainId,
+          TokenBalancesController.updateBalances({
+            chainIds: [transactionMeta.chainId],
           }),
         ];
         switch (originalTransaction.assetType) {

@@ -21,7 +21,6 @@ export const AmountInputType = {
 
 export const AmountInputMethod = {
   Manual: 'manual',
-  Pasted: 'pasted',
   PressedMax: 'pressed_max',
 };
 
@@ -30,7 +29,6 @@ export const RecipientInputMethod = {
   Pasted: 'pasted',
   SelectAccount: 'select_account',
   SelectContact: 'select_contact',
-  QRCodeScan: 'qr_code_scan',
 };
 
 export interface SendMetricsContextType {
@@ -61,6 +59,16 @@ export const SendMetricsContext = createContext<SendMetricsContextType>({
   setRecipientInputMethod: () => undefined,
 });
 
+// If app goes to idle state, `getAddressAccountType` throws an error because app is locked
+// To prevent that, we catch the error and return undefined
+const getAccountTypeSafely = (address: string): string | undefined => {
+  try {
+    return getAddressAccountType(address);
+  } catch {
+    return undefined;
+  }
+};
+
 export const SendMetricsContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
@@ -80,8 +88,8 @@ export const SendMetricsContextProvider: React.FC<{
   return (
     <SendMetricsContext.Provider
       value={{
-        accountType: isEvmAddress(from)
-          ? getAddressAccountType(from)
+        accountType: isEvmAddress(from as string)
+          ? getAccountTypeSafely(from as string)
           : undefined,
         assetListSize,
         amountInputMethod,

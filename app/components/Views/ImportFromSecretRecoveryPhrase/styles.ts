@@ -61,11 +61,9 @@ const createStyles = (colors: any) =>
       display: 'flex',
       flex: 1,
       backgroundColor: importedColors.transparent,
-      height: 66,
     },
     textAreaInput: {
       display: 'flex',
-      flex: 1,
       backgroundColor: importedColors.transparent,
       fontSize: 16,
       color: colors.text.alternative,

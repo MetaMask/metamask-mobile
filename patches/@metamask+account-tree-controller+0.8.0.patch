@@ -1,0 +1,33 @@
+diff --git a/node_modules/@metamask/account-tree-controller/dist/AccountTreeController.cjs b/node_modules/@metamask/account-tree-controller/dist/AccountTreeController.cjs
+index 3372427..221565c 100644
+--- a/node_modules/@metamask/account-tree-controller/dist/AccountTreeController.cjs
++++ b/node_modules/@metamask/account-tree-controller/dist/AccountTreeController.cjs
+@@ -527,7 +527,7 @@ _AccountTreeController_accountIdToContext = new WeakMap(), _AccountTreeControlle
+         throw new Error(`Account wallet with ID "${walletId}" not found in tree`);
+     }
+ }, _AccountTreeController_getDefaultSelectedAccountGroup = function _AccountTreeController_getDefaultSelectedAccountGroup(wallets) {
+-    const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
++    const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedMultichainAccount');
+     if (selectedAccount && selectedAccount.id) {
+         const accountMapping = __classPrivateFieldGet(this, _AccountTreeController_accountIdToContext, "f").get(selectedAccount.id);
+         if (accountMapping) {
+diff --git a/node_modules/@metamask/account-tree-controller/dist/types.d.cts b/node_modules/@metamask/account-tree-controller/dist/types.d.cts
+index 8561a75..fb0360e 100644
+--- a/node_modules/@metamask/account-tree-controller/dist/types.d.cts
++++ b/node_modules/@metamask/account-tree-controller/dist/types.d.cts
+@@ -1,5 +1,5 @@
+ import type { AccountGroupId, AccountWalletId } from "@metamask/account-api";
+-import type { AccountsControllerAccountAddedEvent, AccountsControllerAccountRenamedEvent, AccountsControllerAccountRemovedEvent, AccountsControllerGetAccountAction, AccountsControllerGetSelectedAccountAction, AccountsControllerListMultichainAccountsAction, AccountsControllerSelectedAccountChangeEvent, AccountsControllerSetSelectedAccountAction } from "@metamask/accounts-controller";
++import type { AccountsControllerAccountAddedEvent, AccountsControllerAccountRenamedEvent, AccountsControllerAccountRemovedEvent, AccountsControllerGetAccountAction, AccountsControllerGetSelectedMultichainAccountAction, AccountsControllerListMultichainAccountsAction, AccountsControllerSelectedAccountChangeEvent, AccountsControllerSetSelectedAccountAction } from "@metamask/accounts-controller";
+ import { type ControllerGetStateAction, type ControllerStateChangeEvent, type RestrictedMessenger } from "@metamask/base-controller";
+ import type { KeyringControllerGetStateAction } from "@metamask/keyring-controller";
+ import type { GetSnap as SnapControllerGetSnap } from "@metamask/snaps-controllers";
+@@ -39,7 +39,7 @@ export type AccountTreeControllerGetAccountsFromSelectedAccountGroupAction = {
+     type: `${typeof controllerName}:getAccountsFromSelectedAccountGroup`;
+     handler: AccountTreeController['getAccountsFromSelectedAccountGroup'];
+ };
+-export type AllowedActions = AccountsControllerGetAccountAction | AccountsControllerGetSelectedAccountAction | AccountsControllerListMultichainAccountsAction | AccountsControllerSetSelectedAccountAction | KeyringControllerGetStateAction | SnapControllerGetSnap;
++export type AllowedActions = AccountsControllerGetAccountAction | AccountsControllerGetSelectedMultichainAccountAction | AccountsControllerListMultichainAccountsAction | AccountsControllerSetSelectedAccountAction | KeyringControllerGetStateAction | SnapControllerGetSnap;
+ export type AccountTreeControllerActions = AccountTreeControllerGetStateAction | AccountTreeControllerSetSelectedAccountGroupAction | AccountTreeControllerGetSelectedAccountGroupAction | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction;
+ export type AccountTreeControllerStateChangeEvent = ControllerStateChangeEvent<typeof controllerName, AccountTreeControllerState>;
+ export type AllowedEvents = AccountsControllerAccountAddedEvent | AccountsControllerAccountRenamedEvent | AccountsControllerAccountRemovedEvent | AccountsControllerSelectedAccountChangeEvent;

@@ -10,6 +10,8 @@ export const NotificationSettingsViewSelectorsIDs = {
   PUSH_NOTIFICATIONS_TOGGLE: 'notification-settings-push-notifications-toggle',
   FEATURE_ANNOUNCEMENTS_TOGGLE:
     'notification-settings-feature-announcements-toggle',
+  PERPS_NOTIFICATIONS_TOGGLE:
+    'notification-settings-perps-notifications-toggle',
   ACCOUNT_NOTIFICATION_TOGGLE: (address: string) =>
     `notification-settings-account-notifications-${address}`,
 };

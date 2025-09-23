@@ -30,8 +30,16 @@ enum SUPPORTED_ACTIONS {
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
   CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
+  PERPS = ACTIONS.PERPS,
+  PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
+  PERPS_ASSET = ACTIONS.PERPS_ASSET,
   WC = ACTIONS.WC,
 }
+
+/**
+ * Actions that should not show the deep link modal
+ */
+const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [SUPPORTED_ACTIONS.WC];
 
 async function handleUniversalLink({
   instance,
@@ -115,18 +123,21 @@ async function handleUniversalLink({
     return DeepLinkModalLinkType.PUBLIC;
   };
 
-  const shouldProceed = await new Promise<boolean>((resolve) => {
-    const [, action] = validatedUrl.pathname.split('/');
-    const sanitizedAction = action?.replace(/-/g, ' ');
-    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
+  const shouldProceed =
+    WHITELISTED_ACTIONS.includes(action) ||
+    (await new Promise<boolean>((resolve) => {
+      const [, actionName] = validatedUrl.pathname.split('/');
+      const sanitizedAction = actionName?.replace(/-/g, ' ');
+      const pageTitle: string =
+        capitalize(sanitizedAction?.toLowerCase()) || '';
 
-    handleDeepLinkModalDisplay({
-      linkType: linkType(),
-      pageTitle,
-      onContinue: () => resolve(true),
-      onBack: () => resolve(false),
-    });
-  });
+      handleDeepLinkModalDisplay({
+        linkType: linkType(),
+        pageTitle,
+        onContinue: () => resolve(true),
+        onBack: () => resolve(false),
+      });
+    }));
 
   // Universal links
   handled();
@@ -134,6 +145,7 @@ async function handleUniversalLink({
   if (!shouldProceed) {
     return false;
   }
+
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   if (
     action === SUPPORTED_ACTIONS.BUY_CRYPTO ||
@@ -170,6 +182,15 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
     const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleCreateAccount(deeplinkUrl);
+  } else if (
+    action === SUPPORTED_ACTIONS.PERPS ||
+    action === SUPPORTED_ACTIONS.PERPS_MARKETS
+  ) {
+    const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handlePerps(perpsPath);
+  } else if (action === SUPPORTED_ACTIONS.PERPS_ASSET) {
+    const assetPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handlePerpsAsset(assetPath);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;

@@ -5,7 +5,7 @@ import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import NetworkManager from '../../../pages/wallet/NetworkManager';
 import { toChecksumAddress } from 'ethereumjs-util';
 import {
   CORE_USER_STATE,
@@ -66,11 +66,11 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             // Measure time to navigate to account list
             const starTime = Date.now();
 
-            await WalletView.tapNetworksButtonOnNavBar();
+            await WalletView.tapTokenNetworkFilter();
 
             // Re-enable sync and check if network list is visible
             await Assertions.expectElementToBeVisible(
-              NetworkListModal.networkScroll,
+              NetworkManager.popularNetworksTab,
             );
             console.log('Network list became visible');
 
@@ -162,11 +162,11 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             );
 
             const startTime = Date.now();
-            await WalletView.tapNetworksButtonOnNavBar();
+            await WalletView.tapTokenNetworkFilter();
 
             const endTime = Date.now();
             await Assertions.expectElementToBeVisible(
-              NetworkListModal.networkScroll,
+              NetworkManager.popularNetworksTab,
             );
 
             const totalTime = endTime - startTime;
@@ -241,11 +241,11 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             console.log('Starting baseline test with minimal load...');
 
-            await WalletView.tapNetworksButtonOnNavBar();
+            await WalletView.tapTokenNetworkFilter();
 
             const startTime = Date.now();
             await Assertions.expectElementToBeVisible(
-              NetworkListModal.networkScroll,
+              NetworkManager.popularNetworksTab,
             );
             const endTime = Date.now();
 

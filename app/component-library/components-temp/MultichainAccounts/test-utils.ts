@@ -6,6 +6,7 @@ import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { RootState } from '../../../reducers';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 /**
  * Creates a mock internal account for testing
@@ -109,6 +110,7 @@ export const createMockState = (
   return {
     engine: {
       backgroundState: {
+        ...backgroundState,
         AccountTreeController: {
           accountTree: {
             wallets: walletMap,

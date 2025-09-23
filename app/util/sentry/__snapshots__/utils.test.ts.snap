@@ -264,8 +264,5 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "seedphraseBackedUp": true,
     "userLoggedIn": true,
   },
-  "wizard": {
-    "step": 1,
-  },
 }
 `;

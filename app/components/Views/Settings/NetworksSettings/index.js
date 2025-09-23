@@ -186,12 +186,15 @@ class NetworksSettings extends PureComponent {
     const { navigation } = this.props;
     navigation.navigate(Routes.ADD_NETWORK, {
       network: networkTypeOrRpcUrl,
+      shouldNetworkSwitchPopToWallet: false,
     });
   };
 
   onAddNetwork = () => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.ADD_NETWORK);
+    navigation.navigate(Routes.ADD_NETWORK, {
+      shouldNetworkSwitchPopToWallet: false,
+    });
   };
 
   showRemoveMenu = (networkTypeOrRpcUrl) => {

@@ -1,0 +1,305 @@
+---
+alwaysApply: true
+---
+# MetaMask Mobile E2E Testing Guidelines
+
+## Core Principles
+
+1. **Test Coverage is Critical**: Higher coverage creates more confidence and helps identify bugs effectively.
+2. **Tests Should Be Reliable**: Tests should consistently produce the same results and be resilient to minor system changes.
+3. **Tests Should Provide Fast Feedback**: Optimize for quick execution and clear failure messages.
+4. **Tests Should Be Easy to Debug**: When a test fails, it should be clear what functionality is broken.
+5. **Tests Should Be Maintainable**: Structure tests for easy maintenance as the application evolves.
+
+## Test Naming Conventions
+
+### DO:
+- Use clear, descriptive names that communicate the purpose of the test
+- Name tests based on what they verify (e.g., `adds Bob to the address book`)
+- Keep names concise but informative
+
+### DON'T:
+- Use the prefix 'should' (e.g., `should add Bob to the address book`)
+- Include multiple behaviors with 'and' in a single test name
+- Use vague or generic names
+
+## Test Organization
+
+- Organize tests into folders based on features and scenarios
+- Each feature team should own one or more folders of tests
+- Follow the same organization pattern as the extension team for consistency
+- Place tests in logical feature directories:
+  ```
+  e2e/tests/tokens/import/import-erc1155.spec.js
+  e2e/tests/settings/clear-activity.spec.js
+  e2e/tests/ppom/ppom-blockaid-alert-erc20-approval.spec.js
+  ```
+
+## Framework Architecture
+
+### Core Classes:
+
+- **`Assertions`** - Enhanced assertions with auto-retry and detailed error messages
+- **`Gestures`** - Robust user interactions with configurable element state checking
+- **`Matchers`** - Type-safe element selectors with flexible options
+- **`Utilities`** - Core utilities with specialized element state checking
+
+### Key Features:
+
+- ✅ **Auto-retry** - Handles flaky network/UI conditions
+- ✅ **Configurable element state checking** - Control visibility, enabled, and stability checks per interaction
+- ✅ **Performance optimization** - Stability checking disabled by default for better performance
+- ✅ **Better error messages** - Descriptive errors with retry context and timing
+- ✅ **Type safety** - Full TypeScript support with IntelliSense
+
+## Test Atomicity and Coupling
+
+### When to Isolate Tests:
+- Testing specific functionality of a single component or feature
+- When you need to pinpoint exact failure causes
+- For basic unit-level behaviors
+
+### When to Combine Tests:
+- For multi-step user flows that represent real user behavior
+- When testing how different parts of the application work together
+- When the setup for multiple tests is time-consuming and identical
+
+### Guidelines:
+- Each test should run with a dedicated browser and mock services
+- Use the `withFixtures` function to create test prerequisites and clean up afterward
+- Avoid shared mocks and services between tests when possible
+- Consider the "fail-fast" philosophy - if an initial step fails, subsequent steps may not need to run
+
+## Controlling State
+
+### Best Practices:
+- Control application state programmatically rather than through UI interactions
+- Use fixtures to set up test prerequisites instead of UI steps
+- Minimize UI interactions to reduce potential breaking points
+- Improve test stability by reducing timing and synchronization issues
+
+### Example:
+```javascript
+// GOOD: Use fixture to set up prerequisites
+new FixtureBuilder()
+  .withAddressBookControllerContactBob()
+  .withTokensControllerERC20()
+  .build();
+
+// Then test only the essential steps:
+// Login
+// Send TST
+// Assertion
+
+// BAD: Building all state through UI
+new FixtureBuilder().build();
+// Login
+// Add Contact
+// Open test dapp
+// Connect to test dapp
+// Deploy TST
+// Add TST to wallet
+// Send TST
+// Assertion
+```
+
+## Framework Best Practices
+
+### Page Object Model (POM) Pattern
+- ALWAYS use the Page Object Model pattern for organizing test code
+- Move all element selectors to Page Objects or dedicated selector files
+- Access UI elements through Page Object methods, not directly in test specs
+
+#### Page Object Structure Example:
+```typescript
+import { LoginPageSelectors } from './LoginPage.selectors';
+
+class LoginPage {
+  // Getter pattern for elements
+  get emailInput() {
+    return Matchers.getElementByID(LoginPageSelectors.EMAIL_INPUT);
+  }
+  get passwordInput() {
+    return Matchers.getElementByID(LoginPageSelectors.PASSWORD_INPUT);
+  }
+  get loginButton() {
+    return Matchers.getElementByID(LoginPageSelectors.LOGIN_BUTTON);
+  }
+
+  // Public methods for actions
+  async login(email: string, password: string): Promise<void> {
+    await Gestures.typeText(this.emailInput, email, {
+      description: 'enter email',
+    });
+    await Gestures.typeText(this.passwordInput, password, {
+      description: 'enter password',
+    });
+    await Gestures.tap(this.loginButton, { description: 'tap login button' });
+  }
+
+  // Public methods for verifications
+  async verifyLoginError(expectedError: string): Promise<void> {
+    await Assertions.expectTextDisplayed(expectedError, {
+      description: 'login error should be displayed',
+    });
+  }
+}
+
+export default new LoginPage();
+```
+
+### Proper Waiting and Assertions
+- NEVER use `TestHelpers.delay()` - it creates flaky tests and slows down test execution
+- ALWAYS use proper waiting with Assertions from the framework:
+  ```javascript
+  // DON'T:
+  TestHelpers.delay(1000);
+  
+  // DO:
+  Assertions.expectElementToBeVisible(element, {
+    description: 'element should be visible'
+  });
+  ```
+
+### Framework Imports
+- ALWAYS import framework utilities from `e2e/framework/index.ts`, not from individual utility files
+- Use the centralized framework exports for consistency and maintainability
+
+### Element State Checking Configuration
+- **Default behavior**: `checkVisibility: true`, `checkEnabled: true`, `checkStability: false`
+- **Performance optimization**: Stability checking disabled by default for better performance
+- **When to enable stability**: Complex animations, moving screens, carousel components
+- **When to disable checks**: Loading states, temporarily disabled elements
+
+```typescript
+// Default: checks visibility + enabled, skips stability
+await Gestures.tap(button, { description: 'tap button' });
+
+// Enable stability for animated elements
+await Gestures.tap(carouselItem, {
+  checkStability: true,
+  description: 'tap carousel item',
+});
+
+// Skip checks for loading/processing elements
+await Gestures.tap(processingButton, {
+  checkVisibility: false,
+  checkEnabled: false,
+  description: 'tap processing button',
+});
+```
+
+### Prohibited Patterns in Test Specs
+The following patterns are prohibited in test specs:
+
+1. **Direct Element Selection**
+   ```javascript
+   // DON'T:
+   element(by.id('some-id')).tap();
+   
+   // DO:
+   SomePage.tapOnSomeElement();
+   ```
+
+2. **Direct By Selectors**
+   ```javascript
+   // DON'T:
+   by.text('Submit');
+   
+   // DO:
+   // Define in page object:
+   static get submitButton() {
+     return Matchers.getByText('Submit');
+   }
+   ```
+
+3. **Direct waitFor Calls**
+   ```javascript
+   // DON'T:
+   await waitFor(element).toBeVisible().withTimeout(2000);
+   
+   // DO:
+   await Assertions.expectElementToBeVisible(element);
+   ```
+
+## Handling Flaky Tests
+
+### Common Issues and Solutions
+
+#### "Element not enabled" Errors
+- **Cause**: Element exists but is not interactive (disabled/loading state)
+- **Solution**: Use `checkEnabled: false` to bypass enabled state validation
+
+```typescript
+// Skip enabled check for temporarily disabled elements
+await Gestures.tap(loadingButton, {
+  checkEnabled: false,
+  description: 'tap button during loading',
+});
+```
+
+#### "Element moving/animating" Errors
+- **Cause**: UI animations interfering with interactions
+- **Solution**: Enable stability checking for that specific interaction
+
+```typescript
+await Gestures.tap(animatedButton, {
+  checkStability: true, // Wait for animations to complete
+  description: 'tap animated button',
+});
+```
+
+#### Handling Flaky Navigation/Tap Issues
+When elements sometimes don't respond to taps, use a higher-level retry pattern:
+
+```typescript
+async tapOpenAllTabsButton(): Promise<void> {
+  return Utilities.executeWithRetry(
+    async () => {
+      await Gestures.waitAndTap(this.tabsButton, {
+        timeout: 2000  // Short timeout for individual action
+      });
+
+      await Assertions.expectElementToBeVisible(this.tabsNumber, {
+        timeout: 2000  // Short timeout for verification
+      });
+    },
+    {
+      timeout: 30000,  // Longer overall timeout for retries
+      description: 'tap open all tabs button and verify navigation',
+      elemDescription: 'Open All Tabs Button',
+    }
+  );
+}
+```
+
+## Code Review Checklist
+
+Before submitting E2E tests, ensure:
+
+- [ ] No usage of `TestHelpers.delay()` or `setTimeout()`
+- [ ] All assertions have descriptive `description` parameters
+- [ ] All gestures have descriptive `description` parameters
+- [ ] Appropriate timeouts for operations (not magic numbers)
+- [ ] Page Object pattern used for complex interactions
+- [ ] Element selectors defined once and reused
+- [ ] Framework configuration used appropriately
+- [ ] Error handling for expected failure scenarios
+- [ ] Tests work on both iOS and Android platforms
+
+## Debugging Failed Tests
+
+- Write tests that provide clear failure messages
+- Include enough context in assertions to understand what failed
+- Use descriptive selectors that won't break with minor UI changes
+- Capture screenshots or logs at failure points when possible
+- Use descriptive `description` parameters in all assertions and gestures
+
+## Maintenance Guidelines
+
+- Review and update tests when features change
+- Delete tests for removed features
+- Keep test files focused on specific features
+- Extract common setup into helper functions or fixtures
+- Document complex test setups with comments
+- Avoid non-extendable logic for specific fixtures - make fixtures reusable

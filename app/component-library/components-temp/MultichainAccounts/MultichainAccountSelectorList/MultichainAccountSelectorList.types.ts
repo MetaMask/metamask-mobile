@@ -22,7 +22,7 @@ export interface MultichainAccountSelectorListProps
   /**
    * Selected account group
    */
-  selectedAccountGroup: AccountGroupObject;
+  selectedAccountGroups: AccountGroupObject[];
   /**
    * Test ID for the component
    */

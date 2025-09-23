@@ -61,7 +61,7 @@ export function Token({ asset, onPress }: TokenProps) {
                 biggest={false}
                 chainId={asset.chainId as string}
                 style={tw.style('w-10 h-10 rounded-full bg-default')}
-                ticker={asset.ticker as string}
+                ticker={asset.symbol as string}
               />
             ) : (
               <AvatarToken
@@ -96,7 +96,7 @@ export function Token({ asset, onPress }: TokenProps) {
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
         >
-          $4,000.00
+          {asset?.balanceInSelectedCurrency}
         </Text>
         <Text
           variant={TextVariant.BodySm}

@@ -19,7 +19,7 @@ export function getNavbar({
   theme,
 }: {
   title: string;
-  onReject: () => void;
+  onReject?: () => void;
   addBackButton?: boolean;
   theme: Theme;
 }) {
@@ -61,5 +61,18 @@ export function getNavbar({
       />
     ),
     headerStyle: innerStyles.headerStyle,
+  };
+}
+
+export function getEmptyNavHeader({ theme }: { theme: Theme }) {
+  const navbarOptions = getNavbar({
+    title: '',
+    addBackButton: false,
+    theme,
+  });
+  return {
+    ...navbarOptions,
+    headerShown: true,
+    gestureEnabled: false,
   };
 }

@@ -961,7 +961,7 @@ describe('selectors', () => {
       expect(getOrders(state)).toEqual([]);
     });
 
-    it('should return the orders by address and chainId', () => {
+    it('should return all orders by address across all chains', () => {
       const state1 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
@@ -1106,13 +1106,18 @@ describe('selectors', () => {
         },
       });
 
-      expect(getOrders(state1)).toHaveLength(2);
+      expect(getOrders(state1)).toHaveLength(4);
       expect(getOrders(state1).map((o) => o.id)).toEqual([
         'test-56-order-1',
         'test-56-order-3',
+        'test-1-order-1',
+        'test-1-order-3',
       ]);
-      expect(getOrders(state2)).toHaveLength(1);
-      expect(getOrders(state2).map((o) => o.id)).toEqual(['test-1-order-2']);
+      expect(getOrders(state2)).toHaveLength(2);
+      expect(getOrders(state2).map((o) => o.id)).toEqual([
+        'test-56-order-2',
+        'test-1-order-2',
+      ]);
     });
 
     it('should return all the orders in a test net', () => {
@@ -1376,7 +1381,7 @@ describe('selectors', () => {
   });
 
   describe('getPendingOrders', () => {
-    it('should return the orders by address and chainId and state pending', () => {
+    it('should return pending orders by address across all chains', () => {
       const state1 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
@@ -1781,7 +1786,7 @@ describe('selectors', () => {
       expect(getCustomOrderIds(state)).toEqual([]);
     });
 
-    it('should return the custom order ids by address and chainId', () => {
+    it('should return all custom order ids by address across all chains', () => {
       const state = merge({}, initialRootState, {
         engine: {
           backgroundState: {
@@ -1839,9 +1844,10 @@ describe('selectors', () => {
         },
       });
 
-      expect(getCustomOrderIds(state)).toHaveLength(2);
+      expect(getCustomOrderIds(state)).toHaveLength(3);
       expect(getCustomOrderIds(state).map((c) => c.id)).toEqual([
         'test-56-order-1',
+        'test-1-order-1',
         'test-56-order-3',
       ]);
     });
@@ -1955,7 +1961,7 @@ describe('selectors', () => {
   });
 
   describe('getHasOrders', () => {
-    it('should return true only if there are orders', () => {
+    it('should return true if there are orders from any chain', () => {
       const state1 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
@@ -2117,7 +2123,7 @@ describe('selectors', () => {
         },
       });
       expect(getHasOrders(state1)).toBe(true);
-      expect(getHasOrders(state2)).toBe(false);
+      expect(getHasOrders(state2)).toBe(true);
     });
   });
 

@@ -1,3 +1,4 @@
+import AppwrightSelectors from '../helpers/AppwrightSelectors';
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
@@ -8,12 +9,28 @@ import {
 } from './testIDs/Screens/AmountScreen.testIds';
 
 class AmountScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get amountInputField() {
-    return Selectors.getElementByPlatform(TRANSACTION_AMOUNT_INPUT);
+    if (!this._device) {
+      return Selectors.getElementByPlatform(TRANSACTION_AMOUNT_INPUT);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TRANSACTION_AMOUNT_INPUT);
+    }
   }
 
   get amountScreen() {
-    return Selectors.getElementByPlatform(AMOUNT_SCREEN);
+    if (!this._device) {
+      return Selectors.getElementByPlatform(AMOUNT_SCREEN);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, AMOUNT_SCREEN);
+    }
   }
 
   get amountError() {
@@ -21,12 +38,21 @@ class AmountScreen {
   }
 
   get nextButton() {
-    return Selectors.getElementByPlatform(NEXT_BUTTON);
+    if (!this._device) {
+      return Selectors.getElementByPlatform(NEXT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, NEXT_BUTTON);
+    }
   }
 
   async enterAmount(text) {
-    await Gestures.waitAndTap(this.amountInputField);
-    await Gestures.typeText(this.amountInputField, text);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.amountInputField);
+      await Gestures.typeText(this.amountInputField, text);
+    } else {
+      const element = await AppwrightSelectors.getElementByID(this._device, TRANSACTION_AMOUNT_INPUT);
+      await element.fill(text);
+    }
   }
 
   async isTokenCorrect(token) {
@@ -41,6 +67,11 @@ class AmountScreen {
   async waitNextButtonEnabled() {
     const nextButton = await this.nextButton;
     await nextButton.waitForEnabled();
+  }
+
+  async tapOnNextButton() {
+    const element = await this.nextButton;
+    await element.tap();
   }
 }
 

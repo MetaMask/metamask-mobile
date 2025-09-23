@@ -37,6 +37,7 @@ import {
   NetworkListItem,
   AdditionalNetworkSection,
   NetworkListItemType,
+  SelectAllNetworksListItem,
 } from './NetworkMultiSelectorList.types.ts';
 import styleSheet from './NetworkMultiSelectorList.styles';
 import {
@@ -45,6 +46,7 @@ import {
   ADDITIONAL_NETWORK_SECTION_ID,
   ITEM_TYPE_ADDITIONAL_SECTION,
   ITEM_TYPE_NETWORK,
+  SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
@@ -65,7 +67,9 @@ const NetworkMultiSelectList = ({
   isSelectionDisabled,
   isAutoScrollEnabled = true,
   additionalNetworksComponent,
+  selectAllNetworksComponent,
   openModal,
+  areAllNetworksSelected,
   ...props
 }: NetworkMultiSelectorListProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,16 +89,16 @@ const NetworkMultiSelectList = ({
           parsedCaipChainId.namespace !== 'solana'
             ? toHex(parsedCaipChainId.reference)
             : '';
-
         return {
           ...network,
           chainId,
           namespace: parsedCaipChainId.namespace,
           isMainChain: MAIN_CHAIN_IDS.has(chainId),
           isTestNetwork: Boolean(chainId && isTestNet(chainId)),
+          isSelected: areAllNetworksSelected ? false : network.isSelected,
         };
       }),
-    [networks],
+    [areAllNetworksSelected, networks],
   );
 
   const combinedData: NetworkListItem[] = useMemo(() => {
@@ -107,6 +111,14 @@ const NetworkMultiSelectList = ({
       data.push(...filteredNetworks);
     }
 
+    if (selectAllNetworksComponent) {
+      data.unshift({
+        id: SELECT_ALL_NETWORKS_SECTION_ID,
+        type: NetworkListItemType.SelectAllNetworksListItem,
+        component: selectAllNetworksComponent,
+      } as SelectAllNetworksListItem);
+    }
+
     if (additionalNetworksComponent) {
       data.push({
         id: ADDITIONAL_NETWORK_SECTION_ID,
@@ -116,8 +128,11 @@ const NetworkMultiSelectList = ({
     }
 
     return data;
-  }, [processedNetworks, additionalNetworksComponent]);
-
+  }, [
+    processedNetworks,
+    additionalNetworksComponent,
+    selectAllNetworksComponent,
+  ]);
   const contentContainerStyle = useMemo(
     () => ({
       paddingBottom:
@@ -178,6 +193,13 @@ const NetworkMultiSelectList = ({
     [],
   );
 
+  const isSelectAllNetworksSection = useCallback(
+    (item: NetworkListItem): item is SelectAllNetworksListItem =>
+      'type' in item &&
+      item.type === NetworkListItemType.SelectAllNetworksListItem,
+    [],
+  );
+
   const createAvatarProps = useCallback(
     (network: ProcessedNetwork) => ({
       variant: AvatarVariant.Network as const,
@@ -210,6 +232,10 @@ const NetworkMultiSelectList = ({
         return <View>{item.component}</View>;
       }
 
+      if (isSelectAllNetworksSection(item)) {
+        return <View>{item.component}</View>;
+      }
+
       const network = item as ProcessedNetwork;
       const { caipChainId, name, isSelected, networkTypeOrRpcUrl } = network;
 
@@ -219,7 +245,7 @@ const NetworkMultiSelectList = ({
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell
-            variant={CellVariant.MultiSelectWithMenu}
+            variant={CellVariant.SelectWithMenu}
             isSelected={isSelected}
             title={name}
             onPress={() => debouncedSelectNetwork(caipChainId)}
@@ -242,6 +268,7 @@ const NetworkMultiSelectList = ({
       renderRightAccessory,
       createAvatarProps,
       createButtonProps,
+      isSelectAllNetworksSection,
     ],
   );
 

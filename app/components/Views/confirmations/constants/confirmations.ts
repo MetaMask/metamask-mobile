@@ -48,7 +48,7 @@ export const REDESIGNED_CONTRACT_INTERACTION_TYPES = [
 ];
 
 export const FULL_SCREEN_CONFIRMATIONS = [
-  'perpsDeposit',
+  TransactionType.perpsDeposit,
   TransactionType.simpleSend,
   TransactionType.stakingClaim,
   TransactionType.stakingDeposit,

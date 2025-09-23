@@ -9,7 +9,6 @@ import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletS
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
@@ -126,10 +125,8 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
 });
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
-  await OnboardingWizardModal.isVisible();
   const setTimeout = 1500;
   await driver.pause(setTimeout);
-  await OnboardingWizardModal.tapNoThanksButton();
 });
 
 Then(/^"([^"]*)?" is visible/, async (text) => {
@@ -321,5 +318,4 @@ Then(/^I use the back button on Android$/, async () => {
 Given(/^I dismiss the Solana New Feature Sheet$/, async () => {
   await SolanaNewFeatureSheet.isVisible();
   await SolanaNewFeatureSheet.tapNotNowButton();
-  await OnboardingWizardModal.isNotVisible();
 });

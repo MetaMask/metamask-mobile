@@ -5,7 +5,7 @@ import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import NetworkListModal from '../../../pages/Network/NetworkListModal';
+import NetworkManager from '../../../pages/wallet/NetworkManager';
 import {
   CORE_USER_STATE,
   POWER_USER_STATE,
@@ -72,16 +72,16 @@ describe(SmokePerformance('Network List Load Testing'), () => {
 
             console.log('Starting network switching test...');
 
-            await WalletView.tapNetworksButtonOnNavBar();
+            await WalletView.tapTokenNetworkFilter();
             await Assertions.expectElementToBeVisible(
-              NetworkListModal.networkScroll,
+              NetworkManager.popularNetworksTab,
             );
             console.log('Network list became visible');
 
             const startTime = Date.now();
-            await NetworkListModal.changeNetworkTo('Polygon Mainnet', false);
+            await NetworkManager.tapNetwork('Polygon Mainnet');
             await Assertions.expectElementToNotBeVisible(
-              NetworkListModal.networkScroll,
+              NetworkManager.popularNetworksTab,
             );
             const endTime = Date.now();
             console.log('Network switched and list is not visible');

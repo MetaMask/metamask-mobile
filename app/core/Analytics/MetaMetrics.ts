@@ -3,6 +3,8 @@ import {
   GroupTraits,
   JsonMap,
   UserTraits,
+  CountFlushPolicy,
+  TimerFlushPolicy,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
 import StorageWrapper from '../../store/storage-wrapper';
@@ -37,6 +39,7 @@ import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettin
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import MetaMetricsTestUtils from './MetaMetricsTestUtils';
+import { segmentPersistor } from './SegmentPersistor';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -502,11 +505,22 @@ class MetaMetrics implements IMetaMetrics {
         writeKey: process.env.SEGMENT_WRITE_KEY as string,
         proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
-        // allow custom flush interval and event limit for dev and testing
-        // each is optional and can be set in the .js.env file
-        // if not set, the default values from the Segment SDK will be used
-        flushInterval: process.env.SEGMENT_FLUSH_INTERVAL as unknown as number,
-        flushAt: process.env.SEGMENT_FLUSH_EVENT_LIMIT as unknown as number,
+        // Use custom persistor to bridge Segment SDK with app's storage system
+        storePersistor: segmentPersistor,
+        // Use flush policies for better control and to avoid timeout issues
+        // CountFlushPolicy: triggers when reaching a certain number of events
+        // TimerFlushPolicy: triggers on an interval (expects milliseconds)
+        // Environment variables are in seconds for backward compatibility
+        // Both are configurable via environment variables in .js.env
+        // If not set, sensible defaults are used (20 events, 30 seconds)
+        flushPolicies: [
+          new CountFlushPolicy(
+            parseInt(process.env.SEGMENT_FLUSH_EVENT_LIMIT || '20', 10),
+          ),
+          new TimerFlushPolicy(
+            parseInt(process.env.SEGMENT_FLUSH_INTERVAL || '30', 10) * 1000,
+          ),
+        ],
       };
 
       if (__DEV__)

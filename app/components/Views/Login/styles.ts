@@ -69,6 +69,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     goBack: {
       marginVertical: 14,
+      alignSelf: 'center',
     },
     biometrics: {
       flexDirection: 'row',

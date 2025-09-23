@@ -24,17 +24,17 @@ const createMockAccountGroup = (
   } as AccountGroupObject);
 
 const mockAccountGroup1 = createMockAccountGroup(
-  'test-group1',
+  'wallet-1/group-1',
   'Test Group 1',
   ['account-id-1'],
 );
 const mockAccountGroup2 = createMockAccountGroup(
-  'test-group2',
+  'wallet-1/group-2',
   'Test Group 2',
   ['account-id-2'],
 );
 const mockAccountGroup3 = createMockAccountGroup(
-  'test-group3',
+  'wallet-2/group-3',
   'Test Group 3',
   ['account-id-3'],
 );
@@ -51,18 +51,19 @@ const mockStore = configureStore({
                 id: 'wallet-1',
                 metadata: { name: 'MetaMask Wallet' },
                 groups: {
-                  'group-1': mockAccountGroup1,
-                  'group-2': mockAccountGroup2,
+                  'wallet-1/group-1': mockAccountGroup1,
+                  'wallet-1/group-2': mockAccountGroup2,
                 },
               },
               'wallet-2': {
                 id: 'wallet-2',
                 metadata: { name: 'Hardware Wallet' },
                 groups: {
-                  'group-3': mockAccountGroup3,
+                  'wallet-2/group-3': mockAccountGroup3,
                 },
               },
             },
+            selectedAccountGroup: 'wallet-1/group-1',
           },
         },
         AccountsController: {
@@ -140,9 +141,9 @@ const MultichainAccountSelectorListMeta = {
   ],
   argTypes: {
     onSelectAccount: { action: 'account selected' },
-    selectedAccountGroup: {
+    selectedAccountGroups: {
       control: { type: 'object' },
-      defaultValue: mockAccountGroup1,
+      defaultValue: [mockAccountGroup1],
     },
     testID: {
       control: { type: 'text' },
@@ -163,7 +164,25 @@ export default MultichainAccountSelectorListMeta;
 
 export const Default = {
   args: {
-    selectedAccountGroup: mockAccountGroup1,
-    privacyMode: false,
+    selectedAccountGroups: [mockAccountGroup1],
+  },
+};
+
+export const MultipleSelected = {
+  args: {
+    selectedAccountGroups: [mockAccountGroup1, mockAccountGroup2],
+  },
+};
+
+export const NoSelection = {
+  args: {
+    selectedAccountGroups: [],
+  },
+};
+
+export const WithCustomTestID = {
+  args: {
+    selectedAccountGroups: [mockAccountGroup1],
+    testID: 'custom-multichain-account-selector',
   },
 };

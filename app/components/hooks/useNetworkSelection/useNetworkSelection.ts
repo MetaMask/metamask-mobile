@@ -25,9 +25,16 @@ interface UseNetworkSelectionOptions {
  * @returns Network selection methods and state
  * @example
  * ```tsx
- * const { selectNetwork, toggleAll } = useNetworkSelection({ networks });
- * selectNetwork('0x1'); // Select by hex or CAIP format
- * toggleAll(); // Toggle all networks
+ * const { selectNetwork, selectAllPopularNetworks } = useNetworkSelection({ networks });
+ *
+ * // Select with callback
+ * selectNetwork('0x1', () => navigation.goBack());
+ *
+ * // Select without callback
+ * selectNetwork('0x1');
+ *
+ * // Select all popular networks with callback
+ * selectAllPopularNetworks(() => navigation.goBack());
  * ```
  */
 export const useNetworkSelection = ({
@@ -37,8 +44,8 @@ export const useNetworkSelection = ({
     namespace,
     enableNetwork,
     disableNetwork,
-    toggleNetwork,
     enabledNetworksByNamespace,
+    enableAllPopularNetworks,
   } = useNetworkEnablement();
 
   const popularNetworkConfigurations = useSelector(
@@ -89,25 +96,39 @@ export const useNetworkSelection = ({
 
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
-    (chainId: CaipChainId) => {
-      enableNetwork(chainId);
-      resetCustomNetworks(chainId);
+    async (chainId: CaipChainId, onComplete?: () => void) => {
+      await enableNetwork(chainId);
+      await resetCustomNetworks(chainId);
+      onComplete?.();
     },
     [enableNetwork, resetCustomNetworks],
   );
 
+  const selectAllPopularNetworks = useCallback(
+    async (onComplete?: () => void) => {
+      await enableAllPopularNetworks();
+      await resetCustomNetworks();
+      onComplete?.();
+    },
+    [enableAllPopularNetworks, resetCustomNetworks],
+  );
+
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
-    (chainId: CaipChainId) => {
-      toggleNetwork(chainId);
-      resetCustomNetworks();
+    async (chainId: CaipChainId, onComplete?: () => void) => {
+      await enableNetwork(chainId);
+      await resetCustomNetworks();
+      onComplete?.();
     },
-    [toggleNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */
   const selectNetwork = useCallback(
-    (hexOrCaipChainId: CaipChainId | `0x${string}` | Hex) => {
+    (
+      hexOrCaipChainId: CaipChainId | `0x${string}` | Hex,
+      onComplete?: () => void,
+    ) => {
       const inputString = String(hexOrCaipChainId);
       const hexChainId = (
         typeof hexOrCaipChainId === 'string' && inputString.includes(':')
@@ -118,9 +139,9 @@ export const useNetworkSelection = ({
       const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
       const caipChainId = formatChainIdToCaip(hexOrCaipChainId);
       if (isPopularNetwork) {
-        selectPopularNetwork(caipChainId);
+        selectPopularNetwork(caipChainId, onComplete);
       } else {
-        selectCustomNetwork(caipChainId);
+        selectCustomNetwork(caipChainId, onComplete);
       }
     },
     [selectPopularNetwork, selectCustomNetwork],
@@ -135,26 +156,13 @@ export const useNetworkSelection = ({
     });
   }, [networks, disableNetwork]);
 
-  /** Toggles selection of all networks */
-  const toggleAll = useCallback(() => {
-    const areAllSelected = networks.every(({ isSelected }) => isSelected);
-    if (areAllSelected) {
-      deselectAll();
-    } else {
-      networks.forEach(({ caipChainId }) => {
-        enableNetwork(caipChainId);
-      });
-      resetCustomNetworks();
-    }
-  }, [networks, deselectAll, enableNetwork, resetCustomNetworks]);
-
   return {
     selectCustomNetwork,
     selectPopularNetwork,
     selectNetwork,
     deselectAll,
-    toggleAll,
     resetCustomNetworks,
     customNetworksToReset,
+    selectAllPopularNetworks,
   };
 };

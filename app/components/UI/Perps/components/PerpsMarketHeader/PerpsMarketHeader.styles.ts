@@ -32,14 +32,18 @@ export const styleSheet = ({
     },
     backButton: {
       marginRight: 12,
+      padding: 12,
+      marginLeft: -12,
+      marginTop: -12,
+      marginBottom: -12,
     },
     perpIcon: {
       marginRight: 12,
     },
     tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
     },
     leftSection: {
       flex: 1,

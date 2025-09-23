@@ -47,7 +47,9 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
+import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
+import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import AccountConnect from '../../../components/Views/AccountConnect';
@@ -109,6 +111,7 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
@@ -120,10 +123,6 @@ import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
-import Engine from '../../../core/Engine';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { RpcEndpointType } from '@metamask/network-controller';
 import {
   endTrace,
   trace,
@@ -148,7 +147,9 @@ import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBack
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
+import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
+import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddressQR/ShareAddressQR';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
@@ -156,6 +157,9 @@ import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
+import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
+import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -163,6 +167,7 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
+import { useEmptyNavHeaderForConfirmations } from '../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -389,6 +394,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={AccountSelector}
     />
     <Stack.Screen
+      name={Routes.SHEET.ADDRESS_SELECTOR}
+      component={AddressSelector}
+    />
+    <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
       component={AddNewAccountBottomSheet}
     />
@@ -465,6 +474,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
       component={ReturnToAppModal}
+      initialParams={{ ...props.route.params }}
     />
     <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
@@ -513,6 +523,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
       component={NFTAutoDetectionModal}
     />
+    <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
     {isNetworkUiRedesignEnabled() ? (
       <Stack.Screen
         name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
@@ -619,6 +630,25 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const MultichainAccountGroupDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+        component={AccountGroupDetails}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const MultichainAccountDetailsActions = () => {
   const route = useRoute();
 
@@ -649,6 +679,12 @@ const MultichainAccountDetailsActions = () => {
       <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
         component={ShareAddress}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR}
+        component={ShareAddressQR}
         initialParams={route?.params}
         options={commonScreenOptions}
       />
@@ -710,6 +746,39 @@ const MultichainWalletDetails = () => {
   );
 };
 
+const MultichainAddressList = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={MultichainAccountAddressList}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const MultichainPrivateKeyList = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator screenOptions={clearStackNavigatorOptions} mode={'modal'}>
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
+        component={MultichainAccountPrivateKeyList}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
@@ -757,6 +826,7 @@ const ModalSmartAccountOptIn = () => (
 
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
     <>
@@ -836,12 +906,28 @@ const AppFlow = () => {
           component={MultichainAccountDetails}
         />
         <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+          component={MultichainAccountGroupDetails}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
+          component={MultichainAccountActions}
+        />
+        <Stack.Screen
           name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
           component={MultichainAccountDetailsActions}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
           component={MultichainWalletDetails}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+          component={MultichainAddressList}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
+          component={MultichainPrivateKeyList}
         />
         <Stack.Screen
           name={Routes.SOLANA_NEW_FEATURE_CONTENT}
@@ -899,6 +985,7 @@ const AppFlow = () => {
         />
         <Stack.Screen
           name={Routes.CONFIRMATION_REQUEST_MODAL}
+          options={emptyNavHeaderOptions}
           component={ModalConfirmationRequest}
         />
         <Stack.Screen
@@ -1170,47 +1257,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     async function startApp() {
-      if (!existingUser) {
-        // List of chainIds to add (as hex strings)
-        const chainIdsToAdd: `0x${string}`[] = [
-          CHAIN_IDS.ARBITRUM,
-          CHAIN_IDS.BASE,
-          CHAIN_IDS.BSC,
-          CHAIN_IDS.OPTIMISM,
-          CHAIN_IDS.POLYGON,
-        ];
-
-        // Filter the PopularList to get only the specified networks based on chainId
-        const selectedNetworks = PopularList.filter((network) =>
-          chainIdsToAdd.includes(network.chainId),
-        );
-        const { NetworkController } = Engine.context;
-
-        // Loop through each selected network and call NetworkController.addNetwork
-        for (const network of selectedNetworks) {
-          try {
-            await NetworkController.addNetwork({
-              chainId: network.chainId,
-              blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
-              defaultRpcEndpointIndex: 0,
-              defaultBlockExplorerUrlIndex: 0,
-              name: network.nickname,
-              nativeCurrency: network.ticker,
-              rpcEndpoints: [
-                {
-                  url: network.rpcUrl,
-                  failoverUrls: network.failoverRpcUrls,
-                  name: network.nickname,
-                  type: RpcEndpointType.Custom,
-                },
-              ],
-            });
-          } catch (error) {
-            Logger.error(error as Error);
-          }
-        }
-      }
-
       try {
         const currentVersion = getVersion();
         const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
@@ -1247,6 +1293,7 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
+      <ProfilerManager />
     </>
   );
 };

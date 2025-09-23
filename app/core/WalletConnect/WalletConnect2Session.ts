@@ -144,7 +144,6 @@ class WalletConnect2Session {
           title: { current: name },
           icon: { current: icons?.[0] as ImageSourcePropType },
           toggleUrlModal: () => null,
-          wizardScrollAdjusted: { current: false },
           tabId: '',
           isWalletConnect: true,
         }),

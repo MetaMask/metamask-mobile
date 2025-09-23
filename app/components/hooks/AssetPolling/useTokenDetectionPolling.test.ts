@@ -208,6 +208,13 @@ describe('useTokenDetectionPolling', () => {
                   },
                 },
               },
+              NetworkEnablementController: {
+                enabledNetworkMap: {
+                  eip155: {
+                    '0x5': true,
+                  },
+                },
+              },
             },
           },
         },

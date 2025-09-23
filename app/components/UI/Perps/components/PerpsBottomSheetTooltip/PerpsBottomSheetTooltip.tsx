@@ -29,6 +29,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     onClose,
     contentKey,
     testID = PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP,
+    data,
   }) => {
     const { styles } = useStyles(createStyles, {});
     const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -47,6 +48,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
         return (
           <CustomRenderer
             testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT}
+            data={data}
           />
         );
       }

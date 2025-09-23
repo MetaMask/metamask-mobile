@@ -76,6 +76,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
     action?: 'view' | 'edit' | 'close';
   };
 
+  PerpsClosePosition: {
+    position: Position;
+  };
+
   // Order history routes
   PerpsOrderHistory: undefined;
 

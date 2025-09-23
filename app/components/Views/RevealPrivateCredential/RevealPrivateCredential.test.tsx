@@ -18,6 +18,13 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn(),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 // Create mock account to avoid circular dependency
 const createMockAccount = (): InternalAccount => ({
   type: EthAccountType.Eoa,

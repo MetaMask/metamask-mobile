@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
 import { usePerpsTrading } from './usePerpsTrading';
-import { METAMASK_FEE_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Fee calculation result with loading states
@@ -45,97 +44,70 @@ export function usePerpsOrderFees({
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
 
-  // State for future MetaMask fee API
-  // When API is ready, we'll uncomment the state and effect below
-  // const [metamaskFeeRate, setMetamaskFeeRate] = useState(METAMASK_FEE_CONFIG.TRADING_FEE_RATE);
-  // const [isLoadingMetamaskFee, setIsLoadingMetamaskFee] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
-
-  // For now, use static values
-  const metamaskFeeRate = METAMASK_FEE_CONFIG.TRADING_FEE_RATE;
-  const isLoadingMetamaskFee = false;
+  // State for fees from provider
+  const [protocolFeeRate, setProtocolFeeRate] = useState(0);
+  const [metamaskFeeRate, setMetamaskFeeRate] = useState(0);
+  const [totalFeeRate, setTotalFeeRate] = useState(0);
+  const [isLoadingFees, setIsLoadingFees] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Future: Fetch MetaMask fee from API
-  // useEffect(() => {
-  //   const fetchMetamaskFee = async () => {
-  //     try {
-  //       setIsLoadingMetamaskFee(true);
-  //       setError(null);
-  //
-  //       const response = await fetch('/api/v1/perps/fees/metamask', {
-  //         method: 'POST',
-  //         body: JSON.stringify({
-  //           orderType,
-  //           amount,
-  //           protocol: 'hyperliquid',
-  //           userTier: await getUserTier(),
-  //         }),
-  //       });
-  //       const data = await response.json();
-  //       setMetamaskFeeRate(data.feeRate);
-  //     } catch (err) {
-  //       setError(err instanceof Error ? err.message : 'Failed to fetch MetaMask fee');
-  //       setMetamaskFeeRate(METAMASK_FEE_CONFIG.TRADING_FEE_RATE);
-  //     } finally {
-  //       setIsLoadingMetamaskFee(false);
-  //     }
-  //   };
-  //
-  //   fetchMetamaskFee();
-  // }, [orderType, amount]);
-
-  // State for protocol fees
-  const [protocolFeeRate, setProtocolFeeRate] = useState(0);
-  const [isLoadingProtocolFee, setIsLoadingProtocolFee] = useState(true);
-
-  // Fetch protocol fees
+  // Fetch fees from provider (includes breakdown)
   useEffect(() => {
-    const fetchProtocolFees = async () => {
+    const fetchFees = async () => {
       try {
-        setIsLoadingProtocolFee(true);
+        setIsLoadingFees(true);
         setError(null);
 
-        // Get protocol-specific fees from the active provider
+        // Get fee breakdown from the active provider
         const result = await calculateFees({ orderType, isMaker, amount });
-        setProtocolFeeRate(result.feeRate);
+
+        // Provider now returns complete breakdown
+        setProtocolFeeRate(result.protocolFeeRate);
+        setMetamaskFeeRate(result.metamaskFeeRate);
+        setTotalFeeRate(result.feeRate);
+
+        // TODO: Future enhancement - fetch user tier and apply MetaMask fee discounts
+        // const userDiscount = await fetchMetaMaskFeeDiscount();
+        // const adjustedMetamaskRate = result.metamaskFeeRate * (1 - userDiscount);
+        // setMetamaskFeeRate(adjustedMetamaskRate);
+        // setTotalFeeRate(result.protocolFeeRate + adjustedMetamaskRate);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Failed to fetch protocol fees',
-        );
-        // Don't set a fallback - let the UI handle the error state
-        // This maintains protocol agnosticism
+        setError(err instanceof Error ? err.message : 'Failed to fetch fees');
+        // Reset all rates on error
         setProtocolFeeRate(0);
+        setMetamaskFeeRate(0);
+        setTotalFeeRate(0);
       } finally {
-        setIsLoadingProtocolFee(false);
+        setIsLoadingFees(false);
       }
     };
 
-    fetchProtocolFees();
+    fetchFees();
   }, [orderType, isMaker, amount, calculateFees]);
 
   return useMemo(() => {
     const amountNum = parseFloat(amount || '0');
 
-    // Calculate fees
+    // Calculate fee amounts based on rates
     const protocolFee = amountNum * protocolFeeRate;
     const metamaskFee = amountNum * metamaskFeeRate;
+    const totalFee = amountNum * totalFeeRate;
 
     return {
-      totalFee: protocolFee + metamaskFee,
+      totalFee,
       protocolFee,
       metamaskFee,
       protocolFeeRate,
       metamaskFeeRate,
-      isLoadingMetamaskFee: isLoadingProtocolFee || isLoadingMetamaskFee,
+      isLoadingMetamaskFee: isLoadingFees,
       error,
     };
   }, [
     amount,
     protocolFeeRate,
     metamaskFeeRate,
-    isLoadingProtocolFee,
-    isLoadingMetamaskFee,
+    totalFeeRate,
+    isLoadingFees,
     error,
   ]);
 }

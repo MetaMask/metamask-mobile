@@ -20,7 +20,7 @@ while IFS= read -r file; do
     if [ -n "$file" ]; then
         matching_files+=("$file")
     fi
-done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -not -path "*/quarantine/*" -exec grep -l "$TEST_SUITE_TAG" {} \; | sort -u)
+done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -not -path "*/quarantine/*" -exec grep -l -w -F "$TEST_SUITE_TAG" {} \; | sort -u)
 
 # Check if any files were found
 if [ ${#matching_files[@]} -eq 0 ]; then
