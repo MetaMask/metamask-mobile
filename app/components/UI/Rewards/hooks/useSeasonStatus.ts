@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import { setSeasonStatus } from '../../../../actions/rewards';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,6 +6,8 @@ import { setSeasonStatusLoading } from '../../../../reducers/rewards';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
+import { useFocusEffect } from '@react-navigation/native';
 
 /**
  * Custom hook to fetch and manage season status data from the rewards API
@@ -34,7 +36,7 @@ export const useSeasonStatus = (): void => {
       );
 
       dispatch(setSeasonStatus(statusData));
-    } catch (err) {
+    } catch {
       // Keep existing data on error to prevent UI flash
       dispatch(setSeasonStatus(null));
     } finally {
@@ -42,8 +44,15 @@ export const useSeasonStatus = (): void => {
     }
   }, [dispatch, seasonId, subscriptionId]);
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchSeasonStatus();
-  }, [fetchSeasonStatus]);
+  // Refresh data when screen comes into focus (each time page is visited)
+  useFocusEffect(
+    useCallback(() => {
+      fetchSeasonStatus();
+    }, [fetchSeasonStatus]),
+  );
+
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    fetchSeasonStatus,
+  );
 };

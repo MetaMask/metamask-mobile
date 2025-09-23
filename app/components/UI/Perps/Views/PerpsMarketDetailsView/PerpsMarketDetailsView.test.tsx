@@ -24,7 +24,13 @@ jest.mock('../../providers/PerpsStreamManager');
 
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
+const mockUsePerpsLiveAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
+
+// Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
+jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: mockUsePerpsLiveAccount,
+}));
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -80,8 +86,8 @@ jest.mock('../../hooks/useHasExistingPosition', () => ({
   useHasExistingPosition: () => mockUseHasExistingPosition(),
 }));
 
-jest.mock('../../hooks/usePerpsAccount', () => ({
-  usePerpsAccount: () => mockUsePerpsAccount(),
+jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: () => mockUsePerpsAccount(),
 }));
 
 // Mock the selector module first
@@ -175,7 +181,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../hooks', () => ({
-  usePerpsAccount: () => mockUsePerpsAccount(),
+  usePerpsLiveAccount: () => mockUsePerpsAccount(),
   usePerpsConnection: () => ({
     isConnected: true,
     isConnecting: false,
@@ -343,10 +349,27 @@ describe('PerpsMarketDetailsView', () => {
   // Set up default mock return values before each test
   beforeEach(() => {
     mockUsePerpsAccount.mockReturnValue({
-      availableBalance: '1000.00',
-      totalBalance: '1000.00',
-      marginUsed: '0.00',
-      unrealizedPnl: '0.00',
+      account: {
+        availableBalance: '1000.00',
+        totalBalance: '1000.00',
+        marginUsed: '0.00',
+        unrealizedPnl: '0.00',
+        returnOnEquity: '0.00',
+        totalValue: '1000.00',
+      },
+      isInitialLoading: false,
+    });
+
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        availableBalance: '1000',
+        totalBalance: '1000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '1000',
+      },
+      isInitialLoading: false,
     });
 
     mockUseHasExistingPosition.mockReturnValue({
@@ -532,10 +555,27 @@ describe('PerpsMarketDetailsView', () => {
     it('renders add funds button when user balance is zero', () => {
       // Override with zero balance
       mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '0.00',
-        totalBalance: '0.00',
-        marginUsed: '0.00',
-        unrealizedPnl: '0.00',
+        account: {
+          availableBalance: '0.00',
+          totalBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalValue: '0.00',
+        },
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
       });
 
       const { getByText, getByTestId, queryByTestId } = renderWithProvider(
@@ -567,10 +607,15 @@ describe('PerpsMarketDetailsView', () => {
     it('renders long/short buttons when user has balance and existing position', () => {
       // Override with non-zero balance and existing position
       mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '1000.00',
-        totalBalance: '1500.00',
-        marginUsed: '500.00',
-        unrealizedPnl: '50.00',
+        account: {
+          availableBalance: '1000.00',
+          totalBalance: '1500.00',
+          marginUsed: '500.00',
+          unrealizedPnl: '50.00',
+          returnOnEquity: '3.33',
+          totalValue: '1550.00',
+        },
+        isInitialLoading: false,
       });
 
       mockUseHasExistingPosition.mockReturnValue({
@@ -934,10 +979,27 @@ describe('PerpsMarketDetailsView', () => {
     it('navigates to deposit screen when add funds button is pressed', async () => {
       // Set zero balance to show add funds button
       mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '0.00',
-        totalBalance: '0.00',
-        marginUsed: '0.00',
-        unrealizedPnl: '0.00',
+        account: {
+          availableBalance: '0.00',
+          totalBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalValue: '0.00',
+        },
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1040,10 +1102,27 @@ describe('PerpsMarketDetailsView', () => {
 
       // Set zero balance to show add funds button
       mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '0.00',
-        totalBalance: '0.00',
-        marginUsed: '0.00',
-        unrealizedPnl: '0.00',
+        account: {
+          availableBalance: '0.00',
+          totalBalance: '0.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalValue: '0.00',
+        },
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
