@@ -24,7 +24,7 @@ import TextField, {
 } from '../../../../../component-library/components/Form/TextField';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import {
   REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
   REWARDS_ONBOARD_TERMS_URL,
@@ -32,7 +32,7 @@ import {
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const { optin, optinError, optinLoading } = useOptin();
   const {
     referralCode,
@@ -46,29 +46,31 @@ const OnboardingStep4: React.FC = () => {
   }, [optin, referralCode]);
 
   const renderStepInfo = () => (
-    <Box twClassName="flex-1" alignItems={BoxAlignItems.Center}>
+    <Box alignItems={BoxAlignItems.Center} twClassName="min-h-[70%]">
       {/* Opt in error message */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="min-h-20">
-        {optinError && (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            description={optinError}
-          />
-        )}
-      </Box>
+
+      {optinError && (
+        <BannerAlert
+          severity={BannerAlertSeverity.Error}
+          description={optinError}
+        />
+      )}
 
       {/* Placeholder Image */}
-      <Box twClassName="w-30 h-30 my-4">
+      <Box twClassName="my-4">
         <Image
           source={step4Img}
           testID="step-4-image"
-          style={tw.style('w-full h-full')}
+          style={tw.style('w-30 h-30')}
         />
       </Box>
 
       {/* Referral Code Input Section */}
-      <Box twClassName="w-full min-h-32 gap-20 mb-2">
-        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+      <Box twClassName="w-full gap-4">
+        <Text
+          variant={TextVariant.HeadingLg}
+          twClassName="text-center mb-[20%]"
+        >
           {referralCodeIsValid
             ? strings('rewards.onboarding.step4_title_referral_bonus')
             : strings('rewards.onboarding.step4_title')}
@@ -144,7 +146,7 @@ const OnboardingStep4: React.FC = () => {
     };
 
     return (
-      <Box twClassName="w-full flex-row px-4 mt-4">
+      <Box twClassName="w-full flex-row mt-4">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -190,7 +192,7 @@ const OnboardingStep4: React.FC = () => {
           : ''
       }
       onNextDisabled={
-        (!referralCodeIsValid && !!referralCode) || hasAccountedOptedIn === true
+        (!referralCodeIsValid && !!referralCode) || !!subscriptionId
       }
       nextButtonText={strings('rewards.onboarding.step4_confirm')}
       renderStepInfo={renderStepInfo}

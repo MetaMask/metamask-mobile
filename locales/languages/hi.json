@@ -43,8 +43,8 @@
       "message": "पिछले ट्रांसेक्शन को अभी भी साइन या सबमिट किया जा रहा है।"
     },
     "signed_or_submitted_perps_deposit": {
-      "title": "Deposit in progress",
-      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
+      "title": "डिपॉज़िट प्रगति में है",
+      "message": "आपका एक डिपॉज़िट पहले से ही चल रहा है। दोबारा डिपॉज़िट करने से पहले आपको इसके पूरा होने तक इंतज़ार करना होगा।"
     },
     "pending_transaction": {
       "title": "पेंडिंग ट्रांसेक्शन",
@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Insufficient funds"
+      "title": "अपर्याप्त फंड"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -72,8 +72,8 @@
       "message": "यह भुगतान रूट अभी उपलब्ध नहीं है। राशि, नेटवर्क या टोकन बदलने का प्रयास करें और हम सबसे अच्छा विकल्प ढूँढ लेंगे।"
     },
     "perps_hardware_account": {
-      "title": "Wallet not supported",
-      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+      "title": "वॉलेट सपोर्टेड नहीं है",
+      "message": "पर्प्स हार्डवेयर वॉलेट को सपोर्ट नहीं करता।\nफंडिंग जारी रखने के लिए एकाउंट्स बदलें।"
     }
   },
   "blockaid_banner": {
@@ -857,10 +857,10 @@
     "available_balance": "उपलब्ध बैलेंस",
     "margin_used": "उपयोग किया गया मार्जिन",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
-      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
+      "title": "पर्प्स आ गए हैं",
+      "title_description": "लॉन्ग या शॉर्ट टोकन, 40x तक लीवरेज के साथ। सिर्फ़ एक क्लिक में किसी भी EVM टोकन से अपना अकाउंट फंड करें।",
       "not_now": "अभी नहीं",
-      "try_now": "Get started"
+      "try_now": "शुरू करें"
     },
     "unrealized_pnl": "अनरियलाइज्ड PnL",
     "withdraw": "निकालें",
@@ -936,16 +936,16 @@
         "view_balance": "बैलेंस देखें",
         "view_transaction": "ट्रांसेक्शन देखें"
       },
-      "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
-      "funds_are_ready_to_trade": "Funds are ready to trade",
-      "error_toast": "Transaction failed",
-      "error_generic": "Funds have been returned to you",
-      "in_progress": "Adding funds to Perps",
-      "estimated_processing_time": "Est. {{time}}",
-      "funds_available_momentarily": "Funds will be available momentarily",
-      "your_funds_are_available_to_trade": "Your funds are available to trade",
-      "track": "Track"
+      "success_toast": "आपका पर्प्स अकाउंट फंड हो गया",
+      "success_message": "ट्रेड करने के लिए {{amount}} उपलब्ध है",
+      "funds_are_ready_to_trade": "फंड्स ट्रेड करने के लिए तैयार हैं",
+      "error_toast": "ट्रांसेक्शन नहीं हो पाया",
+      "error_generic": "फंड्स आपको वापस कर दिए गए हैं",
+      "in_progress": "पर्प्स में फंड्स जोड़े जा रहे हैं",
+      "estimated_processing_time": "अनुमानित {{time}}",
+      "funds_available_momentarily": "फंड्स थोड़ी ही देर में उपलब्ध होंगे",
+      "your_funds_are_available_to_trade": "आपके फंड्स ट्रेड करने के लिए उपलब्ध हैं",
+      "track": "ट्रैक करें"
     },
     "withdrawal": {
       "title": "निकालें",
@@ -958,7 +958,7 @@
       "amount_too_low": "फीस को कवर करने के लिए राशि ${{minAmount}} से अधिक होनी चाहिए",
       "confirm": "विदड्रॉवल कन्फर्म करें",
       "processing_title": "विदड्रॉवल शुरू किया गया",
-      "eta_will_be_shared_shortly": "ETA will be shared shortly",
+      "eta_will_be_shared_shortly": "ETA जल्द ही साझा किया जाएगा",
       "success_title": "विदड्रॉवल सफल हुआ",
       "success_description": "आपकी {{amount}} USDC हाइपरलिक्विड से निकाल ली गई है",
       "network_fee": "नेटवर्क फी",
@@ -971,8 +971,8 @@
       "wait_time_message": "आपके फंड 5 मिनट के भीतर पहुँच जाने चाहिए",
       "submitting": "सबमिट किया जा रहा है...",
       "error": "विदड्रॉवल नहीं हो पाया",
-      "success_toast": "Withdrawal confirmed",
-      "success_toast_description": "You'll receive {{amount}} {{symbol}} on {{networkName}} within 5 minutes",
+      "success_toast": "विदड्रॉवल कन्फर्म हुआ",
+      "success_toast_description": "आपको {{networkName}} पर {{amount}} {{symbol}} 5 मिनट के भीतर प्राप्त होंगे",
       "bridge_info": "हाइपरलिक्विड वैलिडेटर आपके विदड्रॉवल को प्रोसेस कर रहे हैं",
       "error_generic": "विदड्रॉवल के दौरान एक गड़बड़ी हुई",
       "invalid_amount": "कृपया मान्य राशि दर्ज करें",
@@ -1003,6 +1003,7 @@
       "trigger_price": "ट्रिगर प्राइस",
       "liquidation_price": "लिक्विडेशन प्राइस",
       "fees": "शुल्क",
+      "estimated_points": "अनुमानित पॉइंट्स",
       "market": "मार्केट",
       "limit": "सीमित करें",
       "open_orders": "ऑर्डर",
@@ -1021,7 +1022,7 @@
         "failed": "ऑर्डर सत्यापन नहीं हो पाया",
         "amount_required": "ऑर्डर राशि 0 से अधिक होनी चाहिए",
         "minimum_amount": "न्यूनतम ऑर्डर आकार ${{amount}} है",
-        "insufficient_funds": "Insufficient funds",
+        "insufficient_funds": "अपर्याप्त फंड",
         "insufficient_balance": "अपर्याप्त बैलेंस। आवश्यक: ${{required}}, उपलब्ध: ${{available}}",
         "invalid_leverage": "लेवरेज {{min}}x और {{max}}x के बीच होना चाहिए",
         "high_leverage_warning": "उच्च लेवरेज से लिक्विडेशन जोखिम बढ़ जाता है",
@@ -1029,10 +1030,10 @@
         "invalid_stop_loss": "{{positionType}} पोजीशन के लिए स्टॉप लॉस वर्तमान प्राइस {{direction}} होना चाहिए",
         "liquidation_warning": "पोजीशन लिक्विडेशन प्राइस के करीब है",
         "limit_price_required": "कृपया लिमिट ऑर्डर के लिए एक लिमिट प्राइस निर्धारित करें",
-        "please_set_a_limit_price": "Please set a limit price",
-        "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
+        "please_set_a_limit_price": "कृपया एक लिमिट प्राइस सेट करें",
+        "limit_price_must_be_set_before_configuring_tpsl": "TP/SL कॉन्फ़िगर करने से पहले लिमिट प्राइस सेट किया जाना चाहिए",
         "only_hyperliquid_usdc": "वर्तमान में केवल हाइपरलिक्विड पर USDC ही भुगतान के लिए समर्थित है",
-        "limit_price_far_warning": "Limit price is far from current market price"
+        "limit_price_far_warning": "लिमिट प्राइस वर्तमान मार्केट प्राइस से बहुत दूर है"
       },
       "error": {
         "placement_failed": "ऑर्डर प्लेसमेंट नहीं हो पाया",
@@ -1072,8 +1073,8 @@
         "ask_price": "आस्क प्राइस",
         "bid_price": "बिड प्राइस",
         "difference_from_market": "बाजार से अंतर:",
-        "limit_price_above": "Limit price is above current price",
-        "limit_price_below": "Limit price is below current price"
+        "limit_price_above": "लिमिट प्राइस वर्तमान प्राइस से ऊपर है",
+        "limit_price_below": "लिमिट प्राइस वर्तमान प्राइस से नीचे है"
       },
       "leverage_modal": {
         "title": "लीवरेज",
@@ -1107,35 +1108,38 @@
       },
       "submitted": "ऑर्डर सबमिट किया गया",
       "confirmed": "ऑर्डर कन्फर्म किया गया",
-      "cancelling_order": "Cancelling order",
+      "cancelling_order": "ऑर्डर कैंसिल किया जा रहा है",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "{{detailedOrderType}} ऑर्डर कैंसिल किया जा रहा है",
       "order_cancelled": "ऑर्डर कैंसिल किया गया",
-      "failed_to_cancel_order": "Failed to cancel order",
-      "funds_have_been_returned_to_you": "Funds have been returned to you",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "close_order_still_active": "Close order still active",
-      "order_submitted": "Order submitted",
-      "order_filled": "Order filled",
-      "order_placed": "Order placed",
+      "failed_to_cancel_order": "ऑर्डर कैंसिल नहीं हो पाया",
+      "order_still_active": "ऑर्डर अभी भी सक्रिय है",
+      "funds_have_been_returned_to_you": "फंड्स आपको वापस कर दिए गए हैं",
+      "funds_are_available_to_trade": "फंड्स ट्रेड करने के लिए उपलब्ध हैं",
+      "close_order_still_active": "क्लोज़ ऑर्डर अभी भी सक्रिय है",
+      "order_submitted": "ऑर्डर सबमिट किया गया",
+      "order_filled": "ऑर्डर पूरा हो गया",
+      "order_placed": "ऑर्डर लगाया गया",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "ऑर्डर नहीं हो पाया",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "आपके फंड्स आपको वापस कर दिए गए हैं",
+      "order_cancelled_success": "{{detailedOrderType}} ऑर्डर कैंसिल किया गया"
     },
     "close_position": {
       "title": "पोज़िशन बंद करें",
       "button": "पोज़िशन बंद करें",
       "closing": "पोज़िशन बंद हो रही है...",
-      "position_close_order_placed": "Placed order to close position",
-      "partially_closing_position": "Partially closing position",
-      "partial_close_submitted": "Partial close submitted",
-      "position_partially_closed": "Position partially closed",
-      "closing_position": "Closing position",
-      "limit_close_order_cancelled": "Limit close order cancelled",
+      "position_close_order_placed": "पोज़िशन बंद करने के लिए ऑर्डर लगाया गया",
+      "partially_closing_position": "पोज़िशन आंशिक रूप से बंद किया जा रहा है",
+      "partial_close_submitted": "आंशिक क्लोज़ सबमिट किया गया",
+      "position_partially_closed": "पोज़िशन आंशिक रूप से बंद की गई",
+      "closing_position": "पोज़िशन बंद हो रही है",
+      "limit_close_order_cancelled": "लिमिट क्लोज़ का ऑर्डर कैंसिल किया गया",
       "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
-      "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
+      "your_funds_will_be_available_momentarily": "आपके फंड्स थोड़ी ही देर में उपलब्ध होंगे",
       "cancel": "कैंसिल करें",
       "margin": "मार्जिन",
-      "includes_pnl": "includes P&L",
+      "includes_pnl": "P&L शामिल है",
       "pnl": "PnL",
       "estimated_pnl": "अनुमानित PnL",
       "fees": "शुल्क",
@@ -1144,23 +1148,23 @@
       "select_amount": "बंद करने के लिए राशि चुनें",
       "error_unknown": "पोज़िशन बंद नहीं हो पाई",
       "success_title": "पोज़िशन सफलतापूर्वक बंद हो गई",
-      "position_closed": "Position closed",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "क्लोज़ पोज़िशन नहीं हो पाया",
+      "position_closed": "पोज़िशन बंद किया गया",
+      "funds_are_available_to_trade": "फंड्स ट्रेड करने के लिए उपलब्ध हैं",
+      "failed_to_close_position": "पोज़िशन बंद नहीं हो पाई",
+      "failed_to_partially_close_position": "पोज़िशन आंशिक रूप से बंद नहीं हो पाई",
+      "your_position_is_still_active": "आपकी पोज़िशन अभी भी सक्रिय है",
       "fox_points_earned": "{{points}} फॉक्स पॉइंट्स अर्जित किए गए!",
       "minimum_remaining_warning": "शेष पोजीशन कम से कम ${{minimum}} होनी चाहिए। वर्तमान: ${{remaining}}",
       "minimum_remaining_error": "आंशिक क्लोज़ नहीं किया जा सकता: शेष पोज़िशन (${{remaining}}) न्यूनतम ऑर्डर साइज (${{minimum}}) से कम होगा। कृपया 100% क्लोज़ करें।",
       "must_close_full_below_minimum": "पोज़िशन का मूल्य $10 से कम है। आपको पोज़िशन का 100% बंद करना होगा।",
       "negative_receive_amount": "फीस आपकी पोजीशन मूल्य से अधिक है",
       "no_amount_selected": "कृपया बंद करने के लिए कोई राशि चुनें",
-      "order_type_reverted_to_market_order": "Changed to market order",
-      "you_need_set_price_limit_order": "You need to set a price for a limit order."
+      "order_type_reverted_to_market_order": "मार्केट ऑर्डर में बदल दिया गया",
+      "you_need_set_price_limit_order": "लिमिट ऑर्डर के लिए आपको एक प्राइस सेट करना होगा।"
     },
     "tpsl": {
       "title": "टेक प्रॉफ़िट और स्टॉप लॉस",
       "description": "प्रतिशत मुनाफ़ा या नुकसान चुनें, या अपनी पोजीशन को स्वचालित रूप से बंद करने के लिए एक कस्टम ट्रिगर प्राइस दर्ज करें।",
-      "set": "निर्धारित करें",
-      "updating": "अपडेट हो रहा है...",
       "off": "बंद",
       "current_price": "वर्तमान प्राइस",
       "leverage": "लीवरेज",
@@ -1176,12 +1180,13 @@
       "profit_roe_placeholder": "% मुनाफ़ा",
       "loss_roe_placeholder": "% नुकसान",
       "usd_label": "($)",
-      "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
-      "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
-      "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
-      "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
-      "above": "above",
-      "below": "below"
+      "take_profit_invalid_price": "टेक प्रॉफ़िट {{direction}} {{priceType}} प्राइस का होना चाहिए",
+      "stop_loss_invalid_price": "स्टॉप लॉस {{direction}} {{priceType}} प्राइस का होना चाहिए",
+      "stop_loss_beyond_liquidation_error": "स्टॉप लॉस {{direction}} लिक्विडेशन प्राइस का होना चाहिए",
+      "stop_loss_order_view_warning": "स्टॉप लॉस {{direction}} लिक्विडेशन प्राइस का है",
+      "above": "ऊपर",
+      "below": "नीचे",
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "कोई टोकन उपलब्ध नहीं है"
@@ -1235,7 +1240,7 @@
       "connectionRequired": "usepsConnection का उपयोग एक PerssConnectionProvider के भीतर किया जाना चाहिए",
       "assetMappingFailed": "एसेट मैपिंग बनाना नहीं हो पाया",
       "depositFailed": "डिपॉज़िट नहीं हो पाया",
-      "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "orderLeverageReductionFailed": "आप अपनी लीवरेज को कम नहीं कर सकते",
       "connectionFailed": {
         "title": "पर्प्स अस्थायी रूप से ऑफ़लाइन है",
         "description": "हम इसे जल्द ही ऑनलाइन लाने के लिए काम कर रहे हैं।",
@@ -1265,8 +1270,8 @@
         "not_set": "सेट नहीं किया गया",
         "edit_tpsl": "TP/SL बदलें",
         "close_position": "पोज़िशन बंद करें",
-        "tpsl_count_multiple": "{{count}} orders",
-        "tpsl_count_single": "{{count}} order"
+        "tpsl_count_multiple": "{{count}} ऑर्डर",
+        "tpsl_count_single": "{{count}} ऑर्डर"
       },
       "list": {
         "loading": "पोजीशन्स लोड हो रही है...",
@@ -1295,7 +1300,7 @@
       },
       "tpsl": {
         "update_success": "TP/SL सफलतापूर्वक अपडेट किया गया",
-        "update_failed": "Failed to update TP/SL"
+        "update_failed": "TP/SL अपडेट नहीं हो पाया"
       }
     },
     "markets": {
@@ -1306,7 +1311,7 @@
         "title": "मार्केट का विवरण",
         "error_message": "मार्केट डाटा नहीं मिला। कृपया वापस जाएँ और फिर से प्रयास करें।"
       },
-      "statistics": "Overview",
+      "statistics": "ओवरव्यू",
       "24hr_high": "24 घंटे का उच्च",
       "24hr_low": "24 घंटे का निम्न",
       "24h_volume": "24 घंटे का वॉल्यूम",
@@ -1315,7 +1320,7 @@
       "countdown": "उलटी गिनती",
       "long": "लॉन्ग",
       "short": "शॉर्ट",
-      "add_funds": "Add funds",
+      "add_funds": "फंड जोड़ें",
       "add_funds_to_start_trading_perps": "पर्प्स ट्रेडिंग शुरू करने के लिए फंड जोड़ें",
       "position": "पोज़िशन",
       "orders": "ऑर्डर"
@@ -1346,7 +1351,8 @@
         "content": "जब आप किसी पोज़िशन को खोलते या बंद करते हैं तो ट्रेडिंग फीस लिया जाता है।",
         "metamask_fee": "MetaMask फीस",
         "provider_fee": "प्रदाता फीस",
-        "total": "कुल फीस"
+        "total": "कुल फीस",
+        "discount_message": "आप MetaMask रिवार्ड्स के साथ {{percentage}}% सेव कर रहे हैं।"
       },
       "closing_fees": {
         "title": "क्लोजिंग फीस",
@@ -1375,19 +1381,19 @@
       },
       "receive": {
         "title": "प्राप्त करें",
-        "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
+        "content": "विदड्रॉवल के बाद आपके वॉलेट में आपको प्राप्त होने वाली USDC की मात्रा। आप Arbitrum नेटवर्क पर USDC प्राप्त करेंगे।"
       },
       "withdrawal_fees": {
         "title": "प्रदाता फीस",
-        "content": "A flat fee charged by the provider on each withdrawal."
+        "content": "प्रत्येक विदड्रॉवल पर प्रदाता द्वारा लिया गया निश्चित फीस।"
       },
       "tp_sl": {
         "title": "टेक प्रॉफ़िट और स्टॉप लॉस",
         "content": "टेक प्रॉफिट (TP) आपकी पोज़िशन को अपने लक्ष्य लाभ तक पहुँचने पर अपने आप बंद कर देता है। यदि प्राइस आपके विरुद्ध चलती है तो स्टॉप लॉस (SL) आपकी पोज़िशन को बंद करके आपके नुकसान को सीमित करता है।"
       },
       "close_position_you_receive": {
-        "title": "Receive amount",
-        "content": "Your receive amount is estimated and may change slightly due to slippage."
+        "title": "प्राप्त राशि",
+        "content": "आपकी प्राप्त राशि अनुमानित है और स्लिपेज (slippage) के कारण थोड़ा बदल सकती है।"
       },
       "notifications": {
         "title": "सूचनाएँ चालू करें",
@@ -1396,10 +1402,14 @@
       },
       "got_it_button": "समझ गए",
       "tpsl_count_warning": {
-        "title": "Multiple TP/SL orders are active",
-        "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
-        "view_orders_button": "View orders",
-        "got_it_button": "Got it"
+        "title": "एक से अधिक TP/SL ऑर्डर सक्रिय हैं",
+        "content": "पूरी पोज़िशन के लिए TP/SL सेट करने के लिए, पहले अपने मौजूदा TP/SL ऑर्डर कैंसिल करें।",
+        "view_orders_button": "ऑर्डर देखें",
+        "got_it_button": "समझ गए"
+      },
+      "points": {
+        "title": "पॉइंट्स",
+        "content": "पॉइंट्स वह हैं जिनसे आप ट्रांसेक्शन पूरा करने पर MetaMask रिवार्ड्स कमाते हैं, जैसे जब आप स्वैप, ब्रिज या पर्प्स ट्रेड करते हैं।"
       }
     },
     "connection": {
@@ -1408,7 +1418,7 @@
       "retry_connection": "कनेक्शन फिर से प्रयास करें",
       "retrying_connection": "कनेक्ट हो रहा है...",
       "connecting_to_perps": "पर्प्स से कनेक्ट हो रहा है",
-      "timeout_title": "Connection taking longer than expected"
+      "timeout_title": "कनेक्शन में अपेक्षा से अधिक समय लग रहा है"
     },
     "chart": {
       "no_data": "कोई चार्ट डेटा उपलब्ध नहीं है",
@@ -1435,14 +1445,14 @@
         "trades": "ट्रेड्स",
         "orders": "ऑर्डर",
         "funding": "फंडिंग",
-        "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
+        "funding_description": "फंडिंग इतिहास आपके द्वारा चुकाए या प्राप्त किए गए फीस का सारांश है, जो आपकी ओपन पोज़िशन पर लागू फंडिंग रेट्स द्वारा निर्धारित होता है।"
       },
       "not_found": "ट्रांसेक्शन नहीं मिला",
       "position": {
         "date": "तिथि",
         "size": "आकार",
         "entry_price": "एंट्री प्राइस",
-        "close_price": "Close price",
+        "close_price": "क्लोज़ प्राइस",
         "points": "पॉइंट्स",
         "fees": "कुल फीस",
         "pnl": "नेट P&L"
@@ -1467,7 +1477,7 @@
         "history_will_appear": "आपका ट्रेडिंग इतिहास यहां दिखाई देगा"
       }
     },
-    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "पर्प्स ट्रेडिंग जोखिमपूर्ण है, और आप अचानक बिना किसी सूचना के अपना पूरा मार्जिन खो सकते हैं। आप पूरी तरह से अपने जोखिम पर ट्रेड करते हैं। मार्केट डेटा हाइपरलिक्विड द्वारा प्रदान किया गया है। प्राइस चार्ट इसके द्वारा संचालित है",
     "tutorial": {
       "continue": "जारी रखें",
       "skip": "छोड़ें",
@@ -1479,7 +1489,7 @@
       },
       "go_long_or_short": {
         "title": "किसी टोकन पर लॉन्ग या शॉर्ट लें",
-        "description": "Pick a token to long or short, then set your order size.",
+        "description": "किसी टोकन को लॉन्ग या शॉर्ट लेने के लिए चुनें, फिर अपना ऑर्डर साइज़ सेट करें।",
         "subtitle": "यदि प्राइस बढ़ती है तो लाभ के लिए लॉन्ग लें। यदि प्राइस घटती है तो लाभ के लिए शॉर्ट लें।"
       },
       "choose_leverage": {
@@ -1496,11 +1506,17 @@
       },
       "ready_to_trade": {
         "title": "ट्रेड करने के लिए तैयार हैं?",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
+        "fund_text_helper": "MetaMask आपके फंड को Arbitrum पर USDC में स्वैप करेगा और बिना किसी अतिरिक्त फीस के उन्हें HyperEVM में डिपॉज़िट करेगा।",
         "description": "अपने पर्प्स अकाउंट को किसी भी टोकन से फंड करें और सेकंडों में अपना पहला ट्रेड करें।"
       },
       "got_it": "समझ गए"
-    }
+    },
+    "points": "पॉइंट्स",
+    "unable_to_load": "लोड नहीं हो सका",
+    "points_error": "हम अभी पॉइंट्स लोड नहीं कर सकते",
+    "points_error_content": "चिंता न करें, आप अभी भी पॉइंट्स कमा रहे हैं। ये जल्द ही आपके एकाउंट्स में दिखेंगे, या आप बाद में रिवॉर्ड्स टैब में देख सकते हैं।",
+    "tp_on_chart": "चार्ट पर TP",
+    "sl_on_chart": "चार्ट पर SL"
   },
   "receive": {
     "title": "प्राप्त करें"
@@ -3693,13 +3709,13 @@
       "perps_position_liquidated_title": "पोज़िशन लिक्विडेट हो गई",
       "perps_position_liquidated_description_long": "आपकी {{symbol}} लॉन्ग पोज़िशन बंद कर दी गई।",
       "perps_position_liquidated_description_short": "आपकी {{symbol}} शॉर्ट पोज़िशन बंद कर दी गई।",
-      "perps_stop_loss_triggered_title": "Stop loss triggered",
+      "perps_stop_loss_triggered_title": "स्टॉप लॉस ट्रिगर किया गया",
       "perps_stop_loss_triggered_description_long": "आपकी {{symbol}} लॉन्ग पोज़िशन स्टॉप लॉस पर बंद हो गई।",
       "perps_stop_loss_triggered_description_short": "आपकी {{symbol}} शॉर्ट पोज़िशन स्टॉप लॉस पर बंद हो गई।",
-      "perps_take_profit_triggered_title": "Take profit triggered",
+      "perps_take_profit_triggered_title": "टेक प्रॉफ़िट ट्रिगर किया गया",
       "perps_take_profit_triggered_description_long": "आपकी {{symbol}} लॉन्ग पोज़िशन टेक प्रॉफिट पर बंद हो गई।",
       "perps_take_profit_triggered_description_short": "आपकी {{symbol}} शॉर्ट पोज़िशन टेक प्रॉफिट पर बंद हो गई।",
-      "perps_limit_order_filled_title": "Limit order filled",
+      "perps_limit_order_filled_title": "लिमिट ऑर्डर पूरा हो गया",
       "perps_limit_order_filled_description_long": "आपकी {{symbol}} लॉन्ग पोज़िशन अब खुल गई है।",
       "perps_limit_order_filled_description_short": "आपकी {{symbol}} शॉर्ट पोज़िशन अब खुल गई है।"
     },
@@ -3729,7 +3745,7 @@
     "list": {
       "0": "सभी",
       "1": "वॉलेट",
-      "2": "घोषणाएं"
+      "2": "Announcement"
     },
     "copied_to_clipboard": "क्लिपबोर्ड पर नकल ",
     "address_copied_to_clipboard": "पता क्लिपबोर्ड पर कॉपी किया गया",
@@ -4948,7 +4964,7 @@
     "earn_eth_rewards": "ETH पुरस्कार अर्जित करें।",
     "earn_eth_rewards_description": "स्टेक करते ही कमाई शुरू करें। पुरस्कार स्वचालित रूप से संयोजित होते हैं।",
     "flexible_unstaking": "लचीला अनस्टेकिंग.",
-    "flexible_unstaking_description": "कभी भी अनस्टेक करें। आमतौर पर 3 दिन से कम समय लगता है, लेकिन प्रोसेस होने में 44 दिन तक का समय लग सकता है।",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "स्टेकिंग पुरस्कार की गारंटी नहीं देती है और इसमें धन की हानि सहित जोखिम शामिल होते हैं।",
     "learn_more": "ज़्यादा जानें",
     "got_it": "समझ गए",
@@ -4984,7 +5000,7 @@
       "geo_blocked": "आप ऐसे क्षेत्र में स्थित हैं जहां अनस्टेकिंग या स्टेकिंग की अनुमति नहीं है।",
       "approximately": "लगभग"
     },
-    "unstake_input_banner_description": "औसतन, अनस्टेक किए गए ETH को क्लेम करने योग्य होने में 3 दिन से कम का समय लगता है, लेकिन 44 दिन तक का समय लग सकता है।",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "मैक्स",
     "staking_from": "से स्टेक किया जा रहा है",
     "advanced_details": "एडवांस्ड विवरण",
@@ -5008,7 +5024,7 @@
       }
     },
     "use_max": "अधिकतम उपयोग करें",
-    "estimated_unstaking_time": "1 से 44 दिन",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "कैसे भी आगे बढ़ें",
     "gas_cost_impact": "गैस लागत संबंधी प्रभाव",
     "select_a_token_to_deposit": "डिपॉज़िट करने के लिए एक टोकन चुनें",
@@ -5115,7 +5131,7 @@
     },
     "unstaking_time": {
       "title": "अनस्टेक करने का समय",
-      "tooltip": "आपके ETH को अनस्टेक करने में आम तौर पर 3 दिन से कम समय लगता है, लेकिन इसे प्रोसेस होने में 11 दिन तक का समय लग सकता है। सटीक अवधि आपके द्वारा अनस्टेक की गई राशि और ETH स्टेकिंग संबंधी गतिविधि पर निर्भर करती है"
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5177,7 +5193,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "हम आपके टोकन को HyperEVM पर USDC में स्वैप करेंगे, जो पर्प्स द्वारा इस्तेमाल होने वाला नेटवर्क है। स्वैप प्रदाता फीस ले सकते हैं, लेकिन MetaMask कोई फीस नहीं लेगा।"
       },
       "title": {
         "transaction_fee": "फीस"
@@ -5325,9 +5341,10 @@
     "quote_info_title": "रेट",
     "network_fee_info_title": "नेटवर्क फीस",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "पॉइंट्स",
+    "points": "Est. points",
     "points_tooltip": "पॉइंट्स",
-    "points_tooltip_content": "इस ट्रेड से आपको मिलने वाले MetaMask रिवॉर्ड्स पॉइंट्स का अनुमान। आपके रिवॉर्ड्स बैलेंस में पॉइंट्स कन्फर्म होने में 1 घंटे तक का समय लग सकता है",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5339,10 +5356,14 @@
     "select_amount": "राशि चुनें",
     "bridge_to": "इसपर ब्रिज करें",
     "swap_to": "पर स्वैप करें",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "ब्रिज",
     "submitting_transaction": "सबमिट किया जा रहा है",
     "fetching_quote": "कोटेशन लाया जा रहा है",
     "fee_disclaimer": "0.875% MM शुल्क शामिल है",
+    "no_mm_fee": "No MM fee",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
     "hardware_wallet_not_supported_solana": "Solana के लिए हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
     "price_impact_info_title": "कीमत का प्रभाव",
@@ -5486,11 +5507,12 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
       "view_accounts_button": "View accounts",
-      "learn_more_button": "Learn more"
+      "learn_more_button": "Learn more",
+      "setting_up_accounts": "Setting up your accounts"
     },
     "learn_more": {
       "title": "Learn more",
@@ -5500,6 +5522,7 @@
     },
     "add_wallet": "वॉलेट जोड़ें",
     "add_hardware_wallet": "हार्डवेयर वॉलेट जोड़ें",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "अकाउंट का विवरण",
       "account_name": "अकाउंट का नाम",
@@ -5718,17 +5741,18 @@
       "not_supported_confirm": "समझ गए",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
-      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
+      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
       "checking_opt_in": "Checking opt-in for accounts...",
       "redirecting_to_dashboard": "Redirecting to dashboard...",
       "intro_skip": "अभी नहीं",
       "step_confirm": "आगे",
+      "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
-      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
+      "step1_description": "MetaMask में किया गया हर स्वैप और पर्प्स ट्रेड आपको रिवॉर्ड्स के करीब ले जाता है। अपने एकाउंट्स लिंक करें और अपने पॉइंट्स को बढ़ते हुए देखें।",
       "step2_title": "Level up for bigger perks",
-      "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
+      "step2_description": "पॉइंट्स माइलस्टोन हिट करें और ऐसे लाभ पाएं जैसे पर्प्स फीस में 50% की छूट, एक्सक्लूसिव टोकन और एक मुफ्त MetaMask मेटल कार्ड।",
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
@@ -5736,22 +5760,26 @@
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
+      "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
       "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
-      "step4_legal_disclaimer_learn_more": "अधिक जानें।"
+      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+      "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
+      "tab_linked_accounts": "Linked ({{count}})",
+      "tab_unlinked_accounts": "Unlinked ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5794,11 +5822,11 @@
         "cta_label": "Start a swap"
       },
       "perps": {
-        "title": "Perps",
-        "sheet_title": "Trade perps",
-        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-        "points": "10 points per $100",
-        "cta_label": "Start a trade"
+        "title": "पर्प्स",
+        "sheet_title": "पर्प्स ट्रेड करें",
+        "sheet_description": "हर ट्रेड पर पॉइंट्स कमाएँ, जिसमें ओपन और क्लोज़, स्टॉप लॉस और टेक प्रॉफिट ऑर्डर, और मार्जिन एडजस्टमेंट शामिल हैं।",
+        "points": "प्रति $100 पर 10 पॉइंट्स",
+        "cta_label": "एक ट्रेड शुरू करें"
       },
       "referrals": {
         "title": "Referrals",
@@ -5806,6 +5834,8 @@
       }
     },
     "referral": {
+      "referral_code": "Referral code",
+      "referral_link": "Referral link",
       "actions": {
         "share_referral_link": "एक मित्र को रेफर करें",
         "share_referral_subject": "MetaMask पुरस्कार में शामिल हों"
@@ -5815,8 +5845,28 @@
         "description": "आपके मित्र बोनस पॉइंट्स अर्जित करते हैं, और आपको उनके पुरस्कार का 20% मिलता है।"
       }
     },
-    "active_boosts_title": "Active Boosts",
-    "season_1": "Season 1"
+    "active_boosts": {
+      "title": "Active boosts",
+      "error": "Failed to load active boosts"
+    },
+    "season_1": "Season 1",
+    "upcoming_rewards": {
+      "title": "Upcoming rewards",
+      "points_needed": "{{points}} points",
+      "cta_label": "Got it",
+      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
+    },
+    "unlocked_rewards": {
+      "title": "Unlocked rewards",
+      "empty": "No rewards yet. \nEarn points and level up.",
+      "see_ways_to_earn": "See ways to earn",
+      "cta_label": "Claim now",
+      "cta_request_invite": "Request invite",
+      "claim_label": "Claim",
+      "claimed_label": "Claimed",
+      "reward_claimed": "Reward claimed",
+      "expired": "Expired"
+    }
   },
   "time": {
     "minutes_format": "{{count}} मिनट",
