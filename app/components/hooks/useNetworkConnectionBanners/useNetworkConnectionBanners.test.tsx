@@ -223,16 +223,17 @@ describe('useNetworkConnectionBanners', () => {
 
   describe('updateRpc function', () => {
     it('should navigate to edit network screen when currentNetwork exists', () => {
+      const status = 'slow';
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
-        status: 'slow',
+        status,
       });
 
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.updateRpc();
+        result.current.updateRpc(mockNetworkConfiguration, status);
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -245,36 +246,58 @@ describe('useNetworkConnectionBanners', () => {
       );
     });
 
-    it('should track update RPC event when currentNetwork exists', () => {
+    it('should track slow RPC update event when currentNetwork exists', () => {
+      const status = 'slow';
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
-        status: 'slow',
+        status,
       });
 
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.updateRpc();
+        result.current.updateRpc(mockNetworkConfiguration, status);
       });
 
       expect(stableCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED,
+        MetaMetricsEvents.SLOW_RPC_UPDATE_RPC_CLICKED,
+      );
+      expect(stableTrackEvent).toHaveBeenCalled();
+    });
+
+    it('should track unavailable RPC update event when currentNetwork exists', () => {
+      const status = 'unavailable';
+      (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
+        visible: true,
+        chainId: '0x1',
+        status,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      act(() => {
+        result.current.updateRpc(mockNetworkConfiguration, status);
+      });
+
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.UNAVAILABLE_RPC_UPDATE_RPC_CLICKED,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
     });
 
     it('should dispatch hideNetworkConnectionBanner when currentNetwork exists', () => {
+      const status = 'slow';
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
-        status: 'slow',
+        status,
       });
 
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.updateRpc();
+        result.current.updateRpc(mockNetworkConfiguration, status);
       });
 
       const actions = store.getActions();
@@ -282,23 +305,8 @@ describe('useNetworkConnectionBanners', () => {
       expect(actions[0].type).toBe('HIDE_NETWORK_CONNECTION_BANNER');
     });
 
-    it('should not navigate when currentNetwork is undefined', () => {
-      (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
-        visible: false,
-        chainId: undefined,
-      });
-
-      const { result } = renderHookWithProvider();
-
-      act(() => {
-        result.current.updateRpc();
-      });
-
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
-      expect(stableTrackEvent).not.toHaveBeenCalled();
-    });
-
     it('should use fallback RPC URL when defaultEndpointIndex is not available', () => {
+      const status = 'slow';
       const networkConfigWithoutDefaultIndex = {
         ...mockNetworkConfiguration,
         defaultRpcEndpointIndex: undefined,
@@ -313,12 +321,13 @@ describe('useNetworkConnectionBanners', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
+        status,
       });
 
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.updateRpc();
+        result.current.updateRpc(mockNetworkConfiguration, status);
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(

@@ -51,7 +51,8 @@ const NetworkConnectionBanner: React.FC = () => {
         actionButtonProps={{
           variant: ButtonVariants.Link,
           label: strings('network_connection_banner.update_rpc'),
-          onPress: updateRpc,
+          onPress: () =>
+            updateRpc(currentNetwork, networkConnectionBannersState.status),
         }}
       />
     </View>

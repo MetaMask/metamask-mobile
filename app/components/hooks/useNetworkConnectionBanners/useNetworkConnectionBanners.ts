@@ -25,7 +25,10 @@ const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
 const useNetworkConnectionBanners = (): {
   networkConnectionBannersState: NetworkConnectionBannersState;
   currentNetwork: NetworkConfiguration | undefined;
-  updateRpc: () => void;
+  updateRpc: (
+    network: NetworkConfiguration,
+    status: NetworkConnectionBannerStatus,
+  ) => void;
 } => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -49,15 +52,14 @@ const useNetworkConnectionBanners = (): {
     Engine.lookupEnabledNetworks();
   }, []);
 
-  function updateRpc() {
-    if (!currentNetwork) {
-      return;
-    }
-
-    const defaultEndpointIndex = currentNetwork.defaultRpcEndpointIndex || 0;
+  function updateRpc(
+    network: NetworkConfiguration,
+    status: NetworkConnectionBannerStatus,
+  ) {
+    const defaultEndpointIndex = network.defaultRpcEndpointIndex || 0;
     const rpcUrl =
-      currentNetwork.rpcEndpoints[defaultEndpointIndex]?.url ||
-      currentNetwork.rpcEndpoints[0]?.url;
+      network.rpcEndpoints[defaultEndpointIndex]?.url ||
+      network.rpcEndpoints[0]?.url;
 
     navigation.navigate(Routes.EDIT_NETWORK, {
       network: rpcUrl,
@@ -67,9 +69,13 @@ const useNetworkConnectionBanners = (): {
 
     // Tracking the event
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED)
+      createEventBuilder(
+        status === 'slow'
+          ? MetaMetricsEvents.SLOW_RPC_UPDATE_RPC_CLICKED
+          : MetaMetricsEvents.UNAVAILABLE_RPC_UPDATE_RPC_CLICKED,
+      )
         .addProperties({
-          chain_id_caip: `eip155:${hexToNumber(currentNetwork.chainId)}`,
+          chain_id_caip: `eip155:${hexToNumber(network.chainId)}`,
         })
         .build(),
     );
