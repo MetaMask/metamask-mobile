@@ -63,22 +63,26 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
     return override === 'true';
   }
 
-  return featureVersionsToCheck.some(({ version, featureKey }) => {
-    const featureFlag = remoteFeatureFlags[featureKey];
+  const enableMultichainAccounts = remoteFeatureFlags.enableMultichainAccounts;
+  if (
+    !enableMultichainAccounts ||
+    !assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)
+  ) {
+    return true;
+  }
 
     if (!assertMultichainAccountsFeatureFlagType(featureFlag)) {
       return false;
     }
 
-    const { enabled, featureVersion, minimumVersion } = featureFlag;
-
-    return (
+  // Check if the feature is enabled for any of the specified versions
+  return featureVersionsToCheck.some(
+    (featureVersionToCheck) =>
       enabled &&
       minimumVersion !== null &&
-      featureVersion === version &&
-      compareVersions.compare(minimumVersion, APP_VERSION, '<=')
-    );
-  });
+      featureVersion === featureVersionToCheck &&
+      compareVersions.compare(minimumVersion, APP_VERSION, '<='),
+  );
 };
 
 /**
@@ -92,17 +96,17 @@ function getRemoteFeatureFlags(): FeatureFlags {
  * Checks if multichain accounts state 1 is enabled.
  * Returns true if the feature is enabled for state 1 or state 2.
  */
-export const isMultichainAccountsState1Enabled = () =>
-  isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
-      featureKey: STATE_1_FLAG,
-    },
-    {
-      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
-      featureKey: STATE_2_FLAG,
-    },
-  ]);
+export const isMultichainAccountsState1Enabled = () => {
+  const remoteFeatureFlags = getRemoteFeatureFlags();
+  return (
+    isMultichainAccountsRemoteFeatureEnabled(remoteFeatureFlags, [
+      MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
+    ]) ||
+    isMultichainAccountsRemoteFeatureEnabled(remoteFeatureFlags, [
+      MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    ])
+  );
+};
 
 /**
  * Checks if multichain accounts state 2 is enabled.
