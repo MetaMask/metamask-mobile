@@ -1,4 +1,4 @@
-import migration92 from './098';
+import migration101 from './101';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 
@@ -10,7 +10,7 @@ const mockFilesystemStorage = FilesystemStorage as jest.Mocked<
 jest.mock('../../util/device');
 const mockDevice = Device as jest.Mocked<typeof Device>;
 
-describe('Migration 98', () => {
+describe('Migration 101', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDevice.isIos.mockReturnValue(true);
@@ -37,7 +37,7 @@ describe('Migration 98', () => {
       },
     };
 
-    const result = await migration92(mockState);
+    const result = await migration101(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(3);
 
@@ -92,7 +92,7 @@ describe('Migration 98', () => {
     // All migrations succeed
     mockFilesystemStorage.setItem.mockResolvedValue();
 
-    const result = await migration92(mockState);
+    const result = await migration101(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
@@ -111,7 +111,7 @@ describe('Migration 98', () => {
       },
     };
 
-    const result = await migration92(mockState);
+    const result = await migration101(mockState);
 
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
 
@@ -123,7 +123,7 @@ describe('Migration 98', () => {
       engine: {},
     };
 
-    const result = await migration92(mockState);
+    const result = await migration101(mockState);
 
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
     // Should return state unchanged
@@ -144,7 +144,7 @@ describe('Migration 98', () => {
       },
     };
 
-    const result = await migration92(mockState);
+    const result = await migration101(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
@@ -185,7 +185,7 @@ describe('Migration 98', () => {
       .mockRejectedValueOnce(new Error('Storage error'))
       .mockResolvedValueOnce();
 
-    const result = await migration92(mockState);
+    const result = await migration101(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
@@ -205,7 +205,7 @@ describe('Migration 98', () => {
   it('should handle invalid state gracefully', async () => {
     const invalidState = null;
 
-    const result = await migration92(invalidState);
+    const result = await migration101(invalidState);
 
     expect(result).toBe(invalidState);
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
