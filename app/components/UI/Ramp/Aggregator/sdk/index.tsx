@@ -15,9 +15,7 @@ import {
   CryptoCurrency,
   Payment,
 } from '@consensys/on-ramp-sdk';
-import { CaipChainId, isCaipChainId } from '@metamask/utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { toHex } from '@metamask/controller-utils';
+import { getCaipChainIdFromCryptoCurrency } from '../utils';
 
 import Logger from '../../../../../util/Logger';
 
@@ -136,28 +134,6 @@ const appConfig = {
   POLLING_INTERVAL_HIGHLIGHT: 10000,
   POLLING_CYCLES: 6,
 };
-
-function getCaipChainIdFromCryptoCurrency(
-  cryptoCurrency: CryptoCurrency | null,
-): CaipChainId | null {
-  if (!cryptoCurrency?.network?.chainId) {
-    return null;
-  }
-
-  if (isCaipChainId(cryptoCurrency.network.chainId)) {
-    return cryptoCurrency.network.chainId;
-  }
-
-  try {
-    return toEvmCaipChainId(toHex(cryptoCurrency.network.chainId));
-  } catch (error) {
-    console.warn(
-      'getCaipChainIdFromCryptoCurrency: Invalid chainId format:',
-      cryptoCurrency.network.chainId,
-    );
-    return null;
-  }
-}
 
 const SDKContext = createContext<RampSDK | undefined>(undefined);
 

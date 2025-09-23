@@ -58,7 +58,7 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { formatAmount } from '../../utils';
+import { formatAmount, getHexChainIdFromCryptoCurrency } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -253,11 +253,18 @@ const BuildQuote = () => {
     [selectedAddress],
   );
 
+  const hexChainIdForBalance = useMemo(() => {
+    if (!addressForBalance) {
+      return;
+    }
+    return getHexChainIdFromCryptoCurrency(selectedAsset);
+  }, [selectedAsset, addressForBalance]);
+
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
     addressForBalance,
     true,
-    selectedAsset?.network.chainId,
+    hexChainIdForBalance,
   );
 
   const { balanceFiat, balanceBN, balance } = useBalance(
