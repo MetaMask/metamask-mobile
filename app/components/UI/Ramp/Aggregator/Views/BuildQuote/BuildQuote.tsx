@@ -41,7 +41,7 @@ import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 import TokenIcon from '../../../../Swaps/components/TokenIcon';
-import TokenSelectModal from '../../components/TokenSelectModal';
+
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import FiatSelectModal from '../../components/modals/FiatSelectModal';
@@ -60,12 +60,10 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
-import {
-  selectTicker,
-  selectNetworkConfigurationsByCaipChainId,
-} from '../../../../../../selectors/networkController';
+import { selectTicker } from '../../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -87,14 +85,9 @@ import Text, {
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
-import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
+import { FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
-import Engine from '../../../../../../core/Engine';
-import { NetworkConfiguration } from '@metamask/network-controller';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { isCaipChainId } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,12 +115,7 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
-  const [
-    isTokenSelectorModalVisible,
-    toggleTokenSelectorModal,
-    ,
-    hideTokenSelectorModal,
-  ] = useModalHandler(false);
+
   const [
     isFiatSelectorModalVisible,
     toggleFiatSelectorModal,
@@ -144,9 +132,6 @@ const BuildQuote = () => {
     useModalHandler(false);
 
   const nativeSymbol = useSelector(selectTicker);
-  const networksByCaipChainId = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
 
   /**
    * Grab the current state of the SDK via the context.
@@ -157,7 +142,6 @@ const BuildQuote = () => {
     selectedRegion,
     setSelectedRegion,
     selectedAsset,
-    setSelectedAsset,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     selectedAddress,
@@ -523,52 +507,12 @@ const BuildQuote = () => {
 
   const handleAssetSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    toggleTokenSelectorModal();
-  }, [toggleTokenSelectorModal]);
-
-  const handleAssetPress = useCallback(
-    async (newAsset: CryptoCurrency) => {
-      if (
-        newAsset.network?.chainId &&
-        newAsset.network.chainId !== selectedChainId
-      ) {
-        const assetCaipChainId = isCaipChainId(newAsset.network.chainId)
-          ? newAsset.network.chainId
-          : toEvmCaipChainId(toHex(newAsset.network.chainId));
-
-        const networkConfiguration = networksByCaipChainId[
-          assetCaipChainId
-        ] as NetworkConfiguration;
-
-        if (networkConfiguration) {
-          const { rpcEndpoints, defaultRpcEndpointIndex } =
-            networkConfiguration;
-          let networkClientId;
-
-          if (!rpcEndpoints || rpcEndpoints.length === 0) {
-            networkClientId = assetCaipChainId;
-          } else {
-            const { networkClientId: endpointNetworkClientId } =
-              rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
-            networkClientId = endpointNetworkClientId;
-          }
-
-          const { MultichainNetworkController } = Engine.context;
-
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
-        }
-      }
-
-      setSelectedAsset(newAsset);
-      hideTokenSelectorModal();
-    },
-    [
-      hideTokenSelectorModal,
-      setSelectedAsset,
-      selectedChainId,
-      networksByCaipChainId,
-    ],
-  );
+    navigation.navigate(
+      ...createTokenSelectModalNavigationDetails({
+        tokens: cryptoCurrencies ?? [],
+      }),
+    );
+  }, [navigation, cryptoCurrencies]);
 
   /**
    * * FiatCurrency handlers
@@ -1106,16 +1050,6 @@ const BuildQuote = () => {
           </StyledButton>
         </ScreenLayout.Content>
       </Animated.View>
-      <TokenSelectModal
-        isVisible={isTokenSelectorModalVisible}
-        dismiss={toggleTokenSelectorModal as () => void}
-        title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
-        description={strings(
-          'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
-        )}
-        tokens={cryptoCurrencies ?? []}
-        onItemPress={handleAssetPress}
-      />
       <FiatSelectModal
         isVisible={isFiatSelectorModalVisible}
         dismiss={toggleFiatSelectorModal as () => void}

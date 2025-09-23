@@ -2051,7 +2051,7 @@ export function getDepositNavbarOptions(
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true, showCancel = true, showNetwork = true } = {},
+  { title = '', showBack = true, showCancel = true, showNetwork = true } = {},
   themeColors,
   onCancel,
 ) {
