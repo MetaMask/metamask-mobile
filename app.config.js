@@ -31,6 +31,7 @@ module.exports = {
     package: 'io.metamask',
   },
   ios: {
+    bundleIdentifier: 'io.metamask.MetaMask',
     usesAppleSignIn: true,
   },
 };

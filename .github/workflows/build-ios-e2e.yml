@@ -158,26 +158,59 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
-      - name: Repack App with JS updates
+      - name: Repack App with JS updates using @expo/repack-app
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
-          echo "📦 Repacking iOS app with updated JavaScript..."
+          echo "📦 Repacking iOS app with updated JavaScript using @expo/repack-app..."
+
+          # Use the optimized repack script which uses @expo/repack-app
+          yarn repack:ios
+
+          # Verify the repacked app exists
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "❌ Error: iOS .app not found at $APP_PATH after repack"
+            exit 1
+          fi
 
-          # Generate new JS bundle with sourcemap
-          mkdir -p sourcemaps/ios
-          yarn react-native bundle \
-            --platform ios \
-            --dev false \
-            --entry-file index.js \
-            --bundle-output ios/main.jsbundle \
-            --sourcemap-output sourcemaps/ios/index.js.map
-
-          # Replace bundle in app
-          cp ios/main.jsbundle "$APP_PATH/main.jsbundle"
-          rm -f ios/main.jsbundle
-
-          echo "✅ iOS app repacked successfully"
+          echo "✅ iOS .app successfully repacked with @expo/repack-app"
+          echo "📦 Final .app size: $(du -sh "$APP_PATH" | cut -f1)"
+        env:
+          # Pass ALL the same environment variables as the original build to ensure identical JS bundle
+          PLATFORM: ios
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          E2E: "true"
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: "true"
+          CI: "true"
+          NODE_OPTIONS: "--max-old-space-size=8192"
+          MM_UNIFIED_SWAPS_ENABLED: "true"
+          MM_BRIDGE_ENABLED: "true"
+          BRIDGE_USE_DEV_APIS: "true"
+          RAMP_INTERNAL_BUILD: "true"
+          SEEDLESS_ONBOARDING_ENABLED: "true"
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
+          MM_NOTIFICATIONS_UI_ENABLED: "true"
+          MM_SECURITY_ALERTS_API_ENABLED: "true"
+          BLOCKAID_FILE_CDN: "static.cx.metamask.io/api/v1/confirmations/ppom"
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
