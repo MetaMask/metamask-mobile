@@ -17,6 +17,7 @@ import type {
   PriceUpdate,
   ClosePositionParams,
   LiquidationPriceParams,
+  Funding,
 } from '../../../app/components/UI/Perps/controllers/types';
 import type { PerpsControllerState } from '../../../app/components/UI/Perps/controllers/PerpsController';
 
@@ -63,10 +64,14 @@ export class E2EControllerOverrides {
     params: LiquidationPriceParams,
   ): Promise<string> {
     const entry = Number(params.entryPrice);
-    if (Number.isFinite(entry)) {
-      return entry.toFixed(2);
+    if (!Number.isFinite(entry)) {
+      return '0.00';
     }
-    return '0.00';
+    // Provide deterministic, realistic liquidation distance for E2E:
+    // Long: 20% below entry, Short: 20% above entry
+    const isLong = params.direction === 'long';
+    const liq = isLong ? entry * 0.8 : entry * 1.2;
+    return liq.toFixed(2);
   }
 
   // Mock account state with Redux update
