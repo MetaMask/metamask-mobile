@@ -127,7 +127,6 @@ jobs:
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building iOS E2E App (Full Build)..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
           yarn build:ios:main:e2e
         shell: bash
         env:
@@ -140,7 +139,7 @@ jobs:
           GITHUB_CI: "true"
           CI: "true"
 
-          NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build
+          NODE_OPTIONS: "--max-old-space-size=4096" # Increase memory limit for build
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
@@ -175,10 +174,32 @@ jobs:
 
           echo "✅ iOS .app successfully repacked"
         env:
-          # MUST use same env vars as build step to ensure identical JS bundle
-          IS_SIM_BUILD: "true"  # Ensures simulator build (.app) not device build 
-          METAMASK_ENVIRONMENT: main # Same as build step
-          NODE_OPTIONS: "--max-old-space-size=8192" # Same as build step
+          PLATFORM: ios
+          METAMASK_ENVIRONMENT: main
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          IS_SIM_BUILD: "true"  # Ensures simulator build (.app) not device build (.ipa)
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: "true"
+          CI: "true"
+
+          NODE_OPTIONS: "--max-old-space-size=4096" # Increase memory limit for build
+
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
