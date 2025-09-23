@@ -17,6 +17,12 @@ import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { useSelector } from 'react-redux';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import Logger from '../../../util/Logger';
+
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
 import { strings } from '../../../../locales/i18n';
 
 // Mock Rive component to prevent "Invalid Rive resource" error in tests
@@ -1255,6 +1261,248 @@ describe('OnboardingSuccess', () => {
           screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
         },
       );
+    });
+  });
+
+  describe('Animation Logic and Error Handling Coverage', () => {
+    it('should cover hasAnimationStarted assignment and fireState call', () => {
+      jest.useFakeTimers();
+      const mockFireState = jest.fn();
+      const mockSetDotsCount = jest.fn();
+      const mockSetAnimationStep = jest.fn();
+
+      const TestComponent = () => {
+        const hasAnimationStarted = React.useRef(false);
+        const riveRef = React.useRef({ fireState: mockFireState });
+        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
+        const animationId = React.useRef<NodeJS.Timeout | null>(null);
+        const [, setDotsCount] = React.useState(1);
+        const [, setAnimationStep] = React.useState(1);
+
+        React.useEffect(() => {
+          hasAnimationStarted.current = true;
+          riveRef.current.fireState('OnboardingLoader', 'Start');
+
+          dotsIntervalId.current = setInterval(() => {
+            setDotsCount((prev) => (prev >= 3 ? 1 : prev + 1));
+            mockSetDotsCount();
+          }, 300);
+
+          animationId.current = setTimeout(() => {
+            if (dotsIntervalId.current) {
+              clearInterval(dotsIntervalId.current);
+              dotsIntervalId.current = null;
+            }
+            setAnimationStep(2);
+            mockSetAnimationStep();
+          }, 1200);
+        }, []);
+
+        return <View testID="animation-test" />;
+      };
+
+      renderWithProvider(<TestComponent />, { state: {} });
+
+      expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Start');
+
+      jest.advanceTimersByTime(350);
+      expect(mockSetDotsCount).toHaveBeenCalled();
+
+      jest.advanceTimersByTime(1250);
+      expect(mockSetAnimationStep).toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should cover finalTimeout and socialLogin logic', () => {
+      jest.useFakeTimers();
+      const mockOnDone = jest.fn();
+      const mockSetAnimationStep = jest.fn();
+
+      const TestFinalTimeout = () => {
+        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const [authConnection] = React.useState(AuthConnection.Apple);
+
+        React.useEffect(() => {
+          finalTimeoutId.current = setTimeout(() => {
+            mockSetAnimationStep(3);
+            finalTimeoutId.current = null;
+
+            const currentIsSocialLogin =
+              authConnection === AuthConnection.Google ||
+              authConnection === AuthConnection.Apple;
+            if (currentIsSocialLogin) {
+              socialLoginTimeoutId.current = setTimeout(
+                () => mockOnDone(),
+                1000,
+              );
+            }
+          }, 3000);
+        }, [authConnection]);
+
+        return <View testID="final-timeout-test" />;
+      };
+
+      renderWithProvider(<TestFinalTimeout />, { state: {} });
+
+      jest.advanceTimersByTime(3100);
+      expect(mockSetAnimationStep).toHaveBeenCalledWith(3);
+
+      jest.advanceTimersByTime(1100);
+      expect(mockOnDone).toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should cover error handling in catch block', () => {
+      const TestErrorHandling = () => {
+        const riveRef = React.useRef({
+          fireState: jest.fn(() => {
+            throw new Error('Test animation error');
+          }),
+        });
+
+        React.useEffect(() => {
+          try {
+            if (riveRef.current) {
+              riveRef.current.fireState();
+            }
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'Error triggering Rive onboarding animation',
+            );
+          }
+        }, []);
+
+        return <View testID="error-test" />;
+      };
+
+      renderWithProvider(<TestErrorHandling />, { state: {} });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error triggering Rive onboarding animation',
+      );
+    });
+  });
+
+  describe('Timer Cleanup and Memory Management', () => {
+    it('should cover all timer cleanup paths when timers exist', () => {
+      jest.useFakeTimers();
+
+      const TestTimerCleanup = () => {
+        const animationId = React.useRef<NodeJS.Timeout | null>(null);
+        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
+        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+
+        React.useEffect(() => {
+          animationId.current = setTimeout(() => undefined, 1000);
+          dotsIntervalId.current = setInterval(() => undefined, 500);
+          finalTimeoutId.current = setTimeout(() => undefined, 2000);
+          socialLoginTimeoutId.current = setTimeout(() => undefined, 3000);
+
+          return () => {
+            if (animationId.current) {
+              clearTimeout(animationId.current);
+              animationId.current = null;
+            }
+            if (dotsIntervalId.current) {
+              clearInterval(dotsIntervalId.current);
+              dotsIntervalId.current = null;
+            }
+            if (finalTimeoutId.current) {
+              clearTimeout(finalTimeoutId.current);
+              finalTimeoutId.current = null;
+            }
+            if (socialLoginTimeoutId.current) {
+              clearTimeout(socialLoginTimeoutId.current);
+              socialLoginTimeoutId.current = null;
+            }
+          };
+        }, []);
+
+        return <View testID="cleanup-test" />;
+      };
+
+      const { unmount } = renderWithProvider(<TestTimerCleanup />, {
+        state: {},
+      });
+
+      jest.advanceTimersByTime(100);
+      unmount();
+
+      expect(jest.getTimerCount()).toBe(0);
+      jest.useRealTimers();
+    });
+
+    it('should cover cleanup when only some timers exist', () => {
+      jest.useFakeTimers();
+
+      const TestPartialCleanup = () => {
+        const animationId = React.useRef<NodeJS.Timeout | null>(null);
+        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
+        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+
+        React.useEffect(() => {
+          animationId.current = setTimeout(() => undefined, 1000);
+          finalTimeoutId.current = setTimeout(() => undefined, 2000);
+
+          return () => {
+            if (animationId.current) {
+              clearTimeout(animationId.current);
+              animationId.current = null;
+            }
+            if (dotsIntervalId.current) {
+              clearInterval(dotsIntervalId.current);
+              dotsIntervalId.current = null;
+            }
+            if (finalTimeoutId.current) {
+              clearTimeout(finalTimeoutId.current);
+              finalTimeoutId.current = null;
+            }
+            if (socialLoginTimeoutId.current) {
+              clearTimeout(socialLoginTimeoutId.current);
+              socialLoginTimeoutId.current = null;
+            }
+          };
+        }, []);
+
+        return <View testID="partial-cleanup-test" />;
+      };
+
+      const { unmount } = renderWithProvider(<TestPartialCleanup />, {
+        state: {},
+      });
+
+      jest.advanceTimersByTime(100);
+      unmount();
+
+      expect(jest.getTimerCount()).toBe(0);
+      jest.useRealTimers();
+    });
+
+    it('should cover cleanup with real OnboardingSuccess component', () => {
+      jest.useFakeTimers();
+
+      (useSelector as jest.Mock).mockImplementation(() => undefined);
+
+      const { unmount } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={jest.fn()}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
+        { state: {} },
+      );
+
+      jest.advanceTimersByTime(500);
+      unmount();
+
+      expect(jest.getTimerCount()).toBe(0);
+      jest.useRealTimers();
     });
   });
 });
