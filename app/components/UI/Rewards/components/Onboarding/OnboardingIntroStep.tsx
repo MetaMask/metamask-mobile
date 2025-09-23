@@ -229,14 +229,14 @@ const OnboardingIntroStep: React.FC = () => {
   );
 
   return (
-    <Box twClassName="flex-grow min-h-full" testID="onboarding-intro-container">
+    <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-1 px-4 py-8')}
+        style={tw.style('flex-grow px-4 py-8')}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[75px]" />
+        <Box twClassName="flex-basis-[5%]" />
 
         {/* Title Section */}
         {renderTitle()}
