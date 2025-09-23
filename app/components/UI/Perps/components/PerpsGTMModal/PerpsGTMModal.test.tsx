@@ -103,7 +103,7 @@ describe('PerpsGTMModal', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
+      MetaMetricsEvents.PERPS_FULL_PAGE_MODAL_TAPPED,
     );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
@@ -125,7 +125,7 @@ describe('PerpsGTMModal', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
+      MetaMetricsEvents.PERPS_FULL_PAGE_MODAL_TAPPED,
     );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.TUTORIAL,
