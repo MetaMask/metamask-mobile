@@ -18,37 +18,44 @@ describe('networkConnectionBanners selectors', () => {
       expect(result).toBe(mockState.networkConnectionBanners);
     });
 
-    it('should return state with visible false and chainId undefined', () => {
-      const result = selectNetworkConnectionBannersState(mockState);
-
-      expect(result).toStrictEqual({
-        visible: false,
-      });
-    });
-
-    it('should return state with visible true and chainId when banner is shown', () => {
-      const stateWithVisibleBanner = {
-        networkConnectionBanners: {
-          visible: true,
-          chainId: '0x1',
-        },
-      } as unknown as RootState;
-
-      const result = selectNetworkConnectionBannersState(
-        stateWithVisibleBanner,
-      );
-
-      expect(result).toStrictEqual({
-        visible: true,
+    it.each([
+      {
+        status: 'slow',
         chainId: '0x1',
-      });
-    });
+        description: 'slow status',
+      },
+      {
+        status: 'unavailable',
+        chainId: '0x89',
+        description: 'unavailable status',
+      },
+    ])(
+      'should return state with visible true and $description when banner is shown',
+      ({ status, chainId }) => {
+        const stateWithVisibleBanner = {
+          networkConnectionBanners: {
+            visible: true,
+            chainId,
+            status,
+          },
+        } as unknown as RootState;
 
-    it('should return state with visible false and chainId undefined when banner is hidden', () => {
+        const result = selectNetworkConnectionBannersState(
+          stateWithVisibleBanner,
+        );
+
+        expect(result).toStrictEqual({
+          visible: true,
+          chainId,
+          status,
+        });
+      },
+    );
+
+    it('should return state with visible false when banner is hidden', () => {
       const stateWithHiddenBanner = {
         networkConnectionBanners: {
           visible: false,
-          chainId: undefined,
         },
       } as unknown as RootState;
 
@@ -56,7 +63,6 @@ describe('networkConnectionBanners selectors', () => {
 
       expect(result).toStrictEqual({
         visible: false,
-        chainId: undefined,
       });
     });
 
@@ -71,7 +77,6 @@ describe('networkConnectionBanners selectors', () => {
       const state1 = {
         networkConnectionBanners: {
           visible: false,
-          chainId: undefined,
         },
       } as unknown as RootState;
 
@@ -79,6 +84,7 @@ describe('networkConnectionBanners selectors', () => {
         networkConnectionBanners: {
           visible: true,
           chainId: '0x1',
+          status: 'slow',
         },
       } as unknown as RootState;
 
@@ -88,11 +94,11 @@ describe('networkConnectionBanners selectors', () => {
       expect(result1).not.toBe(result2);
       expect(result1).toStrictEqual({
         visible: false,
-        chainId: undefined,
       });
       expect(result2).toStrictEqual({
         visible: true,
         chainId: '0x1',
+        status: 'slow',
       });
     });
   });
