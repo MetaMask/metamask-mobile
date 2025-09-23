@@ -38,6 +38,7 @@ export const createMockAccountGroup = (
   id: string,
   name: string,
   accounts: string[] = [`account-${id}`],
+  isEntropyGroup: boolean = false,
 ): AccountGroupObject => {
   if (accounts.length === 1) {
     const group = {
@@ -48,6 +49,11 @@ export const createMockAccountGroup = (
         name,
         pinned: false,
         hidden: false,
+        ...(isEntropyGroup && {
+          entropy: {
+            groupIndex: 0,
+          },
+        }),
       },
     };
     return group as unknown as AccountGroupObject;
@@ -61,9 +67,11 @@ export const createMockAccountGroup = (
       name,
       pinned: false,
       hidden: false,
-      entropy: {
-        groupIndex: 0,
-      },
+      ...(isEntropyGroup && {
+        entropy: {
+          groupIndex: 0,
+        },
+      }),
     },
   };
   return group as unknown as AccountGroupObject;
@@ -109,7 +117,7 @@ export const createMockEntropyWallet = (
     metadata: {
       name,
       entropy: {
-        groupIndex: 0,
+        id: 'test-entropy-id',
       },
     },
     groups: groups.reduce((acc, group) => {
@@ -129,9 +137,7 @@ export const createMockState = (
   internalAccounts: Record<string, InternalAccount>,
 ): RootState => {
   const walletMap = wallets.reduce((acc, wallet) => {
-    const prefix =
-      wallet.type === AccountWalletType.Entropy ? 'entropy:' : 'keyring:';
-    const prefixedKey = `${prefix}${wallet.id}`;
+    const prefixedKey = `${wallet.type}:${wallet.id}`;
 
     // Store with both prefixed key (for selectors) and plain key (for AccountListFooter)
     acc[prefixedKey] = wallet;
