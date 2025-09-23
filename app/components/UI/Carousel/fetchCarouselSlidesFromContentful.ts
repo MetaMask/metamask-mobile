@@ -33,8 +33,10 @@ export const getContentfulEnvironmentDetails = () => {
     };
   }
 
+  const isProd = isProduction();
+
   // If production, show prod master content
-  if (isProduction()) {
+  if (isProd) {
     return {
       environment: 'master',
       domain: 'cdn.contentful.com',
@@ -43,15 +45,13 @@ export const getContentfulEnvironmentDetails = () => {
     };
   }
 
-  // If dev, show preview dev content
-  if (!isProduction()) {
-    return {
-      environment: 'dev',
-      domain: 'preview.contentful.com',
-      accessToken: ACCESS_TOKEN(),
-      spaceId: SPACE_ID(),
-    };
-  }
+  // Default to preview dev content
+  return {
+    environment: 'dev',
+    domain: 'preview.contentful.com',
+    accessToken: ACCESS_TOKEN(),
+    spaceId: SPACE_ID(),
+  };
 };
 
 const CONTENT_TYPE = 'promotionalBanner';
@@ -65,7 +65,7 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
   regularSlides: CarouselSlide[];
 }> {
   const { spaceId, accessToken, environment, domain } =
-    getContentfulEnvironmentDetails() ?? {};
+    getContentfulEnvironmentDetails();
 
   if (!spaceId || !accessToken) {
     console.warn(

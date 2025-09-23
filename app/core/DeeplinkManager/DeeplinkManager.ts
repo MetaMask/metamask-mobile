@@ -11,6 +11,7 @@ import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
 import { handleSwapUrl } from './Handlers/handleSwapUrl';
+import { handleHomeUrl } from './Handlers/handleHomeUrl';
 import Routes from '../../constants/navigation/Routes';
 import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
 import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
@@ -22,7 +23,6 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './Handlers/handleDeeplink';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import FCMService from '../../util/notifications/services/FCMService';
-import { handleHomeUrl } from './Handlers/handleHomeUrl';
 
 class DeeplinkManager {
   // TODO: Replace "any" with type
