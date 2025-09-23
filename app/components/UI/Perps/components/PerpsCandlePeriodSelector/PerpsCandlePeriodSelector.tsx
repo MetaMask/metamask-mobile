@@ -11,12 +11,6 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { styleSheet } from './PerpsCandlePeriodSelector.styles';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
 
 // Default candle periods with preset values
 const DEFAULT_CANDLE_PERIODS = [
@@ -48,7 +42,6 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { track } = usePerpsEventTracking();
 
   // Check if the selected period is in the "More" category (not in default periods)
   const isMorePeriodSelected = !DEFAULT_CANDLE_PERIODS.some(
@@ -73,12 +66,6 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
               pressed && styles.periodButtonPressed,
             ]}
             onPress={() => {
-              // Track chart interaction event
-              track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
-                [PerpsEventProperties.INTERACTION_TYPE]:
-                  PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGE,
-                [PerpsEventProperties.CANDLE_PERIOD]: period.label,
-              });
               onPeriodChange?.(period.value);
             }}
             testID={

@@ -123,11 +123,20 @@ Status: ✅ Implemented
 **Implementation:** MetaMetrics.events.ts + PerpsMarketDetailsView.tsx:240
 **Properties:** Timestamp, Source (Perp market, perp market seach, positionTab, notification, deeplink), Asset, Open Position (boolean)
 
+### Perp Chart Candle Periods Viewed
+
+Status: ⚠️ Implemented - Not in original PDF spec
+**Implementation:** MetaMetrics.events.ts + PerpsCandlePeriodBottomSheet.tsx:60
+**Properties:** Timestamp, Asset, candlePeriod (current selection), Source (PerpAssetScreen)
+**Note:** Added to track when users actually view the advanced candle period options bottom sheet
+
 ### Perp Chart Interaction
 
-Status: ✅ Implemented
-**Implementation:** MetaMetrics.events.ts + PerpsCandlePeriodSelector.tsx:77 + PerpsCandlePeriodBottomSheet.tsx:107 + PerpsMarketDetailsView.tsx:272
-**Properties:** Timestamp, Interaction Type (tap, zoom, slide), candlePeriodSelected (1min, 3min, 5min etc.)
+Status: ⚠️ Partially Implemented - WebView complexity limits full implementation
+**Implementation:** MetaMetrics.events.ts + PerpsMarketDetailsView.tsx:270
+**Properties:** Timestamp, Asset, Interaction Type (candle_period_change), candlePeriod (1m, 3m, 5m, etc.)
+**Original Spec:** Should track tap, zoom, slide interactions with chart
+**Current Implementation:** Only tracks candle period changes - WebView architecture makes direct chart interactions complex to track
 
 ### Perp Chart time serie changed
 
