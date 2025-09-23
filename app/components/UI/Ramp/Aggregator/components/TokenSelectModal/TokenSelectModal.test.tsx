@@ -30,6 +30,28 @@ const mockTokens = [
       shortName: 'Polygon',
     },
   },
+  {
+    id: 'solana-sol',
+    symbol: 'SOL',
+    name: 'Solana',
+    address: 'So11111111111111111111111111111111111111112',
+    logo: 'https://example.com/sol.png',
+    network: {
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      shortName: 'Solana',
+    },
+  },
+  {
+    id: 'solana-usdc',
+    symbol: 'USDC',
+    name: 'USD Coin (Solana)',
+    address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    logo: 'https://example.com/usdc.png',
+    network: {
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      shortName: 'Solana',
+    },
+  },
 ];
 
 function render(component: React.ComponentType) {
@@ -112,6 +134,16 @@ const mockNetworkConfigurations = {
     rpcEndpoints: [
       {
         networkClientId: 'polygon-mainnet',
+        type: 'custom',
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+  },
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    rpcEndpoints: [
+      {
+        networkClientId: 'solana-mainnet',
         type: 'custom',
       },
     ],
