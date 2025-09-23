@@ -12,7 +12,7 @@ import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
 import SOLANA from './solana-logo.png';
-import SOLANA_DEVNET from './solana-devnet-2.jpg';
+import SOLANA_DEVNET from './solana-devnet.jpg';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
