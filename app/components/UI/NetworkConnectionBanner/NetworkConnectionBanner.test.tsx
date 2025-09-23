@@ -52,12 +52,78 @@ describe('NetworkConnectionBanner', () => {
     jest.clearAllMocks();
   });
 
+  describe('snapshots', () => {
+    it('should match snapshot when banner is not visible', () => {
+      mockUseNetworkConnectionBanners.mockReturnValue({
+        networkConnectionBannersState: { visible: false },
+        currentNetwork: mockNetworkConfiguration,
+        editRpc: mockEditRpc,
+      });
+
+      const { toJSON } = render(<NetworkConnectionBanner />);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should match snapshot for slow status banner', () => {
+      mockUseNetworkConnectionBanners.mockReturnValue({
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
+        currentNetwork: mockNetworkConfiguration,
+        editRpc: mockEditRpc,
+      });
+
+      const { toJSON } = render(<NetworkConnectionBanner />);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should match snapshot for unavailable status banner', () => {
+      mockUseNetworkConnectionBanners.mockReturnValue({
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'unavailable',
+        },
+        currentNetwork: mockNetworkConfiguration,
+        editRpc: mockEditRpc,
+      });
+
+      const { toJSON } = render(<NetworkConnectionBanner />);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should match snapshot for different network', () => {
+      const polygonNetwork: NetworkConfiguration = {
+        ...mockNetworkConfiguration,
+        chainId: '0x89',
+        name: 'Polygon Mainnet',
+      };
+
+      mockUseNetworkConnectionBanners.mockReturnValue({
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x89',
+          status: 'slow',
+        },
+        currentNetwork: polygonNetwork,
+        editRpc: mockEditRpc,
+      });
+
+      const { toJSON } = render(<NetworkConnectionBanner />);
+
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
   describe('when banner is not visible', () => {
     it('should not render when visible is false', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: false,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: { visible: false },
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -69,9 +135,11 @@ describe('NetworkConnectionBanner', () => {
 
     it('should not render when currentNetwork is undefined', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: undefined,
         editRpc: mockEditRpc,
       });
@@ -83,9 +151,7 @@ describe('NetworkConnectionBanner', () => {
 
     it('should not render when both visible is false and currentNetwork is undefined', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: false,
-        chainId: undefined,
-        status: 'slow',
+        networkConnectionBannersState: { visible: false },
         currentNetwork: undefined,
         editRpc: mockEditRpc,
       });
@@ -100,9 +166,11 @@ describe('NetworkConnectionBanner', () => {
     describe('with slow status', () => {
       beforeEach(() => {
         mockUseNetworkConnectionBanners.mockReturnValue({
-          visible: true,
-          chainId: '0x1',
-          status: 'slow',
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status: 'slow',
+          },
           currentNetwork: mockNetworkConfiguration,
           editRpc: mockEditRpc,
         });
@@ -157,9 +225,11 @@ describe('NetworkConnectionBanner', () => {
     describe('with unavailable status', () => {
       beforeEach(() => {
         mockUseNetworkConnectionBanners.mockReturnValue({
-          visible: true,
-          chainId: '0x1',
-          status: 'unavailable',
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status: 'unavailable',
+          },
           currentNetwork: mockNetworkConfiguration,
           editRpc: mockEditRpc,
         });
@@ -215,9 +285,11 @@ describe('NetworkConnectionBanner', () => {
       it('should update message when status changes from slow to unavailable', () => {
         // Start with slow status
         mockUseNetworkConnectionBanners.mockReturnValue({
-          visible: true,
-          chainId: '0x1',
-          status: 'slow',
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status: 'slow',
+          },
           currentNetwork: mockNetworkConfiguration,
           editRpc: mockEditRpc,
         });
@@ -230,9 +302,11 @@ describe('NetworkConnectionBanner', () => {
 
         // Change to unavailable status
         mockUseNetworkConnectionBanners.mockReturnValue({
-          visible: true,
-          chainId: '0x1',
-          status: 'unavailable',
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status: 'unavailable',
+          },
           currentNetwork: mockNetworkConfiguration,
           editRpc: mockEditRpc,
         });
@@ -247,9 +321,11 @@ describe('NetworkConnectionBanner', () => {
       it('should update message when status changes from unavailable to slow', () => {
         // Start with unavailable status
         mockUseNetworkConnectionBanners.mockReturnValue({
-          visible: true,
-          chainId: '0x1',
-          status: 'unavailable',
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status: 'unavailable',
+          },
           currentNetwork: mockNetworkConfiguration,
           editRpc: mockEditRpc,
         });
@@ -262,9 +338,11 @@ describe('NetworkConnectionBanner', () => {
 
         // Change to slow status
         mockUseNetworkConnectionBanners.mockReturnValue({
-          visible: true,
-          chainId: '0x1',
-          status: 'slow',
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status: 'slow',
+          },
           currentNetwork: mockNetworkConfiguration,
           editRpc: mockEditRpc,
         });
@@ -287,9 +365,11 @@ describe('NetworkConnectionBanner', () => {
       };
 
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x89',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x89',
+          status: 'slow',
+        },
         currentNetwork: polygonNetwork,
         editRpc: mockEditRpc,
       });
@@ -306,9 +386,11 @@ describe('NetworkConnectionBanner', () => {
       };
 
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: specialNetwork,
         editRpc: mockEditRpc,
       });
@@ -327,9 +409,11 @@ describe('NetworkConnectionBanner', () => {
       };
 
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: longNameNetwork,
         editRpc: mockEditRpc,
       });
@@ -347,9 +431,11 @@ describe('NetworkConnectionBanner', () => {
   describe('accessibility', () => {
     it('should render with proper accessibility structure', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -363,9 +449,11 @@ describe('NetworkConnectionBanner', () => {
 
     it('should have accessible button for editing RPC', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -389,9 +477,11 @@ describe('NetworkConnectionBanner', () => {
       };
 
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: networkWithEmptyName,
         editRpc: mockEditRpc,
       });
@@ -408,9 +498,11 @@ describe('NetworkConnectionBanner', () => {
       };
 
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'unavailable',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'unavailable',
+        },
         currentNetwork: networkWithEmptyName,
         editRpc: mockEditRpc,
       });
@@ -422,9 +514,11 @@ describe('NetworkConnectionBanner', () => {
 
     it('should handle multiple rapid button presses', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -446,9 +540,7 @@ describe('NetworkConnectionBanner', () => {
     it('should update when hook values change', () => {
       // Initially not visible
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: false,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: { visible: false },
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -461,9 +553,11 @@ describe('NetworkConnectionBanner', () => {
 
       // Make it visible
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -476,9 +570,11 @@ describe('NetworkConnectionBanner', () => {
     it('should handle hook returning different network', () => {
       // Initially Ethereum
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x1',
+          status: 'slow',
+        },
         currentNetwork: mockNetworkConfiguration,
         editRpc: mockEditRpc,
       });
@@ -495,9 +591,11 @@ describe('NetworkConnectionBanner', () => {
       };
 
       mockUseNetworkConnectionBanners.mockReturnValue({
-        visible: true,
-        chainId: '0x89',
-        status: 'slow',
+        networkConnectionBannersState: {
+          visible: true,
+          chainId: '0x89',
+          status: 'slow',
+        },
         currentNetwork: polygonNetwork,
         editRpc: mockEditRpc,
       });

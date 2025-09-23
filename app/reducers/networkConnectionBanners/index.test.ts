@@ -7,8 +7,6 @@ import reducer, { NetworkConnectionBannersState } from '.';
 
 const initialState: Readonly<NetworkConnectionBannersState> = {
   visible: false,
-  chainId: undefined,
-  status: undefined,
 };
 
 describe('networkConnectionBanners reducer', () => {
@@ -99,8 +97,6 @@ describe('networkConnectionBanners reducer', () => {
 
       expect(result).toStrictEqual({
         visible: false,
-        chainId: undefined,
-        status: undefined,
       });
     });
 
@@ -134,8 +130,6 @@ describe('networkConnectionBanners reducer', () => {
 
       expect(afterHide).toStrictEqual({
         visible: false,
-        chainId: undefined,
-        status: undefined,
       });
     });
   });

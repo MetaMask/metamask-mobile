@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex, hexToNumber } from '@metamask/utils';
 import {
@@ -17,36 +17,30 @@ import {
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
+import { NetworkConnectionBannersState } from '../../../reducers/networkConnectionBanners';
 
 const SLOW_BANNER_TIMEOUT = 5 * 1000; // 5 seconds
 const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
 
 const useNetworkConnectionBanners = (): {
-  visible: boolean;
-  chainId: Hex | undefined;
+  networkConnectionBannersState: NetworkConnectionBannersState;
   currentNetwork: NetworkConfiguration | undefined;
-  status: NetworkConnectionBannerStatus | undefined;
   editRpc: () => void;
 } => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { visible, chainId, status } = useSelector(
+  const networkConnectionBannersState = useSelector(
     selectNetworkConnectionBannersState,
   );
-  const visibleRef = useRef(visible);
 
-  useEffect(() => {
-    visibleRef.current = visible;
-  }, [visible]);
   const networkConfigurationByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
   const evmEnabledNetworksChainIds = useSelector(selectEVMEnabledNetworks);
-  const currentNetwork = useMemo(
-    () => (chainId ? networkConfigurationByChainId[chainId] : undefined),
-    [networkConfigurationByChainId, chainId],
-  );
+  const currentNetwork = networkConnectionBannersState.visible
+    ? networkConfigurationByChainId[networkConnectionBannersState.chainId]
+    : undefined;
 
   useEffect(() => {
     Engine.lookupEnabledNetworks();
@@ -123,11 +117,15 @@ const useNetworkConnectionBanners = (): {
         // 2. Banner is visible but for a different network, OR
         // 3. Banner is visible for the same network but with a different status
         const shouldShowBanner =
-          !visibleRef.current ||
-          (visibleRef.current && chainId !== firstUnavailableNetwork.chainId) ||
-          (visibleRef.current &&
-            chainId === firstUnavailableNetwork.chainId &&
-            status !== firstUnavailableNetwork.status);
+          !networkConnectionBannersState.visible ||
+          (networkConnectionBannersState.visible &&
+            networkConnectionBannersState.chainId !==
+              firstUnavailableNetwork.chainId) ||
+          (networkConnectionBannersState.visible &&
+            networkConnectionBannersState.chainId ===
+              firstUnavailableNetwork.chainId &&
+            networkConnectionBannersState.status !==
+              firstUnavailableNetwork.status);
 
         if (shouldShowBanner) {
           dispatch(
@@ -151,8 +149,8 @@ const useNetworkConnectionBanners = (): {
               .build(),
           );
         }
-      } else if (visibleRef.current) {
-        // Hide banner if no networks are unavailable
+      } else if (networkConnectionBannersState.visible) {
+        // Hide banner if all networks are available
         dispatch(hideNetworkConnectionBanner());
       }
     };
@@ -174,13 +172,16 @@ const useNetworkConnectionBanners = (): {
   }, [
     evmEnabledNetworksChainIds,
     dispatch,
-    createEventBuilder,
+    networkConnectionBannersState,
     trackEvent,
-    chainId,
-    status,
+    createEventBuilder,
   ]);
 
-  return { visible, chainId, status, currentNetwork, editRpc };
+  return {
+    networkConnectionBannersState,
+    currentNetwork,
+    editRpc,
+  };
 };
 
 export default useNetworkConnectionBanners;

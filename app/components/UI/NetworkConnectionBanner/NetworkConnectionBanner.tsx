@@ -19,10 +19,10 @@ import { strings } from '../../../../locales/i18n';
  * Shows when any network takes more than 5 seconds to initialize or is not available.
  */
 const NetworkConnectionBanner: React.FC = () => {
-  const { visible, currentNetwork, status, editRpc } =
+  const { networkConnectionBannersState, currentNetwork, editRpc } =
     useNetworkConnectionBanners();
 
-  if (!visible || !currentNetwork) {
+  if (!networkConnectionBannersState.visible || !currentNetwork) {
     return null;
   }
 
@@ -47,7 +47,7 @@ const NetworkConnectionBanner: React.FC = () => {
             numberOfLines={1}
           >
             {strings(
-              status === 'slow'
+              networkConnectionBannersState.status === 'slow'
                 ? 'network_connection_banner.still_connecting_network'
                 : 'network_connection_banner.network_not_available',
               {
