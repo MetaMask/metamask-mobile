@@ -264,7 +264,7 @@ class OptinMetrics extends PureComponent {
           [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
             this.state.isCheckboxChecked,
           ),
-          is_metrics_opted_in: true,
+          is_metrics_opted_in: this.state.isBasicUsageChecked,
           location: 'onboarding_metametrics',
           updated_after_onboarding: false,
         })
