@@ -6,6 +6,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
+import { Network } from '@consensys/on-ramp-sdk/dist/API';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -162,5 +163,52 @@ describe('Checkout', () => {
     render();
 
     expect(createCustomOrderIdData).not.toHaveBeenCalled();
+  });
+
+  it('handles cancel press when selectedAsset has no chainId', () => {
+    mockUseRampSDKValues.selectedAsset = {
+      id: '1',
+      idv2: '2',
+      legacyId: 'legacy-1',
+      network: {
+        active: true,
+        chainId: undefined as unknown as string, // No chainId
+        chainName: 'Test',
+        shortName: 'Test',
+      },
+      symbol: 'USDC',
+      logo: 'logo',
+      decimals: 6,
+      address: '0x123',
+      name: 'USD Coin',
+      limits: ['1', '1000'],
+      sellEnabled: true,
+      assetId: 'asset-1',
+    } as const;
+
+    render();
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('handles cancel press when selectedAsset network is undefined', () => {
+    mockUseRampSDKValues.selectedAsset = {
+      id: '1',
+      idv2: '2',
+      legacyId: 'legacy-1',
+      network: undefined as unknown as Network, // No network
+      symbol: 'USDC',
+      logo: 'logo',
+      decimals: 6,
+      address: '0x123',
+      name: 'USD Coin',
+      limits: ['1', '1000'],
+      sellEnabled: true,
+      assetId: 'asset-1',
+    } as const;
+
+    render();
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });
