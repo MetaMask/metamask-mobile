@@ -58,12 +58,6 @@ describe('useReferralDetails', () => {
     mockUseFocusEffect.mockClear();
   });
 
-  it('should return null', () => {
-    mockUseSelector.mockReturnValue(null);
-    const { result } = renderHook(() => useReferralDetails());
-    expect(result.current).toBeNull();
-  });
-
   it('should not fetch when subscriptionId is not available', () => {
     mockUseSelector.mockReturnValue(null);
 

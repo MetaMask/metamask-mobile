@@ -1,5 +1,6 @@
 import { BaseController } from '@metamask/base-controller';
 import { toHex } from '@metamask/controller-utils';
+import { minBy } from 'lodash';
 import {
   type RewardsControllerState,
   type RewardsAccountState,
@@ -150,6 +151,7 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #currentSeasonIdMap: Record<string, string> = {};
 
   /**
    * Calculate tier status and next tier information
@@ -369,6 +371,12 @@ export class RewardsController extends BaseController<
     seasonId: string,
     subscriptionId: string,
   ): string {
+    if (
+      seasonId === CURRENT_SEASON_ID &&
+      this.#currentSeasonIdMap[CURRENT_SEASON_ID]
+    ) {
+      seasonId = this.#currentSeasonIdMap[CURRENT_SEASON_ID];
+    }
     return `${seasonId}:${subscriptionId}`;
   }
 
@@ -840,6 +848,80 @@ export class RewardsController extends BaseController<
         'RewardsDataService:getPointsEvents',
         params,
       );
+
+      // Check if we should emit balance updated event
+      if (pointsEvents.results.length > 0) {
+        // Find the earliest updatedAt from the points events response
+        const earliestEvent = minBy(pointsEvents.results, (event) =>
+          (event.updatedAt instanceof Date
+            ? event.updatedAt
+            : new Date(event.updatedAt)
+          ).getTime(),
+        );
+
+        if (earliestEvent) {
+          const earliestUpdatedAt =
+            earliestEvent.updatedAt instanceof Date
+              ? earliestEvent.updatedAt.getTime()
+              : new Date(earliestEvent.updatedAt).getTime();
+
+          // Check if we have an active season status cache for the requested seasonId and subscription id
+          const cachedSeasonStatus = this.#getSeasonStatus(
+            params.subscriptionId,
+            params.seasonId,
+          );
+
+          if (cachedSeasonStatus) {
+            // Compare cache timestamps with earliest updatedAt
+            // Add 300ms delay to the balance updated timestamp as it's always going to be earlier than the event it was updated for.
+            const cacheBalanceUpdatedAt =
+              (cachedSeasonStatus.balance.updatedAt || 0) + 300;
+
+            const cacheSeasonStatusTimestamp =
+              cachedSeasonStatus.lastFetched || 0;
+            Logger.log(
+              'RewardsController: Comparing cache timestamps with earliest updatedAt',
+              {
+                cacheBalanceUpdatedAt,
+                cacheSeasonStatusTimestamp,
+                earliestUpdatedAt,
+              },
+            );
+
+            // If either cache timestamp is older than the earliest event update, emit balance updated event
+            if (
+              earliestUpdatedAt > cacheBalanceUpdatedAt ||
+              earliestUpdatedAt > cacheSeasonStatusTimestamp
+            ) {
+              Logger.log(
+                'RewardsController: Emitting balanceUpdated event due to newer points events',
+                {
+                  seasonId: params.seasonId,
+                  subscriptionId: params.subscriptionId,
+                  earliestUpdatedAt: new Date(earliestUpdatedAt).toISOString(),
+                  cacheBalanceUpdatedAt: new Date(
+                    cacheBalanceUpdatedAt,
+                  ).toISOString(),
+                  cacheSeasonStatusTimestamp: new Date(
+                    cacheSeasonStatusTimestamp,
+                  ).toISOString(),
+                },
+              );
+
+              this.invalidateSubscriptionCache(
+                params.subscriptionId,
+                params.seasonId,
+              );
+
+              this.messagingSystem.publish('RewardsController:balanceUpdated', {
+                seasonId: params.seasonId,
+                subscriptionId: params.subscriptionId,
+              });
+            }
+          }
+        }
+      }
+
       return pointsEvents;
     } catch (error) {
       Logger.log(
@@ -942,6 +1024,21 @@ export class RewardsController extends BaseController<
 
         // Update season status with composite key
         state.seasonStatuses[compositeKey] = subscriptionSeasonStatus;
+
+        if (
+          seasonId === CURRENT_SEASON_ID &&
+          seasonState.id !== CURRENT_SEASON_ID &&
+          seasonState.id
+        ) {
+          this.#currentSeasonIdMap[CURRENT_SEASON_ID] = seasonState.id;
+          state.seasons[seasonState.id] = seasonState;
+          state.seasonStatuses[
+            this.#createSeasonSubscriptionCompositeKey(
+              seasonState.id,
+              subscriptionId,
+            )
+          ] = subscriptionSeasonStatus;
+        }
       });
 
       return subscriptionSeasonStatus;
