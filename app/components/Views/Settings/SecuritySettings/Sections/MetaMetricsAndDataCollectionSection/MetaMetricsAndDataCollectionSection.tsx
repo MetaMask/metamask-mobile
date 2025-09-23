@@ -66,7 +66,9 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
       enable(false);
-      enableSocialLogin?.(false);
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        enableSocialLogin(false);
+      }
       setAnalyticsEnabled(false);
       dispatch(setDataCollectionForMarketing(false));
       return;
@@ -104,7 +106,9 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         ...generateUserSettingsAnalyticsMetaData(),
       };
       await enable();
-      await enableSocialLogin?.(true);
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        await enableSocialLogin(true);
+      }
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
@@ -121,7 +125,9 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       });
     } else {
       await enable(false);
-      await enableSocialLogin?.(false);
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        await enableSocialLogin(false);
+      }
       setAnalyticsEnabled(false);
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
