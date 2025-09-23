@@ -5,50 +5,48 @@ import { Theme } from '@metamask/design-tokens';
 
 const createStyles = (theme: Theme, isDarkMode: boolean) =>
   StyleSheet.create({
-    scroll: {
-      flexGrow: 0,
+    pageContainer: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
     },
-    wrapper: {
+    contentContainer: {
       alignItems: 'center',
-      paddingTop: 32,
+      paddingTop: 56,
+      flexGrow: 1,
     },
-    largeImageWrapper: {
-      height: 330,
-      alignItems: 'center',
+    image: {
+      flexShrink: 1,
+      marginTop: 20,
+      width: '100%',
     },
     title: {
       fontSize: Device.isLargeDevice() ? 50 : 45,
       lineHeight: Device.isLargeDevice() ? 50 : 46,
       textAlign: 'center',
-      paddingTop: Device.isLargeDevice() ? 45 : 30,
+      paddingTop: Device.isLargeDevice() ? 0 : 30,
       paddingHorizontal: 16,
       fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
       ...(Platform.OS === 'ios' ? { fontWeight: '900' } : {}),
     },
     titleDescription: {
-      paddingTop: 16,
+      paddingTop: 10,
       paddingHorizontal: Device.isLargeDevice() ? 5 : 10,
+      marginBottom: 16,
       textAlign: 'center',
       fontSize: 16,
       fontFamily: 'Geist-Regular',
       fontWeight: '500',
     },
-    image: {
-      height: Device.isLargeDevice() ? 500 : 380,
-    },
     ctas: {
       flex: 1,
-      position: 'relative',
       width: '100%',
       paddingHorizontal: 30,
     },
-    createWrapper: {
+    footerContainer: {
       display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      rowGap: 5,
-      marginBottom: 40,
+      rowGap: 8,
       paddingHorizontal: 30,
+      paddingBottom: Device.isLargeDevice() ? 0 : 12,
     },
     tryNowButton: {
       borderRadius: 12,
