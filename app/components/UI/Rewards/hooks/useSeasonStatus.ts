@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { setSeasonStatus } from '../../../../actions/rewards';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,6 +7,7 @@ import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-c
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
+import { useFocusEffect } from '@react-navigation/native';
 
 /**
  * Custom hook to fetch and manage season status data from the rewards API
