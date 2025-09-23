@@ -36,7 +36,7 @@ export const useNft = (): UseNftResponse => {
 
   const transactionData = parseStandardTokenTransactionData(txParams?.data);
   const tokenId = (
-    transactionData?.args?._value ?? transactionData?.args[3]
+    transactionData?.args?._value ?? transactionData?.args[2]
   )?.toString();
 
   const nfts: Nft[] = useSelector(collectiblesSelector);
