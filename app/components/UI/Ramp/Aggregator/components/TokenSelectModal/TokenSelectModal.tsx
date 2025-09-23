@@ -147,7 +147,7 @@ function TokenSelectModal() {
     async (newAsset: CryptoCurrency) => {
       if (
         newAsset.network?.chainId &&
-        newAsset.network.chainId !== selectedChainId
+        String(newAsset.network.chainId) !== String(selectedChainId)
       ) {
         const assetCaipChainId = isCaipChainId(newAsset.network.chainId)
           ? newAsset.network.chainId
