@@ -310,6 +310,18 @@ const isMultichainAccountsState2Enabled =
                 decimals: 18,
                 name: 'Ethereum',
               },
+              {
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'SepoliaETH',
+                decimals: 18,
+                name: 'SepoliaETH',
+              },
+              {
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'LineaETH',
+                decimals: 18,
+                name: 'LineaETH',
+              },
             ])
             .build(),
           restartDevice: true,
