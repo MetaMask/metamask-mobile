@@ -1165,8 +1165,6 @@
     "tpsl": {
       "title": "Take profit and stop loss",
       "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
-      "set": "Set",
-      "updating": "Updating...",
       "off": "Off",
       "current_price": "Current price",
       "leverage": "Leverage",
@@ -1188,7 +1186,7 @@
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
       "below": "below",
-      "dismiss_tpsl_keypad": "Dismiss"
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1486,29 +1484,28 @@
       "add_funds": "Add funds",
       "what_are_perps": {
         "title": "What are perps?",
-        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
-        "subtitle": "Here's how it works."
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it. Here's how it works."
       },
       "go_long_or_short": {
-        "title": "Go long or short on a token",
-        "description": "Pick a token to long or short, then set your order size.",
-        "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
+        "title": "Pick a token.\nGo long or short.",
+        "description": "Go long to profit if the price goes up. Go short to profit if the price goes down.",
+        "subtitle": "Set your margin: the amount you put into the trade."
       },
       "choose_leverage": {
-        "title": "Choose your leverage",
-        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+        "title": "Choose leverage",
+        "description": "Leverage amplifies both gains and losses.",
+        "subtitle": "With 10x leverage, a 1% price move = 10% gain or loss on your margin."
       },
       "watch_liquidation": {
-        "title": "Watch out for liquidation",
-        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+        "title": "Watch your liquidation price",
+        "description": "You’ll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
       },
       "close_anytime": {
         "title": "Close any time",
-        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+        "description": "Exit whenever you want. You’ll get back your margin plus profits, or minus losses."
       },
       "ready_to_trade": {
         "title": "Ready to trade?",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
         "description": "Fund your perps account with any token and make your first trade in seconds."
       },
       "got_it": "Got it"
@@ -5343,9 +5340,10 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network Fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Points",
+    "points": "Est. points",
     "points_tooltip": "Points",
-    "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5510,11 +5508,12 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
         "view_accounts_button": "View accounts",
-        "learn_more_button": "Learn more"
+        "learn_more_button": "Learn more",
+        "setting_up_accounts": "Setting up your accounts"
       },
       "learn_more": {
         "title": "Learn more",
@@ -5524,6 +5523,7 @@
       },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "Account Details",
       "account_name": "Account Name",
@@ -5779,7 +5779,7 @@
       "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By clicking 'Claim Point', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
       "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
       "step4_legal_disclaimer_3":". We'll track onchain activity to reward you automatically –",
       "step4_legal_disclaimer_4":"learn more"
@@ -5787,13 +5787,14 @@
     },
 
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
+ "tab_linked_accounts": "Linked ({{count}})",
+      "tab_unlinked_accounts": "Unlinked ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
