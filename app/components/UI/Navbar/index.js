@@ -2371,6 +2371,7 @@ export function getAddressListNavbarOptions(navigation, title, testID) {
     },
   });
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
       <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
     ),
