@@ -87,17 +87,16 @@ const createMockState = (isState2Enabled: boolean): DeepPartial<RootState> => ({
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          enableMultichainAccounts: isState2Enabled
-            ? {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '0.0.0', // Use a very low version to ensure it passes
-              }
-            : {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: '0.0.0', // Use a very low version to ensure it passes
-              },
+          enableMultichainAccounts: {
+            enabled: !isState2Enabled,
+            featureVersion: '1',
+            minimumVersion: '0.0.0', // Use a very low version to ensure it passes
+          },
+          enableMultichainAccountsState2: {
+            enabled: isState2Enabled,
+            featureVersion: '2',
+            minimumVersion: '0.0.0', // Use a very low version to ensure it passes
+          },
         },
         cacheTimestamp: 0,
       },
