@@ -55,12 +55,13 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import {
   Skeleton,
   SkeletonProps,
 } from '../../../../../component-library/components/Skeleton';
 import { isE2E } from '../../../../../util/test/utils';
+import useSupportedTokens from '../../../Ramp/Deposit/hooks/useSupportedTokens';
+import { LINEA_MAINNET } from '../../../Ramp/Deposit/constants/networks';
 
 const SkeletonLoading = (props: SkeletonProps) => {
   if (isE2E) return null;
@@ -105,6 +106,7 @@ const CardHome = () => {
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
   });
+  const depositSupportedTokens = useSupportedTokens();
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -125,6 +127,17 @@ const CardHome = () => {
 
     return balanceFiat;
   }, [balanceFiat, mainBalance]);
+
+  const isPriorityTokenSupportedDeposit = useMemo(() => {
+    if (priorityToken?.symbol) {
+      return depositSupportedTokens.find(
+        (token) =>
+          token.symbol.toLowerCase() === priorityToken.symbol?.toLowerCase() &&
+          // Card feature only supports Linea for now
+          token.chainId === LINEA_MAINNET.chainId,
+      );
+    }
+  }, [priorityToken, depositSupportedTokens]);
 
   const renderAddFundsBottomSheet = useCallback(
     () => (
@@ -182,10 +195,7 @@ const CardHome = () => {
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
 
-    if (
-      priorityToken?.symbol &&
-      SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS.includes(priorityToken.symbol)
-    ) {
+    if (isPriorityTokenSupportedDeposit) {
       setOpenAddFundsBottomSheet(true);
     } else if (priorityToken) {
       openSwaps({
@@ -197,6 +207,7 @@ const CardHome = () => {
     createEventBuilder,
     priorityToken,
     openSwaps,
+    isPriorityTokenSupportedDeposit,
     selectedChainId,
   ]);
 
