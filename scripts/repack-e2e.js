@@ -38,7 +38,7 @@ function getFileSize(filePath) {
  */
 function getDirSize(dirPath) {
   let totalSize = 0;
-  
+
   function calculateSize(itemPath) {
     const stats = fs.statSync(itemPath);
     if (stats.isFile()) {
@@ -50,7 +50,7 @@ function getDirSize(dirPath) {
       });
     }
   }
-  
+
   try {
     calculateSize(dirPath);
     const bytes = totalSize;
@@ -172,7 +172,7 @@ async function repackAndroid() {
 }
 
 /**
- * Repack iOS .app
+ * Repack iOS .app using direct bundle replacement
  */
 async function repackIOS() {
   const startTime = Date.now();
@@ -180,23 +180,32 @@ async function repackIOS() {
   try {
     // Configuration for iOS .app (simulator build)
     const sourceApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
-    const repackedApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask-repack.app';
-    const finalApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
+    const bundlePath = path.join(sourceApp, 'main.jsbundle');
     const sourcemapOutputPath = 'sourcemaps/ios/index.js.map';
 
     logger.info('🚀 Starting iOS E2E .app repack process...');
-    logger.info(`Source .app: ${sourceApp}`);
+    logger.info(`Target .app: ${sourceApp}`);
+    logger.info(`Using direct bundle replacement approach...`);
 
     // Verify source .app exists
     if (!fs.existsSync(sourceApp)) {
       throw new Error(`iOS .app not found: ${sourceApp}`);
     }
 
-    // Get size of .app bundle
+    // Get size of .app bundle before update
     const appStats = fs.statSync(sourceApp);
     if (appStats.isDirectory()) {
-      logger.info(`iOS .app bundle size: ${getDirSize(sourceApp)}`);
+      logger.info(`iOS .app bundle size (before): ${getDirSize(sourceApp)}`);
     }
+
+    // Verify main.jsbundle exists in the app
+    if (!fs.existsSync(bundlePath)) {
+      throw new Error(`Bundle not found in .app: ${bundlePath}`);
+    }
+
+    // Get original bundle size
+    const originalBundleSize = getFileSize(bundlePath);
+    logger.info(`Original bundle size: ${originalBundleSize}`);
 
     // Ensure sourcemap directory exists
     const sourcemapDir = path.dirname(sourcemapOutputPath);
@@ -204,54 +213,59 @@ async function repackIOS() {
       fs.mkdirSync(sourcemapDir, { recursive: true });
     }
 
-    // Dynamic import for ES module compatibility
-    const { repackAppIosAsync } = await import('@expo/repack-app');
+    // Use child_process to run React Native bundler
+    const { execSync } = require('child_process');
 
-    // Create working directory
-    const workingDir = 'ios/build/repack-working';
-    if (!fs.existsSync(workingDir)) {
-      fs.mkdirSync(workingDir, { recursive: true });
-      logger.info(`Created working directory: ${workingDir}`);
+    logger.info('⏱️  Generating new JavaScript bundle...');
+
+    // Build the bundle command
+    const bundleCommand = [
+      'yarn react-native bundle',
+      '--platform ios',
+      '--dev false',
+      '--entry-file index.js',
+      `--bundle-output "${bundlePath}"`,
+      `--sourcemap-output "${sourcemapOutputPath}"`
+    ].join(' ');
+
+    try {
+      // Execute bundle generation
+      const startBundleTime = Date.now();
+      execSync(bundleCommand, {
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          NODE_OPTIONS: '--max-old-space-size=8192'
+        }
+      });
+      const bundleDuration = Math.round((Date.now() - startBundleTime) / 1000);
+      logger.success(`✅ JavaScript bundle generated in ${bundleDuration}s`);
+    } catch (bundleError) {
+      throw new Error(`Bundle generation failed: ${bundleError.message}`);
     }
 
-    // Repack iOS .app with updated JavaScript bundle
-    // Note: Simulator builds don't require signing
-    logger.info('⏱️  Repacking iOS .app with updated JavaScript...');
-    await repackAppIosAsync({
-      platform: 'ios',
-      projectRoot: process.cwd(),
-      sourceAppPath: sourceApp,
-      outputPath: repackedApp,
-      workingDirectory: workingDir,
-      verbose: true,
-      // No signing needed for simulator builds
-      exportEmbedOptions: {
-        sourcemapOutput: sourcemapOutputPath,
-      },
-      env: process.env,
-    });
-
-    // Verify repacked .app was created
-    if (!fs.existsSync(repackedApp)) {
-      throw new Error(`Repacked iOS .app not found: ${repackedApp}`);
+    // Verify new bundle was created
+    if (!fs.existsSync(bundlePath)) {
+      throw new Error(`Bundle generation failed - file not found: ${bundlePath}`);
     }
 
-    // Remove old .app and rename repacked to final
-    logger.info('Replacing original .app with repacked version...');
-    fs.rmSync(finalApp, { recursive: true, force: true });
-    fs.renameSync(repackedApp, finalApp);
+    // Get new bundle size
+    const newBundleSize = getFileSize(bundlePath);
+    logger.info(`New bundle size: ${newBundleSize}`);
 
-    // Clean up temporary files
-    fs.rmSync(workingDir, { recursive: true, force: true });
-    logger.info('Cleaned up temporary files');
+    // Get final app size
+    logger.info(`iOS .app bundle size (after): ${getDirSize(sourceApp)}`);
 
     const duration = Math.round((Date.now() - startTime) / 1000);
     logger.success(`🎉 iOS .app repack completed in ${duration}s`);
-    logger.success(`iOS .app: ${finalApp} (${getDirSize(finalApp)})`);
+    logger.success(`iOS .app: ${sourceApp}`);
+    logger.success(`Bundle updated: ${originalBundleSize} → ${newBundleSize}`);
 
     // Check sourcemap
     if (fs.existsSync(sourcemapOutputPath)) {
       logger.success(`Sourcemap: ${sourcemapOutputPath} (${getFileSize(sourcemapOutputPath)})`);
+    } else {
+      logger.warn(`Sourcemap not found: ${sourcemapOutputPath}`);
     }
 
   } catch (error) {

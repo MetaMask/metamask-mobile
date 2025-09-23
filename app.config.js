@@ -28,10 +28,10 @@ module.exports = {
     'expo-apple-authentication',
   ],
   android: {
-    package: 'io.metamask',
+    package: 'io.metamask', // Required for @expo/repack-app Android repacking
   },
   ios: {
-    bundleIdentifier: 'io.metamask.MetaMask',
+    bundleIdentifier: 'io.metamask.MetaMask', // Optional - not used by repack-e2e.js
     usesAppleSignIn: true,
   },
 };
