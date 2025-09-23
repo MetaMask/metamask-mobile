@@ -116,7 +116,7 @@ export const LoadingSkeleton = () => {
   const { styles } = useStyles(createStyles, {});
 
   return (
-    <Box style={styles.loadingSkeleton} gap={20}>
+    <Box style={styles.loadingSkeleton}>
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
