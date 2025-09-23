@@ -5,14 +5,10 @@ import { fireEvent } from '@testing-library/react-native';
 // Testing utilities
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
-// External dependencies.
-import { strings } from '../../../../locales/i18n';
-
 // Internal dependencies.
 import { CollectiblesEmptyState } from './CollectiblesEmptyState';
 
 describe('CollectiblesEmptyState', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
