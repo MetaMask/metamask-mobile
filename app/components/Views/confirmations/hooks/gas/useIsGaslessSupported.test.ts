@@ -21,7 +21,6 @@ describe('useIsGaslessSupported', () => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       chainId: '0x1',
     } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
-    jest.clearAllMocks();
   });
 
   describe('when gasless supported', () => {
