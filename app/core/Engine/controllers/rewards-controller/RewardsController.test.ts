@@ -2666,63 +2666,6 @@ describe('RewardsController', () => {
               lastPerpsDiscountRateFetched: null,
             },
           },
-          [CAIP_ACCOUNT_1]: {
-            hasOptedIn: true,
-            subscriptionId: 'sub123',
-            lastCheckedAuth: Date.now(),
-            lastCheckedAuthError: false,
-          },
-
-          subscriptions: {
-            sub123: {
-              id: 'sub123',
-              referralCode: 'REF123',
-              accounts: [{ address: '0x123', chainId: 1 }],
-            },
-          },
-        },
-      });
-
-      // Act
-      await testController.testInvalidateAccountsAndSubscriptions();
-
-      // Assert
-      expect(testController.state.accounts).toEqual({});
-      expect(testController.state.subscriptions).toEqual({});
-      expect(testController.state.activeAccount).toBeNull();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Invalidated accounts and subscriptions',
-      );
-
-      // Verify accounts and subscriptions are cleared
-      expect(testController.state.accounts).toEqual({});
-      expect(testController.state.subscriptions).toEqual({});
-
-      // Verify log message
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Invalidated accounts and subscriptions',
-      );
-    });
-
-    it('should handle case with no active account', async () => {
-      // Arrange
-      const testController = new TestableRewardsController({
-        messenger: mockMessenger,
-        state: {
-          ...getRewardsControllerDefaultState(),
-          activeAccount: null,
-          accounts: {
-            [CAIP_ACCOUNT_1]: {
-              account: CAIP_ACCOUNT_1,
-              hasOptedIn: true,
-              subscriptionId: 'sub123',
-              lastCheckedAuth: Date.now(),
-              lastCheckedAuthError: false,
-              perpsFeeDiscount: null,
-              lastPerpsDiscountRateFetched: null,
-            },
-          },
-
           subscriptions: {
             sub123: {
               id: 'sub123',
@@ -2737,14 +2680,17 @@ describe('RewardsController', () => {
       await testController.testInvalidateAccountsAndSubscriptions();
 
       // Assert
-      const newState = testController.state;
-
       // Verify activeAccount remains null
-      expect(newState.activeAccount).toBeNull();
+      expect(testController.state.activeAccount).toBeNull();
 
       // Verify accounts and subscriptions are cleared
-      expect(newState.accounts).toEqual({});
-      expect(newState.subscriptions).toEqual({});
+      expect(testController.state.accounts).toEqual({});
+      expect(testController.state.subscriptions).toEqual({});
+
+      // Verify log message
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Invalidated accounts and subscriptions',
+      );
 
       // Verify log message
       expect(mockLogger.log).toHaveBeenCalledWith(
