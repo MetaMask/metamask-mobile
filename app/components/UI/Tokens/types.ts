@@ -21,3 +21,8 @@ export interface TokenI {
   isNative?: boolean;
   ticker?: string;
 }
+
+export interface Amount {
+  amount: number;
+  currency: string;
+}
