@@ -148,7 +148,7 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
     case SolScope.Mainnet:
       return require('../../images/solana-logo.png');
     case SolScope.Devnet:
-      return require('../../images/solana-devnet.png');
+      return require('../../images/solana-devnet-2.jpg');
     case BtcScope.Mainnet:
       return require('../../images/bitcoin-logo.png');
     case BtcScope.Testnet:

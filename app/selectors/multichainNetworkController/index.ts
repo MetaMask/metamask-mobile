@@ -76,7 +76,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       },
       [SolScope.Devnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[SolScope.Devnet],
-        imageSource: imageIcons.SOLANA_DEVNET,
+        imageSource: imageIcons.SOLANA_DEVNET as ImageSourcePropType,
         ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Devnet],
         isTestnet: true,
         name: 'Solana Devnet',
