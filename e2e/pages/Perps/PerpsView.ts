@@ -94,12 +94,22 @@ class PerpsView {
     return Matchers.getElementByText('Limit');
   }
 
+  get positionsSectionTitle(): DetoxElement {
+    return Matchers.getElementByText('Positions');
+  }
+
   async expectOpenOrdersOnTab(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.ordersSectionTitle, {
       description: 'Perps tab shows Open Orders section',
     });
     await Assertions.expectElementToBeVisible(this.anyOrderCardOnTab, {
       description: 'An order card is visible on Perps tab',
+    });
+  }
+
+  async expectOpenPositionsOnTab(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.positionsSectionTitle, {
+      description: 'Perps tab shows Open Positions section',
     });
   }
 
