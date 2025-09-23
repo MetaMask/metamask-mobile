@@ -197,12 +197,6 @@ export interface EventAssetDto {
    * @example 'ETH'
    */
   symbol?: string;
-
-  /**
-   * Icon URL of the token
-   * @example 'https://example.com/icon.png'
-   */
-  iconUrl?: string;
 }
 
 /**
