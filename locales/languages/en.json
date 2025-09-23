@@ -1484,29 +1484,28 @@
       "add_funds": "Add funds",
       "what_are_perps": {
         "title": "What are perps?",
-        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
-        "subtitle": "Here's how it works."
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it. Here's how it works."
       },
       "go_long_or_short": {
-        "title": "Go long or short on a token",
-        "description": "Pick a token to long or short, then set your order size.",
-        "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
+        "title": "Pick a token.\nGo long or short.",
+        "description": "Go long to profit if the price goes up. Go short to profit if the price goes down.",
+        "subtitle": "Set your margin: the amount you put into the trade."
       },
       "choose_leverage": {
-        "title": "Choose your leverage",
-        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+        "title": "Choose leverage",
+        "description": "Leverage amplifies both gains and losses.",
+        "subtitle": "With 10x leverage, a 1% price move = 10% gain or loss on your margin."
       },
       "watch_liquidation": {
-        "title": "Watch out for liquidation",
-        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+        "title": "Watch your liquidation price",
+        "description": "You’ll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
       },
       "close_anytime": {
         "title": "Close any time",
-        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+        "description": "Exit whenever you want. You’ll get back your margin plus profits, or minus losses."
       },
       "ready_to_trade": {
         "title": "Ready to trade?",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
         "description": "Fund your perps account with any token and make your first trade in seconds."
       },
       "got_it": "Got it"
