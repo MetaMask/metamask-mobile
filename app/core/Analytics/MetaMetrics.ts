@@ -9,7 +9,6 @@ import {
 import axios, { AxiosHeaderValue } from 'axios';
 import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
-import DevLogger from '../SDKConnect/utils/DevLogger';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
@@ -748,11 +747,6 @@ class MetaMetrics implements IMetaMetrics {
     event: ITrackingEvent,
     saveDataRecording: boolean = true,
   ): void => {
-    // DevLogger mark for PERPS events filtering
-    if (event.name?.includes('PERPS') || event.name?.includes('Perp')) {
-      DevLogger.log('AAABBBEEE PERPS_EVENT:', event.name, event.properties);
-    }
-
     if (!this.enabled) {
       return;
     }
