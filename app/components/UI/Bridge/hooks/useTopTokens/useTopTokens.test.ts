@@ -5,7 +5,7 @@ import {
   ethToken2Address,
 } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useTopTokens } from '.';
+import { useTopTokens, memoizedFetchBridgeTokens } from '.';
 import { waitFor } from '@testing-library/react-native';
 import {
   BridgeClientId,
@@ -100,6 +100,8 @@ describe('useTopTokens', () => {
       {};
 
     it('should fetch tokens from Bridge API when no cached tokens are available', async () => {
+      memoizedFetchBridgeTokens.cache.clear?.();
+
       // Mock Bridge API response with expected tokens
       const mockBridgeResponse = {
         [ethToken1Address.toLowerCase()]: {
@@ -168,6 +170,8 @@ describe('useTopTokens', () => {
     });
 
     it('should handle Bridge API errors gracefully', async () => {
+      memoizedFetchBridgeTokens.cache.clear?.();
+
       // Mock Bridge API error
       (fetchBridgeTokens as jest.Mock).mockRejectedValue(
         new Error('Bridge API Error'),
@@ -185,6 +189,8 @@ describe('useTopTokens', () => {
     });
 
     it('should handle missing Bridge token data gracefully', async () => {
+      memoizedFetchBridgeTokens.cache.clear?.();
+
       (fetchBridgeTokens as jest.Mock).mockResolvedValue({});
 
       const { result } = renderHookWithProvider(

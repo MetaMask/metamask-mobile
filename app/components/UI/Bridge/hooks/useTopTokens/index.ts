@@ -24,7 +24,7 @@ import { selectERC20TokensByChain } from '../../../../../selectors/tokenListCont
 import { TokenListToken } from '@metamask/assets-controllers';
 
 const MAX_TOP_TOKENS = 30;
-const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
+export const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
 
 /**
  * Convert cached tokens from TokenListController to BridgeToken format
