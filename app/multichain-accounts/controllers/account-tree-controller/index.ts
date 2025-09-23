@@ -3,6 +3,9 @@ import {
   AccountTreeControllerMessenger,
 } from '@metamask/account-tree-controller';
 import type { ControllerInitFunction } from '../../../core/Engine/types';
+import { trace } from '../../../util/trace';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 /**
  * Initialize the AccountTreeController.
@@ -21,6 +24,21 @@ export const accountTreeControllerInit: ControllerInitFunction<
   const controller = new AccountTreeController({
     messenger: controllerMessenger,
     state: accountTreeControllerState,
+    config: {
+      // @ts-expect-error Controller uses string for names rather than enum
+      trace,
+      backupAndSync: {
+        onBackupAndSyncEvent: (event) => {
+          MetaMetrics.getInstance().trackEvent(
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED,
+            )
+              .addProperties(event)
+              .build(),
+          );
+        },
+      },
+    },
   });
 
   return { controller };

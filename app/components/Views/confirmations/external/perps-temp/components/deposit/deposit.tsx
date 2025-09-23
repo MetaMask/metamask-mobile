@@ -65,6 +65,7 @@ export function PerpsDeposit() {
       <EditAmount
         alerts={alerts}
         autoKeyboard
+        isLoading={!isPayTokenSelected}
         onChange={handleChange}
         onKeyboardShow={() => setIsKeyboardVisible(true)}
         onKeyboardHide={() => setIsKeyboardVisible(false)}

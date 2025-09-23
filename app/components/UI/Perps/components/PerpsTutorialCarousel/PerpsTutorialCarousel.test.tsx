@@ -13,10 +13,16 @@ import PerpsTutorialCarousel, {
   PERPS_RIVE_ARTBOARD_NAMES,
 } from './PerpsTutorialCarousel';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock .riv file to prevent Jest parsing binary data
 jest.mock(
-  '../../animations/perps-onboarding-carousel-v4.riv',
+  '../../animations/perps-onboarding-carousel-light.riv',
+  () => 'mocked-riv-file',
+);
+
+jest.mock(
+  '../../animations/perps-onboarding-carousel-dark.riv',
   () => 'mocked-riv-file',
 );
 
@@ -209,11 +215,11 @@ describe('PerpsTutorialCarousel', () => {
     it('renders tutorial screens correctly', () => {
       render(<PerpsTutorialCarousel />);
 
-      // Check that first screen renders with animation
-      expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
-      expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-        PERPS_RIVE_ARTBOARD_NAMES.INTRO,
-      );
+      // Check that first screen renders with image
+      expect(
+        screen.getByTestId(PerpsTutorialSelectorsIDs.CHARACTER_IMAGE),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('mock-rive-animation')).toBeNull();
 
       // Check that tutorial content is rendered
       expect(
@@ -246,9 +252,12 @@ describe('PerpsTutorialCarousel', () => {
 
       // Should mark tutorial as completed and navigate to add funds screen
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
       expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
@@ -329,9 +338,12 @@ describe('PerpsTutorialCarousel', () => {
       });
 
       // Should navigate to add funds screen and initialize deposit
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
       expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
   });
@@ -381,9 +393,8 @@ describe('PerpsTutorialCarousel', () => {
         });
       });
 
-      it('renders 6 screens including ready_to_trade screen for eligible users', async () => {
+      it('renders 5 screens with animations including ready_to_trade screen for eligible users', async () => {
         const expectedArtboards = [
-          PERPS_RIVE_ARTBOARD_NAMES.INTRO,
           PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
           PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
           PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
@@ -393,14 +404,16 @@ describe('PerpsTutorialCarousel', () => {
 
         render(<PerpsTutorialCarousel />);
 
-        // Check first screen artboard
-        expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
-        expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-          expectedArtboards[0],
-        );
+        // First screen has no animation, only static image
+        expect(
+          screen.getByTestId(PerpsTutorialSelectorsIDs.CHARACTER_IMAGE),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId('mock-rive-animation'),
+        ).not.toBeOnTheScreen();
 
         // Navigate through each screen sequentially and verify artboards
-        for (let i = 1; i < expectedArtboards.length; i++) {
+        for (const board of expectedArtboards) {
           const continueButton = screen.getByText(
             strings('perps.tutorial.continue'),
           );
@@ -415,7 +428,7 @@ describe('PerpsTutorialCarousel', () => {
           // Check that the correct artboard is rendered for current screen
           expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
           expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-            expectedArtboards[i],
+            board,
           );
         }
       });
@@ -454,9 +467,9 @@ describe('PerpsTutorialCarousel', () => {
         expect(mockMarkTutorialCompleted).toHaveBeenCalled();
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.PERPS.ROOT,
-          {
+          expect.objectContaining({
             screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          },
+          }),
         );
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
       });
@@ -503,9 +516,8 @@ describe('PerpsTutorialCarousel', () => {
         });
       });
 
-      it('renders 5 screens without ready_to_trade screen for non-eligible users', async () => {
+      it('renders 4 screens without ready_to_trade screen for non-eligible users', async () => {
         const expectedArtboards = [
-          PERPS_RIVE_ARTBOARD_NAMES.INTRO,
           PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
           PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
           PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
@@ -515,14 +527,16 @@ describe('PerpsTutorialCarousel', () => {
 
         render(<PerpsTutorialCarousel />);
 
-        // Check first screen artboard
-        expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
-        expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-          expectedArtboards[0],
-        );
+        // First screen has no animation, only static image
+        expect(
+          screen.getByTestId(PerpsTutorialSelectorsIDs.CHARACTER_IMAGE),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId('mock-rive-animation'),
+        ).not.toBeOnTheScreen();
 
         // Navigate through each screen sequentially and verify artboards
-        for (let i = 1; i < expectedArtboards.length; i++) {
+        for (const board of expectedArtboards) {
           const continueButton = screen.getByText(
             strings('perps.tutorial.continue'),
           );
@@ -537,7 +551,7 @@ describe('PerpsTutorialCarousel', () => {
           // Check that the correct artboard is rendered for current screen
           expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
           expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-            expectedArtboards[i],
+            board,
           );
         }
 

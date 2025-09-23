@@ -25,7 +25,14 @@ const styleSheet = (params: { theme: Theme }) =>
       textAlign: 'center',
       lineHeight: 48,
       fontSize: 20,
-      fontWeight: '600',
+      fontFamily: 'Geist Bold',
+    },
+
+    skeletonButton: {
+      width: '100%',
+      height: 40,
+      borderRadius: 10,
+      flex: 1,
     },
   });
 
