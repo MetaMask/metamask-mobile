@@ -211,4 +211,12 @@ describe('Checkout', () => {
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
+
+  it('handles navigation state change when selectedAddress is undefined', () => {
+    mockUseRampSDKValues.selectedAddress = undefined;
+
+    render();
+
+    expect(mockHandleSuccessfulOrder).not.toHaveBeenCalled();
+  });
 });
