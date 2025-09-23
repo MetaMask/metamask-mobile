@@ -5,8 +5,6 @@
  * without direct dependencies on E2E files. The bridge automatically
  * configures itself when the isE2E flag is detected.
  */
-
-import { Linking } from 'react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isE2E } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
@@ -196,13 +194,15 @@ export function getE2EMockStreamManager(): unknown {
  * Apply controller mocks if available
  */
 export function applyE2EControllerMocks(controller: unknown): void {
-  if (
-    process.env.IS_TEST === 'true' &&
-    process.env.METAMASK_ENVIRONMENT === 'e2e'
-  ) {
+  // Use unified isE2E flag so CI/local runs with either IS_TEST=true or METAMASK_ENVIRONMENT='e2e'
+  if (isE2E) {
+    DevLogger.log('[E2E Bridge] Applying E2E PerpsController mocks');
     autoConfigureE2EBridge();
     if (e2eBridgePerps.applyControllerMocks) {
       e2eBridgePerps.applyControllerMocks(controller);
+      DevLogger.log('[E2E Bridge] PerpsController mocks applied');
+    } else {
+      DevLogger.log('[E2E Bridge] applyControllerMocks not available');
     }
   }
 }

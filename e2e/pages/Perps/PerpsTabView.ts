@@ -16,8 +16,7 @@ class PerpsTabView {
   }
 
   get onboardingButton(): DetoxElement {
-    // The onboarding button no longer exposes a testID; select by visible text
-    return Matchers.getElementByText('Start trading');
+    return Matchers.getElementByID(PerpsTabViewSelectorsIDs.ONBOARDING_BUTTON);
   }
 
   get balanceValue(): DetoxElement {

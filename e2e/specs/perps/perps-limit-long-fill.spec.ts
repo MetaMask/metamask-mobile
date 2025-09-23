@@ -13,7 +13,7 @@ import PerpsView from '../../pages/Perps/PerpsView';
 import PerpsE2E from '../../framework/PerpsE2E';
 
 describe(RegressionTrade('Perps - ETH limit long fill'), () => {
-  it.skip('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
+  it('creates ETH limit long at -10%, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -29,7 +29,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         await PerpsHelpers.navigateToPerpsTab();
 
         // Navigate to Perps from Actions
-        await TabBarComponent.tapActions();
+        await TabBarComponent.tapTrade();
         await WalletActionsBottomSheet.tapPerpsButton();
 
         // Open ETH market and select Long
@@ -56,7 +56,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
 
         // Navigate back to main Perps screen to follow the same navigation pattern as other specs
         await PerpsView.tapBackButtonPositionSheet();
-        await PerpsView.tapBackButtonMarketList();
+        await TabBarComponent.tapHome();
 
         // Verify on the Perps tab main screen that the order is visible without entering the market
         await PerpsView.expectOpenOrdersOnTab();
@@ -65,11 +65,14 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         // Default ETH price in mock is 2500.00, -15% => 2125.00
         await PerpsE2E.updateMarketPrice('ETH', '2125.00');
 
+        await PerpsView.expectOpenPositionsOnTab();
+
         // Navigate to ETH again to verify order is gone and position is present
-        await TabBarComponent.tapActions();
+        await TabBarComponent.tapTrade();
         await WalletActionsBottomSheet.tapPerpsButton();
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.expectNoOpenOrderVisible();
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       },
     );
   });

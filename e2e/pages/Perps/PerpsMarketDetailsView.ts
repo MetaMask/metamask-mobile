@@ -164,9 +164,16 @@ class PerpsMarketDetailsView {
   }
 
   async tapLongButton() {
-    // Ensure button is enabled before tapping to avoid flaky interactions
-    await Utilities.waitForElementToBeEnabled(this.longButton as DetoxElement);
-    await Gestures.waitAndTap(this.longButton);
+    // Ensure the Long button is rendered and visible, then enabled, then tap
+    await Utilities.waitForElementToBeVisible(this.longButton, 5000);
+    await Utilities.waitForElementToBeEnabled(
+      this.longButton as DetoxElement,
+      5000,
+    );
+    await Gestures.waitAndTap(this.longButton, {
+      elemDescription: 'Perps Market Details - Long Button',
+      checkStability: true,
+    });
   }
 
   async tapShortButton() {
