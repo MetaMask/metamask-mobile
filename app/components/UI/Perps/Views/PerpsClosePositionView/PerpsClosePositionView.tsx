@@ -318,6 +318,16 @@ const PerpsClosePositionView: React.FC = () => {
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
+      {
+        totalFee: feeResults.totalFee,
+        marketPrice: currentPrice,
+        receivedAmount: receiveAmount,
+        realizedPnl: effectivePnL * (closePercentage / 100),
+        metamaskFeeRate: feeResults.metamaskFeeRate,
+        feeDiscountPercentage: feeResults.feeDiscountPercentage,
+        metamaskFee: feeResults.metamaskFee,
+        estimatedPoints: rewardsState.estimatedPoints,
+      },
     );
   };
 

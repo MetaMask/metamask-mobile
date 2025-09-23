@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { Position, OrderResult } from '../controllers/types';
+import type { Position, OrderResult, TrackingData } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { strings } from '../../../../../locales/i18n';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
@@ -28,6 +28,7 @@ export const usePerpsClosePosition = (
       size?: string,
       orderType: 'market' | 'limit' = 'market',
       limitPrice?: string,
+      trackingData?: TrackingData,
     ) => {
       try {
         setIsClosing(true);
@@ -101,6 +102,7 @@ export const usePerpsClosePosition = (
           size, // If undefined, will close full position
           orderType,
           price: limitPrice,
+          trackingData,
         });
 
         // Measure close order submission toast

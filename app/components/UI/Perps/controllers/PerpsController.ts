@@ -143,8 +143,8 @@ export type PerpsControllerState = {
     };
   };
 
-  // Order management
-  pendingOrders: OrderParams[];
+  // Order management (trackingData never stored, only used for analytics)
+  pendingOrders: Omit<OrderParams, 'trackingData'>[];
 
   // Simple deposit state (transient, for UI feedback)
   depositInProgress: boolean;
@@ -797,9 +797,10 @@ export class PerpsController extends BaseController<
           .build(),
       );
 
-      // Optimistic update
+      // Optimistic update - exclude trackingData to avoid persisting analytics data
+      const { trackingData, ...orderWithoutTracking } = params;
       this.update((state) => {
-        state.pendingOrders.push(params);
+        state.pendingOrders.push(orderWithoutTracking);
       });
 
       const result = await provider.placeOrder(params);
@@ -835,7 +836,9 @@ export class PerpsController extends BaseController<
       // Update state only on success
       if (result.success) {
         this.update((state) => {
-          state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
+          state.pendingOrders = state.pendingOrders.filter(
+            (o) => o !== orderWithoutTracking,
+          );
           state.lastUpdateTimestamp = Date.now();
         });
 
@@ -922,7 +925,9 @@ export class PerpsController extends BaseController<
 
         // Remove from pending orders even on failure since the attempt is complete
         this.update((state) => {
-          state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
+          state.pendingOrders = state.pendingOrders.filter(
+            (o) => o !== orderWithoutTracking,
+          );
         });
 
         // End trace with error data
@@ -1115,6 +1120,14 @@ export class PerpsController extends BaseController<
             ? PerpsEventValues.CLOSE_TYPE.FULL
             : PerpsEventValues.CLOSE_TYPE.PARTIAL;
 
+        endTrace({
+          name: TraceName.PerpsClosePosition,
+          data: {
+            success: true,
+            filledSize: result.filledSize || '',
+          },
+        });
+
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.PERPS_POSITION_CLOSE_EXECUTED,
@@ -1126,23 +1139,51 @@ export class PerpsController extends BaseController<
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.PERCENTAGE_CLOSED]: closePercentage,
               [PerpsEventProperties.CLOSE_TYPE]: closeType,
+              // Add missing properties per specification
+              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+                parseFloat(position.size),
+              ),
+              [PerpsEventProperties.ORDER_SIZE]: params.size
+                ? parseFloat(params.size)
+                : Math.abs(parseFloat(position.size)),
+              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
+                ? parseFloat(position.unrealizedPnl)
+                : null,
+              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
+                ? parseFloat(position.returnOnEquity) * 100
+                : null,
+              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
+              [PerpsEventProperties.METAMASK_FEE]:
+                params.trackingData?.metamaskFee || null,
+              [PerpsEventProperties.METAMASK_FEE_RATE]:
+                params.trackingData?.metamaskFeeRate || null,
+              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+                params.trackingData?.feeDiscountPercentage || null,
+              [PerpsEventProperties.ESTIMATED_REWARDS]:
+                params.trackingData?.estimatedPoints || null,
+              [PerpsEventProperties.ASSET_PRICE]:
+                params.trackingData?.marketPrice || result.averagePrice || null,
+              [PerpsEventProperties.LIMIT_PRICE]:
+                params.orderType === 'limit' ? params.price : null,
+              [PerpsEventProperties.RECEIVED_AMOUNT]:
+                params.trackingData?.receivedAmount || null,
             })
             .build(),
         );
-
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          data: {
-            success: true,
-            filledSize: result.filledSize || '',
-          },
-        });
       } else if (!result.success && position) {
         // Track position close failed event
         const direction =
           parseFloat(position.size) > 0
             ? PerpsEventValues.DIRECTION.LONG
             : PerpsEventValues.DIRECTION.SHORT;
+
+        endTrace({
+          name: TraceName.PerpsClosePosition,
+          data: {
+            success: false,
+            error: result.error || 'Unknown error',
+          },
+        });
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
@@ -1156,17 +1197,41 @@ export class PerpsController extends BaseController<
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.ERROR_MESSAGE]:
                 result.error || 'Unknown error',
+              // Add missing properties per specification
+              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+                parseFloat(position.size),
+              ),
+              [PerpsEventProperties.ORDER_TYPE]:
+                params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
+              [PerpsEventProperties.PERCENTAGE_CLOSED]: params.size
+                ? (parseFloat(params.size) /
+                    Math.abs(parseFloat(position.size))) *
+                  100
+                : 100,
+              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
+                ? parseFloat(position.unrealizedPnl)
+                : null,
+              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
+                ? parseFloat(position.returnOnEquity) * 100
+                : null,
+              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
+              [PerpsEventProperties.METAMASK_FEE]:
+                params.trackingData?.metamaskFee || null,
+              [PerpsEventProperties.METAMASK_FEE_RATE]:
+                params.trackingData?.metamaskFeeRate || null,
+              [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
+                params.trackingData?.feeDiscountPercentage || null,
+              [PerpsEventProperties.ESTIMATED_REWARDS]:
+                params.trackingData?.estimatedPoints || null,
+              [PerpsEventProperties.ASSET_PRICE]:
+                params.trackingData?.marketPrice || result.averagePrice || null,
+              [PerpsEventProperties.LIMIT_PRICE]:
+                params.orderType === 'limit' ? params.price : null,
+              [PerpsEventProperties.RECEIVED_AMOUNT]:
+                params.trackingData?.receivedAmount || null,
             })
             .build(),
         );
-
-        endTrace({
-          name: TraceName.PerpsClosePosition,
-          data: {
-            success: false,
-            error: result.error || 'Unknown error',
-          },
-        });
       }
 
       return result;
@@ -1180,6 +1245,14 @@ export class PerpsController extends BaseController<
             ? PerpsEventValues.DIRECTION.LONG
             : PerpsEventValues.DIRECTION.SHORT;
 
+        endTrace({
+          name: TraceName.PerpsClosePosition,
+          data: {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        });
+
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED,
@@ -1192,18 +1265,42 @@ export class PerpsController extends BaseController<
               [PerpsEventProperties.COMPLETION_DURATION]: completionDuration,
               [PerpsEventProperties.ERROR_MESSAGE]:
                 error instanceof Error ? error.message : 'Unknown error',
+              // Add missing properties per specification
+              [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
+                parseFloat(position.size),
+              ),
+              [PerpsEventProperties.ORDER_TYPE]:
+                params.orderType || PerpsEventValues.ORDER_TYPE.MARKET,
+              [PerpsEventProperties.PERCENTAGE_CLOSED]: params.size
+                ? (parseFloat(params.size) /
+                    Math.abs(parseFloat(position.size))) *
+                  100
+                : 100,
+              [PerpsEventProperties.PNL_DOLLAR]: position.unrealizedPnl
+                ? parseFloat(position.unrealizedPnl)
+                : null,
+              [PerpsEventProperties.PNL_PERCENT]: position.returnOnEquity
+                ? parseFloat(position.returnOnEquity) * 100
+                : null,
+              [PerpsEventProperties.FEE]: params.trackingData?.totalFee || null,
+              [PerpsEventProperties.ASSET_PRICE]:
+                params.trackingData?.marketPrice || null,
+              [PerpsEventProperties.LIMIT_PRICE]:
+                params.orderType === 'limit' ? params.price : null,
+              [PerpsEventProperties.RECEIVED_AMOUNT]:
+                params.trackingData?.receivedAmount || null,
             })
             .build(),
         );
+      } else {
+        endTrace({
+          name: TraceName.PerpsClosePosition,
+          data: {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        });
       }
-
-      endTrace({
-        name: TraceName.PerpsClosePosition,
-        data: {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
-      });
       throw error;
     }
   }

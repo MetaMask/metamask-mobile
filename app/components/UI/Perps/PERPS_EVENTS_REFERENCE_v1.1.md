@@ -82,7 +82,8 @@ Status: ✅ Implemented
 
 Status: ⚠️ Implemented as PERPS_WITHDRAWAL_INITIATED - Not on-chain (HyperLiquid direct)
 **Implementation:** MetaMetrics.events.ts + PerpsWithdrawView.tsx:243
-**Properties:** Timestamp, SourceAmount, availableAmount
+**Properties:** Timestamp, SourceAmount
+**Note:** availableAmount property not actually implemented (documentation error corrected)
 
 ### Transaction Submitted transaction_type == mm_perps_withdrawal
 
@@ -225,7 +226,8 @@ _Note: Position close "transactions" are HyperLiquid SDK operations, not MetaMas
 
 Status: ✅ Implemented
 **Implementation:** MetaMetrics.events.ts + PerpsTabView.tsx:103
-**Properties:** Timestamp, Open Position (array: Asset, Leverage, Direction), Perp Account $ Balance
+**Properties:** Timestamp, Open Position (array: Asset, Leverage, Direction)
+**Note:** Perp Account $ Balance property removed for privacy compliance
 
 ### Perp Position Close Screen Viewed
 
@@ -261,19 +263,19 @@ Status: ✅ Implemented as PERPS_POSITION_CLOSE_SUBMITTED - Not on-chain (HyperL
 
 Status: ✅ Implemented as PERPS_POSITION_CLOSE_EXECUTED - Not on-chain (HyperLiquid direct)
 **Implementation:** MetaMetrics.events.ts + PerpsController.ts:1118
-**Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration
+**Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, MetaMask Fee, MetaMask Fee Rate, Discount Percentage, estimatedRewards, Asset Price, Limit Price, Received amount, completionDuration
 
 ### Perp Position Close Partially filled transaction_type == mm_perps_position_close Status == partially_filled
 
 Status: ✅ Implemented as PERPS_POSITION_CLOSE_PARTIALLY_FILLED - Not on-chain (HyperLiquid direct)
 **Implementation:** MetaMetrics.events.ts + PerpsController.ts:1084
-**Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration, Amount filled, Remaining amount
+**Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, MetaMask Fee, MetaMask Fee Rate, Discount Percentage, estimatedRewards, Asset Price, Limit Price, Received amount, completionDuration, Amount filled, Remaining amount
 
 ### Perp Position Close Failed transaction_type == mm_perps_position_close Status == failed
 
 Status: ✅ Implemented as PERPS_POSITION_CLOSE_FAILED - Not on-chain (HyperLiquid direct)
 **Implementation:** MetaMetrics.events.ts + PerpsController.ts:1147,1183
-**Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration, Failure Reason
+**Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, MetaMask Fee, MetaMask Fee Rate, Discount Percentage, estimatedRewards, Asset Price, Limit Price, Received amount, completionDuration, Failure Reason
 
 ---
 
@@ -343,15 +345,17 @@ Status: ✅ Implemented
 
 ### Full page modal viewed
 
-Status: ✅ Implemented
-**Implementation:** MetaMetrics.events.ts + PerpsGTMModal.tsx:50
-**Properties:** Timestamp, Source (homepage, deeplink)
+Status: ✅ Implemented via WHATS_NEW_LINK_CLICKED
+**Implementation:** MetaMetrics.events.ts + PerpsGTMModal.tsx:47,61
+**Properties:** Timestamp, feature (PERPS_GTM_WHATS_NEW_MODAL), action (PERPS_GTM_MODAL_DECLINE/PERPS_GTM_MODAL_ENGAGE)
+**Note:** Uses existing WHATS_NEW_LINK_CLICKED event with Perps-specific properties for consistent Segment tracking
 
 ### Full page modal tapped
 
-Status: ✅ Implemented
-**Implementation:** MetaMetrics.events.ts + PerpsGTMModal.tsx:51,60
-**Properties:** Timestamp, Source (homepage, deeplink), action_type (Start trading, Skip)
+Status: ✅ Implemented via WHATS_NEW_LINK_CLICKED
+**Implementation:** MetaMetrics.events.ts + PerpsGTMModal.tsx:47,61
+**Properties:** Timestamp, feature (PERPS_GTM_WHATS_NEW_MODAL), action (PERPS_GTM_MODAL_DECLINE for "Not Now", PERPS_GTM_MODAL_ENGAGE for "Try Now")
+**Note:** Uses existing WHATS_NEW_LINK_CLICKED event with differentiated action properties instead of separate Perps events
 
 ---
 

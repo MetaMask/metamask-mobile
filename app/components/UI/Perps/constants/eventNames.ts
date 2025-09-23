@@ -52,7 +52,6 @@ export const PerpsEventProperties = {
   SOURCE_AMOUNT: 'SourceAmount',
   DESTINATION_AMOUNT: 'destinationAmount',
   NETWORK_FEE: 'networkFee',
-  AVAILABLE_AMOUNT: 'availableAmount',
   WITHDRAWAL_AMOUNT: 'withdrawalAmount',
 
   // Chart properties
@@ -84,7 +83,6 @@ export const PerpsEventProperties = {
   VIEW_OCCURRENCES: 'View occurrences',
   AMOUNT_FILLED: 'Amount filled',
   REMAINING_AMOUNT: 'Remaining amount',
-  PERP_ACCOUNT_BALANCE: 'Perp Account $ Balance',
 
   // Tutorial carousel navigation properties
   PREVIOUS_SCREEN: 'previous_screen',
