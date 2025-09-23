@@ -18,7 +18,6 @@ import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { OPTIN_META_METRICS_UI_SEEN, TRUE } from '../../../constants/storage';
-import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
@@ -31,7 +30,6 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import { MAINNET } from '../../../constants/network';
 import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
@@ -384,16 +382,6 @@ class OptinMetrics extends PureComponent {
   };
 
   /**
-   * Open RPC settings.
-   */
-  openRPCSettings = () => {
-    this.props.navigation.navigate(Routes.ADD_NETWORK, {
-      network: MAINNET,
-      isCustomMainnet: true,
-    });
-  };
-
-  /**
    * Opens link when provided link params.
    *
    * @param {Object} linkParams
@@ -407,82 +395,11 @@ class OptinMetrics extends PureComponent {
     });
   };
 
-  /**
-   * Open privacy policy in webview.
-   */
-  openPrivacyPolicy = () =>
-    this.onPressLink({
-      url: AppConstants.URLS.PRIVACY_POLICY,
-      title: strings('privacy_policy.title'),
-    });
-
-  /**
-   * Open data retention post in webview.
-   */
-  openDataRetentionPost = () =>
-    this.onPressLink({
-      url: AppConstants.URLS.DATA_RETENTION_UPDATE,
-      title: '',
-    });
-
   openLearnMore = () =>
     this.onPressLink({
       url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/',
       title: 'How to manage your MetaMetrics settings',
     });
-
-  /**
-   * Render privacy policy description
-   *
-   * @returns - Touchable opacity object to render with privacy policy information
-   */
-  renderPrivacyPolicy = () => {
-    const styles = this.getStyles();
-
-    if (isPastPrivacyPolicyDate) {
-      return (
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {strings('privacy_policy.fine_print_1') + ' '}
-          <Text
-            color={TextColor.Primary}
-            variant={TextVariant.BodySM}
-            onPress={this.openPrivacyPolicy}
-          >
-            {strings('privacy_policy.privacy_policy_button')}
-          </Text>
-          {' ' + strings('privacy_policy.fine_print_2')}
-        </Text>
-      );
-    }
-
-    return (
-      <View>
-        <Text style={styles.privacyPolicy}>
-          <Text>{strings('privacy_policy.fine_print_1_legacy')}</Text>
-          {'\n\n'}
-          {strings('privacy_policy.fine_print_2a_legacy') + ' '}
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here_legacy')}
-            onPress={this.openRPCSettings}
-          />
-          {' ' + strings('privacy_policy.fine_print_2b_legacy') + ' '}
-          <Button
-            variant={ButtonVariants.Link}
-            onPress={this.openDataRetentionPost}
-            label={strings('privacy_policy.here_legacy')}
-          />
-          {strings('privacy_policy.fine_print_2c_legacy') + ' '}
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here_legacy')}
-            onPress={this.openPrivacyPolicy}
-          />
-          {strings('unit.point')}
-        </Text>
-      </View>
-    );
-  };
 
   renderActionButtons = () => {
     const styles = this.getStyles();
@@ -682,8 +599,6 @@ class OptinMetrics extends PureComponent {
                 </View>
               </View>
             ) : null}
-            <View style={styles.divider} />
-            {this.renderPrivacyPolicy()}
           </View>
         </ScrollView>
         {this.renderActionButtons()}
