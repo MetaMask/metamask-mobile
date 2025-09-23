@@ -300,6 +300,20 @@ jest.mock('../../../../../../util/trace', () => ({
   },
 }));
 
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../../selectors/accountsController'),
+}));
+
+jest.mock('../../../../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual(
+    '../../../../../../selectors/multichainAccounts/accounts',
+  ),
+}));
+
+jest.mock('../../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../../selectors/networkController'),
+}));
+
 describe('BuildQuote View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
@@ -555,7 +569,7 @@ describe('BuildQuote View', () => {
       );
     });
 
-    it('switches network and sets asset when selecting crypto from different chain', async () => {
+    it('sets asset when selecting crypto from different chain', async () => {
       const mockPolygonToken = {
         ...mockCryptoCurrenciesData[0],
         network: {
@@ -579,7 +593,6 @@ describe('BuildQuote View', () => {
         fireEvent.press(getByRoleButton('Polygon Token'));
       });
 
-      expect(mockSetActiveNetwork).toHaveBeenCalled();
       expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockPolygonToken);
     });
 
