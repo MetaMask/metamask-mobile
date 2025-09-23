@@ -14,11 +14,23 @@ import {
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
+// Mock the gator-permissions-controller-init to prevent import errors
+jest.mock(
+  '../../../../core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init',
+  () => ({
+    __esModule: true,
+    default: jest.fn(),
+  }),
+);
+
 const mockSetSelectedAccountGroup = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountTreeController: {
       setSelectedAccountGroup: (id: string) => mockSetSelectedAccountGroup(id),
+    },
+    GatorPermissionsController: {
+      getState: () => ({}),
     },
   },
 }));
@@ -38,6 +50,10 @@ jest.mock('../../../../selectors/assets/balances', () => {
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
+  selectSelectedInternalAccountByScope: () => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+    id: 'mock-account-id',
+  }),
 }));
 
 const mockNavigate = jest.fn();
