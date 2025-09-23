@@ -70,9 +70,6 @@ import {
 
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 import { BridgeViewMode } from '../Bridge/types';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
-import { getTraceTags } from '../../../util/sentry/tags';
-import { store } from '../../../store';
 import CardButton from '../Card/components/CardButton';
 
 const trackEvent = (event, params = {}) => {

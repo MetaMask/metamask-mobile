@@ -152,6 +152,7 @@ describe('AddressList', () => {
     expect(mockSetOptions).toHaveBeenCalledWith(
       expect.objectContaining({
         headerShown: true,
+        headerTitleAlign: 'center',
         headerTitle: expect.any(Function),
         headerLeft: expect.any(Function),
       }),
@@ -171,6 +172,7 @@ describe('AddressList', () => {
 
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerShown: true,
+      headerTitleAlign: 'center',
       headerTitle: expect.any(Function),
       headerLeft: expect.any(Function),
     });
