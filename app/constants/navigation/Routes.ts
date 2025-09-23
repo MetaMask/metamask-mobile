@@ -325,6 +325,7 @@ const Routes = {
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
+    WELCOME: 'CardWelcome',
   },
   SEND: {
     RECIPIENT: 'Recipient',

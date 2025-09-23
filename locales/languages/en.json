@@ -5661,6 +5661,11 @@
       "swap_description": "Swap tokens into {{symbol}} on Linea",
       "select_method": "Select method"
     },
+    "card_onboarding": {
+      "title": "Welcome to Card",
+      "description": "To use card features, you’ll need to verify your account with our partner.",
+      "verify_account_button": "Verify account"
+    },
     "card_home": {
       "error_title": "Can’t fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
