@@ -101,13 +101,16 @@ jest.mock('rive-react-native', () => {
 });
 
 import React from 'react';
-import { View ,
+import {
+  View,
   InteractionManager,
   BackHandler,
   Animated,
   Platform,
 } from 'react-native';
-import renderWithProvider, { renderScreen } from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
 import Onboarding from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
