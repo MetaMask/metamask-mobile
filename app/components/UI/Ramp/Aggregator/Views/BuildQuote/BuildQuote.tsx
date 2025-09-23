@@ -49,6 +49,10 @@ import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import RegionModal from '../../components/RegionModal';
 import SkeletonText from '../../components/SkeletonText';
 import ErrorView from '../../components/ErrorView';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
@@ -58,11 +62,19 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { formatAmount, getHexChainIdFromCryptoCurrency } from '../../utils';
+import {
+  formatAmount,
+  getCaipChainIdFromCryptoCurrency,
+  getHexChainIdFromCryptoCurrency,
+} from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { selectTicker } from '../../../../../../selectors/networkController';
+import {
+  selectTicker,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../../../../../selectors/networkController';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -137,6 +149,9 @@ const BuildQuote = () => {
     useModalHandler(false);
 
   const nativeSymbol = useSelector(selectTicker);
+  const networkConfigurationsByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   /**
    * Grab the current state of the SDK via the context.
@@ -344,6 +359,15 @@ const BuildQuote = () => {
 
     return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
   }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
+
+  const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
+
+  const networkName = caipChainId
+    ? networkConfigurationsByCaipChainId[caipChainId]?.name
+    : undefined;
+  const networkImageSource = caipChainId
+    ? getNetworkImageSource({ chainId: caipChainId })
+    : undefined;
 
   const isFetching =
     isFetchingCryptoCurrencies ||
@@ -892,11 +916,23 @@ const BuildQuote = () => {
                   : strings('fiat_on_ramp_aggregator.want_to_sell')
               }
               icon={
-                <TokenIcon
-                  medium
-                  icon={selectedAsset?.logo}
-                  symbol={selectedAsset?.symbol}
-                />
+                <BadgeWrapper
+                  badgePosition={BadgePosition.BottomRight}
+                  badgeElement={
+                    networkName && networkImageSource ? (
+                      <BadgeNetwork
+                        name={networkName}
+                        imageSource={networkImageSource}
+                      />
+                    ) : null
+                  }
+                >
+                  <TokenIcon
+                    medium
+                    icon={selectedAsset?.logo}
+                    symbol={selectedAsset?.symbol}
+                  />
+                </BadgeWrapper>
               }
               assetSymbol={selectedAsset?.symbol ?? ''}
               assetName={selectedAsset?.name ?? ''}
