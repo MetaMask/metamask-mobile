@@ -178,17 +178,18 @@ const AccountBackupStep1 = (props) => {
   const showRemindLater = () => {
     if (hasFunds) return;
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL,
-      params: {
-        onConfirm: skip,
-        onCancel: () => {
-          track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CANCELED);
-          goNext();
-        },
-      },
-    });
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
+
+    // Navigate directly to OptinMetrics or skip if metrics enabled
+    if (isMetricsEnabled()) {
+      skip();
+    } else {
+      navigation.navigate('OptinMetrics', {
+        onContinue: () => {
+          skip();
+        },
+      });
+    }
   };
 
   const showWhatIsSeedphrase = () => {
