@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { setDestAddress } from '../../../../../core/redux/slices/bridge';
@@ -10,6 +10,7 @@ import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { useDestinationAccounts } from '../../hooks/useDestinationAccounts';
+import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -39,6 +40,7 @@ const DestinationAccountSelector = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
+  const [searchText, setSearchText] = useState('');
 
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -53,11 +55,23 @@ const DestinationAccountSelector = () => {
     [dispatch, navigation],
   );
 
+  const filteredAccounts = useMemo(() => destinationAccounts.filter(
+      (account) =>
+        account.address.toLowerCase().includes(searchText.toLowerCase()) ||
+        account.name.toLowerCase().includes(searchText.toLowerCase()),
+    ), [destinationAccounts, searchText]);
+
   return (
     <Box style={styles.container}>
+      6v
       <Box>
+        <TextFieldSearch
+          placeholder="Search or paste address"
+          value={searchText}
+          onChangeText={(value) => setSearchText(value)}
+        />
         <CaipAccountSelectorList
-          accounts={destinationAccounts}
+          accounts={filteredAccounts}
           onSelectAccount={handleSelectAccount}
           ensByAccountAddress={ensByAccountAddress}
           selectedAddresses={[]}
