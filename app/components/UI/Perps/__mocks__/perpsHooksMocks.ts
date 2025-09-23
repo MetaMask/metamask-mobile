@@ -46,13 +46,6 @@ export const defaultMinimumOrderAmountMock = {
   error: null,
 };
 
-export const defaultPerpsAccountMock = {
-  address: '0x123',
-  balance: 1000,
-  isLoading: false,
-  error: null,
-};
-
 export const defaultPerpsNetworkMock = {
   chainId: '0x1',
   isTestnet: false,
@@ -146,7 +139,6 @@ export const createPerpsHooksMocks = (overrides = {}) => ({
   usePerpsEventTracking: jest.fn(() => defaultPerpsEventTrackingMock),
   usePerpsScreenTracking: jest.fn(() => defaultPerpsScreenTrackingMock),
   useMinimumOrderAmount: jest.fn(() => defaultMinimumOrderAmountMock),
-  usePerpsAccount: jest.fn(() => defaultPerpsAccountMock),
   usePerpsNetwork: jest.fn(() => defaultPerpsNetworkMock),
   usePerpsTrading: jest.fn(() => defaultPerpsTradingMock),
   usePerpsConnection: jest.fn(() => defaultPerpsConnectionMock),

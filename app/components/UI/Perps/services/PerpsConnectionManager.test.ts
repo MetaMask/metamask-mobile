@@ -44,11 +44,11 @@ jest.mock('../selectors/perpsController', () => ({
 
 // Mock StreamManager - create a singleton mock instance
 const mockStreamManagerInstance = {
-  positions: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  orders: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
+  positions: { clearCache: jest.fn(), disconnect: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  orders: { clearCache: jest.fn(), disconnect: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  account: { clearCache: jest.fn(), disconnect: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  marketData: { clearCache: jest.fn(), disconnect: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  prices: { clearCache: jest.fn(), disconnect: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
