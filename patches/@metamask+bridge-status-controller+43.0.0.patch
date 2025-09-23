@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/bridge-status-controller/dist/utils/transaction.cjs b/node_modules/@metamask/bridge-status-controller/dist/utils/transaction.cjs
+index 676f623..3b2eb1d 100644
+--- a/node_modules/@metamask/bridge-status-controller/dist/utils/transaction.cjs
++++ b/node_modules/@metamask/bridge-status-controller/dist/utils/transaction.cjs
+@@ -103,7 +103,7 @@ const handleSolanaTxResponse = (snapResponse, quoteResponse, selectedAccount) =>
+ };
+ exports.handleSolanaTxResponse = handleSolanaTxResponse;
+ const handleLineaDelay = async (quoteResponse) => {
+-    if (bridge_controller_1.ChainId.LINEA === quoteResponse.quote.srcChainId) {
++    if ([bridge_controller_1.ChainId.LINEA, bridge_controller_1.ChainId.BASE].includes(quoteResponse.quote.srcChainId)) {
+         const debugLog = (0, utils_1.createProjectLogger)('bridge');
+         debugLog('Delaying submitting bridge tx to make Linea confirmation more likely');
+         const waitPromise = new Promise((resolve) => setTimeout(resolve, constants_1.LINEA_DELAY_MS));
