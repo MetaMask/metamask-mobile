@@ -1,5 +1,6 @@
 # Pure Android E2E build workflow - just builds APKs and uploads artifacts
 # No testing, no unnecessary setup - optimized for speed and efficiency
+# TESTING: Currently using Cirrus Linux x86 runners
 
 name: Build Android E2E APKs
 
