@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -23,11 +23,10 @@ import { CaipChainId, Hex } from '@metamask/utils';
 // We use ReusableModal instead of BottomSheet to prevent the keyboard from pushing the search input off screen
 import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FlashList } from '@shopify/flash-list';
 import { FlatList } from 'react-native-gesture-handler';
 
-// FlashList cannot scroll on Android here, so we use FlatList
-const ListComponent = Platform.OS === 'ios' ? FlashList : FlatList;
+// FlashList on iOS had some issues so we use FlatList for both platforms now
+const ListComponent = FlatList;
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -292,6 +291,11 @@ export const BridgeTokenSelectorBase: React.FC<
           showsHorizontalScrollIndicator={false}
           bounces
           scrollEnabled
+          removeClippedSubviews
+          maxToRenderPerBatch={20}
+          windowSize={10}
+          initialNumToRender={15}
+          updateCellsBatchingPeriod={100}
         />
       </Box>
     </ReusableModal>
