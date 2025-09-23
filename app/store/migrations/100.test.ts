@@ -557,7 +557,7 @@ describe('Migration 99: Update bridge txHistory for solana to use txHash as key 
     expect(mockedCaptureException).toHaveBeenCalledTimes(1);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       new Error(
-        "Migration 99: Failed to update bridge txHistory for solana to use txHash as key and txMetaId. Error: TypeError: Cannot read properties of null (reading 'status')",
+        "Migration 100: Failed to update bridge txHistory for solana to use txHash as key and txMetaId. Error: TypeError: Cannot read properties of null (reading 'status')",
       ),
     );
   });
