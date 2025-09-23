@@ -69,6 +69,42 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [children],
     );
 
+    // Create a separate array of only enabled tabs for ScrollView content
+    const enabledTabs = useMemo(
+      () =>
+        tabs
+          .map((tab, index) => ({ ...tab, originalIndex: index }))
+          .filter((tab) => !tab.isDisabled),
+      [tabs],
+    );
+
+    // Create mapping functions between tab index and content index
+    const getContentIndexFromTabIndex = useCallback(
+      (tabIndex: number): number => {
+        if (
+          tabIndex < 0 ||
+          tabIndex >= tabs.length ||
+          tabs[tabIndex]?.isDisabled
+        ) {
+          return -1;
+        }
+        return enabledTabs.findIndex(
+          (enabledTab) => enabledTab.originalIndex === tabIndex,
+        );
+      },
+      [tabs, enabledTabs],
+    );
+
+    const getTabIndexFromContentIndex = useCallback(
+      (contentIndex: number): number => {
+        if (contentIndex < 0 || contentIndex >= enabledTabs.length) {
+          return -1;
+        }
+        return enabledTabs[contentIndex]?.originalIndex ?? -1;
+      },
+      [enabledTabs],
+    );
+
     // Check if there are any enabled tabs and if current active tab is enabled
     const hasAnyEnabledTabs = useMemo(
       () => tabs.some((tab) => !tab.isDisabled),
@@ -157,220 +193,107 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
     // Scroll to active tab when activeIndex changes
     useEffect(() => {
-      if (scrollViewRef.current && activeIndex >= 0 && containerWidth > 0) {
-        const targetX = activeIndex * containerWidth;
-        scrollViewRef.current.scrollTo({
-          x: targetX,
-          animated: !isScrolling.current, // Don't animate if user is currently scrolling
-        });
+      if (scrollViewRef.current && containerWidth > 0) {
+        const contentIndex = getContentIndexFromTabIndex(activeIndex);
+        if (contentIndex >= 0) {
+          scrollViewRef.current.scrollTo({
+            x: contentIndex * containerWidth,
+            animated: !isScrolling.current, // Don't animate if user is currently scrolling
+          });
+        }
       }
-    }, [activeIndex, containerWidth]);
-
-    // Calculate scroll boundaries to prevent scrolling to disabled tabs
-    const scrollBoundaries = useMemo(() => {
-      const enabledIndices = tabs
-        .map((tab, index) => (!tab.isDisabled ? index : -1))
-        .filter((index) => index !== -1);
-
-      if (enabledIndices.length === 0) {
-        return { minX: 0, maxX: 0, minIndex: 0, maxIndex: 0 };
-      }
-
-      const minIndex = Math.min(...enabledIndices);
-      const maxIndex = Math.max(...enabledIndices);
-
-      return {
-        minX: minIndex * containerWidth,
-        maxX: maxIndex * containerWidth,
-        minIndex,
-        maxIndex,
-      };
-    }, [tabs, containerWidth]);
+    }, [activeIndex, containerWidth, getContentIndexFromTabIndex]);
 
     const handleTabPress = useCallback(
-      (index: number) => {
-        const tab = tabs[index];
-        if (!tab?.isDisabled && index !== activeIndex) {
-          // Update activeIndex immediately for TabsBar animation
-          setActiveIndex(index);
-
-          // Ensure the tab is loaded
-          setLoadedTabs((prev) => new Set(prev).add(index));
-
-          // Set programmatic scroll flag AFTER state update
-          isProgrammaticScroll.current = true;
-
-          // Scroll to the correct position
-          if (scrollViewRef.current && containerWidth > 0) {
-            const targetX = index * containerWidth;
-            scrollViewRef.current.scrollTo({
-              x: targetX,
-              animated: true,
-            });
-          }
-
-          // Call the onChangeTab callback if provided
-          if (onChangeTab) {
-            onChangeTab({
-              i: index,
-              ref: tabs[index]?.content || null,
-            });
-          }
-
-          // Reset programmatic scroll flag after animation
-          setTimeout(() => {
-            isProgrammaticScroll.current = false;
-          }, 400);
+      (tabIndex: number) => {
+        if (
+          tabIndex < 0 ||
+          tabIndex >= tabs.length ||
+          tabs[tabIndex]?.isDisabled
+        ) {
+          return;
         }
+
+        // Get the content index for this tab
+        const contentIndex = getContentIndexFromTabIndex(tabIndex);
+        if (contentIndex < 0) return;
+
+        // Only update state and call callback if the tab actually changed
+        const tabChanged = tabIndex !== activeIndex;
+
+        // Update activeIndex immediately for TabsBar animation
+        setActiveIndex(tabIndex);
+
+        // Ensure the tab is loaded
+        setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+
+        // Set programmatic scroll flag AFTER state update
+        isProgrammaticScroll.current = true;
+
+        // Scroll to the content index, not the tab index
+        if (scrollViewRef.current && containerWidth > 0) {
+          scrollViewRef.current.scrollTo({
+            x: contentIndex * containerWidth,
+            animated: true,
+          });
+        }
+
+        // Only call onChangeTab if the tab actually changed
+        if (onChangeTab && tabChanged) {
+          onChangeTab({
+            i: tabIndex,
+            ref: tabs[tabIndex]?.content || null,
+          });
+        }
+
+        // Reset programmatic scroll flag after animation
+        setTimeout(() => {
+          isProgrammaticScroll.current = false;
+        }, 400);
       },
-      [activeIndex, onChangeTab, tabs, containerWidth],
+      [
+        activeIndex,
+        tabs,
+        onChangeTab,
+        containerWidth,
+        getContentIndexFromTabIndex,
+      ],
     );
 
     const handleScroll = useCallback(
       (scrollEvent: NativeSyntheticEvent<NativeScrollEvent>) => {
-        // Don't process scroll events during programmatic scrolling (tab clicks)
         if (isProgrammaticScroll.current) return;
 
         const { contentOffset } = scrollEvent.nativeEvent;
-
-        // Avoid division by zero and ensure containerWidth is set
         if (containerWidth <= 0) return;
 
-        const newIndex = Math.round(contentOffset.x / containerWidth);
+        // Calculate which content index we're at
+        const contentIndex = Math.round(contentOffset.x / containerWidth);
 
-        console.log('🌊 handleScroll processing:', {
-          newIndex,
-          currentActiveIndex: activeIndex,
-          isEnabled:
-            newIndex >= 0 && newIndex < tabs.length
-              ? !tabs[newIndex]?.isDisabled
-              : false,
-          willChange: newIndex !== activeIndex,
-          contentOffset: contentOffset.x,
-        });
+        // Convert content index back to tab index
+        const newTabIndex = getTabIndexFromContentIndex(contentIndex);
 
-        // Handle scrolling more intelligently:
-        // - Update activeIndex for enabled tabs normally
-        // - For disabled tabs, find the nearest enabled tab in scroll direction
-        if (
-          newIndex >= 0 &&
-          newIndex < tabs.length &&
-          newIndex !== activeIndex
-        ) {
-          let targetIndex = newIndex;
+        if (newTabIndex >= 0 && newTabIndex !== activeIndex) {
+          // Update activeIndex immediately to trigger TabsBar animation alongside content scroll
+          // This matches the behavior of tab clicks
+          setActiveIndex(newTabIndex);
+          setLoadedTabs((prev) => new Set(prev).add(newTabIndex));
 
-          // If target is disabled, find nearest enabled tab
-          if (tabs[newIndex]?.isDisabled) {
-            console.log(
-              '🚫 Scrolled to disabled tab, finding nearest enabled:',
-              newIndex,
-            );
-
-            // Determine scroll direction
-            const isScrollingRight = newIndex > activeIndex;
-
-            // Search in scroll direction first, then opposite direction
-            if (isScrollingRight) {
-              // Look right first
-              for (let i = newIndex + 1; i < tabs.length; i++) {
-                if (!tabs[i]?.isDisabled) {
-                  targetIndex = i;
-                  break;
-                }
-              }
-              // If not found, look left
-              if (targetIndex === newIndex) {
-                for (let i = newIndex - 1; i >= 0; i--) {
-                  if (!tabs[i]?.isDisabled) {
-                    targetIndex = i;
-                    break;
-                  }
-                }
-              }
-            } else {
-              // Look left first
-              for (let i = newIndex - 1; i >= 0; i--) {
-                if (!tabs[i]?.isDisabled) {
-                  targetIndex = i;
-                  break;
-                }
-              }
-              // If not found, look right
-              if (targetIndex === newIndex) {
-                for (let i = newIndex + 1; i < tabs.length; i++) {
-                  if (!tabs[i]?.isDisabled) {
-                    targetIndex = i;
-                    break;
-                  }
-                }
-              }
-            }
-
-            console.log('🎯 Found nearest enabled tab:', {
-              from: newIndex,
-              to: targetIndex,
+          if (onChangeTab) {
+            onChangeTab({
+              i: newTabIndex,
+              ref: tabs[newTabIndex]?.content || null,
             });
-          }
-
-          // Only update if we found a valid enabled tab and it's different from current
-          if (targetIndex !== activeIndex && !tabs[targetIndex]?.isDisabled) {
-            console.log('🔄 handleScroll updating activeIndex:', {
-              from: activeIndex,
-              to: targetIndex,
-              wasDisabled: tabs[newIndex]?.isDisabled,
-            });
-
-            setActiveIndex(targetIndex);
-
-            // Ensure the tab is loaded
-            setLoadedTabs((prev) => new Set(prev).add(targetIndex));
-
-            // Call the onChangeTab callback if provided
-            if (onChangeTab) {
-              onChangeTab({
-                i: targetIndex,
-                ref: tabs[targetIndex]?.content || null,
-              });
-            }
-          } else if (
-            tabs[newIndex]?.isDisabled &&
-            targetIndex === activeIndex &&
-            !isProgrammaticScroll.current
-          ) {
-            // If scrolling to disabled tab would keep us on same tab,
-            // use a debounced approach to prevent getting stuck
-            console.log('🔒 Preventing scroll to disabled tab boundary:', {
-              newIndex,
-              targetIndex,
-              activeIndex,
-            });
-
-            // Clear any existing timeout to prevent multiple rapid corrections
-            if (scrollTimeout.current) {
-              clearTimeout(scrollTimeout.current);
-            }
-
-            // Debounce the correction to prevent rapid fire
-            scrollTimeout.current = setTimeout(() => {
-              if (scrollViewRef.current && !isProgrammaticScroll.current) {
-                isProgrammaticScroll.current = true;
-                const currentX = activeIndex * containerWidth;
-                scrollViewRef.current.scrollTo({
-                  x: currentX,
-                  animated: true,
-                });
-                // Reset flag after scroll
-                setTimeout(() => {
-                  isProgrammaticScroll.current = false;
-                }, 400);
-              }
-            }, 100); // Small delay to debounce
           }
         }
-
-        // Remove complex boundary enforcement - let the simpler disabled tab logic handle it
       },
-      [activeIndex, containerWidth, onChangeTab, tabs],
+      [
+        activeIndex,
+        containerWidth,
+        onChangeTab,
+        tabs,
+        getTabIndexFromContentIndex,
+      ],
     );
 
     const handleScrollBegin = useCallback(() => {
@@ -385,55 +308,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       }
     }, []);
 
-    const handleScrollEnd = useCallback(
-      (scrollEvent: NativeSyntheticEvent<NativeScrollEvent>) => {
-        // Don't process if we're in the middle of a programmatic scroll
-        if (isProgrammaticScroll.current) {
-          scrollTimeout.current = setTimeout(() => {
-            isScrolling.current = false;
-          }, 150);
-          return;
-        }
-
-        const { contentOffset } = scrollEvent.nativeEvent;
-
-        // Avoid division by zero and ensure containerWidth is set
-        if (containerWidth <= 0) {
-          scrollTimeout.current = setTimeout(() => {
-            isScrolling.current = false;
-          }, 150);
-          return;
-        }
-
-        const rawIndex = Math.round(contentOffset.x / containerWidth);
-
-        // Check if we've landed on a disabled tab
-        console.log('🔍 handleScrollEnd check:', {
-          rawIndex,
-          currentActiveIndex: activeIndex,
-          isDisabled: tabs[rawIndex]?.isDisabled,
-          containerWidth,
-          contentOffset: contentOffset.x,
-          tabLabel: tabs[rawIndex]?.label,
-          willRedirect:
-            tabs[rawIndex]?.isDisabled &&
-            rawIndex >= 0 &&
-            rawIndex < tabs.length,
-        });
-
-        // DISABLED: Redirection logic causes ping-pong effect
-        // Let ScrollView handle paging naturally, disabled tabs will just be empty
-        console.log(
-          '🔍 handleScrollEnd - redirection disabled to prevent ping-pong effect',
-        );
-
-        // Reset scrolling flag after a short delay
-        scrollTimeout.current = setTimeout(() => {
-          isScrolling.current = false;
-        }, 150);
-      },
-      [activeIndex, containerWidth, onChangeTab, tabs],
-    );
+    const handleScrollEnd = useCallback(() => {
+      // Reset scrolling flag after a short delay
+      scrollTimeout.current = setTimeout(() => {
+        isScrolling.current = false;
+      }, 150);
+    }, []);
 
     const handleLayout = useCallback(
       (layoutEvent: { nativeEvent: { layout: { width: number } } }) => {
@@ -448,63 +328,64 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       ref,
       () => ({
         goToTabIndex: (tabIndex: number) => {
-          if (tabIndex >= 0 && tabIndex < tabs.length) {
-            const tab = tabs[tabIndex];
-            if (!tab?.isDisabled && tabIndex !== activeIndex) {
-              // Update activeIndex immediately for TabsBar animation
-              setActiveIndex(tabIndex);
-
-              // Ensure the tab is loaded
-              setLoadedTabs((prev) => new Set(prev).add(tabIndex));
-
-              // Set programmatic scroll flag AFTER state update
-              isProgrammaticScroll.current = true;
-
-              // Scroll to the correct position
-              if (scrollViewRef.current && containerWidth > 0) {
-                const targetX = tabIndex * containerWidth;
-                scrollViewRef.current.scrollTo({
-                  x: targetX,
-                  animated: true,
-                });
-              }
-
-              // Call the onChangeTab callback if provided
-              if (onChangeTab) {
-                onChangeTab({
-                  i: tabIndex,
-                  ref: tabs[tabIndex]?.content || null,
-                });
-              }
-
-              // Reset programmatic scroll flag after animation
-              setTimeout(() => {
-                isProgrammaticScroll.current = false;
-              }, 400);
-            }
+          if (
+            tabIndex < 0 ||
+            tabIndex >= tabs.length ||
+            tabs[tabIndex]?.isDisabled
+          ) {
+            return;
           }
+
+          const contentIndex = getContentIndexFromTabIndex(tabIndex);
+          if (contentIndex < 0) return;
+
+          // Only update state and call callback if the tab actually changed
+          const tabChanged = tabIndex !== activeIndex;
+
+          // Update activeIndex immediately for TabsBar animation
+          setActiveIndex(tabIndex);
+
+          // Ensure the tab is loaded
+          setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+
+          // Set programmatic scroll flag AFTER state update
+          isProgrammaticScroll.current = true;
+
+          if (scrollViewRef.current && containerWidth > 0) {
+            scrollViewRef.current.scrollTo({
+              x: contentIndex * containerWidth,
+              animated: true,
+            });
+          }
+
+          // Only call onChangeTab if the tab actually changed
+          if (onChangeTab && tabChanged) {
+            onChangeTab({
+              i: tabIndex,
+              ref: tabs[tabIndex]?.content || null,
+            });
+          }
+
+          // Reset programmatic scroll flag after animation
+          setTimeout(() => {
+            isProgrammaticScroll.current = false;
+          }, 400);
         },
         getCurrentIndex: () => activeIndex,
       }),
-      [activeIndex, tabs, onChangeTab, containerWidth],
+      [
+        activeIndex,
+        tabs,
+        onChangeTab,
+        containerWidth,
+        getContentIndexFromTabIndex,
+      ],
     );
 
     // Debug: Log activeIndex changes
     useEffect(() => {
-      console.log('🔄 TabsList activeIndex changed:', {
-        activeIndex,
-        hasAnyEnabledTabs,
-        shouldShowContent,
-        loadedTabsArray: Array.from(loadedTabs),
-        totalTabs: tabs.length,
-      });
-    }, [
-      activeIndex,
-      hasAnyEnabledTabs,
-      shouldShowContent,
-      loadedTabs,
-      tabs.length,
-    ]);
+      // TabsList activeIndex changed
+    }, [activeIndex]);
 
     const tabBarProps = useMemo(
       () => ({
@@ -528,6 +409,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           onScroll={handleScroll}
+          onScrollAnimationEnd={handleScrollEnd}
           onScrollBeginDrag={handleScrollBegin}
           onScrollEndDrag={handleScrollEnd}
           onMomentumScrollBegin={handleScrollBegin}
@@ -537,65 +419,16 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           style={tw.style('flex-1 mt-2')}
           decelerationRate="fast"
         >
-          {tabs.map((tab, index) => {
-            // Only show content for the currently active tab
-            const showContent =
-              index === activeIndex &&
-              loadedTabs.has(index) &&
-              shouldShowContent &&
-              !tab.isDisabled;
-
-            console.log(`📱 Tab ${index} content render:`, {
-              tabLabel: tab.label,
-              isActiveTab: index === activeIndex,
-              isLoaded: loadedTabs.has(index),
-              shouldShowContent,
-              isDisabled: tab.isDisabled,
-              showContent,
-              activeIndex,
-              containerWidth,
-              hasAnyEnabledTabs,
-            });
-
-            // For disabled tabs, render a non-scrollable placeholder
-            if (tab.isDisabled) {
-              return (
-                <Box
-                  key={tab.key}
-                  style={tw.style('flex-1', { width: containerWidth })}
-                  pointerEvents="none"
-                >
-                  {console.log(
-                    `🚫 Rendering disabled placeholder for tab ${index}: ${tab.label}`,
-                  )}
-                  {/* Empty placeholder that can't be interacted with */}
-                </Box>
-              );
-            }
-
-            return (
-              <Box
-                key={tab.key}
-                style={tw.style('flex-1', { width: containerWidth })}
-              >
-                {showContent ? (
-                  <>
-                    {console.log(
-                      `🎯 Actually rendering content for tab ${index}: ${tab.label}`,
-                    )}
-                    {tab.content}
-                  </>
-                ) : (
-                  <>
-                    {console.log(
-                      `❌ NOT rendering content for tab ${index}: ${tab.label}`,
-                    )}
-                    {null}
-                  </>
-                )}
-              </Box>
-            );
-          })}
+          {enabledTabs.map((enabledTab) => (
+            <Box
+              key={enabledTab.key}
+              style={tw.style('flex-1', { width: containerWidth })}
+            >
+              {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
+                ? enabledTab.content
+                : null}
+            </Box>
+          ))}
         </ScrollView>
       </Box>
     );
