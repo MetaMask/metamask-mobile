@@ -170,9 +170,7 @@ describe('usePerpsNetworkManagement', () => {
           await result.current.ensureArbitrumNetworkExists();
         });
 
-        expect(mockEnableNetwork).toHaveBeenCalledWith(
-          ARBITRUM_MAINNET_CAIP_CHAIN_ID,
-        );
+        expect(mockEnableNetwork).not.toHaveBeenCalledWith();
         expect(mockAddNetwork).not.toHaveBeenCalled();
       });
 
@@ -221,9 +219,7 @@ describe('usePerpsNetworkManagement', () => {
             },
           ],
         });
-        expect(mockEnableNetwork).toHaveBeenCalledWith(
-          ARBITRUM_MAINNET_CAIP_CHAIN_ID,
-        );
+        expect(mockEnableNetwork).not.toHaveBeenCalled();
       });
 
       it('should add and enable testnet network', async () => {
