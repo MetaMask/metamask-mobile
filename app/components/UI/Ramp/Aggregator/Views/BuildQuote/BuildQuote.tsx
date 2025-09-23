@@ -105,6 +105,7 @@ import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
+import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
