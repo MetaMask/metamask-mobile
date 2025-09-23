@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex, hexToNumber } from '@metamask/utils';
 import {
@@ -25,7 +25,7 @@ const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
 const useNetworkConnectionBanners = (): {
   networkConnectionBannersState: NetworkConnectionBannersState;
   currentNetwork: NetworkConfiguration | undefined;
-  editRpc: () => void;
+  updateRpc: () => void;
 } => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -33,6 +33,9 @@ const useNetworkConnectionBanners = (): {
   const networkConnectionBannersState = useSelector(
     selectNetworkConnectionBannersState,
   );
+
+  // Use ref to access current banner state without causing timer effect to re-run
+  const bannerStateRef = useRef(networkConnectionBannersState);
 
   const networkConfigurationByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -46,7 +49,7 @@ const useNetworkConnectionBanners = (): {
     Engine.lookupEnabledNetworks();
   }, []);
 
-  function editRpc() {
+  function updateRpc() {
     if (!currentNetwork) {
       return;
     }
@@ -64,7 +67,7 @@ const useNetworkConnectionBanners = (): {
 
     // Tracking the event
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.SLOW_RPC_BANNER_EDIT_RPC_CLICKED)
+      createEventBuilder(MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED)
         .addProperties({
           chain_id_caip: `eip155:${hexToNumber(currentNetwork.chainId)}`,
         })
@@ -76,6 +79,7 @@ const useNetworkConnectionBanners = (): {
 
   useEffect(() => {
     const checkNetworkStatus = (timeoutType: NetworkConnectionBannerStatus) => {
+      const currentBannerState = bannerStateRef.current;
       const networksMetadata =
         Engine.context.NetworkController.state.networksMetadata;
 
@@ -117,15 +121,12 @@ const useNetworkConnectionBanners = (): {
         // 2. Banner is visible but for a different network, OR
         // 3. Banner is visible for the same network but with a different status
         const shouldShowBanner =
-          !networkConnectionBannersState.visible ||
-          (networkConnectionBannersState.visible &&
-            networkConnectionBannersState.chainId !==
-              firstUnavailableNetwork.chainId) ||
-          (networkConnectionBannersState.visible &&
-            networkConnectionBannersState.chainId ===
-              firstUnavailableNetwork.chainId &&
-            networkConnectionBannersState.status !==
-              firstUnavailableNetwork.status);
+          !currentBannerState.visible ||
+          (currentBannerState.visible &&
+            currentBannerState.chainId !== firstUnavailableNetwork.chainId) ||
+          (currentBannerState.visible &&
+            currentBannerState.chainId === firstUnavailableNetwork.chainId &&
+            currentBannerState.status !== firstUnavailableNetwork.status);
 
         if (shouldShowBanner) {
           dispatch(
@@ -135,7 +136,7 @@ const useNetworkConnectionBanners = (): {
             }),
           );
         }
-      } else if (networkConnectionBannersState.visible) {
+      } else if (currentBannerState.visible) {
         // Hide banner if all networks are available
         dispatch(hideNetworkConnectionBanner());
       }
@@ -155,7 +156,11 @@ const useNetworkConnectionBanners = (): {
       clearTimeout(slowTimeout);
       clearTimeout(unavailableTimeout);
     };
-  }, [evmEnabledNetworksChainIds, dispatch, networkConnectionBannersState]);
+  }, [evmEnabledNetworksChainIds, dispatch]);
+
+  useEffect(() => {
+    bannerStateRef.current = networkConnectionBannersState;
+  }, [networkConnectionBannersState]);
 
   useEffect(() => {
     if (networkConnectionBannersState.visible) {
@@ -178,7 +183,7 @@ const useNetworkConnectionBanners = (): {
   return {
     networkConnectionBannersState,
     currentNetwork,
-    editRpc,
+    updateRpc,
   };
 };
 

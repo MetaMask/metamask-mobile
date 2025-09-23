@@ -46,7 +46,7 @@ const mockNetworkConfiguration: NetworkConfiguration = {
 };
 
 describe('NetworkConnectionBanner', () => {
-  const mockEditRpc = jest.fn();
+  const mockUpdateRpc = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -57,7 +57,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         networkConnectionBannersState: { visible: false },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { toJSON } = render(<NetworkConnectionBanner />);
@@ -73,7 +73,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { toJSON } = render(<NetworkConnectionBanner />);
@@ -89,7 +89,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'unavailable',
         },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { toJSON } = render(<NetworkConnectionBanner />);
@@ -111,7 +111,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: polygonNetwork,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { toJSON } = render(<NetworkConnectionBanner />);
@@ -125,7 +125,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         networkConnectionBannersState: { visible: false },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { queryByTestId } = render(<NetworkConnectionBanner />);
@@ -141,7 +141,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: undefined,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { queryByTestId } = render(<NetworkConnectionBanner />);
@@ -153,7 +153,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         networkConnectionBannersState: { visible: false },
         currentNetwork: undefined,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { queryByTestId } = render(<NetworkConnectionBanner />);
@@ -172,7 +172,7 @@ describe('NetworkConnectionBanner', () => {
             status: 'slow',
           },
           currentNetwork: mockNetworkConfiguration,
-          editRpc: mockEditRpc,
+          updateRpc: mockUpdateRpc,
         });
       });
 
@@ -183,7 +183,7 @@ describe('NetworkConnectionBanner', () => {
         expect(
           getByText('Still connecting to Ethereum Mainnet...'),
         ).toBeTruthy();
-        expect(getByText('Edit RPC')).toBeTruthy();
+        expect(getByText('Update RPC')).toBeTruthy();
       });
 
       it('should display spinner with correct size', () => {
@@ -205,20 +205,20 @@ describe('NetworkConnectionBanner', () => {
         ).toBeTruthy();
       });
 
-      it('should call editRpc when Edit RPC button is pressed', () => {
+      it('should call updateRpc when Update RPC button is pressed', () => {
         const { getByText } = render(<NetworkConnectionBanner />);
 
-        const editButton = getByText('Edit RPC');
-        fireEvent.press(editButton);
+        const updateButton = getByText('Update RPC');
+        fireEvent.press(updateButton);
 
-        expect(mockEditRpc).toHaveBeenCalledTimes(1);
+        expect(mockUpdateRpc).toHaveBeenCalledTimes(1);
       });
 
       it('should render button with correct variant and properties', () => {
         const { getByText } = render(<NetworkConnectionBanner />);
 
-        const editButton = getByText('Edit RPC');
-        expect(editButton).toBeTruthy();
+        const updateButton = getByText('Update RPC');
+        expect(updateButton).toBeTruthy();
       });
     });
 
@@ -231,7 +231,7 @@ describe('NetworkConnectionBanner', () => {
             status: 'unavailable',
           },
           currentNetwork: mockNetworkConfiguration,
-          editRpc: mockEditRpc,
+          updateRpc: mockUpdateRpc,
         });
       });
 
@@ -242,7 +242,7 @@ describe('NetworkConnectionBanner', () => {
         expect(
           getByText('Network Ethereum Mainnet is not available'),
         ).toBeTruthy();
-        expect(getByText('Edit RPC')).toBeTruthy();
+        expect(getByText('Update RPC')).toBeTruthy();
       });
 
       it('should display spinner with correct size', () => {
@@ -264,20 +264,20 @@ describe('NetworkConnectionBanner', () => {
         ).toBeTruthy();
       });
 
-      it('should call editRpc when Edit RPC button is pressed', () => {
+      it('should call updateRpc when Update RPC button is pressed', () => {
         const { getByText } = render(<NetworkConnectionBanner />);
 
-        const editButton = getByText('Edit RPC');
-        fireEvent.press(editButton);
+        const updateButton = getByText('Update RPC');
+        fireEvent.press(updateButton);
 
-        expect(mockEditRpc).toHaveBeenCalledTimes(1);
+        expect(mockUpdateRpc).toHaveBeenCalledTimes(1);
       });
 
       it('should render button with correct variant and properties', () => {
         const { getByText } = render(<NetworkConnectionBanner />);
 
-        const editButton = getByText('Edit RPC');
-        expect(editButton).toBeTruthy();
+        const updateButton = getByText('Update RPC');
+        expect(updateButton).toBeTruthy();
       });
     });
 
@@ -291,7 +291,7 @@ describe('NetworkConnectionBanner', () => {
             status: 'slow',
           },
           currentNetwork: mockNetworkConfiguration,
-          editRpc: mockEditRpc,
+          updateRpc: mockUpdateRpc,
         });
 
         const { rerender, getByText } = render(<NetworkConnectionBanner />);
@@ -308,7 +308,7 @@ describe('NetworkConnectionBanner', () => {
             status: 'unavailable',
           },
           currentNetwork: mockNetworkConfiguration,
-          editRpc: mockEditRpc,
+          updateRpc: mockUpdateRpc,
         });
 
         rerender(<NetworkConnectionBanner />);
@@ -327,7 +327,7 @@ describe('NetworkConnectionBanner', () => {
             status: 'unavailable',
           },
           currentNetwork: mockNetworkConfiguration,
-          editRpc: mockEditRpc,
+          updateRpc: mockUpdateRpc,
         });
 
         const { rerender, getByText } = render(<NetworkConnectionBanner />);
@@ -344,7 +344,7 @@ describe('NetworkConnectionBanner', () => {
             status: 'slow',
           },
           currentNetwork: mockNetworkConfiguration,
-          editRpc: mockEditRpc,
+          updateRpc: mockUpdateRpc,
         });
 
         rerender(<NetworkConnectionBanner />);
@@ -371,7 +371,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: polygonNetwork,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { getByText } = render(<NetworkConnectionBanner />);
@@ -392,7 +392,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: specialNetwork,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { getByText } = render(<NetworkConnectionBanner />);
@@ -415,7 +415,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: longNameNetwork,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { getByText } = render(<NetworkConnectionBanner />);
@@ -437,17 +437,17 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { getByText } = render(<NetworkConnectionBanner />);
 
       // The banner should be accessible with proper text content
       expect(getByText('Still connecting to Ethereum Mainnet...')).toBeTruthy();
-      expect(getByText('Edit RPC')).toBeTruthy();
+      expect(getByText('Update RPC')).toBeTruthy();
     });
 
-    it('should have accessible button for editing RPC', () => {
+    it('should have accessible button for updating RPC', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         networkConnectionBannersState: {
           visible: true,
@@ -455,17 +455,17 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { getByText } = render(<NetworkConnectionBanner />);
 
-      const editButton = getByText('Edit RPC');
-      expect(editButton).toBeTruthy();
+      const updateButton = getByText('Update RPC');
+      expect(updateButton).toBeTruthy();
 
       // Test that button is pressable
-      fireEvent.press(editButton);
-      expect(mockEditRpc).toHaveBeenCalled();
+      fireEvent.press(updateButton);
+      expect(mockUpdateRpc).toHaveBeenCalled();
     });
   });
 
@@ -483,7 +483,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: networkWithEmptyName,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { getByText } = render(<NetworkConnectionBanner />);
@@ -504,7 +504,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'unavailable',
         },
         currentNetwork: networkWithEmptyName,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { getByText } = render(<NetworkConnectionBanner />);
@@ -520,19 +520,19 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { getByText } = render(<NetworkConnectionBanner />);
 
-      const editButton = getByText('Edit RPC');
+      const updateButton = getByText('Update RPC');
 
       // Press button multiple times rapidly
-      fireEvent.press(editButton);
-      fireEvent.press(editButton);
-      fireEvent.press(editButton);
+      fireEvent.press(updateButton);
+      fireEvent.press(updateButton);
+      fireEvent.press(updateButton);
 
-      expect(mockEditRpc).toHaveBeenCalledTimes(3);
+      expect(mockUpdateRpc).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -542,7 +542,7 @@ describe('NetworkConnectionBanner', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({
         networkConnectionBannersState: { visible: false },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { rerender, queryByTestId, getByTestId } = render(
@@ -559,7 +559,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       rerender(<NetworkConnectionBanner />);
@@ -576,7 +576,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: mockNetworkConfiguration,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       const { rerender, getByText } = render(<NetworkConnectionBanner />);
@@ -597,7 +597,7 @@ describe('NetworkConnectionBanner', () => {
           status: 'slow',
         },
         currentNetwork: polygonNetwork,
-        editRpc: mockEditRpc,
+        updateRpc: mockUpdateRpc,
       });
 
       rerender(<NetworkConnectionBanner />);

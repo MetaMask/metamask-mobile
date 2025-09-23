@@ -175,7 +175,7 @@ describe('useNetworkConnectionBanners', () => {
         result.current.networkConnectionBannersState.chainId,
       ).toBeUndefined();
       expect(result.current.currentNetwork).toBeUndefined();
-      expect(typeof result.current.editRpc).toBe('function');
+      expect(typeof result.current.updateRpc).toBe('function');
     });
 
     it('should call Engine.lookupEnabledNetworks on mount', () => {
@@ -221,7 +221,7 @@ describe('useNetworkConnectionBanners', () => {
     });
   });
 
-  describe('editRpc function', () => {
+  describe('updateRpc function', () => {
     it('should navigate to edit network screen when currentNetwork exists', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
@@ -232,7 +232,7 @@ describe('useNetworkConnectionBanners', () => {
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.editRpc();
+        result.current.updateRpc();
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -245,7 +245,7 @@ describe('useNetworkConnectionBanners', () => {
       );
     });
 
-    it('should track edit RPC event when currentNetwork exists', () => {
+    it('should track update RPC event when currentNetwork exists', () => {
       (selectNetworkConnectionBannersState as jest.Mock).mockReturnValue({
         visible: true,
         chainId: '0x1',
@@ -255,11 +255,11 @@ describe('useNetworkConnectionBanners', () => {
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.editRpc();
+        result.current.updateRpc();
       });
 
       expect(stableCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SLOW_RPC_BANNER_EDIT_RPC_CLICKED,
+        MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
     });
@@ -274,7 +274,7 @@ describe('useNetworkConnectionBanners', () => {
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.editRpc();
+        result.current.updateRpc();
       });
 
       const actions = store.getActions();
@@ -291,7 +291,7 @@ describe('useNetworkConnectionBanners', () => {
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.editRpc();
+        result.current.updateRpc();
       });
 
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
@@ -318,7 +318,7 @@ describe('useNetworkConnectionBanners', () => {
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.editRpc();
+        result.current.updateRpc();
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(

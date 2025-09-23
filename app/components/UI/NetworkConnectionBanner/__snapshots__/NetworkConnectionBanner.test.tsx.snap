@@ -98,7 +98,7 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for different n
       }
     >
       <View
-        accessibilityLabel="Edit RPC"
+        accessibilityLabel="Update RPC"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -246,7 +246,7 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for different n
               ]
             }
           >
-            Edit RPC
+            Update RPC
           </Text>
         </View>
       </View>
@@ -353,7 +353,7 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for slow status
       }
     >
       <View
-        accessibilityLabel="Edit RPC"
+        accessibilityLabel="Update RPC"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -501,7 +501,7 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for slow status
               ]
             }
           >
-            Edit RPC
+            Update RPC
           </Text>
         </View>
       </View>
@@ -608,7 +608,7 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for unavailable
       }
     >
       <View
-        accessibilityLabel="Edit RPC"
+        accessibilityLabel="Update RPC"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -756,7 +756,7 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for unavailable
               ]
             }
           >
-            Edit RPC
+            Update RPC
           </Text>
         </View>
       </View>

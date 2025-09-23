@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
  * Shows when any network takes more than 5 seconds to initialize or is not available.
  */
 const NetworkConnectionBanner: React.FC = () => {
-  const { networkConnectionBannersState, currentNetwork, editRpc } =
+  const { networkConnectionBannersState, currentNetwork, updateRpc } =
     useNetworkConnectionBanners();
 
   if (!networkConnectionBannersState.visible || !currentNetwork) {
@@ -59,11 +59,11 @@ const NetworkConnectionBanner: React.FC = () => {
 
         <Button
           variant={ButtonVariant.Tertiary}
-          onPress={editRpc}
+          onPress={updateRpc}
           disabled={false}
           twClassName="shrink-0"
         >
-          {strings('network_connection_banner.edit_rpc')}
+          {strings('network_connection_banner.update_rpc')}
         </Button>
       </Box>
     </Box>
