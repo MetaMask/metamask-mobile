@@ -23,7 +23,7 @@ Status: ✅ Implemented
 
 ## Account Funding Events
 
-_Implemented by Confirmation team_
+_Note: Uses standard MetaMetrics transaction events (Transaction Added/Confirmed/Failed) with transaction_type = 'perps_deposit', not custom Perps events._
 
 ### Perp Funding Input Viewed
 
@@ -35,29 +35,31 @@ Status: ❌ Missing
 Status: ❌ Missing
 **Properties:** Timestamp, Source Chain, SourceAsset, SourceAmount, networkFee
 
-### Transaction Added transaction_type == mm_perps_deposit
+### Transaction Added transaction_type == perps_deposit
 
-Status: ❌ Missing
+Status: ⚠️ Implemented via standard TransactionController events
 **Properties:** Timestamp, Source Chain, SourceAsset, SourceAmount, networkFee
 
-### Transaction Submitted transaction_type == mm_perps_deposit
+### Transaction Submitted transaction_type == perps_deposit
 
-Status: ❌ Missing
+Status: ⚠️ Implemented via standard TransactionController events
 **Properties:** Timestamp, Source Chain, SourceAsset, SourceAmount, networkFee
 
-### Transaction Finalized transaction_type == mm_perps_deposit Status == confirmed
+### Transaction Finalized transaction_type == perps_deposit Status == confirmed
 
-Status: ❌ Missing
+Status: ⚠️ Implemented via standard TransactionController events
 **Properties:** Timestamp, Source Chain, SourceAsset, SourceAmount, networkFee, execution_time
 
-### Transaction Finalized transaction_type == mm_perps_deposit Status == failed
+### Transaction Finalized transaction_type == perps_deposit Status == failed
 
-Status: ❌ Missing
+Status: ⚠️ Implemented via standard TransactionController events
 **Properties:** Timestamp, Source Chain, SourceAsset, SourceAmount, networkFee, execution_time, Failure Reason
 
 ---
 
 ## Account Withdrawal Events
+
+_Note: Withdrawal "transactions" are HyperLiquid SDK operations, not MetaMask on-chain transactions. They bypass TransactionController._
 
 ### Perp Withdrawal Input Viewed
 
@@ -66,7 +68,7 @@ Status: ✅ Implemented
 
 ### Transaction Added transaction_type == mm_perps_withdrawal
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, SourceAmount, availableAmount
 
 ### Transaction Submitted transaction_type == mm_perps_withdrawal
@@ -76,12 +78,12 @@ Status: ❌ Missing
 
 ### Transaction Finalized transaction_type == mm_perps_withdrawal Status == confirmed
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, SourceAmount, execution_time
 
 ### Transaction Finalized transaction_type == mm_perps_withdrawal Status == failed
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, SourceAmount, Failure Reason
 
 ---
@@ -117,6 +119,8 @@ Status: ✅ Implemented (via PERPS_CHART_INTERACTION)
 
 ## Trade Events
 
+_Note: Trade "transactions" are HyperLiquid SDK operations, not MetaMask on-chain transactions. They bypass TransactionController._
+
 ### Perp Trading Screen Viewed
 
 Status: ✅ Implemented
@@ -149,32 +153,34 @@ Status: ✅ Implemented
 
 ### Transaction Added transaction_type == mm_perps_trade
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price
 
 ### Transaction Submitted transaction_type == mm_perps_trade
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price
 
 ### Transaction Finalized transaction_type == mm_perps_trade Status == confirmed
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price, completionDuration
 
 ### Perp Trade Transaction Partially filled transaction_type == mm_perps_trade Status == partially_filled
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price, completionDuration, Amount filled, Remaining amount
 
 ### Perp Trade Transaction Failed transaction_type == mm_perps_trade Status == failed
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Leverage, Order Size, Margin used, orderType (market, limit), Limit Price, Fees, Asset Price, completionDuration, Failure Reason
 
 ---
 
 ## Close Position Events
+
+_Note: Position close "transactions" are HyperLiquid SDK operations, not MetaMask on-chain transactions. They bypass TransactionController._
 
 ### Perp Homescreen Tab Viewed
 
@@ -198,27 +204,27 @@ Status: ❌ Skipped - Low priority UI interaction
 
 ### Transaction Added transaction_type == mm_perps_position_close
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount
 
 ### Transaction Submitted transaction_type == mm_perps_position_close
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount
 
 ### Transaction Finalized transaction_type == mm_perps_position_close Status == confirmed
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration
 
 ### Perp Position Close Partially filled transaction_type == mm_perps_position_close Status == partially_filled
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration, Amount filled, Remaining amount
 
 ### Perp Position Close Failed transaction_type == mm_perps_position_close Status == failed
 
-Status: ✅ Implemented
+Status: ⚠️ Implemented - Not on-chain (HyperLiquid direct)
 **Properties:** Timestamp, Asset, Direction (Long, Short), Open Position Size, Order Size, orderType (market, limit), Percentage closed, $PnL, %PnL, Fee, Asset Price, Limit Price, Received amount, completionDuration, Failure Reason
 
 ---
