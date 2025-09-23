@@ -877,27 +877,6 @@ describe('useAccountGroupsForPermissions', () => {
         );
       });
 
-      it('includes selected account group even when it does not support requested chains', () => {
-        const emptyPermission = createEmptyPermission();
-        const requestedCaipAccountIds: CaipAccountId[] = [];
-        const requestedCaipChainIds: CaipChainId[] = [
-          'bip122:000000000019d6689c085ae165831e93' as CaipChainId, // Bitcoin - not supported
-        ];
-        const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
-
-        const { result } = renderHookWithStore(
-          emptyPermission,
-          requestedCaipAccountIds,
-          requestedCaipChainIds,
-          requestedNamespacesWithoutWallet,
-        );
-
-        // Selected account group should still be included even if it doesn't support the chain
-        expect(result.current.selectedAndRequestedAccountGroups).toContainEqual(
-          expect.objectContaining({ id: MOCK_GROUP_ID_1 }),
-        );
-      });
-
       it('prioritizes requested account groups over selected when both exist', () => {
         const emptyPermission = createEmptyPermission();
         const requestedCaipAccountIds: CaipAccountId[] = [

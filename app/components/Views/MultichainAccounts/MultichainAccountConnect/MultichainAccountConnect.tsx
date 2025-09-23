@@ -74,7 +74,6 @@ import {
   getAllScopesFromCaip25CaveatValue,
   getAllScopesFromPermission,
   getCaipAccountIdsFromCaip25CaveatValue,
-  isInternalAccountInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
 import styleSheet from './MultichainAccountConnect.styles.ts';
 import { useStyles } from '../../../../component-library/hooks/index.ts';
@@ -88,10 +87,6 @@ import MultichainPermissionsSummary, {
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
-import {
-  selectSelectedAccountGroup,
-  selectAccountGroupWithInternalAccounts,
-} from '../../../../selectors/multichainAccounts/accountTreeController.ts';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
 import { Box } from '@metamask/design-system-react-native';
 
@@ -170,19 +165,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const requestedCaipChainIdsWithDefaultSelectedChainIds = useMemo(
     () => Array.from(new Set([...requestedCaipChainIds, ...allNetworksList])),
     [requestedCaipChainIds, allNetworksList],
-  );
-
-  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
-  const accountGroupsWithInternalAccounts = useSelector(
-    selectAccountGroupWithInternalAccounts,
-  );
-
-  const selectedAccountGroupWithInternalAccounts = useMemo(
-    () =>
-      accountGroupsWithInternalAccounts.find(
-        (group) => group.id === selectedAccountGroup?.id,
-      ) ?? null,
-    [accountGroupsWithInternalAccounts, selectedAccountGroup?.id],
   );
 
   const {

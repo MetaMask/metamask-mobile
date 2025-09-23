@@ -186,14 +186,14 @@ jest.mock(
     ),
     selectAccountGroups: jest.fn(() => {
       const {
-        createMockUuidFromAddress: mockCreateUuidFromAddress,
-        MOCK_ADDRESS_1: mockAddress1,
-        MOCK_ADDRESS_2: mockAddress2,
+        createMockUuidFromAddress,
+        MOCK_ADDRESS_1,
+        MOCK_ADDRESS_2,
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       } = require('../../../../util/test/accountsControllerTestUtils');
 
-      const account1Id = mockCreateUuidFromAddress(mockAddress1);
-      const account2Id = mockCreateUuidFromAddress(mockAddress2);
+      const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
+      const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
 
       return [
         {
@@ -210,14 +210,14 @@ jest.mock(
     }),
     selectAccountGroupsByWallet: jest.fn(() => {
       const {
-        createMockUuidFromAddress: mockCreateUuidFromAddress,
-        MOCK_ADDRESS_1: mockAddress1,
-        MOCK_ADDRESS_2: mockAddress2,
+        createMockUuidFromAddress,
+        MOCK_ADDRESS_1,
+        MOCK_ADDRESS_2,
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       } = require('../../../../util/test/accountsControllerTestUtils');
 
-      const account1Id = mockCreateUuidFromAddress(mockAddress1);
-      const account2Id = mockCreateUuidFromAddress(mockAddress2);
+      const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
+      const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
 
       return [
         {
