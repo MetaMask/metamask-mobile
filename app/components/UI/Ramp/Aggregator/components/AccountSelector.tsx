@@ -16,6 +16,9 @@ import { formatAddress } from '../../../../../util/address';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import { createAddressSelectorNavDetails } from '../../../../Views/AddressSelector/AddressSelector';
 import { useRampSDK } from '../sdk';
+import { getRampNetworks } from '../../../../../reducers/fiatOrders';
+import { useSelector } from 'react-redux';
+import { isCaipChainId, toCaipChainId } from '@metamask/utils';
 
 const styles = StyleSheet.create({
   selector: {
@@ -33,14 +36,23 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const { selectedAddress } = useRampSDK();
   const accountName = useAccountName();
 
+  const rampNetworks = useSelector(getRampNetworks);
+  const rampNetworksCaipIds = rampNetworks.map((network) => {
+    if (isCaipChainId(network.chainId)) {
+      return network.chainId;
+    }
+    return toCaipChainId('eip155', network.chainId);
+  });
+
   const openAccountSelector = useCallback(
     () =>
       navigation.navigate(
         ...createAddressSelectorNavDetails({
           isEvmOnly,
+          displayOnlyCaipChainIds: rampNetworksCaipIds,
         }),
       ),
-    [isEvmOnly, navigation],
+    [isEvmOnly, navigation, rampNetworksCaipIds],
   );
 
   const shortenedAddress = formatAddress(selectedAddress || '', 'short');

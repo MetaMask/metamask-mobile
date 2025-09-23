@@ -581,7 +581,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     ]
                                   }
                                 >
-                                  There are currently no tokens available to purchase on Ethereum with the selected payment method.
+                                  There are currently no tokens available to purchase on this network with the selected payment method.
                                 </Text>
                               </View>
                               <View
@@ -1242,7 +1242,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     ]
                                   }
                                 >
-                                  There are currently no tokens available to sell on Ethereum with the selected cash destination.
+                                  There are currently no tokens available to sell on this network with the selected cash destination.
                                 </Text>
                               </View>
                               <View
@@ -3275,7 +3275,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={32}
+              handlerTag={30}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3935,7 +3935,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={31}
+              handlerTag={29}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4873,7 +4873,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={28}
+              handlerTag={26}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5533,7 +5533,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={27}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5719,27 +5719,21 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
                                           "backgroundColor": "#ffffff",
                                           "borderRadius": 4,
                                           "height": 16,
-                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
+                                      <View
                                         style={
                                           {
                                             "height": 16,
                                             "width": 16,
                                           }
                                         }
-                                        testID="network-avatar-image"
                                       />
                                     </View>
                                     <Text
@@ -5761,7 +5755,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     >
                                       Account 2
                                        
-                                      (0xC4966...4a756)
+                                      (0x29900...da21a)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -5929,63 +5923,154 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           testID="listitemcolumn"
                                         >
                                           <View
-                                            useNativeDriver={true}
+                                            onLayout={[Function]}
+                                            style={
+                                              {
+                                                "alignSelf": "flex-start",
+                                                "position": "relative",
+                                              }
+                                            }
+                                            testID="badge-wrapper-badge"
                                           >
-                                            <Image
-                                              fadeIn={true}
-                                              onError={[Function]}
-                                              onLoadEnd={[Function]}
-                                              source={
-                                                {
-                                                  "uri": "",
-                                                }
-                                              }
-                                              style={
-                                                [
-                                                  {
-                                                    "borderRadius": 12,
-                                                    "height": 24,
-                                                    "width": 24,
-                                                  },
-                                                  {
-                                                    "borderRadius": 18,
-                                                    "height": 36,
-                                                    "width": 36,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            />
+                                            <View>
+                                              <View
+                                                useNativeDriver={true}
+                                              >
+                                                <Image
+                                                  fadeIn={true}
+                                                  onError={[Function]}
+                                                  onLoadEnd={[Function]}
+                                                  source={
+                                                    {
+                                                      "uri": "",
+                                                    }
+                                                  }
+                                                  style={
+                                                    [
+                                                      {
+                                                        "borderRadius": 12,
+                                                        "height": 24,
+                                                        "width": 24,
+                                                      },
+                                                      {
+                                                        "borderRadius": 18,
+                                                        "height": 36,
+                                                        "width": 36,
+                                                      },
+                                                      undefined,
+                                                      undefined,
+                                                      undefined,
+                                                    ]
+                                                  }
+                                                />
+                                                <View
+                                                  collapsable={false}
+                                                  style={
+                                                    {
+                                                      "bottom": 0,
+                                                      "left": 0,
+                                                      "opacity": 1,
+                                                      "position": "absolute",
+                                                      "right": 0,
+                                                      "top": 0,
+                                                    }
+                                                  }
+                                                >
+                                                  <View
+                                                    style={
+                                                      [
+                                                        {
+                                                          "borderRadius": 18,
+                                                          "height": 36,
+                                                          "width": 36,
+                                                        },
+                                                        {
+                                                          "backgroundColor": "#eee",
+                                                        },
+                                                        undefined,
+                                                      ]
+                                                    }
+                                                  />
+                                                </View>
+                                              </View>
+                                            </View>
                                             <View
-                                              collapsable={false}
                                               style={
                                                 {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
                                                   "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 1,
+                                                  "height": 0,
+                                                  "justifyContent": "center",
                                                   "position": "absolute",
                                                   "right": 0,
-                                                  "top": 0,
+                                                  "transform": [
+                                                    {
+                                                      "translateX": 0,
+                                                    },
+                                                    {
+                                                      "translateY": 0,
+                                                    },
+                                                  ],
                                                 }
                                               }
                                             >
                                               <View
+                                                onLayout={[Function]}
                                                 style={
-                                                  [
-                                                    {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    {
-                                                      "backgroundColor": "#eee",
-                                                    },
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "alignItems": "center",
+                                                    "aspectRatio": 1,
+                                                    "height": "50%",
+                                                    "justifyContent": "center",
+                                                    "maxHeight": 24,
+                                                    "minHeight": 8,
+                                                    "opacity": 0,
+                                                  }
                                                 }
-                                              />
+                                                testID="badgenetwork"
+                                              >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "alignItems": "center",
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderColor": "#ffffff",
+                                                      "borderRadius": 8,
+                                                      "borderWidth": 2,
+                                                      "height": 32,
+                                                      "justifyContent": "center",
+                                                      "overflow": "hidden",
+                                                      "shadowColor": "#0000001a",
+                                                      "shadowOffset": {
+                                                        "height": 2,
+                                                        "width": 0,
+                                                      },
+                                                      "shadowOpacity": 1,
+                                                      "shadowRadius": 4,
+                                                      "transform": [
+                                                        {
+                                                          "scale": 1,
+                                                        },
+                                                      ],
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                >
+                                                  <Image
+                                                    onError={[Function]}
+                                                    resizeMode="contain"
+                                                    source={1}
+                                                    style={
+                                                      {
+                                                        "height": 32,
+                                                        "width": 32,
+                                                      }
+                                                    }
+                                                    testID="network-avatar-image"
+                                                  />
+                                                </View>
+                                              </View>
                                             </View>
                                           </View>
                                         </View>
@@ -8196,7 +8281,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={24}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -10918,27 +11003,21 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
                                           "backgroundColor": "#ffffff",
                                           "borderRadius": 4,
                                           "height": 16,
-                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
+                                      <View
                                         style={
                                           {
                                             "height": 16,
                                             "width": 16,
                                           }
                                         }
-                                        testID="network-avatar-image"
                                       />
                                     </View>
                                     <Text
@@ -10960,7 +11039,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     >
                                       Account 2
                                        
-                                      (0xC4966...4a756)
+                                      (0x29900...da21a)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -11128,63 +11207,154 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           testID="listitemcolumn"
                                         >
                                           <View
-                                            useNativeDriver={true}
+                                            onLayout={[Function]}
+                                            style={
+                                              {
+                                                "alignSelf": "flex-start",
+                                                "position": "relative",
+                                              }
+                                            }
+                                            testID="badge-wrapper-badge"
                                           >
-                                            <Image
-                                              fadeIn={true}
-                                              onError={[Function]}
-                                              onLoadEnd={[Function]}
-                                              source={
-                                                {
-                                                  "uri": "",
-                                                }
-                                              }
-                                              style={
-                                                [
-                                                  {
-                                                    "borderRadius": 12,
-                                                    "height": 24,
-                                                    "width": 24,
-                                                  },
-                                                  {
-                                                    "borderRadius": 18,
-                                                    "height": 36,
-                                                    "width": 36,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            />
+                                            <View>
+                                              <View
+                                                useNativeDriver={true}
+                                              >
+                                                <Image
+                                                  fadeIn={true}
+                                                  onError={[Function]}
+                                                  onLoadEnd={[Function]}
+                                                  source={
+                                                    {
+                                                      "uri": "",
+                                                    }
+                                                  }
+                                                  style={
+                                                    [
+                                                      {
+                                                        "borderRadius": 12,
+                                                        "height": 24,
+                                                        "width": 24,
+                                                      },
+                                                      {
+                                                        "borderRadius": 18,
+                                                        "height": 36,
+                                                        "width": 36,
+                                                      },
+                                                      undefined,
+                                                      undefined,
+                                                      undefined,
+                                                    ]
+                                                  }
+                                                />
+                                                <View
+                                                  collapsable={false}
+                                                  style={
+                                                    {
+                                                      "bottom": 0,
+                                                      "left": 0,
+                                                      "opacity": 1,
+                                                      "position": "absolute",
+                                                      "right": 0,
+                                                      "top": 0,
+                                                    }
+                                                  }
+                                                >
+                                                  <View
+                                                    style={
+                                                      [
+                                                        {
+                                                          "borderRadius": 18,
+                                                          "height": 36,
+                                                          "width": 36,
+                                                        },
+                                                        {
+                                                          "backgroundColor": "#eee",
+                                                        },
+                                                        undefined,
+                                                      ]
+                                                    }
+                                                  />
+                                                </View>
+                                              </View>
+                                            </View>
                                             <View
-                                              collapsable={false}
                                               style={
                                                 {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
                                                   "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 1,
+                                                  "height": 0,
+                                                  "justifyContent": "center",
                                                   "position": "absolute",
                                                   "right": 0,
-                                                  "top": 0,
+                                                  "transform": [
+                                                    {
+                                                      "translateX": 0,
+                                                    },
+                                                    {
+                                                      "translateY": 0,
+                                                    },
+                                                  ],
                                                 }
                                               }
                                             >
                                               <View
+                                                onLayout={[Function]}
                                                 style={
-                                                  [
-                                                    {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    {
-                                                      "backgroundColor": "#eee",
-                                                    },
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "alignItems": "center",
+                                                    "aspectRatio": 1,
+                                                    "height": "50%",
+                                                    "justifyContent": "center",
+                                                    "maxHeight": 24,
+                                                    "minHeight": 8,
+                                                    "opacity": 0,
+                                                  }
                                                 }
-                                              />
+                                                testID="badgenetwork"
+                                              >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "alignItems": "center",
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderColor": "#ffffff",
+                                                      "borderRadius": 8,
+                                                      "borderWidth": 2,
+                                                      "height": 32,
+                                                      "justifyContent": "center",
+                                                      "overflow": "hidden",
+                                                      "shadowColor": "#0000001a",
+                                                      "shadowOffset": {
+                                                        "height": 2,
+                                                        "width": 0,
+                                                      },
+                                                      "shadowOpacity": 1,
+                                                      "shadowRadius": 4,
+                                                      "transform": [
+                                                        {
+                                                          "scale": 1,
+                                                        },
+                                                      ],
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                >
+                                                  <Image
+                                                    onError={[Function]}
+                                                    resizeMode="contain"
+                                                    source={1}
+                                                    style={
+                                                      {
+                                                        "height": 32,
+                                                        "width": 32,
+                                                      }
+                                                    }
+                                                    testID="network-avatar-image"
+                                                  />
+                                                </View>
+                                              </View>
                                             </View>
                                           </View>
                                         </View>
@@ -13627,27 +13797,21 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
                                           "backgroundColor": "#ffffff",
                                           "borderRadius": 4,
                                           "height": 16,
-                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "width": 16,
                                         }
                                       }
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
+                                      <View
                                         style={
                                           {
                                             "height": 16,
                                             "width": 16,
                                           }
                                         }
-                                        testID="network-avatar-image"
                                       />
                                     </View>
                                     <Text
@@ -13669,7 +13833,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     >
                                       Account 2
                                        
-                                      (0xC4966...4a756)
+                                      (0x29900...da21a)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -13904,63 +14068,154 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           testID="listitemcolumn"
                                         >
                                           <View
-                                            useNativeDriver={true}
+                                            onLayout={[Function]}
+                                            style={
+                                              {
+                                                "alignSelf": "flex-start",
+                                                "position": "relative",
+                                              }
+                                            }
+                                            testID="badge-wrapper-badge"
                                           >
-                                            <Image
-                                              fadeIn={true}
-                                              onError={[Function]}
-                                              onLoadEnd={[Function]}
-                                              source={
-                                                {
-                                                  "uri": "",
-                                                }
-                                              }
-                                              style={
-                                                [
-                                                  {
-                                                    "borderRadius": 12,
-                                                    "height": 24,
-                                                    "width": 24,
-                                                  },
-                                                  {
-                                                    "borderRadius": 18,
-                                                    "height": 36,
-                                                    "width": 36,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                            />
+                                            <View>
+                                              <View
+                                                useNativeDriver={true}
+                                              >
+                                                <Image
+                                                  fadeIn={true}
+                                                  onError={[Function]}
+                                                  onLoadEnd={[Function]}
+                                                  source={
+                                                    {
+                                                      "uri": "",
+                                                    }
+                                                  }
+                                                  style={
+                                                    [
+                                                      {
+                                                        "borderRadius": 12,
+                                                        "height": 24,
+                                                        "width": 24,
+                                                      },
+                                                      {
+                                                        "borderRadius": 18,
+                                                        "height": 36,
+                                                        "width": 36,
+                                                      },
+                                                      undefined,
+                                                      undefined,
+                                                      undefined,
+                                                    ]
+                                                  }
+                                                />
+                                                <View
+                                                  collapsable={false}
+                                                  style={
+                                                    {
+                                                      "bottom": 0,
+                                                      "left": 0,
+                                                      "opacity": 1,
+                                                      "position": "absolute",
+                                                      "right": 0,
+                                                      "top": 0,
+                                                    }
+                                                  }
+                                                >
+                                                  <View
+                                                    style={
+                                                      [
+                                                        {
+                                                          "borderRadius": 18,
+                                                          "height": 36,
+                                                          "width": 36,
+                                                        },
+                                                        {
+                                                          "backgroundColor": "#eee",
+                                                        },
+                                                        undefined,
+                                                      ]
+                                                    }
+                                                  />
+                                                </View>
+                                              </View>
+                                            </View>
                                             <View
-                                              collapsable={false}
                                               style={
                                                 {
+                                                  "alignItems": "center",
+                                                  "aspectRatio": 1,
                                                   "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 1,
+                                                  "height": 0,
+                                                  "justifyContent": "center",
                                                   "position": "absolute",
                                                   "right": 0,
-                                                  "top": 0,
+                                                  "transform": [
+                                                    {
+                                                      "translateX": 0,
+                                                    },
+                                                    {
+                                                      "translateY": 0,
+                                                    },
+                                                  ],
                                                 }
                                               }
                                             >
                                               <View
+                                                onLayout={[Function]}
                                                 style={
-                                                  [
-                                                    {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    {
-                                                      "backgroundColor": "#eee",
-                                                    },
-                                                    undefined,
-                                                  ]
+                                                  {
+                                                    "alignItems": "center",
+                                                    "aspectRatio": 1,
+                                                    "height": "50%",
+                                                    "justifyContent": "center",
+                                                    "maxHeight": 24,
+                                                    "minHeight": 8,
+                                                    "opacity": 0,
+                                                  }
                                                 }
-                                              />
+                                                testID="badgenetwork"
+                                              >
+                                                <View
+                                                  style={
+                                                    {
+                                                      "alignItems": "center",
+                                                      "backgroundColor": "#ffffff",
+                                                      "borderColor": "#ffffff",
+                                                      "borderRadius": 8,
+                                                      "borderWidth": 2,
+                                                      "height": 32,
+                                                      "justifyContent": "center",
+                                                      "overflow": "hidden",
+                                                      "shadowColor": "#0000001a",
+                                                      "shadowOffset": {
+                                                        "height": 2,
+                                                        "width": 0,
+                                                      },
+                                                      "shadowOpacity": 1,
+                                                      "shadowRadius": 4,
+                                                      "transform": [
+                                                        {
+                                                          "scale": 1,
+                                                        },
+                                                      ],
+                                                      "width": 32,
+                                                    }
+                                                  }
+                                                >
+                                                  <Image
+                                                    onError={[Function]}
+                                                    resizeMode="contain"
+                                                    source={1}
+                                                    style={
+                                                      {
+                                                        "height": 32,
+                                                        "width": 32,
+                                                      }
+                                                    }
+                                                    testID="network-avatar-image"
+                                                  />
+                                                </View>
+                                              </View>
                                             </View>
                                           </View>
                                         </View>
