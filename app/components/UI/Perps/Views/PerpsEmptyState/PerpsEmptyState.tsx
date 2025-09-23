@@ -8,10 +8,12 @@ import emptyStatePerpsDark from '../../../../../images/empty-state-perps-dark.pn
 
 export interface PerpsEmptyStateProps {
   onStartTrading: () => void;
+  testID?: string;
 }
 
 export const PerpsEmptyState: React.FC<PerpsEmptyStateProps> = ({
   onStartTrading,
+  testID,
 }) => {
   const perpsImage = useAssetFromTheme(
     emptyStatePerpsLight,
@@ -23,7 +25,7 @@ export const PerpsEmptyState: React.FC<PerpsEmptyStateProps> = ({
       description={strings('perps.position.list.first_time_description')}
       actionButtonText={strings('perps.position.list.start_trading')}
       onAction={onStartTrading}
-      testID="perps-empty-state"
+      testID={testID}
     />
   );
 };

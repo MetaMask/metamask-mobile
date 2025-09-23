@@ -246,7 +246,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <View style={styles.firstTimeContent}>
-                <PerpsEmptyState onStartTrading={handleNewTrade} />
+                <PerpsEmptyState
+                  onStartTrading={handleNewTrade}
+                  testID="perps-empty-state"
+                />
               </View>
             ) : (
               <View style={styles.tradeInfoContainer}>
