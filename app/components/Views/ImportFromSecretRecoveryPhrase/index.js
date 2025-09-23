@@ -91,12 +91,6 @@ import SrpInput from '../SrpInput';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
-// Custom masking function to replace characters with dots (avoids iOS ellipsis)
-const maskText = (text) => {
-  if (!text) return '';
-  return '••••';
-};
-
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -137,7 +131,6 @@ const ImportFromSecretRecoveryPhrase = ({
     useState(null);
   const [nextSeedPhraseInputFocusedIndex, setNextSeedPhraseInputFocusedIndex] =
     useState(null);
-  const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
@@ -672,24 +665,13 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   };
 
-  const canShowSeedPhraseWord = useCallback(
-    (index) =>
-      showAllSeedPhrase ||
-      errorWordIndexes[index] ||
-      index === seedPhraseInputFocusedIndex,
-    [showAllSeedPhrase, seedPhraseInputFocusedIndex, errorWordIndexes],
-  );
-
   const getInputValue = (isFirstInput, index, item) => {
     if (isFirstInput) {
       return seedPhrase?.[0] || '';
     }
 
-    if (canShowSeedPhraseWord(index)) {
-      return item;
-    }
-
-    return maskText(item);
+    // Show all words by default
+    return item;
   };
 
   const learnMoreLink = () => {
