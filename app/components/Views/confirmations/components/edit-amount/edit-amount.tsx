@@ -48,7 +48,7 @@ export function EditAmount({
   onKeyboardShow,
   onKeyboardHide,
   onKeyboardDone,
-}: EditAmountProps) {
+}: Readonly<EditAmountProps>) {
   const fiatCurrency = PERPS_CURRENCY;
   const dispatch = useDispatch();
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
@@ -217,9 +217,9 @@ export function EditAmount({
 
 export function EditAmountSkeleton({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const { styles } = useStyles(styleSheet, {
     amountLength: 1,
     hasAlert: false,
