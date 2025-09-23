@@ -95,8 +95,8 @@ export const WalletViewSelectorsText = {
   PERMISSIONS_SUMMARY_TAB: 'Permissions',
   ACCOUNTS_SUMMARY_TAB: 'Accounts',
   DEFI_TAB: enContent.wallet.defi,
-  DEFI_NO_VISIBLE_POSITIONS: enContent.defi_positions.no_visible_positions,
-  DEFI_NOT_SUPPORTED: enContent.defi_positions.not_supported,
+  DEFI_EMPTY_STATE_DESCRIPTION: enContent.defi.empty_state.description,
+  DEFI_EMPTY_STATE_EXPLORE_BUTTON: enContent.defi.empty_state.explore_defi,
   DEFI_ERROR_CANNOT_LOAD_PAGE: enContent.defi_positions.error_cannot_load_page,
   DEFI_ERROR_VISIT_AGAIN: enContent.defi_positions.error_visit_again,
 } as const;
