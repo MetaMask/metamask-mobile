@@ -13,6 +13,7 @@ import {
   selectUnlockedRewardLoading,
   selectUnlockedRewards,
 } from '../../../../../../reducers/rewards/selectors';
+import { useUnlockedRewards } from '../../../hooks/useUnlockedRewards';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -92,11 +93,19 @@ jest.mock('../../../../../../images/rewards/rewards-placeholder.svg', () => {
   );
 });
 
+// Mock the useUnlockedRewards hook
+jest.mock('../../../hooks/useUnlockedRewards', () => ({
+  useUnlockedRewards: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.Mock;
 const mockUseDispatch = useDispatch as jest.Mock;
 const mockSelectUnlockedRewardLoading =
   selectUnlockedRewardLoading as jest.Mock;
 const mockSelectUnlockedRewards = selectUnlockedRewards as jest.Mock;
+const mockUseUnlockedRewards = useUnlockedRewards as jest.MockedFunction<
+  typeof useUnlockedRewards
+>;
 
 // Mock data
 const mockSeasonReward: SeasonRewardDto = {
@@ -128,6 +137,7 @@ describe('UnlockedRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(jest.fn());
+    mockUseUnlockedRewards.mockClear();
   });
 
   const setupMocks = ({
@@ -153,16 +163,24 @@ describe('UnlockedRewards', () => {
     });
   };
 
+  it('should call useUnlockedRewards hook', () => {
+    setupMocks({ rewards: [] });
+    render(<UnlockedRewards />);
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
+  });
+
   it('should render unlocked rewards container with testID', () => {
     setupMocks({ rewards: [mockUnlockedReward] });
     const { getByTestId } = render(<UnlockedRewards />);
     expect(getByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS)).toBeDefined();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should render the unlocked rewards title', () => {
     setupMocks({ rewards: [mockUnlockedReward] });
     const { getByText } = render(<UnlockedRewards />);
     expect(getByText('Unlocked rewards')).toBeDefined();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should render a list of reward items', () => {
@@ -175,6 +193,7 @@ describe('UnlockedRewards', () => {
     setupMocks({ loading: true });
     const { queryByTestId } = render(<UnlockedRewards />);
     expect(queryByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS)).toBeNull();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should show an empty state message when there are no rewards', () => {
@@ -182,12 +201,14 @@ describe('UnlockedRewards', () => {
     const { getByText, getByTestId } = render(<UnlockedRewards />);
     expect(getByText('No unlocked rewards yet')).toBeDefined();
     expect(getByTestId('unlocked-rewards-placeholder')).toBeDefined();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should render a "View ways to earn" button in the empty state', () => {
     setupMocks({ rewards: [] });
     const { getByText } = render(<UnlockedRewards />);
     expect(getByText('View ways to earn')).toBeDefined();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should dispatch setActiveTab when "View ways to earn" is pressed', () => {
@@ -201,11 +222,13 @@ describe('UnlockedRewards', () => {
 
     expect(dispatch).toHaveBeenCalledTimes(1);
     expect(dispatch).toHaveBeenCalledWith('MOCKED_ACTION');
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 
   it('should not render a reward item if season reward is not found', () => {
     setupMocks({ rewards: [mockUnlockedReward], seasonReward: undefined });
     const { getByTestId } = render(<UnlockedRewards />);
     expect(getByTestId(REWARDS_VIEW_SELECTORS.UNLOCKED_REWARDS)).toBeDefined();
+    expect(mockUseUnlockedRewards).toHaveBeenCalledTimes(1);
   });
 });
