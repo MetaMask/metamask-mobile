@@ -44,6 +44,10 @@ jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
   },
 }));
 
+jest.mock('../../../Engine', () => ({
+  context: {},
+}));
+
 describe('Transaction Metric Event Handlers', () => {
   const mockGetSmartTransactionMetricsProperties = jest.mocked(
     getSmartTransactionMetricsProperties,

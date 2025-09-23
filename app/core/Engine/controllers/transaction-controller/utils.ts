@@ -175,9 +175,16 @@ export async function generateDefaultTransactionMetrics(
 
   const { from } = txParams || {};
 
-  const accountType = isValidHexAddress(from)
-    ? getAddressAccountType(from)
-    : 'unknown';
+  let accountType = 'unknown';
+
+  // Fails if wallet locked
+  try {
+    accountType = isValidHexAddress(from)
+      ? getAddressAccountType(from)
+      : accountType;
+  } catch {
+    // Intentionally empty
+  }
 
   const batchProperties = await getBatchProperties(transactionMeta);
   const gasFeeProperties = getGasMetricProperties(transactionMeta);
