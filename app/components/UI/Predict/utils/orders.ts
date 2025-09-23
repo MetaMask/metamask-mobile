@@ -1,11 +1,9 @@
+import QuickCrypto from 'react-native-quick-crypto';
+
 /**
- * Generates a unique order ID as a random string
+ * Generates a unique order ID using react-native-quick-crypto's randomUUID
  * @returns A unique order ID string
  */
 export function generateOrderId(): string {
-  const timestamp = Date.now().toString(36);
-  const randomPart = Math.random().toString(36).substring(2, 15);
-  const additionalRandom = Math.random().toString(36).substring(2, 15);
-
-  return `${timestamp}-${randomPart}-${additionalRandom}`;
+  return QuickCrypto.randomUUID();
 }
