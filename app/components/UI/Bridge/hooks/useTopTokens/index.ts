@@ -5,11 +5,10 @@ import {
   formatChainIdToHex,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import { BridgeToken } from '../../types';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
@@ -19,6 +18,7 @@ import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slice
 import { RootState } from '../../../../../reducers';
 import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 import { normalizeToCaipAssetType } from '../../utils';
+import { bridgeTokensCacheManager } from '../../utils/BridgeTokensCacheManager';
 
 const MAX_TOP_TOKENS = 30;
 
@@ -32,6 +32,7 @@ export const useTopTokens = ({
   topTokens: BridgeToken[] | undefined;
   remainingTokens: BridgeToken[] | undefined;
   pending: boolean;
+  error: Error | null;
 } => {
   const swapsChainCache: SwapsControllerState['chainCache'] =
     useSelector(selectChainCache);
@@ -50,10 +51,6 @@ export const useTopTokens = ({
     selectTopAssetsFromFeatureFlags(state, chainId),
   );
 
-  const cachedBridgeTokens = useRef<
-    Record<string, Record<string, BridgeToken>>
-  >({});
-
   // Get the top assets from the Swaps API
   useEffect(() => {
     (async () => {
@@ -71,57 +68,115 @@ export const useTopTokens = ({
     })();
   }, [chainId]);
 
-  // Get the token data from the bridge API
-  const {
-    value: bridgeTokens,
-    pending: bridgeTokensPending,
-    error: bridgeTokensError,
-  } = useAsyncResult(async () => {
-    if (!chainId || bridgeTokensError) {
-      return {};
+  // Get the token data from the bridge API with caching
+  const [bridgeTokens, setBridgeTokens] = useState<
+    Record<string, BridgeToken> | undefined
+  >(undefined);
+  const [bridgeTokensPending, setBridgeTokensPending] = useState(true);
+  const [bridgeTokensError, setBridgeTokensError] = useState<Error | null>(
+    null,
+  );
+
+  const fetchAndProcessBridgeTokens = useCallback(
+    async (chainId: Hex | CaipChainId) => {
+      try {
+        const rawBridgeAssets = await fetchBridgeTokens(
+          chainId,
+          BridgeClientId.MOBILE,
+          handleFetch,
+          BRIDGE_API_BASE_URL,
+        );
+
+        // Convert from BridgeAsset type to BridgeToken type
+        const bridgeTokenObj: Record<string, BridgeToken> = {};
+        Object.keys(rawBridgeAssets).forEach((addr) => {
+          const bridgeAsset = rawBridgeAssets[addr];
+
+          const caipChainId = formatChainIdToCaip(bridgeAsset.chainId);
+          const hexChainId = formatChainIdToHex(bridgeAsset.chainId);
+
+          // Convert Solana addresses to CAIP format for consistent deduplication
+          const tokenAddress = isSolanaChainId(caipChainId)
+            ? normalizeToCaipAssetType(bridgeAsset.address, caipChainId)
+            : bridgeAsset.address;
+
+          bridgeTokenObj[addr] = {
+            address: tokenAddress,
+            symbol: bridgeAsset.symbol,
+            name: bridgeAsset.name,
+            image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
+            decimals: bridgeAsset.decimals,
+            chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
+          };
+        });
+
+        return bridgeTokenObj;
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          `useTopTokens: Error fetching bridge tokens for chainId ${chainId}`,
+        );
+        throw error;
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!chainId) {
+      setBridgeTokens(undefined);
+      setBridgeTokensPending(false);
+      setBridgeTokensError(null);
+      return;
     }
 
-    if (cachedBridgeTokens.current[chainId]) {
-      return cachedBridgeTokens.current[chainId];
-    }
+    // Immediately clear previous tokens when chainId changes to prevent showing stale data
+    setBridgeTokens(undefined);
+    setBridgeTokensPending(true);
+    setBridgeTokensError(null);
 
-    const rawBridgeAssets = await fetchBridgeTokens(
-      chainId,
-      BridgeClientId.MOBILE,
-      handleFetch,
-      BRIDGE_API_BASE_URL,
-    );
+    let cancelled = false;
 
-    // Convert from BridgeAsset type to BridgeToken type
-    const bridgeTokenObj: Record<string, BridgeToken> = {};
-    Object.keys(rawBridgeAssets).forEach((addr) => {
-      const bridgeAsset = rawBridgeAssets[addr];
+    const loadBridgeTokens = async () => {
+      try {
+        // 1. Try to get cached data first for instant loading
+        const cachedTokens = await bridgeTokensCacheManager.getCachedTokens(
+          chainId,
+        );
+        if (cachedTokens && !cancelled) {
+          setBridgeTokens(cachedTokens);
+          setBridgeTokensPending(false);
+          // Continue to fetch fresh data in background for next time
+        }
 
-      const caipChainId = formatChainIdToCaip(bridgeAsset.chainId);
-      const hexChainId = formatChainIdToHex(bridgeAsset.chainId);
+        // 2. Fetch fresh data (either because no cache or for background refresh)
+        const freshTokens = await fetchAndProcessBridgeTokens(chainId);
 
-      // Convert Solana addresses to CAIP format for consistent deduplication
-      const tokenAddress = isSolanaChainId(caipChainId)
-        ? normalizeToCaipAssetType(bridgeAsset.address, caipChainId)
-        : bridgeAsset.address;
+        if (!cancelled) {
+          setBridgeTokens(freshTokens);
+          setBridgeTokensPending(false);
 
-      bridgeTokenObj[addr] = {
-        address: tokenAddress,
-        symbol: bridgeAsset.symbol,
-        name: bridgeAsset.name,
-        image: bridgeAsset.iconUrl || bridgeAsset.icon || '',
-        decimals: bridgeAsset.decimals,
-        chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
-      };
-    });
-
-    cachedBridgeTokens.current = {
-      ...cachedBridgeTokens.current,
-      [chainId]: bridgeTokenObj,
+          // 3. Update cache with fresh data
+          await bridgeTokensCacheManager.setCachedTokens(chainId, freshTokens);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setBridgeTokensError(error as Error);
+          setBridgeTokensPending(false);
+          Logger.error(
+            error as Error,
+            `useTopTokens: Failed to load bridge tokens for chainId ${chainId}`,
+          );
+        }
+      }
     };
 
-    return bridgeTokenObj;
-  }, [chainId]);
+    loadBridgeTokens();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chainId, fetchAndProcessBridgeTokens]);
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
   const { topTokens, remainingTokens } = useMemo(() => {
@@ -191,5 +246,6 @@ export const useTopTokens = ({
     topTokens,
     remainingTokens,
     pending: chainId ? bridgeTokensPending || swapsTopAssetsPending : false,
+    error: bridgeTokensError,
   };
 };
