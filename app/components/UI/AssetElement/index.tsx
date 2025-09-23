@@ -1,6 +1,12 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  View,
+  Text,
+} from 'react-native';
 import {
   TextVariant,
   TextColor,
@@ -86,19 +92,21 @@ const AssetElement: React.FC<AssetElementProps> = ({
   const handleOnLongPress = () => {
     onLongPress?.(asset);
   };
-
+  const testId = generateTestId(Platform, getAssetTestId(asset.symbol));
   // TODO: Use the SensitiveText component when it's available
   // when privacyMode is true, we should hide the balance and the fiat
+  console.log('testId', testId.testID);
   return (
     <TouchableOpacity
       disabled={disabled}
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
       style={styles.itemWrapper}
-      {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+      {...testId}
     >
       {children}
       <View style={styles.arrow}>
+        <Text>{testId.testID}</Text>
         {balance && (
           <SensitiveText
             variant={
