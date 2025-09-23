@@ -217,6 +217,7 @@ export default class Assertions {
       },
     );
   }
+  
 
   /**
    * Assert text is not displayed anywhere on screen with auto-retry
