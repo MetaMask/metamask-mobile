@@ -288,25 +288,39 @@ jobs:
           <!-- smart-e2e-analysis -->
           EOF
 
-          # Find and update existing Smart E2E comment with better debugging
-          echo "🔍 Searching for existing Smart E2E comment..."
+          # Find and cleanup duplicate Smart E2E comments
+          echo "🔍 Searching for existing Smart E2E comments..."
 
-          # First, let's see what comments exist for debugging
-          echo "📋 Current comments on PR:"
-          gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
-            --jq '.[] | {id: .id, author: .user.login, preview: (.body[:100] + "...")}'
-
-          # Look for existing Smart E2E comment (check for the header, not just HTML comment)
-          COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+          # Get all Smart E2E comment IDs (sorted by creation, newest first)
+          ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
             --jq '.[] | select(.body | test("🤖 Smart E2E Test Analysis")) | .id' \
-            | tail -1)
+            | tac)
 
-          echo "Found comment ID: '$COMMENT_ID'"
+          COMMENT_COUNT=$(echo "$ALL_COMMENT_IDS" | wc -l | tr -d ' ')
+          echo "📊 Found $COMMENT_COUNT existing Smart E2E comments"
 
-          if [ -n "$COMMENT_ID" ] && [ "$COMMENT_ID" != "null" ] && [ "$COMMENT_ID" != "" ]; then
-            echo "📝 Updating existing Smart E2E comment (ID: $COMMENT_ID)..."
+          if [ -n "$ALL_COMMENT_IDS" ] && [ "$COMMENT_COUNT" -gt 0 ]; then
+            # Get the most recent (first) comment ID to keep
+            LATEST_COMMENT_ID=$(echo "$ALL_COMMENT_IDS" | head -1)
+            echo "📝 Will keep most recent comment (ID: $LATEST_COMMENT_ID) and delete others"
+
+            # Delete all older duplicate comments
+            if [ "$COMMENT_COUNT" -gt 1 ]; then
+              echo "🧹 Cleaning up $(($COMMENT_COUNT - 1)) duplicate comments..."
+              echo "$ALL_COMMENT_IDS" | tail -n +2 | while read -r OLD_COMMENT_ID; do
+                if [ -n "$OLD_COMMENT_ID" ]; then
+                  echo "🗑️  Deleting duplicate comment: $OLD_COMMENT_ID"
+                  gh api "repos/${{ github.repository }}/issues/comments/$OLD_COMMENT_ID" \
+                    --method DELETE > /dev/null 2>&1 || echo "⚠️  Failed to delete comment $OLD_COMMENT_ID"
+                fi
+              done
+              echo "✨ Cleanup completed"
+            fi
+
+            # Update the remaining comment
+            echo "📝 Updating Smart E2E comment (ID: $LATEST_COMMENT_ID)..."
             COMMENT_BODY=$(cat pr_comment.md)
-            if gh api "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" \
+            if gh api "repos/${{ github.repository }}/issues/comments/$LATEST_COMMENT_ID" \
               --method PATCH \
               --field body="$COMMENT_BODY" > /dev/null 2>&1; then
               echo "✅ Successfully updated existing comment"
@@ -315,7 +329,7 @@ jobs:
               gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
             fi
           else
-            echo "📝 No existing Smart E2E comment found, creating new one..."
+            echo "📝 No existing Smart E2E comments found, creating new one..."
             gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
           fi
 
