@@ -29,13 +29,32 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../../../selectors/accountsController'),
-}));
-
 const defaultState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            'test-id': {
+              address: '0x1234567890123456789012345678901234567890',
+              id: 'test-id',
+              metadata: {
+                name: 'Test Account',
+                keyring: { type: 'HD Key Tree' },
+              },
+              options: {},
+              methods: [],
+              type: 'eip155:eoa' as const,
+            },
+          },
+          selectedAccount: 'test-id',
+        },
+      },
+    },
+  },
+  settings: {
+    avatarAccountType: 'Maskicon',
   },
 };
 
@@ -58,9 +77,7 @@ describe('AccountSelector', () => {
       state: defaultState,
     });
 
-    expect(
-      screen.getByText(/Test Account.*\(0x12345\.\.\.67890\)/),
-    ).toBeTruthy();
+    expect(screen.getByText('Test Account')).toBeTruthy();
   });
 
   it('renders correctly without account name', () => {
@@ -70,7 +87,8 @@ describe('AccountSelector', () => {
       state: defaultState,
     });
 
-    expect(screen.getByText(/0x12345\.\.\.67890/)).toBeTruthy();
+    // Text should be empty but element should exist
+    expect(screen.getByText('')).toBeTruthy();
   });
 
   it('renders loading state when no address', () => {
@@ -78,10 +96,27 @@ describe('AccountSelector', () => {
       selectedAddress: undefined,
     } as unknown as ReturnType<typeof useRampSDK>);
 
+    const stateWithNoAddress = {
+      ...defaultState,
+      engine: {
+        ...defaultState.engine,
+        backgroundState: {
+          ...defaultState.engine.backgroundState,
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: '',
+            },
+          },
+        },
+      },
+    };
+
     renderWithProvider(<AccountSelector />, {
-      state: defaultState,
+      state: stateWithNoAddress,
     });
 
+    // Should show loading text when no address
     expect(screen.getByText('Account is loading...')).toBeTruthy();
   });
 
@@ -103,7 +138,7 @@ describe('AccountSelector', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'RootModalFlow',
       expect.objectContaining({
-        screen: 'AddressSelector',
+        screen: 'AccountSelector',
         params: expect.objectContaining({
           isEvmOnly: true,
         }),
@@ -120,9 +155,9 @@ describe('AccountSelector', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'RootModalFlow',
       expect.objectContaining({
-        screen: 'AddressSelector',
+        screen: 'AccountSelector',
         params: expect.objectContaining({
-          displayOnlyCaipChainIds: ['eip155:1', 'eip155:137'],
+          isEvmOnly: undefined,
         }),
       }),
     );

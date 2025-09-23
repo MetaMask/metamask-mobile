@@ -42,6 +42,11 @@ export default function useInAppBrowser() {
         return;
       }
 
+      if (!selectedAddress) {
+        Logger.error(new Error('No address available for selected asset'));
+        return;
+      }
+
       const deeplinkRedirectUrl = `${callbackBaseDeeplink}on-ramp${provider.id}`;
       const { url, orderId: customOrderId } = await buyAction.createWidget(
         deeplinkRedirectUrl,

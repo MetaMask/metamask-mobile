@@ -104,8 +104,6 @@ import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
-import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -172,8 +170,6 @@ const BuildQuote = () => {
     isBuy,
     isSell,
   } = useRampSDK();
-
-  const isCompatible = useAccountTokenCompatible(selectedAsset);
 
   const screenLocation: ScreenLocation = isBuy
     ? 'Amount to Buy Screen'
@@ -266,7 +262,10 @@ const BuildQuote = () => {
   );
 
   const addressForBalance = useMemo(
-    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+    () =>
+      selectedAddress && isNonEvmAddress(selectedAddress)
+        ? undefined
+        : selectedAddress,
     [selectedAddress],
   );
 
@@ -279,7 +278,7 @@ const BuildQuote = () => {
 
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
-    addressForBalance,
+    addressForBalance ?? undefined,
     true,
     hexChainIdForBalance,
   );
@@ -595,7 +594,7 @@ const BuildQuote = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
-    if (!isCompatible) {
+    if (!selectedAddress) {
       navigation.navigate(
         ...createIncompatibleAccountTokenModalNavigationDetails(),
       );
@@ -640,8 +639,8 @@ const BuildQuote = () => {
       }
     }
   }, [
-    isCompatible,
     rampType,
+    selectedAddress,
     screenLocation,
     amount,
     amountNumber,

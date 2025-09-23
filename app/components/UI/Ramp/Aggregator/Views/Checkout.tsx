@@ -28,6 +28,7 @@ import useAnalytics from '../../hooks/useAnalytics';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';
+import Logger from '../../../../../util/Logger';
 
 interface CheckoutParams {
   url: string;
@@ -86,7 +87,11 @@ const CheckoutWebView = () => {
   }, [navigation, colors, handleCancelPress, provider.name]);
 
   useEffect(() => {
-    if (!customOrderId || !selectedAsset?.network?.chainId) {
+    if (
+      !customOrderId ||
+      !selectedAsset?.network?.chainId ||
+      !selectedAddress
+    ) {
       return;
     }
     const customOrderIdData = createCustomOrderIdData(
@@ -113,6 +118,10 @@ const CheckoutWebView = () => {
           // Most likely the user clicked the X in Wyre widget
           // @ts-expect-error navigation prop mismatch
           navigation.dangerouslyGetParent()?.pop();
+          return;
+        }
+        if (!selectedAddress) {
+          Logger.error(new Error('No address available for selected asset'));
           return;
         }
         const orders = await SDK.orders();
