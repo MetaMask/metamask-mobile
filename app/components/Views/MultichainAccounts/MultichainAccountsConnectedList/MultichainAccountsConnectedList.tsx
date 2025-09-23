@@ -21,6 +21,8 @@ import Avatar, {
 } from '../../../../component-library/components/Avatars/Avatar';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../core/Engine';
+import { useSelector } from 'react-redux';
+import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const MultichainAccountsConnectedList = ({
   privacyMode,
@@ -36,6 +38,8 @@ const MultichainAccountsConnectedList = ({
     numOfAccounts: selectedAccountGroups.length,
   });
 
+  const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
+
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       const { AccountTreeController } = Engine.context;
@@ -47,13 +51,14 @@ const MultichainAccountsConnectedList = ({
   const renderItem = useCallback(
     ({ item }: { item: AccountGroupObject }) => (
       <AccountListCell
+        isSelected={selectedAccountGroup?.id === item.id}
         accountGroup={item}
         onSelectAccount={handleSelectAccount}
         // @ts-expect-error - This is temporary because the account list cell is being updated in another PR.
         privacyMode={privacyMode}
       />
     ),
-    [privacyMode, handleSelectAccount],
+    [privacyMode, handleSelectAccount, selectedAccountGroup],
   );
 
   return (

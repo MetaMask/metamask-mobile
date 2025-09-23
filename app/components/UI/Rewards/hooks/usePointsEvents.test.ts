@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Add longer timeout for waitFor to prevent test flakiness
 const waitForOptions = { timeout: 5000 };
@@ -57,7 +58,16 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
     mockUseInvalidateByRewardEvents(...args),
 }));
 
+// Mock React Navigation hooks
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 describe('usePointsEvents', () => {
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
+
   const mockPointsEvent = {
     id: 'event-1',
     title: 'Test Event',
@@ -76,6 +86,12 @@ describe('usePointsEvents', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCall.mockResolvedValue(mockPaginatedResponse);
+
+    // Reset the mocked hooks
+    mockUseFocusEffect.mockClear();
+    mockUseInvalidateByRewardEvents.mockImplementation(() => {
+      // Mock implementation
+    });
   });
 
   describe('initialization', () => {
@@ -86,6 +102,13 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       expect(result.current.pointsEvents).toEqual([]);
       expect(result.current.isLoading).toBe(false);
@@ -101,6 +124,13 @@ describe('usePointsEvents', () => {
           subscriptionId: '',
         }),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       expect(result.current.pointsEvents).toEqual([]);
       expect(result.current.isLoading).toBe(false);
@@ -119,6 +149,13 @@ describe('usePointsEvents', () => {
 
       // Initial state should show loading
       expect(result.current.isLoading).toBe(true);
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       // Wait for the data to load
       await waitFor(
@@ -155,6 +192,13 @@ describe('usePointsEvents', () => {
         }),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       // Wait for the error to be set
       await waitFor(
         () => expect(result.current.error).not.toBeNull(),
@@ -176,6 +220,13 @@ describe('usePointsEvents', () => {
         }),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       // Wait for the error to be set
       await waitFor(
         () => expect(result.current.error).not.toBeNull(),
@@ -196,6 +247,13 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       // Wait for initial load
       await waitFor(
@@ -245,6 +303,13 @@ describe('usePointsEvents', () => {
         }),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       // Wait for initial load
       await waitFor(
         () => expect(result.current.isLoading).toBe(false),
@@ -287,6 +352,13 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       // Wait for initial load
       await waitFor(
@@ -333,6 +405,13 @@ describe('usePointsEvents', () => {
         }),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       // Wait for initial load
       await waitFor(
         () => expect(result.current.isLoading).toBe(false),
@@ -375,6 +454,13 @@ describe('usePointsEvents', () => {
         }),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       // Wait for initial load
       await waitFor(
         () => expect(result.current.isLoading).toBe(false),
@@ -408,6 +494,9 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
 
       // Verify subscription to events
       expect(mockUseInvalidateByRewardEvents).toHaveBeenCalledWith(

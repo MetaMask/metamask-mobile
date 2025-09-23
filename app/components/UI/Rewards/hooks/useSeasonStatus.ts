@@ -1,21 +1,21 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { setSeasonStatus } from '../../../../actions/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSeasonStatusLoading } from '../../../../reducers/rewards';
 import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
+import { useFocusEffect } from '@react-navigation/native';
 
 /**
  * Custom hook to fetch and manage season status data from the rewards API
  * Uses the RewardsController to get data from the rewards data service
  */
 export const useSeasonStatus = (): void => {
-  const seasonId = useSelector(selectSeasonId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
+  const isLoadingRef = useRef(false);
 
   const fetchSeasonStatus = useCallback(async (): Promise<void> => {
     // Don't fetch if no subscriptionId
@@ -25,28 +25,36 @@ export const useSeasonStatus = (): void => {
       return;
     }
 
+    if (isLoadingRef.current) {
+      return;
+    }
+    isLoadingRef.current = true;
+
     dispatch(setSeasonStatusLoading(true));
 
     try {
       const statusData = await Engine.controllerMessenger.call(
         'RewardsController:getSeasonStatus',
         subscriptionId,
-        seasonId || CURRENT_SEASON_ID,
+        CURRENT_SEASON_ID,
       );
 
       dispatch(setSeasonStatus(statusData));
-    } catch (err) {
+    } catch {
       // Keep existing data on error to prevent UI flash
       dispatch(setSeasonStatus(null));
     } finally {
+      isLoadingRef.current = false;
       dispatch(setSeasonStatusLoading(false));
     }
-  }, [dispatch, seasonId, subscriptionId]);
+  }, [dispatch, subscriptionId]);
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchSeasonStatus();
-  }, [fetchSeasonStatus]);
+  // Refresh data when screen comes into focus (each time page is visited)
+  useFocusEffect(
+    useCallback(() => {
+      fetchSeasonStatus();
+    }, [fetchSeasonStatus]),
+  );
 
   useInvalidateByRewardEvents(
     ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
