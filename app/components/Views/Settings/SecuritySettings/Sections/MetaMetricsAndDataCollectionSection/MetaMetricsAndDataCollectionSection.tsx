@@ -67,7 +67,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     if (!isBasicFunctionalityEnabled) {
       if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
         enableSocialLogin(false);
-      } else if (!isSeedlessOnboardingLoginFlow) {
+      } else {
         enable(false);
       }
       setAnalyticsEnabled(false);
@@ -108,7 +108,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       };
       if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
         await enableSocialLogin(true);
-      } else if (!isSeedlessOnboardingLoginFlow) {
+      } else {
         await enable();
       }
 
@@ -129,7 +129,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     } else {
       if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
         await enableSocialLogin(false);
-      } else if (!isSeedlessOnboardingLoginFlow) {
+      } else {
         await enable(false);
       }
       setAnalyticsEnabled(false);
