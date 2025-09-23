@@ -346,7 +346,9 @@ const QuoteDetailsCard: React.FC = () => {
               },
               tooltip: {
                 title: strings('bridge.points_tooltip'),
-                content: strings('bridge.points_tooltip_content'),
+                content: `${strings(
+                  'bridge.points_tooltip_content_1',
+                )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                 size: TooltipSizes.Sm,
               },
             }}

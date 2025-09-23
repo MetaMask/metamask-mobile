@@ -1,4 +1,5 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { setSeasonStatus } from '../../../../actions/rewards';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,7 +36,7 @@ export const useSeasonStatus = (): void => {
       );
 
       dispatch(setSeasonStatus(statusData));
-    } catch (err) {
+    } catch {
       // Keep existing data on error to prevent UI flash
       dispatch(setSeasonStatus(null));
     } finally {
@@ -43,10 +44,12 @@ export const useSeasonStatus = (): void => {
     }
   }, [dispatch, seasonId, subscriptionId]);
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchSeasonStatus();
-  }, [fetchSeasonStatus]);
+  // Refresh data when screen comes into focus (each time page is visited)
+  useFocusEffect(
+    useCallback(() => {
+      fetchSeasonStatus();
+    }, [fetchSeasonStatus]),
+  );
 
   useInvalidateByRewardEvents(
     ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
