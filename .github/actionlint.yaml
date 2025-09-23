@@ -4,6 +4,7 @@ self-hosted-runner:
     - "gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl"
     - "gha-mmsdk-scale-set-ubuntu-22.04-amd64-large"
     - "gha-mm-scale-set-ubuntu-22.04-amd64-large"
+    - "gha-mmsdk-scale-set-ubuntu-22.04-amd64-small"
     - "macos-15"
     - "ghcr.io/cirruslabs/macos-runner:sequoia"
     - "ghcr.io/cirruslabs/macos-runner:sequoia-xl"
