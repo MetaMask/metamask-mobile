@@ -9,15 +9,8 @@ import {
 } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { ConfirmationMetricsState } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
-import { View as MockView } from 'react-native';
 
 jest.mock('../../../hooks/pay/useTransactionTotalFiat');
-
-jest.mock('../../../../../UI/AnimatedSpinner', () => ({
-  __esModule: true,
-  ...jest.requireActual('../../../../../UI/AnimatedSpinner'),
-  default: () => <MockView testID="total-spinner">{`Spinner`}</MockView>,
-}));
 
 const TOTAL_FIAT_MOCK = '$123.456';
 
@@ -55,8 +48,8 @@ describe('TotalRow', () => {
     expect(getByText(TOTAL_FIAT_MOCK)).toBeDefined();
   });
 
-  it('renders a spinner when quotes are loading', () => {
+  it('renders skeleton when quotes are loading', () => {
     const { getByTestId } = render({ isLoading: true });
-    expect(getByTestId('total-spinner')).toBeDefined();
+    expect(getByTestId('total-row-skeleton')).toBeDefined();
   });
 });
