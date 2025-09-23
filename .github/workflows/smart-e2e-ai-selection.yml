@@ -263,12 +263,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Post AI analysis to PR
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Generate PR comment content
+        id: generate-comment
         run: |
-          # Create AI analysis comment with unique identifier
-          cat > pr_comment.md << EOF
+          # Generate the PR comment content
+          cat > comment_body.md << EOF
           ## 🤖 Smart E2E Test Analysis
 
           **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
@@ -284,29 +283,32 @@ jobs:
           ${{ needs.analyze-and-plan.outputs.breakdown || '(No breakdown available)' }}
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
-
-          <!-- smart-e2e-comment-id: pr-${{ github.event.pull_request.number }} -->
           EOF
 
-          # Find and update existing Smart E2E comment or create new one
-          echo "🔍 Looking for existing Smart E2E comment to update..."
+          # Set output for next step
+          {
+            echo "comment-body<<EOF"
+            cat comment_body.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-          # Get the most recent Smart E2E comment ID for this PR
-          LATEST_COMMENT_ID=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq -r '.comments[] | select(.body | contains("smart-e2e-comment-id: pr-${{ github.event.pull_request.number }}")) | .id' 2>/dev/null | tail -1 || echo "")
+      - name: Find existing comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '🤖 Smart E2E Test Analysis'
 
-          if [ -n "$LATEST_COMMENT_ID" ]; then
-            echo "📝 Updating existing Smart E2E comment: $LATEST_COMMENT_ID"
-            COMMENT_BODY=$(cat pr_comment.md)
-            if gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$LATEST_COMMENT_ID" --field body="$COMMENT_BODY" >/dev/null 2>&1; then
-              echo "✅ Successfully updated existing comment"
-            else
-              echo "⚠️ Failed to update existing comment, creating new one..."
-              gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
-            fi
-          else
-            echo "📝 No existing comment found, creating new Smart E2E comment..."
-            gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
-          fi
+      - name: Create or update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.generate-comment.outputs.comment-body }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          edit-mode: replace
 
   # Step 3: Determine platform conditions
   platform-conditions:
@@ -494,10 +496,9 @@ jobs:
             echo "- **Android Result**: ${{ needs.android-smart-tests.result || 'skipped' }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Update PR comment with final results
+      - name: Generate final PR comment content
         if: github.event_name == 'pull_request'
-        env:
-          GH_TOKEN: ${{ github.token }}
+        id: generate-final-comment
         run: |
           # Generate status icon based on results
           IOS_RESULT="${{ needs.ios-smart-tests.result || 'skipped' }}"
@@ -518,8 +519,8 @@ jobs:
             STATUS_TEXT="Completed"
           fi
 
-          # Update the existing comment with final results
-          cat > pr_comment_final.md << EOF
+          # Generate final comment content
+          cat > final_comment_body.md << EOF
           ## 🤖 Smart E2E Test Analysis $STATUS_ICON
 
           **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
@@ -535,29 +536,34 @@ jobs:
           - Android enabled: ${{ needs.platform-conditions.outputs.should-build-android }}
 
           _$STATUS_ICON [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Smart E2E AI Selection_
-
-          <!-- smart-e2e-comment-id: pr-${{ github.event.pull_request.number }} -->
           EOF
 
-          # Update existing Smart E2E comment with final results
-          echo "🔍 Looking for existing Smart E2E comment to update with final results..."
+          # Set output for next step
+          {
+            echo "final-comment-body<<EOF"
+            cat final_comment_body.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-          # Get the most recent Smart E2E comment ID for this PR
-          LATEST_COMMENT_ID=$(gh pr view ${{ github.event.pull_request.number }} --json comments --jq -r '.comments[] | select(.body | contains("smart-e2e-comment-id: pr-${{ github.event.pull_request.number }}")) | .id' 2>/dev/null | tail -1 || echo "")
+      - name: Find existing Smart E2E comment for final update
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/find-comment@v3
+        id: find-final-comment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '🤖 Smart E2E Test Analysis'
 
-          if [ -n "$LATEST_COMMENT_ID" ]; then
-            echo "📝 Updating existing Smart E2E comment with final results: $LATEST_COMMENT_ID"
-            FINAL_COMMENT_BODY=$(cat pr_comment_final.md)
-            if gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$LATEST_COMMENT_ID" --field body="$FINAL_COMMENT_BODY" >/dev/null 2>&1; then
-              echo "✅ Successfully updated existing comment with final results"
-            else
-              echo "⚠️ Failed to update existing comment, creating new one..."
-              gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment_final.md
-            fi
-          else
-            echo "📝 No existing comment found, creating new Smart E2E comment with final results..."
-            gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment_final.md
-          fi
+      - name: Update PR comment with final results
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.generate-final-comment.outputs.final-comment-body }}
+          comment-id: ${{ steps.find-final-comment.outputs.comment-id }}
+          edit-mode: replace
 
       - name: Check test results
         run: |
