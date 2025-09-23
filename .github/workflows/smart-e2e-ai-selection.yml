@@ -417,7 +417,6 @@ jobs:
       test_suite_tag: '${{ matrix.tag }}'
       split_number: ${{ matrix.split }}
       total_splits: ${{ matrix.totalSplits }}
-      test-timeout-minutes: 120
     secrets: inherit
 
   # Step 6: Dynamic Android E2E Tests using reusable workflow
@@ -435,7 +434,6 @@ jobs:
       test_suite_tag: '${{ matrix.tag }}'
       split_number: ${{ matrix.split }}
       total_splits: ${{ matrix.totalSplits }}
-      test-timeout-minutes: 60
     secrets: inherit
 
   # Step 7: Report iOS Test Results
@@ -447,7 +445,7 @@ jobs:
     with:
       platform: 'ios'
       test-type: 'smart-e2e'
-      artifact-pattern: 'Smart-iOS-E2E-*-test-results'
+      artifact-pattern: 'iOS-*-test-results'
       report-name: 'iOS Smart E2E Test Results'
 
   # Step 8: Report Android Test Results
@@ -459,7 +457,7 @@ jobs:
     with:
       platform: 'android'
       test-type: 'smart-e2e'
-      artifact-pattern: 'Smart-Android-E2E-*-test-results'
+      artifact-pattern: 'Android-*-test-results'
       report-name: 'Android Smart E2E Test Results'
 
   # Step 9: Final Summary Report
