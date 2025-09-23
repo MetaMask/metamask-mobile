@@ -7912,7 +7912,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                         <View />
                         <View />
                         <View />
-                        <View />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -13243,7 +13242,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                         <View />
                         <View />
                         <View />
-                        <View />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -16015,7 +16013,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <View />
                         <View />
                         <View />
                         <View />
