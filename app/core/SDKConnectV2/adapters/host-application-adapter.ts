@@ -12,26 +12,26 @@ import {
   hideNotificationById,
   showSimpleNotification,
 } from '../../../actions/notification';
-import { ConnectionRequest } from '../types/connection-request';
 import { strings } from '../../../../locales/i18n';
+import { ConnectionInfo } from '../types/connection-info';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
-  showConnectionLoading(connreq: ConnectionRequest): void {
+  showConnectionLoading(conninfo: ConnectionInfo): void {
     store.dispatch(
       showSimpleNotification({
-        id: connreq.sessionRequest.id,
+        id: conninfo.id,
         autodismiss: 8000,
         title: strings('sdk_connect_v2.show_loading.title'),
         description: strings('sdk_connect_v2.show_loading.description', {
-          dappName: connreq.metadata.dapp.name,
+          dappName: conninfo.metadata.dapp.name,
         }),
         status: 'pending',
       }),
     );
   }
 
-  hideConnectionLoading(connreq: ConnectionRequest): void {
-    store.dispatch(hideNotificationById(connreq.sessionRequest.id));
+  hideConnectionLoading(conninfo: ConnectionInfo): void {
+    store.dispatch(hideNotificationById(conninfo.id));
   }
 
   showConnectionError(): void {
@@ -51,14 +51,14 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
       const connectionProps: ConnectionProps & { isV2: boolean } = {
         id: connection.id,
         otherPublicKey: '',
-        origin: connection.metadata.dapp.url,
+        origin: connection.info.metadata.dapp.url,
         originatorInfo: {
-          title: connection.metadata.dapp.name,
-          url: connection.metadata.dapp.url,
-          icon: connection.metadata.dapp.icon,
-          dappId: connection.metadata.dapp.name,
-          apiVersion: connection.metadata.sdk.version,
-          platform: connection.metadata.sdk.platform,
+          title: connection.info.metadata.dapp.name,
+          url: connection.info.metadata.dapp.url,
+          icon: connection.info.metadata.dapp.icon,
+          dappId: connection.info.metadata.dapp.name,
+          apiVersion: connection.info.metadata.sdk.version,
+          platform: connection.info.metadata.sdk.platform,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };

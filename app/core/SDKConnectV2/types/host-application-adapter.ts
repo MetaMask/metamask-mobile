@@ -1,5 +1,5 @@
 import { Connection } from '../services/connection';
-import { ConnectionRequest } from './connection-request';
+import { ConnectionInfo } from './connection-info';
 
 /**
  * Defines the contract for the host MetaMask Mobile application.
@@ -13,12 +13,12 @@ export interface IHostApplicationAdapter {
    * Displays a global, non-interactive loading modal. Used to indicate
    * background activity, such as establishing a connection.
    */
-  showConnectionLoading(connreq: ConnectionRequest): void;
+  showConnectionLoading(conninfo: ConnectionInfo): void;
 
   /**
    * Hides the global loading modal.
    */
-  hideConnectionLoading(connreq: ConnectionRequest): void;
+  hideConnectionLoading(conninfo: ConnectionInfo): void;
 
   /**
    * Displays a global, non-interactive error modal.

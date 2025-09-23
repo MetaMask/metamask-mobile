@@ -1,27 +1,27 @@
 import EventEmitter from 'eventemitter2';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import { Connection } from '../services/connection';
 import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
 import Engine, { BaseControllerMessenger } from '../../Engine';
 import AppConstants from '../../AppConstants';
 import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { ImageSourcePropType } from 'react-native';
 import { whenEngineReady } from '../utils/is-engine-ready';
+import { ConnectionInfo } from '../types/connection-info';
 
 export class RPCBridgeAdapter
   extends EventEmitter
   implements IRPCBridgeAdapter
 {
-  private readonly connection: Connection;
+  private readonly conninfo: ConnectionInfo;
   private client: BackgroundBridge | null = null;
   private messenger: BaseControllerMessenger | null = null;
   private initialized: Promise<void> | null = null;
   private processing = false;
   private queue: unknown[] = [];
 
-  constructor(connection: Connection) {
+  constructor(conninfo: ConnectionInfo) {
     super();
-    this.connection = connection;
+    this.conninfo = conninfo;
     this.processQueue = this.processQueue.bind(this);
   }
 
@@ -96,33 +96,32 @@ export class RPCBridgeAdapter
    * Creates a new BackgroundBridge instance configured for our use case.
    */
   private createClient(): BackgroundBridge {
-    const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.connection.id}`;
+    const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.conninfo.id}`;
 
     return new BackgroundBridge({
       webview: null,
       isRemoteConn: true,
       isMMSDK: true,
-      channelId: this.connection.id,
-      url: this.connection.metadata.dapp.url,
-      remoteConnHost: this.connection.metadata.dapp.url,
+      channelId: this.conninfo.id,
+      url: this.conninfo.metadata.dapp.url,
+      remoteConnHost: this.conninfo.metadata.dapp.url,
       sendMessage: (response: unknown) => {
         this.emit('response', response);
       },
       getRpcMethodMiddleware: ({
         getProviderState,
       }: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        getProviderState: any;
+        getProviderState: () => void;
       }) =>
         getRpcMethodMiddleware({
           hostname: middlewareHostname,
-          channelId: this.connection.id,
+          channelId: this.conninfo.id,
           getProviderState,
           isMMSDK: true,
-          url: { current: this.connection.metadata.dapp.url },
-          title: { current: this.connection.metadata.dapp.name },
+          url: { current: this.conninfo.metadata.dapp.url },
+          title: { current: this.conninfo.metadata.dapp.name },
           icon: {
-            current: this.connection.metadata.dapp.icon as ImageSourcePropType,
+            current: this.conninfo.metadata.dapp.icon as ImageSourcePropType,
           },
           navigation: null,
           isHomepage: () => false,
@@ -132,7 +131,7 @@ export class RPCBridgeAdapter
           analytics: {
             isRemoteConn: true,
             platform:
-              this.connection.metadata.sdk.platform ??
+              this.conninfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
           toggleUrlModal: () => null,
@@ -140,7 +139,7 @@ export class RPCBridgeAdapter
         }),
       isMainFrame: true,
       getApprovedHosts: () => ({
-        [this.connection.metadata.dapp.url]: true, // FIXME: I copied this from the SDKConnect v1, does this make sense?
+        [this.conninfo.metadata.dapp.url]: true,
       }),
       isWalletConnect: false,
       wcRequestActions: undefined,

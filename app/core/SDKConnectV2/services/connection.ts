@@ -7,12 +7,10 @@ import {
   SessionStore,
   WebSocketTransport,
 } from '@metamask/mobile-wallet-protocol-core';
-import { ConnectionRequest } from '../types/connection-request';
-import { PersistedConnection } from '../types/persisted-connection';
 import { KVStore } from '../store/kv-store';
-import { Metadata } from '../types/metadata';
 import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
 import { RPCBridgeAdapter } from '../adapters/rpc-bridge-adapter';
+import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
 
 /**
@@ -20,15 +18,15 @@ import logger from './logger';
  */
 export class Connection {
   public readonly id: string;
-  public readonly metadata: Metadata;
+  public readonly info: ConnectionInfo;
   public readonly client: WalletClient;
   public readonly bridge: IRPCBridgeAdapter;
 
-  private constructor(id: string, metadata: Metadata, client: WalletClient) {
-    this.id = id;
-    this.metadata = metadata;
+  private constructor(info: ConnectionInfo, client: WalletClient) {
+    this.id = info.id;
+    this.info = info;
     this.client = client;
-    this.bridge = new RPCBridgeAdapter(this);
+    this.bridge = new RPCBridgeAdapter(this.info);
 
     this.client.on('message', (payload) => {
       logger.debug('Received message:', this.id, payload);
@@ -44,29 +42,26 @@ export class Connection {
   /**
    * Creates a new connection from either a new request or persisted data.
    *
-   * @param data - The data for the connection, either a `ConnectionRequest` or a `PersistedConnection`.
+   * @param conninfo - The connection information.
    * @param keymanager - The key manager instance.
    * @param relayURL - The URL of the relay server.
    * @returns The created connection.
    */
   public static async create(
-    data: ConnectionRequest | PersistedConnection,
+    conninfo: ConnectionInfo,
     keymanager: IKeyManager,
     relayURL: string,
   ): Promise<Connection> {
-    const id = 'sessionRequest' in data ? data.sessionRequest.id : data.id;
-    const metadata = data.metadata;
-
     const transport = await WebSocketTransport.create({
       url: relayURL,
-      kvstore: new KVStore(`mwp/transport/${id}`),
+      kvstore: new KVStore(`mwp/transport/${conninfo.id}`),
     });
     const sessionstore = new SessionStore(
-      new KVStore(`mwp/session-store/${id}`),
+      new KVStore(`mwp/session-store/${conninfo.id}`),
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });
 
-    return new Connection(id, metadata, client);
+    return new Connection(conninfo, client);
   }
 
   /**

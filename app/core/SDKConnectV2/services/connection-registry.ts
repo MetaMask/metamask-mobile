@@ -8,6 +8,7 @@ import {
 import { IConnectionStore } from '../types/connection-store';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { Connection } from './connection';
+import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
 
 /**
@@ -87,15 +88,16 @@ export class ConnectionRegistry {
     logger.debug('Handling connect deeplink: ', url);
 
     let conn: Connection | undefined;
-    let connreq: ConnectionRequest | undefined;
+    let conninfo: ConnectionInfo | undefined;
 
     try {
-      connreq = this.parseConnectionRequest(url);
-      this.hostapp.showConnectionLoading(connreq);
-      conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
+      const connreq = this.parseConnectionRequest(url);
+      conninfo = this.toConnectionInfo(connreq);
+      this.hostapp.showConnectionLoading(conninfo);
+      conn = await Connection.create(conninfo, this.keymanager, this.RELAY_URL);
       await conn.connect(connreq.sessionRequest);
       this.connections.set(conn.id, conn);
-      await this.store.save({ id: conn.id, metadata: connreq.metadata });
+      await this.store.save(conninfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
       logger.debug('Handled connect deeplink.');
     } catch (error) {
@@ -103,7 +105,7 @@ export class ConnectionRegistry {
       this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
     } finally {
-      if (connreq) this.hostapp.hideConnectionLoading(connreq);
+      if (conninfo) this.hostapp.hideConnectionLoading(conninfo);
     }
   }
 
@@ -147,6 +149,13 @@ export class ConnectionRegistry {
     }
 
     return connreq;
+  }
+
+  private toConnectionInfo(connreq: ConnectionRequest): ConnectionInfo {
+    return {
+      id: connreq.sessionRequest.id,
+      metadata: connreq.metadata,
+    };
   }
 
   /**
