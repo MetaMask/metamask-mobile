@@ -1,6 +1,7 @@
 import type { WebSocketServiceMessenger as BackendWebSocketServiceMessenger } from '@metamask/backend-platform';
 import type { BaseControllerMessenger } from '../../types';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+import { AuthenticationControllerGetBearerToken } from '@metamask/profile-sync-controller/auth';
 import { Messenger } from '@metamask/base-controller';
 
 /**
@@ -14,12 +15,16 @@ export function getBackendWebSocketServiceMessenger(
 ): BackendWebSocketServiceMessenger {
   return baseMessenger.getRestricted({
     name: 'BackendWebSocketService',
-    allowedActions: [],
-    allowedEvents: [],
+    allowedActions: [
+      'AuthenticationController:getBearerToken', // Get auth token (includes wallet unlock check)
+    ],
+    allowedEvents: [
+      'AuthenticationController:stateChange', // Listen for authentication state (includes wallet lock/unlock)
+    ],
   });
 }
 
-type InitActions = RemoteFeatureFlagControllerGetStateAction;
+type InitActions = RemoteFeatureFlagControllerGetStateAction | AuthenticationControllerGetBearerToken;
 
 export type BackendWebSocketServiceInitMessenger = ReturnType<
   typeof getBackendWebSocketServiceInitMessenger
@@ -31,6 +36,9 @@ export function getBackendWebSocketServiceInitMessenger(
   return messenger.getRestricted({
     name: 'BackendWebSocketServiceInit',
     allowedEvents: [],
-    allowedActions: ['RemoteFeatureFlagController:getState'],
+    allowedActions: [
+      'RemoteFeatureFlagController:getState',
+      'AuthenticationController:getBearerToken',
+    ],
   });
 }
