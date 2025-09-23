@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import getSupportUrl from '../../../util/support';
@@ -30,47 +30,38 @@ export const useSupportConsent = (
   const shouldShowConsentSheet = useSelector(selectShouldShowConsentSheet);
   const dataSharingPreference = useSelector(selectDataSharingPreference);
 
-  // Use refs to store the latest values to avoid dependency array issues
-  const onNavigateRef = useRef(onNavigate);
-  const titleRef = useRef(title);
-
-  // Update refs when props change
-  useEffect(() => {
-    onNavigateRef.current = onNavigate;
-    titleRef.current = title;
-  }, [onNavigate, title]);
 
   const handleConsent = useCallback(async () => {
     try {
       const supportUrl = await getSupportUrl(true);
-      onNavigateRef.current(supportUrl, titleRef.current);
+      onNavigate(supportUrl, title);
     } catch (error) {
       console.warn('Error getting support URL with consent:', error);
       // Fallback to base URL
       const supportUrl = await getSupportUrl(false);
-      onNavigateRef.current(supportUrl, titleRef.current);
+      onNavigate(supportUrl, title);
     }
-  }, []);
+  }, [onNavigate, title]);
 
   const handleDecline = useCallback(async () => {
     try {
       const supportUrl = await getSupportUrl(false);
-      onNavigateRef.current(supportUrl, titleRef.current);
+      onNavigate(supportUrl, title);
     } catch (error) {
       console.warn('Error getting support URL without consent:', error);
       // Fallback to base URL
       const fallbackUrl = 'https://support.metamask.io';
-      onNavigateRef.current(fallbackUrl, titleRef.current);
+      onNavigate(fallbackUrl, title);
     }
-  }, []);
+  }, [onNavigate, title]);
 
   const openSupportWebPage = useCallback(() => {
     // For beta builds, bypass consent flow and go directly to beta support
     const type = buildType ?? process.env.METAMASK_BUILD_TYPE;
     if (type === 'beta') {
-      onNavigateRef.current(
+      onNavigate(
         'https://intercom.help/internal-beta-testing/en/',
-        titleRef.current,
+        title,
       );
       return;
     }
@@ -82,7 +73,7 @@ export const useSupportConsent = (
 
       supportUrl
         .then((url) => {
-          onNavigateRef.current(url, titleRef.current);
+          onNavigate(url, title);
         })
         .catch((error) => {
           console.warn(
@@ -91,7 +82,7 @@ export const useSupportConsent = (
           );
           // Fallback to base URL
           const fallbackUrl = 'https://support.metamask.io';
-          onNavigateRef.current(fallbackUrl, titleRef.current);
+          onNavigate(fallbackUrl, title);
         });
       return;
     }
@@ -111,6 +102,8 @@ export const useSupportConsent = (
     navigation,
     handleConsent,
     handleDecline,
+    onNavigate,
+    title,
   ]);
 
   return {
