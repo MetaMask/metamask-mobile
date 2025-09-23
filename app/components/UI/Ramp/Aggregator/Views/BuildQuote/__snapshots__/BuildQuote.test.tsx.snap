@@ -151,7 +151,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -175,30 +175,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -812,7 +788,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -836,30 +812,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 >
                   Amount to sell
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1473,7 +1425,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -1497,30 +1449,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -2133,7 +2061,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -2157,30 +2085,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -3071,7 +2975,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -3095,30 +2999,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -3731,7 +3611,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -3755,30 +3635,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -4669,7 +4525,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -4693,30 +4549,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -5329,7 +5161,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -5353,30 +5185,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -5754,8 +5562,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       }
                                     >
                                       Account 2
-                                       
-                                      (0x29900...da21a)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -8077,7 +7883,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -8101,30 +7907,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -9015,7 +8797,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -9039,30 +8821,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -9675,7 +9433,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -9699,30 +9457,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -10613,7 +10347,7 @@ exports[`BuildQuote View renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -10637,30 +10371,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -11038,8 +10748,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       }
                                     >
                                       Account 2
-                                       
-                                      (0x29900...da21a)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -13407,7 +13115,7 @@ exports[`BuildQuote View renders correctly 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -13431,30 +13139,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                 >
                   Amount to sell
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -13832,8 +13516,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       }
                                     >
                                       Account 2
-                                       
-                                      (0x29900...da21a)
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -16181,7 +15863,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -16205,30 +15887,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 >
                   Amount to buy
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -16841,7 +16499,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -16865,30 +16523,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 >
                   Amount to sell
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Mainnet
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
