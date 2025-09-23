@@ -5836,7 +5836,6 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
-      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Rekomendasikan ke teman",
         "share_referral_subject": "Gabung dengan MetaMask Rewards"
