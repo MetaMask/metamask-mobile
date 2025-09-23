@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Android Build Environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env-yarn-v3@self-hosted-runners-config
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@chore/update-e2e-env-with-yarn-v3
         with:
           platform: android
           setup-simulator: false

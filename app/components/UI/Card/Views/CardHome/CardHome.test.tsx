@@ -118,6 +118,7 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {
     CARD_ADD_FUNDS_CLICKED: 'card_add_funds_clicked',
+    CARD_HOME_VIEWED: 'card_home_viewed',
   },
 }));
 
@@ -758,5 +759,88 @@ describe('CardHome Component', () => {
     expect(screen.getByTestId('balance-test-id')).toHaveTextContent(
       '1000 USDC',
     );
+  });
+
+  it('fires CARD_HOME_VIEWED once after both balances valid (fiat + main)', async () => {
+    // Arrange: fiat and main are valid and token exists by default from beforeEach
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    // Trigger a re-render via UI interaction (privacy toggle) and ensure no re-fire
+    mockTrackEvent.mockClear();
+    const toggle = screen.getByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON);
+    fireEvent.press(toggle);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('fires CARD_HOME_VIEWED once when only mainBalance is valid (fiat undefined)', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: undefined as unknown as string,
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    // No additional calls after stabilization
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires CARD_HOME_VIEWED once when only fiat balance is valid (main undefined)', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: undefined as unknown as string,
+      secondaryBalance: '$1,000.00',
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    // Ensure no re-fire
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire when only loading sentinels present', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: 'tokenBalanceLoading',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: 'TOKENBALANCELOADING',
+      secondaryBalance: 'loading',
+    });
+
+    render();
+
+    // Give time for any effects
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not fire when fiat is TOKEN_RATE_UNDEFINED and main is undefined', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: 'tokenRateUndefined',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: undefined as unknown as string,
+      secondaryBalance: 'n/a',
+    });
+
+    render();
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

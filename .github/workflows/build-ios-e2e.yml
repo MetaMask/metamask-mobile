@@ -70,7 +70,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env-yarn-v3@self-hosted-runners-config
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@chore/update-e2e-env-with-yarn-v3
         with:
           platform: ios
           setup-simulator: false
