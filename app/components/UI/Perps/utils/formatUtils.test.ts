@@ -32,6 +32,17 @@ jest.mock('../../../../util/assets', () => ({
   },
 }));
 
+// Mock the strings function
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const mockStrings: Record<string, string> = {
+      today: 'Today',
+      'notifications.yesterday': 'Yesterday',
+    };
+    return mockStrings[key] || key;
+  },
+}));
+
 describe('formatUtils', () => {
   describe('formatFundingRate', () => {
     it('displays zero display value when input is undefined', () => {

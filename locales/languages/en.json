@@ -862,6 +862,8 @@
       "not_now": "Not now",
       "try_now": "Get started"
     },
+    "today": "Today",
+    "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
