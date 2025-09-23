@@ -14,7 +14,7 @@ describe('ConfirmationContext', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
     expect(result.current).toStrictEqual({
-      isFooterVisible: true,
+      isFooterVisible: undefined,
       isTransactionValueUpdating: false,
       setIsFooterVisible: expect.any(Function),
       setIsTransactionValueUpdating: expect.any(Function),

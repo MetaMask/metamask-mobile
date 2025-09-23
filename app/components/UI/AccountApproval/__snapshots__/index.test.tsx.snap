@@ -127,9 +127,8 @@ exports[`AccountApproval should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Bold",
+            "fontFamily": "Geist Bold",
             "fontSize": 14,
-            "fontWeight": "600",
             "textAlign": "center",
           }
         }
@@ -162,9 +161,8 @@ exports[`AccountApproval should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 12,
-            "fontWeight": "400",
             "padding": 5,
             "textAlign": "center",
             "textTransform": "capitalize",
@@ -316,9 +314,8 @@ exports[`AccountApproval should render correctly 1`] = `
               {
                 "0": {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 16,
-                  "fontWeight": "600",
                   "marginRight": 2,
                   "maxWidth": "45%",
                 },
@@ -341,9 +338,8 @@ exports[`AccountApproval should render correctly 1`] = `
                 "0": {
                   "color": "#121314",
                   "flexGrow": 1,
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 16,
-                  "fontWeight": "600",
                 },
                 "1": undefined,
                 "color": "#121314",
@@ -367,9 +363,8 @@ exports[`AccountApproval should render correctly 1`] = `
               "0": {
                 "alignSelf": "flex-start",
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 14,
-                "fontWeight": "100",
               },
               "1": undefined,
               "color": "#121314",
@@ -441,9 +436,8 @@ exports[`AccountApproval should render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {
@@ -503,9 +497,8 @@ exports[`AccountApproval should render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "CentraNo1-Bold",
+                "fontFamily": "Geist Bold",
                 "fontSize": 14,
-                "fontWeight": "600",
                 "textAlign": "center",
               },
               {
