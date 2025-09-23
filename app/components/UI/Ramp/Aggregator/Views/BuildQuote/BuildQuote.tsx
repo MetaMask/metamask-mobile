@@ -404,6 +404,7 @@ const BuildQuote = () => {
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
           showBack: params.showBack,
+          showNetwork: false,
         },
         colors,
         handleCancelPress,
