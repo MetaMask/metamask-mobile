@@ -40,7 +40,6 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import Engine from '../../../../../../core/Engine';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 
 const MAX_TOKENS_RESULTS = 20;
@@ -64,7 +63,7 @@ function TokenSelectModal() {
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-  const { setSelectedAsset, selectedChainId } = useRampSDK();
+  const { setSelectedAsset } = useRampSDK();
 
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -145,41 +144,10 @@ function TokenSelectModal() {
 
   const handleSelectTokenCallback = useCallback(
     async (newAsset: CryptoCurrency) => {
-      if (
-        newAsset.network?.chainId &&
-        String(newAsset.network.chainId) !== String(selectedChainId)
-      ) {
-        const assetCaipChainId = isCaipChainId(newAsset.network.chainId)
-          ? newAsset.network.chainId
-          : toEvmCaipChainId(toHex(newAsset.network.chainId));
-
-        const networkConfiguration = networksByCaipChainId[
-          assetCaipChainId
-        ] as NetworkConfiguration;
-
-        if (networkConfiguration) {
-          const { rpcEndpoints, defaultRpcEndpointIndex } =
-            networkConfiguration;
-          let networkClientId;
-
-          if (!rpcEndpoints || rpcEndpoints.length === 0) {
-            networkClientId = assetCaipChainId;
-          } else {
-            const { networkClientId: endpointNetworkClientId } =
-              rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
-            networkClientId = endpointNetworkClientId;
-          }
-
-          const { MultichainNetworkController } = Engine.context;
-
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
-        }
-      }
-
       setSelectedAsset(newAsset);
       sheetRef.current?.onCloseBottomSheet();
     },
-    [setSelectedAsset, selectedChainId, networksByCaipChainId],
+    [setSelectedAsset],
   );
 
   const scrollToTop = useCallback(() => {
