@@ -298,11 +298,11 @@ export class PredictController extends BaseController<
 
     activeOrder = this.state.activeOrders[id];
 
-    const isLastPendingTransaction =
-      activeOrder.onchainTradeParams.filter((tx) => !tx.transactionId)
-        .length === 1;
+    const allTransactionsConfirmed = activeOrder.onchainTradeParams.every(
+      (tx) => tx.transactionId,
+    );
 
-    if (!isLastPendingTransaction) {
+    if (!allTransactionsConfirmed) {
       return;
     }
 
