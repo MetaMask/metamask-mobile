@@ -38,7 +38,7 @@ on:
       PR_TOKEN:
         required: false
       GCP_RLS_SHEET_ACCOUNT_BASE64:
-         required: false
+        required: false
 
 jobs:
   generate-build-version:

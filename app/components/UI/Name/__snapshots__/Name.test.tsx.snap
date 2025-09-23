@@ -256,6 +256,7 @@ exports[`Name recognized address should return name 1`] = `
           "lineHeight": 24,
         }
       }
+      useNativeDriver={true}
     >
       Known name
     </Text>
