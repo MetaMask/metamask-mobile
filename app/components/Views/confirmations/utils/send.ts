@@ -132,13 +132,13 @@ function generateERC1155TransferData({
   fromAddress,
   tokenId,
   amount,
-  data = '0x',
+  data = '0',
 }: {
   toAddress: Hex;
   fromAddress: Hex;
   tokenId: string;
-  amount: Hex;
-  data?: Hex;
+  amount: string;
+  data?: string;
 }) {
   return (
     NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE +
