@@ -295,6 +295,7 @@ export const NETWORK_CHAIN_ID: {
   readonly FRAXTAL: '0xfc';
   readonly XDC: '0x32';
   readonly MEGAETH_MAINNET: '0x10e6';
+  readonly HEMI: '0xa867';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -323,6 +324,7 @@ export const NETWORK_CHAIN_ID: {
   FRAXTAL: '0xfc',
   XDC: '0x32',
   MEGAETH_MAINNET: '0x10e6',
+  HEMI: '0xa867',
   ...CHAIN_IDS,
 };
 
@@ -357,4 +359,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET]: require('../../images/megaeth-testnet-logo.png'),
+  [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
 };
