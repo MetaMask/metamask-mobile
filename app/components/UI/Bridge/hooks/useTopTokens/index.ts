@@ -9,7 +9,7 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import { BridgeToken } from '../../types';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
@@ -19,8 +19,10 @@ import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slice
 import { RootState } from '../../../../../reducers';
 import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 import { normalizeToCaipAssetType } from '../../utils';
+import { memoize } from 'lodash';
 
 const MAX_TOP_TOKENS = 30;
+const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
 
 interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
@@ -50,10 +52,6 @@ export const useTopTokens = ({
     selectTopAssetsFromFeatureFlags(state, chainId),
   );
 
-  const cachedBridgeTokens = useRef<
-    Record<string, Record<string, BridgeToken>>
-  >({});
-
   // Get the top assets from the Swaps API
   useEffect(() => {
     (async () => {
@@ -81,11 +79,7 @@ export const useTopTokens = ({
       return {};
     }
 
-    if (cachedBridgeTokens.current[chainId]) {
-      return cachedBridgeTokens.current[chainId];
-    }
-
-    const rawBridgeAssets = await fetchBridgeTokens(
+    const rawBridgeAssets = await memoizedFetchBridgeTokens(
       chainId,
       BridgeClientId.MOBILE,
       handleFetch,
@@ -114,11 +108,6 @@ export const useTopTokens = ({
         chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
       };
     });
-
-    cachedBridgeTokens.current = {
-      ...cachedBridgeTokens.current,
-      [chainId]: bridgeTokenObj,
-    };
 
     return bridgeTokenObj;
   }, [chainId]);
