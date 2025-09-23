@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useRef } from 'react';
-import { View, PanResponder } from 'react-native';
+import { PanResponder } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Text,
@@ -21,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import { setOnboardingActiveStep } from '../../../../../reducers/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 interface OnboardingStepProps {
   // Progress indicator props
@@ -42,7 +43,6 @@ interface OnboardingStepProps {
   // Render props for customizable content
   renderStepImage?: () => ReactNode;
   renderStepInfo: () => ReactNode;
-  stepInfoContainerStyle?: string;
 
   // Gesture control
   disableSwipe?: boolean;
@@ -60,7 +60,6 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   nextButtonAlternative,
   renderStepImage,
   renderStepInfo,
-  stepInfoContainerStyle,
   disableSwipe = false,
 }) => {
   const tw = useTailwind();
@@ -69,7 +68,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
 
   const onClose = useCallback(() => {
     dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-    navigation.navigate(Routes.WALLET_VIEW);
+    navigation.navigate(Routes.WALLET.HOME);
   }, [dispatch, navigation]);
 
   // Create PanResponder for swipe gestures
@@ -98,9 +97,10 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   ).current;
 
   return (
-    <View
-      style={tw.style('flex-1 min-h-full px-4 py-8')}
+    <KeyboardAwareScrollView
+      keyboardShouldPersistTaps="handled"
       testID="onboarding-step-container"
+      contentContainerStyle={tw.style('min-h-full px-4 py-8')}
       {...panResponder.panHandlers}
     >
       <Box twClassName="mt-8 justify-center items-center">
@@ -119,24 +119,19 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
           variant="bars"
         />
       </Box>
-
-      <Box twClassName="flex-grow flex-col">
+      <Box twClassName="flex-col flex-1 justify-between items-center">
         {/* Only render image container if renderStepImage is provided */}
-        {renderStepImage && (
-          <Box
-            twClassName="flex-grow-2 relative gap-2"
-            justifyContent={BoxJustifyContent.Center}
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Column}
-          >
-            {renderStepImage()}
-          </Box>
-        )}
-
         <Box
-          twClassName={`flex-1 flex-col justify-between ${stepInfoContainerStyle}`}
+          justifyContent={BoxJustifyContent.Center}
+          alignItems={BoxAlignItems.Center}
+          flexDirection={BoxFlexDirection.Column}
+          twClassName="flex-1"
         >
-          <Box twClassName="flex-col gap-2">{renderStepInfo()}</Box>
+          {renderStepImage?.()}
+        </Box>
+
+        <Box twClassName="gap-4 w-full flex justify-between">
+          <Box twClassName="flex-col">{renderStepInfo()}</Box>
 
           <Box twClassName="w-full flex-col gap-2">
             <Button
@@ -170,7 +165,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
           </Box>
         </Box>
       </Box>
-    </View>
+    </KeyboardAwareScrollView>
   );
 };
 
