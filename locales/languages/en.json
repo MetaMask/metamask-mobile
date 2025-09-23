@@ -1758,6 +1758,12 @@
       "custom_security_tips": "Security Tips"
     }
   },
+  "defi": {
+    "empty_state": {
+      "description": "Lend, borrow, and trade, right in your wallet.",
+      "explore_defi": "Explore DeFi"
+    }
+  },
   "defi_positions": {
     "loading_positions": "Loading DeFi positions...",
     "no_visible_positions": "Can't find what you're looking for?",

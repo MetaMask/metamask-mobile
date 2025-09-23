@@ -33,6 +33,7 @@ import Icon, {
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import { DefiEmptyState } from '../DefiEmptyState';
 export interface DeFiPositionsListProps {
   tabLabel: string;
 }
@@ -137,14 +138,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = () => {
     return (
       <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}>
         <DeFiPositionsControlBar />
-        <View style={styles.emptyView}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('defi_positions.no_visible_positions')}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('defi_positions.not_supported')}
-          </Text>
-        </View>
+        <DefiEmptyState />
       </View>
     );
   }
