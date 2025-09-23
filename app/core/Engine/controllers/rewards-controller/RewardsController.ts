@@ -24,6 +24,7 @@ import {
   type UnlockedRewardsState,
   type RewardDto,
   CURRENT_SEASON_ID,
+  ClaimRewardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -41,6 +42,9 @@ import {
   parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
+import { base58 } from 'ethers/lib/utils';
+import { isNonEvmAddress } from '../../../Multichain/utils';
+import { signSolanaRewardsMessage } from './utils/solana-snap';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -56,16 +60,16 @@ const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Season status cache threshold
-const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+const SEASON_STATUS_CACHE_THRESHOLD_MS = 0; // no caching for now
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
 // Active boosts cache threshold
-const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 60 minutes
+const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Unlocked rewards cache threshold
-const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 /**
  * State metadata for the RewardsController
@@ -319,6 +323,10 @@ export class RewardsController extends BaseController<
       'RewardsController:getUnlockedRewards',
       this.getUnlockedRewards.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:claimReward',
+      this.claimReward.bind(this),
+    );
   }
 
   /**
@@ -383,7 +391,7 @@ export class RewardsController extends BaseController<
    */
   #getActiveBoosts(
     subscriptionId: string,
-    seasonId: string = CURRENT_SEASON_ID,
+    seasonId: string,
   ): ActiveBoostsState | null {
     const compositeKey = this.#createSeasonSubscriptionCompositeKey(
       seasonId,
@@ -400,55 +408,13 @@ export class RewardsController extends BaseController<
    */
   #getUnlockedRewards(
     subscriptionId: string,
-    seasonId: string = CURRENT_SEASON_ID,
+    seasonId: string,
   ): UnlockedRewardsState | null {
     const compositeKey = this.#createSeasonSubscriptionCompositeKey(
       seasonId,
       subscriptionId,
     );
     return this.state.unlockedRewards[compositeKey] || null;
-  }
-
-  /**
-   * Convert PointsBoostDto to serializable format for storage
-   */
-  #convertBoostsToSerializable(
-    boosts: PointsBoostDto[],
-  ): ActiveBoostsState['boosts'] {
-    return boosts.map((boost) => ({
-      id: boost.id,
-      name: boost.name,
-      icon: {
-        lightModeUrl: boost.icon.lightModeUrl,
-        darkModeUrl: boost.icon.darkModeUrl,
-      },
-      boostBips: boost.boostBips,
-      seasonLong: boost.seasonLong,
-      startDate: boost.startDate?.getTime(),
-      endDate: boost.endDate?.getTime(),
-      backgroundColor: boost.backgroundColor,
-    }));
-  }
-
-  /**
-   * Convert serializable format back to PointsBoostDto
-   */
-  #convertBoostsFromSerializable(
-    serializedBoosts: ActiveBoostsState['boosts'],
-  ): PointsBoostDto[] {
-    return serializedBoosts.map((boost) => ({
-      id: boost.id,
-      name: boost.name,
-      icon: {
-        lightModeUrl: boost.icon.lightModeUrl,
-        darkModeUrl: boost.icon.darkModeUrl,
-      },
-      boostBips: boost.boostBips,
-      seasonLong: boost.seasonLong,
-      startDate: boost.startDate ? new Date(boost.startDate) : undefined,
-      endDate: boost.endDate ? new Date(boost.endDate) : undefined,
-      backgroundColor: boost.backgroundColor,
-    }));
   }
 
   /**
@@ -460,7 +426,20 @@ export class RewardsController extends BaseController<
   ): Promise<string> {
     const message = `rewards,${account.address},${timestamp}`;
 
-    return await this.#signEvmMessage(account, message);
+    if (isSolanaAddress(account.address)) {
+      const result = await signSolanaRewardsMessage(
+        account.address,
+        Buffer.from(message, 'utf8').toString('base64'),
+      );
+      return `0x${Buffer.from(base58.decode(result.signature)).toString(
+        'hex',
+      )}`;
+    } else if (!isNonEvmAddress(account.address)) {
+      const result = await this.#signEvmMessage(account, message);
+      return result;
+    }
+
+    throw new Error('Unsupported account type for signing rewards message');
   }
 
   async #signEvmMessage(
@@ -504,7 +483,7 @@ export class RewardsController extends BaseController<
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      if (errorMessage && !errorMessage?.includes('Engine does not exis')) {
+      if (errorMessage && !errorMessage?.includes('Engine does not exist')) {
         Logger.log(
           'RewardsController: Silent authentication failed:',
           error instanceof Error ? error.message : String(error),
@@ -517,8 +496,8 @@ export class RewardsController extends BaseController<
    * Check if silent authentication should be skipped
    */
   #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
-    // Skip for hardware and Solana accounts
-    if (isHardwareAccount(address) || isSolanaAddress(address)) return true;
+    // Skip for hardware
+    if (isHardwareAccount(address)) return true;
 
     const now = Date.now();
 
@@ -957,8 +936,28 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get season status:',
         error instanceof Error ? error.message : String(error),
       );
+      if (error instanceof Error && error.message.includes('403')) {
+        this.invalidateSubscriptionCache(subscriptionId);
+        this.invalidateAccountsAndSubscriptions();
+      }
       throw error;
     }
+  }
+
+  invalidateAccountsAndSubscriptions() {
+    this.update((state: RewardsControllerState) => {
+      if (state.activeAccount) {
+        state.activeAccount = {
+          ...state.activeAccount,
+          hasOptedIn: false,
+          subscriptionId: null,
+          account: state.activeAccount.account, // Ensure account is always present (never undefined)
+        };
+      }
+      state.accounts = {};
+      state.subscriptions = {};
+    });
+    Logger.log('RewardsController: Invalidated accounts and subscriptions');
   }
 
   /**
@@ -1028,7 +1027,10 @@ export class RewardsController extends BaseController<
    * @param account - The account to opt in
    * @param referralCode - Optional referral code
    */
-  async optIn(account: InternalAccount, referralCode?: string): Promise<void> {
+  async optIn(
+    account: InternalAccount,
+    referralCode?: string,
+  ): Promise<string | null> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       Logger.log(
@@ -1037,7 +1039,7 @@ export class RewardsController extends BaseController<
           account: account.address,
         },
       );
-      return;
+      return null;
     }
 
     Logger.log('RewardsController: Starting optin process', {
@@ -1056,7 +1058,7 @@ export class RewardsController extends BaseController<
     try {
       // First try: direct toHex conversion
       hexMessage = toHex(challengeResponse.message);
-    } catch (error) {
+    } catch {
       // Fallback: use Buffer to convert to hex if toHex fails
       hexMessage =
         '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
@@ -1118,6 +1120,8 @@ export class RewardsController extends BaseController<
       state.subscriptions[optinResponse.subscription.id] =
         optinResponse.subscription;
     });
+
+    return optinResponse.subscription.id;
   }
 
   /**
@@ -1362,14 +1366,6 @@ export class RewardsController extends BaseController<
       return false;
     }
 
-    // Check if account is non-EVM (Solana) and throw error
-    if (isSolanaAddress?.(account.address)) {
-      Logger.log(
-        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
-      );
-      return false;
-    }
-
     // Convert account to CAIP format
     const caipAccount = this.convertInternalAccountToCaipAccountId(account);
     if (!caipAccount) {
@@ -1441,6 +1437,14 @@ export class RewardsController extends BaseController<
         },
       );
 
+      // Invalidate cache for the linked account
+      this.invalidateSubscriptionCache(updatedSubscription.id);
+      // Emit event to trigger UI refresh
+      this.messagingSystem.publish('RewardsController:accountLinked', {
+        subscriptionId: updatedSubscription.id,
+        account: caipAccount,
+      });
+
       return true;
     } catch (error) {
       Logger.log(
@@ -1457,19 +1461,8 @@ export class RewardsController extends BaseController<
    * Opt out of the rewards program, deleting the subscription and all associated data
    * @returns Promise<boolean> - True if opt-out was successful, false otherwise
    */
-  async optOut(): Promise<boolean> {
+  async optOut(subscriptionId: string): Promise<boolean> {
     try {
-      // Get the current active account
-      const activeAccount = this.state.activeAccount;
-      if (!activeAccount?.subscriptionId) {
-        Logger.log(
-          'RewardsController: No active account or subscription ID found for opt-out',
-        );
-        return false;
-      }
-
-      const subscriptionId = activeAccount.subscriptionId;
-
       // Check if subscription exists in our map
       if (!this.state.subscriptions[subscriptionId]) {
         Logger.log(
@@ -1558,7 +1551,7 @@ export class RewardsController extends BaseController<
           maxAge: Math.round(ACTIVE_BOOSTS_CACHE_THRESHOLD_MS / 1000),
         },
       );
-      return this.#convertBoostsFromSerializable(cachedActiveBoosts.boosts);
+      return cachedActiveBoosts.boosts;
     }
 
     try {
@@ -1581,7 +1574,7 @@ export class RewardsController extends BaseController<
       // Update state with cached active boosts
       this.update((state: RewardsControllerState) => {
         state.activeBoosts[compositeKey] = {
-          boosts: this.#convertBoostsToSerializable(response.boosts),
+          boosts: response.boosts,
           lastFetched: Date.now(),
         };
       });
@@ -1680,5 +1673,95 @@ export class RewardsController extends BaseController<
       );
       return [];
     }
+  }
+
+  /**
+   * Claim a reward
+   * @param rewardId - The reward ID
+   * @param dto - The claim reward request body
+   * @param subscriptionId - The subscription ID for authentication
+   */
+  async claimReward(
+    rewardId: string,
+    subscriptionId: string,
+    dto?: ClaimRewardDto,
+  ): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      throw new Error('Rewards are not enabled');
+    }
+    try {
+      await this.messagingSystem.call(
+        'RewardsDataService:claimReward',
+        rewardId,
+        subscriptionId,
+        dto,
+      );
+
+      // Invalidate cache for the active subscription
+      this.invalidateSubscriptionCache(subscriptionId);
+
+      // Emit event to trigger UI refresh
+      this.messagingSystem.publish('RewardsController:rewardClaimed', {
+        rewardId,
+        subscriptionId,
+      });
+
+      Logger.log('RewardsController: Successfully claimed reward', {
+        rewardId,
+        subscriptionId,
+      });
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to claim reward:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Invalidate cached data for a subscription
+   * @param subscriptionId - The subscription ID to invalidate cache for
+   * @param seasonId - The season ID (defaults to current season)
+   */
+  invalidateSubscriptionCache(subscriptionId: string, seasonId?: string): void {
+    if (seasonId) {
+      // Invalidate specific season
+      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+        seasonId,
+        subscriptionId,
+      );
+      this.update((state: RewardsControllerState) => {
+        delete state.seasonStatuses[compositeKey];
+        delete state.unlockedRewards[compositeKey];
+        delete state.activeBoosts[compositeKey];
+      });
+    } else {
+      // Invalidate all seasons for this subscription
+      this.update((state: RewardsControllerState) => {
+        Object.keys(state.seasonStatuses).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.seasonStatuses[key];
+          }
+        });
+        Object.keys(state.unlockedRewards).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.unlockedRewards[key];
+          }
+        });
+        Object.keys(state.activeBoosts).forEach((key) => {
+          if (key.includes(subscriptionId)) {
+            delete state.activeBoosts[key];
+          }
+        });
+      });
+    }
+
+    Logger.log(
+      'RewardsController: Invalidated cache for subscription',
+      subscriptionId,
+      seasonId || 'all seasons',
+    );
   }
 }

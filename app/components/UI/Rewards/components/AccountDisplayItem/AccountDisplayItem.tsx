@@ -16,6 +16,7 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
+import { formatAddress } from '../../../../../util/address';
 
 export interface AccountDisplayItemProps {
   /**
@@ -83,7 +84,7 @@ const AccountDisplayItem: React.FC<AccountDisplayItemProps> = ({
       />
 
       <Text variant={textVariant} fontWeight={fontWeight}>
-        {account.metadata.name}
+        {formatAddress(account.address, 'short')}
       </Text>
     </Box>
   );
