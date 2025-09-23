@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -7,6 +7,8 @@ import {
 } from '../../../../reducers/rewards';
 import { selectSeasonId } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
+import { useFocusEffect } from '@react-navigation/native';
 
 /**
  * Custom hook to fetch and manage unlocked rewards data from the rewards API
@@ -16,7 +18,7 @@ export const useUnlockedRewards = (): void => {
   const seasonId = useSelector(selectSeasonId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
-
+  const isLoadingRef = useRef(false);
   const fetchUnlockedRewards = useCallback(async (): Promise<void> => {
     // Don't fetch if no subscriptionId
     if (!subscriptionId || !seasonId) {
@@ -24,6 +26,11 @@ export const useUnlockedRewards = (): void => {
       dispatch(setUnlockedRewardLoading(false));
       return;
     }
+
+    if (isLoadingRef.current) {
+      return;
+    }
+    isLoadingRef.current = true;
 
     dispatch(setUnlockedRewardLoading(true));
 
@@ -39,12 +46,20 @@ export const useUnlockedRewards = (): void => {
       // Keep existing data on error to prevent UI flash
       dispatch(setUnlockedRewards([]));
     } finally {
+      isLoadingRef.current = false;
       dispatch(setUnlockedRewardLoading(false));
     }
   }, [dispatch, seasonId, subscriptionId]);
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchUnlockedRewards();
-  }, [fetchUnlockedRewards]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchUnlockedRewards();
+    }, [fetchUnlockedRewards]),
+  );
+
+  // Listen for account linked events to trigger refetch
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    fetchUnlockedRewards,
+  );
 };
