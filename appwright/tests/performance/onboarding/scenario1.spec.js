@@ -8,7 +8,7 @@ import AccountListComponent from '../../../../wdio/screen-objects/AccountListCom
 import AddAccountModal from '../../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import TabBarModal from '../../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { login, dismissSystemDialogs } from '../../../utils/Flows.js';
+import { onboardingFlowImportSRP } from '../../../utils/Flows.js';
 import AddNewHdAccountComponent from '../../../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
 
 test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
@@ -26,7 +26,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   AddAccountModal.device = device;
   AddNewHdAccountComponent.device = device;
 
-  await login(device, 'login', 120000);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
@@ -41,7 +41,6 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on new account created until the Token list is visible',
   );
 
-  await WalletMainScreen.isTokenVisible('ETH');
   screen1Timer.start();
   await WalletMainScreen.tapIdenticon();
   await AccountListComponent.isComponentDisplayed();
