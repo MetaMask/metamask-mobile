@@ -28,14 +28,22 @@ Status: ✅ Implemented
 
 _Note: Uses standard MetaMetrics transaction events (Transaction Added/Confirmed/Failed) with transaction_type = 'perps_deposit', not custom Perps events._
 
+### Perp Balance Modal Viewed
+
+Status: ⚠️ Implemented - Not in original spec
+**Implementation:** MetaMetrics.events.ts + PerpsBalanceModal.tsx:45
+**Properties:** Timestamp, Source (homescreen Tab)
+
 ### Perp Funding Input Viewed
 
-Status: ❌ Missing
+Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + deposit.tsx:47
 **Properties:** Timestamp, Source (Tutorial, homescreen Tab, perps Markets screen)
 
 ### Perp Funding Review Viewed
 
-Status: ❌ Missing
+Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + deposit.tsx:47
 **Properties:** Timestamp, Source Chain, SourceAsset, SourceAmount, networkFee
 
 ### Transaction Added transaction_type == perps_deposit

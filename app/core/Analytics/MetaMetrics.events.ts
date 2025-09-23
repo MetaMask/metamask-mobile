@@ -523,6 +523,13 @@ enum EVENT_NAME {
   PERPS_TUTORIAL_STARTED = 'Perp Tutorial Started',
   PERPS_TUTORIAL_COMPLETED = 'Perp Tutorial Completed',
 
+  // Account Funding Flow
+  PERPS_FUNDING_INPUT_VIEWED = 'Perp Funding Input Viewed',
+  PERPS_FUNDING_REVIEW_VIEWED = 'Perp Funding Review Viewed',
+
+  // Balance Management Flow
+  PERPS_BALANCE_MODAL_VIEWED = 'Perp Balance Modal Viewed',
+
   // Account Withdrawal Flow
   PERPS_WITHDRAWAL_INPUT_VIEWED = 'Perp Withdrawal Input Viewed',
   PERPS_WITHDRAWAL_INITIATED = 'Perp Withdrawal Initiated',
@@ -1358,11 +1365,24 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
-  // Perps Events - Mapped to dashboard requirements (47 events total)
+  // Perps Events - Mapped to dashboard requirements (49 events total)
   // Tutorial Flow (3 events)
   PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
   PERPS_TUTORIAL_STARTED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_STARTED),
   PERPS_TUTORIAL_COMPLETED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_COMPLETED),
+
+  // Account Funding Flow (2 events)
+  PERPS_FUNDING_INPUT_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_FUNDING_INPUT_VIEWED,
+  ),
+  PERPS_FUNDING_REVIEW_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_FUNDING_REVIEW_VIEWED,
+  ),
+
+  // Balance Management Flow (1 event)
+  PERPS_BALANCE_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_BALANCE_MODAL_VIEWED,
+  ),
 
   // Account Withdrawal Flow (4 events)
   PERPS_WITHDRAWAL_INPUT_VIEWED: generateOpt(
