@@ -161,14 +161,30 @@ jobs:
         if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle..."
-
-          # Simple repack - just regenerate the bundle
-          yarn repack:ios
-
-          # Verify the app exists after repack
+          
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          BUNDLE_PATH="${APP_PATH}/main.jsbundle"
+          SOURCEMAP_PATH="sourcemaps/ios/index.js.map"
+
+          # Ensure sourcemap directory exists
+          mkdir -p "$(dirname "$SOURCEMAP_PATH")"
+
+          echo "🔄 Generating new JavaScript bundle..."
+          yarn react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output "$BUNDLE_PATH" \
+            --sourcemap-output "$SOURCEMAP_PATH" \
+            --reset-cache
+
+          # Verify the app and bundle exist after repack
           if [ ! -d "$APP_PATH" ]; then
             echo "❌ Error: iOS .app not found after repack"
+            exit 1
+          fi
+          if [ ! -f "$BUNDLE_PATH" ]; then
+            echo "❌ Error: main.jsbundle not found after repack"
             exit 1
           fi
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * E2E App Repack Script using @expo/repack-app
- * Supports both Android APK and iOS .app repacking for CI optimization
+ * Supports Android APK repacking for CI optimization
  */
 
 const fs = require('fs');
@@ -172,109 +172,16 @@ async function repackAndroid() {
 }
 
 /**
- * Repack iOS .app using direct bundle replacement
- */
-async function repackIOS() {
-  const startTime = Date.now();
-
-  try {
-    // Simple configuration matching detox and bitrise setup
-    const sourceApp = 'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app';
-    const bundlePath = path.join(sourceApp, 'main.jsbundle');
-    const sourcemapPath = 'sourcemaps/ios/index.js.map';
-
-    logger.info('🚀 Starting iOS .app repack process...');
-    logger.info(`Target: ${sourceApp}`);
-
-    // Verify .app exists
-    if (!fs.existsSync(sourceApp)) {
-      throw new Error(`iOS .app not found: ${sourceApp}`);
-    }
-
-    // Log original bundle size
-    const originalSize = fs.existsSync(bundlePath) ? getFileSize(bundlePath) : 'N/A';
-    logger.info(`Original bundle: ${originalSize}`);
-
-    // Ensure sourcemap directory exists
-    const sourcemapDir = path.dirname(sourcemapPath);
-    if (!fs.existsSync(sourcemapDir)) {
-      fs.mkdirSync(sourcemapDir, { recursive: true });
-    }
-
-    // Simple bundle generation - just like in iOS build
-    const { execSync } = require('child_process');
-
-    logger.info('⏱️  Generating new JavaScript bundle...');
-
-    // Simple bundle command
-    const bundleCommand = `yarn react-native bundle \
-      --platform ios \
-      --dev false \
-      --entry-file index.js \
-      --bundle-output "${bundlePath}" \
-      --sourcemap-output "${sourcemapPath}" \
-      --reset-cache`;
-
-    try {
-      execSync(bundleCommand, {
-        stdio: 'inherit',
-        env: process.env
-      });
-    } catch (error) {
-      throw new Error(`Bundle generation failed: ${error.message}`);
-    }
-
-    // Verify bundle was created
-    if (!fs.existsSync(bundlePath)) {
-      throw new Error(`Bundle not found after generation: ${bundlePath}`);
-    }
-
-    // Log new bundle size
-    const newSize = getFileSize(bundlePath);
-    const duration = Math.round((Date.now() - startTime) / 1000);
-
-    logger.success(`✅ iOS repack completed in ${duration}s`);
-    logger.success(`Bundle: ${originalSize} → ${newSize}`);
-
-    // Check sourcemap
-    if (fs.existsSync(sourcemapPath)) {
-      logger.success(`Sourcemap: ${getFileSize(sourcemapPath)}`);
-    }
-
-  } catch (error) {
-    logger.error(`iOS repack failed: ${error.message}`);
-    throw error;
-  }
-}
-
-/**
  * Main entry point
  */
 async function main() {
-  // Parse command line arguments
-  const args = process.argv.slice(2);
-  const platform = args[0] || process.env.PLATFORM || 'android';
-
-  logger.info(`🔧 Repack Platform: ${platform.toUpperCase()}`);
+  // This script is now Android-specific
+  logger.info(`🔧 Repack Platform: ANDROID`);
   logger.info(`📍 Working Directory: ${process.cwd()}`);
   logger.info(`🌍 Environment: ${process.env.CI ? 'CI' : 'Local'}`);
 
   try {
-    switch (platform.toLowerCase()) {
-      case 'android':
-        await repackAndroid();
-        break;
-      case 'ios':
-        await repackIOS();
-        break;
-      case 'both':
-        logger.info('Running repacks for both platforms...');
-        await repackAndroid();
-        await repackIOS();
-        break;
-      default:
-        throw new Error(`Unknown platform: ${platform}. Use 'android', 'ios', or 'both'`);
-    }
+    await repackAndroid();
   } catch (error) {
     logger.error(`Repack process failed: ${error.message}`);
     if (error.stack) {
@@ -292,4 +199,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, repackAndroid, repackIOS };
+module.exports = { main, repackAndroid };
