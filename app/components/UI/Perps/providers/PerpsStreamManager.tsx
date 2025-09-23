@@ -369,18 +369,6 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(new Error('OrderStreamChannel: Wrong account context'), {
-            expected: currentAccount,
-            received: this.accountAddress,
-          });
-          return;
-        }
-        this.accountAddress = currentAccount;
-
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
       },
