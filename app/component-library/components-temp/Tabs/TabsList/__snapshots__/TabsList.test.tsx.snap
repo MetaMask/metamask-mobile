@@ -53,7 +53,7 @@ exports[`TabsList handles empty children gracefully 1`] = `
     onScrollBeginDrag={[Function]}
     onScrollEndDrag={[Function]}
     pagingEnabled={true}
-    scrollEventThrottle={8}
+    scrollEventThrottle={16}
     showsHorizontalScrollIndicator={false}
     style={
       {
@@ -331,7 +331,7 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
     onScrollBeginDrag={[Function]}
     onScrollEndDrag={[Function]}
     pagingEnabled={true}
-    scrollEventThrottle={8}
+    scrollEventThrottle={16}
     showsHorizontalScrollIndicator={false}
     style={
       {
@@ -765,7 +765,7 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
     onScrollBeginDrag={[Function]}
     onScrollEndDrag={[Function]}
     pagingEnabled={true}
-    scrollEventThrottle={8}
+    scrollEventThrottle={16}
     showsHorizontalScrollIndicator={false}
     style={
       {
