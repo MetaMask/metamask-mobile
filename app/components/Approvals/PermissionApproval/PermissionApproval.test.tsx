@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { render } from '@testing-library/react-native';
-import { useMetrics as mockedUseMetrics } from '../../hooks/useMetrics';
+import mockedUseMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import useOriginSource from '../../hooks/useOriginSource';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
