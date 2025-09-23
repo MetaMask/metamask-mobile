@@ -100,12 +100,6 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-// Mock hooks
-const mockUseSeasonStatus = jest.fn();
-jest.mock('../hooks/useSeasonStatus', () => ({
-  useSeasonStatus: () => mockUseSeasonStatus(),
-}));
-
 const mockUseUnlockedRewards = jest.fn();
 jest.mock('../hooks/useUnlockedRewards', () => ({
   useUnlockedRewards: () => mockUseUnlockedRewards(),
@@ -541,14 +535,6 @@ describe('RewardsDashboard', () => {
   });
 
   describe('hooks integration', () => {
-    it('should call useSeasonStatus hook', () => {
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalled();
-    });
-
     it('should call useUnlockedRewards hook', () => {
       // Act
       render(<RewardsDashboard />);
