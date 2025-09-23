@@ -234,7 +234,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {market.recurrence}
+                  {strings(
+                    `predict.recurrence.${market.recurrence.toLowerCase()}`,
+                  )}
                 </Text>
               </Box>
             )}

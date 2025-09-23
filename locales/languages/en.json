@@ -1535,6 +1535,7 @@
     "outcomes": "outcomes",
     "volume_abbreviated": "Vol.",
     "recurrence": {
+        "none": "None",
         "daily": "Daily",
         "weekly": "Weekly",
         "monthly": "Monthly",

@@ -9,9 +9,8 @@ import {
   type PredictCategory,
   type PredictMarket,
   type PredictPosition,
-  type Recurrence,
 } from '../../types';
-import { getRecurrenceDisplay } from '../../utils/format';
+import { getRecurrence } from '../../utils/format';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -593,7 +592,7 @@ export const parsePolymarketEvents = (
       status: event.closed
         ? PredictMarketStatus.CLOSED
         : PredictMarketStatus.OPEN,
-      recurrence: getRecurrenceDisplay(event.series) as Recurrence,
+      recurrence: getRecurrence(event.series),
       categories: [category],
       outcomes: event.markets.map((market: PolymarketApiMarket) => {
         const outcomeTokensIds = market.clobTokenIds

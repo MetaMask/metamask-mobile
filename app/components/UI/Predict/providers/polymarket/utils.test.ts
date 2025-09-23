@@ -1111,7 +1111,7 @@ describe('polymarket utils', () => {
         description: 'A test event',
         image: 'https://example.com/icon.png',
         status: 'open',
-        recurrence: 'Daily',
+        recurrence: 'daily',
         categories: [mockCategory],
         outcomes: [
           {
