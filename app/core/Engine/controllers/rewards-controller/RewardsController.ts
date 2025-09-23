@@ -60,13 +60,13 @@ const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Season status cache threshold
-const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+const SEASON_STATUS_CACHE_THRESHOLD_MS = 0; // no caching for now
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
 // Active boosts cache threshold
-const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 60 minutes
+const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -936,8 +936,28 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get season status:',
         error instanceof Error ? error.message : String(error),
       );
+      if (error instanceof Error && error.message.includes('403')) {
+        this.invalidateSubscriptionCache(subscriptionId);
+        this.invalidateAccountsAndSubscriptions();
+      }
       throw error;
     }
+  }
+
+  invalidateAccountsAndSubscriptions() {
+    this.update((state: RewardsControllerState) => {
+      if (state.activeAccount) {
+        state.activeAccount = {
+          ...state.activeAccount,
+          hasOptedIn: false,
+          subscriptionId: null,
+          account: state.activeAccount.account, // Ensure account is always present (never undefined)
+        };
+      }
+      state.accounts = {};
+      state.subscriptions = {};
+    });
+    Logger.log('RewardsController: Invalidated accounts and subscriptions');
   }
 
   /**
@@ -1007,7 +1027,10 @@ export class RewardsController extends BaseController<
    * @param account - The account to opt in
    * @param referralCode - Optional referral code
    */
-  async optIn(account: InternalAccount, referralCode?: string): Promise<void> {
+  async optIn(
+    account: InternalAccount,
+    referralCode?: string,
+  ): Promise<string | null> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       Logger.log(
@@ -1016,7 +1039,7 @@ export class RewardsController extends BaseController<
           account: account.address,
         },
       );
-      return;
+      return null;
     }
 
     Logger.log('RewardsController: Starting optin process', {
@@ -1035,7 +1058,7 @@ export class RewardsController extends BaseController<
     try {
       // First try: direct toHex conversion
       hexMessage = toHex(challengeResponse.message);
-    } catch (error) {
+    } catch {
       // Fallback: use Buffer to convert to hex if toHex fails
       hexMessage =
         '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
@@ -1097,6 +1120,8 @@ export class RewardsController extends BaseController<
       state.subscriptions[optinResponse.subscription.id] =
         optinResponse.subscription;
     });
+
+    return optinResponse.subscription.id;
   }
 
   /**
@@ -1413,7 +1438,7 @@ export class RewardsController extends BaseController<
       );
 
       // Invalidate cache for the linked account
-      this.#invalidateSubscriptionCache(updatedSubscription.id);
+      this.invalidateSubscriptionCache(updatedSubscription.id);
       // Emit event to trigger UI refresh
       this.messagingSystem.publish('RewardsController:accountLinked', {
         subscriptionId: updatedSubscription.id,
@@ -1436,19 +1461,8 @@ export class RewardsController extends BaseController<
    * Opt out of the rewards program, deleting the subscription and all associated data
    * @returns Promise<boolean> - True if opt-out was successful, false otherwise
    */
-  async optOut(): Promise<boolean> {
+  async optOut(subscriptionId: string): Promise<boolean> {
     try {
-      // Get the current active account
-      const activeAccount = this.state.activeAccount;
-      if (!activeAccount?.subscriptionId) {
-        Logger.log(
-          'RewardsController: No active account or subscription ID found for opt-out',
-        );
-        return false;
-      }
-
-      const subscriptionId = activeAccount.subscriptionId;
-
       // Check if subscription exists in our map
       if (!this.state.subscriptions[subscriptionId]) {
         Logger.log(
@@ -1685,7 +1699,7 @@ export class RewardsController extends BaseController<
       );
 
       // Invalidate cache for the active subscription
-      this.#invalidateSubscriptionCache(subscriptionId);
+      this.invalidateSubscriptionCache(subscriptionId);
 
       // Emit event to trigger UI refresh
       this.messagingSystem.publish('RewardsController:rewardClaimed', {
@@ -1711,10 +1725,7 @@ export class RewardsController extends BaseController<
    * @param subscriptionId - The subscription ID to invalidate cache for
    * @param seasonId - The season ID (defaults to current season)
    */
-  #invalidateSubscriptionCache(
-    subscriptionId: string,
-    seasonId?: string,
-  ): void {
+  invalidateSubscriptionCache(subscriptionId: string, seasonId?: string): void {
     if (seasonId) {
       // Invalidate specific season
       const compositeKey = this.#createSeasonSubscriptionCompositeKey(

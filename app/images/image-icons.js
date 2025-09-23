@@ -42,6 +42,7 @@ import OMNI_TOKEN from './omni-token.png';
 import FRAX from './frax.png';
 import XDC from './xdc.png';
 import AAVE from './aave-token-round.png';
+import HEMI from './hemi.png';
 
 export default {
   PALM,
@@ -90,4 +91,5 @@ export default {
   HL,
   FRAX,
   XDC,
+  HEMI,
 };

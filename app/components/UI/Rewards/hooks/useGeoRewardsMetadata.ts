@@ -2,7 +2,8 @@
  * Custom hook to fetch geo rewards metadata including location and support status
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { useDispatch } from 'react-redux';
 import {
@@ -32,9 +33,11 @@ export const useGeoRewardsMetadata = (): null => {
   }, [dispatch]);
 
   // Initial data fetch
-  useEffect(() => {
-    fetchGeoRewardsMetadata();
-  }, [fetchGeoRewardsMetadata]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchGeoRewardsMetadata();
+    }, [fetchGeoRewardsMetadata]),
+  );
 
   return null;
 };
