@@ -514,14 +514,12 @@ describe('formatUtils', () => {
             amount: '1234560000000000000', // 1.23456 ETH with 18 decimals
             decimals: 18,
             type: 'eip155:1/slip44:60',
-            iconUrl: 'https://example.com/eth.png',
           },
           destAsset: {
             symbol: 'USDC',
             amount: '2000000000', // 2000 USDC with 6 decimals
             decimals: 6,
             type: 'eip155:1/slip44:60',
-            iconUrl: 'https://example.com/usdc.png',
           },
         });
 
@@ -531,7 +529,6 @@ describe('formatUtils', () => {
           title: 'Swap',
           details: '1.235 ETH to USDC',
           icon: IconName.SwapVertical,
-          badgeImageUri: 'https://example.com/eth.png',
         });
       });
 
@@ -542,14 +539,12 @@ describe('formatUtils', () => {
             amount: '50000000000000000000', // 50 ETH with 18 decimals
             decimals: 18,
             type: 'eip155:1/slip44:60',
-            iconUrl: 'https://example.com/eth.png',
           },
           destAsset: {
             symbol: 'USDC',
             amount: '100000000', // 100 USDC with 6 decimals
             decimals: 6,
             type: 'eip155:1/slip44:60',
-            iconUrl: 'https://example.com/usdc.png',
           },
         });
 
@@ -559,7 +554,6 @@ describe('formatUtils', () => {
           title: 'Swap',
           details: '50 ETH to USDC',
           icon: IconName.SwapVertical,
-          badgeImageUri: 'https://example.com/eth.png',
         });
       });
     });
