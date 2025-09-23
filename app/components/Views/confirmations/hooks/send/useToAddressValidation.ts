@@ -1,21 +1,69 @@
+import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 
+import { strings } from '../../../../../../locales/i18n';
+import { isENS, isValidHexAddress } from '../../../../../util/address';
+import { selectAddressBook } from '../../../../../selectors/addressBookController';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
-import { useNonEvmToAddressValidation } from './non-evm/useNonEvmToAddressValidation';
+import {
+  shouldSkipValidation,
+  validateHexAddress,
+  validateSolanaAddress,
+} from '../../utils/send-address-validations';
+import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
+import { useNameValidation } from './useNameValidation';
 
 export const useToAddressValidation = () => {
-  const { isEvmSendType } = useSendType();
-  const { validateEvmToAddress } = useEvmToAddressValidation();
-  const { validateNonEvmToAddress } = useNonEvmToAddressValidation();
+  const internalAccounts = useSelector(selectInternalAccounts);
+  const addressBook = useSelector(selectAddressBook);
+  const { chainId, to } = useSendContext();
+  const { isEvmSendType, isSolanaSendType } = useSendType();
+  const { validateName } = useNameValidation();
 
   const validateToAddress = useCallback(async () => {
-    if (isEvmSendType) {
-      return await validateEvmToAddress();
+    if (
+      !to ||
+      shouldSkipValidation({
+        toAddress: to,
+        chainId,
+        addressBook,
+        internalAccounts,
+      })
+    ) {
+      return { toAddressValidated: to };
     }
-    return validateNonEvmToAddress();
-  }, [isEvmSendType, validateEvmToAddress, validateNonEvmToAddress]);
+
+    if (
+      isEvmSendType &&
+      isValidHexAddress(to, { mixedCaseUseChecksum: true })
+    ) {
+      return await validateHexAddress(to, chainId as Hex);
+    }
+
+    if (isSolanaSendType) {
+      return validateSolanaAddress(to);
+    }
+
+    if (isENS(to)) {
+      return validateName();
+    }
+
+    return {
+      error: strings('send.invalid_address'),
+      toAddressValidated: to,
+    };
+  }, [
+    addressBook,
+    chainId,
+    internalAccounts,
+    isEvmSendType,
+    isSolanaSendType,
+    to,
+    validateName,
+  ]);
 
   const { value, pending } = useAsyncResult<{
     toAddressValidated?: string;
