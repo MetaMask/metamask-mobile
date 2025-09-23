@@ -28,6 +28,16 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
+// Mock React Native Linking specifically for this test to prevent NavigationContainer errors
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn().mockResolvedValue(true),
+  getInitialURL: jest.fn().mockResolvedValue(''),
+  sendIntent: jest.fn(),
+}));
+
 // Mock hooks
 jest.mock('../../hooks', () => ({
   useMinimumOrderAmount: jest.fn(),
@@ -1863,15 +1873,16 @@ describe('PerpsClosePositionView', () => {
         defaultPerpsPositionMock,
         '', // Empty string when closePercentage is 100
         'market',
-        undefined,
+        undefined, // limitPrice is undefined for market orders
         {
-          error: null,
-          isLoadingMetamaskFee: false,
-          metamaskFee: 0,
-          metamaskFeeRate: 0,
-          protocolFee: 45,
-          protocolFeeRate: 0.00045,
           totalFee: 45,
+          marketPrice: 3000,
+          receivedAmount: 1405,
+          realizedPnl: 150,
+          metamaskFeeRate: 0,
+          feeDiscountPercentage: undefined,
+          metamaskFee: 0,
+          estimatedPoints: undefined,
         },
       );
     });
@@ -1943,6 +1954,16 @@ describe('PerpsClosePositionView', () => {
                   '',
                   orderType,
                   orderType === 'limit' ? limitPrice : undefined,
+                  {
+                    totalFee: 45,
+                    marketPrice: 3000,
+                    receivedAmount: 1405,
+                    realizedPnl: 150,
+                    metamaskFeeRate: 0,
+                    feeDiscountPercentage: undefined,
+                    metamaskFee: 0,
+                    estimatedPoints: undefined,
+                  },
                 );
               }}
             >
@@ -1964,6 +1985,14 @@ describe('PerpsClosePositionView', () => {
           '',
           'limit',
           '50000',
+          expect.objectContaining({
+            totalFee: expect.any(Number),
+            marketPrice: expect.any(Number),
+            receivedAmount: expect.any(Number),
+            realizedPnl: expect.any(Number),
+            metamaskFeeRate: expect.any(Number),
+            metamaskFee: expect.any(Number),
+          }),
         );
       });
     });
