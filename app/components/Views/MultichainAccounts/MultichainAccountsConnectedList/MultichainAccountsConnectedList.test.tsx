@@ -14,15 +14,6 @@ import {
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
-// Mock the gator-permissions-controller-init to prevent import errors
-jest.mock(
-  '../../../../core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init',
-  () => ({
-    __esModule: true,
-    default: jest.fn(),
-  }),
-);
-
 const mockSetSelectedAccountGroup = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
