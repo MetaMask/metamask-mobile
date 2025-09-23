@@ -199,9 +199,11 @@ export const useAccountGroupsForPermissions = (
       ]),
     );
 
-    const selectedOrFirstSupportedAccountGroup = [
-      selectedAccountGroup || (supportedAccountGroups[0] ?? []),
-    ];
+    // If there are no supported account groups, then return an empty array because the selected account group is not supported
+    const selectedOrFirstSupportedAccountGroup =
+      supportedAccountGroups.length > 0
+        ? [selectedAccountGroup || supportedAccountGroups[0]]
+        : [];
     const selectedAndRequestedAccountGroups = Array.from(
       new Set([
         ...prioritySupportedGroups,
