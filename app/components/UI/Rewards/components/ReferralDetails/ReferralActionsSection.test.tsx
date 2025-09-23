@@ -143,7 +143,7 @@ describe('ReferralActionsSection', () => {
       fireEvent.press(copyButton);
 
       expect(mockOnCopyLink).toHaveBeenCalledWith(
-        'rewards.referral.share_referral_message_prefixhttps://link.metamask.io/rewards?referral=TEST123',
+        'https://link.metamask.io/rewards?referral=TEST123',
       );
     });
 
