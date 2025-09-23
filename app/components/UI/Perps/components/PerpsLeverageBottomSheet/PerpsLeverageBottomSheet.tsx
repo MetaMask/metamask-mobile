@@ -577,7 +577,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const footerButtonProps = [
     {
-      label: `Set ${displayLeverage}x`,
+      label: strings('perps.order.leverage_modal.set_leverage', {
+        leverage: displayLeverage,
+      }),
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,

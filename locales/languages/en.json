@@ -1089,7 +1089,8 @@
         "liquidation_distance": "Liquidation Distance",
         "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
         "drops": "drops",
-        "rises": "rises"
+        "rises": "rises",
+        "set_leverage": "Set {{leverage}}x"
       },
       "type": {
         "title": "Order Type",
