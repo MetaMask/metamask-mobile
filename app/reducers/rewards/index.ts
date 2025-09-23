@@ -7,7 +7,6 @@ import {
   RewardDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
-import Logger from '../../util/Logger';
 
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels';
@@ -179,7 +178,6 @@ const rewardsSlice = createSlice({
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
-      Logger.log('setOnboardingActiveStep', action.payload);
       state.onboardingActiveStep = action.payload;
     },
 

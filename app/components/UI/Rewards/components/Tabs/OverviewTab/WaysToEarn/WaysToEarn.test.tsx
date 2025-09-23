@@ -4,13 +4,34 @@ import { useNavigation } from '@react-navigation/native';
 import { WaysToEarn, WayToEarnType } from './WaysToEarn';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
+import { SwapBridgeNavigationLocation } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockGoToSwaps = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+// Mock useSwapBridgeNavigation hook
+jest.mock('../../../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
+  SwapBridgeNavigationLocation: {
+    Rewards: 'rewards',
+  },
+  useSwapBridgeNavigation: jest.fn(() => ({
+    goToSwaps: mockGoToSwaps,
+  })),
+}));
+
+// Mock getNativeAssetForChainId
+jest.mock('@metamask/bridge-controller', () => ({
+  getNativeAssetForChainId: jest.fn(() => ({
+    address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+    symbol: 'ETH',
+    decimals: 18,
+  })),
 }));
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -197,7 +218,7 @@ describe('WaysToEarn', () => {
 
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SWAPS);
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('navigates to perps route when perps CTA is pressed', () => {
@@ -246,6 +267,30 @@ describe('WaysToEarn', () => {
       expect(WayToEarnType.SWAPS).toBe('swaps');
       expect(WayToEarnType.PERPS).toBe('perps');
       expect(WayToEarnType.REFERRALS).toBe('referrals');
+    });
+  });
+
+  describe('useSwapBridgeNavigation integration', () => {
+    it('configures the hook with correct parameters', () => {
+      // Import the actual hook module to verify mock calls
+      const { useSwapBridgeNavigation } = jest.requireMock(
+        '../../../../../Bridge/hooks/useSwapBridgeNavigation',
+      );
+
+      // Render the component to trigger the hook
+      render(<WaysToEarn />);
+
+      // Assert the hook was called with correct parameters
+      expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
+        location: SwapBridgeNavigationLocation.Rewards,
+        sourcePage: 'rewards_overview',
+        sourceToken: {
+          address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+          symbol: 'ETH',
+          decimals: 18,
+          chainId: 'eip155:59144',
+        },
+      });
     });
   });
 });
