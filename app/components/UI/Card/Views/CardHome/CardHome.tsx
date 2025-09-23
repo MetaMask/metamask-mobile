@@ -361,7 +361,7 @@ const CardHome = () => {
             <Button
               variant={ButtonVariants.Primary}
               label={strings('card.card_home.add_funds')}
-              size={ButtonSize.Sm}
+              size={ButtonSize.Lg}
               onPress={addFundsAction}
               width={ButtonWidthTypes.Full}
               loading={isLoadingPriorityToken}
@@ -393,10 +393,9 @@ CardHome.navigationOptions = ({
 }) => ({
   headerLeft: () => (
     <ButtonIcon
-      style={headerStyle.icon}
       size={ButtonIconSizes.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
+      iconName={IconName.Setting}
+      style={headerStyle.invisibleIcon}
     />
   ),
   headerTitle: () => (
@@ -410,9 +409,10 @@ CardHome.navigationOptions = ({
   ),
   headerRight: () => (
     <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      style={headerStyle.invisibleIcon}
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.Close}
+      onPress={() => navigation.goBack()}
     />
   ),
 });
