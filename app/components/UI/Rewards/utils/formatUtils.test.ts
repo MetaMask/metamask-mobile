@@ -33,6 +33,7 @@ jest.mock('../../../../util/date', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const t: Record<string, string> = {
+      'rewards.events.to': 'to',
       'rewards.events.type.swap': 'Swap',
       'rewards.events.type.referral_action': 'Referral action',
       'rewards.events.type.sign_up_bonus': 'Sign up bonus',

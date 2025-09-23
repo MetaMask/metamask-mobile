@@ -145,9 +145,10 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
   const formattedAmount = formatNumber(
     parseFloat(Number(rawAmount).toFixed(3)),
   );
+  const destSymbol = payload.destAsset?.symbol;
 
-  return `${formattedAmount} ${symbol} to ${
-    payload.destAsset?.symbol || 'Unknown'
+  return `${formattedAmount} ${symbol}${
+    destSymbol ? ` ${strings('rewards.events.to')} ${destSymbol}` : ''
   }`;
 };
 
