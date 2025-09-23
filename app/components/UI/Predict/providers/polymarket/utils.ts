@@ -4,10 +4,10 @@ import { Hex, hexToNumber } from '@metamask/utils';
 import { Interface, parseUnits } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
 import {
+  PredictMarketStatus,
   Side,
   type PredictCategory,
   type PredictMarket,
-  type PredictMarketStatus,
   type PredictPosition,
   type Recurrence,
 } from '../../types';
@@ -590,7 +590,9 @@ export const parsePolymarketEvents = (
       title: event.title,
       description: event.description,
       image: event.icon,
-      status: (event.closed ? 'closed' : 'open') as PredictMarketStatus,
+      status: event.closed
+        ? PredictMarketStatus.CLOSED
+        : PredictMarketStatus.OPEN,
       recurrence: getRecurrenceDisplay(event.series) as Recurrence,
       categories: [category],
       outcomes: event.markets.map((market: PolymarketApiMarket) => {
@@ -608,7 +610,9 @@ export const parsePolymarketEvents = (
           description: market.description,
           image: market.icon ?? market.image,
           groupItemTitle: market.groupItemTitle,
-          status: (market.closed ? 'closed' : 'open') as PredictMarketStatus,
+          status: market.closed
+            ? PredictMarketStatus.CLOSED
+            : PredictMarketStatus.OPEN,
           volume: market.volumeNum ?? 0,
           tokens: outcomeTokensIds.map((tokenId: string, index: number) => ({
             id: tokenId,

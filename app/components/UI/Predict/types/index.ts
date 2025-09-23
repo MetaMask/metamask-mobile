@@ -10,7 +10,11 @@ export interface GetPositionsParams {
   providerId?: string;
 }
 
-export type PredictMarketStatus = 'open' | 'closed' | 'resolved';
+export enum PredictMarketStatus {
+  OPEN = 'open',
+  CLOSED = 'closed',
+  RESOLVED = 'resolved',
+}
 
 export enum Recurrence {
   NONE = 'none',
