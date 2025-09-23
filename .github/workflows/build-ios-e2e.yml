@@ -182,18 +182,21 @@ jobs:
           echo "🔄 Generating new JavaScript bundle using the native build script..."
           export SENTRY_PROPERTIES=sentry.debug.properties
           export SENTRY_DISABLE_AUTO_UPLOAD=true
-          export BUNDLE_OUTPUT="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app/main.jsbundle"
-          export SOURCEMAP_OUTPUT="sourcemaps/ios/index.js.map"
-          ./scripts/ios/bundle-js-and-sentry-upload.sh
+          export BUNDLE_OUTPUT="build/Build/Products/Release-iphonesimulator/MetaMask.app/main.jsbundle"
+          export SOURCEMAP_OUTPUT="../sourcemaps/ios/index.js.map"
+          
+          # CRITICAL: Change to the 'ios' directory to match Xcode's execution environment
+          cd ios && ../scripts/ios/bundle-js-and-sentry-upload.sh && cd ..
           # --- End of bundling ---
 
           # Verify the app and bundle exist after repack
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          VERIFY_BUNDLE_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app/main.jsbundle"
           if [ ! -d "$APP_PATH" ]; then
             echo "❌ Error: iOS .app not found after repack"
             exit 1
           fi
-          if [ ! -f "$BUNDLE_OUTPUT" ]; then
+          if [ ! -f "$VERIFY_BUNDLE_PATH" ]; then
             echo "❌ Error: main.jsbundle not found after repack"
             exit 1
           fi
