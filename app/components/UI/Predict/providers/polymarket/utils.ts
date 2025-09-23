@@ -114,7 +114,6 @@ export const buildPolyHmacSignature = async (
     message += body;
   }
   const base64Secret = Buffer.from(secret, 'base64');
-  // @ts-expect-error - createHmac is not available in the type definitions
   const hmac = global.crypto.createHmac('sha256', base64Secret);
   const sig = hmac.update(message).digest('base64');
 
