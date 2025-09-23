@@ -40,17 +40,8 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import {
-  updateCachedConsent,
-  flushBufferedTraces,
-  discardBufferedTraces,
-} from '../../../util/trace';
+import { updateCachedConsent, flushBufferedTraces } from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
 import Device from '../../../util/device';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';

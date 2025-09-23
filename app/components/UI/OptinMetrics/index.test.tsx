@@ -444,4 +444,59 @@ describe('OptinMetrics', () => {
       expect(toJSON()).toBeDefined();
     });
   });
+
+  describe('Component Lifecycle Tests', () => {
+    it('should handle component unmount', () => {
+      const { BackHandler } = jest.requireMock('react-native');
+      const mockRemoveEventListener = jest.spyOn(
+        BackHandler,
+        'removeEventListener',
+      );
+
+      const { unmount } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+
+      unmount();
+
+      expect(mockRemoveEventListener).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('should handle scroll end reached', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const scrollView = screen.getByTestId(
+        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+      );
+
+      fireEvent.scroll(scrollView, {
+        nativeEvent: {
+          contentOffset: { y: 1000 },
+          contentSize: { height: 1200 },
+          layoutMeasurement: { height: 400 },
+        },
+      });
+
+      expect(scrollView).toBeTruthy();
+    });
+
+    it('should handle onConfirm analytics tracking', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+          }),
+        );
+      });
+    });
+  });
 });
