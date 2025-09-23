@@ -355,4 +355,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
+  [NETWORK_CHAIN_ID.HEMI]: require('../../images/hemi.png'),
 };
