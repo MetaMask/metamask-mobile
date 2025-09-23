@@ -1,5 +1,5 @@
 import React from 'react';
-import { Limits, Payment } from '@consensys/on-ramp-sdk';
+import { Limits, Payment , CryptoCurrency, FiatCurrency } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import type BN4 from 'bnjs4';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
@@ -27,6 +27,8 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
+import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { mockNetworkState } from '../../../../../../util/test/network';
 
 const mockSetActiveNetwork = jest.fn();
@@ -133,6 +135,12 @@ let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
   ...mockUseRegionsInitialValues,
 };
 jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
+
+// Mock useAccountTokenCompatible hook
+const mockUseAccountTokenCompatible = jest.fn(() => true);
+jest.mock('../../hooks/useAccountTokenCompatible', () =>
+  jest.fn(() => mockUseAccountTokenCompatible()),
+);
 
 const mockGetCryptoCurrencies = jest.fn();
 
@@ -315,6 +323,12 @@ jest.mock('../../../../../../util/trace', () => ({
 }));
 
 describe('BuildQuote View', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset the mock to return true by default (compatible)
+    mockUseAccountTokenCompatible.mockReturnValue(true);
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
@@ -967,5 +981,58 @@ describe('BuildQuote View', () => {
         rampType: RampType.SELL,
       },
     });
+  });
+
+  it('Shows incompatible account token modal when token is not compatible', () => {
+    mockUseAccountTokenCompatible.mockReturnValue(false);
+
+    render(BuildQuote);
+
+    const submitBtn = getByRoleButton('Get quotes');
+    expect(submitBtn).toBeTruthy();
+    expect(submitBtn.props.disabled).toBe(true);
+
+    const initialAmount = '0';
+    const validAmount = VALID_AMOUNT.toString();
+    const denomSymbol =
+      mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+    fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
+    fireEvent.press(getByRoleButton(validAmount));
+    fireEvent.press(getByRoleButton('Done'));
+    fireEvent.press(submitBtn);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createIncompatibleAccountTokenModalNavigationDetails(),
+    );
+  });
+
+  it('Navigates to quotes when token is compatible', () => {
+    mockUseAccountTokenCompatible.mockReturnValue(true);
+
+    render(BuildQuote);
+
+    const submitBtn = getByRoleButton('Get quotes');
+    expect(submitBtn).toBeTruthy();
+    expect(submitBtn.props.disabled).toBe(true);
+
+    const initialAmount = '0';
+    const validAmount = VALID_AMOUNT.toString();
+    const denomSymbol =
+      mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
+    fireEvent.press(getByRoleButton(`${denomSymbol}${initialAmount}`));
+    fireEvent.press(getByRoleButton(validAmount));
+    fireEvent.press(getByRoleButton('Done'));
+    expect(submitBtn.props.disabled).toBe(false);
+
+    fireEvent.press(submitBtn);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createQuotesNavDetails({
+        amount: VALID_AMOUNT,
+        asset: mockUseRampSDKValues.selectedAsset as CryptoCurrency,
+        fiatCurrency:
+          mockUseFiatCurrenciesValues.currentFiatCurrency as FiatCurrency,
+      }),
+    );
   });
 });

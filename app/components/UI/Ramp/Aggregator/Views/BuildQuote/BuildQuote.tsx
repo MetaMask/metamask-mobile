@@ -58,6 +58,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
@@ -84,6 +85,7 @@ import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Bu
 import { FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -144,6 +146,8 @@ const BuildQuote = () => {
     isBuy,
     isSell,
   } = useRampSDK();
+
+  const isCompatible = useAccountTokenCompatible(selectedAsset);
 
   const screenLocation: ScreenLocation = isBuy
     ? 'Amount to Buy Screen'
@@ -544,53 +548,63 @@ const BuildQuote = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
-    if (selectedAsset && currentFiatCurrency) {
+    if (!selectedAsset || !currentFiatCurrency) {
+      return;
+    }
+
+    if (!isCompatible) {
       navigation.navigate(
-        ...createQuotesNavDetails({
-          amount: isBuy ? amountNumber : amount,
-          asset: selectedAsset,
-          fiatCurrency: currentFiatCurrency,
-        }),
+        ...createIncompatibleAccountTokenModalNavigationDetails(),
       );
+      return;
+    }
 
-      const analyticsPayload = {
-        payment_method_id: selectedPaymentMethodId as string,
-        amount: amountNumber,
-        location: screenLocation,
-      };
+    navigation.navigate(
+      ...createQuotesNavDetails({
+        amount: isBuy ? amountNumber : amount,
+        asset: selectedAsset,
+        fiatCurrency: currentFiatCurrency,
+      }),
+    );
 
-      trace({
-        name: TraceName.RampQuoteLoading,
-        tags: {
-          rampType,
-        },
+    const analyticsPayload = {
+      payment_method_id: selectedPaymentMethodId as string,
+      amount: amountNumber,
+      location: screenLocation,
+    };
+
+    trace({
+      name: TraceName.RampQuoteLoading,
+      tags: {
+        rampType,
+      },
+    });
+    if (isBuy) {
+      trackEvent('ONRAMP_QUOTES_REQUESTED', {
+        ...analyticsPayload,
+        currency_source: currentFiatCurrency.symbol,
+        currency_destination: selectedAsset.symbol,
+        chain_id_destination: selectedAsset.network?.chainId || 'unknown',
       });
-      if (isBuy) {
-        trackEvent('ONRAMP_QUOTES_REQUESTED', {
-          ...analyticsPayload,
-          currency_source: currentFiatCurrency.symbol,
-          currency_destination: selectedAsset.symbol,
-          chain_id_destination: selectedAsset.network?.chainId || 'unknown',
-        });
-      } else {
-        trackEvent('OFFRAMP_QUOTES_REQUESTED', {
-          ...analyticsPayload,
-          currency_destination: currentFiatCurrency.symbol,
-          currency_source: selectedAsset.symbol,
-          chain_id_source: selectedAsset.network?.chainId || 'unknown',
-        });
-      }
+    } else {
+      trackEvent('OFFRAMP_QUOTES_REQUESTED', {
+        ...analyticsPayload,
+        currency_destination: currentFiatCurrency.symbol,
+        currency_source: selectedAsset.symbol,
+        chain_id_source: selectedAsset.network?.chainId || 'unknown',
+      });
     }
   }, [
-    rampType,
-    screenLocation,
-    amount,
-    amountNumber,
-    currentFiatCurrency,
-    isBuy,
-    navigation,
     selectedAsset,
+    currentFiatCurrency,
+    isCompatible,
+    navigation,
+    isBuy,
+    amountNumber,
+    amount,
     selectedPaymentMethodId,
+    screenLocation,
+    rampType,
     trackEvent,
   ]);
 
@@ -731,9 +745,7 @@ const BuildQuote = () => {
                 ? 'fiat_on_ramp_aggregator.no_tokens_available'
                 : 'fiat_on_ramp_aggregator.no_sell_tokens_available',
               {
-                network:
-                  selectedNetworkName ||
-                  strings('fiat_on_ramp_aggregator.this_network'),
+                network: strings('fiat_on_ramp_aggregator.this_network'),
                 region: selectedRegion?.name,
               },
             )}
@@ -928,7 +940,7 @@ const BuildQuote = () => {
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {strings(
                     'fiat_on_ramp_aggregator.insufficient_native_balance',
-                    { currency: nativeSymbol },
+                    { currency: 'ETH' },
                   )}
                 </Text>
               </Row>

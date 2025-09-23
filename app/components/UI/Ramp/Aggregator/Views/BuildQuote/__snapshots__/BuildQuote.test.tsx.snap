@@ -557,7 +557,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     ]
                                   }
                                 >
-                                  There are currently no tokens available to purchase on Ethereum with the selected payment method.
+                                  There are currently no tokens available to purchase on this network with the selected payment method.
                                 </Text>
                               </View>
                               <View
@@ -1194,7 +1194,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     ]
                                   }
                                 >
-                                  There are currently no tokens available to sell on Ethereum with the selected cash destination.
+                                  There are currently no tokens available to sell on this network with the selected cash destination.
                                 </Text>
                               </View>
                               <View
