@@ -3275,7 +3275,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={32}
+              handlerTag={30}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -3935,7 +3935,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={31}
+              handlerTag={29}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4873,7 +4873,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={28}
+              handlerTag={26}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5533,7 +5533,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={27}
+              handlerTag={25}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -8281,7 +8281,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={24}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}

@@ -143,7 +143,7 @@ function TokenSelectModal() {
   );
 
   const handleSelectTokenCallback = useCallback(
-    async (newAsset: CryptoCurrency) => {
+    (newAsset: CryptoCurrency) => {
       setSelectedAsset(newAsset);
       sheetRef.current?.onCloseBottomSheet();
     },
@@ -244,9 +244,7 @@ function TokenSelectModal() {
         ref={listRef}
         data={searchTokenResults}
         renderItem={renderToken}
-        keyExtractor={(item) =>
-          item.id || `${item.symbol}-${item.address || 'native'}`
-        }
+        keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
