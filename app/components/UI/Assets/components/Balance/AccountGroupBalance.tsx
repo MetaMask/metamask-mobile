@@ -41,7 +41,7 @@ const AccountGroupBalance = () => {
   return (
     <View style={styles.accountGroupBalance}>
       <View>
-        {displayBalance ? (
+        {groupBalance ? (
           <TouchableOpacity
             onPress={() => togglePrivacy(!privacyMode)}
             testID="balance-container"
