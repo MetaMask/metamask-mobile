@@ -10,7 +10,7 @@ export const PERPS_CONSTANTS = {
 
   // Connection timing constants
   CONNECTION_GRACE_PERIOD_MS: 20_000, // 20 seconds grace period before actual disconnection (same as BACKGROUND_DISCONNECT_DELAY for semantic clarity)
-  RECONNECTION_CLEANUP_DELAY_MS: 200, // Platform-agnostic delay to ensure cleanup is complete
+  RECONNECTION_CLEANUP_DELAY_MS: 500, // Platform-agnostic delay to ensure WebSocket is ready
   RECONNECTION_DELAY_ANDROID_MS: 300, // Android-specific reconnection delay for better reliability on slower devices
   RECONNECTION_DELAY_IOS_MS: 100, // iOS-specific reconnection delay for optimal performance
 
