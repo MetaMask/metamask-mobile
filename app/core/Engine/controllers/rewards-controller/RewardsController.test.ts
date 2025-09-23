@@ -1110,7 +1110,7 @@ describe('RewardsController', () => {
         );
       });
 
-      it('should find the earliest event from multiple points events with different timestamps', async () => {
+      it('should find the latest event from multiple points events with different timestamps', async () => {
         // Arrange
         const mockRequest = {
           seasonId: 'current',
@@ -1153,7 +1153,7 @@ describe('RewardsController', () => {
               value: 50,
               bonus: { bips: 0, bonuses: [] },
               accountAddress: '0x123',
-              updatedAt: latestTimestamp, // Latest
+              updatedAt: latestTimestamp, // Latest - should be used for comparison
               payload: null,
             },
             {
@@ -1163,7 +1163,7 @@ describe('RewardsController', () => {
               value: 30,
               bonus: { bips: 0, bonuses: [] },
               accountAddress: '0x123',
-              updatedAt: earliestTimestamp, // Earliest - should be used for comparison
+              updatedAt: earliestTimestamp, // Earliest
               payload: null,
             },
             {
@@ -1194,9 +1194,9 @@ describe('RewardsController', () => {
           },
         );
         expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Comparing cache timestamps with earliest updatedAt',
+          'RewardsController: Comparing cache timestamps with latest updatedAt',
           expect.objectContaining({
-            earliestUpdatedAt: earliestTimestamp.getTime(),
+            latestUpdatedAt: latestTimestamp.getTime(),
           }),
         );
       });
@@ -1328,16 +1328,16 @@ describe('RewardsController', () => {
 
         // Verify the 300ms buffer was added in logging and season status timestamp is included
         expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Comparing cache timestamps with earliest updatedAt',
+          'RewardsController: Comparing cache timestamps with latest updatedAt',
           expect.objectContaining({
             cacheBalanceUpdatedAt: cachedTimestamp.getTime() + 300,
             cacheSeasonStatusTimestamp: now.getTime(),
-            earliestUpdatedAt: eventTimestamp.getTime(),
+            latestUpdatedAt: eventTimestamp.getTime(),
           }),
         );
       });
 
-      it('should emit balance updated event when earliest event is newer than cached season status timestamp', async () => {
+      it('should emit balance updated event when latest event is newer than cached season status timestamp', async () => {
         // Arrange
         const mockRequest = {
           seasonId: 'current',
@@ -1402,7 +1402,7 @@ describe('RewardsController', () => {
         );
       });
 
-      it('should not emit balance updated event when both cache timestamps are newer than earliest event', async () => {
+      it('should not emit balance updated event when both cache timestamps are newer than latest event', async () => {
         // Arrange
         const mockRequest = {
           seasonId: 'current',
@@ -1464,7 +1464,7 @@ describe('RewardsController', () => {
         );
       });
 
-      it('should emit balance updated event when earliest event is newer than balance timestamp but season status is missing lastFetched', async () => {
+      it('should emit balance updated event when latest event is newer than balance timestamp but season status is missing lastFetched', async () => {
         // Arrange
         const mockRequest = {
           seasonId: 'current',
@@ -1529,10 +1529,10 @@ describe('RewardsController', () => {
 
         // Verify that cacheSeasonStatusTimestamp was 0 in the logs
         expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Comparing cache timestamps with earliest updatedAt',
+          'RewardsController: Comparing cache timestamps with latest updatedAt',
           expect.objectContaining({
             cacheSeasonStatusTimestamp: 0,
-            earliestUpdatedAt: eventTimestamp.getTime(),
+            latestUpdatedAt: eventTimestamp.getTime(),
           }),
         );
       });
