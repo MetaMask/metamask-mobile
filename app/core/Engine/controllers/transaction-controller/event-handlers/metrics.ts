@@ -129,14 +129,16 @@ export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ): Promise<void> {
-  retryIfEngineNotInitialized(() => {
-    handleTransactionFinalizedEventForMetrics(
-      transactionMeta,
-      transactionEventHandlerRequest,
-    );
-
+  if (
+    retryIfEngineNotInitialized(() => {
+      handleTransactionFinalizedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    })
+  ) {
     return;
-  });
+  }
 
   // Generate default properties
   const defaultTransactionMetricProperties =
@@ -191,10 +193,11 @@ export async function handleTransactionFinalizedEventForMetrics(
   MetaMetrics.getInstance().trackEvent(event);
 }
 
-function retryIfEngineNotInitialized(fn: () => void) {
+function retryIfEngineNotInitialized(fn: () => void): boolean {
   try {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { context } = Engine;
+    return false;
   } catch (e) {
     log('Transaction controller event before engine initialized');
 
@@ -202,6 +205,6 @@ function retryIfEngineNotInitialized(fn: () => void) {
       fn();
     }, 5000);
 
-    return;
+    return true;
   }
 }

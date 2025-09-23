@@ -18,7 +18,6 @@ import {
   enabledSmartTransactionsState,
 } from '../data-helpers';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import Engine from '../../../Engine';
 
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
