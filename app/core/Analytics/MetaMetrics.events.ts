@@ -569,6 +569,10 @@ enum EVENT_NAME {
   PERPS_WARNING_DISPLAYED = 'Warning displayed',
   PERPS_ERROR_ENCOUNTERED = 'Error Encountered',
 
+  // Full Page Modal Events
+  PERPS_FULL_PAGE_MODAL_VIEWED = 'Perp Full page modal viewed',
+  PERPS_FULL_PAGE_MODAL_TAPPED = 'Perp Full page modal tapped',
+
   // Card
   CARD_VIEWED = 'Card Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',
@@ -1447,6 +1451,14 @@ const events = {
   // Error Management Flow (2 events)
   PERPS_WARNING_DISPLAYED: generateOpt(EVENT_NAME.PERPS_WARNING_DISPLAYED),
   PERPS_ERROR_ENCOUNTERED: generateOpt(EVENT_NAME.PERPS_ERROR_ENCOUNTERED),
+
+  // Full Page Modal Events (2 events)
+  PERPS_FULL_PAGE_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_FULL_PAGE_MODAL_VIEWED,
+  ),
+  PERPS_FULL_PAGE_MODAL_TAPPED: generateOpt(
+    EVENT_NAME.PERPS_FULL_PAGE_MODAL_TAPPED,
+  ),
 
   // Asset Filter
   ASSET_FILTER_SELECTED: generateOpt(EVENT_NAME.ASSET_FILTER_SELECTED),

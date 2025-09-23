@@ -73,6 +73,7 @@ export const PerpsEventProperties = {
 
   // Other properties
   INPUT_METHOD: 'inputMethod', // camelCase per requirements
+  ACTION_TYPE: 'action_type',
   FAILURE_REASON: 'Failure Reason',
   WARNING_TYPE: 'Warning Type',
   WARNING_MESSAGE: 'Warning Message',
@@ -140,6 +141,10 @@ export const PerpsEventValues = {
     ZOOM: 'zoom',
     SLIDE: 'slide',
     CANDLE_PERIOD_CHANGE: 'candle_period_change',
+  },
+  ACTION_TYPE: {
+    START_TRADING: 'Start trading',
+    SKIP: 'Skip',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'PositionLiquidated',

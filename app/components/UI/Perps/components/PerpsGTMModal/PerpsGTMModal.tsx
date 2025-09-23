@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -13,7 +13,6 @@ import Button, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Character from '../../../../../images/character_1.png';
@@ -21,18 +20,17 @@ import StorageWrapper from '../../../../../store/storage-wrapper';
 import { baseStyles } from '../../../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import { useTheme } from '../../../../../util/theme';
-import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
 import createStyles from './PerpsGTMModal.styles';
 
 import { PerpsGTMModalSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  PERPS_GTM_MODAL_DECLINE,
-  PERPS_GTM_MODAL_ENGAGE,
-  PERPS_GTM_WHATS_NEW_MODAL,
-} from '../../constants/perpsConfig';
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 const PerpsGTMModal = () => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
   const { navigate } = useNavigation();
   const theme = useTheme();
 
@@ -40,32 +38,30 @@ const PerpsGTMModal = () => {
 
   const styles = createStyles(theme, isDarkMode);
 
+  // Track modal viewed on mount
+  useEffect(() => {
+    track(MetaMetricsEvents.PERPS_FULL_PAGE_MODAL_VIEWED, {
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+    });
+  }, [track]);
+
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
-        .addProperties({
-          ...generateDeviceAnalyticsMetaData(),
-          feature: PERPS_GTM_WHATS_NEW_MODAL,
-          action: PERPS_GTM_MODAL_DECLINE,
-        })
-        .build(),
-    );
+    track(MetaMetricsEvents.PERPS_FULL_PAGE_MODAL_TAPPED, {
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      [PerpsEventProperties.ACTION_TYPE]: PerpsEventValues.ACTION_TYPE.SKIP,
+    });
 
     navigate(Routes.WALLET.HOME);
   };
 
   const tryPerpsNow = async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
-        .addProperties({
-          ...generateDeviceAnalyticsMetaData(),
-          feature: PERPS_GTM_WHATS_NEW_MODAL,
-          action: PERPS_GTM_MODAL_ENGAGE,
-        })
-        .build(),
-    );
+    track(MetaMetricsEvents.PERPS_FULL_PAGE_MODAL_TAPPED, {
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      [PerpsEventProperties.ACTION_TYPE]:
+        PerpsEventValues.ACTION_TYPE.START_TRADING,
+    });
 
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,

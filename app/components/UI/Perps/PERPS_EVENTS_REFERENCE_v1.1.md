@@ -324,12 +324,14 @@ Status: ✅ Implemented
 
 ### Full page modal viewed
 
-Status: ❌ NOT IMPLEMENTED - No PERPS_FULL_PAGE_MODAL_VIEWED event found in codebase
+Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsGTMModal.tsx:50
 **Properties:** Timestamp, Source (homepage, deeplink)
 
 ### Full page modal tapped
 
-Status: ❌ NOT IMPLEMENTED - No PERPS_FULL_PAGE_MODAL_TAPPED event found in codebase
+Status: ✅ Implemented
+**Implementation:** MetaMetrics.events.ts + PerpsGTMModal.tsx:51,60
 **Properties:** Timestamp, Source (homepage, deeplink), action_type (Start trading, Skip)
 
 ---
