@@ -5724,6 +5724,7 @@
     "toast_dismiss": "Dismiss",
 
     "events": {
+      "to": "to",
       "type": {
         "swap": "Swap",
         "perps": "Perps",
