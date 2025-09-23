@@ -432,6 +432,7 @@ describe('OptinMetrics', () => {
       const checkboxes = screen.getAllByRole('checkbox');
       expect(checkboxes[0]).toBeTruthy();
       expect(checkboxes[1]).toBeTruthy();
+      expect(checkboxes[2]).toBeTruthy();
     });
 
     it('should render component without errors', () => {
@@ -497,6 +498,44 @@ describe('OptinMetrics', () => {
           }),
         );
       });
+    });
+
+    it('should initialize with correct default checkbox states', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      expect(basicUsageCheckbox).toBeTruthy();
+
+      const marketingCheckbox = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
+      expect(marketingCheckbox).toBeTruthy();
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes).toHaveLength(3);
+    });
+
+    it('should handle checkbox state changes correctly', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageTitle = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      const marketingTitle = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
+
+      fireEvent.press(basicUsageTitle);
+
+      fireEvent.press(marketingTitle);
+
+      expect(basicUsageTitle).toBeTruthy();
+      expect(marketingTitle).toBeTruthy();
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes).toHaveLength(3);
     });
   });
 });

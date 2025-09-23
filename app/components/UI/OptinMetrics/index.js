@@ -30,7 +30,6 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -420,98 +419,92 @@ class OptinMetrics extends PureComponent {
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
               }
             >
-              {strings(
-                isPastPrivacyPolicyDate
-                  ? 'privacy_policy.description_content_1'
-                  : 'privacy_policy.description_content_1_legacy',
-              )}
+              {strings('privacy_policy.description_content_1')}
             </Text>
-            {isPastPrivacyPolicyDate ? (
-              <View>
-                <View style={styles.sectionContainer}>
-                  <TouchableOpacity
-                    style={styles.checkbox}
+            <View>
+              <View style={styles.sectionContainer}>
+                <TouchableOpacity
+                  style={styles.checkbox}
+                  onPress={() =>
+                    this.setState((prevState) => ({
+                      isBasicUsageChecked: !prevState.isBasicUsageChecked,
+                    }))
+                  }
+                  activeOpacity={1}
+                >
+                  <Checkbox
+                    isChecked={this.state.isBasicUsageChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
                     onPress={() =>
                       this.setState((prevState) => ({
                         isBasicUsageChecked: !prevState.isBasicUsageChecked,
                       }))
                     }
-                    activeOpacity={1}
-                  >
-                    <Checkbox
-                      isChecked={this.state.isBasicUsageChecked}
-                      accessibilityRole={'checkbox'}
-                      accessible
-                      onPress={() =>
-                        this.setState((prevState) => ({
-                          isBasicUsageChecked: !prevState.isBasicUsageChecked,
-                        }))
-                      }
-                    />
-                    <View style={styles.flexContainer}>
-                      <Text
-                        variant={TextVariant.BodySMMedium}
-                        color={TextColor.Default}
-                      >
-                        {strings('privacy_policy.gather_basic_usage_title')}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles.descriptionText}
-                  >
-                    {strings('privacy_policy.gather_basic_usage_description') +
-                      ' '}
+                  />
+                  <View style={styles.flexContainer}>
                     <Text
-                      color={TextColor.Primary}
-                      variant={TextVariant.BodySM}
-                      onPress={this.openLearnMore}
+                      variant={TextVariant.BodySMMedium}
+                      color={TextColor.Default}
                     >
-                      {strings('privacy_policy.gather_basic_usage_learn_more')}
+                      {strings('privacy_policy.gather_basic_usage_title')}
                     </Text>
+                  </View>
+                </TouchableOpacity>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={styles.descriptionText}
+                >
+                  {strings('privacy_policy.gather_basic_usage_description') +
+                    ' '}
+                  <Text
+                    color={TextColor.Primary}
+                    variant={TextVariant.BodySM}
+                    onPress={this.openLearnMore}
+                  >
+                    {strings('privacy_policy.gather_basic_usage_learn_more')}
                   </Text>
-                </View>
-                <View style={styles.sectionContainer}>
-                  <TouchableOpacity
-                    style={styles.checkbox}
+                </Text>
+              </View>
+              <View style={styles.sectionContainer}>
+                <TouchableOpacity
+                  style={styles.checkbox}
+                  onPress={() =>
+                    this.setState((prevState) => ({
+                      isCheckboxChecked: !prevState.isCheckboxChecked,
+                    }))
+                  }
+                  activeOpacity={1}
+                >
+                  <Checkbox
+                    isChecked={this.state.isCheckboxChecked}
+                    accessibilityRole={'checkbox'}
+                    accessible
                     onPress={() =>
                       this.setState((prevState) => ({
                         isCheckboxChecked: !prevState.isCheckboxChecked,
                       }))
                     }
-                    activeOpacity={1}
-                  >
-                    <Checkbox
-                      isChecked={this.state.isCheckboxChecked}
-                      accessibilityRole={'checkbox'}
-                      accessible
-                      onPress={() =>
-                        this.setState((prevState) => ({
-                          isCheckboxChecked: !prevState.isCheckboxChecked,
-                        }))
-                      }
-                    />
-                    <View style={styles.flexContainer}>
-                      <Text
-                        variant={TextVariant.BodySMMedium}
-                        color={TextColor.Default}
-                      >
-                        {strings('privacy_policy.checkbox_marketing')}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                    style={styles.descriptionText}
-                  >
-                    {strings('privacy_policy.checkbox')}
-                  </Text>
-                </View>
+                  />
+                  <View style={styles.flexContainer}>
+                    <Text
+                      variant={TextVariant.BodySMMedium}
+                      color={TextColor.Default}
+                    >
+                      {strings('privacy_policy.checkbox_marketing')}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={styles.descriptionText}
+                >
+                  {strings('privacy_policy.checkbox')}
+                </Text>
               </View>
-            ) : null}
+            </View>
           </View>
         </ScrollView>
         {this.renderActionButtons()}
