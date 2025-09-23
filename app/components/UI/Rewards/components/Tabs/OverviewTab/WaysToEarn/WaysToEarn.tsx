@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { FlatList, Image, ImageSourcePropType } from 'react-native';
 import {
   Box,
@@ -29,6 +29,8 @@ import {
   useSwapBridgeNavigation,
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
+import { useSelector } from 'react-redux';
+import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -149,6 +151,8 @@ const getBottomSheetData = (type: WayToEarnType) => {
 
 export const WaysToEarn = () => {
   const navigation = useNavigation();
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+
   const token = getNativeAssetForChainId('eip155:59144');
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -162,13 +166,28 @@ export const WaysToEarn = () => {
     },
   });
 
+  const goToPerps = useCallback(() => {
+    let params: Record<string, string> | null = null;
+    if (isFirstTimePerpsUser) {
+      params = {
+        screen: Routes.PERPS.TUTORIAL,
+      };
+    } else {
+      params = {
+        screen: Routes.PERPS.MARKETS,
+      };
+    }
+
+    navigation.navigate(Routes.PERPS.ROOT, params);
+  }, [navigation, isFirstTimePerpsUser]);
+
   const handleCTAPress = async (type: WayToEarnType) => {
     navigation.goBack(); // Close the modal first
 
     if (type === WayToEarnType.SWAPS) {
       goToSwaps();
     } else if (type === WayToEarnType.PERPS) {
-      navigation.navigate(Routes.PERPS.ROOT);
+      goToPerps();
     }
   };
 
