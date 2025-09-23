@@ -122,7 +122,6 @@ exports[`InfoAddress should match snapshot 1`] = `
           "lineHeight": 24,
         }
       }
-      useNativeDriver={true}
     >
       Account 1
     </Text>
