@@ -37,6 +37,7 @@ import {
   HYPERLIQUID_ASSET_CONFIGS,
   USDC_DECIMALS,
   USDC_SYMBOL,
+  USDC_TOKEN_ICON_URL,
 } from '../../constants/hyperLiquidConfig';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
@@ -73,8 +74,6 @@ import Button, {
 
 // Constants
 const MAX_INPUT_LENGTH = 20;
-const USDC_TOKEN_URL =
-  'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png';
 
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
@@ -506,7 +505,7 @@ const PerpsWithdrawView: React.FC = () => {
               <AvatarToken
                 name={destToken.symbol}
                 // hardcoding usdc token image url until we support other withdrawal token types
-                imageSource={{ uri: USDC_TOKEN_URL }}
+                imageSource={{ uri: USDC_TOKEN_ICON_URL }}
                 size={AvatarSize.Sm}
               />
             </BadgeWrapper>

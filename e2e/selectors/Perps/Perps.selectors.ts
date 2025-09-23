@@ -347,6 +347,18 @@ export const PerpsChartGridLinesSelectorsIDs = {
   GRID_PRICE_LABEL: 'grid-price-label', // Use as `grid-price-label-${index}`
 };
 
+// ========================================
+// PERPS MARKET BALANCE ACTIONS SELECTORS
+// ========================================
+
+export const PerpsMarketBalanceActionsSelectorsIDs = {
+  CONTAINER: 'perps-market-balance-actions',
+  BALANCE_VALUE: 'perps-market-balance-value',
+  ADD_FUNDS_BUTTON: 'perps-market-add-funds-button',
+  WITHDRAW_BUTTON: 'perps-market-withdraw-button',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP: 'perps-market-balance-geo-block-tooltip',
+};
+
 export const PerpsChartAuxiliaryLinesSelectorsIDs = {
   // Auxiliary lines container (TP/SL lines)
   AUXILIARY_LINES: 'auxiliary-lines',
