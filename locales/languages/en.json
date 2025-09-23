@@ -1435,6 +1435,11 @@
       "candle_intervals": "Candle intervals",
       "candle_period_selector": {
         "show_more": "More"
+      },
+      "time_periods": {
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days"
       }
     },
     "perps_markets": "Perps markets",
