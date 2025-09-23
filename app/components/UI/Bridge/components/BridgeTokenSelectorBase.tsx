@@ -292,9 +292,9 @@ export const BridgeTokenSelectorBase: React.FC<
           bounces
           scrollEnabled
           removeClippedSubviews
-          maxToRenderPerBatch={20}
+          maxToRenderPerBatch={40}
           windowSize={10}
-          initialNumToRender={15}
+          initialNumToRender={50}
           updateCellsBatchingPeriod={100}
         />
       </Box>
