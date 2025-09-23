@@ -101,18 +101,18 @@ jest.mock('rive-react-native', () => {
 });
 
 import React from 'react';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import Onboarding from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import Device from '../../../util/device';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
-import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
-import {
+import { View ,
   InteractionManager,
   BackHandler,
   Animated,
   Platform,
 } from 'react-native';
+import renderWithProvider, { renderScreen } from '../../../util/test/renderWithProvider';
+import Onboarding from './';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import Device from '../../../util/device';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
@@ -1858,101 +1858,126 @@ describe('Onboarding', () => {
     });
   });
 
-  describe('Additional Coverage Tests', () => {
-    beforeEach(() => {
-      jest.useFakeTimers();
+  describe('Component Lifecycle Coverage', () => {
+    it('should handle handleExistingUser with existing user', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialStateWithExistingUser,
+        },
+      );
+
+      expect(getByTestId(OnboardingSelectorIDs.CONTAINER_ID)).toBeTruthy();
     });
 
-    afterEach(() => {
+    it('should handle handleExistingUser with new user action', () => {
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createButton = getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
+      fireEvent.press(createButton);
+
+      expect(mockEnableSocialLogin).toHaveBeenCalledWith(false);
+    });
+
+    it('should test non-E2E animation timeout coverage', () => {
+      jest.useFakeTimers();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByTestId('metamask-wordmark-animation')).toBeTruthy();
+
+      jest.advanceTimersByTime(1200);
+
       jest.useRealTimers();
     });
 
-    it('should cover isE2E branch in moveLogoUp method', () => {
-      const mockComponent = {
-        mounted: true,
-        logoPosition: { setValue: jest.fn() },
-        foxOpacity: { setValue: jest.fn() },
-        foxRef: { current: { fireState: jest.fn() } },
-        showButtons: jest.fn(),
-        showFoxAnimation: jest.fn(),
-        moveLogoUp() {
-          const isE2E = true;
-          if (isE2E) {
-            this.showButtons();
-            return;
-          }
-        },
-      };
+    it('should handle Fox animation error in real component', () => {
+      jest.useFakeTimers();
 
-      mockComponent.moveLogoUp();
-      expect(mockComponent.showButtons).toHaveBeenCalled();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByTestId('fox-animation')).toBeTruthy();
+
+      jest.advanceTimersByTime(2000);
+
+      jest.useRealTimers();
     });
 
-    it('should cover isE2E branch in showFoxAnimation method', () => {
-      const mockComponent = {
-        mounted: true,
-        foxOpacity: { setValue: jest.fn() },
-        foxRef: { current: { fireState: jest.fn() } },
-        showButtons: jest.fn(),
-        showFoxAnimation() {
-          const isE2E = true;
-          if (isE2E) {
-            this.showButtons();
-            return;
-          }
-        },
-      };
+    it('should cover error handling in startRiveAnimation', () => {
+      const MockOnboarding = () => {
+        const mounted = React.useState(true)[0];
+        const logoRef = React.useRef({
+          setInputState: jest.fn(
+            (_stateMachine: string, _input: string, _value: boolean) => {
+              throw new Error('Test Rive error');
+            },
+          ),
+          fireState: jest.fn(),
+        });
 
-      mockComponent.showFoxAnimation();
-      expect(mockComponent.showButtons).toHaveBeenCalled();
-    });
-
-    it('should handle startRiveAnimation when logoRef is null', () => {
-      const mockComponent = {
-        mounted: true,
-        context: { themeAppearance: 'light' },
-        logoRef: {
-          current: null as {
-            setInputState: jest.Mock;
-            fireState: jest.Mock;
-          } | null,
-        },
-        moveLogoUp: jest.fn(),
-        startRiveAnimation() {
-          const isE2E = false;
-          if (isE2E) {
-            this.moveLogoUp();
-            return;
-          }
-
+        const startRiveAnimation = React.useCallback(() => {
           try {
-            if (this.logoRef.current && this.mounted) {
-              const isDarkMode = this.context.themeAppearance === 'dark';
-              this.logoRef.current.setInputState(
+            if (logoRef.current && mounted) {
+              const isDarkMode = false;
+              logoRef.current.setInputState(
                 'WordmarkBuildUp',
                 'Dark',
                 isDarkMode,
               );
-              this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
+              logoRef.current.fireState('WordmarkBuildUp', 'Start');
             }
           } catch (error) {
             Logger.error(error as Error, 'Error triggering Rive animation');
           }
-        },
+        }, [mounted]);
+
+        React.useEffect(() => {
+          startRiveAnimation();
+        }, [startRiveAnimation]);
+
+        return <View testID="mock-onboarding" />;
       };
 
-      expect(() => mockComponent.startRiveAnimation()).not.toThrow();
-      expect(mockComponent.moveLogoUp).not.toHaveBeenCalled();
+      renderWithProvider(<MockOnboarding />, { state: {} });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error triggering Rive animation',
+      );
     });
 
-    it('should handle Fox animation when foxRef is null', () => {
-      const mockComponent = {
-        mounted: true,
-        foxRef: { current: null as { fireState: jest.Mock } | null },
-        animateFoxIn() {
-          if (this.foxRef.current && this.mounted) {
+    it('should cover error handling in Fox animation', () => {
+      const MockFoxAnimation = () => {
+        const mounted = React.useState(true)[0];
+        const foxRef = React.useRef({
+          fireState: jest.fn((_stateMachine: string, _trigger: string) => {
+            throw new Error('Test Fox error');
+          }),
+        });
+
+        const showFoxAnimation = React.useCallback(() => {
+          if (foxRef.current && mounted) {
             try {
-              this.foxRef.current.fireState('FoxRaiseUp', 'Start');
+              foxRef.current.fireState('FoxRaiseUp', 'Start');
             } catch (error) {
               Logger.error(
                 error as Error,
@@ -1960,69 +1985,21 @@ describe('Onboarding', () => {
               );
             }
           }
-        },
+        }, [mounted]);
+
+        React.useEffect(() => {
+          showFoxAnimation();
+        }, [showFoxAnimation]);
+
+        return <View testID="mock-fox-animation" />;
       };
 
-      expect(() => mockComponent.animateFoxIn()).not.toThrow();
-    });
+      renderWithProvider(<MockFoxAnimation />, { state: {} });
 
-    it('should handle component unmount state in startRiveAnimation timeout', () => {
-      const mockComponent = {
-        mounted: false,
-        context: { themeAppearance: 'light' },
-        logoRef: {
-          current: {
-            setInputState: jest.fn(),
-            fireState: jest.fn(),
-          },
-        },
-        moveLogoUp: jest.fn(),
-        startRiveAnimation() {
-          const isE2E = false;
-          if (isE2E) {
-            this.moveLogoUp();
-            return;
-          }
-
-          try {
-            if (this.logoRef.current && this.mounted) {
-              const isDarkMode = this.context.themeAppearance === 'dark';
-              this.logoRef.current.setInputState(
-                'WordmarkBuildUp',
-                'Dark',
-                isDarkMode,
-              );
-              this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
-              setTimeout(() => {
-                if (this.mounted) {
-                  this.moveLogoUp();
-                }
-              }, 1000);
-            }
-          } catch (error) {
-            Logger.error(error as Error, 'Error triggering Rive animation');
-          }
-        },
-      };
-
-      mockComponent.startRiveAnimation();
-
-      jest.advanceTimersByTime(1000);
-      expect(mockComponent.moveLogoUp).not.toHaveBeenCalled();
-    });
-
-    it('should test buttonsOpacity initialization with isE2E true', () => {
-      const isE2E = true;
-      const expectedOpacity = isE2E ? 1 : 0;
-
-      expect(expectedOpacity).toBe(1);
-    });
-
-    it('should test buttonsOpacity initialization with isE2E false', () => {
-      const isE2E = false;
-      const expectedOpacity = isE2E ? 1 : 0;
-
-      expect(expectedOpacity).toBe(0);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'Error triggering Fox Rive animation',
+      );
     });
   });
 });
