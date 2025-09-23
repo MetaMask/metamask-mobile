@@ -1758,14 +1758,12 @@
       "custom_security_tips": "Security Tips"
     }
   },
-  "defi": {
+  "defi_positions": {
+    "loading_positions": "Loading DeFi positions...",
     "empty_state": {
       "description": "Lend, borrow, and trade, right in your wallet.",
       "explore_defi": "Explore DeFi"
-    }
-  },
-  "defi_positions": {
-    "loading_positions": "Loading DeFi positions...",
+    },
     "error_cannot_load_page": "We could not load this page.",
     "error_visit_again": "Try visiting again later.",
     "single_token": "{{symbol}} only",

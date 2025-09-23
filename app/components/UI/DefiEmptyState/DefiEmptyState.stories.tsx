@@ -7,12 +7,4 @@ const DefiEmptyStateMeta = {
 
 export default DefiEmptyStateMeta;
 
-// Default story
-export const Default = {
-  args: {
-    onExploreDefi: () => {
-      // eslint-disable-next-line no-console
-      console.log('onExploreDefi');
-    },
-  },
-};
+export const Default = {};
