@@ -25,6 +25,27 @@ jest.mock('../AnimatedSpinner', () => ({
   },
 }));
 
+jest.mock('../../../component-library/components/Icons/Icon', () => ({
+  __esModule: true,
+  default: ({ size }: { size: Record<string, string> }) => {
+    const { View, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="icon">
+        <Text testID="icon-size">{size}</Text>
+      </View>
+    );
+  },
+  IconName: {
+    Danger: 'Danger',
+  },
+  IconSize: {
+    Md: 'Md',
+  },
+  IconColor: {
+    Default: 'Default',
+  },
+}));
+
 const mockUseNetworkConnectionBanners =
   useNetworkConnectionBanners as jest.MockedFunction<
     typeof useNetworkConnectionBanners
@@ -165,16 +186,18 @@ describe('NetworkConnectionBanner', () => {
       {
         status: 'slow' as const,
         expectedMessage: 'Still connecting to Ethereum Mainnet...',
+        expectedIconTestId: 'animated-spinner',
       },
       {
         status: 'unavailable' as const,
         expectedMessage: 'Unable to connect to Ethereum Mainnet.',
+        expectedIconTestId: 'icon',
       },
     ];
 
     it.each(statusTestCases)(
       'should render the banner with correct structure for $status status',
-      ({ status, expectedMessage }) => {
+      ({ status, expectedMessage, expectedIconTestId }) => {
         mockUseNetworkConnectionBanners.mockReturnValue({
           networkConnectionBannersState: {
             visible: true,
@@ -187,33 +210,9 @@ describe('NetworkConnectionBanner', () => {
 
         const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
 
-        expect(getByTestId('animated-spinner')).toBeTruthy();
+        expect(getByTestId(expectedIconTestId)).toBeTruthy();
         expect(getByText(expectedMessage)).toBeTruthy();
         expect(getByText('Update RPC')).toBeTruthy();
-      },
-    );
-
-    it.each(statusTestCases)(
-      'should display spinner with correct size for $status status',
-      ({ status }) => {
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-          },
-          currentNetwork: mockNetworkConfiguration,
-          updateRpc: mockUpdateRpc,
-        });
-
-        const { getByTestId } = render(<NetworkConnectionBanner />);
-
-        const spinner = getByTestId('animated-spinner');
-        const sizeText = getByTestId('spinner-size');
-
-        expect(spinner).toBeTruthy();
-        expect(sizeText).toBeTruthy();
-        expect(sizeText.props.children).toBe('SM');
       },
     );
 

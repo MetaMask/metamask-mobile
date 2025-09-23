@@ -4,89 +4,99 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for different n
 <View
   style={
     {
-      "backgroundColor": "#9a63001a",
-      "borderColor": "#9a6300",
-      "borderLeftWidth": 4,
-      "borderRadius": 4,
-      "flexDirection": "row",
-      "padding": 12,
-      "paddingLeft": 8,
+      "marginTop": 16,
+      "paddingLeft": 16,
+      "paddingRight": 16,
     }
   }
-  testID="banneralert"
-  variant="Alert"
 >
   <View
     style={
       {
-        "marginRight": 8,
+        "backgroundColor": "#9a63001a",
+        "borderColor": "#9a6300",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
       }
     }
+    testID="banneralert"
+    variant="Alert"
   >
     <View
-      testID="animated-spinner"
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
     >
-      <Text
-        testID="spinner-size"
+      <View
+        testID="animated-spinner"
       >
-        SM
-      </Text>
+        <Text
+          testID="spinner-size"
+        >
+          SM
+        </Text>
+      </View>
     </View>
-  </View>
-  <View
-    style={
-      {
-        "flex": 1,
-      }
-    }
-  >
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist Medium",
-          "fontSize": 18,
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "flex": 1,
         }
       }
-    >
-      Still connecting to Polygon Mainnet...
-    </Text>
-    <Text
-      accessibilityRole="link"
-      accessible={true}
-      onPress={[MockFunction]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
-        {
-          "backgroundColor": "transparent",
-          "color": "#121314",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-      suppressHighlighting={true}
     >
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
-            "fontSize": 16,
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
         }
       >
-        Update RPC
+        Still connecting to Polygon Mainnet...
       </Text>
-    </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Update RPC
+        </Text>
+      </Text>
+    </View>
   </View>
 </View>
 `;
@@ -95,89 +105,99 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for slow status
 <View
   style={
     {
-      "backgroundColor": "#9a63001a",
-      "borderColor": "#9a6300",
-      "borderLeftWidth": 4,
-      "borderRadius": 4,
-      "flexDirection": "row",
-      "padding": 12,
-      "paddingLeft": 8,
+      "marginTop": 16,
+      "paddingLeft": 16,
+      "paddingRight": 16,
     }
   }
-  testID="banneralert"
-  variant="Alert"
 >
   <View
     style={
       {
-        "marginRight": 8,
+        "backgroundColor": "#9a63001a",
+        "borderColor": "#9a6300",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
       }
     }
+    testID="banneralert"
+    variant="Alert"
   >
     <View
-      testID="animated-spinner"
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
     >
-      <Text
-        testID="spinner-size"
+      <View
+        testID="animated-spinner"
       >
-        SM
-      </Text>
+        <Text
+          testID="spinner-size"
+        >
+          SM
+        </Text>
+      </View>
     </View>
-  </View>
-  <View
-    style={
-      {
-        "flex": 1,
-      }
-    }
-  >
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist Medium",
-          "fontSize": 18,
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "flex": 1,
         }
       }
-    >
-      Still connecting to Ethereum Mainnet...
-    </Text>
-    <Text
-      accessibilityRole="link"
-      accessible={true}
-      onPress={[MockFunction]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
-        {
-          "backgroundColor": "transparent",
-          "color": "#121314",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-      suppressHighlighting={true}
     >
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
-            "fontSize": 16,
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
         }
       >
-        Update RPC
+        Still connecting to Ethereum Mainnet...
       </Text>
-    </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Update RPC
+        </Text>
+      </Text>
+    </View>
   </View>
 </View>
 `;
@@ -186,89 +206,99 @@ exports[`NetworkConnectionBanner snapshots should match snapshot for unavailable
 <View
   style={
     {
-      "backgroundColor": "#9a63001a",
-      "borderColor": "#9a6300",
-      "borderLeftWidth": 4,
-      "borderRadius": 4,
-      "flexDirection": "row",
-      "padding": 12,
-      "paddingLeft": 8,
+      "marginTop": 16,
+      "paddingLeft": 16,
+      "paddingRight": 16,
     }
   }
-  testID="banneralert"
-  variant="Alert"
 >
   <View
     style={
       {
-        "marginRight": 8,
+        "backgroundColor": "#9a63001a",
+        "borderColor": "#9a6300",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
       }
     }
+    testID="banneralert"
+    variant="Alert"
   >
     <View
-      testID="animated-spinner"
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
     >
-      <Text
-        testID="spinner-size"
+      <View
+        testID="icon"
       >
-        SM
-      </Text>
+        <Text
+          testID="icon-size"
+        >
+          Md
+        </Text>
+      </View>
     </View>
-  </View>
-  <View
-    style={
-      {
-        "flex": 1,
-      }
-    }
-  >
-    <Text
-      accessibilityRole="text"
+    <View
       style={
         {
-          "color": "#121314",
-          "fontFamily": "Geist Medium",
-          "fontSize": 18,
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "flex": 1,
         }
       }
-    >
-      Unable to connect to Ethereum Mainnet.
-    </Text>
-    <Text
-      accessibilityRole="link"
-      accessible={true}
-      onPress={[MockFunction]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
-      style={
-        {
-          "backgroundColor": "transparent",
-          "color": "#121314",
-          "fontFamily": "Geist Regular",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-      suppressHighlighting={true}
     >
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
-            "fontSize": 16,
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
         }
       >
-        Update RPC
+        Unable to connect to Ethereum Mainnet.
       </Text>
-    </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Update RPC
+        </Text>
+      </Text>
+    </View>
   </View>
 </View>
 `;
