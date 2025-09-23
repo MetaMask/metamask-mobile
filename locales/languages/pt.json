@@ -1632,7 +1632,6 @@
     "buy_asset": "Comprar {{asset}}",
     "no_tokens": "Você não tem nenhum token!",
     "show_tokens_without_balance": "Mostrar tokens sem saldo",
-    "no_nfts_yet": "Nenhum NFT até agora",
     "nfts_autodetection_title": "Detecção de NFTs",
     "nfts_autodetection_desc": "Permita que a MetaMask detecte e exiba automaticamente os NFTs em sua carteira.",
     "network_details_check": "A verificação dos dados da rede",
