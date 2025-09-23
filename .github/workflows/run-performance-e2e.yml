@@ -122,13 +122,17 @@ jobs:
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
+    with:
+      browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
+      browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
     secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
-    if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
+    with:
+      browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
+      browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
     secrets: inherit
 
 
@@ -140,7 +144,7 @@ jobs:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, set-build-names]
-    if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.result == 'success')
+    if: inputs.browserstack_app_url_android_onboarding != '' || (needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: onboarding
@@ -155,7 +159,7 @@ jobs:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, set-build-names]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding || needs.trigger-ios-dual-versions.result == 'success')
+    if: inputs.browserstack_app_url_ios_onboarding != '' || (needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: onboarding
@@ -185,7 +189,7 @@ jobs:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
+    if: inputs.browserstack_app_url_android_imported_wallet != '' || (needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: imported-wallet
@@ -200,7 +204,7 @@ jobs:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: always() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
+    if: inputs.browserstack_app_url_ios_imported_wallet != '' || (needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: imported-wallet
@@ -215,7 +219,7 @@ jobs:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
     needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, wait-for-onboarding-completion]
-    if: always()
+    if: success() || failure()
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -247,7 +251,7 @@ jobs:
     name: Send Slack Notification
     runs-on: ubuntu-latest
     needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, aggregate-results]
-    if: always()
+    if: success() || failure()
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
