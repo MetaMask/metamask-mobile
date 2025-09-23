@@ -238,12 +238,26 @@ describe('AccountGroupDetails', () => {
       ['account-1', 'account-2'],
     );
 
+    // Create a new mock state with the multi-account group
+    const multiAccountGroups = [multiAccountGroup];
+    const multiAccountWallet = createMockWallet(
+      'keyring:test-wallet',
+      'Test Wallet',
+      multiAccountGroups,
+    );
+    const multiAccountInternalAccounts =
+      createMockInternalAccountsFromGroups(multiAccountGroups);
+    const multiAccountState = createMockState(
+      [multiAccountWallet],
+      multiAccountInternalAccounts,
+    );
+
     const { queryByText, queryByTestId } = renderWithProvider(
       <AccountGroupDetails
         {...defaultProps}
         route={{ params: { accountGroup: multiAccountGroup } }}
       />,
-      { state: mockState },
+      { state: multiAccountState },
     );
 
     expect(queryByText('Remove account')).toBeNull();
