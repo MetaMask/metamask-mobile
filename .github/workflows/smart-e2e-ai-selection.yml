@@ -385,6 +385,9 @@ jobs:
     name: 'Build iOS App'
     needs: [platform-conditions]
     if: needs.platform-conditions.outputs.should-build-ios == 'true'
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build-ios-e2e.yml
     secrets: inherit
 
@@ -393,6 +396,9 @@ jobs:
     name: 'Build Android App'
     needs: [platform-conditions]
     if: needs.platform-conditions.outputs.should-build-android == 'true'
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build-android-e2e.yml
     secrets: inherit
 

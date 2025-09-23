@@ -743,7 +743,8 @@
       "appium-xcuitest-driver>appium-ios-simulator>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-remote-debugger>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>@appium/support>sharp": false,
-      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false
+      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
+      "esbuild": false
     }
   },
   "packageManager": "yarn@1.22.22",
