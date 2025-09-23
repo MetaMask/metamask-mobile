@@ -259,7 +259,7 @@ export class PredictController extends BaseController<
       return;
     }
 
-    const activeOrder = this.state.activeOrders[id];
+    let activeOrder = this.state.activeOrders[id];
 
     if (!activeOrder) {
       return;
@@ -295,6 +295,8 @@ export class PredictController extends BaseController<
         onchainTransactionIndex
       ].transactionId = _txMeta.id;
     });
+
+    activeOrder = this.state.activeOrders[id];
 
     const isLastPendingTransaction =
       activeOrder.onchainTradeParams.filter((tx) => !tx.transactionId)
