@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Image,
-  Platform,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from 'react-native';
+import { Image, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -39,7 +33,7 @@ import {
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
-import Rive, { Alignment, Fit, LoopMode, RiveRef } from 'rive-react-native';
+import Rive, { Alignment, Fit } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding-carousel-light.riv');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
@@ -50,9 +44,6 @@ import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
-
-// Currently all Perps onboarding animations have the same name
-const ANIMATION_NAME = 'Timeline 1';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   SHORT_LONG = '01_Short_Long',
@@ -177,15 +168,6 @@ const PerpsTutorialCarousel: React.FC = () => {
     [isDarkMode],
   );
 
-  const riveRefs = useRef<Record<number, RiveRef | null>>({});
-
-  const getRiveRef = useCallback(
-    (screenIndex: number) => (ref: RiveRef | null) => {
-      riveRefs.current[screenIndex] = ref;
-    },
-    [],
-  );
-
   // Track tutorial viewed on mount
   useEffect(() => {
     if (!hasTrackedViewed.current) {
@@ -208,14 +190,6 @@ const PerpsTutorialCarousel: React.FC = () => {
     },
     [],
   );
-
-  // Play animation on current tab
-  useEffect(() => {
-    const currentRiveScreenRef = riveRefs.current[currentTab];
-    if (currentRiveScreenRef && tutorialScreens[currentTab]?.riveArtboardName) {
-      currentRiveScreenRef.play(ANIMATION_NAME, LoopMode.OneShot);
-    }
-  }, [currentTab, tutorialScreens]);
 
   const handleTabChange = useCallback(
     // The next tab to change to
@@ -378,13 +352,8 @@ const PerpsTutorialCarousel: React.FC = () => {
           renderTabBar={renderTabBar}
           onChangeTab={handleTabChange}
           initialPage={0}
-          /**
-           * Android experiences visual glitch where all layers of animations are stacked on top of each other when prerendering siblings.
-           * iOS devices render the animations correctly and can handle prerendering siblings.
-           */
-          prerenderingSiblingsNumber={Platform.OS === 'ios' ? 1 : 0}
         >
-          {tutorialScreens.map((screen, screenIndex) => (
+          {tutorialScreens.map((screen) => (
             <View key={screen.id} style={styles.screenContainer}>
               {/* Header Section - Fixed height for text content */}
               <View style={styles.headerSection}>
@@ -419,14 +388,12 @@ const PerpsTutorialCarousel: React.FC = () => {
                 {screen?.riveArtboardName && (
                   <Rive
                     key={screen.id}
-                    ref={getRiveRef(screenIndex)}
+                    style={styles.animation}
                     artboardName={screen.riveArtboardName}
-                    animationName={ANIMATION_NAME}
                     source={PerpsOnboardingAnimation}
                     fit={Fit.FitWidth}
                     alignment={Alignment.Center}
-                    style={styles.animation}
-                    autoplay={false}
+                    autoplay
                   />
                 )}
               </View>
