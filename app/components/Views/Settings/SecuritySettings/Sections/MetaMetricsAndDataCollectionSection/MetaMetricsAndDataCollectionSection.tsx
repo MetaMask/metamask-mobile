@@ -66,6 +66,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
       enable(false);
+      enableSocialLogin?.(false);
       setAnalyticsEnabled(false);
       dispatch(setDataCollectionForMarketing(false));
       return;
@@ -89,6 +90,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     setAnalyticsEnabled,
     isEnabled,
     enable,
+    enableSocialLogin,
     autoSignIn,
     isBasicFunctionalityEnabled,
     dispatch,
@@ -102,7 +104,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         ...generateUserSettingsAnalyticsMetaData(),
       };
       await enable();
-      await enableSocialLogin(true);
+      await enableSocialLogin?.(true);
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
@@ -119,7 +121,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       });
     } else {
       await enable(false);
-      await enableSocialLogin(false);
+      await enableSocialLogin?.(false);
       setAnalyticsEnabled(false);
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
