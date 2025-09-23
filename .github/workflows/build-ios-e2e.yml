@@ -163,8 +163,7 @@ jobs:
           echo "📦 Repacking iOS app with updated JavaScript bundle..."
           
           # --- CRITICAL: Remap environment variables to match the full build script ---
-          # This is the missing step that ensures the JS bundle is identical.
-          # The app's code expects generic names (e.g., SEGMENT_WRITE_KEY), not the CI-specific names.
+          # This ensures the bundling script we are about to call has the correct environment.
           echo "🔄 Remapping environment variables for the bundler..."
           export SEGMENT_WRITE_KEY="$SEGMENT_WRITE_KEY_QA"
           export SEGMENT_PROXY_URL="$SEGMENT_PROXY_URL_QA"
@@ -178,28 +177,23 @@ jobs:
           export ANDROID_GOOGLE_SERVER_CLIENT_ID="$MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
           # --- End of variable remapping ---
 
-          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
-          BUNDLE_PATH="${APP_PATH}/main.jsbundle"
-          SOURCEMAP_PATH="sourcemaps/ios/index.js.map"
-
-          # Ensure sourcemap directory exists
-          mkdir -p "$(dirname "$SOURCEMAP_PATH")"
-
-          echo "🔄 Generating new JavaScript bundle..."
-          yarn react-native bundle \
-            --platform ios \
-            --dev false \
-            --entry-file index.js \
-            --bundle-output "$BUNDLE_PATH" \
-            --sourcemap-output "$SOURCEMAP_PATH" \
-            --reset-cache
+          # --- Use the project's own bundling script ---
+          # This is the same script Xcode runs during a full build, ensuring an identical bundle.
+          echo "🔄 Generating new JavaScript bundle using the native build script..."
+          export SENTRY_PROPERTIES=sentry.debug.properties
+          export SENTRY_DISABLE_AUTO_UPLOAD=true
+          export BUNDLE_OUTPUT="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app/main.jsbundle"
+          export SOURCEMAP_OUTPUT="sourcemaps/ios/index.js.map"
+          ./scripts/ios/bundle-js-and-sentry-upload.sh
+          # --- End of bundling ---
 
           # Verify the app and bundle exist after repack
+          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
           if [ ! -d "$APP_PATH" ]; then
             echo "❌ Error: iOS .app not found after repack"
             exit 1
           fi
-          if [ ! -f "$BUNDLE_PATH" ]; then
+          if [ ! -f "$BUNDLE_OUTPUT" ]; then
             echo "❌ Error: main.jsbundle not found after repack"
             exit 1
           fi
