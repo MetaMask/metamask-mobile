@@ -14,12 +14,17 @@ import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { RefreshTestId } from '../CollectibleContracts/constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
-import { NftContract } from '@metamask/assets-controllers';
+import { Nft, NftContract } from '@metamask/assets-controllers';
 import { multichainCollectibleForEvmAccount } from '../../../selectors/nftController';
-import { multichainCollectibleContractsSelector } from '../../../reducers/collectibles';
+import {
+  multichainCollectibleContractsSelector,
+  multichainCollectiblesByEnabledNetworksSelector,
+  multichainCollectiblesSelector,
+} from '../../../reducers/collectibles';
 import NftGridListRefreshControl from './NftGridListRefreshControl';
 import NftGridEmpty from './NftGridEmpty';
 import NftGridFooter from './NftGridFooter';
+import { areAddressesEqual } from '../../../util/address';
 
 const styles = StyleSheet.create({
   emptyView: {
@@ -47,6 +52,16 @@ const NftGridList = () => {
     [collectibleContractsData],
   );
 
+  const collectiblesData = useSelector(multichainCollectiblesSelector);
+  const allCollectibles = useMemo(
+    () => (Array.isArray(collectiblesData) ? collectiblesData : []),
+    [collectiblesData],
+  );
+
+  const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
+    multichainCollectiblesByEnabledNetworksSelector,
+  );
+
   const isCollectionDetectionBannerVisible =
     networkType === MAINNET && !useNftDetection;
 
@@ -72,6 +87,39 @@ const NftGridList = () => {
     collectibleContractsByEnabledNetworks,
   ]);
 
+  const filteredCollectibles = useMemo(() => {
+    trace({ name: TraceName.LoadCollectibles });
+    let collectibles: Nft[] = [];
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      collectibles = Object.values(collectiblesByEnabledNetworks).flat();
+    } else {
+      // TODO juan might remove this logic since I have to ask if we can assume isRemoveGlobalNetworkSelectorEnabled is always true
+      // TODO look at chainId
+      collectibles = isAllNetworks
+        ? Object.values(allCollectibles).flat()
+        : allCollectibles[chainId as unknown as number] || [];
+    }
+    endTrace({ name: TraceName.LoadCollectibles });
+    return collectibles;
+  }, [allCollectibles, chainId, isAllNetworks, collectiblesByEnabledNetworks]);
+
+  const collectibles = filteredCollectibles.filter(
+    (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
+  );
+
+  const contractCollectibles = useMemo(() => {
+    const result: Nft[] = [];
+    filteredCollectibleContracts.forEach((filterdContract) => {
+      const found = collectibles?.filter((collectible) =>
+        areAddressesEqual(collectible.address, filterdContract.address),
+      );
+      if (found.length > 0) {
+        result.push(...found);
+      }
+    });
+    return result;
+  }, [collectibles, filteredCollectibleContracts]);
+
   return (
     <FlashList
       ListHeaderComponent={
@@ -83,7 +131,7 @@ const NftGridList = () => {
           )}
         </>
       }
-      data={filteredCollectibleContracts}
+      data={contractCollectibles}
       // TODO juan fix this since it should be nft and not contract
       renderItem={({ item }) => <NftGridItem item={item} />}
       keyExtractor={(_, index) => index.toString()}
