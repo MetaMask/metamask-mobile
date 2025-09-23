@@ -24,8 +24,7 @@ import { createMockAccountsControllerState } from '../../../util/test/accountsCo
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useMetrics } from '../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
 
 // eslint-disable-next-line import/no-namespace
 import * as assetUtils from '../../../util/assets';
@@ -35,22 +34,10 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
 
-const mockTrackEvent = jest.fn();
+jest.mock('../../../components/hooks/useMetrics/useMetrics');
 
-jest.mock('../../../components/hooks/useMetrics');
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),

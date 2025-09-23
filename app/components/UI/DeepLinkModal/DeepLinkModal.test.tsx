@@ -4,7 +4,7 @@ import { fireEvent, act } from '@testing-library/react-native';
 import { useParams } from '../../../util/navigation/navUtils';
 import {
   MetaMetricsEvents,
-  useMetrics,
+  useMetrics as mockUseMetrics,
 } from '../../../components/hooks/useMetrics';
 import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -30,22 +30,10 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   removeEventListener: jest.fn(),
 }));
 
-const mockTrackEvent = jest.fn();
-jest.mock('../../../components/hooks/useMetrics');
+jest.mock('../../../components/hooks/useMetrics/useMetrics');
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 jest.mock('../../../util/metrics', () =>
   jest.fn().mockReturnValue({ deviceProp: 'Device value' }),

@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { render } from '@testing-library/react-native';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics as mockedUseMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import useOriginSource from '../../hooks/useOriginSource';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
@@ -16,7 +16,9 @@ import { MetaMetricsRequestedThrough } from '../../../core/Analytics/MetaMetrics
 import { MESSAGE_TYPE } from '../../../core/createTracingMiddleware';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-jest.mock('../../../components/hooks/useMetrics');
+
+// mock useMetrics with default __mocks__
+jest.mock('../../../components/hooks/useMetrics/useMetrics');
 
 jest.mock('../../Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),
@@ -73,21 +75,8 @@ const mockSelectorState = (state: any) => {
   );
 };
 
-const mockTrackEvent = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+const { trackEvent } = mockedUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 describe('PermissionApproval', () => {
   beforeEach(() => {

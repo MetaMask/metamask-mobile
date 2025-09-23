@@ -16,7 +16,7 @@ import {
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
 import { strings } from '../../../../locales/i18n';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
@@ -44,9 +44,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../components/hooks/useMetrics');
+jest.mock('../../../components/hooks/useMetrics/useMetrics');
 
-const mockTrackEvent = jest.fn();
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 describe('LedgerConfirmationModal', () => {
   beforeEach(() => {
@@ -67,20 +68,6 @@ describe('LedgerConfirmationModal', () => {
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(),
       error: null,
-    });
-
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
     });
   });
 

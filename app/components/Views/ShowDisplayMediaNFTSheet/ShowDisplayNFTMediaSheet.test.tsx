@@ -7,7 +7,7 @@ import ShowDisplayNFTMediaSheet from './ShowDisplayNFTMediaSheet';
 import Routes from '../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
 
 const setDisplayNftMediaSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -28,23 +28,9 @@ const initialState = {
   },
 };
 
-jest.mock('../../hooks/useMetrics');
-
-const mockAddTraitsToUser = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: jest.fn(),
-  createEventBuilder: jest.fn(),
-  enable: jest.fn(),
-  addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mock('../../hooks/useMetrics/useMetrics');
+const { addTraitsToUser } = mockUseMetrics();
+const mockAddTraitsToUser = jest.mocked(addTraitsToUser);
 
 const Stack = createStackNavigator();
 

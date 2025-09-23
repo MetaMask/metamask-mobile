@@ -2,25 +2,11 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useConnectionHandler } from './useConnectionHandler';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../components/hooks/useMetrics';
+import { useMetrics as mockUseMetrics } from '../../components/hooks/useMetrics';
 
-jest.mock('../../components/hooks/useMetrics');
-
-const mockTrackEvent = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mock('../../components/hooks/useMetrics/useMetrics');
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 describe('useConnectionHandler', () => {
   const mockNavigation = { navigate: jest.fn() };

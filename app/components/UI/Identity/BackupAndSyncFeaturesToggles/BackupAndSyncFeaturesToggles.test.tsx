@@ -6,11 +6,14 @@ import BackupAndSyncFeaturesToggles, {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useMetrics as mockUseMetrics } from '../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
-jest.mock('../../../../components/hooks/useMetrics');
+jest.mock('../../../../components/hooks/useMetrics/useMetrics');
+
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -38,21 +41,6 @@ const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
-
-const mockTrackEvent = jest.fn();
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
 
 const mockSetIsBackupAndSyncFeatureEnabled = jest.fn();
 jest.mock('../../../../util/identity/hooks/useBackupAndSync', () => ({

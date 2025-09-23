@@ -7,8 +7,10 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/account
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';
 import { act, fireEvent } from '@testing-library/react-native';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import {
+  MetaMetricsEvents,
+  useMetrics as mockUseMetrics,
+} from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import {
   selectPooledStakingEnabledFlag,
@@ -20,13 +22,14 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import Engine from '../../../../../core/Engine';
 
-jest.mock('../../../../hooks/useMetrics');
+jest.mock('../../../../hooks/useMetrics/useMetrics');
 jest.mock('../../hooks/useEarnTokens', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-const mockTrackEvent = jest.fn();
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 const mockNavigate = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -204,20 +207,6 @@ const renderComponent = (token: TokenI, state = initialState) =>
 describe('EmptyStateCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
-    });
 
     (
       selectStablecoinLendingEnabledFlag as jest.MockedFunction<

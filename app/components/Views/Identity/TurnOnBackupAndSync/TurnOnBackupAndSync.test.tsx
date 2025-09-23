@@ -7,25 +7,11 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics as mockUseMetrics } from '../../../hooks/useMetrics';
 
-const mockTrackEvent = jest.fn();
-jest.mock('../../../hooks/useMetrics');
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mock('../../../hooks/useMetrics/useMetrics');
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 const MOCK_STORE_STATE = {
   engine: {

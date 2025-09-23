@@ -12,7 +12,7 @@ import { clearHistory } from '../../../actions/browser';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 // Mock dependencies
-jest.mock('../useMetrics');
+jest.mock('../useMetrics/useMetrics');
 jest.mock('../../../util/identity/hooks/useAuthentication');
 jest.mock('../DeleteWallet');
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -36,11 +36,10 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock imports
-import { useMetrics } from '../useMetrics';
+import { useMetrics as mockUseMetrics } from '../useMetrics';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { useDeleteWallet } from '../DeleteWallet';
 
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 const mockUseSignOut = useSignOut as jest.MockedFunction<typeof useSignOut>;
 const mockUseDeleteWallet = useDeleteWallet as jest.MockedFunction<
   typeof useDeleteWallet
@@ -52,24 +51,14 @@ const mockClearHistory = clearHistory as jest.MockedFunction<
 const mockSetCompletedOnboarding =
   setCompletedOnboarding as jest.MockedFunction<typeof setCompletedOnboarding>;
 
+const { isEnabled } = mockUseMetrics();
+const mockMetricIsEnabled = jest.mocked(isEnabled);
+
 describe('usePromptSeedlessRelogin', () => {
   const mockStore = configureMockStore([thunk]);
   const mockSignOut = jest.fn();
   const mockResetWalletState = jest.fn();
   const mockDeleteUser = jest.fn();
-  const mockMetrics = {
-    isEnabled: jest.fn().mockReturnValue(true),
-    trackEvent: jest.fn(),
-    enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    getMetaMetricsId: jest.fn(),
-    createEventBuilder: jest.fn(),
-  };
 
   const initialState = {
     security: {
@@ -92,7 +81,7 @@ describe('usePromptSeedlessRelogin', () => {
     store.clearActions();
 
     // Setup mocks
-    mockUseMetrics.mockReturnValue(mockMetrics);
+    mockMetricIsEnabled.mockReturnValue(true);
     mockUseSignOut.mockReturnValue({ signOut: mockSignOut });
     mockUseDeleteWallet.mockReturnValue([mockResetWalletState, mockDeleteUser]);
     (mockStorageWrapper.removeItem as jest.Mock).mockResolvedValue(undefined);
@@ -314,7 +303,7 @@ describe('usePromptSeedlessRelogin', () => {
 
       // Assert
       expect(mockClearHistory).toHaveBeenCalledWith(
-        mockMetrics.isEnabled(),
+        mockMetricIsEnabled(),
         true, // dataCollectionForMarketing from state
       );
     });
@@ -480,7 +469,7 @@ describe('usePromptSeedlessRelogin', () => {
 
       // Assert
       expect(mockClearHistory).toHaveBeenCalledWith(
-        mockMetrics.isEnabled(),
+        mockMetricIsEnabled(),
         false, // dataCollectionForMarketing disabled
       );
     });

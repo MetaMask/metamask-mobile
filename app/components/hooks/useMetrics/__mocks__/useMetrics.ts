@@ -1,8 +1,10 @@
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { IUseMetricsHook } from '../useMetrics.types';
 
+const mockTrackEvent = jest.fn();
 export const defaultUseMetricMock: IUseMetricsHook = {
-  trackEvent: jest.fn(),
-  createEventBuilder: jest.fn(),
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
   enable: jest.fn(),
   addTraitsToUser: jest.fn(),
   createDataDeletionTask: jest.fn(),
@@ -15,7 +17,4 @@ export const defaultUseMetricMock: IUseMetricsHook = {
   enableSocialLogin: jest.fn(),
 };
 
-export default {
-  es_module: true,
-  default: (): IUseMetricsHook => defaultUseMetricMock,
-};
+export default jest.fn().mockReturnValue(defaultUseMetricMock);

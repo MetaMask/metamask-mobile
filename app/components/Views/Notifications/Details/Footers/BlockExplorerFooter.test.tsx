@@ -7,7 +7,7 @@ import { strings } from '../../../../../../locales/i18n';
 import BlockExplorerFooter from './BlockExplorerFooter';
 import {
   MetaMetricsEvents,
-  useMetrics,
+  useMetrics as mockUseMetrics,
 } from '../../../../../components/hooks/useMetrics';
 import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
@@ -25,23 +25,9 @@ jest.mock('../../../../../util/notifications', () => ({
   getBlockExplorerByChainId: jest.fn(),
 }));
 
-jest.mock('../../../../../components/hooks/useMetrics');
-
-const trackEventMock = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: trackEventMock,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mock('../../../../../components/hooks/useMetrics/useMetrics');
+const { trackEvent } = mockUseMetrics();
+const trackEventMock = jest.mocked(trackEvent);
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),

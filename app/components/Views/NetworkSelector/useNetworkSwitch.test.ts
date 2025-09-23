@@ -7,7 +7,7 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
 import Engine from '../../../core/Engine';
 
 // Mock the feature flags
@@ -29,9 +29,9 @@ jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-}));
+jest.mock('../../hooks/useMetrics/useMetrics');
+const { trackEvent } = mockUseMetrics();
+const mockTrackEvent = jest.mocked(trackEvent);
 
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
@@ -86,7 +86,6 @@ const mockUseNetworksByNamespace =
 const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
   typeof useNetworkSelection
 >;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 const mockIsRemoveGlobalNetworkSelectorEnabled =
   isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
     typeof isRemoveGlobalNetworkSelectorEnabled
@@ -97,7 +96,6 @@ const mockIsPerDappSelectedNetworkEnabled =
   >;
 
 const mockSelectNetwork = jest.fn();
-const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
 describe('useSwitchNetworks Feature Flag Tests', () => {
@@ -120,20 +118,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       deselectAll: jest.fn(),
       selectAllPopularNetworks: jest.fn(),
       customNetworksToReset: [],
-    });
-
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      isEnabled: () => true,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      getMetaMetricsId: jest.fn(),
     });
 
     mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
@@ -206,7 +190,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
       // Verify that the hooks are properly initialized
       expect(mockUseNetworksByNamespace).toBeDefined();
       expect(mockUseNetworkSelection).toBeDefined();
-      expect(mockUseMetrics).toBeDefined();
     });
 
     it('should have all necessary Engine controllers available', () => {
@@ -225,7 +208,6 @@ describe('useSwitchNetworks Feature Flag Tests', () => {
 
     it('should have proper metrics setup', () => {
       // Verify that metrics are properly set up
-      expect(mockUseMetrics).toBeDefined();
       expect(mockTrackEvent).toBeDefined();
       expect(mockCreateEventBuilder).toBeDefined();
     });
