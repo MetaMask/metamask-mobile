@@ -14,6 +14,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { setActiveTab } from '../../../../../../actions/rewards';
 import RewardItem from './RewardItem';
+import { useUnlockedRewards } from '../../../hooks/useUnlockedRewards';
 
 interface UnlockedRewardItemProps {
   reward: RewardDto;
@@ -48,6 +49,8 @@ const UnlockedRewards: React.FC = () => {
   const unlockedRewards = useSelector(selectUnlockedRewards);
   const isLoading = useSelector(selectUnlockedRewardLoading);
   const tw = useTailwind();
+
+  useUnlockedRewards();
 
   if (isLoading) {
     return null;

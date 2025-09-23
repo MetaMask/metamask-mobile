@@ -100,11 +100,6 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-const mockUseUnlockedRewards = jest.fn();
-jest.mock('../hooks/useUnlockedRewards', () => ({
-  useUnlockedRewards: () => mockUseUnlockedRewards(),
-}));
-
 // Mock child components
 jest.mock('../components/SeasonStatus/SeasonStatus', () => ({
   __esModule: true,
@@ -531,16 +526,6 @@ describe('RewardsDashboard', () => {
 
       // Assert
       expect(settingsButton.props.disabled).toBe(false);
-    });
-  });
-
-  describe('hooks integration', () => {
-    it('should call useUnlockedRewards hook', () => {
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockUseUnlockedRewards).toHaveBeenCalled();
     });
   });
 

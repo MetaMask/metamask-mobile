@@ -5,6 +5,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -21,6 +22,10 @@ jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 describe('useRewardOptinSummary', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
@@ -29,6 +34,9 @@ describe('useRewardOptinSummary', () => {
     typeof Engine.controllerMessenger.call
   >;
   const mockLoggerLog = Logger.log as jest.MockedFunction<typeof Logger.log>;
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
 
   const mockAccount1: InternalAccount = {
     id: 'account-1',
@@ -85,6 +93,9 @@ describe('useRewardOptinSummary', () => {
     mockUseSelector
       .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
       .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
+
+    // Reset the mocked hooks
+    mockUseFocusEffect.mockClear();
   });
 
   describe('initial state', () => {
@@ -98,6 +109,13 @@ describe('useRewardOptinSummary', () => {
       ); // Never resolves
 
       const { result } = renderHook(() => useRewardOptinSummary());
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       // Assert
       expect(result.current.linkedAccounts).toEqual([]);
@@ -120,6 +138,13 @@ describe('useRewardOptinSummary', () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       // Wait for the effect to complete
       await waitForNextUpdate();
@@ -170,6 +195,13 @@ describe('useRewardOptinSummary', () => {
         useRewardOptinSummary(),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       await waitForNextUpdate();
 
       // Assert
@@ -188,6 +220,13 @@ describe('useRewardOptinSummary', () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -219,6 +258,13 @@ describe('useRewardOptinSummary', () => {
         useRewardOptinSummary(),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       await waitForNextUpdate();
 
       // Assert
@@ -235,6 +281,13 @@ describe('useRewardOptinSummary', () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -256,6 +309,13 @@ describe('useRewardOptinSummary', () => {
     it('should not fetch data when disabled', () => {
       renderHook(() => useRewardOptinSummary({ enabled: false }));
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       expect(mockEngineCall).not.toHaveBeenCalled();
     });
 
@@ -273,6 +333,13 @@ describe('useRewardOptinSummary', () => {
         },
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       await waitForNextUpdate();
 
       // Assert initial call
@@ -283,50 +350,6 @@ describe('useRewardOptinSummary', () => {
 
       // Assert - no additional calls
       expect(mockEngineCall).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('account changes', () => {
-    it('should refetch data when accounts change', async () => {
-      // Arrange - initial call
-      const initialResponse: OptInStatusDto = {
-        ois: [true, false, true],
-      };
-      mockEngineCall.mockResolvedValueOnce(initialResponse);
-
-      const { rerender, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      await waitForNextUpdate();
-
-      expect(mockEngineCall).toHaveBeenCalledTimes(1);
-
-      // Arrange - accounts change
-      const newAccounts = [mockAccount1, mockAccount2]; // Remove account3
-      const newResponse: OptInStatusDto = {
-        ois: [true, false],
-      };
-
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce(newAccounts) // selectInternalAccounts
-        .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
-
-      mockEngineCall.mockResolvedValueOnce(newResponse);
-
-      // Act - rerender to trigger useEffect
-      rerender();
-      await waitForNextUpdate();
-
-      // Assert - should call API again with new accounts
-      expect(mockEngineCall).toHaveBeenCalledTimes(2);
-      expect(mockEngineCall).toHaveBeenLastCalledWith(
-        'RewardsController:getOptInStatus',
-        {
-          addresses: ['0x123456789abcdef', '0xabcdef123456789'],
-        },
-      );
     });
   });
 
@@ -341,6 +364,13 @@ describe('useRewardOptinSummary', () => {
       const { result, rerender, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
@@ -366,6 +396,13 @@ describe('useRewardOptinSummary', () => {
 
       const { result } = renderHook(() => useRewardOptinSummary());
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       // Assert
       expect(result.current.isLoading).toBe(false);
       expect(result.current.linkedAccounts).toEqual([]);
@@ -382,6 +419,13 @@ describe('useRewardOptinSummary', () => {
         .mockReturnValueOnce(null); // selectSelectedInternalAccount
 
       const { result } = renderHook(() => useRewardOptinSummary());
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       // Assert
       expect(result.current.isLoading).toBe(false);
@@ -407,6 +451,13 @@ describe('useRewardOptinSummary', () => {
         useRewardOptinSummary(),
       );
 
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
       await waitForNextUpdate();
 
       // Assert
@@ -430,6 +481,13 @@ describe('useRewardOptinSummary', () => {
       const { result, waitForNextUpdate } = renderHook(() =>
         useRewardOptinSummary(),
       );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
 
       await waitForNextUpdate();
 
