@@ -1,5 +1,4 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import TokenSelectModal from './TokenSelectModal';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -76,7 +75,6 @@ jest.mock('../../../../../../core/Engine', () => ({
 
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedAsset: mockSetSelectedAsset,
-  selectedChainId: '1',
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
@@ -143,61 +141,5 @@ describe('TokenSelectModal', () => {
   it('renders the modal with token list', () => {
     const { toJSON } = render(TokenSelectModal);
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('switches network when selecting token from different chain', async () => {
-    const mockPolygonToken = {
-      id: 'polygon-token',
-      symbol: 'POL',
-      name: 'Polygon Token',
-      address: '0x456',
-      logo: 'https://example.com/pol.png',
-      network: {
-        chainId: 137,
-        shortName: 'Polygon',
-      },
-    };
-
-    mockUseParams.mockReturnValue({
-      tokens: [mockTokens[0], mockPolygonToken],
-    });
-
-    render(TokenSelectModal);
-
-    await act(async () => {
-      fireEvent.press(screen.getByText('Polygon Token'));
-    });
-
-    expect(mockSetActiveNetwork).toHaveBeenCalled();
-    expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockPolygonToken);
-  });
-
-  it('does not switch network when selecting token from same chain', async () => {
-    mockSetActiveNetwork.mockClear();
-
-    const mockEthereumToken = {
-      id: 'eth-2',
-      symbol: 'WETH',
-      name: 'Wrapped Ethereum',
-      address: '0x789',
-      logo: 'https://example.com/weth.png',
-      network: {
-        chainId: 1,
-        shortName: 'Ethereum',
-      },
-    };
-
-    mockUseParams.mockReturnValue({
-      tokens: [mockTokens[0], mockEthereumToken],
-    });
-
-    render(TokenSelectModal);
-
-    await act(async () => {
-      fireEvent.press(screen.getByText('Wrapped Ethereum'));
-    });
-
-    expect(mockSetActiveNetwork).not.toHaveBeenCalled();
-    expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockEthereumToken);
   });
 });

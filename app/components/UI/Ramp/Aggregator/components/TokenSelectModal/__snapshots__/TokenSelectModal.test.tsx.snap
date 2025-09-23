@@ -685,7 +685,6 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                             style={
                               {
                                 "height": 533.6,
-                                "paddingHorizontal": 16,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}

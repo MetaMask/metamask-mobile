@@ -69,6 +69,7 @@ import {
 } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
@@ -103,6 +104,7 @@ import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,6 +171,8 @@ const BuildQuote = () => {
     isBuy,
     isSell,
   } = useRampSDK();
+
+  const isCompatible = useAccountTokenCompatible(selectedAsset);
 
   const screenLocation: ScreenLocation = isBuy
     ? 'Amount to Buy Screen'
@@ -589,6 +593,13 @@ const BuildQuote = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
+    if (!isCompatible) {
+      navigation.navigate(
+        ...createIncompatibleAccountTokenModalNavigationDetails(),
+      );
+      return;
+    }
+
     if (selectedAsset && currentFiatCurrency) {
       navigation.navigate(
         ...createQuotesNavDetails({
@@ -627,6 +638,7 @@ const BuildQuote = () => {
       }
     }
   }, [
+    isCompatible,
     rampType,
     screenLocation,
     amount,
