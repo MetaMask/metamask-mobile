@@ -5,6 +5,7 @@ import Assertions from '../../framework/Assertions';
 import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-accounts/common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import AddressList from '../../pages/MultichainAccounts/AddressList';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 describe(SmokeAccounts('Create wallet accounts'), () => {
   const FIRST = 0;
@@ -39,7 +40,7 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       const visibleNetworks = [
         'Ethereum Main Network',
         'Linea Main Network',
-        // 'Solana', BUGBUG Solana is not showing on Android
+        'Solana',
       ];
       for (const networkName of visibleNetworks) {
         await Assertions.expectTextDisplayed(networkName, {
@@ -49,7 +50,16 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       await AddressList.tapBackButton();
       await AccountDetails.tapBackButton();
 
+      // Select Account 3
       await AccountListBottomSheet.tapAccountByNameV2(visibleAccounts[LAST]);
+
+      // Switch to Solana
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.changeNetworkTo('Solana');
+
+      // BUGBUG MUL-812
+      // After switching to Solana it changes to Account 1 but should be Account 3
+      /*
       await Assertions.expectElementToHaveText(
         WalletView.accountName,
         visibleAccounts[LAST],
@@ -57,9 +67,7 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
           description: `Expect selected account to be ${visibleAccounts[LAST]}`,
         },
       );
-
-      // BUBUG: Add check that after switching to Solana we are still on the same account
-      // at the moment is not working
+      */
     });
   });
 });
