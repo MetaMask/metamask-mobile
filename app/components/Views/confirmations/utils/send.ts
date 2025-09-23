@@ -83,7 +83,13 @@ export const handleSendPageNavigation = (
   }
 };
 
-function generateERC20TransferData({ toAddress = '0x0', amount = '0x0' }) {
+function generateERC20TransferData({
+  toAddress,
+  amount,
+}: {
+  toAddress: Hex;
+  amount: Hex;
+}) {
   return (
     TRANSFER_FUNCTION_SIGNATURE +
     Array.prototype.map
@@ -99,9 +105,13 @@ function generateERC20TransferData({ toAddress = '0x0', amount = '0x0' }) {
 }
 
 function generateERC721TransferData({
-  toAddress = '0x0',
-  fromAddress = '0x0',
-  tokenId = '0',
+  toAddress,
+  fromAddress,
+  tokenId,
+}: {
+  toAddress: Hex;
+  fromAddress: Hex;
+  tokenId: string;
 }) {
   return (
     TRANSFER_FROM_FUNCTION_SIGNATURE +
@@ -118,15 +128,18 @@ function generateERC721TransferData({
 }
 
 function generateERC1155TransferData({
-  toAddress = '0x0',
-  fromAddress = '0x0',
-  tokenId = '0x0',
-  amount = '1',
-  data = '0',
+  toAddress,
+  fromAddress,
+  tokenId,
+  amount,
+  data = '0x',
+}: {
+  toAddress: Hex;
+  fromAddress: Hex;
+  tokenId: string;
+  amount: Hex;
+  data?: Hex;
 }) {
-  if (!tokenId) {
-    return undefined;
-  }
   return (
     NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE +
     Array.prototype.map
@@ -159,16 +172,16 @@ export const prepareEVMTransaction = (
     trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BigNumber);
   } else if (asset.standard === TokenStandard.ERC721) {
     trxnParams.data = generateERC721TransferData({
-      fromAddress: from,
-      toAddress: to,
+      fromAddress: from as Hex,
+      toAddress: to as Hex,
       tokenId: asset.tokenId ?? '0',
     });
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
   } else if (asset.standard === TokenStandard.ERC1155) {
     trxnParams.data = generateERC1155TransferData({
-      fromAddress: from,
-      toAddress: to,
+      fromAddress: from as Hex,
+      toAddress: to as Hex,
       tokenId: asset.tokenId ?? '0',
       amount: toHex(value ?? 1),
     });
@@ -178,7 +191,7 @@ export const prepareEVMTransaction = (
     // ERC20 token
     const tokenAmount = toTokenMinimalUnit(value ?? '0', asset.decimals);
     trxnParams.data = generateERC20TransferData({
-      toAddress: to,
+      toAddress: to as Hex,
       amount: BNToHex(tokenAmount),
     });
     trxnParams.to = asset.address;
