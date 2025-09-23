@@ -19,6 +19,12 @@ import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/s
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
@@ -28,6 +34,8 @@ interface PerpsCandlePeriodBottomSheetProps {
   onPeriodChange?: (period: CandlePeriod) => void;
   showAllPeriods?: boolean;
   testID?: string;
+  // For tracking
+  asset?: string;
 }
 
 const PerpsCandlePeriodBottomSheet: React.FC<
@@ -40,15 +48,25 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   onPeriodChange,
   showAllPeriods = false,
   testID,
+  asset,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { track } = usePerpsEventTracking();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
     if (isVisible) {
+      // Track candle periods bottom sheet viewed when it becomes visible
+      track(MetaMetricsEvents.PERPS_CHART_CANDLE_PERIODS_VIEWED, {
+        [PerpsEventProperties.ASSET]: asset || '',
+        [PerpsEventProperties.CANDLE_PERIOD]: selectedPeriod,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      });
+
       bottomSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible]);
+  }, [isVisible, track, asset, selectedPeriod]);
 
   const availablePeriods = showAllPeriods
     ? CANDLE_PERIODS
