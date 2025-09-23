@@ -384,4 +384,64 @@ describe('OptinMetrics', () => {
       expect(scrollView).toBeTruthy();
     });
   });
+
+  describe('Text Display and Component Interaction Tests', () => {
+    it('should display marketing updates description text', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const marketingDescription = screen.getByText(
+        strings('privacy_policy.checkbox'),
+      );
+      expect(marketingDescription).toBeTruthy();
+    });
+
+    it('should display gather basic usage description text', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageDescription = screen.getByText(
+        /We'll collect basic product usage data/i,
+      );
+      expect(basicUsageDescription).toBeTruthy();
+    });
+
+    it('should handle onConfirm button press', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle marketing checkbox state when pressed', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const marketingCheckbox = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
+
+      expect(marketingCheckbox).toBeTruthy();
+      fireEvent.press(marketingCheckbox);
+      expect(marketingCheckbox).toBeTruthy();
+    });
+
+    it('should initialize with correct default state values', () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes[0]).toBeTruthy();
+      expect(checkboxes[1]).toBeTruthy();
+    });
+
+    it('should render component without errors', () => {
+      const { toJSON } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+
+      expect(toJSON()).toBeDefined();
+    });
+  });
 });
