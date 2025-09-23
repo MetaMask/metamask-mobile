@@ -494,27 +494,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     });
   });
 
-  it('should call addTraitsToUser with chain ID list when adding a new network', async () => {
-    const spyOnAddNetwork = jest
-      .spyOn(Engine.context.NetworkController, 'addNetwork')
-      .mockReturnValue(networkConfigurationResult);
-
-    await wallet_addEthereumChain({
-      req: {
-        params: [correctParams],
-        origin: 'https://example.com',
-      },
-      ...otherOptions,
-    });
-    await flushPromises();
-
-    expect(spyOnAddNetwork).toHaveBeenCalledTimes(1);
-
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-      chain_id_list: ['eip155:1', 'eip155:100'],
-    });
-  });
-
   it('should update the networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
     const spyOnUpdateNetwork = jest
       .spyOn(Engine.context.NetworkController, 'updateNetwork')

@@ -11,6 +11,7 @@ import {
 import { RootState } from '../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { mockNetworkState } from '../../../util/test/network';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
@@ -36,7 +37,7 @@ jest.mock('../../../core/Engine', () => {
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {
-    useBlockieIcon: false,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {

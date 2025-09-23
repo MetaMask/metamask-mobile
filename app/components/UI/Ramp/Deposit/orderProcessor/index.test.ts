@@ -294,7 +294,7 @@ describe('processDepositOrder', () => {
       cryptoAmount: 0.012361263,
       cryptoCurrency: 'BTC',
       fiatCurrency: 'USD',
-      network: 'ethereum',
+      network: 'ethreum',
       status: 'COMPLETED',
       orderType: 'DEPOSIT',
       walletAddress: '0x1234',

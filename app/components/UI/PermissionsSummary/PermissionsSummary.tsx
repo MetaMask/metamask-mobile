@@ -123,7 +123,7 @@ const PermissionsSummary = ({
 
   const hostname = useMemo(() => {
     try {
-      return new URL(currentPageInformation.url).hostname;
+      return new URL(currentPageInformation.url).origin;
     } catch {
       return currentPageInformation.url;
     }
@@ -251,7 +251,7 @@ const PermissionsSummary = ({
                       metadata: {
                         origin:
                           currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).hostname,
+                          new URL(currentPageInformation?.url).origin,
                       },
                     },
                     connectionDateTime: new Date().getTime(),

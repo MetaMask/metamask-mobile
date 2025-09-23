@@ -39,7 +39,10 @@ import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
 import FRAX from './frax.png';
+import XDC from './xdc.png';
+import MEGAETH_MAINNET from './megaeth-mainnet-logo.png';
 import AAVE from './aave-token-round.png';
+import HEMI from './hemi.png';
 
 export default {
   PALM,
@@ -86,4 +89,7 @@ export default {
   OMNI: OMNI_TOKEN,
   HL,
   FRAX,
+  XDC,
+  'MEGAETH-MAINNET': MEGAETH_MAINNET,
+  HEMI,
 };

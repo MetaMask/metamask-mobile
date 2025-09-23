@@ -29,13 +29,22 @@ import { useNavigation } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
+import OAuthService from '../../../../../../core/OAuthService/OAuthService';
+import Logger from '../../../../../../util/Logger';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 
 const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-  const { trackEvent, enable, addTraitsToUser, isEnabled, createEventBuilder } =
-    useMetrics();
+  const {
+    trackEvent,
+    enable,
+    addTraitsToUser,
+    isEnabled,
+    createEventBuilder,
+    enableSocialLogin,
+  } = useMetrics();
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -50,23 +59,45 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
 
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
+
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
-      enable(false);
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        enableSocialLogin(false);
+      } else {
+        enable(false);
+      }
       setAnalyticsEnabled(false);
       dispatch(setDataCollectionForMarketing(false));
       return;
     }
 
     autoSignIn();
+    const fetchMarketingStatus = async () => {
+      try {
+        const data = await OAuthService.getMarketingOptInStatus();
+        dispatch(setDataCollectionForMarketing(data.is_opt_in));
+      } catch (err) {
+        Logger.error(err as Error);
+      }
+    };
+
+    if (isSeedlessOnboardingLoginFlow) {
+      fetchMarketingStatus();
+    }
     setAnalyticsEnabled(isEnabled());
   }, [
     setAnalyticsEnabled,
     isEnabled,
     enable,
+    enableSocialLogin,
     autoSignIn,
     isBasicFunctionalityEnabled,
     dispatch,
+    isSeedlessOnboardingLoginFlow,
   ]);
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
@@ -75,7 +106,12 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      await enable();
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        await enableSocialLogin(true);
+      } else {
+        await enable();
+      }
+
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
@@ -91,7 +127,11 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         );
       });
     } else {
-      await enable(false);
+      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+        await enableSocialLogin(false);
+      } else {
+        await enable(false);
+      }
       setAnalyticsEnabled(false);
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
@@ -137,7 +177,21 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         addMarketingConsentToTraits(value);
       }
     }
+
+    // Store the previous state to revert if API fails
+    const previousMarketingState = !value;
+
+    // Update client state optimistically
     dispatch(setDataCollectionForMarketing(value));
+
+    // Sync with server, revert client state if API fails
+    if (isSeedlessOnboardingLoginFlow) {
+      OAuthService.updateMarketingOptInStatus(value).catch((error) => {
+        Logger.error(error as Error);
+        // Revert client state back to previous value if API fails
+        dispatch(setDataCollectionForMarketing(previousMarketingState));
+      });
+    }
   };
 
   const renderMetaMetricsSection = () => (

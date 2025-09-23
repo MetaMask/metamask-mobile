@@ -30,9 +30,7 @@ function useSupportedTokens() {
       initialSupportedTokens.push(MUSD_TOKEN, MUSD_LINEA_TOKEN);
     }
 
-    return initialSupportedTokens.sort((a, b) =>
-      a.symbol.toUpperCase().localeCompare(b.symbol.toUpperCase()),
-    );
+    return initialSupportedTokens;
   }, [chainIdsWithBalance, isCardholder, metamaskUsdEnabled]);
 
   return supportedTokens;

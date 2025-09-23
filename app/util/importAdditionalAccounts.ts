@@ -6,10 +6,10 @@ import type EthQuery from '@metamask/eth-query';
 import type { BN } from 'ethereumjs-util';
 import { Hex } from '@metamask/utils';
 import { getGlobalEthQuery } from './networks/global-network';
-import { setIsAccountSyncingReadyToBeDispatched } from '../actions/identity';
 import { trace, endTrace, TraceName, TraceOperation } from './trace';
 import { getTraceTags } from './sentry/tags';
 import { store } from '../store';
+import { isMultichainAccountsState2Enabled } from '../multichain-accounts/remote-feature-flag';
 
 const ZERO_BALANCE = '0x0';
 const MAX = 20;
@@ -35,7 +35,14 @@ const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
 /**
  * Add additional accounts in the wallet based on balance
  */
-export default async () => {
+export default async (maxAccounts: number = MAX, index: number = 0) => {
+  if (isMultichainAccountsState2Enabled()) {
+    // We're not running EVM discovery on its own if state 2 is enabled. The discovery
+    // will be run on every account providers (EVM included) prior to that point.
+    // See: Authentication.ts
+    return;
+  }
+
   try {
     const { KeyringController } = Engine.context;
     const ethQuery = getGlobalEthQuery();
@@ -47,9 +54,9 @@ export default async () => {
     });
 
     await KeyringController.withKeyring(
-      { type: ExtendedKeyringTypes.hd, index: 0 },
+      { type: ExtendedKeyringTypes.hd, index },
       async ({ keyring }) => {
-        for (let i = 0; i < MAX; i++) {
+        for (let i = 0; i < maxAccounts; i++) {
           // TODO: Maybe refactor this and re-use the same function for HD account creation
           // to have tracing in one single place?
           trace({
@@ -86,9 +93,5 @@ export default async () => {
     endTrace({
       name: TraceName.EvmDiscoverAccounts,
     });
-
-    // We don't want to catch errors here, we let them bubble up to the caller
-    // as we want to set `isAccountSyncingReadyToBeDispatched` to true either way
-    await setIsAccountSyncingReadyToBeDispatched(true);
   }
 };

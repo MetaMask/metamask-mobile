@@ -28,7 +28,9 @@ import {
   selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
+  selectIsGaslessSwapEnabled,
 } from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -126,6 +128,7 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   latestAtomicBalance?: BigNumber;
+  isSourceToken?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -148,12 +151,16 @@ export const TokenInputArea = forwardRef<
       onInputPress,
       onMaxPress,
       latestAtomicBalance,
+      isSourceToken,
     },
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
+    const isGaslessSwapEnabled = useSelector((state: RootState) =>
+      token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
+    );
 
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
@@ -187,6 +194,12 @@ export const TokenInputArea = forwardRef<
       });
     };
 
+    const navigateToSourceTokenSelector = () => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+      });
+    };
+
     // // Data for fiat value calculation
     const evmMultiChainMarketData = useSelector(selectTokenMarketData);
     const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
@@ -216,11 +229,14 @@ export const TokenInputArea = forwardRef<
     });
 
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
+    const parsedTokenBalance = parseFloat(tokenBalance || '0');
+    const roundedTokenBalance =
+      Math.floor(parsedTokenBalance * 100000) / 100000;
     const formattedBalance =
       token?.symbol && tokenBalance
-        ? `${parseFloat(tokenBalance)
-            .toFixed(3)
-            .replace(/\.?0+$/, '')} ${token?.symbol}`
+        ? `${roundedTokenBalance.toFixed(5).replace(/\.?0+$/, '')} ${
+            token?.symbol
+          }`
         : undefined;
     const formattedAddress =
       token?.address && token.address !== ethers.constants.AddressZero
@@ -241,6 +257,15 @@ export const TokenInputArea = forwardRef<
     const isNativeAsset =
       token?.address === ethers.constants.AddressZero ||
       token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    let tokenButtonText = isUnifiedSwapsEnabled
+      ? 'bridge.swap_to'
+      : 'bridge.bridge_to';
+    if (isSourceToken) {
+      tokenButtonText = isUnifiedSwapsEnabled
+        ? 'bridge.swap_from'
+        : 'bridge.bridge_from';
+    }
 
     return (
       <Box>
@@ -290,10 +315,12 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings(
-                  isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to',
-                )}
-                onPress={navigateToDestNetworkSelector}
+                label={strings(tokenButtonText)}
+                onPress={
+                  isSourceToken
+                    ? navigateToSourceTokenSelector
+                    : navigateToDestNetworkSelector
+                }
               />
             )}
           </Box>
@@ -311,7 +338,8 @@ export const TokenInputArea = forwardRef<
                   tokenType === TokenInputAreaType.Source &&
                   tokenBalance &&
                   onMaxPress &&
-                  !isNativeAsset ? (
+                  (!isNativeAsset ||
+                    (isNativeAsset && isGaslessSwapEnabled)) ? (
                     <Box flexDirection={FlexDirection.Row} gap={4}>
                       <Text
                         color={

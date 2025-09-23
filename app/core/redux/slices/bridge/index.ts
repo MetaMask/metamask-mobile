@@ -27,7 +27,11 @@ import { MetaMetrics } from '../../../Analytics';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
-import { selectHasCreatedSolanaMainnetAccount } from '../../../../selectors/accountsController';
+import {
+  selectHasCreatedSolanaMainnetAccount,
+  selectCanSignTransactions,
+} from '../../../../selectors/accountsController';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
 
@@ -255,6 +259,21 @@ export const selectIsSwapsLive = createSelector(
   (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
 );
 
+/**
+ * Selector that determines if swap functionality is enabled
+ * Combines all the conditions needed for swap functionality to be available
+ */
+export const selectIsSwapsEnabled = createSelector(
+  [
+    selectCanSignTransactions,
+    selectBasicFunctionalityEnabled,
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsSwapsLive(state, chainId),
+  ],
+  (canSignTransactions, basicFunctionalityEnabled, swapsIsLive) =>
+    canSignTransactions && basicFunctionalityEnabled && swapsIsLive,
+);
+
 export const selectTopAssetsFromFeatureFlags = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
@@ -451,6 +470,29 @@ export const selectIsUnifiedSwapsEnabled = createSelector(
       return true;
     }
     return false;
+  },
+);
+
+export const selectIsGaslessSwapEnabled = createSelector(
+  selectIsSwap,
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId) => chainId,
+  (isSwap, bridgeFeatureFlags, chainId) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const chainConfig = bridgeFeatureFlags.chains[caipChainId];
+    return isSwap && chainConfig?.isGaslessSwapEnabled === true;
+  },
+);
+
+export const selectNoFeeAssets = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
+  (bridgeFeatureFlags, chainId) => {
+    if (!chainId) {
+      return [];
+    }
+    const caipChainId = formatChainIdToCaip(chainId);
+    return bridgeFeatureFlags.chains[caipChainId]?.noFeeAssets;
   },
 );
 

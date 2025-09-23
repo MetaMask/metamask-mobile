@@ -1,12 +1,21 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { parseCaipChainId, CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  toCaipChainId,
+  isHexString,
+} from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
 
 jest.mock('@metamask/keyring-utils', () => ({}));
-jest.mock('@metamask/keyring-api', () => ({}));
+jest.mock('@metamask/keyring-api', () => ({
+  SolScope: {
+    Mainnet: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  },
+}));
 jest.mock('@metamask/rpc-errors', () => ({}));
 jest.mock('@metamask/network-controller', () => ({}));
 jest.mock('@metamask/controller-utils', () => ({
@@ -23,6 +32,7 @@ jest.mock('../../../core/Engine', () => ({
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
     },
   },
 }));
@@ -34,6 +44,8 @@ jest.mock('@metamask/utils', () => ({
     Eip155: 'eip155',
     Solana: 'solana',
   },
+  toCaipChainId: jest.fn(),
+  isHexString: jest.fn(),
 }));
 
 jest.mock('@metamask/multichain-network-controller', () => ({
@@ -63,6 +75,7 @@ const mockNetworkEnablementController = {
   isNetworkEnabled: jest.fn(),
   hasOneEnabledNetwork: jest.fn(),
   enableAllPopularNetworks: jest.fn(),
+  enableNetworkInNamespace: jest.fn(),
 };
 
 describe('useNetworkEnablement', () => {
@@ -106,6 +119,10 @@ describe('useNetworkEnablement', () => {
     });
     (toEvmCaipChainId as jest.Mock).mockReturnValue('eip155:1');
     (toHex as jest.Mock).mockImplementation((value) => `0x${value}`);
+    (toCaipChainId as jest.Mock).mockImplementation(
+      (namespace, chainId) => `${namespace}:${chainId}`,
+    );
+    (isHexString as unknown as jest.Mock).mockReturnValue(true);
 
     (
       Engine.context as unknown as {
@@ -128,6 +145,7 @@ describe('useNetworkEnablement', () => {
       expect(result.current).toHaveProperty('disableNetwork');
       expect(result.current).toHaveProperty('isNetworkEnabled');
       expect(result.current).toHaveProperty('hasOneEnabledNetwork');
+      expect(result.current).toHaveProperty('tryEnableEvmNetwork');
       expect(result.current).toHaveProperty('enableAllPopularNetworks');
     });
 
@@ -139,6 +157,7 @@ describe('useNetworkEnablement', () => {
       expect(typeof result.current.enableAllPopularNetworks).toBe('function');
       expect(typeof result.current.isNetworkEnabled).toBe('function');
       expect(typeof result.current.hasOneEnabledNetwork).toBe('boolean');
+      expect(typeof result.current.tryEnableEvmNetwork).toBe('function');
     });
 
     it('calculates namespace correctly', () => {
@@ -239,17 +258,6 @@ describe('useNetworkEnablement', () => {
   });
 
   describe('network operations', () => {
-    it('calls enableNetwork when enableNetwork is called', () => {
-      const chainId = 'eip155:1' as CaipChainId;
-
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.enableNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-    });
-
     it('calls disableNetwork when disableNetwork is called', () => {
       const chainId = 'eip155:1' as CaipChainId;
 
@@ -283,17 +291,6 @@ describe('useNetworkEnablement', () => {
           'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ' as CaipChainId,
         ),
       ).toBe(false);
-    });
-  });
-
-  describe('enableAllPopularNetworks', () => {
-    it('calls enableAllPopularNetworks when enableAllPopularNetworks is called', () => {
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.enableAllPopularNetworks();
-
-      expect(
-        mockNetworkEnablementController.enableAllPopularNetworks,
-      ).toHaveBeenCalled();
     });
   });
 
@@ -374,6 +371,75 @@ describe('useNetworkEnablement', () => {
     });
   });
 
+  describe('enableAllPopularNetworks', () => {
+    it('calls controller enableAllPopularNetworks method', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.enableAllPopularNetworks();
+
+      expect(
+        mockNetworkEnablementController.enableAllPopularNetworks,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls both controller methods when enableAllPopularNetworks is invoked', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.enableAllPopularNetworks();
+
+      // Should call both methods
+      expect(
+        mockNetworkEnablementController.enableAllPopularNetworks,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('works correctly when called multiple times', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.enableAllPopularNetworks();
+      result.current.enableAllPopularNetworks();
+
+      // Should be called twice
+      expect(
+        mockNetworkEnablementController.enableAllPopularNetworks,
+      ).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns the same function reference on subsequent calls', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      const firstRef = result.current.enableAllPopularNetworks;
+      const secondRef = result.current.enableAllPopularNetworks;
+
+      // Should be the same function reference due to useMemo
+      expect(firstRef).toBe(secondRef);
+    });
+  });
+
+  describe('tryEnableEvmNetwork', () => {
+    it('does not enable network when chainId is not provided', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.tryEnableEvmNetwork();
+
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not enable network when chainId is not a hex string', () => {
+      (isHexString as unknown as jest.Mock).mockReturnValue(false);
+
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.tryEnableEvmNetwork('invalid');
+
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
   describe('hook return values', () => {
     it('returns all expected properties', () => {
       const { result } = renderHook(() => useNetworkEnablement());
@@ -400,6 +466,7 @@ describe('useNetworkEnablement', () => {
         enableAllPopularNetworks: expect.any(Function),
         isNetworkEnabled: expect.any(Function),
         hasOneEnabledNetwork: true,
+        tryEnableEvmNetwork: expect.any(Function),
       });
     });
   });

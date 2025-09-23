@@ -136,6 +136,8 @@ enum EVENT_NAME {
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
+  ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
+  ACCOUNT_NOT_FOUND_PAGE_VIEWED = 'Account Not Found Page Viewed',
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
   REHYDRATION_COMPLETED = 'Rehydration Completed',
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
@@ -444,7 +446,7 @@ enum EVENT_NAME {
   IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED = 'Import Secret Recovery Phrase Completed',
   SECRET_RECOVERY_PHRASE_PICKER_CLICKED = 'Secret Recovery Phrase Picker Clicked',
 
-  //Notifications
+  // Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
@@ -455,6 +457,10 @@ enum EVENT_NAME {
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
   NOTIFICATION_STORAGE_KEY_DELETED = 'Notification Storage Key Deleted',
+
+  // Push Notifications
+  PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
+  PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
@@ -541,7 +547,6 @@ enum EVENT_NAME {
   PERPS_TRADING_SCREEN_VIEWED = 'Perp Trading Screen Viewed',
   PERPS_ORDER_TYPE_VIEWED = 'Perp Order Type Viewed',
   PERPS_ORDER_TYPE_SELECTED = 'Perp Order Type Selected',
-  PERPS_ORDER_SIZE_CHANGED = 'Perp Order Size Changed',
   PERPS_LEVERAGE_SCREEN_VIEWED = 'Perp Leverage Screen Viewed',
   PERPS_LEVERAGE_CHANGED = 'Perp Leverage Changed',
   PERPS_TRADE_TRANSACTION_INITIATED = 'Perp Trade Transaction Initiated',
@@ -553,17 +558,12 @@ enum EVENT_NAME {
   // Close Position Flow
   PERPS_HOMESCREEN_TAB_VIEWED = 'Perp Homescreen Tab Viewed',
   PERPS_POSITION_CLOSE_SCREEN_VIEWED = 'Perp Position Close Screen Viewed',
-  PERPS_POSITION_CLOSE_VALUE_CHANGED = 'Perp Position Close Value Changed',
-  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
   PERPS_POSITION_CLOSE_INITIATED = 'Perp Position Close Initiated',
   PERPS_POSITION_CLOSE_SUBMITTED = 'Perp Position Close Submitted',
+  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
   PERPS_POSITION_CLOSE_EXECUTED = 'Perp Position Close Executed',
   PERPS_POSITION_CLOSE_PARTIALLY_FILLED = 'Perp Position Close Partially filled',
   PERPS_POSITION_CLOSE_FAILED = 'Perp Position Close Failed',
-
-  // Push Notifications Flow
-  PERPS_PUSH_NOTIFICATION_RECEIVED = 'Perp Push Notification Received',
-  PERPS_PUSH_NOTIFICATION_CLICKED = 'Perp Push Notification Clicked',
 
   // Risk Management Flow
   PERPS_STOP_LOSS_SET = 'Stop Loss Set',
@@ -752,6 +752,12 @@ const events = {
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
+  ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
+  ),
+  ACCOUNT_NOT_FOUND_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ACCOUNT_NOT_FOUND_PAGE_VIEWED,
+  ),
   WHATS_NEW_LINK_CLICKED: generateOpt(EVENT_NAME.WHATS_NEW_LINK_CLICKED),
   REHYDRATION_PASSWORD_ATTEMPTED: generateOpt(
     EVENT_NAME.REHYDRATION_PASSWORD_ATTEMPTED,
@@ -1125,6 +1131,13 @@ const events = {
   NOTIFICATION_STORAGE_KEY_DELETED: generateOpt(
     EVENT_NAME.NOTIFICATION_STORAGE_KEY_DELETED,
   ),
+
+  // Push Notifications Flow
+  PUSH_NOTIFICATION_RECEIVED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
+  ),
+  PUSH_NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.PUSH_NOTIFICATION_CLICKED),
+
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
@@ -1394,7 +1407,6 @@ const events = {
   ),
   PERPS_ORDER_TYPE_VIEWED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_VIEWED),
   PERPS_ORDER_TYPE_SELECTED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_SELECTED),
-  PERPS_ORDER_SIZE_CHANGED: generateOpt(EVENT_NAME.PERPS_ORDER_SIZE_CHANGED),
   PERPS_LEVERAGE_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.PERPS_LEVERAGE_SCREEN_VIEWED,
   ),
@@ -1422,9 +1434,6 @@ const events = {
   PERPS_POSITION_CLOSE_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
   ),
-  PERPS_POSITION_CLOSE_VALUE_CHANGED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_VALUE_CHANGED,
-  ),
   PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
   ),
@@ -1442,14 +1451,6 @@ const events = {
   ),
   PERPS_POSITION_CLOSE_FAILED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_FAILED,
-  ),
-
-  // Push Notifications Flow (2 events)
-  PERPS_PUSH_NOTIFICATION_RECEIVED: generateOpt(
-    EVENT_NAME.PERPS_PUSH_NOTIFICATION_RECEIVED,
-  ),
-  PERPS_PUSH_NOTIFICATION_CLICKED: generateOpt(
-    EVENT_NAME.PERPS_PUSH_NOTIFICATION_CLICKED,
   ),
 
   // Risk Management Flow (5 events)
@@ -1501,6 +1502,7 @@ enum DESCRIPTION {
   NAVIGATION_TAPS_GET_HELP = 'Get Help',
   NAVIGATION_TAPS_SEND_FEEDBACK = 'Send Feedback',
   NAVIGATION_TAPS_SETTINGS = 'Settings',
+  NAVIGATION_TAPS_REWARDS = 'Rewards',
   NAVIGATION_TAPS_LOGOUT = 'Logout',
   // Dapp
   DAPP_BROWSER_OPTIONS = 'More Browser Options',
@@ -1607,6 +1609,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.NAVIGATION_DRAWER,
     ACTIONS.NAVIGATION_DRAWER,
     DESCRIPTION.NAVIGATION_TAPS_SETTINGS,
+  ),
+  NAVIGATION_TAPS_REWARDS: generateOpt(
+    EVENT_NAME.NAVIGATION_DRAWER,
+    ACTIONS.NAVIGATION_DRAWER,
+    DESCRIPTION.NAVIGATION_TAPS_REWARDS,
   ),
   NAVIGATION_TAPS_LOGOUT: generateOpt(
     EVENT_NAME.NAVIGATION_DRAWER,

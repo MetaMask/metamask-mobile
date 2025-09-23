@@ -98,6 +98,7 @@ jest.mock('../../core/Engine', () => ({
       updateAtomicBatchData: jest.fn(),
       addTransactionBatch: jest.fn(),
       updateSelectedGasFeeToken: jest.fn(),
+      updateRequiredTransactionIds: jest.fn(),
     },
   },
 }));

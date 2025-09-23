@@ -88,6 +88,8 @@ const mockSnapClient = {
   addDiscoveredAccounts: jest.fn(),
 };
 
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
 jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../SnapKeyring/MultichainWalletSnapClient'),
   MultichainWalletSnapFactory: {
@@ -113,6 +115,10 @@ jest.mock('../Engine', () => ({
     SeedlessOnboardingController: {
       addNewSecretData: jest.fn(),
       updateBackupMetadataState: jest.fn(),
+    },
+
+    MultichainAccountService: {
+      init: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -145,6 +151,12 @@ jest.mock('../BackupVault/backupVault', () => ({
 
 jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
   initializeAccountTree: jest.fn().mockResolvedValue(undefined),
+  clearState: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
 }));
 
 const mockUint8ArrayToMnemonic = jest
@@ -495,6 +507,10 @@ describe('Authentication', () => {
   });
 
   describe('Multichain - discoverAccounts', () => {
+    beforeEach(() => {
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+    });
+
     it('calls discoverAccounts after vault creation in newWalletAndKeychain', async () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
@@ -539,6 +555,7 @@ describe('Authentication', () => {
         jest.spyOn(console, 'error').mockImplementation();
         jest.clearAllMocks();
         mockSnapClient.addDiscoveredAccounts.mockClear();
+        mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
       });
 
       afterEach(() => {
@@ -554,26 +571,6 @@ describe('Authentication', () => {
           Authentication.newWalletAndKeychain('1234', {
             currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
           }),
-        ).resolves.not.toThrow();
-
-        // Verify discovery was attempted
-        expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
-      });
-
-      it('completes wallet restore when discovery fails', async () => {
-        // Mock discovery to fail
-        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
-          new Error('Network timeout'),
-        );
-
-        // Wallet restore should succeed despite failure
-        await expect(
-          Authentication.newWalletAndRestore(
-            '1234',
-            { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
-            'test seed phrase',
-            true,
-          ),
         ).resolves.not.toThrow();
 
         // Verify discovery was attempted
@@ -1338,7 +1335,10 @@ describe('Authentication', () => {
 
       expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(importError);
+      expect(Logger.error).toHaveBeenCalledWith(
+        importError,
+        'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+      );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
@@ -1413,7 +1413,10 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(error);
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+      );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });

@@ -263,6 +263,11 @@ class NetworksSettings extends PureComponent {
   networkElement(name, image, i, networkTypeOrRpcUrl, isCustomRPC, color) {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const { NetworkController } = Engine.context;
+    const selectedNetworkClientId =
+      NetworkController.state.selectedNetworkClientId;
+    const isSelectedNetwork = networkTypeOrRpcUrl === selectedNetworkClientId;
+
     return (
       <View key={`network-${networkTypeOrRpcUrl}`}>
         {isMainnetNetwork(networkTypeOrRpcUrl) ? (
@@ -271,11 +276,18 @@ class NetworksSettings extends PureComponent {
           <TouchableOpacity
             key={`network-${i}`}
             onPress={() => this.onNetworkPress(networkTypeOrRpcUrl)}
-            onLongPress={() =>
-              isCustomRPC && this.showRemoveMenu(networkTypeOrRpcUrl)
-            }
+            onLongPress={() => {
+              if (isCustomRPC && !isSelectedNetwork) {
+                this.showRemoveMenu(networkTypeOrRpcUrl);
+              }
+            }}
           >
-            <View style={styles.network}>
+            <View
+              style={{
+                ...styles.network,
+                ...(isSelectedNetwork ? styles.networkDisabled : {}),
+              }}
+            >
               {isCustomRPC ? (
                 <AvatarNetwork
                   variant={AvatarVariant.Network}
@@ -296,7 +308,7 @@ class NetworksSettings extends PureComponent {
                   </View>
                 ))}
               <Text style={styles.networkLabel}>{name}</Text>
-              {!isCustomRPC && (
+              {(!isCustomRPC || isSelectedNetwork) && (
                 <FontAwesome
                   name="lock"
                   size={20}

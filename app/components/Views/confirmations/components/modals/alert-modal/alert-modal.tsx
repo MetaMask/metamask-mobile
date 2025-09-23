@@ -52,6 +52,7 @@ const Header: React.FC<HeaderProps> = ({
       </View>
     )}
     <View style={styles.headerContainer}>
+      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native */}
       <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
         {selectedAlert.title ?? strings('alert_system.alert_modal.title')}
       </Text>
@@ -74,18 +75,27 @@ const Content: React.FC<ContentProps> = ({
     {selectedAlert.content ?? (
       <>
         {typeof selectedAlert.message === 'string' ? (
+          // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+          // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
           <Text style={styles.message}>{selectedAlert.message}</Text>
         ) : (
           selectedAlert.message
         )}
         {selectedAlert.alertDetails && (
           <>
-            <Text style={styles.message} variant={TextVariant.BodyMDBold}>
+            <Text
+              // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+              // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+              style={styles.message}
+              variant={TextVariant.BodyMDBold}
+            >
               {strings('alert_system.alert_modal.alert_details')}
             </Text>
             {selectedAlert.alertDetails.map((detail, index) => (
               <Text
                 key={`details-${index}`}
+                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                 style={styles.detailsText}
                 variant={TextVariant.BodyMD}
               >
@@ -127,6 +137,7 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({
         isChecked={isConfirmed}
         testID="alert-modal-checkbox"
       />
+      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
       <Text style={styles.checkboxText}>
         {strings('alert_system.confirm_modal.checkbox_label')}
       </Text>

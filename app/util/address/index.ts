@@ -7,8 +7,10 @@ import {
 import {
   getChecksumAddress,
   type Hex,
+  isCaipAccountId,
   isHexString,
   isStrictHexString,
+  parseCaipAccountId,
 } from '@metamask/utils';
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
@@ -422,17 +424,22 @@ export function getLabelTextByAddress(address: string) {
  * @returns {String} - Returns address's account type
  */
 export function getAddressAccountType(address: string) {
-  if (!isValidHexAddress(address)) {
+  if (!isValidHexAddress(address) && !isCaipAccountId(address)) {
     throw new Error(`Invalid address: ${address}`);
   }
+
+  const parsedAddress = isCaipAccountId(address)
+    ? parseCaipAccountId(address).address
+    : address;
 
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const targetKeyring = keyrings.find((keyring) =>
     keyring.accounts
       .map((account) => toFormattedAddress(account))
-      .includes(toFormattedAddress(address)),
+      .includes(toFormattedAddress(parsedAddress)),
   );
+
   if (targetKeyring) {
     switch (targetKeyring.type) {
       case ExtendedKeyringTypes.qr:
@@ -530,6 +537,7 @@ export function isValidHexAddress(
   const addressToCheck = allowNonPrefixed
     ? addHexPrefix(possibleAddress)
     : possibleAddress;
+
   if (!isHexString(addressToCheck)) {
     return false;
   }

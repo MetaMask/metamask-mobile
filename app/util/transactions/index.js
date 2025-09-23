@@ -192,6 +192,9 @@ const actionKeys = {
   [TransactionType.lendingWithdraw]: strings(
     'transactions.tx_review_lending_withdraw',
   ),
+  [TransactionType.perpsDeposit]: strings(
+    'transactions.tx_review_perps_deposit',
+  ),
 };
 
 /**
@@ -520,6 +523,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.stakingUnstake,
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
+      TransactionType.perpsDeposit,
     ].includes(type)
   ) {
     return type;
@@ -1535,8 +1539,8 @@ export const parseTransactionLegacy = (
  *
  * @param {object} transaction - Transaction object to validate
  * @param {string} rate - Rate to validate
- * @param {string} accounts - Map of accounts to information objects including balances
- * @returns {string} - Whether the balance is validated or not
+ * @param {{ [address: string]: { balance: string } }} accounts - Map of accounts to information objects including balances
+ * @returns {boolean} - Whether the balance is validated or not
  */
 export function validateTransactionActionBalance(transaction, rate, accounts) {
   try {

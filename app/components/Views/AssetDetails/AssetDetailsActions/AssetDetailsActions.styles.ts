@@ -5,9 +5,10 @@ const styleSheet = () =>
     activitiesButton: {
       width: '100%',
       flexDirection: 'row',
-      paddingVertical: 20,
+      paddingTop: 24, // Balance to Main Action Buttons: 24px
+      paddingBottom: 0, // Remove bottom padding, will be handled by carousel spacing
       paddingHorizontal: 16,
-      gap: 8,
+      gap: 8, // Gap between Main Action Buttons: 8px (unchanged)
     },
     buttonContainer: {
       flex: 1,

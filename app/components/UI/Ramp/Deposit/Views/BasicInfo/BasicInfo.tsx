@@ -203,16 +203,18 @@ const BasicInfo = (): JSX.Element => {
 
     try {
       setLoading(true);
+      const { ssn, ...formDataWithoutSsn } = formData;
+      await postKycForm({
+        personalDetails: {
+          ...formDataWithoutSsn,
+          dob: formData.dob.trim()
+            ? timestampToTransakFormat(formData.dob)
+            : '',
+        },
+      });
 
-      const basicInfoData = {
-        ...formData,
-        dob: formData.dob.trim() ? timestampToTransakFormat(formData.dob) : '',
-      };
-
-      await postKycForm(basicInfoData);
-
-      if (formData.ssn) {
-        await submitSsnDetails(formData.ssn);
+      if (ssn) {
+        await submitSsnDetails({ ssn, quoteId: quote.quoteId });
       }
 
       navigation.navigate(

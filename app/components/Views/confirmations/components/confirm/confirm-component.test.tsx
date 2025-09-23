@@ -16,9 +16,10 @@ import {
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
-import { Confirm } from './confirm-component';
+import { Confirm, ConfirmationLoader } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('../../hooks/useConfirmActions');
 
@@ -41,6 +42,9 @@ jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/featureFlagController/confirmations',
+    ),
     selectConfirmationRedesignFlags: () => ({
       signatures: true,
       staking_confirmations: true,
@@ -163,9 +167,14 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../../hooks/alerts/useInsufficientPayTokenNativeAlert', () => ({
+  useInsufficientPayTokenNativeAlert: jest.fn().mockReturnValue([]),
+}));
+
 describe('Confirm', () => {
   const useConfirmActionsMock = jest.mocked(useConfirmActions);
   const mockOnReject = jest.fn();
+  const useParamsMock = jest.mocked(useParams);
 
   beforeEach(() => {
     useConfirmActionsMock.mockReturnValue({
@@ -177,6 +186,7 @@ describe('Confirm', () => {
       .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
   });
+
   afterEach(() => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
@@ -343,7 +353,27 @@ describe('Confirm', () => {
       state: stateWithoutRequest,
     });
 
-    expect(getByTestId('spinner')).toBeDefined();
+    expect(getByTestId('confirm-loader-default')).toBeDefined();
+  });
+
+  it('displays alternate loader if specified', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.PerpsDeposit,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(getByTestId('confirm-loader-perps-deposit')).toBeDefined();
   });
 
   it('sets navigation options with header hidden for modal confirmations', () => {

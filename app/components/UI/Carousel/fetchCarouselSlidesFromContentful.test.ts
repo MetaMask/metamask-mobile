@@ -1,5 +1,6 @@
-// eslint-disable-next-line import/no-namespace
 import { ContentfulClientApi, createClient } from 'contentful';
+// eslint-disable-next-line import/no-namespace
+import * as DeviceInfoModule from 'react-native-device-info';
 import {
   fetchCarouselSlidesFromContentful,
   isActive,
@@ -31,7 +32,7 @@ describe('fetchCarouselSlidesFromContentful', () => {
         linkUrl: 'https://example.com/priority',
         undismissable: true,
         priorityPlacement: true,
-      },
+      } as Record<string, unknown>,
     },
     {
       sys: { id: '2' },
@@ -42,7 +43,7 @@ describe('fetchCarouselSlidesFromContentful', () => {
         linkUrl: 'https://example.com/regular',
         undismissable: false,
         priorityPlacement: false,
-      },
+      } as Record<string, unknown>,
     },
   ];
 
@@ -167,6 +168,54 @@ describe('fetchCarouselSlidesFromContentful', () => {
       image: 'https://regular.image.url',
       undismissable: false,
     });
+  });
+
+  describe('minimum version number', () => {
+    const minimumVersionSchema = [
+      {
+        testName: 'shows banner if minimum version number not added',
+        minimumVersion: undefined,
+        length: 1,
+      },
+      {
+        testName: 'shows banner if current version matches > version number',
+        minimumVersion: '7.55.0',
+        length: 1,
+      },
+      {
+        testName: 'shows banner if current version matches === version number',
+        minimumVersion: '7.56.0',
+        length: 1,
+      },
+      {
+        testName:
+          'does not show banner if current version matches < version number ',
+        minimumVersion: '7.57.0',
+        length: 0,
+      },
+      {
+        testName: 'does not show banner if provided a malformed version number',
+        minimumVersion: 'malformed version number',
+        length: 0,
+      },
+    ];
+
+    it.each(minimumVersionSchema)(
+      '$testName',
+      async ({ minimumVersion, length }) => {
+        jest.spyOn(DeviceInfoModule, 'getVersion').mockReturnValue('7.56.0');
+        const response = arrangeContentfulResponse();
+        response.items[0].fields.mobileMinimumVersionNumber = minimumVersion;
+        response.items[1].fields.mobileMinimumVersionNumber = minimumVersion;
+        const { mockContentfulClientGetEntries } = arrangeMocks(response);
+
+        const result = await fetchCarouselSlidesFromContentful();
+
+        expect(mockContentfulClientGetEntries).toHaveBeenCalled();
+        expect(result.prioritySlides).toHaveLength(length);
+        expect(result.regularSlides).toHaveLength(length);
+      },
+    );
   });
 });
 

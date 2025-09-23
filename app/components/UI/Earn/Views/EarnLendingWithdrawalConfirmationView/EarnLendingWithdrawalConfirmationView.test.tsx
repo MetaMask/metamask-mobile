@@ -11,7 +11,9 @@ import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { AAVE_WITHDRAWAL_RISKS } from '../../utils/tempLending';
@@ -31,6 +33,7 @@ import {
 } from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
+import { RootState } from '../../../../../reducers';
 
 expect.addSnapshotSerializer({
   // any is the expected type for the val parameter
@@ -149,11 +152,31 @@ jest.mock('../../hooks/useEarnToken', () => ({
 }));
 
 describe('EarnLendingWithdrawalConfirmationView', () => {
-  const mockInitialState = {
+  const mockSelectedAccount =
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+      MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+    ];
+
+  const mockInitialState: DeepPartial<RootState> = {
     engine: {
       backgroundState: {
         ...backgroundState,
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        AccountTreeController: {
+          accountTree: {
+            selectedAccountGroup: 'keyring:test-wallet/ethereum',
+            wallets: {
+              'keyring:test-wallet': {
+                id: 'keyring:test-wallet',
+                groups: {
+                  'keyring:test-wallet/ethereum': {
+                    accounts: [mockSelectedAccount.id],
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   };

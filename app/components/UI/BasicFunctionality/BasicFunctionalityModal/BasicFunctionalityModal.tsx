@@ -16,7 +16,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import createStyles from '../../Notification/Modal/styles';
 import { RootState } from 'app/reducers';
@@ -32,6 +32,7 @@ import { useEnableNotifications } from '../../../../util/notifications/hooks/use
 import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
+import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
 interface Props {
   route: {
@@ -47,7 +48,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
   const isEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -67,8 +68,9 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   }, [enableNotifications]);
 
   const closeBottomSheet = async () => {
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
-      dispatch(toggleBasicFunctionality(!isEnabled));
+    bottomSheetRef.current?.onCloseBottomSheet(async () => {
+      await dispatch(toggleBasicFunctionality(!isEnabled));
+
       trackEvent(
         createEventBuilder(
           !isEnabled

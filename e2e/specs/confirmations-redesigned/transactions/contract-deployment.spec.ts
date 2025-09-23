@@ -5,7 +5,6 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import Assertions from '../../../framework/Assertions';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
@@ -14,24 +13,22 @@ import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-resp
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
       response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
       responseCode: 200,
     });
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    );
   };
 
   beforeAll(async () => {

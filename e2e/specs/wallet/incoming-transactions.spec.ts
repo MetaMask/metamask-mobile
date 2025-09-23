@@ -10,7 +10,7 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ToastModal from '../../pages/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';

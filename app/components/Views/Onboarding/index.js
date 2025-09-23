@@ -47,6 +47,8 @@ import {
   TraceOperation,
   endTrace,
   trace,
+  hasMetricsConsent,
+  discardBufferedTraces,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -62,6 +64,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
+import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 
 const createStyles = (colors) =>
@@ -392,10 +395,14 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressCreate = () => {
+  onPressCreate = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+    // need to call hasMetricConset to update the cached consent state
+    await hasMetricsConsent();
+
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       trace({
@@ -417,10 +424,13 @@ class Onboarding extends PureComponent {
     endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
-  onPressImport = () => {
+  onPressImport = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+    await hasMetricsConsent();
+
     const action = async () => {
       trace({
         name: TraceName.OnboardingExistingSrpImport,
@@ -528,6 +538,18 @@ class Onboarding extends PureComponent {
 
     // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
+
+    // Enable metrics for OAuth users
+    await this.props.metrics.enableSocialLogin(true);
+    discardBufferedTraces();
+    await setupSentry();
+
+    // use new trace instead of buffered trace for social login
+    this.onboardingTraceCtx = trace({
+      name: TraceName.OnboardingJourneyOverall,
+      op: TraceOperation.OnboardingUserJourney,
+      tags: getTraceTags(store.getState()),
+    });
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -675,7 +697,7 @@ class Onboarding extends PureComponent {
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
-  handleCtaActions = (actionType) => {
+  handleCtaActions = async (actionType) => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ONBOARDING_SHEET,
@@ -689,9 +711,9 @@ class Onboarding extends PureComponent {
       });
       // else
     } else if (actionType === 'create') {
-      this.onPressCreate();
+      await this.onPressCreate();
     } else {
-      this.onPressImport();
+      await this.onPressImport();
     }
   };
 

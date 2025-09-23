@@ -20,7 +20,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import {
   BALANCE_TEST_ID,
-  SECONDARY_BALANCE_TEST_ID,
+  TOKEN_AMOUNT_BALANCE_TEST_ID,
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
@@ -120,6 +120,11 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../core/redux/slices/bridge'),
+  selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     NetworkController: {
@@ -203,10 +208,9 @@ describe('AssetOverview', () => {
     const container = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -218,16 +222,15 @@ describe('AssetOverview', () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );
 
-    const buyButton = getByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON);
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
     fireEvent.press(buyButton);
 
     // Now expects navigation to FundActionMenu with onBuy function and asset context
@@ -247,10 +250,9 @@ describe('AssetOverview', () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
         networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
@@ -288,10 +290,9 @@ describe('AssetOverview', () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={nativeAsset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       {
         state: {
@@ -344,10 +345,9 @@ describe('AssetOverview', () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -372,10 +372,9 @@ describe('AssetOverview', () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -395,10 +394,9 @@ describe('AssetOverview', () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -421,7 +419,7 @@ describe('AssetOverview', () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton={false}
         displayBridgeButton
       />,
@@ -436,7 +434,7 @@ describe('AssetOverview', () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton={false}
       />,
@@ -447,19 +445,18 @@ describe('AssetOverview', () => {
     expect(bridgeButton).toBeNull();
   });
 
-  it('should not render buy button if displayFundButton is false', async () => {
+  it('should not render buy button if displayBuyButton is false', async () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        displayFundButton={false}
+        displayBuyButton={false}
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
 
-    const buyButton = queryByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON);
+    const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
     expect(buyButton).toBeNull();
   });
 
@@ -471,10 +468,9 @@ describe('AssetOverview', () => {
           chainId: '0x2',
           isNative: true,
         }}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -491,10 +487,9 @@ describe('AssetOverview', () => {
           chainId: SolScope.Mainnet,
           isNative: true,
         }}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
         displayBridgeButton
-        swapsIsLive
       />,
       {
         state: {
@@ -526,9 +521,8 @@ describe('AssetOverview', () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={assetFromSearch}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -562,9 +556,8 @@ describe('AssetOverview', () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
         asset={differentChainAssetFromSearch}
-        displayFundButton
+        displayBuyButton
         displaySwapsButton
-        swapsIsLive
       />,
       { state: mockInitialState },
     );
@@ -598,10 +591,9 @@ describe('AssetOverview', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={differentChainAsset}
-          displayFundButton
+          displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -629,10 +621,9 @@ describe('AssetOverview', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={differentChainAsset}
-          displayFundButton
+          displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -676,10 +667,9 @@ describe('AssetOverview', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={sameChainAsset}
-          displayFundButton
+          displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -704,7 +694,7 @@ describe('AssetOverview', () => {
       );
 
       const mainBalance = getByTestId(BALANCE_TEST_ID);
-      const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
+      const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
       expect(mainBalance.props.children).toBe('1500');
       expect(secondaryBalance.props.children).toBe('0 ETH');
@@ -724,10 +714,9 @@ describe('AssetOverview', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={solanaAsset}
-          displayFundButton
+          displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -783,10 +772,9 @@ describe('AssetOverview', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={solanaAsset}
-          displayFundButton
+          displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -817,10 +805,9 @@ describe('AssetOverview', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={solanaAsset}
-          displayFundButton
+          displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -849,10 +836,9 @@ describe('AssetOverview', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={solanaAsset}
-          displayFundButton
+          displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -880,10 +866,9 @@ describe('AssetOverview', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverview
           asset={evmAsset}
-          displayFundButton
+          displayBuyButton
           displaySwapsButton
           displayBridgeButton
-          swapsIsLive
         />,
         { state: mockInitialState },
       );
@@ -942,7 +927,7 @@ describe('AssetOverview', () => {
         { state: solanaAccountState },
       );
 
-      const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
+      const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
 
       // Should display formatted Solana balance
       expect(secondaryBalance.props.children).toBe('123.45679 SOL');

@@ -8,7 +8,7 @@ import Avatar, {
   AvatarSize,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import styleSheet from './AccountCard.styles';
@@ -17,8 +17,9 @@ import AccountTag from '../AccountTag/AccountTag';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { AccountCardProps } from './AccountCard.types';
 import ContractTag from '../ContractTag/ContractTag';
-import { RootState } from '../../../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useVaultMetadata from '../../../hooks/useVaultMetadata';
+import { EVM_SCOPE } from '../../../../Earn/constants/networks';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 const AccountCard = ({
   contractName,
@@ -28,28 +29,28 @@ const AccountCard = ({
 }: AccountCardProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const account = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
 
   const networkName = useSelector(selectNetworkName);
 
-  const useBlockieIcon = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  );
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const { vaultMetadata } = useVaultMetadata(chainId);
 
   return (
     <View>
       <Card testID="account-card" style={styles.cardGroupTop} disabled>
-        {account && (
+        {selectedAccount && (
           <KeyValueRow
             field={{ label: { text: primaryLabel } }}
             value={{
               label: (
                 <AccountTag
-                  accountAddress={account?.address}
-                  accountName={account.metadata.name}
-                  useBlockieIcon={useBlockieIcon}
+                  accountAddress={selectedAccount?.address}
+                  accountName={selectedAccount.metadata.name}
+                  avatarAccountType={avatarAccountType}
                 />
               ),
             }}
@@ -64,7 +65,7 @@ const AccountCard = ({
               <ContractTag
                 contractAddress={vaultMetadata?.vaultAddress ?? contractName}
                 contractName={contractName}
-                useBlockieIcon={useBlockieIcon}
+                avatarAccountType={avatarAccountType}
               />
             ),
           }}

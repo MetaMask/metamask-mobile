@@ -276,7 +276,10 @@ import {
   PerpsControllerEvents,
 } from '../../components/UI/Perps/controllers/PerpsController';
 import { RewardsController } from './controllers/rewards-controller/RewardsController';
-import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
+import {
+  RewardsDataService,
+  RewardsDataServiceActions,
+} from './controllers/rewards-controller/services/rewards-data-service';
 import type {
   RewardsControllerState,
   RewardsControllerEvents,
@@ -311,6 +314,10 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
+import {
+  GatorPermissionsController,
+  GatorPermissionsControllerState,
+} from '@metamask/gator-permissions-controller';
 
 /**
  * Controllers that area always instantiated
@@ -406,6 +413,7 @@ type GlobalActions =
   | EarnControllerActions
   | PerpsControllerActions
   | RewardsControllerActions
+  | RewardsDataServiceActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -551,6 +559,7 @@ export type Controllers = {
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  GatorPermissionsController: GatorPermissionsController;
 };
 
 /**
@@ -620,6 +629,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  GatorPermissionsController: GatorPermissionsControllerState;
 };
 
 /** Controller names */
@@ -682,7 +692,8 @@ export type ControllersToInitialize =
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
-  | 'RewardsController';
+  | 'RewardsController'
+  | 'GatorPermissionsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

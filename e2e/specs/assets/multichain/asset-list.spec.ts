@@ -6,7 +6,7 @@ import { loginToApp } from '../../../viewHelper';
 import Assertions from '../../../framework/Assertions';
 import TokenOverview from '../../../pages/wallet/TokenOverview';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
-import QuoteView from '../../../pages/Bridge/QuoteView';
+import QuoteView from '../../../pages/swaps/QuoteView';
 
 const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';

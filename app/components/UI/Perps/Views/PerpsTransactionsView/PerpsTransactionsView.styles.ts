@@ -13,7 +13,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     filterContainer: {
       paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingVertical: 12,
       backgroundColor: colors.background.default,
       zIndex: 1000, // iOS
       elevation: 1000, // Android
@@ -37,6 +37,10 @@ export const styleSheet = (params: { theme: Theme }) => {
     transactionList: {
       flex: 1,
       minHeight: 1, // Prevents FlashList layout issues
+    },
+    tabDescription: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
     },
     sectionHeader: {
       paddingTop: 12,

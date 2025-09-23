@@ -14,8 +14,10 @@ import {
 jest.mock('../useTokenAmount');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
-function runHook() {
-  return renderHook(() => usePerpsDepositMinimumAlert());
+function runHook(
+  props: Parameters<typeof usePerpsDepositMinimumAlert>[0] = {},
+) {
+  return renderHook(() => usePerpsDepositMinimumAlert(props));
 }
 
 describe('usePerpsDepositMinimumAlert', () => {
@@ -39,6 +41,22 @@ describe('usePerpsDepositMinimumAlert', () => {
     } as ReturnType<typeof useTokenAmount>);
 
     const { result } = runHook();
+
+    expect(result.current).toStrictEqual([
+      {
+        key: AlertKeys.PerpsDepositMinimum,
+        field: RowAlertKey.Amount,
+        message: strings('alert_system.perps_deposit_minimum.message'),
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ]);
+  });
+
+  it('returns alert if pending token amount less than minimum', () => {
+    useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
+
+    const { result } = runHook({ pendingTokenAmount: '9.99' });
 
     expect(result.current).toStrictEqual([
       {

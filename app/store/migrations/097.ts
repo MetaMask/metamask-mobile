@@ -1,185 +1,130 @@
-import { hasProperty, isObject, parseCaipChainId } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
+import { hasProperty, isObject } from '@metamask/utils';
+
+// Example MM SDK channel ID: 217e651d-6d18-49ef-b929-8773496c11df
+// Example WC channel ID: 901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b
+// This seems naive, but probably covers majority of scenarios
+const isHostname = (value: string) =>
+  !value.startsWith('npm:') && (value === 'localhost' || value.includes('.'));
 
 /**
- * Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap
+ * Migration to update hostname keyed PermissionController
+ * and SelectedNetworkController entries to origin.
  *
- * This migration migrates tokenNetworkFilter from PreferencesController to
- * NetworkOrderController.enabledNetworkMap to support multichain network filtering.
- *
- * Changes:
- * - Migrate existing tokenNetworkFilter data to enabledNetworkMap format
- * - Include both EVM and non-EVM networks in the enabled network map
- * - Handle cases where tokenNetworkFilter doesn't exist (no migration needed)
+ * Note that this makes a best guess by assuming the dapp is served
+ * via https on the default port. The worst case scenario is that this
+ * is an incorrect assumption, forcing the user to re-establish permissions.
+ * @param state - The current MetaMask mobile state.
+ * @returns Migrated Redux state.
  */
-export default function migrate(state: unknown): unknown {
-  const migrationVersion = 97;
+export default function migrate(state: unknown) {
+  const version = 97;
 
-  if (!ensureValidState(state, migrationVersion)) {
+  // Ensure the state is valid for migration
+  if (!ensureValidState(state, version)) {
     return state;
   }
 
-  try {
-    // Check if we have the required state structure
-    if (
-      !hasProperty(state.engine, 'backgroundState') ||
-      !isObject(state.engine.backgroundState)
-    ) {
-      return state;
-    }
+  const { backgroundState } = state.engine;
 
-    const backgroundState = state.engine.backgroundState;
-
-    // Validate NetworkOrderController exists
-    if (
-      !hasProperty(backgroundState, 'NetworkOrderController') ||
-      !isObject(backgroundState.NetworkOrderController)
-    ) {
-      return state;
-    }
-
-    // Validate PreferencesController exists
-    if (
-      !hasProperty(backgroundState, 'PreferencesController') ||
-      !isObject(backgroundState.PreferencesController)
-    ) {
-      return state;
-    }
-
-    const preferencesController = backgroundState.PreferencesController;
-
-    // Validate preferences object exists
-    if (
-      !hasProperty(preferencesController, 'preferences') ||
-      !isObject(preferencesController.preferences)
-    ) {
-      return state;
-    }
-
-    const preferences = preferencesController.preferences;
-
-    // Check if tokenNetworkFilter exists (optional for this migration)
-    if (!hasProperty(preferences, 'tokenNetworkFilter')) {
-      return state;
-    }
-
-    const tokenNetworkFilter = preferences.tokenNetworkFilter;
-
-    // Validate tokenNetworkFilter
-    if (!isObject(tokenNetworkFilter)) {
-      captureException(
-        new Error(
-          `Migration ${migrationVersion}: tokenNetworkFilter is type '${typeof tokenNetworkFilter}', expected object.`,
-        ),
-      );
-      return state;
-    }
-
-    if (Object.keys(tokenNetworkFilter).length === 0) {
-      captureException(
-        new Error(
-          `Migration ${migrationVersion}: tokenNetworkFilter is empty, expected at least one network configuration.`,
-        ),
-      );
-      return state;
-    }
-
-    // Validate MultichainNetworkController exists
-    if (
-      !hasProperty(backgroundState, 'MultichainNetworkController') ||
-      !isObject(backgroundState.MultichainNetworkController)
-    ) {
-      return state;
-    }
-
-    const multichainNetworkController =
-      backgroundState.MultichainNetworkController;
-
-    // Extract selectedMultichainNetworkChainId
-    const { selectedMultichainNetworkChainId } = multichainNetworkController;
-
-    // Validate selectedMultichainNetworkChainId
-    if (
-      !selectedMultichainNetworkChainId ||
-      typeof selectedMultichainNetworkChainId !== 'string'
-    ) {
-      captureException(
-        new Error(
-          `Migration ${migrationVersion}: selectedMultichainNetworkChainId is type '${typeof selectedMultichainNetworkChainId}', expected string.`,
-        ),
-      );
-      return state;
-    }
-
-    // Create enabledNetworkMap by merging both EVM and non-EVM networks
-    const evmEnabledNetworkMap = createEvmEnabledNetworkMap(
-      tokenNetworkFilter as Record<string, boolean>,
-    );
-    const nonEvmEnabledNetworkMap = createNonEvmEnabledNetworkMap(
-      selectedMultichainNetworkChainId,
-    );
-
-    // Merge both maps and assign to NetworkOrderController
-    const networkOrderController = backgroundState.NetworkOrderController;
-    networkOrderController.enabledNetworkMap = {
-      ...evmEnabledNetworkMap,
-      ...nonEvmEnabledNetworkMap,
-    };
-
-    return state;
-  } catch (error) {
+  if (
+    !hasProperty(backgroundState, 'PermissionController') ||
+    !isObject(backgroundState.PermissionController)
+  ) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Failed to migrate tokenNetworkFilter to enabledNetworkMap: ${String(
-          error,
-        )}`,
+        `Migration ${version}: typeof state.PermissionController is ${typeof backgroundState.PermissionController}`,
       ),
     );
-    // Return the original state if migration fails to avoid breaking the app
     return state;
   }
-}
 
-/**
- * Creates enabledNetworkMap from tokenNetworkFilter for EVM networks
- *
- * @param tokenNetworkFilter - The token network filter object
- * @returns The enabled network map for EVM networks
- */
-function createEvmEnabledNetworkMap(
-  tokenNetworkFilter: Record<string, boolean>,
-): Record<string, Record<string, boolean>> {
-  const caipChainId = formatChainIdToCaip(Object.keys(tokenNetworkFilter)[0]);
-  const { namespace: chainNamespace } = parseCaipChainId(caipChainId);
+  const {
+    PermissionController: { subjects },
+  } = backgroundState;
 
-  const enabledNetworkMap: Record<string, Record<string, boolean>> = {
-    [chainNamespace]: {
-      ...tokenNetworkFilter,
-    },
-  };
+  if (!isObject(subjects)) {
+    captureException(
+      new Error(
+        `Migration ${version}: typeof state.PermissionController.subjects is ${typeof subjects}`,
+      ),
+    );
+    return state;
+  }
 
-  return enabledNetworkMap;
-}
+  if (
+    !hasProperty(backgroundState, 'SelectedNetworkController') ||
+    !isObject(backgroundState.SelectedNetworkController)
+  ) {
+    captureException(
+      new Error(
+        `Migration ${version}: typeof state.SelectedNetworkController is ${typeof backgroundState.SelectedNetworkController}`,
+      ),
+    );
+    return state;
+  }
 
-/**
- * Creates enabledNetworkMap for non-EVM networks
- *
- * @param selectedMultichainNetworkChainId - The selected multichain network chain ID
- * @returns The enabled network map for non-EVM networks
- */
-function createNonEvmEnabledNetworkMap(
-  selectedMultichainNetworkChainId: string,
-): Record<string, Record<string, boolean>> {
-  const caipChainId = formatChainIdToCaip(selectedMultichainNetworkChainId);
-  const { namespace: chainNamespace } = parseCaipChainId(caipChainId);
+  const {
+    SelectedNetworkController: { domains },
+  } = backgroundState;
 
-  const enabledNetworkMap = {
-    [chainNamespace]: {
-      [selectedMultichainNetworkChainId]: true,
-    },
-  };
+  if (!isObject(domains)) {
+    captureException(
+      new Error(
+        `Migration ${version}: typeof state.SelectedNetworkController.domains is ${typeof domains}`,
+      ),
+    );
+    return state;
+  }
 
-  return enabledNetworkMap;
+  const newSubjects: Record<string, unknown> = {};
+  for (const [origin, subject] of Object.entries(subjects)) {
+    if (!isHostname(origin) || !isObject(subject)) {
+      newSubjects[origin] = subject;
+      continue;
+    }
+
+    const { permissions } = subject;
+    if (!isObject(permissions)) {
+      newSubjects[origin] = subject;
+      continue;
+    }
+    const newOrigin = `https://${origin}`;
+
+    const newPermissions: Record<string, unknown> = {};
+
+    for (const [name, permission] of Object.entries(permissions)) {
+      if (!isObject(permission)) {
+        newPermissions[name] = permission;
+        continue;
+      }
+
+      newPermissions[name] = {
+        ...permission,
+        invoker: newOrigin,
+      };
+    }
+
+    newSubjects[newOrigin] = {
+      ...subject,
+      origin: newOrigin,
+      permissions: newPermissions,
+    };
+  }
+  backgroundState.PermissionController.subjects = newSubjects;
+
+  const newDomains: Record<string, unknown> = {};
+  for (const [origin, networkClientId] of Object.entries(domains)) {
+    if (!isHostname(origin)) {
+      newDomains[origin] = networkClientId;
+      continue;
+    }
+
+    const newOrigin = `https://${origin}`;
+    newDomains[newOrigin] = networkClientId;
+  }
+  backgroundState.SelectedNetworkController.domains = newDomains;
+
+  return state;
 }

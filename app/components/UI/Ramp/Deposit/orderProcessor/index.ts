@@ -1,6 +1,7 @@
 import { DepositOrder, OrderStatusEnum } from '@consensys/native-ramps-sdk';
 import { ProcessorOptions } from '../..';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
+
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -71,6 +72,7 @@ export async function processDepositOrder(
     return {
       ...updatedFiatOrder,
       account: order.account,
+      network: order.network,
       lastTimeFetched: Date.now(),
       errorCount: 0,
     };
