@@ -11,7 +11,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BN4 from 'bnjs4';
 
@@ -39,7 +38,7 @@ import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 import TokenIcon from '../../../../Swaps/components/TokenIcon';
-import TokenSelectModal from '../../components/TokenSelectModal';
+
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import FiatSelectModal from '../../components/modals/FiatSelectModal';
@@ -58,9 +57,9 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { selectTicker } from '../../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -82,12 +81,8 @@ import Text, {
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
-import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
+import { FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
-import { selectRampWalletAddress } from '../../../../../../selectors/ramp';
-import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
-import Engine from '../../../../../../core/Engine';
-import { store } from '../../../../../../store';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // TODO: Replace "any" with type
@@ -116,12 +111,7 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
-  const [
-    isTokenSelectorModalVisible,
-    toggleTokenSelectorModal,
-    ,
-    hideTokenSelectorModal,
-  ] = useModalHandler(false);
+
   const [
     isFiatSelectorModalVisible,
     toggleFiatSelectorModal,
@@ -137,9 +127,6 @@ const BuildQuote = () => {
   const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] =
     useModalHandler(false);
 
-  const nativeSymbol = useSelector(selectTicker);
-  const accounts = useSelector(selectInternalAccounts);
-
   /**
    * Grab the current state of the SDK via the context.
    */
@@ -149,11 +136,9 @@ const BuildQuote = () => {
     selectedRegion,
     setSelectedRegion,
     selectedAsset,
-    setSelectedAsset,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     selectedAddress,
-    selectedNetworkName,
     sdkError,
     rampType,
     isBuy,
@@ -515,50 +500,12 @@ const BuildQuote = () => {
 
   const handleAssetSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    toggleTokenSelectorModal();
-  }, [toggleTokenSelectorModal]);
-
-  const handleAssetPress = useCallback(
-    async (newAsset: CryptoCurrency) => {
-      setSelectedAsset(newAsset);
-      hideTokenSelectorModal();
-
-      if (newAsset?.network?.chainId?.startsWith('solana:')) {
-        const { AccountsController } = Engine.context;
-        const currentAccount = AccountsController.getSelectedAccount();
-
-        // Check if current account can generate a Solana address
-        const currentAccountCanUseSolana = selectRampWalletAddress(
-          store.getState(),
-          newAsset,
-        );
-
-        if (
-          !currentAccountCanUseSolana ||
-          currentAccountCanUseSolana === currentAccount.address
-        ) {
-          // Find first account that supports Solana
-          const solanaAccounts = accounts.filter((account) =>
-            account.scopes.some((scope) => scope.startsWith('solana:')),
-          );
-          const solanaAccount = solanaAccounts[0];
-
-          if (solanaAccount) {
-            const account = AccountsController.getAccountByAddress(
-              solanaAccount.address,
-            );
-
-            if (account) {
-              const { PreferencesController } = Engine.context;
-              AccountsController.setSelectedAccount(account.id);
-              PreferencesController.setSelectedAddress(solanaAccount.address);
-            }
-          }
-        }
-      }
-    },
-    [hideTokenSelectorModal, setSelectedAsset, accounts],
-  );
+    navigation.navigate(
+      ...createTokenSelectModalNavigationDetails({
+        tokens: cryptoCurrencies ?? [],
+      }),
+    );
+  }, [navigation, cryptoCurrencies]);
 
   /**
    * * FiatCurrency handlers
@@ -1096,16 +1043,6 @@ const BuildQuote = () => {
           </StyledButton>
         </ScreenLayout.Content>
       </Animated.View>
-      <TokenSelectModal
-        isVisible={isTokenSelectorModalVisible}
-        dismiss={toggleTokenSelectorModal as () => void}
-        title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
-        description={strings(
-          'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
-        )}
-        tokens={cryptoCurrencies ?? []}
-        onItemPress={handleAssetPress}
-      />
       <FiatSelectModal
         isVisible={isFiatSelectorModalVisible}
         dismiss={toggleFiatSelectorModal as () => void}

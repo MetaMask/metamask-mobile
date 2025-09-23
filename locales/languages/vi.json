@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Insufficient funds"
+      "title": "Không đủ tiền"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -1165,8 +1165,6 @@
     "tpsl": {
       "title": "Chốt lời và cắt lỗ",
       "description": "Chọn phần trăm lãi hoặc lỗ, hoặc nhập giá kích hoạt tùy chỉnh để tự động đóng vị thế của bạn.",
-      "set": "Đặt",
-      "updating": "Đang cập nhật...",
       "off": "Tắt",
       "current_price": "Giá hiện tại",
       "leverage": "Đòn bẩy",
@@ -1188,7 +1186,7 @@
       "stop_loss_order_view_warning": "Giá cắt lỗ {{direction}} giá thanh lý",
       "above": "cao hơn",
       "below": "thấp hơn",
-      "dismiss_tpsl_keypad": "Đóng"
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "Không có token khả dụng"
@@ -5343,9 +5341,10 @@
     "quote_info_title": "Tỷ lệ",
     "network_fee_info_title": "Phí mạng",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Điểm",
+    "points": "Est. points",
     "points_tooltip": "Điểm",
-    "points_tooltip_content": "Ước tính số Điểm Phần thưởng MetaMask mà bạn sẽ nhận được từ giao dịch này. Điểm có thể mất đến 1 giờ để được xác nhận trong số dư Phần thưởng",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5773,13 +5772,14 @@
       "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
+      "tab_linked_accounts": "Linked ({{count}})",
+      "tab_unlinked_accounts": "Unlinked ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",

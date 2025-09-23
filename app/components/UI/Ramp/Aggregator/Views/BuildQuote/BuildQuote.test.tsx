@@ -26,6 +26,7 @@ import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
 
 const mockSetActiveNetwork = jest.fn();
@@ -559,101 +560,14 @@ describe('BuildQuote View', () => {
       expect(mockGetCryptoCurrencies).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedAsset when selecting a crypto', async () => {
+    it('navigates to token select modal when pressing asset selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[1].name));
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(
-        mockCryptoCurrenciesData[1],
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createTokenSelectModalNavigationDetails({
+          tokens: mockCryptoCurrenciesData,
+        }),
       );
-    });
-
-    it('sets asset without switching network when selecting crypto from different chain', async () => {
-      const mockPolygonToken = {
-        ...mockCryptoCurrenciesData[0],
-        network: {
-          chainId: '137',
-          active: true,
-          chainName: 'Polygon',
-          shortName: 'Polygon',
-        },
-        name: 'Polygon Token',
-      };
-
-      mockUseCryptoCurrenciesValues = {
-        ...mockUseCryptoCurrenciesInitialValues,
-        cryptoCurrencies: [mockCryptoCurrenciesData[0], mockPolygonToken],
-      };
-
-      render(BuildQuote);
-
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      await act(async () => {
-        fireEvent.press(getByRoleButton('Polygon Token'));
-      });
-
-      // Network switching is no longer expected in multichain approach
-      expect(mockSetActiveNetwork).not.toHaveBeenCalled();
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockPolygonToken);
-    });
-
-    it('does not switch network when selecting crypto from same chain', async () => {
-      mockSetActiveNetwork.mockClear();
-
-      const mockEthereumToken = {
-        ...mockCryptoCurrenciesData[0],
-        network: {
-          chainId: '1',
-          active: true,
-          chainName: 'Ethereum',
-          shortName: 'ETH',
-        },
-        name: 'Ethereum Token',
-      };
-
-      mockUseCryptoCurrenciesValues = {
-        ...mockUseCryptoCurrenciesInitialValues,
-        cryptoCurrencies: [mockCryptoCurrenciesData[0], mockEthereumToken],
-      };
-
-      render(BuildQuote);
-
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      await act(async () => {
-        fireEvent.press(getByRoleButton('Ethereum Token'));
-      });
-
-      expect(mockSetActiveNetwork).not.toHaveBeenCalled();
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockEthereumToken);
-    });
-
-    it('executes account switching logic when selecting Solana asset', async () => {
-      const solanaAsset = {
-        ...mockCryptoCurrenciesData[0],
-        id: 'solana-usdc',
-        network: {
-          ...mockCryptoCurrenciesData[0].network,
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          chainName: 'Solana',
-          shortName: 'Solana',
-          active: true,
-        },
-        symbol: 'USDC',
-        name: 'Solana USDC',
-      };
-
-      mockUseCryptoCurrenciesValues = {
-        ...mockUseCryptoCurrenciesInitialValues,
-        cryptoCurrencies: [mockCryptoCurrenciesData[0], solanaAsset],
-      };
-
-      render(BuildQuote);
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      await act(async () => {
-        fireEvent.press(getByRoleButton('Solana USDC'));
-      });
-
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(solanaAsset);
     });
   });
 
