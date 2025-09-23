@@ -18,6 +18,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { NetworkConnectionBannersState } from '../../../reducers/networkConnectionBanners';
+import { isE2E } from '../../../util/test/utils';
 
 const SLOW_BANNER_TIMEOUT = 5 * 1000; // 5 seconds
 const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
@@ -84,6 +85,10 @@ const useNetworkConnectionBanners = (): {
   }
 
   useEffect(() => {
+    if (isE2E) {
+      return;
+    }
+
     const checkNetworkStatus = (timeoutType: NetworkConnectionBannerStatus) => {
       const currentBannerState = bannerStateRef.current;
       const networksMetadata =
