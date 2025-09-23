@@ -211,10 +211,9 @@ const OnboardingIntroStep: React.FC = () => {
         loadingText={getLoadingText()}
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
+        textClassName={() => '!text-white'}
       >
-        <Text twClassName="text-white">
-          {strings('rewards.onboarding.intro_confirm')}
-        </Text>
+        {strings('rewards.onboarding.intro_confirm')}
       </Button>
       <Button
         variant={ButtonVariant.Tertiary}
@@ -222,23 +221,22 @@ const OnboardingIntroStep: React.FC = () => {
         isDisabled={subscriptionIdLoading || subscriptionIdValid}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
+        textClassName={() => '!text-white'}
       >
-        <Text twClassName="text-white">
-          {strings('rewards.onboarding.intro_skip')}
-        </Text>
+        {strings('rewards.onboarding.intro_skip')}
       </Button>
     </Box>
   );
 
   return (
-    <Box twClassName="flex-grow min-h-full" testID="onboarding-intro-container">
+    <Box twClassName="min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-1 px-4 py-8')}
+        style={tw.style('flex-grow px-4 py-8')}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[75px]" />
+        <Box twClassName="flex-basis-[5%]" />
 
         {/* Title Section */}
         {renderTitle()}
