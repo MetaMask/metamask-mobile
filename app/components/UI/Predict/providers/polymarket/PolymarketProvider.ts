@@ -48,6 +48,7 @@ import {
   submitClobOrder,
 } from './utils';
 import { generateOrderId } from '../../utils/orders';
+import { successfulFetch } from '@metamask/controller-utils';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -457,7 +458,7 @@ export class PolymarketProvider implements PredictProvider {
     const { GEOBLOCK_API_ENDPOINT } = getPolymarketEndpoints();
     let eligible = false;
     try {
-      const res = await fetch(GEOBLOCK_API_ENDPOINT);
+      const res = await successfulFetch(GEOBLOCK_API_ENDPOINT);
       const { blocked } = (await res.json()) as { blocked: boolean };
       if (blocked !== undefined) {
         eligible = blocked === false;
