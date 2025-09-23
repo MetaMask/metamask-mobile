@@ -27,29 +27,11 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../../selectors/accountsController'),
-  selectSelectedInternalAccount: jest.fn(),
-  selectSelectedInternalAccountId: jest.fn(),
-}));
-
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import {
-  selectSelectedInternalAccount,
-  selectSelectedInternalAccountId,
-} from '../../../../selectors/accountsController';
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
     typeof selectSelectedInternalAccountByScope
-  >;
-const mockSelectSelectedInternalAccount =
-  selectSelectedInternalAccount as jest.MockedFunction<
-    typeof selectSelectedInternalAccount
-  >;
-const mockSelectSelectedInternalAccountId =
-  selectSelectedInternalAccountId as jest.MockedFunction<
-    typeof selectSelectedInternalAccountId
   >;
 
 const mockEvmAccount: InternalAccount = {
@@ -111,8 +93,6 @@ describe('useRampAccountAddress', () => {
     jest.clearAllMocks();
 
     mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
-    mockSelectSelectedInternalAccount.mockReturnValue(mockEvmAccount);
-    mockSelectSelectedInternalAccountId.mockReturnValue(mockEvmAccount.id);
   });
 
   it('returns null when caipChainId is null', () => {
@@ -193,25 +173,10 @@ describe('useRampAccountAddress', () => {
     expect(result.current).toBe(mockBitcoinAccount.address);
   });
 
-  it('returns fallback address when specific chain is not supported', () => {
+  it('returns null when no account supports the chainId', () => {
     const caipChainId: CaipChainId = 'eip155:999';
 
     mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
-    mockSelectSelectedInternalAccount.mockReturnValue(mockEvmAccount);
-
-    const { result } = renderHookWithProvider(
-      () => useRampAccountAddress(caipChainId),
-      { state: mockState },
-    );
-
-    expect(result.current).toBe(mockEvmAccount.address);
-  });
-
-  it('returns null when no fallback account available', () => {
-    const caipChainId: CaipChainId = 'eip155:999';
-
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
-    mockSelectSelectedInternalAccount.mockReturnValue(undefined);
 
     const { result } = renderHookWithProvider(
       () => useRampAccountAddress(caipChainId),
@@ -221,7 +186,7 @@ describe('useRampAccountAddress', () => {
     expect(result.current).toBeNull();
   });
 
-  it('returns fallback address when specific account has no address', () => {
+  it('returns null when account exists but has no address', () => {
     const caipChainId: CaipChainId = 'eip155:1';
 
     const accountWithoutAddress = {
@@ -232,28 +197,6 @@ describe('useRampAccountAddress', () => {
     mockSelectSelectedInternalAccountByScope.mockReturnValue(
       () => accountWithoutAddress,
     );
-    mockSelectSelectedInternalAccount.mockReturnValue(mockSolanaAccount);
-
-    const { result } = renderHookWithProvider(
-      () => useRampAccountAddress(caipChainId),
-      { state: mockState },
-    );
-
-    expect(result.current).toBe(mockSolanaAccount.address);
-  });
-
-  it('returns null when all accounts have no address', () => {
-    const caipChainId: CaipChainId = 'eip155:1';
-
-    const accountWithoutAddress = {
-      ...mockEvmAccount,
-      address: '',
-    };
-
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      () => accountWithoutAddress,
-    );
-    mockSelectSelectedInternalAccount.mockReturnValue(accountWithoutAddress);
 
     const { result } = renderHookWithProvider(
       () => useRampAccountAddress(caipChainId),
