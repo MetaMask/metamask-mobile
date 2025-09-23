@@ -5,7 +5,6 @@ import { NetworkConnectionBannersState } from '../../reducers/networkConnectionB
 describe('networkConnectionBanners selectors', () => {
   const mockNetworkConnectionBannersState: NetworkConnectionBannersState = {
     visible: false,
-    chainId: undefined,
   };
 
   const mockState = {
@@ -24,7 +23,6 @@ describe('networkConnectionBanners selectors', () => {
 
       expect(result).toStrictEqual({
         visible: false,
-        chainId: undefined,
       });
     });
 
