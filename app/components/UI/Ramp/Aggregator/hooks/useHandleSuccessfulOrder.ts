@@ -75,19 +75,26 @@ function useHandleSuccessfulOrder() {
         } else {
           const chainIdFromProvider = (order?.data as Order)?.cryptoCurrency
             ?.network?.chainId;
+
+          const hexChainId = chainIdFromProvider
+            ? toHexadecimal(chainIdFromProvider)
+            : null;
+          const accountBalance =
+            hexChainId &&
+            order.account &&
+            accountsByChainId[hexChainId]?.[order.account]
+              ? accountsByChainId[hexChainId][order.account].balance
+              : null;
+
           trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
             ...payload,
             provider_onramp: (order?.data as Order)?.provider?.name,
             chain_id_destination: chainIdFromProvider,
             has_zero_currency_destination_balance: false,
-            has_zero_native_balance: accountsByChainId[
-              toHexadecimal(chainIdFromProvider)
-            ][order.account]?.balance
+            has_zero_native_balance: accountBalance
               ? (
                   hexToBN(
-                    accountsByChainId[toHexadecimal(chainIdFromProvider)][
-                      order.account
-                    ].balance,
+                    accountBalance,
                     // TODO: Replace "any" with type
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   ) as any
