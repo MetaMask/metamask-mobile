@@ -78,8 +78,8 @@ const PerpsMarketBalanceActions: React.FC<
   useEffect(() => {
     if (!perpsAccount) return;
 
-    // Use totalBalance since that's what we display in the UI for available balance
-    const currentBalance = perpsAccount.totalBalance;
+    // Use availableBalance since that's what we display in the UI for available balance
+    const currentBalance = perpsAccount.availableBalance;
 
     // Only animate if balance actually changed (and we have a previous value to compare)
     if (
@@ -154,8 +154,8 @@ const PerpsMarketBalanceActions: React.FC<
     }
   }, [navigation, isEligible, ensureArbitrumNetworkExists]);
 
-  const totalBalance = perpsAccount?.totalBalance || '0';
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  const availableBalance = perpsAccount?.availableBalance || '0';
+  const isBalanceEmpty = BigNumber(availableBalance).isZero();
 
   // Don't render if no balance data is available yet
   if (!perpsAccount) {
@@ -190,7 +190,7 @@ const PerpsMarketBalanceActions: React.FC<
                   color={TextColor.Default}
                   testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                 >
-                  {formatPerpsFiat(totalBalance)}
+                  {formatPerpsFiat(availableBalance)}
                 </Text>
               </Animated.View>
             </Box>
