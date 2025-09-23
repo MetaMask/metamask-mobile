@@ -20,6 +20,10 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    MODALS: {
+      ID: 'RampModals',
+      TOKEN_SELECTOR: 'RampTokenSelectorModal',
+    },
   },
   DEPOSIT: {
     ID: 'Deposit',
