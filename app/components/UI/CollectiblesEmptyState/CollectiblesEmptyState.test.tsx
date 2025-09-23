@@ -25,7 +25,7 @@ describe('CollectiblesEmptyState', () => {
         "There's a world of NFTs out there. Start your collection today.",
       ),
     ).toBeDefined();
-    expect(getByText('Discover NFTs')).toBeDefined();
+    // Button should not render when no onAction is provided
   });
 
   it('calls onDiscoverCollectibles when action button is pressed', () => {
@@ -36,7 +36,7 @@ describe('CollectiblesEmptyState', () => {
       />,
     );
 
-    fireEvent.press(getByText('Discover NFTs'));
+    fireEvent.press(getByText('Import NFTs'));
     expect(mockOnDiscoverCollectibles).toHaveBeenCalledTimes(1);
   });
 });

@@ -508,23 +508,18 @@ const CollectibleContracts = ({
     allNetworkClientIds,
   ]);
 
-  const goToLearnMore = useCallback(
-    () =>
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: { url: AppConstants.URLS.NFT },
-      }),
-    [navigation],
-  );
-
   const renderEmpty = useCallback(
     () => (
       <CollectiblesEmptyState
         onDiscoverCollectibles={goToAddCollectible}
+        actionButtonProps={{
+          testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+          isDisabled: !isAddNFTEnabled,
+        }}
         style={tw.style('mx-auto')}
       />
     ),
-    [goToAddCollectible, tw],
+    [goToAddCollectible, tw, isAddNFTEnabled],
   );
 
   const renderList = useCallback(
