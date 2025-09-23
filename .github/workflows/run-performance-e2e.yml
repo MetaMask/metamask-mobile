@@ -175,34 +175,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: [run-android-onboarding-tests, run-ios-onboarding-tests]
     if: always()
-    outputs:
-      should_run_imported_wallet_tests: ${{ steps.check-results.outputs.should_run }}
     steps:
-      - name: Check onboarding test results
-        id: check-results
+      - name: Wait for onboarding tests to complete
         run: |
-          echo "Checking onboarding test results..."
-          echo "Android onboarding result: ${{ needs.run-android-onboarding-tests.result }}"
-          echo "iOS onboarding result: ${{ needs.run-ios-onboarding-tests.result }}"
-          echo "Manual Android URL provided: ${{ inputs.browserstack_app_url_android_imported_wallet != '' }}"
-          echo "Manual iOS URL provided: ${{ inputs.browserstack_app_url_ios_imported_wallet != '' }}"
-          
-          # Run imported wallet tests if:
-          # 1. Onboarding tests completed (success/failure/skipped) but weren't cancelled, OR
-          # 2. Manual BrowserStack URLs are provided (bypasses cancellation check)
-          if [[ "${{ needs.run-android-onboarding-tests.result }}" == "cancelled" && "${{ needs.run-ios-onboarding-tests.result }}" == "cancelled" && "${{ inputs.browserstack_app_url_android_imported_wallet }}" == "" && "${{ inputs.browserstack_app_url_ios_imported_wallet }}" == "" ]]; then
-            echo "Onboarding tests were cancelled and no manual URLs provided - skipping imported wallet tests"
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Proceeding with imported wallet tests (onboarding completed OR manual URLs provided)"
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          fi
+          echo "Onboarding tests have completed (success or failure)"
+          echo "Proceeding with imported wallet tests..."
   
   run-android-imported-wallet-tests:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: needs.wait-for-onboarding-completion.outputs.should_run_imported_wallet_tests == 'true' && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
+    if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
       build_type: imported-wallet
@@ -217,7 +200,7 @@ jobs:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
     needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
-    if: needs.wait-for-onboarding-completion.outputs.should_run_imported_wallet_tests == 'true' && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
+    if: always() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
       build_type: imported-wallet
