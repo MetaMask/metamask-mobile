@@ -10,6 +10,14 @@ import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 import StakingDeposit from './staking-deposit';
 
+jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));

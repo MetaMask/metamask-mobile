@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -20,7 +20,9 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   formatPrice,
   formatPositionSize,
-  formatTransactionDate,
+  PRICE_RANGES_DETAILED_VIEW,
+  formatPerpsFiat,
+  formatOrderCardDate,
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -30,6 +32,9 @@ import type {
 } from './PerpsOpenOrderCard.types';
 import BigNumber from 'bignumber.js';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import { useSelector } from 'react-redux';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 
 /**
  * PerpsOpenOrderCard Component
@@ -59,16 +64,26 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   order,
   onCancel,
+  onSelect,
   disabled = false,
   expanded = false,
   showIcon = false,
   rightAccessory,
+  isActiveOnChart = false,
+  activeType,
+  isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  // Derive order data for display
+  // Used to prevent rapid clicks on the cancel button before it has time to re-render.
+  const isLocallyCancellingRef = useRef(false);
+
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+
+  const isEligible = useSelector(selectPerpsEligibility);
+
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
-    // For reduce-only orders (TP/SL), show them as closing positions
     let direction: OpenOrderCardDerivedData['direction'];
     if (order.reduceOnly || order.isTrigger) {
       // This is a TP/SL order closing a position
@@ -97,30 +112,57 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       sizeInUSD,
       fillPercentage,
     };
-  }, [order]);
+  }, [
+    order.reduceOnly,
+    order.isTrigger,
+    order.side,
+    order.originalSize,
+    order.price,
+    order.filledSize,
+  ]);
+
+  // Allows for retries if cancellation fails.
+  if (!isCancelling) {
+    isLocallyCancellingRef.current = false;
+  }
+
+  const handleCancelPress = useCallback(() => {
+    if (isLocallyCancellingRef.current) {
+      return;
+    }
+
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
+    // Set local state immediately to prevent rapid clicks
+    isLocallyCancellingRef.current = true;
+
+    DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
+      orderId: order.orderId,
+    });
+
+    onCancel?.(order);
+  }, [isEligible, onCancel, order]);
+
+  const handleCardPress = useCallback(() => {
+    if (onSelect) {
+      onSelect(order.orderId);
+    }
+  }, [onSelect, order.orderId]);
 
   // Early return for non-open orders - this component only handles open orders
   if (order.status !== 'open') {
     return null;
   }
 
-  const handleCancelPress = () => {
-    DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
-      orderId: order.orderId,
-    });
-    if (onCancel) {
-      onCancel(order);
-    } else {
-      // Future: Navigate to order cancellation flow
-      DevLogger.log('PerpsOpenOrderCard: No onCancel handler provided');
-    }
-  };
-
   return (
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
-      disabled={expanded}
+      disabled={isLocallyCancellingRef.current || disabled}
+      onPress={handleCardPress}
     >
       {/* Header - Always shown */}
       <View style={[styles.header, expanded && styles.headerExpanded]}>
@@ -134,9 +176,38 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         <View style={styles.headerLeft}>
           <View style={styles.headerRow}>
             {/* Show order type or direction */}
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {order.detailedOrderType || derivedData.direction}
             </Text>
+            {/* Chart activity indicators */}
+            {isActiveOnChart && (
+              <View style={styles.indicatorContainer}>
+                {activeType === 'TP' || activeType === 'BOTH' ? (
+                  <View
+                    style={[styles.activeChartIndicator, styles.tpIndicator]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Inverse}
+                    >
+                      {strings('perps.tp_on_chart')}
+                    </Text>
+                  </View>
+                ) : null}
+                {activeType === 'SL' || activeType === 'BOTH' ? (
+                  <View
+                    style={[styles.activeChartIndicator, styles.slIndicator]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Default}
+                    >
+                      {strings('perps.sl_on_chart')}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            )}
             {/* Fill percentage badge with icon */}
             {derivedData.fillPercentage > 0 &&
               derivedData.fillPercentage < 100 && (
@@ -157,8 +228,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                 </View>
               )}
           </View>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
-            {formatTransactionDate(order.timestamp)}
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {formatOrderCardDate(order.timestamp)}
           </Text>
         </View>
 
@@ -168,7 +239,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
               {formatPrice(derivedData.sizeInUSD)}
             </Text>
           </View>
-          <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {formatPositionSize(order.originalSize)} {order.symbol}
           </Text>
         </View>
@@ -184,16 +255,15 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         <View style={styles.body}>
           <View style={styles.bodyRow}>
             <View style={styles.bodyItem}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {order.isTrigger
                   ? strings('perps.order.trigger_price')
                   : strings('perps.order.limit_price')}
               </Text>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {formatPrice(order.price)}
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {formatPerpsFiat(order.price, {
+                  ranges: PRICE_RANGES_DETAILED_VIEW,
+                })}
               </Text>
             </View>
             {/* Only show TP/SL for non-trigger orders */}
@@ -201,33 +271,31 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
               <>
                 <View style={styles.bodyItem}>
                   <Text
-                    variant={TextVariant.BodyXS}
+                    variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
                   >
                     {strings('perps.order.take_profit')}
                   </Text>
-                  <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={TextColor.Default}
-                  >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {order.takeProfitPrice
-                      ? formatPrice(order.takeProfitPrice)
+                      ? formatPerpsFiat(order.takeProfitPrice, {
+                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                        })
                       : strings('perps.position.card.not_set')}
                   </Text>
                 </View>
                 <View style={styles.bodyItem}>
                   <Text
-                    variant={TextVariant.BodyXS}
+                    variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
                   >
                     {strings('perps.order.stop_loss')}
                   </Text>
-                  <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={TextColor.Default}
-                  >
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {order.stopLossPrice
-                      ? formatPrice(order.stopLossPrice)
+                      ? formatPerpsFiat(order.stopLossPrice, {
+                          ranges: PRICE_RANGES_DETAILED_VIEW,
+                        })
                       : strings('perps.position.card.not_set')}
                   </Text>
                 </View>
@@ -237,15 +305,12 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             {order.isTrigger && order.reduceOnly && (
               <View style={[styles.bodyItem, styles.bodyItemReduceOnly]}>
                 <Text
-                  variant={TextVariant.BodyXS}
+                  variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
                   {strings('perps.order.reduce_only')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {strings('perps.order.yes')}
                 </Text>
               </View>
@@ -263,11 +328,22 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
             width={ButtonWidthTypes.Full}
             label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
-            disabled={disabled}
-            style={[styles.footerButton, styles.footerButtonExpanded]}
+            isDisabled={isLocallyCancellingRef.current || disabled}
+            loading={isLocallyCancellingRef.current || disabled}
+            style={styles.footerButton}
             testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
         </View>
+      )}
+
+      {isEligibilityModalVisible && (
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={() => setIsEligibilityModalVisible(false)}
+            contentKey={'geo_block'}
+          />
+        </Modal>
       )}
     </TouchableOpacity>
   );

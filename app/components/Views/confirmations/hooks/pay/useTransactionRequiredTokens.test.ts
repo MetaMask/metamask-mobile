@@ -91,6 +91,7 @@ describe('useTransactionRequiredTokens', () => {
         expect.arrayContaining([
           {
             address: EMPTY_ADDRESS,
+            allowUnderMinimum: true,
             amountHuman: '0.00015',
             amountRaw: '150000000000000',
             balanceHuman: '1.234',
@@ -116,6 +117,7 @@ describe('useTransactionRequiredTokens', () => {
         expect.arrayContaining([
           {
             address: EMPTY_ADDRESS,
+            allowUnderMinimum: true,
             amountHuman: '0.000000000000000015',
             amountRaw: '15',
             balanceHuman: '1.234',
@@ -162,6 +164,7 @@ describe('useTransactionRequiredTokens', () => {
         expect.arrayContaining([
           {
             address: EMPTY_ADDRESS,
+            allowUnderMinimum: true,
             amountHuman: '0.00015',
             amountRaw: '150000000000000',
             balanceHuman: '0.000000000000000014',
@@ -208,6 +211,7 @@ describe('useTransactionRequiredTokens', () => {
         expect.arrayContaining([
           {
             address: EMPTY_ADDRESS,
+            allowUnderMinimum: true,
             amountHuman: '0.0001',
             amountRaw: '100000000000000',
             balanceHuman: '0.000000000000000014',
@@ -237,6 +241,7 @@ describe('useTransactionRequiredTokens', () => {
       expect.arrayContaining([
         {
           address: TOKEN_ADDRESS_MOCK,
+          allowUnderMinimum: false,
           amountHuman: '0.0291',
           amountRaw: '291',
           balanceHuman: '2.345',

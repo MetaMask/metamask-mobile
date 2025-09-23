@@ -1,6 +1,7 @@
 import Gestures from '../../helpers/Gestures.js';
 import { AddNewAccountIds } from '../../../e2e/selectors/MultiSRP/AddHdAccount.selectors.js';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors.js';
+import { expect as appwrightExpect } from 'appwright';
 
 class AddNewHdAccountComponent {
   get device() {
@@ -48,6 +49,15 @@ class AddNewHdAccountComponent {
       return Selectors.getXpathElementByResourceId(AddNewAccountIds.NAME_INPUT);
     } else {
       return AppwrightSelectors.getElementByID(this._device, AddNewAccountIds.NAME_INPUT);
+    }
+  }
+
+  async isSrpSelectorVisible() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(AddNewAccountIds.SRP_SELECTOR).isDisplayed();
+    } else {
+      const srpSelector = await this.srpSelector;
+      await appwrightExpect(srpSelector).toBeVisible({ timeout: 10000 });
     }
   }
 

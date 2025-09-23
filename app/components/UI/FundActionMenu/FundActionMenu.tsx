@@ -26,7 +26,7 @@ import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
-import Routes from '../../../constants/navigation/Routes';
+import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 
 // Types
 import type {
@@ -44,6 +44,7 @@ const FundActionMenu = () => {
 
   const chainId = useSelector(selectChainId);
   const [isNetworkRampSupported] = useRampNetwork();
+
   const { isDepositEnabled } = useDepositEnabled();
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -114,7 +115,7 @@ const FundActionMenu = () => {
             ramp_type: 'DEPOSIT',
           },
           traceName: TraceName.LoadDepositExperience,
-          navigationAction: () => navigate(Routes.DEPOSIT.ID),
+          navigationAction: () => navigate(...createDepositNavigationDetails()),
         },
         {
           type: 'buy',
@@ -122,7 +123,7 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.buy_description'),
           iconName: IconName.Add,
           testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-          isVisible: isNetworkRampSupported || !!customOnBuy,
+          isVisible: true,
           analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
           analyticsProperties: {
             text: 'Buy',

@@ -9,7 +9,7 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     container: {
-      paddingVertical: 32,
+      paddingBottom: 32,
     },
     accountAction: {
       paddingTop: 16,

@@ -58,8 +58,8 @@ describe('SlippageModal', () => {
     expect(getByText(strings('bridge.slippage_info'))).toBeDefined();
     expect(getByText('0.5%')).toBeDefined();
     expect(getByText('1%')).toBeDefined();
-    expect(getByText('3%')).toBeDefined();
-    expect(getByText('10%')).toBeDefined();
+    expect(getByText('2%')).toBeDefined();
+    expect(getByText('5%')).toBeDefined();
     expect(getByText(strings('bridge.apply'))).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
@@ -68,15 +68,15 @@ describe('SlippageModal', () => {
     const { getByText, getByTestId } = renderSlippageModal();
 
     // Click on the 3% option
-    const option3Percent = getByTestId('slippage-option-3');
-    fireEvent.press(option3Percent);
+    const option2Percent = getByTestId('slippage-option-2');
+    fireEvent.press(option2Percent);
 
     // Click on the apply button
     const applyButton = getByText(strings('bridge.apply'));
     fireEvent.press(applyButton);
 
     // Check if the action was dispatched with the correct value
-    expect(mockDispatch).toHaveBeenCalledWith(setSlippage('3'));
+    expect(mockDispatch).toHaveBeenCalledWith(setSlippage('2'));
 
     // Check that navigation.goBack was called
     expect(mockGoBack).toHaveBeenCalled();

@@ -93,6 +93,9 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
       gap: 8,
     },
+    networkSelectorNetworkNameLabel: {
+      color: colors.text.default,
+    },
     resolvedInput: {
       ...fontStyles.normal,
       fontSize: 10,
@@ -199,6 +202,8 @@ class ContactForm extends PureComponent {
 
   sheetRef = React.createRef();
 
+  validationTimeoutId = null;
+
   updateNavBar = () => {
     const { navigation, route } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -253,6 +258,12 @@ class ContactForm extends PureComponent {
     this.updateNavBar();
   };
 
+  componentWillUnmount = () => {
+    if (this.validationTimeoutId) {
+      clearTimeout(this.validationTimeoutId);
+    }
+  };
+
   onEdit = () => {
     const { navigation } = this.props;
     const { editable } = this.state;
@@ -298,8 +309,21 @@ class ContactForm extends PureComponent {
   };
 
   onChangeAddress = (address) => {
-    this.validateAddressOrENSFromInput(address);
-    this.setState({ address });
+    this.setState({
+      address,
+      toEnsName: null,
+      toEnsAddress: null,
+      addressError: null,
+      addressReady: false,
+    });
+
+    if (this.validationTimeoutId) {
+      clearTimeout(this.validationTimeoutId);
+    }
+
+    this.validationTimeoutId = setTimeout(() => {
+      this.validateAddressOrENSFromInput(address);
+    }, 300);
   };
 
   onChangeMemo = (memo) => {
@@ -576,7 +600,9 @@ class ContactForm extends PureComponent {
                         chainId: contactChainId || this.props.chainId,
                       })}
                     />
-                    <Text>{networkName}</Text>
+                    <Text style={styles.networkSelectorNetworkNameLabel}>
+                      {networkName}
+                    </Text>
                   </View>
                   {!!editable && (
                     <ButtonIcon

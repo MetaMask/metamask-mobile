@@ -72,6 +72,17 @@ describe('AccountBackupStep1B', () => {
         }}
         route={{}}
       />,
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'encrypted-vault-data',
+              },
+            },
+          },
+        },
+      },
     );
 
     return {

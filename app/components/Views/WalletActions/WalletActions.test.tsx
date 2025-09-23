@@ -23,6 +23,7 @@ import {
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -30,6 +31,10 @@ jest.mock('react-native-device-info', () => ({
 
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
+}));
+
+jest.mock('../../UI/Perps/selectors/perpsController', () => ({
+  selectIsFirstTimePerpsUser: jest.fn(),
 }));
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
@@ -123,6 +128,7 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
   selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
   selectIsSwapsLive: jest.fn().mockReturnValue(true),
+  selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
@@ -444,10 +450,44 @@ describe('WalletActions', () => {
     ).toBeDefined();
   });
 
-  it('should call the onPerps function when the Perpetuals button is pressed', () => {
+  it('should navigate to Perps markets when returning user presses Perpetuals button', async () => {
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectIsFirstTimePerpsUser as jest.MockedFunction<
+        typeof selectIsFirstTimePerpsUser
+      >
+    ).mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    );
+
+    // Wait for the bottom sheet close callback to execute
+    // closeBottomSheetAndNavigate wraps navigation in a callback
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
+      screen: 'PerpsMarketListView',
+    });
+  });
+
+  it('should navigate to Perps tutorial when first-time user presses Perpetuals button', async () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectIsFirstTimePerpsUser as jest.MockedFunction<
+        typeof selectIsFirstTimePerpsUser
       >
     ).mockReturnValue(true);
 
@@ -459,8 +499,12 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     );
 
+    // Wait for the bottom sheet close callback to execute
+    // closeBottomSheetAndNavigate wraps navigation in a callback
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(mockNavigate).toHaveBeenCalledWith('Perps', {
-      screen: 'PerpsMarketListView',
+      screen: 'PerpsTutorial',
     });
   });
 
@@ -477,6 +521,12 @@ describe('WalletActions', () => {
     ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
+
+    // Import and mock selectIsSwapsEnabled to return false when can't sign
+    const { selectIsSwapsEnabled } = jest.requireMock(
+      '../../../core/redux/slices/bridge',
+    );
+    selectIsSwapsEnabled.mockReturnValue(false);
 
     const mockStateWithoutSigningAndStablecoinLendingEnabled: DeepPartial<RootState> =
       {

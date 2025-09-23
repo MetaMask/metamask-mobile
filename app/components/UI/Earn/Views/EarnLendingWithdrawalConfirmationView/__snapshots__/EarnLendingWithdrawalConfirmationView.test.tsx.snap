@@ -481,7 +481,14 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                           }
                         }
                       >
-                        <Image />
+                        <View
+                          style={
+                            {
+                              "height": 16,
+                              "width": 16,
+                            }
+                          }
+                        />
                       </View>
                       <View
                         accessible={false}

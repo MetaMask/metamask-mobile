@@ -124,8 +124,8 @@ describe('useAccounts', () => {
 
     mockUseSendContext.mockReturnValue({
       from: undefined,
+      maxValueMode: false,
       updateAsset: jest.fn(),
-
       updateTo: jest.fn(),
       updateValue: jest.fn(),
     });
@@ -180,8 +180,8 @@ describe('useAccounts', () => {
     it('filters out account when from address matches account address', () => {
       mockUseSendContext.mockReturnValue({
         from: '0x1234567890123456789012345678901234567890',
+        maxValueMode: false,
         updateAsset: jest.fn(),
-
         updateTo: jest.fn(),
         updateValue: jest.fn(),
       });

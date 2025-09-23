@@ -28,6 +28,7 @@ import arrowdropdowncircleSVG from './assets/arrow-drop-down-circle.svg';
 import arrowleftSVG from './assets/arrow-left.svg';
 import arrowrightSVG from './assets/arrow-right.svg';
 import arrowupSVG from './assets/arrow-up.svg';
+import attachmoneySVG from './assets/attach-money.svg';
 import attachmentSVG from './assets/attachment.svg';
 import banSVG from './assets/ban.svg';
 import bankassuredSVG from './assets/bank-assured.svg';
@@ -149,6 +150,7 @@ import mapSVG from './assets/map.svg';
 import menuSVG from './assets/menu.svg';
 import messagequestionSVG from './assets/message-question.svg';
 import messagesSVG from './assets/messages.svg';
+import metamaskfoxoutlineSVG from './assets/metamask-fox-outline.svg';
 import micSVG from './assets/mic.svg';
 import minusboldSVG from './assets/minus-bold.svg';
 import minussquareSVG from './assets/minus-square.svg';
@@ -304,6 +306,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ArrowLeft]: arrowleftSVG,
   [IconName.ArrowRight]: arrowrightSVG,
   [IconName.ArrowUp]: arrowupSVG,
+  [IconName.AttachMoney]: attachmoneySVG,
   [IconName.Attachment]: attachmentSVG,
   [IconName.Ban]: banSVG,
   [IconName.BankAssured]: bankassuredSVG,
@@ -425,6 +428,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Menu]: menuSVG,
   [IconName.MessageQuestion]: messagequestionSVG,
   [IconName.Messages]: messagesSVG,
+  [IconName.MetamaskFoxOutline]: metamaskfoxoutlineSVG,
   [IconName.Mic]: micSVG,
   [IconName.MinusBold]: minusboldSVG,
   [IconName.MinusSquare]: minussquareSVG,

@@ -11,10 +11,10 @@ import {
   StyleSheet,
   View,
   Image,
-  FlatList,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -82,6 +82,8 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { multichainCollectibleForEvmAccount } from '../../../selectors/nftController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -114,7 +116,7 @@ const createStyles = (colors) =>
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
       marginRight: 4,
       borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
       borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
@@ -123,7 +125,7 @@ const createStyles = (colors) =>
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
       marginRight: 4,
       borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
       borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
@@ -209,7 +211,10 @@ const CollectibleContracts = ({
   const allNetworks = useSelector(selectNetworkConfigurations);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const collectibleContractsByEnabledNetworks = useSelector(
-    multichainCollectibleContractsByEnabledNetworksSelector,
+    multichainCollectibleForEvmAccount,
+  );
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
   );
 
   const { enabledNetworks, getNetworkInfo, isDisabled } =
@@ -562,7 +567,7 @@ const CollectibleContracts = ({
 
   const renderList = useCallback(
     () => (
-      <FlatList
+      <FlashList
         ListHeaderComponent={
           <>
             {isCollectionDetectionBannerVisible && (
@@ -587,6 +592,8 @@ const CollectibleContracts = ({
         }
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
+        estimatedItemSize={100}
+        scrollEnabled={false}
       />
     ),
     [
@@ -662,8 +669,16 @@ const CollectibleContracts = ({
               </>
             }
             isDisabled={isDisabled}
-            onPress={isEvmSelected ? showFilterControls : () => null}
-            endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
+            onPress={
+              isEvmSelected || isMultichainAccountsState2Enabled
+                ? showFilterControls
+                : () => null
+            }
+            endIconName={
+              isEvmSelected || isMultichainAccountsState2Enabled
+                ? IconName.ArrowDown
+                : undefined
+            }
             style={
               isDisabled ? styles.controlButtonDisabled : styles.controlButton
             }
@@ -729,18 +744,27 @@ CollectibleContracts.propTypes = {
   displayNftMedia: PropTypes.bool,
 };
 
-const mapStateToProps = (state) => ({
-  networkType: selectProviderType(state),
-  chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  useNftDetection: selectUseNftDetection(state),
-  collectibleContracts: multichainCollectibleContractsSelector(state),
-  collectibles: multichainCollectiblesSelector(state),
-  isNftFetchingProgress: isNftFetchingProgressSelector(state),
-  favoriteCollectibles: favoritesCollectiblesSelector(state),
-  isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
-  displayNftMedia: selectDisplayNftMedia(state),
-});
+const mapStateToProps = (state) => {
+  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
+  const collectiblesData = multichainCollectiblesSelector(state);
+  const collectibleContractsData =
+    multichainCollectibleContractsSelector(state);
+
+  return {
+    networkType: selectProviderType(state),
+    chainId: selectChainId(state),
+    selectedAddress,
+    useNftDetection: selectUseNftDetection(state),
+    collectibleContracts: Array.isArray(collectibleContractsData)
+      ? collectibleContractsData
+      : [],
+    collectibles: Array.isArray(collectiblesData) ? collectiblesData : [],
+    isNftFetchingProgress: isNftFetchingProgressSelector(state),
+    favoriteCollectibles: favoritesCollectiblesSelector(state),
+    isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
+    displayNftMedia: selectDisplayNftMedia(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>

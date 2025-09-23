@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import {
   ScrollView,
   TouchableOpacity,
@@ -29,6 +29,7 @@ import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboard
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -207,6 +208,9 @@ const AccountBackupStep1B = (props) => {
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
 
   const headerLeft = useCallback(() => <View />, []);
   const track = (event, properties) => {
@@ -353,7 +357,9 @@ const AccountBackupStep1B = (props) => {
       </ScrollView>
       {Device.isAndroid() && <AndroidBackHandler customBackPress={dismiss} />}
       <ActionModal
-        modalVisible={showWhySecureWalletModal}
+        modalVisible={
+          showWhySecureWalletModal && !isSeedlessOnboardingLoginFlow
+        }
         actionContainerStyle={styles.modalNoBorder}
         displayConfirmButton={false}
         displayCancelButton={false}

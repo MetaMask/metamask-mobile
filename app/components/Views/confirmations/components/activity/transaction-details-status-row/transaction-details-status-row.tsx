@@ -6,18 +6,15 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { TransactionStatus } from '@metamask/transaction-controller';
-import Icon, {
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import { TransactionDetailsStatusIcon } from '../transaction-details-status-icon';
 
 export function TransactionDetailsStatusRow() {
   const { transactionMeta } = useTransactionDetails();
 
   const statusText = getStatusText(transactionMeta.status);
   const statusColor = getStatusColour(transactionMeta.status);
-  const statusIcon = getStatusIcon(transactionMeta.status);
 
   return (
     <TransactionDetailsRow label={strings('transactions.status')}>
@@ -26,7 +23,7 @@ export function TransactionDetailsStatusRow() {
         gap={6}
         alignItems={AlignItems.center}
       >
-        <Icon name={statusIcon} color={statusColor} />
+        <TransactionDetailsStatusIcon transactionMeta={transactionMeta} />
         <Text color={statusColor}>{statusText}</Text>
       </Box>
     </TransactionDetailsRow>
@@ -54,17 +51,5 @@ function getStatusColour(status: TransactionStatus): TextColor {
       return TextColor.Error;
     default:
       return TextColor.Warning;
-  }
-}
-
-function getStatusIcon(status: TransactionStatus): IconName {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return IconName.Check;
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return IconName.Error;
-    default:
-      return IconName.Pending;
   }
 }

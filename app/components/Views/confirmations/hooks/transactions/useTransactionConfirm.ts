@@ -33,9 +33,9 @@ export function useTransactionConfirm() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
   const {
-    bridgeFeeFormatted: bridgeFeeFiat,
-    formatted: totalFiat,
-    totalGasFormatted: networkFeeFiat,
+    totalBridgeFeeFormatted: bridgeFeeFiat,
+    totalFormatted: totalFiat,
+    totalNativeEstimatedFormatted: networkFeeFiat,
   } = useTransactionTotalFiat();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
@@ -87,7 +87,9 @@ export function useTransactionConfirm() {
     );
 
     if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.WALLET_VIEW);
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
     } else if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
@@ -124,10 +126,23 @@ export function useTransactionConfirm() {
 function getQuoteBatchTransactions(
   quotes: TransactionBridgeQuote[],
 ): BatchTransaction[] {
-  return quotes.flatMap((quote) => [
-    ...(quote.approval ? [getQuoteBatchTransaction(quote.approval)] : []),
-    getQuoteBatchTransaction(quote.trade),
-  ]);
+  return quotes.flatMap((quote) => {
+    const result = [];
+
+    if (quote.approval) {
+      result.push({
+        ...getQuoteBatchTransaction(quote.approval),
+        type: TransactionType.swapApproval,
+      });
+    }
+
+    result.push({
+      ...getQuoteBatchTransaction(quote.trade),
+      type: TransactionType.swap,
+    });
+
+    return result;
+  });
 }
 
 function getQuoteBatchTransaction(

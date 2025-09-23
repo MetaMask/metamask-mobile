@@ -195,8 +195,8 @@ export function usePerpsClosePositionValidation(
       }
 
       setValidation({
-        errors,
-        warnings,
+        errors: [...new Set(errors)], // Deduplicate errors
+        warnings: [...new Set(warnings)], // Deduplicate warnings
         isValid: errors.length === 0,
         isValidating: false,
       });

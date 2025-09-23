@@ -12,6 +12,10 @@ export const createStyles = (colors: Theme['colors']) =>
       marginTop: 12,
       marginBottom: 8,
     },
+    errorText: {
+      fontSize: 14,
+      color: colors.error.default,
+    },
     limitPriceDisplay: {
       backgroundColor: colors.background.section,
       borderRadius: 8,
@@ -66,7 +70,7 @@ export const createStyles = (colors: Theme['colors']) =>
       marginBottom: 16,
     },
     footerContainer: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 10,
       paddingBottom: 24,
     },
   });

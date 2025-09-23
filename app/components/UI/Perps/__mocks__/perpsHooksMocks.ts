@@ -94,6 +94,8 @@ export const defaultPerpsPositionMock: Position = {
     sinceOpen: '0',
     sinceChange: '0',
   },
+  takeProfitCount: 0,
+  stopLossCount: 0,
 };
 
 export const defaultPerpsOrderMock: Order = {
@@ -121,6 +123,16 @@ export const defaultPerpsMarketStatsMock: UsePerpsMarketStatsReturn = {
   refresh: jest.fn(),
 };
 
+export const defaultPerpsRewardsMock = {
+  shouldShowRewardsRow: false,
+  isLoading: false,
+  estimatedPoints: undefined,
+  bonusBips: undefined,
+  feeDiscountPercentage: undefined,
+  hasError: false,
+  isRefresh: false,
+};
+
 /**
  * Helper to create a complete mock setup for Perps hooks
  */
@@ -138,5 +150,6 @@ export const createPerpsHooksMocks = (overrides = {}) => ({
   usePerpsNetwork: jest.fn(() => defaultPerpsNetworkMock),
   usePerpsTrading: jest.fn(() => defaultPerpsTradingMock),
   usePerpsConnection: jest.fn(() => defaultPerpsConnectionMock),
+  usePerpsRewards: jest.fn(() => defaultPerpsRewardsMock),
   ...overrides,
 });

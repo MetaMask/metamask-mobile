@@ -35,8 +35,19 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
-    }
+
+          if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(
+              this._device,
+              WalletViewSelectorsIDs.ACCOUNT_ICON,
+            );
+          } else {
+            return AppwrightSelectors.getElementByCatchAll(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
+          }
+        }
+      
+  
+   
   }
 
   get swapButton() {
@@ -59,7 +70,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, 'token-network-filter');
     }
   }
 
@@ -142,17 +153,8 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      const isAndroid = AppwrightSelectors.isAndroid(this._device);
-      
-      let tokenName;
-      if (isAndroid) {
-        // For Android: use asset-{token} approach
-        tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
-      } else {
-        // For iOS: use catch-all selector
-        tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
-      }
-      
+      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
+
       await tokenName.tap();
     }
   }
@@ -232,6 +234,7 @@ class WalletMainScreen {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
+      await element.waitFor('visible',{ timeout: 10000 });
       await appwrightExpect(element).toBeVisible();
     }
   }

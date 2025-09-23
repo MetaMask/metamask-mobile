@@ -1,9 +1,4 @@
 /**
- * Perps view component props
- */
-export interface PerpsViewProps {}
-
-/**
  * Test result states for SDK validation
  */
 export type TestResultStatus =
@@ -85,3 +80,5 @@ export interface OrderFormState {
   limitPrice?: string;
   type: OrderType;
 }
+
+export type OrderDirection = 'long' | 'short';

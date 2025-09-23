@@ -11,23 +11,36 @@ import cardReducer, {
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
   initialState,
+  setHasViewedCardButton,
+  selectHasViewedCardButton,
 } from '.';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import {
   CardTokenAllowance,
   AllowanceState,
 } from '../../../../components/UI/Card/types';
 import { ethers } from 'ethers';
 
-// Mock the accountsController selectors
-jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+// Mock the multichain selectors
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
-const mockSelectSelectedInternalAccountFormattedAddress =
-  selectSelectedInternalAccountFormattedAddress as jest.MockedFunction<
-    typeof selectSelectedInternalAccountFormattedAddress
+// Mock the multichain utils
+jest.mock('../../../Multichain/utils', () => ({
+  isEthAccount: jest.fn(),
+}));
+
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { isEthAccount } from '../../../Multichain/utils';
+
+const mockSelectSelectedInternalAccountByScope =
+  selectSelectedInternalAccountByScope as jest.MockedFunction<
+    typeof selectSelectedInternalAccountByScope
   >;
+
+const mockIsEthAccount = isEthAccount as jest.MockedFunction<
+  typeof isEthAccount
+>;
 
 const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
   '0x1234567890123456789012345678901234567890',
@@ -56,6 +69,7 @@ const CARD_STATE_MOCK: CardSliceState = {
     [testAddress.toLowerCase()]: new Date('2025-08-21T10:00:00Z'),
   },
   isLoaded: true,
+  hasViewedCardButton: true,
 };
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
@@ -63,7 +77,25 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   priorityTokensByAddress: {},
   lastFetchedByAddress: {},
   isLoaded: false,
+  hasViewedCardButton: false,
 };
+
+// Mock account object that matches the expected structure
+const createMockAccount = (address: string) => ({
+  address: address.toLowerCase(),
+  id: `mock-id-${address}`,
+  metadata: {
+    name: 'Mock Account',
+    importTime: Date.now(),
+    keyring: {
+      type: 'HD Key Tree',
+    },
+  },
+  options: {},
+  methods: [],
+  type: 'eip155:eoa' as const,
+  scopes: ['eip155:59144' as const],
+});
 
 describe('Card Selectors', () => {
   describe('selectCardholderAccounts', () => {
@@ -86,16 +118,35 @@ describe('Card Selectors', () => {
     });
   });
 
+  describe('selectHasViewedCardButton', () => {
+    it('returns false by default from initial state', () => {
+      const mockRootState = { card: initialState } as unknown as RootState;
+      expect(selectHasViewedCardButton(mockRootState)).toBe(false);
+    });
+
+    it('returns true when hasViewedCardButton is true', () => {
+      const stateWithFlag: CardSliceState = {
+        ...initialState,
+        hasViewedCardButton: true,
+      };
+      const mockRootState = { card: stateWithFlag } as unknown as RootState;
+      expect(selectHasViewedCardButton(mockRootState)).toBe(true);
+    });
+  });
+
   describe('selectIsCardholder', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
     it('returns true when selected account is in cardholder accounts', () => {
-      const selectedAccount = CARDHOLDER_ACCOUNTS_MOCK[0];
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        selectedAccount,
+      const selectedAccount = createMockAccount(CARDHOLDER_ACCOUNTS_MOCK[0]);
+
+      // Mock the selector to return a function that returns the account
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        () => selectedAccount,
       );
+      mockIsEthAccount.mockReturnValue(true);
 
       const mockRootState = {
         card: CARD_STATE_MOCK,
@@ -105,10 +156,14 @@ describe('Card Selectors', () => {
     });
 
     it('returns false when selected account is not in cardholder accounts', () => {
-      const selectedAccount = '0x9999999999999999999999999999999999999999';
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        selectedAccount,
+      const selectedAccount = createMockAccount(
+        '0x9999999999999999999999999999999999999999',
       );
+
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        () => selectedAccount,
+      );
+      mockIsEthAccount.mockReturnValue(true);
 
       const mockRootState = {
         card: CARD_STATE_MOCK,
@@ -118,9 +173,23 @@ describe('Card Selectors', () => {
     });
 
     it('returns false when no account is selected', () => {
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        undefined,
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
+      mockIsEthAccount.mockReturnValue(false);
+
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      expect(selectIsCardholder(mockRootState)).toBe(false);
+    });
+
+    it('returns false when selected account is not an ETH account', () => {
+      const selectedAccount = createMockAccount(CARDHOLDER_ACCOUNTS_MOCK[0]);
+
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        () => selectedAccount,
       );
+      mockIsEthAccount.mockReturnValue(false);
 
       const mockRootState = {
         card: CARD_STATE_MOCK,
@@ -130,10 +199,14 @@ describe('Card Selectors', () => {
     });
 
     it('returns false when no cardholder accounts exist', () => {
-      const selectedAccount = '0x1234567890123456789012345678901234567890';
-      mockSelectSelectedInternalAccountFormattedAddress.mockReturnValue(
-        selectedAccount,
+      const selectedAccount = createMockAccount(
+        '0x1234567890123456789012345678901234567890',
       );
+
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        () => selectedAccount,
+      );
+      mockIsEthAccount.mockReturnValue(true);
 
       const mockRootState = {
         card: EMPTY_CARD_STATE_MOCK,
@@ -197,11 +270,32 @@ describe('Card Reducer', () => {
           '0x123': new Date(),
         },
         isLoaded: true,
+        hasViewedCardButton: true,
       };
 
       const state = cardReducer(currentState, resetCardState());
 
       expect(state).toEqual(initialState);
+    });
+
+    describe('setHasViewedCardButton', () => {
+      it('should set hasViewedCardButton to true', () => {
+        const state = cardReducer(initialState, setHasViewedCardButton(true));
+        expect(state.hasViewedCardButton).toBe(true);
+        // ensure other parts of state untouched
+        expect(state.cardholderAccounts).toEqual(
+          initialState.cardholderAccounts,
+        );
+      });
+
+      it('should set hasViewedCardButton to false when previously true', () => {
+        const current: CardSliceState = {
+          ...initialState,
+          hasViewedCardButton: true,
+        };
+        const state = cardReducer(current, setHasViewedCardButton(false));
+        expect(state.hasViewedCardButton).toBe(false);
+      });
     });
   });
 });

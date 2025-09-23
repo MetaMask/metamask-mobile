@@ -131,9 +131,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -176,30 +175,6 @@ exports[`SendTransaction View renders correctly 1`] = `
                 >
                   Sell crypto
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -933,9 +908,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -978,30 +952,6 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 >
                   Sell crypto
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -1653,9 +1603,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 23.57142857142857,
-                      "fontWeight": "400",
                     }
                   }
                 >
@@ -1698,30 +1647,6 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 >
                   Sell crypto
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View

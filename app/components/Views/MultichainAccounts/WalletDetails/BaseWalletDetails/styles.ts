@@ -85,11 +85,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingLeft: 16,
       paddingRight: 16,
     },
-    addAccountBox: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      padding: 16,
-    },
     firstAccountBox: {
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
@@ -111,6 +106,42 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       backgroundColor: colors.background.default,
+    },
+    addAccountItem: {
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 8,
+    },
+    addAccountButton: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    addAccountItemDisabled: {
+      opacity: 0.5,
+    },
+    addAccountIconContainer: {
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
+      padding: 8,
+      marginRight: 16,
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addAccountText: {
+      color: colors.text.alternative,
+      flex: 1,
+    },
+    addAccountButtonText: {
+      color: colors.primary.default,
+      fontWeight: '500',
     },
   });
 };

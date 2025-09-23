@@ -1,2 +1,2 @@
 export { default } from './WhatsNewModal';
-export { whatsNew as whatsNewList } from './whatsNewList';
+export { whatsNew as whatsNewList } from './WhatsNewModal.constants';

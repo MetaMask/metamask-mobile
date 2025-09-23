@@ -21,6 +21,7 @@ import { selectSelectedInternalAccountAddress } from '../../../selectors/account
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const ProtectWalletMandatoryModal = () => {
   const [showProtectWalletModal, setShowProtectWalletModal] = useState(false);
@@ -34,6 +35,9 @@ const ProtectWalletMandatoryModal = () => {
   const allTokens = useSelector(selectAllTokens);
   const nfts = useSelector(selectAllNfts);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
 
   const { navigate, dangerouslyGetState } = useNavigation();
 
@@ -41,6 +45,11 @@ const ProtectWalletMandatoryModal = () => {
   const seedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
   useEffect(() => {
     const route = findRouteNameFromNavigatorState(dangerouslyGetState().routes);
+    if (isSeedlessOnboardingLoginFlow) {
+      setShowProtectWalletModal(false);
+      return;
+    }
+
     if (!passwordSet || !seedphraseBackedUp) {
       if (
         [
@@ -91,6 +100,7 @@ const ProtectWalletMandatoryModal = () => {
     allTokens,
     nfts,
     selectedAddress,
+    isSeedlessOnboardingLoginFlow,
   ]);
 
   const onSecureWallet = () => {
