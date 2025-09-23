@@ -162,6 +162,22 @@ jobs:
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle..."
           
+          # --- CRITICAL: Remap environment variables to match the full build script ---
+          # This is the missing step that ensures the JS bundle is identical.
+          # The app's code expects generic names (e.g., SEGMENT_WRITE_KEY), not the CI-specific names.
+          echo "🔄 Remapping environment variables for the bundler..."
+          export SEGMENT_WRITE_KEY="$SEGMENT_WRITE_KEY_QA"
+          export SEGMENT_PROXY_URL="$SEGMENT_PROXY_URL_QA"
+          export SEGMENT_DELETE_API_SOURCE_ID="$SEGMENT_DELETE_API_SOURCE_ID_QA"
+          export SEGMENT_REGULATIONS_ENDPOINT="$SEGMENT_REGULATIONS_ENDPOINT_QA"
+          export MM_SENTRY_DSN="$MM_SENTRY_DSN_TEST"
+          export IOS_GOOGLE_CLIENT_ID="$MAIN_IOS_GOOGLE_CLIENT_ID_UAT"
+          export IOS_GOOGLE_REDIRECT_URI="$MAIN_IOS_GOOGLE_REDIRECT_URI_UAT"
+          export ANDROID_APPLE_CLIENT_ID="$MAIN_ANDROID_APPLE_CLIENT_ID_UAT"
+          export ANDROID_GOOGLE_CLIENT_ID="$MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT"
+          export ANDROID_GOOGLE_SERVER_CLIENT_ID="$MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
+          # --- End of variable remapping ---
+
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
           BUNDLE_PATH="${APP_PATH}/main.jsbundle"
           SOURCEMAP_PATH="sourcemaps/ios/index.js.map"
