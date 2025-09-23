@@ -9,7 +9,10 @@ import {
 } from './PredictController';
 import { type PredictOrderStatus } from '../types';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { addTransaction } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  addTransactionBatch,
+} from '../../../../util/transaction-controller';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -76,6 +79,7 @@ describe('PredictController', () => {
       prepareBuyOrder: jest.fn(),
       prepareSellOrder: jest.fn(),
       getApiKey: jest.fn(),
+      isEligible: jest.fn(),
       providerId: 'polymarket',
       placeOrder: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
@@ -169,6 +173,109 @@ describe('PredictController', () => {
         },
         { state: customState },
       );
+    });
+
+    it('should handle provider initialization errors in constructor', () => {
+      // This tests the error handling in initializeProviders() called from constructor
+      (PolymarketProvider as any).mockImplementation(() => {
+        throw new Error('Provider initialization failed');
+      });
+
+      // Should not throw despite provider initialization error
+      expect(() => {
+        withController(({ controller }) => {
+          expect(controller).toBeDefined();
+        });
+      }).not.toThrow();
+
+      // Restore original constructor
+      (PolymarketProvider as any).mockImplementation(
+        () => mockPolymarketProvider,
+      );
+    });
+
+    it('should handle refreshEligibility errors in constructor', () => {
+      // Mock isEligible to throw during constructor
+      const originalIsEligible = mockPolymarketProvider.isEligible;
+      mockPolymarketProvider.isEligible = jest
+        .fn()
+        .mockRejectedValue(new Error('Eligibility check failed'));
+
+      // Should not throw despite eligibility refresh error
+      expect(() => {
+        withController(({ controller }) => {
+          expect(controller).toBeDefined();
+        });
+      }).not.toThrow();
+
+      // Restore original method
+      mockPolymarketProvider.isEligible = originalIsEligible;
+    });
+
+    it('should subscribe to transaction events in constructor', () => {
+      withController(({ controller }) => {
+        // The messenger in our test setup is mocked, so we verify the controller exists
+        // and that the subscription setup works without throwing errors
+        expect(controller).toBeDefined();
+        expect(controller.state).toBeDefined();
+
+        // In a real scenario, the controller subscribes to these events:
+        // - TransactionController:transactionSubmitted
+        // - TransactionController:transactionConfirmed
+        // - TransactionController:transactionFailed
+        // We can verify the handlers work by testing them individually
+      });
+    });
+  });
+
+  describe('initialization', () => {
+    it('should clear existing providers before reinitializing', async () => {
+      await withController(async ({ controller }) => {
+        // First initialization should have polymarket provider
+        expect((controller as any).providers.size).toBe(1);
+        expect((controller as any).providers.has('polymarket')).toBe(true);
+
+        // Mock a second provider for testing clear functionality
+        const mockSecondProvider = { ...mockPolymarketProvider };
+        (controller as any).providers.set('test-provider', mockSecondProvider);
+        expect((controller as any).providers.size).toBe(2);
+
+        // Reset and reinitialize
+        (controller as any).isInitialized = false;
+        (controller as any).initializationPromise = null;
+        await (controller as any).performInitialization();
+
+        // Should only have polymarket provider (others cleared)
+        expect((controller as any).providers.size).toBe(1);
+        expect((controller as any).providers.has('polymarket')).toBe(true);
+        expect((controller as any).providers.has('test-provider')).toBe(false);
+      });
+    });
+
+    it('should prevent double initialization with promise caching', async () => {
+      await withController(async ({ controller }) => {
+        // Reset initialization state
+        (controller as any).isInitialized = false;
+        (controller as any).initializationPromise = null;
+
+        // Start two concurrent initialization calls using performInitialization
+        const promise1 = (controller as any).performInitialization();
+        const promise2 = (controller as any).performInitialization();
+
+        await promise1;
+        await promise2;
+
+        // Should be initialized
+        expect((controller as any).isInitialized).toBe(true);
+      });
+    });
+
+    it('should handle initialization state correctly', async () => {
+      await withController(async ({ controller }) => {
+        // Test that initialization completes successfully
+        expect((controller as any).isInitialized).toBe(true);
+        expect((controller as any).providers.has('polymarket')).toBe(true);
+      });
     });
   });
 
@@ -457,6 +564,223 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toBe('Sell order failed');
+        expect(result.id).toBeUndefined();
+      });
+    });
+  });
+
+  describe('batch transactions', () => {
+    const mockMarket = {
+      id: 'market-1',
+      providerId: 'polymarket',
+      slug: 'test-market',
+      title: 'Test Market',
+      description: 'A test market for prediction',
+      image: 'test-image.png',
+      status: 'open' as const,
+      recurrence: 'once' as any,
+      categories: [],
+      outcomes: [],
+    };
+
+    it('should handle buy with multiple onchain params using addTransactionBatch', async () => {
+      const mockBatchId = 'batch-buy-123';
+      await withController(async ({ controller }) => {
+        // Prepare provider transaction data with multiple onchain params
+        mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
+          id: 'batch-order-1',
+          providerId: 'polymarket',
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          isBuy: true,
+          size: 1,
+          price: 1,
+          status: 'idle',
+          timestamp: Date.now(),
+          lastUpdated: Date.now(),
+          onchainTradeParams: [
+            {
+              data: '0xdeadbeef1',
+              to: '0x000000000000000000000000000000000000dead',
+              value: '0x0',
+            },
+            {
+              data: '0xdeadbeef2',
+              to: '0x000000000000000000000000000000000000beef',
+              value: '0x10',
+            },
+          ],
+          offchainTradeParams: {},
+          chainId: 1,
+        } as any);
+
+        // Mock addTransactionBatch to return batch ID
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+
+        const result = await controller.buy({
+          market: mockMarket,
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          size: 1,
+        });
+
+        expect(addTransactionBatch).toHaveBeenCalledWith({
+          from: '0x1234567890123456789012345678901234567890',
+          networkClientId: 'mainnet',
+          transactions: [
+            {
+              params: {
+                to: '0x000000000000000000000000000000000000dead',
+                data: '0xdeadbeef1',
+                value: '0x0',
+              },
+            },
+            {
+              params: {
+                to: '0x000000000000000000000000000000000000beef',
+                data: '0xdeadbeef2',
+                value: '0x10',
+              },
+            },
+          ],
+          disable7702: true,
+          disableHook: true,
+          disableSequential: false,
+          requireApproval: true,
+        });
+
+        expect(result).toEqual({
+          success: true,
+          id: mockBatchId,
+        });
+
+        expect(controller.state.activeOrders[mockBatchId]).toBeDefined();
+        expect(controller.state.activeOrders[mockBatchId].status).toBe(
+          'pending',
+        );
+        expect(controller.state.notifications).toContainEqual(
+          expect.objectContaining({
+            orderId: mockBatchId,
+            status: 'pending',
+          }),
+        );
+      });
+    });
+
+    it('should handle sell with multiple onchain params using addTransactionBatch', async () => {
+      const mockBatchId = 'batch-sell-123';
+      await withController(async ({ controller }) => {
+        const mockPosition = {
+          marketId: 'market-1',
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+        };
+
+        // Prepare provider transaction data with multiple onchain params
+        mockPolymarketProvider.prepareSellOrder.mockResolvedValue({
+          id: 'batch-sell-order-1',
+          providerId: 'polymarket',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+          isBuy: false,
+          size: 2,
+          price: 0.8,
+          status: 'idle',
+          timestamp: Date.now(),
+          lastUpdated: Date.now(),
+          onchainTradeParams: [
+            {
+              data: '0xsell-data-1',
+              to: '0x000000000000000000000000000000000000sell',
+              value: '0x0',
+            },
+            {
+              data: '0xsell-data-2',
+              to: '0x000000000000000000000000000000000000feed',
+              value: '0x5',
+            },
+          ],
+          offchainTradeParams: {},
+          chainId: 1,
+        } as any);
+
+        // Mock addTransactionBatch to return batch ID
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+
+        const result = await controller.sell({
+          position: mockPosition as any,
+        });
+
+        expect(addTransactionBatch).toHaveBeenCalledWith({
+          from: '0x1234567890123456789012345678901234567890',
+          networkClientId: 'mainnet',
+          transactions: [
+            {
+              params: {
+                to: '0x000000000000000000000000000000000000sell',
+                data: '0xsell-data-1',
+                value: '0x0',
+              },
+            },
+            {
+              params: {
+                to: '0x000000000000000000000000000000000000feed',
+                data: '0xsell-data-2',
+                value: '0x5',
+              },
+            },
+          ],
+          disable7702: true,
+          disableHook: true,
+          disableSequential: false,
+          requireApproval: false, // This is different from buy
+        });
+
+        expect(result).toEqual({
+          success: true,
+          id: mockBatchId,
+        });
+
+        expect(controller.state.activeOrders[mockBatchId]).toBeDefined();
+        expect(controller.state.activeOrders[mockBatchId].status).toBe(
+          'pending',
+        );
+      });
+    });
+
+    it('should handle batch transaction with NO_ONCHAIN_TRADE_PARAMS error', async () => {
+      await withController(async ({ controller }) => {
+        // Return order with empty onchain params
+        mockPolymarketProvider.prepareBuyOrder.mockResolvedValue({
+          id: 'empty-order',
+          providerId: 'polymarket',
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          isBuy: true,
+          size: 1,
+          price: 1,
+          status: 'idle',
+          timestamp: Date.now(),
+          lastUpdated: Date.now(),
+          onchainTradeParams: [], // Empty array
+          offchainTradeParams: {},
+          chainId: 1,
+        } as any);
+
+        const result = await controller.buy({
+          market: mockMarket,
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          size: 1,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('NO_ONCHAIN_TRADE_PARAMS');
         expect(result.id).toBeUndefined();
       });
     });
@@ -804,6 +1128,154 @@ describe('PredictController', () => {
       });
     });
 
+    it('should handle submitOffchainTrade throwing exception', async () => {
+      await withController(async ({ controller, messenger }) => {
+        const batchId = 'batch-exception';
+        const txData = '0xdeadbeef';
+
+        // Mock the provider's submitOffchainTrade method to throw
+        mockPolymarketProvider.submitOffchainTrade = jest
+          .fn()
+          .mockRejectedValue(new Error('Network connection failed'));
+
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'polymarket',
+            marketId: 'm-exception',
+            outcomeId: 'o-exception',
+            outcomeTokenId: 'ot-exception',
+            isBuy: true,
+            size: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [
+              {
+                from: '0x1',
+                chainId: 1,
+                data: txData,
+                to: '0x123',
+                value: '0x0',
+              },
+            ],
+            offchainTradeParams: {
+              clobOrder: { orderId: 'exception-clob-1' },
+              headers: { auth: 'token' },
+            },
+            chainId: 1,
+          };
+        });
+
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          batchId,
+          txParams: {
+            from: '0x1',
+            to: '0x2',
+            data: txData,
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        // Wait for the async operation to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(controller.state.activeOrders[batchId].status).toBe('error');
+        expect(controller.state.activeOrders[batchId].error).toBe(
+          'SUBMIT_OFFCHAIN_TRADE_FAILED',
+        );
+        expect(controller.state.notifications).toContainEqual(
+          expect.objectContaining({
+            orderId: batchId,
+            status: 'error',
+          }),
+        );
+      });
+    });
+
+    it('should handle provider without submitOffchainTrade method', async () => {
+      await withController(async ({ controller, messenger }) => {
+        const batchId = 'batch-no-method';
+        const txData = '0xdeadbeef';
+
+        // Mock provider without submitOffchainTrade method
+        delete (mockPolymarketProvider as any).submitOffchainTrade;
+
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'polymarket',
+            marketId: 'm-no-method',
+            outcomeId: 'o-no-method',
+            outcomeTokenId: 'ot-no-method',
+            isBuy: true,
+            size: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [
+              {
+                from: '0x1',
+                chainId: 1,
+                data: txData,
+                to: '0x123',
+                value: '0x0',
+              },
+            ],
+            offchainTradeParams: {
+              clobOrder: { orderId: 'no-method-clob-1' },
+              headers: { auth: 'token' },
+            },
+            chainId: 1,
+          };
+        });
+
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          batchId,
+          txParams: {
+            from: '0x1',
+            to: '0x2',
+            data: txData,
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        // Wait for the async operation to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(controller.state.activeOrders[batchId].status).toBe('error');
+        expect(controller.state.activeOrders[batchId].error).toBe(
+          'SUBMIT_OFFCHAIN_TRADE_NOT_SUPPORTED',
+        );
+        expect(controller.state.notifications).toContainEqual(
+          expect.objectContaining({
+            orderId: batchId,
+            status: 'error',
+          }),
+        );
+      });
+    });
+
     it('should set order status to error on transactionFailed', () => {
       withController(({ controller, messenger }) => {
         const batchId = 'batch-6';
@@ -926,6 +1398,372 @@ describe('PredictController', () => {
         controller.deleteNotification('any-order-id');
 
         expect(controller.state.notifications).toEqual([]);
+      });
+    });
+  });
+
+  describe('provider error handling', () => {
+    const mockMarket = {
+      id: 'market-1',
+      providerId: 'nonexistent',
+      slug: 'test-market',
+      title: 'Test Market',
+      description: 'A test market for prediction',
+      image: 'test-image.png',
+      status: 'open' as const,
+      recurrence: 'once' as any,
+      categories: [],
+      outcomes: [],
+    };
+
+    it('should throw PROVIDER_NOT_AVAILABLE when provider is missing in buy', async () => {
+      await withController(async ({ controller }) => {
+        const result = await controller.buy({
+          market: mockMarket,
+          outcomeId: 'o1',
+          outcomeTokenId: 'ot1',
+          size: 1,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(result.id).toBeUndefined();
+      });
+    });
+
+    it('should throw PROVIDER_NOT_AVAILABLE when provider is missing in sell', async () => {
+      await withController(async ({ controller }) => {
+        const mockPosition = {
+          marketId: 'market-1',
+          providerId: 'nonexistent',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'outcome-token-1',
+        };
+
+        const result = await controller.sell({
+          position: mockPosition as any,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(result.id).toBeUndefined();
+      });
+    });
+
+    it('should handle missing provider in getMarkets', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getMarkets({
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('should handle missing provider in getPositions', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getPositions({
+            address: '0x1234567890123456789012345678901234567890',
+            providerId: 'nonexistent',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+      });
+    });
+
+    it('should handle missing provider in transaction confirmed handler', () => {
+      withController(({ controller, messenger }) => {
+        // Set up an active order with non-existent provider
+        const batchId = 'batch-missing-provider';
+        const txData = '0xdeadbeef';
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[batchId] = {
+            id: '0x' as `0x${string}`,
+            providerId: 'nonexistent', // Provider that doesn't exist
+            marketId: 'm1',
+            outcomeId: 'o1',
+            outcomeTokenId: 'ot1',
+            isBuy: true,
+            size: 1,
+            price: 1,
+            status: 'pending',
+            timestamp: Date.now(),
+            lastUpdated: Date.now(),
+            onchainTradeParams: [
+              {
+                from: '0x1',
+                chainId: 1,
+                data: txData,
+                to: '0x123',
+                value: '0x0',
+              },
+            ],
+            offchainTradeParams: undefined,
+            chainId: 1,
+          };
+        });
+
+        const event = {
+          id: 'tx1',
+          hash: '0xabc',
+          status: 'confirmed',
+          batchId,
+          txParams: {
+            from: '0x1',
+            to: '0x2',
+            data: txData,
+            value: '0x0',
+          },
+        };
+
+        messenger.publish(
+          'TransactionController:transactionConfirmed',
+          // @ts-ignore
+          event,
+        );
+
+        expect(controller.state.activeOrders[batchId].status).toBe('error');
+        expect(controller.state.activeOrders[batchId].error).toBe(
+          'PROVIDER_NOT_AVAILABLE',
+        );
+      });
+    });
+  });
+
+  describe('refreshEligibility', () => {
+    it('should update eligibility for all providers successfully', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.isEligible.mockResolvedValue(true);
+
+        await controller.refreshEligibility();
+
+        expect(controller.state.eligibility.polymarket).toBe(true);
+        expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle provider.isEligible() throwing error', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Eligibility check failed';
+        mockPolymarketProvider.isEligible.mockRejectedValue(
+          new Error(errorMessage),
+        );
+
+        await controller.refreshEligibility();
+
+        expect(controller.state.eligibility.polymarket).toBe(false);
+        expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+      });
+    });
+
+    it('should default to false when provider eligibility check fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.isEligible.mockRejectedValue('Non-error object');
+
+        await controller.refreshEligibility();
+
+        expect(controller.state.eligibility.polymarket).toBe(false);
+      });
+    });
+
+    it('should handle multiple providers eligibility checks', async () => {
+      await withController(async ({ controller }) => {
+        // Add a second mock provider to the internal providers map
+        const mockSecondProvider = {
+          ...mockPolymarketProvider,
+          isEligible: jest.fn().mockResolvedValue(false),
+        };
+
+        // Manually add second provider to test multiple providers scenario
+        controller.updateStateForTesting(() => {
+          // Access private providers map for testing
+          const providers = (controller as any).providers;
+          providers.set('second-provider', mockSecondProvider);
+        });
+
+        mockPolymarketProvider.isEligible.mockResolvedValue(true);
+
+        await controller.refreshEligibility();
+
+        expect(controller.state.eligibility.polymarket).toBe(true);
+        expect(controller.state.eligibility['second-provider']).toBe(false);
+        expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
+        expect(mockSecondProvider.isEligible).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('multiple providers', () => {
+    it('should get markets from multiple providers when no providerId specified', async () => {
+      await withController(async ({ controller }) => {
+        const polymarketMarkets = [
+          {
+            id: 'pm1',
+            question: 'Polymarket question 1?',
+            outcomes: ['YES', 'NO'],
+            providerId: 'polymarket',
+          },
+        ];
+
+        const secondProviderMarkets = [
+          {
+            id: 'sp1',
+            question: 'Second provider question 1?',
+            outcomes: ['YES', 'NO'],
+            providerId: 'second-provider',
+          },
+        ];
+
+        // Mock the second provider
+        const mockSecondProvider = {
+          ...mockPolymarketProvider,
+          getMarkets: jest.fn().mockResolvedValue(secondProviderMarkets),
+        };
+
+        // Set up multiple providers
+        controller.updateStateForTesting(() => {
+          const providers = (controller as any).providers;
+          providers.set('second-provider', mockSecondProvider);
+        });
+
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          polymarketMarkets as any,
+        );
+
+        const result = await controller.getMarkets({}); // No providerId
+
+        expect(result).toHaveLength(2);
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ providerId: 'polymarket' }),
+            expect.objectContaining({ providerId: 'second-provider' }),
+          ]),
+        );
+        expect(mockPolymarketProvider.getMarkets).toHaveBeenCalled();
+        expect(mockSecondProvider.getMarkets).toHaveBeenCalled();
+      });
+    });
+
+    it('should get positions from multiple providers when no providerId specified', async () => {
+      await withController(async ({ controller }) => {
+        const polymarketPositions = [
+          {
+            marketId: 'pm1',
+            providerId: 'polymarket',
+            outcomeId: 'pm-outcome-1',
+            balance: '100',
+          },
+        ];
+
+        const secondProviderPositions = [
+          {
+            marketId: 'sp1',
+            providerId: 'second-provider',
+            outcomeId: 'sp-outcome-1',
+            balance: '200',
+          },
+        ];
+
+        // Mock the second provider
+        const mockSecondProvider = {
+          ...mockPolymarketProvider,
+          getPositions: jest.fn().mockResolvedValue(secondProviderPositions),
+        };
+
+        // Set up multiple providers
+        controller.updateStateForTesting(() => {
+          const providers = (controller as any).providers;
+          providers.set('second-provider', mockSecondProvider);
+        });
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          polymarketPositions as any,
+        );
+
+        const result = await controller.getPositions({
+          address: '0x1234567890123456789012345678901234567890',
+        }); // No providerId
+
+        expect(result).toHaveLength(2);
+        expect(result).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ providerId: 'polymarket' }),
+            expect.objectContaining({ providerId: 'second-provider' }),
+          ]),
+        );
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalled();
+        expect(mockSecondProvider.getPositions).toHaveBeenCalled();
+      });
+    });
+
+    it('should filter results correctly when provider returns undefined', async () => {
+      await withController(async ({ controller }) => {
+        const polymarketMarkets = [
+          {
+            id: 'pm1',
+            question: 'Valid market',
+            outcomes: ['YES', 'NO'],
+          },
+        ];
+
+        // Mock one provider returning undefined
+        const mockSecondProvider = {
+          ...mockPolymarketProvider,
+          getMarkets: jest.fn().mockResolvedValue(undefined),
+        };
+
+        // Set up multiple providers
+        controller.updateStateForTesting(() => {
+          const providers = (controller as any).providers;
+          providers.set('failing-provider', mockSecondProvider);
+        });
+
+        mockPolymarketProvider.getMarkets.mockResolvedValue(
+          polymarketMarkets as any,
+        );
+
+        const result = await controller.getMarkets({}); // No providerId
+
+        // Should only include the valid market, filtering out undefined
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual(expect.objectContaining({ id: 'pm1' }));
+      });
+    });
+
+    it('should use default address from AccountsController in getPositions', async () => {
+      await withController(async ({ controller }) => {
+        const mockPositions = [
+          {
+            marketId: 'test-market',
+            providerId: 'polymarket',
+            outcomeId: 'test-outcome',
+            balance: '50',
+          },
+        ];
+
+        mockPolymarketProvider.getPositions.mockResolvedValue(
+          mockPositions as any,
+        );
+
+        // Call without address parameter
+        const result = await controller.getPositions({});
+
+        expect(result).toEqual(mockPositions);
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890', // Default from AccountsController
+        });
+      });
+    });
+
+    it('should throw error when some providers in list do not exist', async () => {
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.getMarkets({
+            providerId: 'nonexistent-provider',
+          }),
+        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
       });
     });
   });

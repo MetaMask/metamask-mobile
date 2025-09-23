@@ -771,8 +771,7 @@ export class PredictController extends BaseController<
    */
   public async refreshEligibility(): Promise<void> {
     DevLogger.log('PredictController: Refreshing eligibility');
-    for (const providerId in this.providers) {
-      const provider = this.providers.get(providerId);
+    for (const [providerId, provider] of this.providers) {
       if (!provider) {
         continue;
       }
