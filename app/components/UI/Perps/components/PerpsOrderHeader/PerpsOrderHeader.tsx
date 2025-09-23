@@ -95,8 +95,8 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           {title ||
             `${
               direction === 'long'
-                ? strings('perps.position.long')
-                : strings('perps.position.short')
+                ? strings('perps.market.long')
+                : strings('perps.market.short')
             } ${asset}`}
         </Text>
         <View style={styles.priceRow}>
