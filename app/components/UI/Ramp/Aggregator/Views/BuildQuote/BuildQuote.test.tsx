@@ -1,5 +1,10 @@
 import React from 'react';
-import { Limits, Payment , CryptoCurrency, FiatCurrency } from '@consensys/on-ramp-sdk';
+import {
+  Limits,
+  Payment,
+  CryptoCurrency,
+  FiatCurrency,
+} from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import type BN4 from 'bnjs4';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
