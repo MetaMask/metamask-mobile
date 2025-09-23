@@ -232,6 +232,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('alerts and disables marketing when turned off', async () => {
+        mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
         mockMetrics.isEnabled.mockReturnValue(true);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -268,6 +269,8 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
       it('keeps marketing off, adds traits to user and tracks event when turned on', async () => {
         mockMetrics.isEnabled.mockReturnValue(false);
+        mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
