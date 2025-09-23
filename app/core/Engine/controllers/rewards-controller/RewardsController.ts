@@ -1,6 +1,6 @@
 import { BaseController } from '@metamask/base-controller';
 import { toHex } from '@metamask/controller-utils';
-import { minBy } from 'lodash';
+import { maxBy } from 'lodash';
 import {
   type RewardsControllerState,
   type RewardsAccountState,
@@ -851,19 +851,19 @@ export class RewardsController extends BaseController<
 
       // Check if we should emit balance updated event
       if (pointsEvents.results.length > 0) {
-        // Find the earliest updatedAt from the points events response
-        const earliestEvent = minBy(pointsEvents.results, (event) =>
+        // Find the latest updatedAt from the points events response
+        const latestEvent = maxBy(pointsEvents.results, (event) =>
           (event.updatedAt instanceof Date
             ? event.updatedAt
             : new Date(event.updatedAt)
           ).getTime(),
         );
 
-        if (earliestEvent) {
-          const earliestUpdatedAt =
-            earliestEvent.updatedAt instanceof Date
-              ? earliestEvent.updatedAt.getTime()
-              : new Date(earliestEvent.updatedAt).getTime();
+        if (latestEvent) {
+          const latestUpdatedAt =
+            latestEvent.updatedAt instanceof Date
+              ? latestEvent.updatedAt.getTime()
+              : new Date(latestEvent.updatedAt).getTime();
 
           // Check if we have an active season status cache for the requested seasonId and subscription id
           const cachedSeasonStatus = this.#getSeasonStatus(
@@ -872,7 +872,7 @@ export class RewardsController extends BaseController<
           );
 
           if (cachedSeasonStatus) {
-            // Compare cache timestamps with earliest updatedAt
+            // Compare cache timestamps with latest updatedAt
             // Add 300ms delay to the balance updated timestamp as it's always going to be earlier than the event it was updated for.
             const cacheBalanceUpdatedAt =
               (cachedSeasonStatus.balance.updatedAt || 0) + 300;
@@ -880,25 +880,25 @@ export class RewardsController extends BaseController<
             const cacheSeasonStatusTimestamp =
               cachedSeasonStatus.lastFetched || 0;
             Logger.log(
-              'RewardsController: Comparing cache timestamps with earliest updatedAt',
+              'RewardsController: Comparing cache timestamps with latest updatedAt',
               {
                 cacheBalanceUpdatedAt,
                 cacheSeasonStatusTimestamp,
-                earliestUpdatedAt,
+                latestUpdatedAt,
               },
             );
 
-            // If either cache timestamp is older than the earliest event update, emit balance updated event
+            // If either cache timestamp is older than the latest event update, emit balance updated event
             if (
-              earliestUpdatedAt > cacheBalanceUpdatedAt ||
-              earliestUpdatedAt > cacheSeasonStatusTimestamp
+              latestUpdatedAt > cacheBalanceUpdatedAt ||
+              latestUpdatedAt > cacheSeasonStatusTimestamp
             ) {
               Logger.log(
                 'RewardsController: Emitting balanceUpdated event due to newer points events',
                 {
                   seasonId: params.seasonId,
                   subscriptionId: params.subscriptionId,
-                  earliestUpdatedAt: new Date(earliestUpdatedAt).toISOString(),
+                  latestUpdatedAt: new Date(latestUpdatedAt).toISOString(),
                   cacheBalanceUpdatedAt: new Date(
                     cacheBalanceUpdatedAt,
                   ).toISOString(),
