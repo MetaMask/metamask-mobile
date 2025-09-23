@@ -28,13 +28,16 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 }));
 
 jest.mock('../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../selectors/accountsController'),
   selectSelectedInternalAccount: jest.fn(),
-  selectSelectedInternalAccountAddress: jest.fn(),
-  selectInternalAccounts: jest.fn(),
+  selectSelectedInternalAccountId: jest.fn(),
 }));
 
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountId,
+} from '../../../../selectors/accountsController';
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
@@ -43,6 +46,10 @@ const mockSelectSelectedInternalAccountByScope =
 const mockSelectSelectedInternalAccount =
   selectSelectedInternalAccount as jest.MockedFunction<
     typeof selectSelectedInternalAccount
+  >;
+const mockSelectSelectedInternalAccountId =
+  selectSelectedInternalAccountId as jest.MockedFunction<
+    typeof selectSelectedInternalAccountId
   >;
 
 const mockEvmAccount: InternalAccount = {
@@ -105,6 +112,7 @@ describe('useRampAccountAddress', () => {
 
     mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
     mockSelectSelectedInternalAccount.mockReturnValue(mockEvmAccount);
+    mockSelectSelectedInternalAccountId.mockReturnValue(mockEvmAccount.id);
   });
 
   it('returns null when caipChainId is null', () => {
