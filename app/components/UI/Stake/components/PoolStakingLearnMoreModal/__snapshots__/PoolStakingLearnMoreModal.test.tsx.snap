@@ -109,37 +109,401 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
           ]
         }
       >
-        <View>
-          <View
-            style={
-              [
-                {
-                  "backgroundColor": "#ffffff",
-                  "flexDirection": "row",
-                  "gap": 16,
-                  "padding": 16,
-                },
-                false,
-              ]
-            }
-            testID="header"
-          >
+        <RCTScrollView
+          bounces={false}
+        >
+          <View>
             <View
               style={
-                {
-                  "width": undefined,
-                }
+                [
+                  {
+                    "backgroundColor": "#ffffff",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "padding": 16,
+                  },
+                  false,
+                ]
               }
+              testID="header"
             >
               <View
-                onLayout={[Function]}
-              />
+                style={
+                  {
+                    "width": undefined,
+                  }
+                }
+              >
+                <View
+                  onLayout={[Function]}
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Stake ETH and earn
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "width": undefined,
+                  }
+                }
+              >
+                <View
+                  onLayout={[Function]}
+                >
+                  <TouchableOpacity
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#121314"
+                      fill="currentColor"
+                      height={16}
+                      name="Close"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              testID="InteractiveTimespanChart"
+            >
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "flexWrap": "wrap",
+                    "gap": 12,
+                    "justifyContent": "center",
+                    "marginTop": 24,
+                    "paddingBottom": 16,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#3c4d9d0f",
+                      "borderRadius": 32,
+                      "height": 36,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                      "paddingVertical": 7,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    7D
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderRadius": 32,
+                      "height": 36,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                      "paddingVertical": 7,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    1M
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderRadius": 32,
+                      "height": 36,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                      "paddingVertical": 7,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    3M
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderRadius": 32,
+                      "height": 36,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                      "paddingVertical": 7,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "Geist Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    6M
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "gap": 4,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#457a39",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 24,
+                      "letterSpacing": 0,
+                      "lineHeight": 32,
+                    }
+                  }
+                >
+                  3.3% APR
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  1 week average
+                </Text>
+              </View>
+              <View
+                onMoveShouldSetResponder={[Function]}
+                onMoveShouldSetResponderCapture={[Function]}
+                onResponderEnd={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderReject={[Function]}
+                onResponderRelease={[Function]}
+                onResponderStart={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onStartShouldSetResponderCapture={[Function]}
+                style={
+                  {
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "height": 112,
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <RNSVGSvgView
+                      bbHeight={100}
+                      bbWidth={300}
+                      focusable={false}
+                      style={
+                        [
+                          {
+                            "backgroundColor": "transparent",
+                            "borderWidth": 0,
+                          },
+                          {
+                            "height": 100,
+                            "width": 300,
+                          },
+                          {
+                            "flex": 0,
+                            "height": 100,
+                            "width": 300,
+                          },
+                        ]
+                      }
+                    >
+                      <RNSVGGroup
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                      >
+                        <RNSVGPath
+                          d="M0,80L50,80L100,80L150,80L200,80L250,80L300,80L300,80L250,80L200,80L150,80L100,80L50,80L0,80Z"
+                          fill={
+                            {
+                              "brushRef": "dataGradient",
+                              "type": 1,
+                            }
+                          }
+                          propList={
+                            [
+                              "fill",
+                            ]
+                          }
+                        />
+                        <RNSVGPath
+                          d="M0,80L50,80L100,80L150,80L200,80L250,80L300,80"
+                          fill={null}
+                          opacity={1}
+                          propList={
+                            [
+                              "fill",
+                              "stroke",
+                              "strokeWidth",
+                            ]
+                          }
+                          stroke={
+                            {
+                              "payload": 4282743353,
+                              "type": 0,
+                            }
+                          }
+                          strokeWidth={1.75}
+                          testID="InteractiveChartPlotLine"
+                        />
+                        <RNSVGDefs>
+                          <RNSVGLinearGradient
+                            gradient={
+                              [
+                                0,
+                                860191289,
+                                1,
+                                872415231,
+                              ]
+                            }
+                            gradientTransform={null}
+                            gradientUnits={0}
+                            name="dataGradient"
+                            x1={0}
+                            x2={0}
+                            y1={0}
+                            y2="100%"
+                          />
+                        </RNSVGDefs>
+                      </RNSVGGroup>
+                    </RNSVGSvgView>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               style={
                 {
-                  "alignItems": "center",
-                  "flex": 1,
+                  "gap": 16,
+                  "padding": 16,
                 }
               }
             >
@@ -148,221 +512,6 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "Geist Bold",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Stake ETH and earn
-              </Text>
-            </View>
-            <View
-              style={
-                {
-                  "width": undefined,
-                }
-              }
-            >
-              <View
-                onLayout={[Function]}
-              >
-                <TouchableOpacity
-                  accessible={true}
-                  activeOpacity={1}
-                  disabled={false}
-                  onPress={[Function]}
-                  onPressIn={[Function]}
-                  onPressOut={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "borderRadius": 8,
-                      "height": 24,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 24,
-                    }
-                  }
-                >
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={16}
-                    name="Close"
-                    style={
-                      {
-                        "height": 16,
-                        "width": 16,
-                      }
-                    }
-                    width={16}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            testID="InteractiveTimespanChart"
-          >
-            <View
-              style={
-                {
-                  "flexDirection": "row",
-                  "flexWrap": "wrap",
-                  "gap": 12,
-                  "justifyContent": "center",
-                  "marginTop": 24,
-                  "paddingBottom": 16,
-                }
-              }
-            >
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
-                    "borderRadius": 32,
-                    "height": 36,
-                    "justifyContent": "center",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 7,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  7D
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 32,
-                    "height": 36,
-                    "justifyContent": "center",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 7,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  1M
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 32,
-                    "height": 36,
-                    "justifyContent": "center",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 7,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  3M
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "backgroundColor": "#ffffff",
-                    "borderRadius": 32,
-                    "height": 36,
-                    "justifyContent": "center",
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 7,
-                  }
-                }
-              >
-                <Text
-                  accessibilityRole="text"
-                  style={
-                    {
-                      "color": "#686e7d",
-                      "fontFamily": "Geist Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
-                  }
-                >
-                  6M
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "gap": 4,
-                  "paddingVertical": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#457a39",
-                    "fontFamily": "Geist Bold",
-                    "fontSize": 24,
-                    "letterSpacing": 0,
-                    "lineHeight": 32,
-                  }
-                }
-              >
-                3.3% APR
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -370,244 +519,99 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   }
                 }
               >
-                1 week average
-              </Text>
-            </View>
-            <View
-              onMoveShouldSetResponder={[Function]}
-              onMoveShouldSetResponderCapture={[Function]}
-              onResponderEnd={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderReject={[Function]}
-              onResponderRelease={[Function]}
-              onResponderStart={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              onStartShouldSetResponderCapture={[Function]}
-              style={
-                {
-                  "paddingVertical": 16,
-                }
-              }
-            >
-              <View
-                style={
-                  {
-                    "height": 112,
-                  }
-                }
-              >
-                <View
-                  onLayout={[Function]}
+                Stake any amount of ETH.
+                 
+                <Text
+                  accessibilityRole="text"
                   style={
                     {
-                      "flex": 1,
+                      "color": "#686e7d",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
                     }
                   }
                 >
-                  <RNSVGSvgView
-                    bbHeight={100}
-                    bbWidth={300}
-                    focusable={false}
-                    style={
-                      [
-                        {
-                          "backgroundColor": "transparent",
-                          "borderWidth": 0,
-                        },
-                        {
-                          "height": 100,
-                          "width": 300,
-                        },
-                        {
-                          "flex": 0,
-                          "height": 100,
-                          "width": 300,
-                        },
-                      ]
+                  No minimum required.
+                </Text>
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Earn ETH rewards.
+                 
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
                     }
-                  >
-                    <RNSVGGroup
-                      fill={
-                        {
-                          "payload": 4278190080,
-                          "type": 0,
-                        }
-                      }
-                    >
-                      <RNSVGPath
-                        d="M0,80L50,80L100,80L150,80L200,80L250,80L300,80L300,80L250,80L200,80L150,80L100,80L50,80L0,80Z"
-                        fill={
-                          {
-                            "brushRef": "dataGradient",
-                            "type": 1,
-                          }
-                        }
-                        propList={
-                          [
-                            "fill",
-                          ]
-                        }
-                      />
-                      <RNSVGPath
-                        d="M0,80L50,80L100,80L150,80L200,80L250,80L300,80"
-                        fill={null}
-                        opacity={1}
-                        propList={
-                          [
-                            "fill",
-                            "stroke",
-                            "strokeWidth",
-                          ]
-                        }
-                        stroke={
-                          {
-                            "payload": 4282743353,
-                            "type": 0,
-                          }
-                        }
-                        strokeWidth={1.75}
-                        testID="InteractiveChartPlotLine"
-                      />
-                      <RNSVGDefs>
-                        <RNSVGLinearGradient
-                          gradient={
-                            [
-                              0,
-                              860191289,
-                              1,
-                              872415231,
-                            ]
-                          }
-                          gradientTransform={null}
-                          gradientUnits={0}
-                          name="dataGradient"
-                          x1={0}
-                          x2={0}
-                          y1={0}
-                          y2="100%"
-                        />
-                      </RNSVGDefs>
-                    </RNSVGGroup>
-                  </RNSVGSvgView>
-                </View>
-              </View>
+                  }
+                >
+                  Start earning as soon as you stake. Rewards compound automatically.
+                </Text>
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Flexible unstaking.
+                 
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.
+                </Text>
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist Regular Italic",
+                    "fontSize": 14,
+                    "fontStyle": "italic",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Staking does not guarantee rewards, and involves risks including a loss of funds.
+              </Text>
             </View>
           </View>
-          <View
-            style={
-              {
-                "gap": 16,
-                "padding": 16,
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Stake any amount of ETH.
-               
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                No minimum required.
-              </Text>
-            </Text>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Earn ETH rewards.
-               
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Start earning as soon as you stake. Rewards compound automatically.
-              </Text>
-            </Text>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Flexible unstaking.
-               
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.
-              </Text>
-            </Text>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular Italic",
-                  "fontSize": 14,
-                  "fontStyle": "italic",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            >
-              Staking does not guarantee rewards, and involves risks including a loss of funds.
-            </Text>
-          </View>
-        </View>
+        </RCTScrollView>
         <View
           style={
             {
