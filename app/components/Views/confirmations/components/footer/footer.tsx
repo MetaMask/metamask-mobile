@@ -88,7 +88,7 @@ export const Footer = () => {
     hideConfirmAlertModal();
     try {
       await onConfirm();
-    } catch (error) {
+    } catch {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   }, [hideConfirmAlertModal, onConfirm, navigation]);
