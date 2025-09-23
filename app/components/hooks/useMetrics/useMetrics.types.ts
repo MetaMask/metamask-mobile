@@ -33,4 +33,6 @@ export interface IUseMetricsHook {
   isDataRecorded(): boolean;
   getMetaMetricsId(): Promise<string | undefined>;
   createEventBuilder(event: IMetaMetricsEvent): MetricsEventBuilder;
+  // Temporary workaround to avoid breaking all the tests that mock the enableSocialLogin method
+  enableSocialLogin(enable?: boolean): Promise<void> | undefined;
 }
