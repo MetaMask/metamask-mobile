@@ -835,6 +835,98 @@ describe('useAccountGroupsForPermissions', () => {
     });
   });
 
+  describe('selectedAndRequestedAccountGroups behavior', () => {
+    describe('when selected account group exists', () => {
+      it('includes selected account group in selectedAndRequestedAccountGroups when it supports requested chains', () => {
+        const emptyPermission = createEmptyPermission();
+        const requestedCaipAccountIds: CaipAccountId[] = [];
+        const requestedCaipChainIds: CaipChainId[] = [
+          'eip155:1' as CaipChainId,
+        ];
+        const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+        const { result } = renderHookWithStore(
+          emptyPermission,
+          requestedCaipAccountIds,
+          requestedCaipChainIds,
+          requestedNamespacesWithoutWallet,
+        );
+
+        expect(result.current.selectedAndRequestedAccountGroups).toContainEqual(
+          expect.objectContaining({ id: MOCK_GROUP_ID_1 }),
+        );
+      });
+
+      it('includes selected account group in selectedAndRequestedAccountGroups when it supports requested namespaces', () => {
+        const emptyPermission = createEmptyPermission();
+        const requestedCaipAccountIds: CaipAccountId[] = [];
+        const requestedCaipChainIds: CaipChainId[] = [];
+        const requestedNamespacesWithoutWallet: CaipNamespace[] = [
+          'eip155' as CaipNamespace,
+        ];
+
+        const { result } = renderHookWithStore(
+          emptyPermission,
+          requestedCaipAccountIds,
+          requestedCaipChainIds,
+          requestedNamespacesWithoutWallet,
+        );
+
+        expect(result.current.selectedAndRequestedAccountGroups).toContainEqual(
+          expect.objectContaining({ id: MOCK_GROUP_ID_1 }),
+        );
+      });
+
+      it('includes selected account group even when it does not support requested chains', () => {
+        const emptyPermission = createEmptyPermission();
+        const requestedCaipAccountIds: CaipAccountId[] = [];
+        const requestedCaipChainIds: CaipChainId[] = [
+          'bip122:000000000019d6689c085ae165831e93' as CaipChainId, // Bitcoin - not supported
+        ];
+        const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+        const { result } = renderHookWithStore(
+          emptyPermission,
+          requestedCaipAccountIds,
+          requestedCaipChainIds,
+          requestedNamespacesWithoutWallet,
+        );
+
+        // Selected account group should still be included even if it doesn't support the chain
+        expect(result.current.selectedAndRequestedAccountGroups).toContainEqual(
+          expect.objectContaining({ id: MOCK_GROUP_ID_1 }),
+        );
+      });
+
+      it('prioritizes requested account groups over selected when both exist', () => {
+        const emptyPermission = createEmptyPermission();
+        const requestedCaipAccountIds: CaipAccountId[] = [
+          `eip155:1:${mockEvmAccount2.address}` as CaipAccountId, // Group 2 account
+        ];
+        const requestedCaipChainIds: CaipChainId[] = [
+          'eip155:1' as CaipChainId,
+        ];
+        const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+        const { result } = renderHookWithStore(
+          emptyPermission,
+          requestedCaipAccountIds,
+          requestedCaipChainIds,
+          requestedNamespacesWithoutWallet,
+        );
+
+        // Group 2 should be first because it fulfills requested accounts
+        expect(result.current.selectedAndRequestedAccountGroups[0].id).toBe(
+          MOCK_GROUP_ID_2,
+        );
+        // Selected group (Group 1) should still be included
+        expect(result.current.selectedAndRequestedAccountGroups).toContainEqual(
+          expect.objectContaining({ id: MOCK_GROUP_ID_1 }),
+        );
+      });
+    });
+  });
+
   describe('selected account group prioritization', () => {
     describe('when selected account group is supported', () => {
       it('places selected account group first in supported groups when it supports requested chains', () => {

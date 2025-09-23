@@ -186,14 +186,14 @@ jest.mock(
     ),
     selectAccountGroups: jest.fn(() => {
       const {
-        createMockUuidFromAddress,
-        MOCK_ADDRESS_1,
-        MOCK_ADDRESS_2,
+        createMockUuidFromAddress: mockCreateUuidFromAddress,
+        MOCK_ADDRESS_1: mockAddress1,
+        MOCK_ADDRESS_2: mockAddress2,
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       } = require('../../../../util/test/accountsControllerTestUtils');
 
-      const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
-      const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
+      const account1Id = mockCreateUuidFromAddress(mockAddress1);
+      const account2Id = mockCreateUuidFromAddress(mockAddress2);
 
       return [
         {
@@ -210,14 +210,14 @@ jest.mock(
     }),
     selectAccountGroupsByWallet: jest.fn(() => {
       const {
-        createMockUuidFromAddress,
-        MOCK_ADDRESS_1,
-        MOCK_ADDRESS_2,
+        createMockUuidFromAddress: mockCreateUuidFromAddress,
+        MOCK_ADDRESS_1: mockAddress1,
+        MOCK_ADDRESS_2: mockAddress2,
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       } = require('../../../../util/test/accountsControllerTestUtils');
 
-      const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
-      const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
+      const account1Id = mockCreateUuidFromAddress(mockAddress1);
+      const account2Id = mockCreateUuidFromAddress(mockAddress2);
 
       return [
         {
@@ -243,14 +243,14 @@ jest.mock(
     }),
     selectWalletsMap: jest.fn(() => {
       const {
-        createMockUuidFromAddress,
-        MOCK_ADDRESS_1,
-        MOCK_ADDRESS_2,
+        createMockUuidFromAddress: mockCreateUuidFromAddress,
+        MOCK_ADDRESS_1: mockAddress1,
+        MOCK_ADDRESS_2: mockAddress2,
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       } = require('../../../../util/test/accountsControllerTestUtils');
 
-      const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
-      const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
+      const account1Id = mockCreateUuidFromAddress(mockAddress1);
+      const account2Id = mockCreateUuidFromAddress(mockAddress2);
 
       return {
         'entropy:01JKAF3DSGM3AB87EM9N0K41AJ': {
@@ -286,19 +286,19 @@ jest.mock('../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../selectors/accountsController'),
   selectInternalAccountsById: jest.fn(() => {
     const {
-      createMockUuidFromAddress,
-      createMockInternalAccount,
-      MOCK_ADDRESS_1,
-      MOCK_ADDRESS_2,
+      createMockUuidFromAddress: mockCreateUuidFromAddress,
+      createMockInternalAccount: mockCreateInternalAccount,
+      MOCK_ADDRESS_1: mockAddress1,
+      MOCK_ADDRESS_2: mockAddress2,
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     } = require('../../../../util/test/accountsControllerTestUtils');
 
-    const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
-    const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
+    const account1Id = mockCreateUuidFromAddress(mockAddress1);
+    const account2Id = mockCreateUuidFromAddress(mockAddress2);
 
     return {
-      [account1Id]: createMockInternalAccount(MOCK_ADDRESS_1, 'Account 1'),
-      [account2Id]: createMockInternalAccount(MOCK_ADDRESS_2, 'Account 2'),
+      [account1Id]: mockCreateInternalAccount(mockAddress1, 'Account 1'),
+      [account2Id]: mockCreateInternalAccount(mockAddress2, 'Account 2'),
     };
   }),
 }));
@@ -321,40 +321,46 @@ jest.mock(
   () => ({
     useAccountGroupsForPermissions: jest.fn(() => {
       const {
-        createMockUuidFromAddress,
-        createMockInternalAccount,
-        MOCK_ADDRESS_1,
-        MOCK_ADDRESS_2,
+        createMockUuidFromAddress: mockCreateUuidFromAddress,
+        createMockInternalAccount: mockCreateInternalAccount,
+        MOCK_ADDRESS_1: mockAddress1,
+        MOCK_ADDRESS_2: mockAddress2,
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       } = require('../../../../util/test/accountsControllerTestUtils');
 
-      const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
-      const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
+      const account1Id = mockCreateUuidFromAddress(mockAddress1);
+      const account2Id = mockCreateUuidFromAddress(mockAddress2);
+
+      const mockAccountGroups = [
+        {
+          id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
+          accounts: [
+            {
+              ...mockCreateInternalAccount(mockAddress1, 'Account 1'),
+              id: account1Id,
+            },
+          ],
+          metadata: { name: 'Account 1' },
+        },
+        {
+          id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
+          accounts: [
+            {
+              ...mockCreateInternalAccount(mockAddress2, 'Account 2'),
+              id: account2Id,
+            },
+          ],
+          metadata: { name: 'Account 2' },
+        },
+      ];
 
       return {
-        supportedAccountGroups: [
-          {
-            id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
-            accounts: [
-              {
-                ...createMockInternalAccount(MOCK_ADDRESS_1, 'Account 1'),
-                id: account1Id,
-              },
-            ],
-            metadata: { name: 'Account 1' },
-          },
-          {
-            id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
-            accounts: [
-              {
-                ...createMockInternalAccount(MOCK_ADDRESS_2, 'Account 2'),
-                id: account2Id,
-              },
-            ],
-            metadata: { name: 'Account 2' },
-          },
-        ],
+        supportedAccountGroups: mockAccountGroups,
         connectedAccountGroups: [],
+        existingConnectedCaipAccountIds: [],
+        connectedAccountGroupWithRequested: [],
+        caipAccountIdsOfConnectedAccountGroupWithRequested: [],
+        selectedAndRequestedAccountGroups: mockAccountGroups,
       };
     }),
   }),

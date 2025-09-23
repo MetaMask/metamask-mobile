@@ -199,7 +199,18 @@ export const useAccountGroupsForPermissions = (
       ]),
     );
 
+    const selectedOrFirstSupportedAccountGroup = [
+      selectedAccountGroup || (supportedAccountGroups[0] ?? []),
+    ];
+    const selectedAndRequestedAccountGroups = Array.from(
+      new Set([
+        ...prioritySupportedGroups,
+        ...selectedOrFirstSupportedAccountGroup,
+      ]),
+    );
+
     return {
+      selectedAndRequestedAccountGroups,
       supportedAccountGroups: Array.from(
         new Set([...prioritySupportedGroups, ...supportedAccountGroups]),
       ),
@@ -232,5 +243,7 @@ export const useAccountGroupsForPermissions = (
     /** CAIP account IDs that should be connected */
     caipAccountIdsOfConnectedAccountGroupWithRequested:
       result.caipAccountIdsOfConnectedAccountGroupWithRequested,
+    /** Account groups that support the requested chains/namespaces incl the selected account group if not already requested */
+    selectedAndRequestedAccountGroups: result.selectedAndRequestedAccountGroups,
   };
 };
