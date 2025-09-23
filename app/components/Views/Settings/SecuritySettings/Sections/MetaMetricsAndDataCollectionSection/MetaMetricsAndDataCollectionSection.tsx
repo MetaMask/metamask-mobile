@@ -65,9 +65,10 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
 
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
-      enable(false);
       if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
         enableSocialLogin(false);
+      } else if (!isSeedlessOnboardingLoginFlow) {
+        enable(false);
       }
       setAnalyticsEnabled(false);
       dispatch(setDataCollectionForMarketing(false));
@@ -105,10 +106,12 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      await enable();
       if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
         await enableSocialLogin(true);
+      } else if (!isSeedlessOnboardingLoginFlow) {
+        await enable();
       }
+
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
@@ -124,9 +127,10 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         );
       });
     } else {
-      await enable(false);
       if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
         await enableSocialLogin(false);
+      } else if (!isSeedlessOnboardingLoginFlow) {
+        await enable(false);
       }
       setAnalyticsEnabled(false);
       if (isDataCollectionForMarketingEnabled) {
