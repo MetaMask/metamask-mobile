@@ -38,6 +38,7 @@ import {
   usePerpsClosePositionValidation,
   usePerpsClosePosition,
   usePerpsToasts,
+  usePerpsRewards,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
@@ -68,6 +69,7 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
+import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -166,9 +168,6 @@ const PerpsClosePositionView: React.FC = () => {
   // Use the actual initial margin from the position
   const initialMargin = parseFloat(position.marginUsed);
 
-  // Calculate effective margin (initial margin + P&L at effective price)
-  const effectiveMargin = initialMargin + effectivePnL;
-
   // Use unrealized PnL from position for current market price (for reference/tracking)
   const pnl = parseFloat(position.unrealizedPnl);
 
@@ -178,11 +177,25 @@ const PerpsClosePositionView: React.FC = () => {
     orderType,
     amount: closingValue.toString(),
     isMaker: false, // Closing positions are typically taker orders
+    coin: position.coin,
+    isClosing: true, // This is a position closing operation
   });
 
-  // Calculate what user will receive (initial margin + P&L at effective price - fees)
+  // Simple boolean calculation for rewards state
+  const hasValidAmount = closePercentage > 0 && closingValue > 0;
+
+  // Get rewards state using the new hook
+  const rewardsState = usePerpsRewards({
+    feeResults,
+    hasValidAmount,
+    isFeesLoading: feeResults.isLoadingMetamaskFee,
+    orderAmount: closingValue.toString(),
+  });
+
+  // Calculate what user will receive (initial margin - fees)
+  // P&L is already shown separately in the margin section as "includes P&L"
   const receiveAmount =
-    (closePercentage / 100) * effectiveMargin - feeResults.totalFee;
+    (closePercentage / 100) * initialMargin - feeResults.totalFee;
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -277,6 +290,7 @@ const PerpsClosePositionView: React.FC = () => {
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
+      feeResults,
     );
   };
 
@@ -430,7 +444,7 @@ const PerpsClosePositionView: React.FC = () => {
         </View>
         <View style={styles.summaryValue}>
           <Text variant={TextVariant.BodyMD}>
-            {formatPrice(effectiveMargin * (closePercentage / 100), {
+            {formatPrice(initialMargin * (closePercentage / 100), {
               maximumDecimals: 2,
             })}
           </Text>
@@ -469,9 +483,13 @@ const PerpsClosePositionView: React.FC = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.summaryValue}>
-          <Text variant={TextVariant.BodyMD}>
-            -{formatPrice(feeResults.totalFee, { maximumDecimals: 2 })}
-          </Text>
+          <PerpsFeesDisplay
+            feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+            formatFeeText={`-${formatPrice(feeResults.totalFee, {
+              maximumDecimals: 2,
+            })}`}
+            variant={TextVariant.BodyMD}
+          />
         </View>
       </View>
 
@@ -495,10 +513,7 @@ const PerpsClosePositionView: React.FC = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.summaryValue}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={receiveAmount > 0 ? TextColor.Success : TextColor.Default}
-          >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {formatPrice(receiveAmount, { maximumDecimals: 2 })}
           </Text>
         </View>
@@ -744,6 +759,8 @@ const PerpsClosePositionView: React.FC = () => {
                 data: {
                   metamaskFeeRate: feeResults.metamaskFeeRate,
                   protocolFeeRate: feeResults.protocolFeeRate,
+                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
                 },
               }
             : {})}

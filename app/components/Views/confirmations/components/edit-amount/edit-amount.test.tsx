@@ -124,6 +124,24 @@ describe('EditAmount', () => {
     expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '5');
   });
 
+  it('appends zero if input starts with a decimal point', async () => {
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('.'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '0.5');
+  });
+
   it('displays keyboard automatically when autoKeyboard is true', () => {
     const { getByTestId } = render({ autoKeyboard: true });
 
@@ -231,5 +249,11 @@ describe('EditAmount', () => {
       'defaultValue',
       '123456789012345678901234567',
     );
+  });
+
+  it('renders skeleton if isLoading set', async () => {
+    const { getByTestId } = render({ isLoading: true });
+
+    expect(getByTestId('edit-amount-skeleton')).toBeDefined();
   });
 });

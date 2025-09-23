@@ -3,7 +3,7 @@ import { TextInput, View } from 'react-native';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './edit-amount.styles';
-import { DepositKeyboard } from '../deposit-keyboard';
+import { DepositKeyboard, DepositKeyboardSkeleton } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
@@ -17,6 +17,7 @@ import { AlertKeys } from '../../constants/alerts';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const MAX_LENGTH = 28;
 
@@ -29,6 +30,7 @@ export interface EditAmountProps {
   alerts?: Alert[];
   autoKeyboard?: boolean;
   children?: (amountHuman: string) => React.ReactNode;
+  isLoading?: boolean;
   onChange?: (amount: string) => void;
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
@@ -39,6 +41,7 @@ export function EditAmount({
   alerts,
   autoKeyboard = false,
   children,
+  isLoading,
   onChange,
   onKeyboardShow,
   onKeyboardHide,
@@ -103,7 +106,11 @@ export function EditAmount({
   }, [autoKeyboard, inputChanged, handleInputPress]);
 
   const handleChange = useCallback((amount: string) => {
-    const newAmount = amount.replace(/^0+/, '') || '0';
+    let newAmount = amount.replace(/^0+/, '') || '0';
+
+    if (newAmount.startsWith('.') || newAmount.startsWith(',')) {
+      newAmount = '0' + newAmount;
+    }
 
     if (newAmount.length >= MAX_LENGTH) {
       return;
@@ -152,6 +159,10 @@ export function EditAmount({
     [handleChange, tokenFiatAmount],
   );
 
+  if (isLoading) {
+    return <EditAmountSkeleton>{children?.('')}</EditAmountSkeleton>;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.primaryContainer}>
@@ -190,6 +201,29 @@ export function EditAmount({
           onPercentagePress={handlePercentagePress}
         />
       )}
+    </View>
+  );
+}
+
+export function EditAmountSkeleton({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { styles } = useStyles(styleSheet, {
+    amountLength: 1,
+    hasAlert: false,
+  });
+
+  return (
+    <View style={styles.container} testID="edit-amount-skeleton">
+      <View style={styles.primaryContainer}>
+        <View style={styles.inputContainer}>
+          <Skeleton height={70} width={80} />
+        </View>
+        {children}
+      </View>
+      <DepositKeyboardSkeleton />
     </View>
   );
 }

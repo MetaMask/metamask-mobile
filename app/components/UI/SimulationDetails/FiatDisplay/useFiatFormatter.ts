@@ -18,25 +18,41 @@ type FiatFormatter = (fiatAmount: BigNumber) => string;
  *
  * @returns A function that takes a fiat amount as a number and returns a formatted string.
  */
-const useFiatFormatter = (): FiatFormatter => {
-  const fiatCurrency = useSelector(selectCurrentCurrency);
+const useFiatFormatter = ({
+  currency,
+}: {
+  currency?: string;
+} = {}): FiatFormatter => {
+  const currencyCurrency = useSelector(selectCurrentCurrency);
+  const fiatCurrency = currency ?? currencyCurrency;
 
   return (fiatAmount: BigNumber) => {
     const hasDecimals = !fiatAmount.isInteger();
 
+    const isSmall =
+      fiatAmount.toFixed(2, BigNumber.ROUND_DOWN) === '0.00' &&
+      !fiatAmount.isZero();
+
+    const value = isSmall ? 0.01 : fiatAmount.toFixed();
+    let result: string;
+
     try {
-      return getIntlNumberFormatter(I18n.locale, {
+      result = getIntlNumberFormatter(I18n.locale, {
         style: 'currency',
         currency: fiatCurrency,
         minimumFractionDigits: hasDecimals ? 2 : 0,
         // string is valid parameter for format function
         // for some reason it gives TS issue
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/format#number
-      }).format(fiatAmount.toFixed() as unknown as number);
+      }).format(value as unknown as number);
     } catch (error) {
       // Fallback for unknown or unsupported currencies
-      return `${fiatAmount.toFixed()} ${fiatCurrency}`;
+      result = `${value} ${fiatCurrency}`;
     }
+
+    result = result.replace('US$', '$');
+
+    return isSmall ? `<${result}` : result;
   };
 };
 

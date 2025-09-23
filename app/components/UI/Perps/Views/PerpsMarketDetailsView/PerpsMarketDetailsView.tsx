@@ -49,13 +49,12 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import {
-  usePerpsAccount,
   usePerpsConnection,
   usePerpsPerformance,
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
-import { usePerpsLiveOrders } from '../../hooks/stream';
+import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
@@ -72,6 +71,7 @@ import { useSelector } from 'react-redux';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -120,11 +120,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  const { account } = usePerpsLiveAccount();
+
   // TP/SL order selection state - track TP and SL separately
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
   const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
-
-  const account = usePerpsAccount();
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -381,6 +381,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
+  const { navigateToConfirmation } = useConfirmNavigation();
+
   const handleAddFundsPress = async () => {
     try {
       if (!isEligible) {
@@ -392,9 +394,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       await ensureArbitrumNetworkExists();
 
       // Navigate immediately to confirmations screen for instant UI response
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
 
       // Initialize deposit in the background without blocking
       depositWithConfirmation().catch((error) => {

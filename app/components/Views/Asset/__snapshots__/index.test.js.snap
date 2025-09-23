@@ -1209,6 +1209,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -1227,6 +1228,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -1237,7 +1239,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -1318,6 +1322,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -1336,6 +1341,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -1346,7 +1352,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -1427,6 +1435,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -1445,6 +1454,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -1455,7 +1465,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -1536,6 +1548,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -1554,6 +1567,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -1564,7 +1578,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -1645,6 +1661,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -1663,6 +1680,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -1673,7 +1691,9 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -2021,9 +2041,8 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -3051,6 +3070,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -3069,6 +3089,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -3079,7 +3100,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -3160,6 +3183,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -3178,6 +3202,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -3188,7 +3213,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -3269,6 +3296,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -3287,6 +3315,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -3297,7 +3326,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -3378,6 +3409,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -3396,6 +3428,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -3406,7 +3439,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -3487,6 +3522,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -3505,6 +3541,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -3515,7 +3552,9 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -3863,9 +3902,8 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -4893,6 +4931,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -4911,6 +4950,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -4921,7 +4961,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -5002,6 +5044,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -5020,6 +5063,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -5030,7 +5074,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -5111,6 +5157,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -5129,6 +5176,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -5139,7 +5187,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -5220,6 +5270,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -5238,6 +5289,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -5248,7 +5300,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -5329,6 +5383,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -5347,6 +5402,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -5357,7 +5413,9 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -5744,9 +5802,8 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -6774,6 +6831,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -6792,6 +6850,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -6802,7 +6861,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -6883,6 +6944,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -6901,6 +6963,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -6911,7 +6974,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -6992,6 +7057,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -7010,6 +7076,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -7020,7 +7087,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -7101,6 +7170,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -7119,6 +7189,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -7129,7 +7200,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -7210,6 +7283,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -7228,6 +7302,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -7238,7 +7313,9 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -7586,9 +7663,8 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -8616,6 +8692,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -8634,6 +8711,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -8644,7 +8722,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -8725,6 +8805,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -8743,6 +8824,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -8753,7 +8835,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -8834,6 +8918,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -8852,6 +8937,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -8862,7 +8948,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -8943,6 +9031,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -8961,6 +9050,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -8971,7 +9061,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -9052,6 +9144,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -9070,6 +9163,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -9080,7 +9174,9 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -9428,9 +9524,8 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -10458,6 +10553,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -10476,6 +10572,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -10486,7 +10583,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -10567,6 +10666,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -10585,6 +10685,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -10595,7 +10696,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -10676,6 +10779,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -10694,6 +10798,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -10704,7 +10809,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -10785,6 +10892,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -10803,6 +10911,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -10813,7 +10922,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -10894,6 +11005,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -10912,6 +11024,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -10922,7 +11035,9 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -11309,9 +11424,8 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -12869,6 +12983,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -12887,6 +13002,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -12897,7 +13013,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -12978,6 +13096,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -12996,6 +13115,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -13006,7 +13126,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -13087,6 +13209,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -13105,6 +13228,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -13115,7 +13239,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -13196,6 +13322,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -13214,6 +13341,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -13224,7 +13352,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -13305,6 +13435,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -13323,6 +13454,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -13333,7 +13465,9 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -13681,9 +13815,8 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",
@@ -14711,6 +14844,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -14729,6 +14863,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -14739,7 +14874,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -14820,6 +14957,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -14838,6 +14976,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -14848,7 +14987,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -14929,6 +15070,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -14947,6 +15089,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -14957,7 +15100,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -15038,6 +15183,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -15056,6 +15202,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -15066,7 +15213,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -15147,6 +15296,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 {
                                                   "alignItems": "center",
                                                   "justifyContent": "center",
+                                                  "width": "100%",
                                                 }
                                               }
                                             >
@@ -15165,6 +15315,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                ellipsizeMode="tail"
                                                 numberOfLines={1}
                                                 style={
                                                   {
@@ -15175,7 +15326,9 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                     "letterSpacing": 0,
                                                     "lineHeight": 22,
                                                     "marginTop": 2,
+                                                    "minWidth": 0,
                                                     "textAlign": "center",
+                                                    "width": "100%",
                                                   }
                                                 }
                                               >
@@ -15523,9 +15676,8 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                     {
                                       "0": {
                                         "color": "#b7bbc8",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 20,
-                                        "fontWeight": "400",
                                       },
                                       "1": {
                                         "color": "#121314",

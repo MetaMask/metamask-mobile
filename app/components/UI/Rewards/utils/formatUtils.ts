@@ -7,6 +7,24 @@ import {
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { isNullOrUndefined } from '@metamask/utils';
 import { formatUnits } from 'viem';
+import { getTimeDifferenceFromNow } from '../../../../util/date';
+import { getIntlNumberFormatter } from '../../../../util/intl';
+
+/**
+ * Formats a number to a string with locale-specific formatting.
+ * @param value - The number to format.
+ * @returns The formatted number as a string.
+ */
+export const formatNumber = (value: number | null): string => {
+  if (value === null || value === undefined) {
+    return '0';
+  }
+  try {
+    return getIntlNumberFormatter(I18n.locale).format(value);
+  } catch {
+    return String(value);
+  }
+};
 
 /**
  * Formats a timestamp for rewards date
@@ -24,6 +42,23 @@ export const formatRewardsDate = (
     hour: 'numeric',
     minute: '2-digit',
   }).format(new Date(timestamp));
+
+export const formatTimeRemaining = (endDate: Date): string | null => {
+  const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
+
+  // No time remaining
+  if (hours <= 0 && minutes <= 0) {
+    return null;
+  }
+
+  // Only minutes remaining
+  if (hours <= 0) {
+    return `${minutes}m`;
+  }
+
+  // Hours and days remaining
+  return `${days}d ${hours}h`;
+};
 
 export const PerpsEventType = {
   OPEN_POSITION: 'OPEN_POSITION',
@@ -70,7 +105,11 @@ const getPerpsEventDetails = (
     return undefined;
 
   const { amount, decimals, symbol } = payload.asset;
-  const formattedAmount = formatUnits(BigInt(amount), decimals);
+  const rawAmount = formatUnits(BigInt(amount), decimals);
+  // Limit to at most 2 decimal places without padding zeros
+  const formattedAmount = formatNumber(
+    parseFloat(Number(rawAmount).toFixed(3)),
+  );
 
   switch (payload.type) {
     case PerpsEventType.OPEN_POSITION:
@@ -101,7 +140,11 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
     return undefined;
 
   const { amount, decimals, symbol } = payload.srcAsset;
-  const formattedAmount = formatUnits(BigInt(amount), decimals);
+  const rawAmount = formatUnits(BigInt(amount), decimals);
+  // Limit to at most 2 decimal places without padding zeros
+  const formattedAmount = formatNumber(
+    parseFloat(Number(rawAmount).toFixed(3)),
+  );
 
   return `${formattedAmount} ${symbol} to ${
     payload.destAsset?.symbol || 'Unknown'
@@ -111,10 +154,12 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
 /**
  * Formats an event details
  * @param event - The event
+ * @param accountName - Optional account name to display for bonus events
  * @returns The event details
  */
 export const getEventDetails = (
   event: PointsEventDto,
+  accountName: string | undefined,
 ): {
   title: string;
   details: string | undefined;
@@ -146,14 +191,14 @@ export const getEventDetails = (
     case 'SIGN_UP_BONUS':
       return {
         title: strings('rewards.events.type.sign_up_bonus'),
-        details: undefined,
+        details: accountName,
         icon: IconName.Edit,
         badgeImageUri: undefined,
       };
     case 'LOYALTY_BONUS':
       return {
         title: strings('rewards.events.type.loyalty_bonus'),
-        details: undefined, // TODO: Missing data
+        details: accountName,
         icon: IconName.ThumbUp,
         badgeImageUri: undefined,
       };
@@ -171,5 +216,61 @@ export const getEventDetails = (
         icon: IconName.Star,
         badgeImageUri: undefined,
       };
+  }
+};
+
+// Get icon name with fallback to Star if invalid
+export const getIconName = (iconName: string): IconName =>
+  Object.values(IconName).includes(iconName as IconName)
+    ? (iconName as IconName)
+    : IconName.Star;
+
+// Format Url for display
+export const formatUrl = (url: string): string => {
+  if (!url) {
+    return '';
+  }
+
+  // Clean up the input: trim whitespace and remove backticks
+  const cleanedUrl = url.trim().replace(/((^`)|(`$))/g, '');
+
+  try {
+    const urlObj = new URL(cleanedUrl);
+    // For http/https URLs, return just the hostname
+    if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
+      // Check if the original URL contains Unicode characters to preserve them
+      const originalHostMatch = cleanedUrl.match(/^https?:\/\/([^/?#]+)/);
+      if (originalHostMatch) {
+        const originalHost = originalHostMatch[1];
+        // If the original contains Unicode characters (non-ASCII), use it instead of punycode
+        if (
+          /[^\u0020-\u007E]/.test(originalHost) &&
+          !originalHost.includes('%')
+        ) {
+          return originalHost;
+        }
+      }
+      // For encoded URLs or ASCII domains, use the URL object's hostname which handles decoding
+      return urlObj.hostname;
+    }
+    // For other protocols (file:, mailto:, etc.), return the original URL
+    return cleanedUrl;
+  } catch {
+    // Fallback: manually strip protocol and query strings for http/https
+    if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
+      let cleanUrl = cleanedUrl.replace(/^https?:\/\//, '');
+      const queryIndex = cleanUrl.indexOf('?');
+      if (queryIndex !== -1) {
+        cleanUrl = cleanUrl.substring(0, queryIndex);
+      }
+      return cleanUrl;
+    }
+    // For URLs without protocol, strip query parameters
+    const queryIndex = cleanedUrl.indexOf('?');
+    if (queryIndex !== -1) {
+      return cleanedUrl.substring(0, queryIndex);
+    }
+    // For non-http protocols or malformed URLs, return as-is
+    return cleanedUrl;
   }
 };
