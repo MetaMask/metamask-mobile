@@ -5907,6 +5907,8 @@
     "summary_title": {
       "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
+      "bridge_approval_loading": "Approve",
+      "bridge_loading": "Bridge",
       "default": "Transaction",
       "perps_deposit": "Add funds",
       "swap": "Swap tokens",

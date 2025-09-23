@@ -136,6 +136,27 @@ describe('TransactionDetailsSummary', () => {
     ).toBeDefined();
   });
 
+  it('renders bridge line alternate title if symbols loading', () => {
+    useBridgeTxHistoryDataMock.mockReturnValue({
+      bridgeTxHistoryItem: {
+        quote: {},
+        status: {
+          status: StatusTypes.COMPLETE,
+        },
+      },
+    } as unknown as ReturnType<typeof useBridgeTxHistoryData>);
+
+    const { getByText } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.bridge },
+      ],
+    });
+
+    expect(
+      getByText(strings('transaction_details.summary_title.bridge_loading')),
+    ).toBeDefined();
+  });
+
   it('renders bridge approval line title', () => {
     selectBridgeHistoryForAccountMock.mockReturnValue({
       test: {
@@ -157,6 +178,27 @@ describe('TransactionDetailsSummary', () => {
         strings('transaction_details.summary_title.bridge_approval', {
           approveSymbol: SYMBOL_MOCK,
         }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders bridge approval line alternate title if symbol loading', () => {
+    selectBridgeHistoryForAccountMock.mockReturnValue({
+      test: {
+        approvalTxId: TRANSACTION_META_MOCK.id,
+        quote: {},
+      } as BridgeHistoryItem,
+    });
+
+    const { getByText } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.bridgeApproval },
+      ],
+    });
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_approval_loading'),
       ),
     ).toBeDefined();
   });
