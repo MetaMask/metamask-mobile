@@ -21,6 +21,9 @@ jest.mock('../../../../core/Engine', () => ({
     AccountTreeController: {
       setSelectedAccountGroup: (id: string) => mockSetSelectedAccountGroup(id),
     },
+    GatorPermissionsController: {
+      getState: () => ({}),
+    },
   },
 }));
 
@@ -39,6 +42,10 @@ jest.mock('../../../../selectors/assets/balances', () => {
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
+  selectSelectedInternalAccountByScope: () => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+    id: 'mock-account-id',
+  }),
 }));
 
 const mockNavigate = jest.fn();
