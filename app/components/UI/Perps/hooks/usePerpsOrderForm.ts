@@ -3,7 +3,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import type { OrderFormState } from '../types';
 import { calculateMarginRequired } from '../utils/orderCalculations';
-import { usePerpsAccount } from './usePerpsAccount';
+import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
 
@@ -51,11 +51,11 @@ export function usePerpsOrderForm(
   } = params;
 
   const currentNetwork = usePerpsNetwork();
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   // Get available balance
   const availableBalance = parseFloat(
-    cachedAccountState?.availableBalance?.toString() || '0',
+    account?.availableBalance?.toString() || '0',
   );
 
   // Determine default amount based on network

@@ -49,7 +49,7 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import {
-  usePerpsAccount,
+  usePerpsLiveAccount,
   usePerpsConnection,
   usePerpsPerformance,
   usePerpsTrading,
@@ -125,7 +125,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
   const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
 
-  const account = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
