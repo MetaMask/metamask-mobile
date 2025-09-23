@@ -73,6 +73,10 @@ jest.mock('../../../core/Engine', () => ({
         },
       },
     },
+    MultichainAssetsRatesController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
     AccountsController: {
       state: {
         internalAccounts: {
