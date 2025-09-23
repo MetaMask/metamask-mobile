@@ -9,7 +9,7 @@ import { completeSrpQuiz } from '../multisrp/utils';
 import { defaultGanacheOptions } from '../../framework/Constants';
 
 describe(SmokeAccounts('Wallet details'), () => {
-  const FIRST = 0;
+  const FIRST = device.getPlatform() === 'android' ? 2 : 0;
 
   it('should got to the wallet details, create an account and export srp', async () => {
     await withMultichainAccountDetailsV2EnabledFixtures(async () => {
