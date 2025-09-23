@@ -487,6 +487,7 @@ const RevealPrivateCredential = ({
         placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
         secureTextEntry
+        autoCapitalize="none"
         onSubmitEditing={tryUnlock}
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
