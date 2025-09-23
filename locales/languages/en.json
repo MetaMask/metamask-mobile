@@ -6060,7 +6060,7 @@
   },
   "network_connection_banner": {
     "still_connecting_network": "Still connecting to {{networkName}}...",
-    "network_not_available": "Network {{networkName}} is not available",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
     "update_rpc": "Update RPC"
   }
 }

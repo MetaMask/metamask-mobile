@@ -65,37 +65,35 @@ describe('NetworkConnectionBanner', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('should match snapshot for slow status banner', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'slow',
-        },
-        currentNetwork: mockNetworkConfiguration,
-        updateRpc: mockUpdateRpc,
-      });
+    const statusSnapshotTestCases = [
+      {
+        status: 'slow' as const,
+        name: 'for slow status banner',
+      },
+      {
+        status: 'unavailable' as const,
+        name: 'for unavailable status banner',
+      },
+    ];
 
-      const { toJSON } = render(<NetworkConnectionBanner />);
+    it.each(statusSnapshotTestCases)(
+      'should match snapshot $name',
+      ({ status }) => {
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status,
+          },
+          currentNetwork: mockNetworkConfiguration,
+          updateRpc: mockUpdateRpc,
+        });
 
-      expect(toJSON()).toMatchSnapshot();
-    });
+        const { toJSON } = render(<NetworkConnectionBanner />);
 
-    it('should match snapshot for unavailable status banner', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'unavailable',
-        },
-        currentNetwork: mockNetworkConfiguration,
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { toJSON } = render(<NetworkConnectionBanner />);
-
-      expect(toJSON()).toMatchSnapshot();
-    });
+        expect(toJSON()).toMatchSnapshot();
+      },
+    );
 
     it('should match snapshot for different network', () => {
       const polygonNetwork: NetworkConfiguration = {
@@ -163,30 +161,51 @@ describe('NetworkConnectionBanner', () => {
   });
 
   describe('when banner is visible', () => {
-    describe('with slow status', () => {
-      beforeEach(() => {
+    const statusTestCases = [
+      {
+        status: 'slow' as const,
+        expectedMessage: 'Still connecting to Ethereum Mainnet...',
+      },
+      {
+        status: 'unavailable' as const,
+        expectedMessage: 'Unable to connect to Ethereum Mainnet.',
+      },
+    ];
+
+    it.each(statusTestCases)(
+      'should render the banner with correct structure for $status status',
+      ({ status, expectedMessage }) => {
         mockUseNetworkConnectionBanners.mockReturnValue({
           networkConnectionBannersState: {
             visible: true,
             chainId: '0x1',
-            status: 'slow',
+            status,
           },
           currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
-      });
 
-      it('should render the banner with correct structure', () => {
         const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
 
         expect(getByTestId('animated-spinner')).toBeTruthy();
-        expect(
-          getByText('Still connecting to Ethereum Mainnet...'),
-        ).toBeTruthy();
+        expect(getByText(expectedMessage)).toBeTruthy();
         expect(getByText('Update RPC')).toBeTruthy();
-      });
+      },
+    );
 
-      it('should display spinner with correct size', () => {
+    it.each(statusTestCases)(
+      'should display spinner with correct size for $status status',
+      ({ status }) => {
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status,
+          },
+          currentNetwork: mockNetworkConfiguration,
+          updateRpc: mockUpdateRpc,
+        });
+
         const { getByTestId } = render(<NetworkConnectionBanner />);
 
         const spinner = getByTestId('animated-spinner');
@@ -195,91 +214,69 @@ describe('NetworkConnectionBanner', () => {
         expect(spinner).toBeTruthy();
         expect(sizeText).toBeTruthy();
         expect(sizeText.props.children).toBe('SM');
-      });
+      },
+    );
 
-      it('should display network name in the message', () => {
-        const { getByText } = render(<NetworkConnectionBanner />);
-
-        expect(
-          getByText('Still connecting to Ethereum Mainnet...'),
-        ).toBeTruthy();
-      });
-
-      it('should call updateRpc when Update RPC button is pressed', () => {
-        const { getByText } = render(<NetworkConnectionBanner />);
-
-        const updateButton = getByText('Update RPC');
-        fireEvent.press(updateButton);
-
-        expect(mockUpdateRpc).toHaveBeenCalledTimes(1);
-      });
-
-      it('should render button with correct variant and properties', () => {
-        const { getByText } = render(<NetworkConnectionBanner />);
-
-        const updateButton = getByText('Update RPC');
-        expect(updateButton).toBeTruthy();
-      });
-    });
-
-    describe('with unavailable status', () => {
-      beforeEach(() => {
+    it.each(statusTestCases)(
+      'should display network name in the message for $status status',
+      ({ status, expectedMessage }) => {
         mockUseNetworkConnectionBanners.mockReturnValue({
           networkConnectionBannersState: {
             visible: true,
             chainId: '0x1',
-            status: 'unavailable',
+            status,
           },
           currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
-      });
 
-      it('should render the banner with correct structure', () => {
-        const { getByTestId, getByText } = render(<NetworkConnectionBanner />);
-
-        expect(getByTestId('animated-spinner')).toBeTruthy();
-        expect(
-          getByText('Network Ethereum Mainnet is not available'),
-        ).toBeTruthy();
-        expect(getByText('Update RPC')).toBeTruthy();
-      });
-
-      it('should display spinner with correct size', () => {
-        const { getByTestId } = render(<NetworkConnectionBanner />);
-
-        const spinner = getByTestId('animated-spinner');
-        const sizeText = getByTestId('spinner-size');
-
-        expect(spinner).toBeTruthy();
-        expect(sizeText).toBeTruthy();
-        expect(sizeText.props.children).toBe('SM');
-      });
-
-      it('should display network name in the message', () => {
         const { getByText } = render(<NetworkConnectionBanner />);
 
-        expect(
-          getByText('Network Ethereum Mainnet is not available'),
-        ).toBeTruthy();
-      });
+        expect(getByText(expectedMessage)).toBeTruthy();
+      },
+    );
 
-      it('should call updateRpc when Update RPC button is pressed', () => {
+    it.each(statusTestCases)(
+      'should call updateRpc when Update RPC button is pressed for $status status',
+      ({ status }) => {
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status,
+          },
+          currentNetwork: mockNetworkConfiguration,
+          updateRpc: mockUpdateRpc,
+        });
+
         const { getByText } = render(<NetworkConnectionBanner />);
 
         const updateButton = getByText('Update RPC');
         fireEvent.press(updateButton);
 
         expect(mockUpdateRpc).toHaveBeenCalledTimes(1);
-      });
+      },
+    );
 
-      it('should render button with correct variant and properties', () => {
+    it.each(statusTestCases)(
+      'should render button with correct variant and properties for $status status',
+      ({ status }) => {
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status,
+          },
+          currentNetwork: mockNetworkConfiguration,
+          updateRpc: mockUpdateRpc,
+        });
+
         const { getByText } = render(<NetworkConnectionBanner />);
 
         const updateButton = getByText('Update RPC');
         expect(updateButton).toBeTruthy();
-      });
-    });
+      },
+    );
 
     describe('status transitions', () => {
       it('should update message when status changes from slow to unavailable', () => {
@@ -314,7 +311,7 @@ describe('NetworkConnectionBanner', () => {
         rerender(<NetworkConnectionBanner />);
 
         expect(
-          getByText('Network Ethereum Mainnet is not available'),
+          getByText('Unable to connect to Ethereum Mainnet.'),
         ).toBeTruthy();
       });
 
@@ -333,7 +330,7 @@ describe('NetworkConnectionBanner', () => {
         const { rerender, getByText } = render(<NetworkConnectionBanner />);
 
         expect(
-          getByText('Network Ethereum Mainnet is not available'),
+          getByText('Unable to connect to Ethereum Mainnet.'),
         ).toBeTruthy();
 
         // Change to slow status
@@ -429,88 +426,98 @@ describe('NetworkConnectionBanner', () => {
   });
 
   describe('accessibility', () => {
-    it('should render with proper accessibility structure', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'slow',
-        },
-        currentNetwork: mockNetworkConfiguration,
-        updateRpc: mockUpdateRpc,
-      });
+    const accessibilityTestCases = [
+      {
+        status: 'slow' as const,
+        expectedMessage: 'Still connecting to Ethereum Mainnet...',
+      },
+      {
+        status: 'unavailable' as const,
+        expectedMessage: 'Unable to connect to Ethereum Mainnet.',
+      },
+    ];
 
-      const { getByText } = render(<NetworkConnectionBanner />);
+    it.each(accessibilityTestCases)(
+      'should render with proper accessibility structure for $status status',
+      ({ status, expectedMessage }) => {
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status,
+          },
+          currentNetwork: mockNetworkConfiguration,
+          updateRpc: mockUpdateRpc,
+        });
 
-      // The banner should be accessible with proper text content
-      expect(getByText('Still connecting to Ethereum Mainnet...')).toBeTruthy();
-      expect(getByText('Update RPC')).toBeTruthy();
-    });
+        const { getByText } = render(<NetworkConnectionBanner />);
 
-    it('should have accessible button for updating RPC', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'slow',
-        },
-        currentNetwork: mockNetworkConfiguration,
-        updateRpc: mockUpdateRpc,
-      });
+        // The banner should be accessible with proper text content
+        expect(getByText(expectedMessage)).toBeTruthy();
+        expect(getByText('Update RPC')).toBeTruthy();
+      },
+    );
 
-      const { getByText } = render(<NetworkConnectionBanner />);
+    it.each(accessibilityTestCases)(
+      'should have accessible button for updating RPC for $status status',
+      ({ status }) => {
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status,
+          },
+          currentNetwork: mockNetworkConfiguration,
+          updateRpc: mockUpdateRpc,
+        });
 
-      const updateButton = getByText('Update RPC');
-      expect(updateButton).toBeTruthy();
+        const { getByText } = render(<NetworkConnectionBanner />);
 
-      // Test that button is pressable
-      fireEvent.press(updateButton);
-      expect(mockUpdateRpc).toHaveBeenCalled();
-    });
+        const updateButton = getByText('Update RPC');
+        expect(updateButton).toBeTruthy();
+
+        // Test that button is pressable
+        fireEvent.press(updateButton);
+        expect(mockUpdateRpc).toHaveBeenCalled();
+      },
+    );
   });
 
   describe('edge cases', () => {
-    it('should handle network with empty name for slow status', () => {
-      const networkWithEmptyName: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        name: '',
-      };
+    const emptyNameTestCases = [
+      {
+        status: 'slow' as const,
+        expectedMessage: 'Still connecting to ...',
+      },
+      {
+        status: 'unavailable' as const,
+        expectedMessage: 'Unable to connect to .',
+      },
+    ];
 
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'slow',
-        },
-        currentNetwork: networkWithEmptyName,
-        updateRpc: mockUpdateRpc,
-      });
+    it.each(emptyNameTestCases)(
+      'should handle network with empty name for $status status',
+      ({ status, expectedMessage }) => {
+        const networkWithEmptyName: NetworkConfiguration = {
+          ...mockNetworkConfiguration,
+          name: '',
+        };
 
-      const { getByText } = render(<NetworkConnectionBanner />);
+        mockUseNetworkConnectionBanners.mockReturnValue({
+          networkConnectionBannersState: {
+            visible: true,
+            chainId: '0x1',
+            status,
+          },
+          currentNetwork: networkWithEmptyName,
+          updateRpc: mockUpdateRpc,
+        });
 
-      expect(getByText('Still connecting to ...')).toBeTruthy();
-    });
+        const { getByText } = render(<NetworkConnectionBanner />);
 
-    it('should handle network with empty name for unavailable status', () => {
-      const networkWithEmptyName: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        name: '',
-      };
-
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'unavailable',
-        },
-        currentNetwork: networkWithEmptyName,
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { getByText } = render(<NetworkConnectionBanner />);
-
-      expect(getByText('Network  is not available')).toBeTruthy();
-    });
+        expect(getByText(expectedMessage)).toBeTruthy();
+      },
+    );
 
     it('should handle multiple rapid button presses', () => {
       mockUseNetworkConnectionBanners.mockReturnValue({

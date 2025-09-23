@@ -1,14 +1,9 @@
 import React from 'react';
-import {
-  Box,
-  Text,
-  TextVariant,
-  Button,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxFlexWrap,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import Banner, {
+  BannerAlertSeverity,
+  BannerVariant,
+} from '../../../component-library/components/Banners/Banner';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import Spinner, { SpinnerSize } from '../AnimatedSpinner';
 import { useNetworkConnectionBanners } from '../../hooks/useNetworkConnectionBanners';
 import { strings } from '../../../../locales/i18n';
@@ -27,46 +22,24 @@ const NetworkConnectionBanner: React.FC = () => {
   }
 
   return (
-    <Box twClassName="bg-warning-muted border-t border-warning-muted px-4 py-3">
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        flexWrap={BoxFlexWrap.Wrap}
-        gap={2}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 basis-full"
-          gap={2}
-        >
-          <Spinner size={SpinnerSize.SM} />
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-default flex-1"
-            numberOfLines={1}
-          >
-            {strings(
-              networkConnectionBannersState.status === 'slow'
-                ? 'network_connection_banner.still_connecting_network'
-                : 'network_connection_banner.network_not_available',
-              {
-                networkName: currentNetwork.name,
-              },
-            )}
-          </Text>
-        </Box>
-
-        <Button
-          variant={ButtonVariant.Tertiary}
-          onPress={updateRpc}
-          disabled={false}
-          twClassName="shrink-0"
-        >
-          {strings('network_connection_banner.update_rpc')}
-        </Button>
-      </Box>
-    </Box>
+    <Banner
+      variant={BannerVariant.Alert}
+      severity={BannerAlertSeverity.Warning}
+      startAccessory={<Spinner size={SpinnerSize.SM} />}
+      title={strings(
+        networkConnectionBannersState.status === 'slow'
+          ? 'network_connection_banner.still_connecting_network'
+          : 'network_connection_banner.unable_to_connect_network',
+        {
+          networkName: currentNetwork.name,
+        },
+      )}
+      actionButtonProps={{
+        variant: ButtonVariants.Link,
+        label: strings('network_connection_banner.update_rpc'),
+        onPress: updateRpc,
+      }}
+    />
   );
 };
 
