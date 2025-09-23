@@ -199,21 +199,6 @@ class OptinMetrics extends PureComponent {
     return createStyles({ colors, typography });
   };
 
-  actionsList = isPastPrivacyPolicyDate
-    ? []
-    : [1, 2, 3, 4, 5].map((value) => {
-        const actionVal = value <= 2 ? 0 : 1;
-        return {
-          action: actionVal,
-          prefix: actionVal
-            ? `${strings('privacy_policy.action_description_never_legacy')} `
-            : '',
-          description: strings(
-            `privacy_policy.action_description_${value}_legacy`,
-          ),
-        };
-      });
-
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
   }
@@ -265,64 +250,6 @@ class OptinMetrics extends PureComponent {
     this.props.navigation.reset({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
-  };
-
-  /**
-   * Render each action with corresponding icon
-   *
-   * @param {object} - Object containing action and description to be rendered
-   * @param {number} i - Index key
-   */
-  renderLegacyAction = ({ action, description, prefix }, i) => {
-    const styles = this.getStyles();
-
-    return (
-      <View style={styles.action} key={i}>
-        {action === 0 ? (
-          <Icon
-            name={IconName.CheckBold}
-            size={IconSize.Lg}
-            color={IconColor.Success}
-          />
-        ) : (
-          <Icon
-            name={IconName.CircleX}
-            size={IconSize.Lg}
-            color={IconColor.Error}
-          />
-        )}
-        <Text style={styles.description}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {prefix}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {description}
-          </Text>
-        </Text>
-      </View>
-    );
-  };
-
-  renderAction = ({ description, prefix }, i) => {
-    const styles = this.getStyles();
-
-    return (
-      <View style={styles.action} key={i}>
-        <Icon
-          name={IconName.CheckBold}
-          size={IconSize.Lg}
-          color={IconColor.Success}
-        />
-        <Text style={styles.description}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {prefix + ' '}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {description}
-          </Text>
-        </Text>
-      </View>
-    );
   };
 
   /**
@@ -508,11 +435,6 @@ class OptinMetrics extends PureComponent {
                   : 'privacy_policy.description_content_1_legacy',
               )}
             </Text>
-            {this.actionsList.map((action, i) =>
-              isPastPrivacyPolicyDate
-                ? this.renderAction(action, i)
-                : this.renderLegacyAction(action, i),
-            )}
             {isPastPrivacyPolicyDate ? (
               <View>
                 <View style={styles.sectionContainer}>
