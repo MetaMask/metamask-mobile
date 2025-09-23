@@ -229,6 +229,7 @@ const mockUseConfirmNavigation = useConfirmNavigation as jest.Mock;
 describe('PerpsMarketBalanceActions', () => {
   const defaultPerpsAccount = {
     totalBalance: '10.57',
+    availableBalance: '10.57',
     marginUsed: '0.00',
     totalUSDBalance: 10.57,
     positions: [],
@@ -345,7 +346,11 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Act - Simulate balance change
       mockUsePerpsLiveAccount.mockReturnValue({
-        account: { ...defaultPerpsAccount, totalBalance: '15.50' },
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '15.50',
+          availableBalance: '15.50',
+        },
         isLoading: false,
         error: null,
       });
@@ -461,7 +466,11 @@ describe('PerpsMarketBalanceActions', () => {
     it('is hidden when balance is empty', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
-        account: { ...defaultPerpsAccount, totalBalance: '0' },
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '0',
+          availableBalance: '0',
+        },
         isLoading: false,
         error: null,
       });
@@ -579,7 +588,11 @@ describe('PerpsMarketBalanceActions', () => {
     it('handles zero balance formatting correctly', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
-        account: { ...defaultPerpsAccount, totalBalance: '0.00' },
+        account: {
+          ...defaultPerpsAccount,
+          totalBalance: '0.00',
+          availableBalance: '0.00',
+        },
         isLoading: false,
         error: null,
       });
