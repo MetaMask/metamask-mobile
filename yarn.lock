@@ -4870,6 +4870,11 @@
   dependencies:
     source-map "^0.7.3"
 
+"@metamask/7715-permission-types@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/7715-permission-types/-/7715-permission-types-0.3.0.tgz#ed11d8117809c6b042f86d06702b3c4ef9c826e9"
+  integrity sha512-+bqFNe6/YCe2LZapiVJO3/hn7BSJLExYT+cDJS1spJocPeVsTyURv3IjblZxRqTOv+igTwrYbh45LvdkgzxkZQ==
+
 "@metamask/abi-utils@^2.0.3":
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-2.0.4.tgz#20908c1d910f7a17a89fdf5778a5c59d5cb8b8be"
@@ -4895,10 +4900,10 @@
     "@metamask/keyring-utils" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.18.0":
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.18.0.tgz#5cd1dad79871a94bdf8c751305467484dfac3a5e"
-  integrity sha512-VN4bpoVzLI4zM9xMTudwv7o3CcMZPDN5XSwNmOGwu40bUisT3xIYlB+5G2jSjfMCAWqGLfy7+bBD1+x71WxcoA==
+"@metamask/account-tree-controller@^0.18.1":
+  version "0.18.1"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.18.1.tgz#156bd42dacec292de8e509b33f0268a0f0282b3f"
+  integrity sha512-j0C5uZDn6/B9//SZEnrTAlL1zdMprHg7EpzdQ7IhzbCtE+IunkwaGbhSgkN3AFPnAKp5dNsreZwpTUVrGgIQpQ==
   dependencies:
     "@metamask/base-controller" "^8.4.0"
     "@metamask/snaps-sdk" "^9.0.0"
@@ -5131,6 +5136,20 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
     lodash "^4.17.21"
+
+"@metamask/delegation-core@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/delegation-core/-/delegation-core-0.2.0.tgz#94db8748983742e2db79a6d649e80d76c3c7d471"
+  integrity sha512-leP40qoxhTmexfeY/neZ9XkhmUiq8fHh3ax4wmmTB5CG6VuXStn2LzLz875RiBtjwU3c4IqaZljxvwC1dUuWVw==
+  dependencies:
+    "@metamask/abi-utils" "^3.0.0"
+    "@metamask/utils" "^11.4.0"
+    "@noble/hashes" "^1.8.0"
+
+"@metamask/delegation-deployments@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@metamask/delegation-deployments/-/delegation-deployments-0.12.0.tgz#d2c33ca7901326df71382b340cc4017b38db7c73"
+  integrity sha512-9SB5DhLAnbpIWbFxP3UKPXLhCt8iiRjBBjZ7hqF5dMXy9buBEDpCRg+FJYRxYRecwporrTVrv+NfKUyCbL2ncw==
 
 "@metamask/design-system-react-native@^0.4.0":
   version "0.4.0"
@@ -5457,6 +5476,19 @@
     bn.js "^5.2.1"
     uuid "^8.3.2"
 
+"@metamask/gator-permissions-controller@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/gator-permissions-controller/-/gator-permissions-controller-0.2.0.tgz#99d3b7a4a9151a470ff4b0dedde012f7ff7265ee"
+  integrity sha512-mndXueLyCcCaDhQUjasvpmWzwKV1Ko5164hryFrQdi8rH2WP5aDrnihp3OSKAipjhAeFrzyASkTXyPIsjT6Owg==
+  dependencies:
+    "@metamask/7715-permission-types" "^0.3.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/delegation-core" "^0.2.0"
+    "@metamask/delegation-deployments" "^0.12.0"
+    "@metamask/snaps-sdk" "^9.0.0"
+    "@metamask/snaps-utils" "^11.0.0"
+    "@metamask/utils" "^11.8.0"
+
 "@metamask/json-rpc-engine@^10.0.0", "@metamask/json-rpc-engine@^10.0.2", "@metamask/json-rpc-engine@^10.0.3":
   version "10.0.3"
   resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-10.0.3.tgz#9258c4718abe305121872414a5c828e43cfcc0f9"
@@ -5486,16 +5518,6 @@
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.3.2"
     "@scure/base" "^1.0.0"
-
-"@metamask/keyring-api@^18.0.0":
-  version "18.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-18.0.0.tgz#d377d6045dbcf6db95b89179f81d4cb4158f845d"
-  integrity sha512-3KxZmyNZnof715inJ72QSB43pNBLcAguLU31FOjc5tfNVJzzeqKKSWUftuD4AkJhX7XrT/9KRNF+PXZK+wvYng==
-  dependencies:
-    "@metamask/keyring-utils" "^3.0.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.1.0"
-    bitcoin-address-validation "^2.2.3"
 
 "@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.0":
   version "20.1.1"
@@ -5537,15 +5559,6 @@
     immer "^9.0.6"
     lodash "^4.17.21"
     ulid "^2.3.0"
-
-"@metamask/keyring-internal-api@^6.2.0":
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-6.2.0.tgz#646e2e435243ebd6652bf03e8570d1b51e846ed5"
-  integrity sha512-ntHsVWEiGRjbqIS/jooOI9NCc5EAYcT9zo1Nnzlf/azKbUCNJdzjB67FK383mo8KN93GjW/wd5IzaXXexeo+GA==
-  dependencies:
-    "@metamask/keyring-api" "^18.0.0"
-    "@metamask/keyring-utils" "^3.0.0"
-    "@metamask/superstruct" "^3.1.0"
 
 "@metamask/keyring-internal-api@^8.0.0", "@metamask/keyring-internal-api@^8.1.0":
   version "8.1.0"
@@ -5600,7 +5613,7 @@
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
 
-"@metamask/keyring-utils@^3.0.0", "@metamask/keyring-utils@^3.1.0":
+"@metamask/keyring-utils@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-3.1.0.tgz#77473fbf4ad4314096a0722161765e90a30bee3d"
   integrity sha512-ZsmtlCKZQo27xDXbPFM06u0NgTRwIVFJsHju2vPX4XGtEGh1Rd/gNGu8TePJGuTWbgvUVEvnk29c0njudbMprA==
@@ -5697,20 +5710,6 @@
     "@open-rpc/meta-schema" "^1.14.6"
     "@open-rpc/schema-utils-js" "^2.0.5"
     jsonschema "^1.4.1"
-
-"@metamask/multichain-network-controller@^0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.10.0.tgz#acaf910285c82dc813470bf7f345bb485e366dde"
-  integrity sha512-OTGr62t3coxqg+B5q3m7VpnLdMzczo3jMNaHuhDZUHcvGJ234h4MryB/PD9Etp4qIqYVb2iZ7nr0vSeXAwmC6A==
-  dependencies:
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.11.0"
-    "@metamask/keyring-api" "^18.0.0"
-    "@metamask/keyring-internal-api" "^6.2.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.4.2"
-    "@solana/addresses" "^2.0.0"
-    lodash "^4.17.21"
 
 "@metamask/multichain-network-controller@^0.12.0":
   version "0.12.0"
@@ -6072,15 +6071,15 @@
     "@noble/hashes" "^1.8.0"
     async-mutex "^0.5.0"
 
-"@metamask/selected-network-controller@^22.1.0":
-  version "22.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-22.1.0.tgz#dfeba14bafbdba071e02857e2ef90f30e5ed1258"
-  integrity sha512-KKPjJPO8ewEJOT5GMiee9o0fJNoHOgRHdUvLff2Iu4xJyUpMpwbxi62sAGf/mNFC/75d0P5dGgOeaLFpLkrd3g==
+"@metamask/selected-network-controller@^24.0.0":
+  version "24.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-24.0.0.tgz#9506d4c000fab72db286db545f0f88c87a05595c"
+  integrity sha512-Iamg9UKYk7CWNab8ydDYs345I5B18uroulTN3AdI/oCtcRmx9Dp6MR8r1cLxwHc3Dw1mlMvbCo1acaXwwm+grg==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/json-rpc-engine" "^10.0.3"
     "@metamask/swappable-obj-proxy" "^2.3.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.8.0"
 
 "@metamask/signature-controller@^32.0.0":
   version "32.0.0"
@@ -6235,10 +6234,10 @@
     ses "^1.14.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^2.3.9":
-  version "2.3.9"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.9.tgz#a358955ee34f258fc17c8cf4652f5e678cd70aac"
-  integrity sha512-lj8WGnBw03053Krhb/0DXg1HENrscSgsvO219UXmkoThzJgKVGrwXzf7IPUfT06s73RZ+ICqFjorxHgy2VZ2lQ==
+"@metamask/solana-wallet-snap@^2.3.10":
+  version "2.3.10"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.10.tgz#62865af0512b8e6456253ee367bd0e6260fb93c4"
+  integrity sha512-k5yHFqVhKsZcDwlcpTQC8XmonEbsTjrSiXQDvnxyil+fnbhWEEuJeGezlTiFGf4CK1eHi/ML3JlEWkDwfZGSyg==
 
 "@metamask/solana-wallet-standard@^0.5.1":
   version "0.5.1"
