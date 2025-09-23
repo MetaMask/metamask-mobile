@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   ParamListBase,
   NavigationProp,
@@ -13,10 +13,12 @@ import { resetRewardsState } from '../../../../reducers/rewards';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -35,6 +37,10 @@ jest.mock('../../../../util/Logger', () => ({
 
 jest.mock('../../../../reducers/rewards', () => ({
   resetRewardsState: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/rewards', () => ({
+  selectRewardsSubscriptionId: jest.fn(),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -57,6 +63,10 @@ describe('useOptout', () => {
   const mockNavigate = jest.fn();
   const mockShowToast = jest.fn();
   const mockCloseToast = jest.fn();
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+  const mockSubscriptionId = 'mock-subscription-id';
 
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
@@ -78,6 +88,12 @@ describe('useOptout', () => {
     (useDispatch as jest.MockedFunction<typeof useDispatch>).mockReturnValue(
       mockDispatch,
     );
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return mockSubscriptionId;
+      }
+      return selector({});
+    });
     (
       useNavigation as jest.MockedFunction<typeof useNavigation>
     ).mockReturnValue({
@@ -121,7 +137,10 @@ describe('useOptout', () => {
         'useOptout: Opt-out successful, resetting state and navigating',
       );
 
-      expect(mockEngineCall).toHaveBeenCalledWith('RewardsController:optOut');
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optOut',
+        mockSubscriptionId,
+      );
       expect(mockDispatch).toHaveBeenCalledWith(resetRewardsState());
       expect(mockNavigate).toHaveBeenCalledWith('RewardsView');
       expect(mockShowToast).not.toHaveBeenCalled();
