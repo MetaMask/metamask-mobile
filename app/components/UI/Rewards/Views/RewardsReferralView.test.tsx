@@ -81,12 +81,6 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-// Mock hooks
-const mockUseSeasonStatus = jest.fn();
-jest.mock('../hooks/useSeasonStatus', () => ({
-  useSeasonStatus: () => mockUseSeasonStatus(),
-}));
-
 // Mock ReferralDetails component
 jest.mock('../components/ReferralDetails/ReferralDetails', () => ({
   __esModule: true,
@@ -215,30 +209,6 @@ describe('RewardsReferralView', () => {
         expect(mockSetOptions).toHaveBeenCalled();
         expect(mockGetNavigationOptionsTitle).toHaveBeenCalled();
       });
-    });
-  });
-
-  describe('hooks integration', () => {
-    it('should call useSeasonStatus hook', () => {
-      // Act
-      render(<RewardsReferralView />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call useSeasonStatus hook on every render', () => {
-      // Act
-      const { rerender } = render(<RewardsReferralView />);
-
-      // Clear previous calls
-      mockUseSeasonStatus.mockClear();
-
-      // Re-render
-      rerender(<RewardsReferralView />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
     });
   });
 

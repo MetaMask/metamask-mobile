@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import step3Img from '../../../../../images/rewards/rewards-onboarding-step3.png';
 import Step3BgImg from '../../../../../images/rewards/rewards-onboarding-step3-bg.svg';
 import { setOnboardingActiveStep } from '../../../../../actions/rewards';
@@ -24,9 +24,9 @@ const OnboardingStep3: React.FC = () => {
     navigation.navigate(Routes.REWARDS_ONBOARDING_4);
   }, [dispatch, navigation]);
 
-  const handlePrevious = useCallback(() => {
-    dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-    navigation.navigate(Routes.WALLET_VIEW);
+  const handleSkip = useCallback(() => {
+    dispatch(setOnboardingActiveStep(OnboardingStep.STEP_4));
+    navigation.navigate(Routes.REWARDS_ONBOARDING_4);
   }, [dispatch, navigation]);
 
   const renderStepImage = () => (
@@ -39,7 +39,7 @@ const OnboardingStep3: React.FC = () => {
 
       <Image
         source={step3Img}
-        style={tw.style('flex-1 max-h-[75%] z-10')}
+        style={tw.style('h-80 z-10')}
         testID="step-3-image"
         resizeMode="contain"
       />
@@ -47,7 +47,7 @@ const OnboardingStep3: React.FC = () => {
   );
 
   const renderStepInfo = () => (
-    <>
+    <Box twClassName="flex-col gap-2 min-h-30">
       <Text variant={TextVariant.HeadingLg} twClassName="text-center">
         {strings('rewards.onboarding.step3_title')}
       </Text>
@@ -57,14 +57,14 @@ const OnboardingStep3: React.FC = () => {
       >
         {strings('rewards.onboarding.step3_description')}
       </Text>
-    </>
+    </Box>
   );
 
   return (
     <OnboardingStepComponent
       currentStep={3}
       onNext={handleNext}
-      onPrevious={handlePrevious}
+      onSkip={handleSkip}
       renderStepImage={renderStepImage}
       renderStepInfo={renderStepInfo}
     />

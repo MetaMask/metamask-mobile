@@ -136,7 +136,7 @@ const NotificationsView = ({
       style={styles.wrapper}
       testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
     >
-      {isNotificationEnabled && allNotifications.length > 0 ? (
+      {isNotificationEnabled ? (
         <>
           <Notifications
             navigation={navigation}

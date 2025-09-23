@@ -314,6 +314,10 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
+import {
+  GatorPermissionsController,
+  GatorPermissionsControllerState,
+} from '@metamask/gator-permissions-controller';
 import { DelegationController } from '@metamask/delegation-controller';
 import {
   DelegationControllerActions,
@@ -563,6 +567,7 @@ export type Controllers = {
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  GatorPermissionsController: GatorPermissionsController;
   DelegationController: DelegationController;
 };
 
@@ -633,6 +638,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
 };
 
@@ -697,6 +703,7 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
+  | 'GatorPermissionsController'
   | 'DelegationController';
 
 /**
