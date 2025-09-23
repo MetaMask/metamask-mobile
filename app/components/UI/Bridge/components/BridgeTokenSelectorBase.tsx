@@ -138,6 +138,7 @@ interface BridgeTokenSelectorBaseProps {
   pending?: boolean;
   chainIdToFetchMetadata?: Hex | CaipChainId;
   title?: string;
+  scrollResetKey?: string | Hex | CaipChainId;
 }
 
 export const BridgeTokenSelectorBase: React.FC<
@@ -149,6 +150,7 @@ export const BridgeTokenSelectorBase: React.FC<
   pending,
   chainIdToFetchMetadata: chainId,
   title,
+  scrollResetKey,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const safeAreaInsets = useSafeAreaInsets();
@@ -279,6 +281,7 @@ export const BridgeTokenSelectorBase: React.FC<
         </Box>
 
         <ListComponent
+          key={scrollResetKey}
           data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
