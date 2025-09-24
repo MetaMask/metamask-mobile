@@ -44,11 +44,8 @@ export const Footer = () => {
     hasDangerAlerts,
     hasUnconfirmedDangerAlerts,
   } = useAlerts();
-
-  const { isQRSigningInProgress, needsCameraPermission } =
-    useQRHardwareContext();
-
   const { onConfirm, onReject } = useConfirmActions();
+  const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
@@ -114,7 +111,7 @@ export const Footer = () => {
   });
 
   const confirmButtonLabel = () => {
-    if (isQRSigningInProgress) {
+    if (isSigningQRObject) {
       return strings('confirm.qr_get_sign');
     }
 
