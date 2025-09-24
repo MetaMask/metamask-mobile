@@ -411,13 +411,7 @@ class Onboarding extends PureComponent {
 
     try {
       if (this.logoRef.current && this.mounted) {
-        const isDarkMode = this.context.themeAppearance === 'dark';
-
-        this.logoRef.current.setInputState(
-          'WordmarkBuildUp',
-          'Dark',
-          isDarkMode,
-        );
+        this.logoRef.current.setInputState('WordmarkBuildUp', 'Dark', true);
         this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
         setTimeout(() => {
           if (this.mounted) {

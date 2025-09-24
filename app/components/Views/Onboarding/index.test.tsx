@@ -1562,7 +1562,7 @@ describe('Onboarding', () => {
         moveLogoUp: jest.fn(),
         startRiveAnimation() {
           if (this.logoRef.current && this.mounted) {
-            const isDarkMode = this.context.themeAppearance === 'dark';
+            const isDarkMode = true; // Always use dark mode
             this.logoRef.current.setInputState(
               'WordmarkBuildUp',
               'Dark',
@@ -1591,7 +1591,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should call setInputState with light mode when themeAppearance is light', async () => {
+    it('should call setInputState with dark mode regardless of themeAppearance', async () => {
       const mockComponent = {
         mounted: true,
         context: { themeAppearance: 'light' },
@@ -1604,7 +1604,7 @@ describe('Onboarding', () => {
         moveLogoUp: jest.fn(),
         startRiveAnimation() {
           if (this.logoRef.current && this.mounted) {
-            const isDarkMode = this.context.themeAppearance === 'dark';
+            const isDarkMode = true; // Always use dark mode
             this.logoRef.current.setInputState(
               'WordmarkBuildUp',
               'Dark',
@@ -1625,7 +1625,7 @@ describe('Onboarding', () => {
       expect(mockComponent.logoRef.current.setInputState).toHaveBeenCalledWith(
         'WordmarkBuildUp',
         'Dark',
-        false,
+        true,
       );
     });
 
@@ -1644,7 +1644,7 @@ describe('Onboarding', () => {
         startRiveAnimation() {
           try {
             if (this.logoRef.current && this.mounted) {
-              const isDarkMode = this.context.themeAppearance === 'dark';
+              const isDarkMode = true; // Always use dark mode
               this.logoRef.current.setInputState(
                 'WordmarkBuildUp',
                 'Dark',
@@ -1940,7 +1940,7 @@ describe('Onboarding', () => {
         const startRiveAnimation = React.useCallback(() => {
           try {
             if (logoRef.current && mounted) {
-              const isDarkMode = false;
+              const isDarkMode = true; // Always use dark mode
               logoRef.current.setInputState(
                 'WordmarkBuildUp',
                 'Dark',
