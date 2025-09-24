@@ -824,6 +824,80 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Triggers a balance update if newer points events are detected
+   * @param pointsEvents - The points events response from the API
+   * @param params - The original request parameters containing seasonId and subscriptionId
+   */
+  private triggerBalanceUpdateIfNeeded(
+    pointsEvents: PaginatedPointsEventsDto,
+    params: GetPointsEventsDto,
+  ): void {
+    // Only proceed if there are results to process
+    if (pointsEvents.results.length === 0) {
+      return;
+    }
+
+    // Find the latest updatedAt from the points events response
+    const latestEvent = maxBy(pointsEvents.results, (event) =>
+      (event.updatedAt instanceof Date
+        ? event.updatedAt
+        : new Date(event.updatedAt)
+      ).getTime(),
+    );
+
+    if (!latestEvent) {
+      return;
+    }
+
+    const latestUpdatedAt =
+      latestEvent.updatedAt instanceof Date
+        ? latestEvent.updatedAt.getTime()
+        : new Date(latestEvent.updatedAt).getTime();
+
+    // Check if we have an active season status cache for the requested seasonId and subscription id
+    const cachedSeasonStatus = this.#getSeasonStatus(
+      params.subscriptionId,
+      params.seasonId,
+    );
+
+    if (!cachedSeasonStatus) {
+      return;
+    }
+
+    // Compare cache timestamps with latest updatedAt
+    // Add 500ms delay to the balance updated timestamp as it's always going to be earlier than the event it was updated for.
+    const cacheBalanceUpdatedAt =
+      (cachedSeasonStatus.balance.updatedAt || 0) + 500;
+    Logger.log(
+      'RewardsController: Comparing cache timestamps with latest updatedAt',
+      {
+        cacheBalanceUpdatedAt,
+        latestUpdatedAt,
+      },
+    );
+
+    // If cache timestamp is older than the latest event update, emit balance updated event
+    if (latestUpdatedAt > cacheBalanceUpdatedAt) {
+      Logger.log(
+        'RewardsController: Emitting balanceUpdated event due to newer points events',
+        {
+          seasonId: params.seasonId,
+          subscriptionId: params.subscriptionId,
+          latestUpdatedAt: new Date(latestUpdatedAt).toISOString(),
+          cacheBalanceUpdatedAt: new Date(cacheBalanceUpdatedAt).toISOString(),
+        },
+      );
+
+      this.invalidateSubscriptionCache(params.subscriptionId, params.seasonId);
+
+      this.messagingSystem.publish('RewardsController:balanceUpdated', {
+        seasonId: params.seasonId,
+        subscriptionId: params.subscriptionId,
+      });
+    }
+  }
+
+  /**
    * Get points events for a given season
    * @param params - The request parameters
    * @returns Promise<PaginatedPointsEventsDto> - The points events data
@@ -850,77 +924,7 @@ export class RewardsController extends BaseController<
       );
 
       // Check if we should emit balance updated event
-      if (pointsEvents.results.length > 0) {
-        // Find the latest updatedAt from the points events response
-        const latestEvent = maxBy(pointsEvents.results, (event) =>
-          (event.updatedAt instanceof Date
-            ? event.updatedAt
-            : new Date(event.updatedAt)
-          ).getTime(),
-        );
-
-        if (latestEvent) {
-          const latestUpdatedAt =
-            latestEvent.updatedAt instanceof Date
-              ? latestEvent.updatedAt.getTime()
-              : new Date(latestEvent.updatedAt).getTime();
-
-          // Check if we have an active season status cache for the requested seasonId and subscription id
-          const cachedSeasonStatus = this.#getSeasonStatus(
-            params.subscriptionId,
-            params.seasonId,
-          );
-
-          if (cachedSeasonStatus) {
-            // Compare cache timestamps with latest updatedAt
-            // Add 300ms delay to the balance updated timestamp as it's always going to be earlier than the event it was updated for.
-            const cacheBalanceUpdatedAt =
-              (cachedSeasonStatus.balance.updatedAt || 0) + 300;
-
-            const cacheSeasonStatusTimestamp =
-              cachedSeasonStatus.lastFetched || 0;
-            Logger.log(
-              'RewardsController: Comparing cache timestamps with latest updatedAt',
-              {
-                cacheBalanceUpdatedAt,
-                cacheSeasonStatusTimestamp,
-                latestUpdatedAt,
-              },
-            );
-
-            // If either cache timestamp is older than the latest event update, emit balance updated event
-            if (
-              latestUpdatedAt > cacheBalanceUpdatedAt ||
-              latestUpdatedAt > cacheSeasonStatusTimestamp
-            ) {
-              Logger.log(
-                'RewardsController: Emitting balanceUpdated event due to newer points events',
-                {
-                  seasonId: params.seasonId,
-                  subscriptionId: params.subscriptionId,
-                  latestUpdatedAt: new Date(latestUpdatedAt).toISOString(),
-                  cacheBalanceUpdatedAt: new Date(
-                    cacheBalanceUpdatedAt,
-                  ).toISOString(),
-                  cacheSeasonStatusTimestamp: new Date(
-                    cacheSeasonStatusTimestamp,
-                  ).toISOString(),
-                },
-              );
-
-              this.invalidateSubscriptionCache(
-                params.subscriptionId,
-                params.seasonId,
-              );
-
-              this.messagingSystem.publish('RewardsController:balanceUpdated', {
-                seasonId: params.seasonId,
-                subscriptionId: params.subscriptionId,
-              });
-            }
-          }
-        }
-      }
+      this.triggerBalanceUpdateIfNeeded(pointsEvents, params);
 
       return pointsEvents;
     } catch (error) {

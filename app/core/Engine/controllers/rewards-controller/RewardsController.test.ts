@@ -1264,7 +1264,7 @@ describe('RewardsController', () => {
         );
       });
 
-      it('should add 300ms buffer to cached balance timestamp and include season status timestamp in comparison', async () => {
+      it('should add 500ms buffer to cached balance timestamp and include season status timestamp in comparison', async () => {
         // Arrange
         const mockRequest = {
           seasonId: 'current',
@@ -1274,10 +1274,10 @@ describe('RewardsController', () => {
 
         const now = new Date();
         const eventTimestamp = new Date(now.getTime() - 1000); // 1 second ago
-        const cachedTimestamp = new Date(now.getTime() - 1200); // 1.2 seconds ago
+        const cachedTimestamp = new Date(now.getTime() - 1500); // 1.5 seconds ago
 
         // Set up cached season status - without 300ms buffer, balance cache would be older
-        // With 300ms buffer: cachedTimestamp + 300ms = now - 900ms, which is newer than eventTimestamp
+        // With 500ms buffer: cachedTimestamp + 500ms = now - 1000ms, which is newer than eventTimestamp
         // Season status timestamp (now) is also newer than eventTimestamp
         testableController.testUpdate((state) => {
           state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
@@ -1320,85 +1320,19 @@ describe('RewardsController', () => {
 
         // Assert
         expect(result).toEqual(mockResponse);
-        // Should NOT emit because both balance (+ 300ms buffer) and season status are newer than event
+        // Should NOT emit because both balance (+ 500ms buffer) and season status are newer than event
         expect(mockMessenger.publish).not.toHaveBeenCalledWith(
           'RewardsController:balanceUpdated',
           expect.any(Object),
         );
 
-        // Verify the 300ms buffer was added in logging and season status timestamp is included
+        // Verify the 500ms buffer was added in logging and season status timestamp is included
         expect(mockLogger.log).toHaveBeenCalledWith(
           'RewardsController: Comparing cache timestamps with latest updatedAt',
           expect.objectContaining({
-            cacheBalanceUpdatedAt: cachedTimestamp.getTime() + 300,
-            cacheSeasonStatusTimestamp: now.getTime(),
+            cacheBalanceUpdatedAt: cachedTimestamp.getTime() + 500,
             latestUpdatedAt: eventTimestamp.getTime(),
           }),
-        );
-      });
-
-      it('should emit balance updated event when latest event is newer than cached season status timestamp', async () => {
-        // Arrange
-        const mockRequest = {
-          seasonId: 'current',
-          subscriptionId: 'sub-123',
-          cursor: null,
-        };
-
-        const now = new Date();
-        const olderSeasonStatusTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
-        const newerBalanceTimestamp = new Date(now.getTime() - 1000); // 1 second ago (newer than event)
-        const eventTimestamp = new Date(now.getTime() - 3000); // 3 seconds ago
-
-        // Set up cached season status where balance is newer but season status timestamp is older
-        testableController.testUpdate((state) => {
-          state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
-            {
-              balance: {
-                total: 100,
-                refereePortion: 0,
-                updatedAt: newerBalanceTimestamp.getTime(), // Newer than event
-              },
-              lastFetched: olderSeasonStatusTimestamp.getTime(), // Older than event
-            },
-          );
-        });
-
-        // Clear mock calls from state setup
-        mockMessenger.publish.mockClear();
-
-        const mockResponse = {
-          has_more: false,
-          cursor: null,
-          total_results: 1,
-          results: [
-            {
-              id: 'event-1',
-              type: 'SWAP' as const,
-              timestamp: eventTimestamp,
-              value: 50,
-              bonus: { bips: 0, bonuses: [] },
-              accountAddress: '0x123',
-              updatedAt: eventTimestamp,
-              payload: null,
-            },
-          ],
-        };
-
-        mockMessenger.call.mockResolvedValue(mockResponse as any);
-
-        // Act
-        const result = await testableController.getPointsEvents(mockRequest);
-
-        // Assert
-        expect(result).toEqual(mockResponse);
-        // Should emit because event is newer than season status timestamp (even though balance is newer)
-        expect(mockMessenger.publish).toHaveBeenCalledWith(
-          'RewardsController:balanceUpdated',
-          {
-            seasonId: 'current',
-            subscriptionId: 'sub-123',
-          },
         );
       });
 
@@ -1461,79 +1395,6 @@ describe('RewardsController', () => {
         expect(mockMessenger.publish).not.toHaveBeenCalledWith(
           'RewardsController:balanceUpdated',
           expect.any(Object),
-        );
-      });
-
-      it('should emit balance updated event when latest event is newer than balance timestamp but season status is missing lastFetched', async () => {
-        // Arrange
-        const mockRequest = {
-          seasonId: 'current',
-          subscriptionId: 'sub-123',
-          cursor: null,
-        };
-
-        const now = new Date();
-        const olderBalanceTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
-        const eventTimestamp = new Date(now.getTime() - 3000); // 3 seconds ago
-
-        // Set up cached season status with missing lastFetched (defaults to 0)
-        testableController.testUpdate((state) => {
-          const seasonStatus = createTestSeasonStatusState({
-            balance: {
-              total: 100,
-              refereePortion: 0,
-              updatedAt: olderBalanceTimestamp.getTime(),
-            },
-          });
-          // Remove lastFetched to test fallback to 0
-          delete (seasonStatus as any).lastFetched;
-          state.seasonStatuses['current:sub-123'] = seasonStatus;
-        });
-
-        // Clear mock calls from state setup
-        mockMessenger.publish.mockClear();
-
-        const mockResponse = {
-          has_more: false,
-          cursor: null,
-          total_results: 1,
-          results: [
-            {
-              id: 'event-1',
-              type: 'SWAP' as const,
-              timestamp: eventTimestamp,
-              value: 50,
-              bonus: { bips: 0, bonuses: [] },
-              accountAddress: '0x123',
-              updatedAt: eventTimestamp,
-              payload: null,
-            },
-          ],
-        };
-
-        mockMessenger.call.mockResolvedValue(mockResponse as any);
-
-        // Act
-        const result = await testableController.getPointsEvents(mockRequest);
-
-        // Assert
-        expect(result).toEqual(mockResponse);
-        // Should emit because both balance and season status timestamps (0) are older than event
-        expect(mockMessenger.publish).toHaveBeenCalledWith(
-          'RewardsController:balanceUpdated',
-          {
-            seasonId: 'current',
-            subscriptionId: 'sub-123',
-          },
-        );
-
-        // Verify that cacheSeasonStatusTimestamp was 0 in the logs
-        expect(mockLogger.log).toHaveBeenCalledWith(
-          'RewardsController: Comparing cache timestamps with latest updatedAt',
-          expect.objectContaining({
-            cacheSeasonStatusTimestamp: 0,
-            latestUpdatedAt: eventTimestamp.getTime(),
-          }),
         );
       });
 
