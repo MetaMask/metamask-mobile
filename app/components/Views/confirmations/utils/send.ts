@@ -7,6 +7,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { addHexPrefix } from 'ethereumjs-util';
+import { encode } from '@metamask/abi-utils';
 import { toHex } from '@metamask/controller-utils';
 
 import Engine from '../../../../core/Engine';
@@ -20,7 +21,11 @@ import {
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
-import { generateTransferData } from '../../../../util/transactions';
+import {
+  NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE,
+  TRANSFER_FROM_FUNCTION_SIGNATURE,
+  TRANSFER_FUNCTION_SIGNATURE,
+} from '../../../../util/transactions';
 import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
@@ -78,6 +83,83 @@ export const handleSendPageNavigation = (
   }
 };
 
+function generateERC20TransferData({
+  toAddress,
+  amount,
+}: {
+  toAddress: Hex;
+  amount: Hex;
+}) {
+  return (
+    TRANSFER_FUNCTION_SIGNATURE +
+    Array.prototype.map
+      .call(
+        encode(
+          ['address', 'uint256'],
+          [addHexPrefix(toAddress), addHexPrefix(amount)],
+        ),
+        (x) => `00${x.toString(16)}`.slice(-2),
+      )
+      .join('')
+  );
+}
+
+function generateERC721TransferData({
+  toAddress,
+  fromAddress,
+  tokenId,
+}: {
+  toAddress: Hex;
+  fromAddress: Hex;
+  tokenId: string;
+}) {
+  return (
+    TRANSFER_FROM_FUNCTION_SIGNATURE +
+    Array.prototype.map
+      .call(
+        encode(
+          ['address', 'address', 'uint256'],
+          [addHexPrefix(fromAddress), addHexPrefix(toAddress), BigInt(tokenId)],
+        ),
+        (x) => `00${x.toString(16)}`.slice(-2),
+      )
+      .join('')
+  );
+}
+
+function generateERC1155TransferData({
+  toAddress,
+  fromAddress,
+  tokenId,
+  amount,
+  data = '0',
+}: {
+  toAddress: Hex;
+  fromAddress: Hex;
+  tokenId: string;
+  amount: string;
+  data?: string;
+}) {
+  return (
+    NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE +
+    Array.prototype.map
+      .call(
+        encode(
+          ['address', 'address', 'uint256', 'uint256', 'bytes'],
+          [
+            addHexPrefix(fromAddress),
+            addHexPrefix(toAddress),
+            BigInt(tokenId),
+            addHexPrefix(amount),
+            addHexPrefix(data),
+          ],
+        ),
+        (x) => `00${x.toString(16)}`.slice(-2),
+      )
+      .join('')
+  );
+}
+
 export const prepareEVMTransaction = (
   asset: AssetType,
   transactionParams: TransactionParams,
@@ -88,26 +170,28 @@ export const prepareEVMTransaction = (
     trxnParams.data = '0x';
     trxnParams.to = to;
     trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BigNumber);
-  } else if (asset.tokenId) {
-    // NFT token
-    trxnParams.data = generateTransferData(
-      asset.standard === TokenStandard.ERC721
-        ? 'transferFrom'
-        : 'safeTransferFrom',
-      {
-        fromAddress: from,
-        toAddress: to,
-        tokenId: toHex(asset.tokenId),
-        amount: toHex(value ?? 1),
-      },
-    );
+  } else if (asset.standard === TokenStandard.ERC721) {
+    trxnParams.data = generateERC721TransferData({
+      fromAddress: from as Hex,
+      toAddress: to as Hex,
+      tokenId: asset.tokenId ?? '0',
+    });
+    trxnParams.to = asset.address;
+    trxnParams.value = '0x0';
+  } else if (asset.standard === TokenStandard.ERC1155) {
+    trxnParams.data = generateERC1155TransferData({
+      fromAddress: from as Hex,
+      toAddress: to as Hex,
+      tokenId: asset.tokenId ?? '0',
+      amount: toHex(value ?? 1),
+    });
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
   } else {
     // ERC20 token
     const tokenAmount = toTokenMinimalUnit(value ?? '0', asset.decimals);
-    trxnParams.data = generateTransferData('transfer', {
-      toAddress: to,
+    trxnParams.data = generateERC20TransferData({
+      toAddress: to as Hex,
       amount: BNToHex(tokenAmount),
     });
     trxnParams.to = asset.address;
