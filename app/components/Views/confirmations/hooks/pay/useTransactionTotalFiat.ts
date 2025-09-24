@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { RootState } from '../../../../../reducers';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
 import {
@@ -7,25 +7,38 @@ import {
   useTransactionRequiredFiat,
 } from './useTransactionRequiredFiat';
 import { BigNumber } from 'bignumber.js';
-import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TransactionBridgeQuote } from '../../utils/bridge';
 import { useFeeCalculations } from '../gas/useFeeCalculations';
 import { useDeepMemo } from '../useDeepMemo';
+import { useEffect } from 'react';
+import { createProjectLogger } from '@metamask/utils';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { noop } from 'lodash';
+import { useTransactionPayFiat } from './useTransactionPayFiat';
+
+const logger = createProjectLogger('transaction-pay');
 
 type TransactionBridgeQuoteExtended = TransactionBridgeQuote & {
   requiredFiat: number;
 };
 
-export function useTransactionTotalFiat() {
-  const fiatFormatter = useFiatFormatter();
-  const { values } = useTransactionRequiredFiat();
-  const transactionMeta = useTransactionMetadataOrThrow();
+export function useTransactionTotalFiat({
+  log: isLoggingEnabled,
+}: { log?: boolean } = {}) {
+  const log = isLoggingEnabled ? logger : noop;
+
+  const transactionMeta =
+    useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
+
   const { id: transactionId } = transactionMeta;
+  const { values } = useTransactionRequiredFiat();
   const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
   const quotesRaw = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId),
   );
+
+  const { formatFiat: fiatFormatter } = useTransactionPayFiat();
 
   const quotes: TransactionBridgeQuoteExtended[] = (quotesRaw ?? []).map(
     (quote) => {
@@ -47,10 +60,17 @@ export function useTransactionTotalFiat() {
     ...getEstimatedNetworkFeeTotal(quotes, fiatFormatter),
     ...getMaxNetworkFeeTotal(quotes, fiatFormatter),
     ...getEstimatedNativeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
+    ...getTransactionFeeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
     ...getTotal(quotes, values, estimatedFeeFiatPrecise, fiatFormatter),
   };
 
-  return useDeepMemo(() => result, [result]);
+  const stableResult = useDeepMemo(() => result, [result]);
+
+  useEffect(() => {
+    log('Transaction total fiat', stableResult);
+  }, [log, stableResult]);
+
+  return stableResult;
 }
 
 function getTotal(
@@ -60,11 +80,7 @@ function getTotal(
   format: (value: BigNumber) => string,
 ) {
   const balanceTotal = requiredFiat
-    .filter(
-      (token) =>
-        !token.skipIfBalance ||
-        new BigNumber(token.balanceFiat).isLessThan(token.amountFiat),
-    )
+    .filter((token) => !token.skipIfBalance)
     .reduce(
       (acc, token) => acc.plus(new BigNumber(token.amountFiat)),
       new BigNumber(0),
@@ -80,6 +96,24 @@ function getTotal(
   return {
     total: total.toString(10),
     totalFormatted: format(total),
+  };
+}
+
+function getTransactionFeeTotal(
+  quotes: TransactionBridgeQuoteExtended[],
+  estimatedGasFeeFiat: string | null,
+  format: (value: BigNumber) => string,
+) {
+  const total = new BigNumber(
+    getBridgeFeeTotal(quotes, format).totalBridgeFee,
+  ).plus(
+    getEstimatedNativeTotal(quotes, estimatedGasFeeFiat, format)
+      .totalNativeEstimated,
+  );
+
+  return {
+    totalTransactionFee: total.toString(10),
+    totalTransactionFeeFormatted: format(total),
   };
 }
 

@@ -1,3 +1,5 @@
+import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
+
 export interface PerpsBottomSheetTooltipProps {
   /**
    * Visibility state of the bottom sheet
@@ -24,6 +26,11 @@ export interface PerpsBottomSheetTooltipProps {
    * Optional data to pass to custom content renderers
    */
   data?: Record<string, unknown>;
+
+  /**
+   * Optional button config to pass to custom content renderers
+   */
+  buttonConfig?: ButtonProps[];
 }
 
 export type PerpsTooltipContentKey =
@@ -39,4 +46,7 @@ export type PerpsTooltipContentKey =
   | 'geo_block'
   | 'estimated_pnl'
   | 'limit_price'
-  | 'tp_sl';
+  | 'tp_sl'
+  | 'close_position_you_receive'
+  | 'tpsl_count_warning'
+  | 'points';

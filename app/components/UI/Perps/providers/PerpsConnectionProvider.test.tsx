@@ -1056,4 +1056,38 @@ describe('PerpsConnectionProvider', () => {
       expect(onRender).toHaveBeenCalledTimes(6); // Initial + 5 updates
     });
   });
+
+  describe('isCurrentlyConnecting method', () => {
+    let mockIsCurrentlyConnecting: jest.Mock;
+
+    beforeEach(() => {
+      mockIsCurrentlyConnecting = jest.fn();
+      (PerpsConnectionManager.isCurrentlyConnecting as jest.Mock) =
+        mockIsCurrentlyConnecting;
+    });
+
+    it('returns true when connection manager is connecting', () => {
+      // Arrange
+      mockIsCurrentlyConnecting.mockReturnValue(true);
+
+      // Act
+      const result = PerpsConnectionManager.isCurrentlyConnecting();
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockIsCurrentlyConnecting).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns false when connection manager is not connecting', () => {
+      // Arrange
+      mockIsCurrentlyConnecting.mockReturnValue(false);
+
+      // Act
+      const result = PerpsConnectionManager.isCurrentlyConnecting();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockIsCurrentlyConnecting).toHaveBeenCalledTimes(1);
+    });
+  });
 });

@@ -7,6 +7,7 @@ export const DETAILED_ORDER_TYPES = {
   STOP_LIMIT: 'Stop Limit',
   STOP_MARKET: 'Stop Market',
   TAKE_PROFIT_LIMIT: 'Take Profit Limit',
+  TAKE_PROFIT_MARKET: 'Take Profit Market',
 } as const;
 
 /**
@@ -17,6 +18,7 @@ export const isTPSLOrder = (detailedOrderType?: string): boolean => {
   return (
     detailedOrderType === DETAILED_ORDER_TYPES.STOP_LIMIT ||
     detailedOrderType === DETAILED_ORDER_TYPES.STOP_MARKET ||
-    detailedOrderType === DETAILED_ORDER_TYPES.TAKE_PROFIT_LIMIT
+    detailedOrderType === DETAILED_ORDER_TYPES.TAKE_PROFIT_LIMIT ||
+    detailedOrderType === DETAILED_ORDER_TYPES.TAKE_PROFIT_MARKET
   );
 };

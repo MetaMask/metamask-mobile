@@ -8,11 +8,18 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { useSelector } from 'react-redux';
+import { selectTickerByChainId } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
 
 export function useInsufficientPayTokenNativeAlert(): Alert[] {
   const { totalNetworkFeeMax, total } = useTransactionTotalFiat();
   const { payToken } = useTransactionPayToken();
   const { chainId } = payToken ?? {};
+
+  const ticker = useSelector((state: RootState) =>
+    selectTickerByChainId(state, chainId ?? '0x0'),
+  );
 
   const nativeToken = useTokenWithBalance(
     NATIVE_TOKEN_ADDRESS,
@@ -38,10 +45,12 @@ export function useInsufficientPayTokenNativeAlert(): Alert[] {
       {
         key: AlertKeys.InsufficientPayTokenNative,
         field: RowAlertKey.PayWith,
-        message: strings('alert_system.insufficient_pay_token_native.message'),
+        message: strings('alert_system.insufficient_pay_token_native.message', {
+          ticker,
+        }),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [isInsufficient]);
+  }, [isInsufficient, ticker]);
 }

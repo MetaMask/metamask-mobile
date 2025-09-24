@@ -30,6 +30,19 @@ jest.mock('../../AccountConnect/AccountConnect', () => {
   return MockAccountConnect;
 });
 
+jest.mock('./MultichainAccountConnect', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const actualReact = require('react');
+  const MockMultichainAccountConnect = ({ route }: AccountConnectProps) =>
+    actualReact.createElement(
+      'div',
+      { testID: TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT },
+      ['MultichainAccountConnect - ', route.params.permissionRequestId],
+    );
+  MockMultichainAccountConnect.displayName = 'MultichainAccountConnect';
+  return MockMultichainAccountConnect;
+});
+
 const createMockCaip25Permission = (
   optionalScopes: Record<string, { accounts: string[] }>,
 ) => ({
@@ -74,17 +87,16 @@ const createMockState = (isState2Enabled: boolean): DeepPartial<RootState> => ({
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          enableMultichainAccounts: isState2Enabled
-            ? {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '0.0.0', // Use a very low version to ensure it passes
-              }
-            : {
-                enabled: true,
-                featureVersion: '1',
-                minimumVersion: '0.0.0', // Use a very low version to ensure it passes
-              },
+          enableMultichainAccounts: {
+            enabled: !isState2Enabled,
+            featureVersion: '1',
+            minimumVersion: '0.0.0', // Use a very low version to ensure it passes
+          },
+          enableMultichainAccountsState2: {
+            enabled: isState2Enabled,
+            featureVersion: '2',
+            minimumVersion: '0.0.0', // Use a very low version to ensure it passes
+          },
         },
         cacheTimestamp: 0,
       },
@@ -102,13 +114,15 @@ describe('State2AccountConnectWrapper', () => {
       const isState2Enabled = true;
       const mockState = createMockState(isState2Enabled);
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <State2AccountConnectWrapper {...mockProps} />,
         { state: mockState },
       );
 
-      // TODO: replace with MultichainAccountConnect in subsequent PR
-      expect(getByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeTruthy();
+      expect(
+        getByTestId(TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT),
+      ).toBeTruthy();
+      expect(queryByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeNull();
     });
 
     it('forwards all props to MultichainAccountConnect', () => {
@@ -139,9 +153,8 @@ describe('State2AccountConnectWrapper', () => {
         { state: mockState },
       );
 
-      // TODO: replace with multichain component in subsequent PR
       const multichainComponent = getByTestId(
-        TEST_IDS.ACCOUNT_CONNECT_COMPONENT,
+        TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT,
       );
       expect(multichainComponent).toBeTruthy();
       expect(multichainComponent.props.children).toContain(
@@ -213,9 +226,8 @@ describe('State2AccountConnectWrapper', () => {
         { state: state2MockState },
       );
 
-      // TODO
       expect(
-        getByTestIdState2(TEST_IDS.ACCOUNT_CONNECT_COMPONENT),
+        getByTestIdState2(TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT),
       ).toBeTruthy();
 
       const state1MockState = createMockState(false);
@@ -255,8 +267,9 @@ describe('State2AccountConnectWrapper', () => {
       { state: mockState },
     );
 
-    // TODO: replace with MultichainAccountConnect in subsequent PR
-    expect(getByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeTruthy();
+    expect(
+      getByTestId(TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT),
+    ).toBeTruthy();
   });
 
   it('handles props with complex permissions when state 2 is disabled', () => {

@@ -161,6 +161,7 @@ const defaultMockReturn = {
     hasChanges: false,
     takeProfitError: '',
     stopLossError: '',
+    stopLossLiquidationError: '',
   },
   display: {
     formattedTakeProfitPercentage: '',
@@ -179,6 +180,25 @@ jest.mock('../../utils/formatUtils', () => ({
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
   }),
+  formatPerpsFiat: jest.fn((value) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
+  }),
+  PRICE_RANGES_POSITION_VIEW: [
+    {
+      condition: (v: number) => v >= 1,
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+      threshold: 1,
+    },
+    {
+      condition: (v: number) => v < 1,
+      minimumDecimals: 2,
+      maximumDecimals: 7,
+      significantDigits: 4,
+      threshold: 0.0000001,
+    },
+  ],
 }));
 
 // Mock strings
@@ -279,13 +299,126 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-// Mock Button enums
-jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
-  ButtonSize: {
-    Lg: 'Lg',
-  },
-  ButtonVariants: {
-    Primary: 'Primary',
+// Mock Button component and enums
+jest.mock('../../../../../component-library/components/Buttons/Button', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+
+  const MockButton = ({
+    label,
+    onPress,
+    isDisabled,
+    loading,
+    style,
+  }: {
+    label: string;
+    onPress: () => void;
+    isDisabled?: boolean;
+    loading?: boolean;
+    style?: unknown;
+  }) => (
+    <TouchableOpacity
+      style={style}
+      onPress={onPress}
+      disabled={isDisabled || loading}
+    >
+      <Text>{loading ? 'Loading...' : label}</Text>
+    </TouchableOpacity>
+  );
+
+  return {
+    __esModule: true,
+    default: MockButton,
+    ButtonSize: {
+      Lg: 'Lg',
+    },
+    ButtonVariants: {
+      Primary: 'Primary',
+    },
+  };
+});
+
+// Mock Keypad component
+jest.mock('../../../../../components/Base/Keypad', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+
+  // Mock compound component structure
+  const MockKeypadRow = ({ children }: { children: React.ReactNode }) => (
+    <View>{children}</View>
+  );
+
+  const MockKeypadButton = ({
+    children,
+    onPress,
+  }: {
+    children: React.ReactNode;
+    onPress?: () => void;
+  }) => (
+    <TouchableOpacity onPress={onPress}>
+      <Text>{children}</Text>
+    </TouchableOpacity>
+  );
+
+  const MockKeypadDeleteButton = ({
+    onPress,
+    onLongPress,
+    testID,
+  }: {
+    onPress?: () => void;
+    onLongPress?: () => void;
+    testID?: string;
+  }) => (
+    <TouchableOpacity
+      testID={testID}
+      onPress={onPress}
+      onLongPress={onLongPress}
+    >
+      <Text>Del</Text>
+    </TouchableOpacity>
+  );
+
+  const MockKeypad = ({
+    value,
+    onChange,
+    currency,
+    decimals,
+    children,
+  }: {
+    value: string;
+    onChange: ({ value }: { value: string; valueAsNumber: number }) => void;
+    currency: string;
+    decimals: number;
+    children?: React.ReactNode;
+  }) => (
+    <View testID="keypad">
+      <Text testID="keypad-value">{value}</Text>
+      <Text testID="keypad-currency">{currency}</Text>
+      <Text testID="keypad-decimals">{decimals}</Text>
+      <TouchableOpacity
+        testID="keypad-test-button"
+        onPress={() => onChange({ value: '123.45', valueAsNumber: 123.45 })}
+      >
+        <Text>Test Keypad Input</Text>
+      </TouchableOpacity>
+      {children}
+    </View>
+  );
+
+  // Attach sub-components to main component
+  MockKeypad.Row = MockKeypadRow;
+  MockKeypad.Button = MockKeypadButton;
+  MockKeypad.DeleteButton = MockKeypadDeleteButton;
+
+  return {
+    __esModule: true,
+    default: MockKeypad,
+  };
+});
+
+// Mock Platform
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Platform: {
+    OS: 'ios',
   },
 }));
 
@@ -307,6 +440,12 @@ jest.mock('./PerpsTPSLBottomSheet.styles', () => ({
     percentageButton: { flex: 1 },
     percentageButtonActive: { backgroundColor: 'blue' },
     helperText: { marginTop: 4 },
+    keypadContainer: { paddingHorizontal: 16, paddingVertical: 8 },
+    scrollContent: { flex: 1 },
+    doneButton: {
+      width: '100%',
+      marginBottom: 8,
+    },
   }),
 }));
 
@@ -349,6 +488,8 @@ describe('PerpsTPSLBottomSheet', () => {
       sinceOpen: '8.00',
       sinceChange: '3.00',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   beforeEach(() => {
@@ -831,11 +972,117 @@ describe('PerpsTPSLBottomSheet', () => {
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
       // Assert - Component renders correctly even with validation errors
-      const confirmButton = screen.getByText('perps.tpsl.set');
+      const confirmButton = screen.getByText('perps.tpsl.done');
       expect(confirmButton).toBeOnTheScreen();
 
       // Note: The actual button disable behavior depends on the component implementation
       // This test ensures the component handles validation error state without crashing
+    });
+
+    it('displays stop loss liquidation error for long orders', () => {
+      // Arrange - Mock form state with stop loss liquidation error for long position
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss liquidation error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.stop_loss_liquidation_long'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays stop loss liquidation error for short orders', () => {
+      // Arrange - Mock form state with stop loss liquidation error for short position
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_short',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="short" />);
+
+      // Assert - Stop loss liquidation error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.stop_loss_liquidation_short'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays stop loss error when both stopLossError and stopLossLiquidationError are present', () => {
+      // Arrange - Mock form state with both stop loss errors (stopLossError takes precedence in current implementation)
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: 'perps.order.validation.invalid_stop_loss',
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss error should be displayed (takes precedence in current implementation)
+      expect(
+        screen.getByText('perps.order.validation.invalid_stop_loss'),
+      ).toBeOnTheScreen();
+      // Liquidation error should not be displayed when regular stop loss error is present
+      expect(
+        screen.queryByText('perps.order.validation.stop_loss_liquidation_long'),
+      ).toBeNull();
+    });
+
+    it('displays regular stop loss error when only stopLossError is present', () => {
+      // Arrange - Mock form state with only regular stop loss error
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: 'perps.order.validation.invalid_stop_loss',
+          stopLossLiquidationError: '', // No liquidation error
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // Assert - Regular stop loss error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.invalid_stop_loss'),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays stop loss liquidation error when only stopLossLiquidationError is present', () => {
+      // Arrange - Mock form state with only liquidation error
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
+        ...defaultMockReturn,
+        validation: {
+          ...defaultMockReturn.validation,
+          isValid: false,
+          stopLossError: '', // No regular stop loss error
+          stopLossLiquidationError:
+            'perps.order.validation.stop_loss_liquidation_long',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} direction="long" />);
+
+      // Assert - Stop loss liquidation error should be displayed
+      expect(
+        screen.getByText('perps.order.validation.stop_loss_liquidation_long'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -907,7 +1154,7 @@ describe('PerpsTPSLBottomSheet', () => {
         <PerpsTPSLBottomSheet {...defaultProps} onConfirm={mockOnConfirm} />,
       );
 
-      const confirmButton = screen.getByText('perps.tpsl.set');
+      const confirmButton = screen.getByText('perps.tpsl.done');
 
       // Act
       fireEvent.press(confirmButton);
@@ -923,7 +1170,7 @@ describe('PerpsTPSLBottomSheet', () => {
         <PerpsTPSLBottomSheet {...defaultProps} onConfirm={mockOnConfirm} />,
       );
 
-      const confirmButton = screen.getByText('perps.tpsl.set');
+      const confirmButton = screen.getByText('perps.tpsl.done');
 
       // Act
       fireEvent.press(confirmButton);
@@ -937,7 +1184,7 @@ describe('PerpsTPSLBottomSheet', () => {
       const mockOnClose = jest.fn();
       render(<PerpsTPSLBottomSheet {...defaultProps} onClose={mockOnClose} />);
 
-      const confirmButton = screen.getByText('perps.tpsl.set');
+      const confirmButton = screen.getByText('perps.tpsl.done');
 
       // Act
       fireEvent.press(confirmButton);
@@ -1063,6 +1310,396 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Assert - Should render null when not visible
       expect(screen.queryByText('perps.tpsl.title')).toBeNull();
+    });
+  });
+
+  describe('Keypad Functionality', () => {
+    beforeEach(() => {
+      // Reset Platform.OS to default for each test
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'ios',
+        },
+      }));
+    });
+
+    it('shows keypad when take profit price input is focused', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3200',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('3200');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('shows keypad when take profit percentage input is focused', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPercentage: '25.50',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedTakeProfitPercentage: '25.50',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPercentInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('25.50');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('shows keypad when stop loss price input is focused', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          stopLossPrice: '2800',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1];
+
+      // Act
+      fireEvent(stopLossPriceInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('2800');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('shows keypad when stop loss percentage input is focused', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          stopLossPercentage: '15.75',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedStopLossPercentage: '15.75',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const stopLossPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.loss_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(stopLossPercentInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+      expect(screen.getByTestId('keypad-value')).toHaveTextContent('15.75');
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('hides keypad when input loses focus', () => {
+      // Arrange
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+
+      fireEvent(takeProfitPriceInput, 'blur');
+
+      // Assert
+      expect(screen.queryByTestId('keypad')).toBeNull();
+    });
+
+    it('calls appropriate handler when keypad value changes for take profit price', () => {
+      // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPriceChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+      const keypadButton = screen.getByTestId('keypad-test-button');
+      fireEvent.press(keypadButton);
+
+      // Assert
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
+    });
+
+    it('calls appropriate handler when keypad value changes for take profit percentage', () => {
+      // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPercentageChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPercentInput, 'focus');
+      const keypadButton = screen.getByTestId('keypad-test-button');
+      fireEvent.press(keypadButton);
+
+      // Assert
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
+    });
+
+    it('calls appropriate handler when keypad value changes for stop loss price', () => {
+      // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleStopLossPriceChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1];
+
+      // Act
+      fireEvent(stopLossPriceInput, 'focus');
+      const keypadButton = screen.getByTestId('keypad-test-button');
+      fireEvent.press(keypadButton);
+
+      // Assert
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
+    });
+
+    it('calls appropriate handler when keypad value changes for stop loss percentage', () => {
+      // Arrange
+      const mockHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleStopLossPercentageChange: mockHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const stopLossPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.loss_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(stopLossPercentInput, 'focus');
+      const keypadButton = screen.getByTestId('keypad-test-button');
+      fireEvent.press(keypadButton);
+
+      // Assert
+      expect(mockHandler).toHaveBeenCalledWith('123.45');
+    });
+
+    it('dismisses keypad when tapping outside the input area', () => {
+      // Arrange
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+      expect(screen.getByTestId('keypad')).toBeOnTheScreen();
+
+      // Find the scroll content area and tap it
+      const scrollContent = screen.getByTestId('scroll-content');
+      fireEvent.press(scrollContent);
+
+      // Assert
+      expect(screen.queryByTestId('keypad')).toBeNull();
+    });
+
+    it('calls both original blur handler and custom blur handler when input loses focus', () => {
+      // Arrange
+      const mockOriginalBlurHandler = jest.fn();
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        handlers: {
+          ...defaultMockReturn.handlers,
+          handleTakeProfitPriceBlur: mockOriginalBlurHandler,
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+      fireEvent(takeProfitPriceInput, 'blur');
+
+      // Assert
+      expect(mockOriginalBlurHandler).toHaveBeenCalled();
+      expect(screen.queryByTestId('keypad')).toBeNull();
+    });
+
+    it('configures keypad with correct currency and decimals for price inputs', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '3200.12345',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPriceInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+
+    it('configures keypad with correct currency and decimals for all inputs', () => {
+      // Arrange
+      mockUsePerpsTPSLForm.mockReturnValue({
+        ...defaultMockReturn,
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPercentage: '25.50',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedTakeProfitPercentage: '25.50',
+        },
+      });
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_roe_placeholder',
+      )[0];
+
+      // Act
+      fireEvent(takeProfitPercentInput, 'focus');
+
+      // Assert
+      expect(screen.getByTestId('keypad-currency')).toHaveTextContent(
+        'USD_PERPS',
+      );
+      expect(screen.getByTestId('keypad-decimals')).toHaveTextContent('5');
+    });
+  });
+
+  describe('Platform-specific Styling', () => {
+    it('applies correct close button padding for iOS', () => {
+      // Arrange
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'ios',
+        },
+      }));
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // Assert - For iOS, paddingRight should be 0
+      // The BottomSheetHeader should receive closeButtonProps with paddingRight: 0
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
+    });
+
+    it('applies correct close button padding for Android', () => {
+      // Arrange
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'android',
+        },
+      }));
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // Assert - For Android, paddingRight should be 24
+      // The BottomSheetHeader should receive closeButtonProps with paddingRight: 24
+      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
     });
   });
 });

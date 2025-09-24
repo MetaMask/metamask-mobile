@@ -77,5 +77,13 @@ export const DAPP_SCANNING_MOCKS: MockEventsObject = {
         recommendedAction: 'NONE',
       },
     },
+    {
+      urlEndpoint: createDappScanningUrl('www.googletagmanager.com'),
+      responseCode: 200,
+      response: {
+        domainName: 'www.googletagmanager.com',
+        recommendedAction: 'NONE',
+      },
+    },
   ],
 };

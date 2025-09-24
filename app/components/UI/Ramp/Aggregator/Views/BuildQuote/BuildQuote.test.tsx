@@ -26,6 +26,20 @@ import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { mockNetworkState } from '../../../../../../util/test/network';
+
+const mockSetActiveNetwork = jest.fn();
+const mockEngineContext = {
+  MultichainNetworkController: {
+    setActiveNetwork: mockSetActiveNetwork,
+  },
+};
+jest.mock('../../../../../../core/Engine', () => ({
+  get context() {
+    return mockEngineContext;
+  },
+}));
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -42,6 +56,22 @@ function render(Component: React.ComponentType) {
           backgroundState: {
             ...backgroundState,
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+            NetworkController: {
+              ...mockNetworkState(
+                {
+                  chainId: '0x1',
+                  id: 'mainnet',
+                  nickname: 'Ethereum Mainnet',
+                  ticker: 'ETH',
+                },
+                {
+                  chainId: '0x89',
+                  id: 'polygon',
+                  nickname: 'Polygon Mainnet',
+                  ticker: 'POL',
+                },
+              ),
+            },
           },
         },
       },
@@ -519,12 +549,67 @@ describe('BuildQuote View', () => {
       expect(mockGetCryptoCurrencies).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedAsset when selecting a crypto', async () => {
+    it('navigates to token select modal when pressing asset selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[1].name));
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(
-        mockCryptoCurrenciesData[1],
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createTokenSelectModalNavigationDetails({
+          tokens: mockCryptoCurrenciesData,
+        }),
+      );
+    });
+
+    it('navigates to token select modal with crypto from different chain', async () => {
+      const mockPolygonToken = {
+        ...mockCryptoCurrenciesData[0],
+        network: {
+          chainId: '137',
+          active: true,
+          chainName: 'Polygon',
+          shortName: 'Polygon',
+        },
+        name: 'Polygon Token',
+      };
+
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        cryptoCurrencies: [mockCryptoCurrenciesData[0], mockPolygonToken],
+      };
+
+      render(BuildQuote);
+
+      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createTokenSelectModalNavigationDetails({
+          tokens: [mockCryptoCurrenciesData[0], mockPolygonToken],
+        }),
+      );
+    });
+
+    it('navigates to token select modal with crypto from same chain', async () => {
+      const mockEthereumToken = {
+        ...mockCryptoCurrenciesData[0],
+        network: {
+          chainId: '1',
+          active: true,
+          chainName: 'Ethereum',
+          shortName: 'ETH',
+        },
+        name: 'Ethereum Token',
+      };
+
+      mockUseCryptoCurrenciesValues = {
+        ...mockUseCryptoCurrenciesInitialValues,
+        cryptoCurrencies: [mockCryptoCurrenciesData[0], mockEthereumToken],
+      };
+
+      render(BuildQuote);
+
+      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createTokenSelectModalNavigationDetails({
+          tokens: [mockCryptoCurrenciesData[0], mockEthereumToken],
+        }),
       );
     });
   });

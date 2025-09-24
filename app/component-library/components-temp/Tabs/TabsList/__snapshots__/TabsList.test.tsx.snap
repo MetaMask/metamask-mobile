@@ -40,27 +40,10 @@ exports[`TabsList handles empty children gracefully 1`] = `
           undefined,
         ]
       }
-    >
-      <View
-        collapsable={false}
-        style={
-          {
-            "backgroundColor": "#121314",
-            "bottom": 0,
-            "height": 2,
-            "position": "absolute",
-            "transform": [
-              {
-                "translateX": 0,
-              },
-            ],
-            "width": 0,
-          }
-        }
-      />
-    </View>
+    />
   </View>
   <View
+    collapsable={false}
     style={
       [
         {
@@ -68,6 +51,7 @@ exports[`TabsList handles empty children gracefully 1`] = `
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "marginTop": 8,
         },
         undefined,
       ]
@@ -165,10 +149,10 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
               "alignItems": "center",
               "flexDirection": "row",
               "justifyContent": "center",
-              "paddingBottom": 8,
+              "paddingBottom": 4,
               "paddingLeft": 0,
               "paddingRight": 0,
-              "paddingTop": 8,
+              "paddingTop": 4,
               "position": "relative",
             }
           }
@@ -271,10 +255,10 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
               "alignItems": "center",
               "flexDirection": "row",
               "justifyContent": "center",
-              "paddingBottom": 8,
+              "paddingBottom": 4,
               "paddingLeft": 0,
               "paddingRight": 0,
-              "paddingTop": 8,
+              "paddingTop": 4,
               "position": "relative",
             }
           }
@@ -351,6 +335,7 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
     </View>
   </View>
   <View
+    collapsable={false}
     style={
       [
         {
@@ -358,6 +343,7 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "marginTop": 8,
         },
         undefined,
       ]
@@ -477,10 +463,10 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
               "alignItems": "center",
               "flexDirection": "row",
               "justifyContent": "center",
-              "paddingBottom": 8,
+              "paddingBottom": 4,
               "paddingLeft": 0,
               "paddingRight": 0,
-              "paddingTop": 8,
+              "paddingTop": 4,
               "position": "relative",
             }
           }
@@ -583,10 +569,10 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
               "alignItems": "center",
               "flexDirection": "row",
               "justifyContent": "center",
-              "paddingBottom": 8,
+              "paddingBottom": 4,
               "paddingLeft": 0,
               "paddingRight": 0,
-              "paddingTop": 8,
+              "paddingTop": 4,
               "position": "relative",
             }
           }
@@ -689,10 +675,10 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
               "alignItems": "center",
               "flexDirection": "row",
               "justifyContent": "center",
-              "paddingBottom": 8,
+              "paddingBottom": 4,
               "paddingLeft": 0,
               "paddingRight": 0,
-              "paddingTop": 8,
+              "paddingTop": 4,
               "position": "relative",
             }
           }
@@ -769,6 +755,7 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
     </View>
   </View>
   <View
+    collapsable={false}
     style={
       [
         {
@@ -776,6 +763,7 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
           "flexBasis": "0%",
           "flexGrow": 1,
           "flexShrink": 1,
+          "marginTop": 8,
         },
         undefined,
       ]

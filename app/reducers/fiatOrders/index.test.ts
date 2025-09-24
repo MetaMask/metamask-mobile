@@ -22,6 +22,7 @@ import fiatOrderReducer, {
   getOrders,
   getAllDepositOrders,
   getPendingOrders,
+  getForceUpdateOrders,
   getProviderName,
   getRampNetworks,
   initialState,
@@ -1566,6 +1567,206 @@ describe('selectors', () => {
       });
 
       expect(getPendingOrders(state)).toEqual([]);
+    });
+  });
+
+  describe('getForceUpdateOrders', () => {
+    it('should return the orders by forceUpdate property', () => {
+      const state1 = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'binance',
+              networksMetadata: {
+                binance: {
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x38': {
+                  blockExplorerUrls: ['https://etherscan.com'],
+                  chainId: '0x38',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Binance network',
+                  nativeCurrency: 'BNB',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'binance',
+                      type: 'Custom',
+                      url: 'https://binance.infura.io/v3',
+                    },
+                  ],
+                },
+              },
+            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+          },
+        },
+        fiatOrders: {
+          orders: [
+            {
+              ...mockOrder1,
+              state: 'PENDING',
+              id: 'test-56-order-1',
+              network: '56',
+              account: MOCK_ADDRESS_1,
+              forceUpdate: true,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: MOCK_ADDRESS_2,
+              forceUpdate: true,
+            },
+            {
+              ...mockOrder1,
+              state: 'PENDING',
+              id: 'test-56-order-3',
+              network: '56',
+              account: MOCK_ADDRESS_1,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: MOCK_ADDRESS_1,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              network: '1',
+              account: MOCK_ADDRESS_2,
+              forceUpdate: true,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: MOCK_ADDRESS_1,
+            },
+          ],
+        },
+      });
+
+      const state2 = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Ethereum network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
+              },
+            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
+          },
+        },
+        fiatOrders: {
+          orders: [
+            {
+              ...mockOrder1,
+              id: 'test-56-order-1',
+              network: '56',
+              account: MOCK_ADDRESS_1,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-2',
+              network: '56',
+              account: MOCK_ADDRESS_2,
+              forceUpdate: true,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '56',
+              account: MOCK_ADDRESS_1,
+              forceUpdate: false,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-1',
+              network: '1',
+              account: MOCK_ADDRESS_1,
+              forceUpdate: true,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-2',
+              state: 'PENDING',
+              network: '1',
+              account: MOCK_ADDRESS_2,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-1-order-3',
+              network: '1',
+              excludeFromPurchases: true,
+              account: MOCK_ADDRESS_2,
+              forceUpdate: true,
+            },
+            {
+              ...mockOrder1,
+              id: 'test-56-order-3',
+              network: '1',
+              account: MOCK_ADDRESS_1,
+            },
+          ],
+        },
+      });
+
+      expect(getForceUpdateOrders(state1)).toHaveLength(3);
+      expect(getForceUpdateOrders(state1).map((o) => o.id)).toEqual([
+        'test-56-order-1',
+        'test-56-order-2',
+        'test-1-order-2',
+      ]);
+      expect(getForceUpdateOrders(state2)).toHaveLength(3);
+      expect(getForceUpdateOrders(state2).map((o) => o.id)).toEqual([
+        'test-56-order-2',
+        'test-1-order-1',
+        'test-1-order-3',
+      ]);
+    });
+
+    it('it should return empty array by default', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              networkConfigurations: {
+                mainnet: {
+                  id: 'mainnet',
+                  rpcUrl: 'https://mainnet.infura.io/v3',
+                  chainId: '0x1',
+                  ticker: 'ETH',
+                  nickname: 'Sepolia network',
+                  rpcPrefs: {
+                    blockExplorerUrl: 'https://etherscan.com',
+                  },
+                },
+              },
+            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
+          },
+        },
+        fiatOrders: {},
+      });
+
+      expect(getForceUpdateOrders(state)).toEqual([]);
     });
   });
 

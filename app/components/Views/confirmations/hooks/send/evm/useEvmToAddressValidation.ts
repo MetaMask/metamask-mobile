@@ -13,11 +13,7 @@ import {
   toChecksumAddress,
 } from '../../../../../../util/address';
 import { doENSLookup } from '../../../../../../util/ENSUtils';
-import {
-  collectConfusables,
-  getConfusablesExplanations,
-  hasZeroWidthPoints,
-} from '../../../../../../util/confusables';
+import { getConfusableCharacterInfo } from '../../../utils/send';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
@@ -107,6 +103,7 @@ const validateENSAddress = async (
 ): Promise<{
   error?: string;
   warning?: string;
+  resolvedAddress?: Hex;
 }> => {
   const resolvedAddress = await doENSLookup(toAddress, chainId);
   // ENS could not be resolved
@@ -114,29 +111,7 @@ const validateENSAddress = async (
     return { error: strings('transaction.could_not_resolve_ens') };
   }
   // ENS resolved but has, confusing character in it
-  const confusableCollection = collectConfusables(toAddress);
-  if (confusableCollection.length) {
-    const invalidAddressMessage = strings('transaction.invalid_address');
-    const confusableCharacterWarningMessage = `${strings(
-      'transaction.confusable_msg',
-    )} - ${getConfusablesExplanations(confusableCollection)}`;
-    const invisibleCharacterWarningMessage = strings(
-      'send.invisible_character_error',
-    );
-    const isError = confusableCollection.some(hasZeroWidthPoints);
-    if (isError) {
-      // Show ERROR for zero-width characters (more important than warning)
-      return {
-        error: invalidAddressMessage,
-        warning: invisibleCharacterWarningMessage,
-      };
-    }
-    // Show WARNING for confusable characters
-    return {
-      warning: confusableCharacterWarningMessage,
-    };
-  }
-  return {};
+  return { ...getConfusableCharacterInfo(toAddress, strings), resolvedAddress };
 };
 
 export const validateToAddress = async ({
@@ -178,18 +153,17 @@ export const validateToAddress = async ({
 export const useEvmToAddressValidation = () => {
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const { chainId } = useSendContext();
+  const { chainId, to } = useSendContext();
 
-  const validateEvmToAddress = useCallback(
-    async (addressInputToValidate: string) =>
-      await validateToAddress({
-        toAddress: addressInputToValidate as Hex,
-        chainId: chainId as Hex,
-        addressBook,
-        internalAccounts,
-      }),
-    [addressBook, chainId, internalAccounts],
-  );
+  const validateEvmToAddress = useCallback(async () => {
+    const result = await validateToAddress({
+      toAddress: to as Hex,
+      chainId: chainId as Hex,
+      addressBook,
+      internalAccounts,
+    });
+    return { ...result, toAddressValidated: to };
+  }, [addressBook, chainId, internalAccounts, to]);
 
   return { validateEvmToAddress };
 };

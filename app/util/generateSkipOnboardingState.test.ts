@@ -12,6 +12,7 @@ import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
 import importAdditionalAccounts from './importAdditionalAccounts';
 import { store } from '../store';
 import Engine from '../core/Engine';
+import { isMultichainAccountsState2Enabled } from '../multichain-accounts/remote-feature-flag';
 
 // Mock all dependencies
 jest.mock('../store/storage-wrapper');
@@ -22,6 +23,7 @@ jest.mock('../actions/multiSrp');
 jest.mock('./importAdditionalAccounts');
 jest.mock('../store');
 jest.mock('../core/Engine');
+jest.mock('../multichain-accounts/remote-feature-flag');
 
 // Type the mocked modules
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
@@ -40,6 +42,10 @@ const mockImportNewSecretRecoveryPhrase =
 const mockImportAdditionalAccounts =
   importAdditionalAccounts as jest.MockedFunction<
     typeof importAdditionalAccounts
+  >;
+const mockIsMultichainAccountsState2Enabled =
+  isMultichainAccountsState2Enabled as jest.MockedFunction<
+    typeof isMultichainAccountsState2Enabled
   >;
 const mockStore = store as jest.Mocked<typeof store>;
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
@@ -61,6 +67,7 @@ describe('generateSkipOnboardingState', () => {
       discoveredAccountsCount: 1,
     });
     mockImportAdditionalAccounts.mockResolvedValue();
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     mockSeedphraseBackedUp.mockReturnValue({ type: 'test' } as never);
     mockStorePrivacyPolicyClickedOrClosed.mockReturnValue({
       type: 'test',

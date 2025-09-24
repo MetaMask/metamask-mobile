@@ -193,5 +193,10 @@ export const SWAP_API_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: TOKEN_API_TOKENS_RESPONSE,
     },
+    {
+      urlEndpoint: 'https://swap.dev-api.cx.metamask.io/networks/1/tokens',
+      responseCode: 200,
+      response: TOKEN_API_TOKENS_RESPONSE,
+    },
   ],
 };

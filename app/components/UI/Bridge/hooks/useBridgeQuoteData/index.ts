@@ -13,7 +13,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import {
+  fromTokenMinimalUnit,
+  isNumberValue,
+} from '../../../../../util/number';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,
@@ -112,7 +115,14 @@ export const useBridgeQuoteData = ({
 
     const { amount, valueInCurrency } = totalNetworkFee;
 
-    if (!amount || !valueInCurrency) return '-';
+    if (
+      amount == null ||
+      valueInCurrency == null ||
+      !isNumberValue(amount) ||
+      !isNumberValue(valueInCurrency)
+    ) {
+      return '-';
+    }
 
     const formattedAmount = `${formatAmount(
       locale,
@@ -154,7 +164,14 @@ export const useBridgeQuoteData = ({
 
     return {
       networkFee: getNetworkFee(),
-      estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
+      estimatedTime:
+        estimatedProcessingTimeInSeconds >= 60
+          ? `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`
+          : `${
+              estimatedProcessingTimeInSeconds >= 1
+                ? `${estimatedProcessingTimeInSeconds} seconds`
+                : '< 1 second'
+            }`,
       rate,
       priceImpact: priceImpactPercentage,
       slippage: slippage ? `${slippage}%` : 'Auto',

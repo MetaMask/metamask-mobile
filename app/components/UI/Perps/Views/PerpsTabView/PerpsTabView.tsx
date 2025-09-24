@@ -1,8 +1,12 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Modal, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import {
+  PerpsPositionsViewSelectorsIDs,
+  PerpsTabViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -21,7 +25,13 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -29,21 +39,16 @@ import {
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
-  usePerpsAccount,
-  usePerpsConnection,
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
-  usePerpsTrading,
-  usePerpsPerformance,
   usePerpsLivePositions,
+  usePerpsPerformance,
 } from '../../hooks';
-import { usePerpsLiveOrders } from '../../hooks/stream';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import PerpsCard from '../../components/PerpsCard';
-import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import styleSheet from './PerpsTabView.styles';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import styleSheet from './PerpsTabView.styles';
+
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 
 interface PerpsTabViewProps {}
 
@@ -51,14 +56,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
-    'eip155:1',
-  );
-  const { getAccountState } = usePerpsTrading();
-  const { isConnected, isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   const hasTrackedHomescreen = useRef(false);
   const { startMeasure, endMeasure } = usePerpsPerformance();
@@ -87,23 +88,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
   }, [startMeasure]);
 
-  // Automatically load account state on mount and when network or account changes
-  useEffect(() => {
-    // Only load account state if we're connected, initialized, and have an EVM account
-    if (isConnected && isInitialized && selectedEvmAccount) {
-      // Fire and forget - errors are already handled in getAccountState
-      // and stored in the controller's state
-      getAccountState();
-    }
-  }, [getAccountState, isConnected, isInitialized, selectedEvmAccount]);
-
   // Track homescreen tab viewed - only once when positions and account are loaded
   useEffect(() => {
     if (
       !hasTrackedHomescreen.current &&
       !isInitialLoading &&
       positions &&
-      cachedAccountState?.totalBalance !== undefined
+      account?.totalBalance !== undefined
     ) {
       // Track position data loaded performance
       endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
@@ -118,20 +109,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
         })),
-        [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: parseFloat(
-          cachedAccountState.totalBalance,
-        ),
       });
 
       hasTrackedHomescreen.current = true;
     }
-  }, [
-    isInitialLoading,
-    positions,
-    cachedAccountState?.totalBalance,
-    track,
-    endMeasure,
-  ]);
+  }, [isInitialLoading, positions, account?.totalBalance, track, endMeasure]);
 
   const handleManageBalancePress = useCallback(() => {
     if (!isEligible) {
@@ -158,10 +140,16 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
+  const coordinatedPress = useCoordinatedPress();
+
+  const memoizedPressHandler = useCallback(() => {
+    coordinatedPress(handleNewTrade);
+  }, [coordinatedPress, handleNewTrade]);
+
   const renderStartTradeCTA = () => (
-    <TouchableOpacity
+    <TouchablePerpsComponent
       style={styles.startTradeCTA}
-      onPress={handleNewTrade}
+      onPress={memoizedPressHandler}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
     >
       <View style={styles.startTradeContent}>
@@ -176,7 +164,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchableOpacity>
+    </TouchablePerpsComponent>
   );
 
   const renderOrdersSection = () => {
@@ -204,12 +192,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const renderPositionsSection = () => {
     if (isInitialLoading) {
+      // Removed loading state as it was redundant to the first loading state and only appeared for very little time
       return (
-        <View style={styles.loadingContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
-            {strings('perps.position.list.loading')}
-          </Text>
-        </View>
+        <Skeleton height={30} width="100%" style={styles.loadingContainer} />
       );
     }
 
@@ -220,14 +205,36 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     return (
       <>
         <View style={styles.sectionHeader}>
-          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            style={styles.sectionTitle}
+            testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION_TITLE}
+          >
             {strings('perps.position.title')}
           </Text>
         </View>
         <View>
-          {positions.map((position, index) => (
-            <PerpsCard key={`${position.coin}-${index}`} position={position} />
-          ))}
+          {positions.map((position, index) => {
+            const sizeValue = parseFloat(position.size);
+            const directionSegment = Number.isFinite(sizeValue)
+              ? sizeValue > 0
+                ? 'long'
+                : sizeValue < 0
+                ? 'short'
+                : 'unknown'
+              : 'unknown';
+            return (
+              <View
+                key={`${position.coin}-${index}`}
+                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+              >
+                <PerpsCard
+                  key={`${position.coin}-${index}`}
+                  position={position}
+                />
+              </View>
+            );
+          })}
           {renderStartTradeCTA()}
         </View>
       </>
@@ -242,50 +249,49 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-        >
-          {!isInitialLoading && hasNoPositionsOrOrders ? (
-            <View style={styles.firstTimeContent}>
-              <View style={styles.firstTimeContainer}>
-                <Icon
-                  name={IconName.Details}
-                  color={IconColor.Muted}
-                  size={firstTimeUserIconSize}
-                  style={styles.firstTimeIcon}
-                />
-                <Text
-                  variant={TextVariant.HeadingMD}
-                  color={TextColor.Default}
-                  style={styles.firstTimeTitle}
-                >
-                  {strings('perps.position.list.first_time_title')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Muted}
-                  style={styles.firstTimeDescription}
-                >
-                  {strings('perps.position.list.first_time_description')}
-                </Text>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  label={strings('perps.position.list.start_trading')}
-                  onPress={handleNewTrade}
-                  style={styles.startTradingButton}
-                  width={ButtonWidthTypes.Full}
-                />
+        <View style={styles.content}>
+          <View style={styles.contentContainer}>
+            {!isInitialLoading && hasNoPositionsOrOrders ? (
+              <View style={styles.firstTimeContent}>
+                <View style={styles.firstTimeContainer}>
+                  <Icon
+                    name={IconName.Details}
+                    color={IconColor.Muted}
+                    size={firstTimeUserIconSize}
+                    style={styles.firstTimeIcon}
+                  />
+                  <Text
+                    variant={TextVariant.HeadingMD}
+                    color={TextColor.Default}
+                    style={styles.firstTimeTitle}
+                  >
+                    {strings('perps.position.list.first_time_title')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.firstTimeDescription}
+                  >
+                    {strings('perps.position.list.first_time_description')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    size={ButtonSize.Lg}
+                    label={strings('perps.position.list.start_trading')}
+                    onPress={handleNewTrade}
+                    style={styles.startTradingButton}
+                    width={ButtonWidthTypes.Full}
+                  />
+                </View>
               </View>
-            </View>
-          ) : (
-            <View style={styles.tradeInfoContainer}>
-              <View style={styles.section}>{renderPositionsSection()}</View>
-              <View style={styles.section}>{renderOrdersSection()}</View>
-            </View>
-          )}
-        </ScrollView>
+            ) : (
+              <View style={styles.tradeInfoContainer}>
+                <View style={styles.section}>{renderPositionsSection()}</View>
+                <View style={styles.section}>{renderOrdersSection()}</View>
+              </View>
+            )}
+          </View>
+        </View>
         {isEligibilityModalVisible && (
           <Modal visible transparent animationType="none" statusBarTranslucent>
             <PerpsBottomSheetTooltip

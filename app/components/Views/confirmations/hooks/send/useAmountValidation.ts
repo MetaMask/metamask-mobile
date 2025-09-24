@@ -2,7 +2,11 @@ import BN from 'bnjs4';
 import { useMemo } from 'react';
 
 import { strings } from '../../../../../../locales/i18n';
-import { isDecimal, toTokenMinimalUnit } from '../../../../../util/number';
+import {
+  isValidPositiveNumericString,
+  toTokenMinimalUnit,
+} from '../../utils/send';
+
 import { Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { useBalance } from './useBalance';
@@ -36,7 +40,7 @@ export const useAmountValidation = () => {
     if (value === undefined || value === null || value === '') {
       return undefined;
     }
-    if (!isDecimal(value) || Number(value) < 0) {
+    if (!isValidPositiveNumericString(value)) {
       return strings('send.invalid_value');
     }
     return validateTokenBalance(value, decimals, rawBalanceBN);

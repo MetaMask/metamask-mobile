@@ -1,6 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ReturnToAppModal renders correctly 1`] = `
+exports[`ReturnToAppModal renders correctly iwth default message 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+/>
+`;
+
+exports[`ReturnToAppModal renders correctly with specific post network switch message 1`] = `
 <RNCSafeAreaProvider
   onInsetsChange={[Function]}
   style={

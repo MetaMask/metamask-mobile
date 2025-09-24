@@ -35,8 +35,10 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       overflow: 'hidden' as const,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
     }),
-    [size, colors.background.default],
+    [size, colors],
   );
 
   const loadingContainerStyle: ViewStyle = useMemo(

@@ -77,6 +77,14 @@ jest.mock('../../../../util/trace', () => ({
   },
 }));
 
+// Mock react-native-performance
+jest.mock('react-native-performance', () => {
+  const moduleStartTime = Date.now();
+  return {
+    now: jest.fn(() => Date.now() - moduleStartTime), // Returns elapsed time since module load
+  };
+});
+
 // Mock Sentry
 jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
@@ -809,9 +817,19 @@ describe('HyperLiquidSubscriptionService', () => {
     it('should calculate subscription duration correctly using performance.now()', async () => {
       const mockCallback = jest.fn();
       const traceModule = jest.requireMock('../../../../util/trace');
+      const performanceModule = jest.requireMock('react-native-performance');
 
       // Clear previous calls
       traceModule.endTrace.mockClear();
+
+      // Reset the performance mock to ensure clean state
+      let callCount = 0;
+      performanceModule.now.mockImplementation(() => {
+        callCount++;
+        // First call (subscription start): return 0
+        // Second call (unsubscribe): return 50 to simulate 50ms elapsed
+        return callCount === 1 ? 0 : 50;
+      });
 
       const unsubscribe = await service.subscribeToPrices({
         symbols: ['BTC'],
@@ -819,7 +837,7 @@ describe('HyperLiquidSubscriptionService', () => {
       });
 
       // Wait a bit to simulate subscription time
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Unsubscribe to trigger endTrace
       unsubscribe();
@@ -838,10 +856,8 @@ describe('HyperLiquidSubscriptionService', () => {
       // The duration should be a positive number (not negative from Date.now() - performance.now())
       const endTraceCall = traceModule.endTrace.mock.calls[0][0];
       expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThan(0);
-      // Should be at least 50ms since we waited that long
-      expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThanOrEqual(
-        40,
-      ); // Allow some margin
+      // Should be exactly 50ms based on our mock
+      expect(endTraceCall.data.subscription_duration_ms).toBe(50);
     });
   });
 
@@ -1286,6 +1302,534 @@ describe('HyperLiquidSubscriptionService', () => {
           }),
         ]),
       );
+
+      unsubscribe();
+    });
+  });
+
+  describe('TP/SL Order Processing', () => {
+    it('should process Take Profit orders correctly', async () => {
+      const mockCallback = jest.fn();
+
+      // Mock webData2 with TP/SL trigger orders
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '1.0', coin: 'BTC' },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+              openOrders: [
+                {
+                  oid: 123,
+                  coin: 'BTC',
+                  side: 'S', // Sell order (opposite of long position)
+                  sz: '1.0',
+                  triggerPx: '55000', // Take profit trigger price
+                  orderType: 'Take Profit',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should receive position with takeProfitPrice set
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+          takeProfitCount: 1,
+          stopLossCount: 0,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('should process Stop Loss orders correctly', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '1.0', coin: 'BTC' },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+              openOrders: [
+                {
+                  oid: 124,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '45000', // Stop loss trigger price
+                  orderType: 'Stop',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should receive position with stopLossPrice set
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'BTC',
+          stopLossPrice: '45000',
+          takeProfitCount: 0,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('should handle multiple TP/SL orders for same position', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '2.0', coin: 'BTC' },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+              openOrders: [
+                {
+                  oid: 125,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '55000',
+                  orderType: 'Take Profit',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+                {
+                  oid: 126,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '56000',
+                  orderType: 'Take Profit',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+                {
+                  oid: 127,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '0.5',
+                  triggerPx: '45000',
+                  orderType: 'Stop',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should receive position with correct counts but only last TP/SL prices
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'BTC',
+          takeProfitCount: 2,
+          stopLossCount: 1,
+          // Should have the last processed prices
+          takeProfitPrice: expect.any(String),
+          stopLossPrice: '45000',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('should fallback to price-based TP/SL detection when orderType is ambiguous', async () => {
+      const mockCallback = jest.fn();
+
+      // Mock the adapter to include entryPrice before setting up webData2 mock
+      const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
+      mockAdapter.adaptPositionFromSDK.mockImplementationOnce(() => ({
+        coin: 'BTC',
+        size: '1.0',
+        entryPrice: '50000',
+        positionValue: '50000',
+        unrealizedPnl: '5000',
+        marginUsed: '25000',
+        leverage: { type: 'cross', value: 2 },
+        liquidationPrice: '40000',
+        maxLeverage: 100,
+        returnOnEquity: '10.0',
+        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      }));
+
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: {
+                      szi: '1.0',
+                      coin: 'BTC',
+                      entryPrice: '50000', // Entry price for comparison
+                    },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+              openOrders: [
+                {
+                  oid: 128,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '55000', // Above entry price = Take Profit for long
+                  orderType: 'Trigger', // Ambiguous order type
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+                {
+                  oid: 129,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '45000', // Below entry price = Stop Loss for long
+                  orderType: 'Trigger', // Ambiguous order type
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should correctly identify TP/SL based on trigger price vs entry price
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'BTC',
+          takeProfitPrice: '55000', // Above entry price
+          stopLossPrice: '45000', // Below entry price
+          takeProfitCount: 0, // Count is handled separately in the service
+          stopLossCount: 0, // Count is handled separately in the service
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('should handle short position TP/SL logic correctly', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: {
+                      szi: '-1.0', // Short position (negative size)
+                      coin: 'BTC',
+                      entryPrice: '50000',
+                    },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+              openOrders: [
+                {
+                  oid: 130,
+                  coin: 'BTC',
+                  side: 'B', // Buy order (opposite of short position)
+                  sz: '1.0',
+                  triggerPx: '45000', // Below entry price = Take Profit for short
+                  orderType: 'Trigger',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+                {
+                  oid: 131,
+                  coin: 'BTC',
+                  side: 'B',
+                  sz: '1.0',
+                  triggerPx: '55000', // Above entry price = Stop Loss for short
+                  orderType: 'Trigger',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      // Mock the adapter for short position
+      const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
+      mockAdapter.adaptPositionFromSDK.mockImplementationOnce(() => ({
+        coin: 'BTC',
+        size: '-1.0', // Short position
+        entryPrice: '50000',
+        positionValue: '50000',
+        unrealizedPnl: '5000',
+        marginUsed: '25000',
+        leverage: { type: 'cross', value: 2 },
+        liquidationPrice: '60000',
+        maxLeverage: 100,
+        returnOnEquity: '10.0',
+        cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
+      }));
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // For short positions: TP when trigger < entry, SL when trigger > entry
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'BTC',
+          takeProfitPrice: '45000', // Below entry price for short
+          stopLossPrice: '55000', // Above entry price for short
+          takeProfitCount: 0, // Count is handled separately in the service
+          stopLossCount: 0, // Count is handled separately in the service
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('should include TP/SL orders in the orders list', async () => {
+      const mockCallback = jest.fn();
+
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '1.0', coin: 'BTC' },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+              openOrders: [
+                {
+                  oid: 132,
+                  coin: 'BTC',
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '55000',
+                  orderType: 'Take Profit',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+                {
+                  oid: 133,
+                  coin: 'BTC',
+                  side: 'B',
+                  sz: '0.5',
+                  limitPx: '49000',
+                  orderType: 'Limit',
+                  reduceOnly: false,
+                  isPositionTpsl: false,
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToOrders({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should include both TP/SL and regular orders
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: '132',
+          symbol: 'BTC',
+          detailedOrderType: 'Take Profit',
+        }),
+        expect.objectContaining({
+          orderId: '133',
+          symbol: 'BTC',
+          detailedOrderType: 'Limit',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('should handle positions without matching TP/SL orders', async () => {
+      const mockCallback = jest.fn();
+
+      // Mock the adapter to return both positions
+      const mockAdapter = jest.requireMock('../utils/hyperLiquidAdapter');
+      mockAdapter.adaptPositionFromSDK
+        .mockImplementationOnce((_assetPos: any) => ({
+          coin: 'BTC',
+          size: '1.0',
+          entryPrice: '50000',
+          positionValue: '50000',
+          unrealizedPnl: '5000',
+          marginUsed: '25000',
+          leverage: { type: 'cross', value: 2 },
+          liquidationPrice: '40000',
+          maxLeverage: 100,
+          returnOnEquity: '10.0',
+          cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        }))
+        .mockImplementationOnce(() => ({
+          coin: 'ETH',
+          size: '2.0',
+          entryPrice: '3000',
+          positionValue: '6000',
+          unrealizedPnl: '1000',
+          marginUsed: '3000',
+          leverage: { type: 'isolated', value: 2 },
+          liquidationPrice: '2500',
+          maxLeverage: 50,
+          returnOnEquity: '16.7',
+          cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        }));
+
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '1.0', coin: 'BTC' },
+                    coin: 'BTC',
+                  },
+                  {
+                    position: { szi: '2.0', coin: 'ETH' },
+                    coin: 'ETH',
+                  },
+                ],
+              },
+              openOrders: [
+                {
+                  oid: 134,
+                  coin: 'BTC', // Only BTC has TP/SL orders
+                  side: 'S',
+                  sz: '1.0',
+                  triggerPx: '55000',
+                  orderType: 'Take Profit',
+                  reduceOnly: true,
+                  isPositionTpsl: true,
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: mockCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should handle positions with and without TP/SL
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'BTC',
+          takeProfitPrice: '55000',
+          takeProfitCount: 1,
+          stopLossCount: 0,
+        }),
+        expect.objectContaining({
+          coin: 'ETH',
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        }),
+      ]);
 
       unsubscribe();
     });

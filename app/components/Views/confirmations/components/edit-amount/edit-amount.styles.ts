@@ -41,6 +41,11 @@ const styleSheet = (params: {
         ? params.theme.colors.error.default
         : params.theme.colors.text.default,
     },
+    alertMessage: {
+      textAlign: 'center',
+      marginTop: 16,
+      color: params.theme.colors.error.default,
+    },
   });
 
 export default styleSheet;

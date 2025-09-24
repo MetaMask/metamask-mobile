@@ -1,4 +1,3 @@
-import { renderHook } from '@testing-library/react-native';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
@@ -8,25 +7,32 @@ import { useInsufficientPayTokenNativeAlert } from './useInsufficientPayTokenNat
 import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { selectTickerByChainId } from '../../../../../selectors/networkController';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionTotalFiat');
 jest.mock('../tokens/useTokenWithBalance');
+jest.mock('../../../../../selectors/networkController');
 
 const CHAIN_ID_MOCK = '0x123';
 const BALANCE_FIAT = 123.45;
+const TICKER_MOCK = 'TST';
 
 function runHook() {
-  return renderHook(() => useInsufficientPayTokenNativeAlert());
+  return renderHookWithProvider(() => useInsufficientPayTokenNativeAlert());
 }
 
 describe('useInsufficientPayTokenNativeAlert', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionTotalFiatMock = jest.mocked(useTransactionTotalFiat);
   const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
+  const selectTickerByChainIdMock = jest.mocked(selectTickerByChainId);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    selectTickerByChainIdMock.mockReturnValue(TICKER_MOCK);
   });
 
   it('returns alert if native balance less than quote network fees', () => {
@@ -50,7 +56,9 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       {
         key: AlertKeys.InsufficientPayTokenNative,
         field: RowAlertKey.PayWith,
-        message: strings('alert_system.insufficient_pay_token_native.message'),
+        message: strings('alert_system.insufficient_pay_token_native.message', {
+          ticker: TICKER_MOCK,
+        }),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -79,7 +87,9 @@ describe('useInsufficientPayTokenNativeAlert', () => {
       {
         key: AlertKeys.InsufficientPayTokenNative,
         field: RowAlertKey.PayWith,
-        message: strings('alert_system.insufficient_pay_token_native.message'),
+        message: strings('alert_system.insufficient_pay_token_native.message', {
+          ticker: TICKER_MOCK,
+        }),
         severity: Severity.Danger,
         isBlocking: true,
       },

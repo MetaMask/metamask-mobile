@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -36,6 +37,7 @@ import {
   selectIsSolanaSourced,
   selectBridgeViewMode,
   setBridgeViewMode,
+  selectNoFeeAssets,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -67,10 +69,12 @@ import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import AppConstants from '../../../../../core/AppConstants';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
+import ApprovalText from '../../components/ApprovalText';
+import { BigNumber } from 'bignumber.js';
+import { RootState } from '../../../../../reducers/index.ts';
 import { QuoteMetadata } from '@metamask/bridge-controller';
 
 export interface BridgeRouteParams {
@@ -112,6 +116,9 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
+  const noFeeDestAssets = useSelector((state: RootState) =>
+    selectNoFeeAssets(state, destToken?.chainId),
+  );
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -293,16 +300,6 @@ const BridgeView = () => {
     }
   };
 
-  const handleTermsPress = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.TERMS_AND_CONDITIONS,
-        title: strings('bridge.terms_and_conditions'),
-      },
-    });
-  };
-
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
@@ -370,6 +367,13 @@ const BridgeView = () => {
       );
     }
 
+    const hasFee =
+      activeQuote &&
+      new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0);
+
+    const isNoFeeDestinationAsset =
+      destToken?.address && noFeeDestAssets?.includes(destToken.address);
+
     return (
       activeQuote &&
       quotesLastFetched && (
@@ -394,6 +398,7 @@ const BridgeView = () => {
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
+            testID="bridge-confirm-button"
             isDisabled={
               hasInsufficientBalance ||
               isSubmittingTx ||
@@ -402,15 +407,29 @@ const BridgeView = () => {
               !hasSufficientGas
             }
           />
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Primary}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
+          {hasFee ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.fee_disclaimer')}
+            </Text>
+          ) : null}
+          {!hasFee && isNoFeeDestinationAsset ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.no_mm_fee_disclaimer', {
+                destTokenSymbol: destToken?.symbol,
+              })}
+            </Text>
+          ) : null}
+          {activeQuote?.approval && sourceAmount && sourceToken && (
+            <ApprovalText amount={sourceAmount} symbol={sourceToken.symbol} />
+          )}
         </Box>
       )
     );
@@ -446,6 +465,7 @@ const BridgeView = () => {
               }
             }}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
+            isSourceToken
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>

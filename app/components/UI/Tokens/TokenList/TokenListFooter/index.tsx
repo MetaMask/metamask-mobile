@@ -19,9 +19,9 @@ import {
 } from '../../../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
-import Routes from '../../../../../constants/navigation/Routes';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
+import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
 
 export const TokenListFooter = () => {
   const chainId = useSelector(selectChainId);
@@ -36,7 +36,7 @@ export const TokenListFooter = () => {
     selectedAccountMultichainBalance?.totalFiatBalance === 0;
 
   const goToDeposit = () => {
-    navigation.navigate(Routes.DEPOSIT.ID);
+    navigation.navigate(...createDepositNavigationDetails());
 
     trackEvent(
       createEventBuilder(

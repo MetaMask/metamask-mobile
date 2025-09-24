@@ -3,6 +3,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { RampSDK } from '../sdk';
 import useCryptoCurrencies from './useCryptoCurrencies';
 import useSDKMethod from './useSDKMethod';
+import { NetworkStatus } from '@metamask/network-controller';
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
@@ -28,6 +29,53 @@ jest.mock('../sdk', () => ({
 
 jest.mock('./useSDKMethod');
 
+const mockNetworkState = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1' as `0x${string}`,
+            name: 'Ethereum Mainnet',
+            rpcEndpoints: [
+              {
+                url: 'https://mainnet.infura.io/v3',
+                networkClientId: 'mainnet',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            nativeCurrency: 'ETH',
+          },
+          '0x89': {
+            chainId: '0x89' as `0x${string}`,
+            name: 'Polygon',
+            rpcEndpoints: [
+              {
+                url: 'https://polygon-rpc.com',
+                networkClientId: 'polygon',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            nativeCurrency: 'MATIC',
+          },
+        },
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: {
+            status: NetworkStatus.Available,
+          },
+          polygon: {
+            status: NetworkStatus.Available,
+          },
+        },
+      },
+      MultichainNetworkController: {
+        multichainNetworkConfigurationsByChainId: {},
+      },
+    },
+  },
+};
+
 describe('useCryptoCurrencies', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -46,7 +94,9 @@ describe('useCryptoCurrencies', () => {
       jest.fn(),
     ]);
 
-    renderHookWithProvider(() => useCryptoCurrencies());
+    renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getCryptoCurrencies',
@@ -67,7 +117,9 @@ describe('useCryptoCurrencies', () => {
       jest.fn(),
     ]);
 
-    renderHookWithProvider(() => useCryptoCurrencies());
+    renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getSellCryptoCurrencies',
@@ -88,7 +140,9 @@ describe('useCryptoCurrencies', () => {
       mockQueryGetCryptoCurrencies,
     ]);
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(result.current).toEqual({
       cryptoCurrencies: null,
@@ -109,7 +163,9 @@ describe('useCryptoCurrencies', () => {
       mockQueryGetCryptoCurrencies,
     ]);
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(result.current).toEqual({
       cryptoCurrencies: null,
@@ -119,13 +175,14 @@ describe('useCryptoCurrencies', () => {
     });
   });
 
-  it('filters list by selectedChainId', () => {
+  it('filters list by available network configurations', () => {
     const mockQueryGetCryptoCurrencies = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
         data: [
           { network: { chainId: '1' }, address: 'test-address-1' },
-          { network: { chainId: '2' }, address: 'test-address-2' },
+          { network: { chainId: '137' }, address: 'test-address-2' },
+          { network: { chainId: '999' }, address: 'test-address-3' }, // Not in network configs
         ],
         error: null,
         isFetching: false,
@@ -133,26 +190,14 @@ describe('useCryptoCurrencies', () => {
       mockQueryGetCryptoCurrencies,
     ]);
 
-    mockUseRampSDKValues.selectedChainId = '2';
-
-    const { result, rerender } = renderHookWithProvider(() =>
-      useCryptoCurrencies(),
-    );
-
-    expect(result.current).toEqual({
-      cryptoCurrencies: [
-        { network: { chainId: '2' }, address: 'test-address-2' },
-      ],
-      errorCryptoCurrencies: null,
-      isFetchingCryptoCurrencies: false,
-      queryGetCryptoCurrencies: mockQueryGetCryptoCurrencies,
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
     });
 
-    mockUseRampSDKValues.selectedChainId = '1';
-    rerender({});
     expect(result.current).toEqual({
       cryptoCurrencies: [
         { network: { chainId: '1' }, address: 'test-address-1' },
+        { network: { chainId: '137' }, address: 'test-address-2' },
       ],
       errorCryptoCurrencies: null,
       isFetchingCryptoCurrencies: false,
@@ -179,7 +224,9 @@ describe('useCryptoCurrencies', () => {
       address: 'test-address-2',
     };
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(mockUseRampSDKValues.setSelectedAsset).not.toHaveBeenCalled();
     expect(result.current).toEqual({
@@ -208,7 +255,9 @@ describe('useCryptoCurrencies', () => {
       mockQueryGetCryptoCurrencies,
     ]);
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(mockUseRampSDKValues.setSelectedAsset).toHaveBeenCalledWith({
       network: { chainId: '1' },
@@ -246,7 +295,9 @@ describe('useCryptoCurrencies', () => {
       address: 'test-address-3',
     };
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(mockUseRampSDKValues.setSelectedAsset).toHaveBeenCalledWith({
       network: { chainId: '1' },
@@ -278,7 +329,9 @@ describe('useCryptoCurrencies', () => {
       mockQueryGetCryptoCurrencies,
     ]);
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(mockUseRampSDKValues.setSelectedAsset).toHaveBeenCalledWith({
       network: { chainId: '1' },
@@ -314,7 +367,9 @@ describe('useCryptoCurrencies', () => {
       address: 'test-address-3',
     };
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(mockUseRampSDKValues.setSelectedAsset).toHaveBeenCalledWith({
       network: { chainId: '1' },
@@ -342,7 +397,9 @@ describe('useCryptoCurrencies', () => {
       mockQueryGetCryptoCurrencies,
     ]);
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(mockUseRampSDKValues.setSelectedAsset).toHaveBeenCalledWith(
       undefined,
@@ -378,7 +435,9 @@ describe('useCryptoCurrencies', () => {
     const mockedIntent = { address: 'test-address-2' };
     mockUseRampSDKValues.intent = mockedIntent;
 
-    const { result } = renderHookWithProvider(() => useCryptoCurrencies());
+    const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {
+      state: mockNetworkState,
+    });
 
     expect(mockUseRampSDKValues.setSelectedAsset).toHaveBeenCalledWith({
       network: { chainId: '1' },

@@ -76,6 +76,9 @@ const mockGetTimeDifferenceFromNow =
     typeof getTimeDifferenceFromNow
   >;
 
+// Import types
+import { SeasonTierDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -126,7 +129,7 @@ jest.mock('react-native-progress/Bar', () => {
 });
 
 // Mock SVG component
-jest.mock('../../../../../images/metamask-rewards-points.svg', () => {
+jest.mock('../../../../../images/rewards/metamask-rewards-points.svg', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return ReactActual.forwardRef(
@@ -151,28 +154,40 @@ jest.mock('../../../../../component-library/components/Skeleton', () => ({
   },
 }));
 
-// Mock SeasonTierImage
-jest.mock('../SeasonTierImage', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return ReactActual.forwardRef(
-    (
-      { tierOrder, testID, ...props }: { tierOrder?: number; testID?: string },
-      ref: unknown,
-    ) =>
-      ReactActual.createElement(View, {
-        testID: testID || 'season-tier-image',
-        ref,
-        'data-tier-order': tierOrder,
-        ...props,
-      }),
-  );
+// Mock lodash capitalize but preserve the rest of lodash
+jest.mock('lodash', () => {
+  const actual = jest.requireActual('lodash');
+  return {
+    ...actual,
+    capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
+  };
 });
 
-// Mock lodash capitalize
-jest.mock('lodash', () => ({
-  capitalize: jest.fn((str) => str?.charAt(0).toUpperCase() + str?.slice(1)),
-}));
+// Mock RewardsThemeImageComponent
+jest.mock('../ThemeImageComponent', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      (
+        props: {
+          themeImage?: { lightModeUrl?: string; darkModeUrl?: string };
+          style?: unknown;
+          testID?: string;
+        },
+        ref: unknown,
+      ) =>
+        ReactActual.createElement(View, {
+          testID: props.testID || 'season-tier-image',
+          'data-light-mode-url': props.themeImage?.lightModeUrl,
+          'data-dark-mode-url': props.themeImage?.darkModeUrl,
+          style: props.style,
+          ref,
+        }),
+    ),
+  };
+});
 
 describe('SeasonStatus', () => {
   // Default mock values
@@ -181,13 +196,63 @@ describe('SeasonStatus', () => {
     seasonStartDate: new Date('2024-01-01T00:00:00Z'),
     seasonEndDate: new Date('2024-12-31T23:59:59Z'),
     balanceTotal: 1500,
-    currentTier: { id: 'bronze', name: 'bronze', pointsNeeded: 0 },
-    nextTier: { id: 'silver', name: 'silver', pointsNeeded: 2000 },
+    currentTier: {
+      id: 'bronze',
+      name: 'bronze',
+      pointsNeeded: 0,
+      image: {
+        lightModeUrl: 'lightModeUrl',
+        darkModeUrl: 'darkModeUrl',
+      },
+      levelNumber: 'Level 1',
+      rewards: [],
+    },
+    nextTier: {
+      id: 'silver',
+      name: 'silver',
+      pointsNeeded: 2000,
+      image: {
+        lightModeUrl: 'lightModeUrl',
+        darkModeUrl: 'darkModeUrl',
+      },
+      levelNumber: 'Level 2',
+      rewards: [],
+    },
     nextTierPointsNeeded: 500,
     seasonTiers: [
-      { id: 'bronze', name: 'bronze', pointsNeeded: 0 },
-      { id: 'silver', name: 'silver', pointsNeeded: 2000 },
-      { id: 'gold', name: 'gold', pointsNeeded: 5000 },
+      {
+        id: 'bronze',
+        name: 'bronze',
+        pointsNeeded: 0,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 1',
+        rewards: [],
+      },
+      {
+        id: 'silver',
+        name: 'silver',
+        pointsNeeded: 2000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 2',
+        rewards: [],
+      },
+      {
+        id: 'gold',
+        name: 'gold',
+        pointsNeeded: 5000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 3',
+        rewards: [],
+      },
     ],
   };
 
@@ -237,15 +302,6 @@ describe('SeasonStatus', () => {
       expect(getByTestId('skeleton')).toBeTruthy();
       expect(queryByText('Level')).toBeNull();
     });
-
-    it('should render skeleton when seasonStartDate is null', () => {
-      mockSelectSeasonStartDate.mockReturnValue(null);
-
-      const { getByTestId, queryByText } = render(<SeasonStatus />);
-
-      expect(getByTestId('skeleton')).toBeTruthy();
-      expect(queryByText('Level')).toBeNull();
-    });
   });
 
   describe('Basic Rendering', () => {
@@ -256,25 +312,11 @@ describe('SeasonStatus', () => {
       expect(getByText('Bronze')).toBeTruthy();
       expect(getByText('Season ends')).toBeTruthy();
       expect(getByText('15d 10h')).toBeTruthy();
-      expect(getByText('1,500 points')).toBeTruthy();
+      expect(getByText('1,500')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
       expect(getByText('500 to level up')).toBeTruthy();
       expect(getByTestId('season-tier-image')).toBeTruthy();
       expect(getByTestId('metamask-rewards-points-svg')).toBeTruthy();
-    });
-
-    it('should render correct tier order for different tiers', () => {
-      // Test silver tier (2nd in array)
-      mockSelectCurrentTier.mockReturnValue({
-        id: 'silver',
-        name: 'silver',
-        pointsNeeded: 2000,
-      });
-
-      const { getByText, getByTestId } = render(<SeasonStatus />);
-
-      expect(getByText('Level 2')).toBeTruthy();
-      expect(getByText('Silver')).toBeTruthy();
-      expect(getByTestId('season-tier-image')).toHaveProp('data-tier-order', 2);
     });
 
     it('should capitalize tier names correctly', () => {
@@ -282,6 +324,12 @@ describe('SeasonStatus', () => {
         id: 'gold',
         name: 'gold',
         pointsNeeded: 5000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 3',
+        rewards: [],
       });
 
       const { getByText } = render(<SeasonStatus />);
@@ -298,6 +346,12 @@ describe('SeasonStatus', () => {
         id: 'silver',
         name: 'silver',
         pointsNeeded: 2000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 2',
+        rewards: [],
       });
 
       // When: component renders
@@ -385,7 +439,8 @@ describe('SeasonStatus', () => {
 
       const { getByText } = render(<SeasonStatus />);
 
-      expect(getByText('1,500 points')).toBeTruthy();
+      expect(getByText('1,500')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
     });
 
     it('should display singular "point" for single point', () => {
@@ -393,7 +448,8 @@ describe('SeasonStatus', () => {
 
       const { getByText } = render(<SeasonStatus />);
 
-      expect(getByText('1 point')).toBeTruthy();
+      expect(getByText('1')).toBeTruthy();
+      expect(getByText('point')).toBeTruthy();
     });
 
     it('should display "0 points" when balance is null', () => {
@@ -401,7 +457,8 @@ describe('SeasonStatus', () => {
 
       const { getByText } = render(<SeasonStatus />);
 
-      expect(getByText('0 points')).toBeTruthy();
+      expect(getByText('0')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
     });
 
     it('should display "0 points" when balance is undefined', () => {
@@ -409,7 +466,8 @@ describe('SeasonStatus', () => {
 
       const { getByText } = render(<SeasonStatus />);
 
-      expect(getByText('0 points')).toBeTruthy();
+      expect(getByText('0')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
     });
 
     it('should handle formatting errors gracefully', () => {
@@ -423,7 +481,8 @@ describe('SeasonStatus', () => {
       const { getByText } = render(<SeasonStatus />);
 
       // Then: fallback to string conversion is used
-      expect(getByText('1500 points')).toBeTruthy();
+      expect(getByText('1500')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
 
       // Cleanup: restore normal formatter behavior
       mockIntlFormatter.format.mockImplementation((value) =>
@@ -470,18 +529,92 @@ describe('SeasonStatus', () => {
     });
   });
 
+  describe('RewardsThemeImageComponent Integration', () => {
+    it('should render RewardsThemeImageComponent with correct testID when tier has image', () => {
+      const { getByTestId } = render(<SeasonStatus />);
+
+      expect(getByTestId('season-tier-image')).toBeTruthy();
+    });
+
+    it('should pass correct themeImage prop to RewardsThemeImageComponent', () => {
+      const { getByTestId } = render(<SeasonStatus />);
+
+      const tierImage = getByTestId('season-tier-image');
+      expect(tierImage.props['data-light-mode-url']).toBe('lightModeUrl');
+      expect(tierImage.props['data-dark-mode-url']).toBe('darkModeUrl');
+    });
+
+    it('should pass correct style prop to RewardsThemeImageComponent', () => {
+      const { getByTestId } = render(<SeasonStatus />);
+
+      const tierImage = getByTestId('season-tier-image');
+      expect(tierImage.props.style).toBeDefined();
+    });
+
+    it('should render fallback Image when tier has no image', () => {
+      // Given: tier without image
+      mockSelectCurrentTier.mockReturnValue({
+        id: 'bronze',
+        name: 'bronze',
+        pointsNeeded: 0,
+        image: undefined,
+        levelNumber: 'Level 1',
+        rewards: [],
+      } as unknown as SeasonTierDto);
+
+      const { queryByTestId } = render(<SeasonStatus />);
+
+      // RewardsThemeImageComponent should not be rendered
+      expect(queryByTestId('season-tier-image')).toBeNull();
+    });
+
+    it('should render RewardsThemeImageComponent with updated image when tier changes', () => {
+      // Given: initial tier with image
+      const { getByTestId, rerender } = render(<SeasonStatus />);
+      const initialTierImage = getByTestId('season-tier-image');
+      expect(initialTierImage.props['data-light-mode-url']).toBe(
+        'lightModeUrl',
+      );
+
+      // When: tier changes to different image URLs
+      mockSelectCurrentTier.mockReturnValue({
+        id: 'silver',
+        name: 'silver',
+        pointsNeeded: 2000,
+        image: {
+          lightModeUrl: 'newLightModeUrl',
+          darkModeUrl: 'newDarkModeUrl',
+        },
+        levelNumber: 'Level 2',
+        rewards: [],
+      });
+      rerender(<SeasonStatus />);
+
+      // Then: new image URLs are used
+      const updatedTierImage = getByTestId('season-tier-image');
+      expect(updatedTierImage.props['data-light-mode-url']).toBe(
+        'newLightModeUrl',
+      );
+      expect(updatedTierImage.props['data-dark-mode-url']).toBe(
+        'newDarkModeUrl',
+      );
+    });
+  });
+
   describe('Memoized Values', () => {
     it('should update displayed points when balance changes', () => {
       // Given: initial balance of 1500
       const { getByText, rerender } = render(<SeasonStatus />);
-      expect(getByText('1,500 points')).toBeTruthy();
+      expect(getByText('1,500')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
 
       // When: balance changes to 1000
       mockSelectBalanceTotal.mockReturnValue(1000);
       rerender(<SeasonStatus />);
 
       // Then: new balance is displayed
-      expect(getByText('1,000 points')).toBeTruthy();
+      expect(getByText('1,000')).toBeTruthy();
+      expect(getByText('points')).toBeTruthy();
     });
 
     it('should update time remaining when seasonEndDate changes', () => {
@@ -513,6 +646,12 @@ describe('SeasonStatus', () => {
         id: 'gold',
         name: 'gold',
         pointsNeeded: 5000,
+        image: {
+          lightModeUrl: 'lightModeUrl',
+          darkModeUrl: 'darkModeUrl',
+        },
+        levelNumber: 'Level 3',
+        rewards: [],
       });
       rerender(<SeasonStatus />);
 
