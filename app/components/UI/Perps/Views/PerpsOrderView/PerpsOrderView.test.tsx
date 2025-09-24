@@ -215,12 +215,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
   usePerpsRewards: jest.fn(() => ({
     shouldShowRewardsRow: false,
     isLoading: false,

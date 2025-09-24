@@ -1,25 +1,24 @@
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { fireEvent, waitFor, render } from '@testing-library/react-native';
-import { noop } from 'lodash';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import PerpsClosePositionView from './PerpsClosePositionView';
-import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
+import { Text, TouchableOpacity, View } from 'react-native';
 import {
-  defaultPerpsPositionMock,
+  PerpsAmountDisplaySelectorsIDs,
+  PerpsClosePositionViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import {
+  defaultMinimumOrderAmountMock,
+  defaultPerpsClosePositionMock,
+  defaultPerpsClosePositionValidationMock,
+  defaultPerpsEventTrackingMock,
   defaultPerpsLivePricesMock,
   defaultPerpsOrderFeesMock,
-  defaultPerpsClosePositionValidationMock,
-  defaultPerpsClosePositionMock,
-  defaultPerpsEventTrackingMock,
-  defaultMinimumOrderAmountMock,
+  defaultPerpsPositionMock,
   defaultPerpsRewardsMock,
 } from '../../__mocks__/perpsHooksMocks';
-import { strings } from '../../../../../../locales/i18n';
-import {
-  PerpsClosePositionViewSelectorsIDs,
-  PerpsAmountDisplaySelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
+import PerpsClosePositionView from './PerpsClosePositionView';
 
 // Mock navigation
 const mockGoBack = jest.fn();
@@ -58,9 +57,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock('../../hooks/usePerpsScreenTracking', () => ({
-  usePerpsScreenTracking: jest.fn(),
-}));
+// usePerpsScreenTracking removed - migrated to usePerpsMeasurement
 
 jest.mock('../../../../hooks/useMetrics');
 
@@ -131,9 +128,7 @@ describe('PerpsClosePositionView', () => {
   const usePerpsEventTrackingMock = jest.requireMock(
     '../../hooks/usePerpsEventTracking',
   ).usePerpsEventTracking;
-  const usePerpsScreenTrackingMock = jest.requireMock(
-    '../../hooks/usePerpsScreenTracking',
-  ).usePerpsScreenTracking;
+  // usePerpsScreenTracking removed - migrated to usePerpsMeasurement
   const useMinimumOrderAmountMock =
     jest.requireMock('../../hooks').useMinimumOrderAmount;
   const usePerpsMarketDataMock =
@@ -163,8 +158,23 @@ describe('PerpsClosePositionView', () => {
       defaultPerpsClosePositionValidationMock,
     );
     usePerpsClosePositionMock.mockReturnValue(defaultPerpsClosePositionMock);
-    usePerpsEventTrackingMock.mockReturnValue(defaultPerpsEventTrackingMock);
-    usePerpsScreenTrackingMock.mockReturnValue(noop);
+    usePerpsEventTrackingMock.mockImplementation(
+      (options?: {
+        eventName?: string;
+        properties?: Record<string, unknown>;
+      }) => {
+        // If options are provided (declarative API), call track immediately to simulate useEffect
+        if (options?.eventName) {
+          defaultPerpsEventTrackingMock.track(
+            options.eventName,
+            options.properties || {},
+          );
+        }
+        // Always return the track function for imperative usage
+        return defaultPerpsEventTrackingMock;
+      },
+    );
+    // usePerpsScreenTracking mock removed - migrated to usePerpsMeasurement
     useMinimumOrderAmountMock.mockReturnValue(defaultMinimumOrderAmountMock);
     usePerpsMarketDataMock.mockReturnValue({
       marketData: { szDecimals: 4 },
@@ -633,7 +643,21 @@ describe('PerpsClosePositionView', () => {
     it('tracks screen view event on mount', () => {
       // Arrange
       const track = jest.fn();
-      usePerpsEventTrackingMock.mockReturnValue({ track });
+
+      // Set up mock to handle both imperative and declarative API calls
+      usePerpsEventTrackingMock.mockImplementation(
+        (options?: {
+          eventName?: string;
+          properties?: Record<string, unknown>;
+        }) => {
+          // If options are provided (declarative API), call track immediately to simulate useEffect
+          if (options?.eventName) {
+            track(options.eventName, options.properties || {});
+          }
+          // Always return the track function for imperative usage
+          return { track };
+        },
+      );
 
       // Act
       renderWithProvider(

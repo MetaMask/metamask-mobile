@@ -59,8 +59,8 @@ export { usePerpsFunding } from './usePerpsFunding';
 export { usePerpsEventTracking } from './usePerpsEventTracking';
 
 // Performance tracking hooks
-export { usePerpsPerformance } from './usePerpsPerformance';
-export { usePerpsScreenTracking } from './usePerpsScreenTracking';
+// Removed: usePerpsScreenTracking - migrated to usePerpsMeasurement
+export { usePerpsMeasurement } from './usePerpsMeasurement';
 
 // Block explorer hook
 export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';

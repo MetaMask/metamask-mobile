@@ -126,6 +126,7 @@ export const PerpsEventValues = {
     TRADE_SCREEN: 'tradeScreen',
     HOMESCREEN_TAB: 'HomescreenTab',
     PERP_ASSET_SCREEN: 'PerpAssetScreen',
+    UNKNOWN: 'unknown',
     PERP_MARKET: 'Perp market',
     PERP_MARKET_SEARCH: 'perp market search',
     POSITION_SCREEN: 'positionScreen',

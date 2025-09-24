@@ -15,7 +15,7 @@ import { usePerpsDepositAlerts } from '../../hooks/usePerpsDepositAlerts';
 import { BridgeFeeRow } from '../../../../components/rows/bridge-fee-row';
 import { useAlerts } from '../../../../context/alert-system-context';
 import { AlertKeys } from '../../../../constants/alerts';
-import { usePerpsScreenTracking } from '../../../../../../UI/Perps/hooks/usePerpsScreenTracking';
+import { usePerpsMeasurement } from '../../../../../../UI/Perps/hooks/usePerpsMeasurement';
 import { PerpsMeasurementName } from '../../../../../../UI/Perps/constants/performanceMetrics';
 
 const KEYBOARD_ALERTS: AlertKeys[] = [
@@ -43,10 +43,10 @@ export function PerpsDeposit() {
     isKeyboardVisible,
   });
 
-  // Track funding screen input loaded using proper Perps hooks
-  usePerpsScreenTracking({
-    screenName: PerpsMeasurementName.FUNDING_SCREEN_INPUT_LOADED,
-    dependencies: [isPayTokenSelected],
+  // Track funding screen input loaded using unified Perps measurement hook
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.FUNDING_SCREEN_INPUT_LOADED,
+    conditions: [!!isPayTokenSelected],
   });
 
   usePerpsDepositEvents({ isFullView, isPayTokenSelected });

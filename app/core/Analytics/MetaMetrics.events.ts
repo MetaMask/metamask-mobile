@@ -543,7 +543,6 @@ enum EVENT_NAME {
   PERPS_ASSET_SCREEN_VIEWED = 'Perp Asset Screen Viewed',
   PERPS_CHART_CANDLE_PERIODS_VIEWED = 'Perp Chart Candle Periods Viewed',
   PERPS_CHART_INTERACTION = 'Perp Chart Interaction',
-  PERPS_CHART_TIME_SERIE_CHANGED = 'Perp Chart time serie changed',
 
   // Trade Flow
   PERPS_TRADING_SCREEN_VIEWED = 'Perp Trading Screen Viewed',
@@ -551,6 +550,7 @@ enum EVENT_NAME {
   PERPS_ORDER_TYPE_SELECTED = 'Perp Order Type Selected',
   PERPS_LEVERAGE_SCREEN_VIEWED = 'Perp Leverage Screen Viewed',
   PERPS_LEVERAGE_CHANGED = 'Perp Leverage Changed',
+  PERPS_TP_SL_SCREEN_VIEWED = 'Perp TP/SL Screen Viewed',
   PERPS_TRADE_TRANSACTION_INITIATED = 'Perp Trade Transaction Initiated',
   PERPS_TRADE_TRANSACTION_SUBMITTED = 'Perp Trade Transaction Submitted',
   PERPS_TRADE_TRANSACTION_EXECUTED = 'Perp Trade Transaction Executed',
@@ -562,7 +562,6 @@ enum EVENT_NAME {
   PERPS_POSITION_CLOSE_SCREEN_VIEWED = 'Perp Position Close Screen Viewed',
   PERPS_POSITION_CLOSE_INITIATED = 'Perp Position Close Initiated',
   PERPS_POSITION_CLOSE_SUBMITTED = 'Perp Position Close Submitted',
-  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
   PERPS_POSITION_CLOSE_EXECUTED = 'Perp Position Close Executed',
   PERPS_POSITION_CLOSE_PARTIALLY_FILLED = 'Perp Position Close Partially filled',
   PERPS_POSITION_CLOSE_FAILED = 'Perp Position Close Failed',
@@ -570,17 +569,9 @@ enum EVENT_NAME {
   // Risk Management Flow
   PERPS_STOP_LOSS_SET = 'Stop Loss Set',
   PERPS_TAKE_PROFIT_SET = 'Take Profit Set',
-  PERPS_STOP_LOSS_EXECUTED = 'Stop Loss Executed',
-  PERPS_TAKE_PROFIT_EXECUTED = 'Take Profit Executed',
-  PERPS_ORDER_LIQUIDATED = 'Order liquidated',
 
   // Error Management Flow
-  PERPS_WARNING_DISPLAYED = 'Warning displayed',
   PERPS_ERROR_ENCOUNTERED = 'Error Encountered',
-
-  // Full Page Modal Events
-  PERPS_FULL_PAGE_MODAL_VIEWED = 'Perp Full page modal viewed',
-  PERPS_FULL_PAGE_MODAL_TAPPED = 'Perp Full page modal tapped',
 
   // Card
   CARD_VIEWED = 'Card Viewed',
@@ -1412,9 +1403,6 @@ const events = {
     EVENT_NAME.PERPS_CHART_CANDLE_PERIODS_VIEWED,
   ),
   PERPS_CHART_INTERACTION: generateOpt(EVENT_NAME.PERPS_CHART_INTERACTION),
-  PERPS_CHART_TIME_SERIE_CHANGED: generateOpt(
-    EVENT_NAME.PERPS_CHART_TIME_SERIE_CHANGED,
-  ),
 
   // Trade Flow (11 events)
   PERPS_TRADING_SCREEN_VIEWED: generateOpt(
@@ -1426,6 +1414,7 @@ const events = {
     EVENT_NAME.PERPS_LEVERAGE_SCREEN_VIEWED,
   ),
   PERPS_LEVERAGE_CHANGED: generateOpt(EVENT_NAME.PERPS_LEVERAGE_CHANGED),
+  PERPS_TP_SL_SCREEN_VIEWED: generateOpt(EVENT_NAME.PERPS_TP_SL_SCREEN_VIEWED),
   PERPS_TRADE_TRANSACTION_INITIATED: generateOpt(
     EVENT_NAME.PERPS_TRADE_TRANSACTION_INITIATED,
   ),
@@ -1449,9 +1438,6 @@ const events = {
   PERPS_POSITION_CLOSE_SCREEN_VIEWED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
   ),
-  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
-  ),
   PERPS_POSITION_CLOSE_INITIATED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_INITIATED,
   ),
@@ -1468,17 +1454,11 @@ const events = {
     EVENT_NAME.PERPS_POSITION_CLOSE_FAILED,
   ),
 
-  // Risk Management Flow (5 events)
+  // Risk Management Flow (2 events)
   PERPS_STOP_LOSS_SET: generateOpt(EVENT_NAME.PERPS_STOP_LOSS_SET),
   PERPS_TAKE_PROFIT_SET: generateOpt(EVENT_NAME.PERPS_TAKE_PROFIT_SET),
-  PERPS_STOP_LOSS_EXECUTED: generateOpt(EVENT_NAME.PERPS_STOP_LOSS_EXECUTED),
-  PERPS_TAKE_PROFIT_EXECUTED: generateOpt(
-    EVENT_NAME.PERPS_TAKE_PROFIT_EXECUTED,
-  ),
-  PERPS_ORDER_LIQUIDATED: generateOpt(EVENT_NAME.PERPS_ORDER_LIQUIDATED),
 
-  // Error Management Flow (2 events)
-  PERPS_WARNING_DISPLAYED: generateOpt(EVENT_NAME.PERPS_WARNING_DISPLAYED),
+  // Error Management Flow (1 event)
   PERPS_ERROR_ENCOUNTERED: generateOpt(EVENT_NAME.PERPS_ERROR_ENCOUNTERED),
 
   // Asset Filter

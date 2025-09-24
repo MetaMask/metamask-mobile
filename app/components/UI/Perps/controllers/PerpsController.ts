@@ -537,7 +537,9 @@ export class PerpsController extends BaseController<
       };
     }
 
-    this.refreshEligibility();
+    this.refreshEligibility().catch((error) => {
+      console.error('Error refreshing eligibility:', error);
+    });
   }
 
   /**
@@ -884,6 +886,8 @@ export class PerpsController extends BaseController<
           tp_price: params.takeProfitPrice
             ? parseFloat(params.takeProfitPrice)
             : undefined,
+        }).catch((error) => {
+          console.error('Error reporting open order to data lake:', error);
         });
 
         // End trace with success data
@@ -1067,7 +1071,12 @@ export class PerpsController extends BaseController<
         });
 
         // Report to data lake (fire-and-forget with retry)
-        this.reportOrderToDataLake({ action: 'close', coin: params.coin });
+        this.reportOrderToDataLake({
+          action: 'close',
+          coin: params.coin,
+        }).catch((error) => {
+          console.error('Error reporting close order to data lake:', error);
+        });
 
         // Determine direction from position size
         const direction =
@@ -2692,6 +2701,8 @@ export class PerpsController extends BaseController<
             sl_price,
             tp_price,
             retryCount: retryCount + 1,
+          }).catch((err) => {
+            console.error('Error reporting retry order to data lake:', err);
           });
         }, retryDelay);
       } else {

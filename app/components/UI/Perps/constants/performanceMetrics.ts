@@ -22,7 +22,6 @@ export enum PerpsMeasurementName {
   TRADE_SCREEN_LOADED = 'trade_screen_loaded',
   TP_SL_BOTTOM_SHEET_LOADED = 'tp_sl_bottom_sheet_loaded',
   LEVERAGE_BOTTOM_SHEET_LOADED = 'leverage_bottom_sheet_loaded',
-  UPDATE_DEPENDENT_METRICS_ON_INPUT = 'update_dependent_metrics_on_input',
   QUOTE_RECEIVED = 'quote_received',
   ORDER_SUBMISSION_TOAST_LOADED = 'order_submission_toast_loaded',
   ORDER_CONFIRMATION_TOAST_LOADED = 'order_confirmation_toast_loaded',
@@ -45,69 +44,7 @@ export enum PerpsMeasurementName {
 
   // WebSocket Performance Metrics (milliseconds)
   WEBSOCKET_CONNECTION_ESTABLISHMENT = 'websocket_connection_establishment',
+  WEBSOCKET_CONNECTION_WITH_PRELOAD = 'websocket_connection_with_preload',
   WEBSOCKET_FIRST_POSITION_DATA = 'websocket_first_position_data',
   WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION = 'websocket_account_switch_reconnection',
 }
-
-/**
- * Performance targets (p75) from dashboard requirements
- */
-export const PerpsPerformanceTargets: Record<string, number> = {
-  // Screen load targets from dashboard
-  [PerpsMeasurementName.FUNDING_SCREEN_INPUT_LOADED]: 200,
-  [PerpsMeasurementName.FUNDING_SCREEN_REVIEW_LOADED]: 200,
-  [PerpsMeasurementName.FUNDING_SOURCE_TOKEN_LIST_LOADED]: 1000,
-  [PerpsMeasurementName.TRANSACTION_SUBMISSION_SCREEN_LOADED]: 1000,
-  [PerpsMeasurementName.TRANSACTION_EXECUTION_CONFIRMATION_SCREEN_LOADED]: 15000,
-  [PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED]: 200,
-  [PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED]: 1000,
-  [PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED]: 15000,
-  [PerpsMeasurementName.MARKETS_SCREEN_LOADED]: 200,
-  [PerpsMeasurementName.ASSET_SCREEN_LOADED]: 200,
-  [PerpsMeasurementName.TRADE_SCREEN_LOADED]: 200,
-  [PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED]: 50,
-  [PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED]: 50,
-  [PerpsMeasurementName.UPDATE_DEPENDENT_METRICS_ON_INPUT]: 50,
-  [PerpsMeasurementName.QUOTE_RECEIVED]: 2000,
-  [PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED]: 200,
-  [PerpsMeasurementName.ORDER_CONFIRMATION_TOAST_LOADED]: 1000,
-  [PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED]: 200,
-  [PerpsMeasurementName.CLOSE_SCREEN_LOADED]: 200,
-  [PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED]: 200,
-  [PerpsMeasurementName.CLOSE_ORDER_CONFIRMATION_TOAST_LOADED]: 200,
-  [PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED]: 1000,
-  [PerpsMeasurementName.PERPS_TAB_LOADED]: 200,
-
-  // Data Lake API targets
-  [PerpsMeasurementName.DATA_LAKE_API_CALL]: 2000, // 2 seconds target
-  [PerpsMeasurementName.DATA_LAKE_API_RETRY]: 5000, // 5 seconds for all retries
-
-  // WebSocket Performance targets
-  [PerpsMeasurementName.WEBSOCKET_CONNECTION_ESTABLISHMENT]: 2000, // 2 seconds target
-  [PerpsMeasurementName.WEBSOCKET_FIRST_POSITION_DATA]: 1000, // 1 second target
-  [PerpsMeasurementName.WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION]: 3000, // 3 seconds target
-};
-
-/**
- * Performance priority levels from dashboard
- */
-export enum PerpsPerformancePriority {
-  HIGH = 'HIGH',
-  MEDIUM = 'MEDIUM',
-  LOW = 'LOW',
-}
-
-/**
- * Performance metric priorities
- */
-export const PerpsMetricPriorities: Record<string, PerpsPerformancePriority> = {
-  [PerpsMeasurementName.MARKETS_SCREEN_LOADED]: PerpsPerformancePriority.HIGH,
-  [PerpsMeasurementName.ASSET_SCREEN_LOADED]: PerpsPerformancePriority.HIGH,
-  [PerpsMeasurementName.TRADE_SCREEN_LOADED]: PerpsPerformancePriority.HIGH,
-  [PerpsMeasurementName.UPDATE_DEPENDENT_METRICS_ON_INPUT]:
-    PerpsPerformancePriority.HIGH,
-  [PerpsMeasurementName.QUOTE_RECEIVED]: PerpsPerformancePriority.HIGH,
-  [PerpsMeasurementName.ORDER_CONFIRMATION_TOAST_LOADED]:
-    PerpsPerformancePriority.HIGH,
-  // All others are MEDIUM by default
-};

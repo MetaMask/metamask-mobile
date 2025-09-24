@@ -22,9 +22,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { Position } from '../../controllers/types';
-import { usePerpsPerformance } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
@@ -80,7 +78,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
@@ -209,15 +206,24 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { formattedTakeProfitPercentage, formattedStopLossPercentage } =
     tpslForm.display;
 
+  // Track TP/SL screen viewed event using unified declarative API
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_TP_SL_SCREEN_VIEWED,
+    conditions: [isVisible],
+    properties: {
+      [PerpsEventProperties.ASSET]: asset,
+      [PerpsEventProperties.DIRECTION]:
+        actualDirection === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+    },
+  });
+
   useEffect(() => {
     if (isVisible) {
-      startMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
-      bottomSheetRef.current?.onOpenBottomSheet(() => {
-        // Measure TP/SL bottom sheet loaded when animation actually completes
-        endMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
-      });
+      bottomSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible, startMeasure, endMeasure]);
+  }, [isVisible]);
 
   // Handle close without saving
   const handleClose = useCallback(() => {

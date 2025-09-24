@@ -76,12 +76,6 @@ jest.mock('../../hooks', () => ({
   usePerpsNetworkManagement: jest.fn(() => ({
     ensureArbitrumNetworkExists: jest.fn().mockResolvedValue({}),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-    measure: jest.fn(),
-    measureAsync: jest.fn(),
-  })),
   usePerpsAccount: jest.fn(() => ({
     account: null,
     isLoading: false,

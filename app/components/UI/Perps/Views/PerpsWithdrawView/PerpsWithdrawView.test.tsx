@@ -88,10 +88,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsPerformance: jest.fn(() => ({
-    startMeasure: jest.fn(),
-    endMeasure: jest.fn(),
-  })),
   useWithdrawValidation: jest.fn(() => ({
     hasAmount: false,
     isBelowMinimum: false,

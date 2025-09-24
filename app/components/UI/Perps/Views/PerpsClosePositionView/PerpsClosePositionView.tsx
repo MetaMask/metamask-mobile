@@ -1,75 +1,69 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  PerpsClosePositionViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsOrderHeader from '../../components/PerpsOrderHeader';
+import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { OrderType, Position } from '../../controllers/types';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   useMinimumOrderAmount,
-  usePerpsOrderFees,
-  usePerpsClosePositionValidation,
   usePerpsClosePosition,
-  usePerpsToasts,
+  usePerpsClosePositionValidation,
+  usePerpsOrderFees,
   usePerpsRewards,
+  usePerpsToasts,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
 import {
   calculateCloseAmountFromPercentage,
   validateCloseAmountLimits,
 } from '../../utils/positionCalculations';
-import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
-import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
-import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { createStyles } from './PerpsClosePositionView.styles';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
-import {
-  PerpsClosePositionViewSelectorsIDs,
-  PerpsOrderViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
-import PerpsOrderHeader from '../../components/PerpsOrderHeader';
-import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -79,15 +73,25 @@ const PerpsClosePositionView: React.FC = () => {
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
   const { position } = route.params as { position: Position };
 
-  const hasTrackedCloseView = useRef(false);
   const { track } = usePerpsEventTracking();
+
+  // Track position close screen viewed event on mount
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]:
+        parseFloat(position.size) > 0
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+    },
+  });
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
-  // Track screen load performance
-  usePerpsScreenTracking({
-    screenName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
-    dependencies: [],
+  // Track screen load performance with unified hook (immediate measurement)
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
   });
 
   // State for order type and bottom sheets
@@ -225,36 +229,26 @@ const PerpsClosePositionView: React.FC = () => {
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
 
-  // Track position close screen viewed event
-  useEffect(() => {
-    if (!hasTrackedCloseView.current) {
-      // Calculate unrealized PnL percentage
-      const unrealizedPnlPercent =
-        initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
+  // Track position close screen viewed event - declarative
+  const unrealizedPnlPercent = useMemo(
+    () => (initialMargin > 0 ? (pnl / initialMargin) * 100 : 0),
+    [initialMargin, pnl],
+  );
 
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
-        [PerpsEventProperties.ASSET]: position.coin,
-        [PerpsEventProperties.DIRECTION]: isLong
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.POSITION_SIZE]: absSize,
-        [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
-        [PerpsEventProperties.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-        [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
-      });
-      hasTrackedCloseView.current = true;
-    }
-  }, [
-    position.coin,
-    isLong,
-    absSize,
-    pnl,
-    initialMargin,
-    receiveAmount,
-    track,
-  ]);
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
+    properties: {
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]: isLong
+        ? PerpsEventValues.DIRECTION.LONG
+        : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.POSITION_SIZE]: absSize,
+      [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+      [PerpsEventProperties.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+    },
+  });
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
