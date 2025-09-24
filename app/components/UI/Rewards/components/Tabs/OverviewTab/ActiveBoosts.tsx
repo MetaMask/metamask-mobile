@@ -28,7 +28,6 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../../../Bridge/hooks/useSwapBridgeNavigation';
-import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
@@ -46,18 +45,10 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   const tw = useTailwind();
   const { themeAppearance } = useTheme();
 
-  const token = getNativeAssetForChainId('eip155:59144');
-
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Rewards,
     sourcePage: 'rewards_overview',
-    sourceToken: {
-      address: token.address,
-      symbol: token.symbol,
-      decimals: token.decimals,
-      chainId: 'eip155:59144',
-    },
   });
 
   // Get appropriate icon URL based on theme
