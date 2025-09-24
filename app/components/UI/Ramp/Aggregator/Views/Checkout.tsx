@@ -211,6 +211,7 @@ const CheckoutWebView = () => {
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
+          testID="checkout-webview"
         />
       </View>
     );

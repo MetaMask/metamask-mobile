@@ -7,6 +7,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import { Network } from '@consensys/on-ramp-sdk/dist/API';
+import Logger from '../../../../../util/Logger';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -126,7 +127,7 @@ describe('Checkout', () => {
     );
   });
 
-  it('uses selectedAsset network chainId when available', () => {
+  it('uses selectedAsset network chainId when chainId is 1', () => {
     mockUseRampSDKValues.selectedAsset = {
       id: '1',
       idv2: '2',
@@ -165,7 +166,7 @@ describe('Checkout', () => {
     expect(createCustomOrderIdData).not.toHaveBeenCalled();
   });
 
-  it('handles cancel press when selectedAsset has no chainId', () => {
+  it('returns early from handleCancelPress when chainId is not available', () => {
     mockUseRampSDKValues.selectedAsset = {
       id: '1',
       idv2: '2',
@@ -191,7 +192,7 @@ describe('Checkout', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('handles cancel press when selectedAsset network is undefined', () => {
+  it('returns early from handleCancelPress when selectedAsset network is undefined', () => {
     mockUseRampSDKValues.selectedAsset = {
       id: '1',
       idv2: '2',
@@ -218,5 +219,28 @@ describe('Checkout', () => {
     render();
 
     expect(mockHandleSuccessfulOrder).not.toHaveBeenCalled();
+  });
+
+  it('logs error when selectedAddress is undefined during navigation state change', async () => {
+    mockUseRampSDKValues.selectedAddress = undefined;
+
+    const mockLoggerError = jest.spyOn(Logger, 'error');
+
+    const { getByTestId } = render();
+
+    const webView = getByTestId('checkout-webview');
+    if (webView?.props?.onNavigationStateChange) {
+      await webView.props.onNavigationStateChange({
+        url: 'https://callback.test?success=true',
+        loading: false,
+        title: '',
+        canGoBack: false,
+        canGoForward: false,
+      });
+    }
+
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      new Error('No address available for selected asset'),
+    );
   });
 });
