@@ -523,7 +523,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1383,7 +1383,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -2257,7 +2257,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -3117,7 +3117,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
