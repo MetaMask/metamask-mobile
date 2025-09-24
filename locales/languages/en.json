@@ -5753,8 +5753,8 @@
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking opt-in for accounts...",
-      "redirecting_to_dashboard": "Redirecting to dashboard...",
+      "checking_opt_in": "Checking accounts...",
+      "redirecting_to_dashboard": "Redirecting...",
       "intro_skip": "Not now",
 
       "step_confirm": "Next",
