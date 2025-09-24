@@ -88,7 +88,7 @@
     "release:ios": "./scripts/build.sh ios release",
     "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit",
-    "test:unit": "jest ./app/ ./locales/ ./e2e/**/*.test.ts",
+    "test:unit": "jest ./app/ ./locales/ ./e2e/**/*.test.ts .github/**/*.test.ts",
     "test:unit:update": "time jest -u ./app/",
     "test:api-specs": "detox reset-lock-file && detox test -c ios.sim.apiSpecs",
     "test:e2e:ios:main:prod": "IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' detox test -c ios.sim.main.release",
