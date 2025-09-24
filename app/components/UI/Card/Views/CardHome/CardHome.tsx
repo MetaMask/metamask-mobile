@@ -55,12 +55,12 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import {
   Skeleton,
   SkeletonProps,
 } from '../../../../../component-library/components/Skeleton';
 import { isE2E } from '../../../../../util/test/utils';
+import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
 
 const SkeletonLoading = (props: SkeletonProps) => {
   if (isE2E) return null;
@@ -126,6 +126,14 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, mainBalance]);
 
+  const isPriorityTokenSupportedDeposit = useMemo(() => {
+    if (priorityToken?.symbol) {
+      return DEPOSIT_SUPPORTED_TOKENS.find(
+        (t) => t.toLowerCase() === priorityToken.symbol?.toLowerCase(),
+      );
+    }
+  }, [priorityToken]);
+
   const renderAddFundsBottomSheet = useCallback(
     () => (
       <AddFundsBottomSheet
@@ -182,10 +190,7 @@ const CardHome = () => {
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
 
-    if (
-      priorityToken?.symbol &&
-      SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS.includes(priorityToken.symbol)
-    ) {
+    if (isPriorityTokenSupportedDeposit) {
       setOpenAddFundsBottomSheet(true);
     } else if (priorityToken) {
       openSwaps({
@@ -197,6 +202,7 @@ const CardHome = () => {
     createEventBuilder,
     priorityToken,
     openSwaps,
+    isPriorityTokenSupportedDeposit,
     selectedChainId,
   ]);
 

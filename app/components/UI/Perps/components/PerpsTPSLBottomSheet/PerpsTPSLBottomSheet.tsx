@@ -39,7 +39,7 @@ import {
 
 // Quick percentage buttons constants - RoE percentages
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
-const STOP_LOSS_PERCENTAGES = [5, 10, 25, 50]; // -5%, -10%, -25%, -50% RoE
+const STOP_LOSS_PERCENTAGES = [-5, -10, -25, -50]; // -5%, -10%, -25%, -50% RoE
 
 interface PerpsTPSLBottomSheetProps {
   isVisible: boolean;
@@ -240,7 +240,12 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       } else if (focusedInput === 'stopLossPrice') {
         handleStopLossPriceChange(value);
       } else if (focusedInput === 'stopLossPercentage') {
-        handleStopLossPercentageChange(value);
+        const trimmedValue = value.trim();
+        const valueToUse =
+          trimmedValue.length === 1 && trimmedValue !== '0'
+            ? `-${value}`
+            : value.trim();
+        handleStopLossPercentageChange(valueToUse);
       }
     },
     [
@@ -422,6 +427,25 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 : styles.priceInfoContainer
             }
           >
+            {position && (
+              <View style={styles.priceInfoRow}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.tpsl.entry_price')}
+                </Text>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {position.entryPrice &&
+                  position.entryPrice !== 'null' &&
+                  position.entryPrice !== '0.00'
+                    ? formatPerpsFiat(position.entryPrice, {
+                        ranges: PRICE_RANGES_POSITION_VIEW,
+                      })
+                    : '--'}
+                </Text>
+              </View>
+            )}
             <View style={styles.priceInfoRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {orderType === 'limit' &&
@@ -639,7 +663,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
-                    -{percentage}%
+                    {percentage}%
                   </Text>
                 </TouchableOpacity>
               ))}
