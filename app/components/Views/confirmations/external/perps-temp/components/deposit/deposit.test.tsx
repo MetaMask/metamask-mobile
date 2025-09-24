@@ -27,6 +27,7 @@ jest.mock('../../../../hooks/pay/useTransactionBridgeQuotes');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+  useNavigationState: jest.fn(() => undefined), // Mock for useDepositSource
 }));
 
 const STATE_MOCK = merge(
