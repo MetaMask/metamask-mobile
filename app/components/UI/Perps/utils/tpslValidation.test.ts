@@ -414,14 +414,18 @@ describe('TPSL Validation Utilities', () => {
 
       describe('Edge cases with liquidation price', () => {
         it('should handle formatted liquidation prices', () => {
-          const longParams = {
+          const longLiquidationParams = {
             currentPrice: 100,
             direction: 'long' as const,
             liquidationPrice: '$80.00',
           };
 
-          expect(validateTPSLPrices('150', '85', longParams)).toBe(true);
-          expect(validateTPSLPrices('150', '75', longParams)).toBe(false);
+          expect(validateTPSLPrices('150', '85', longLiquidationParams)).toBe(
+            true,
+          );
+          expect(validateTPSLPrices('150', '75', longLiquidationParams)).toBe(
+            false,
+          );
         });
 
         it('should handle invalid liquidation price gracefully', () => {
@@ -1006,26 +1010,32 @@ describe('TPSL Validation Utilities', () => {
       };
 
       it('should calculate RoE for take profit prices correctly', () => {
-        expect(calculateRoEForPrice('101', true, params)).toBe('10.00');
-        expect(calculateRoEForPrice('105', true, params)).toBe('50.00');
-        expect(calculateRoEForPrice('110', true, params)).toBe('100.00');
-        expect(calculateRoEForPrice('$101.00', true, params)).toBe('10.00');
-        expect(calculateRoEForPrice('1,105.00', true, params)).toBe('10050.00'); // 1105 - 100 = 1005, (1005/100)*10 = 100.5% * 100 leverage effect
+        expect(calculateRoEForPrice('101', true, true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('105', true, true, params)).toBe('50.00');
+        expect(calculateRoEForPrice('110', true, true, params)).toBe('100.00');
+        expect(calculateRoEForPrice('$101.00', true, true, params)).toBe(
+          '10.00',
+        );
+        expect(calculateRoEForPrice('1,105.00', true, true, params)).toBe(
+          '10050.00',
+        ); // 1105 - 100 = 1005, (1005/100)*10 = 100.5% * 100 leverage effect
       });
 
       it('should calculate RoE for stop loss prices correctly', () => {
-        expect(calculateRoEForPrice('99', false, params)).toBe('10.00');
-        expect(calculateRoEForPrice('95', false, params)).toBe('50.00');
-        expect(calculateRoEForPrice('90', false, params)).toBe('100.00');
-        expect(calculateRoEForPrice('$99.00', false, params)).toBe('10.00');
+        expect(calculateRoEForPrice('99', false, true, params)).toBe('-10.00');
+        expect(calculateRoEForPrice('95', false, true, params)).toBe('-50.00');
+        expect(calculateRoEForPrice('90', false, true, params)).toBe('-100.00');
+        expect(calculateRoEForPrice('$99.00', false, true, params)).toBe(
+          '-10.00',
+        );
       });
 
       it('should return zero RoE for invalid directions', () => {
         // TP price below entry for long (wrong direction)
-        expect(calculateRoEForPrice('99', true, params)).toBe('0.00');
+        expect(calculateRoEForPrice('99', true, false, params)).toBe('0.00');
 
         // SL price above entry for long (wrong direction)
-        expect(calculateRoEForPrice('101', false, params)).toBe('0.00');
+        expect(calculateRoEForPrice('101', false, false, params)).toBe('0.00');
       });
 
       it('should handle different leverage values', () => {
@@ -1033,14 +1043,14 @@ describe('TPSL Validation Utilities', () => {
         const highLeverageParams = { ...params, leverage: 50 };
 
         // With 1x leverage, 1% price move = 1% RoE
-        expect(calculateRoEForPrice('101', true, lowLeverageParams)).toBe(
+        expect(calculateRoEForPrice('101', true, true, lowLeverageParams)).toBe(
           '1.00',
         );
 
         // With 50x leverage, 1% price move = 50% RoE
-        expect(calculateRoEForPrice('101', true, highLeverageParams)).toBe(
-          '50.00',
-        );
+        expect(
+          calculateRoEForPrice('101', true, true, highLeverageParams),
+        ).toBe('50.00');
       });
     });
 
@@ -1053,23 +1063,25 @@ describe('TPSL Validation Utilities', () => {
       };
 
       it('should calculate RoE for take profit prices correctly', () => {
-        expect(calculateRoEForPrice('99', true, params)).toBe('10.00');
-        expect(calculateRoEForPrice('95', true, params)).toBe('50.00');
-        expect(calculateRoEForPrice('90', true, params)).toBe('100.00');
+        expect(calculateRoEForPrice('99', true, true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('95', true, true, params)).toBe('50.00');
+        expect(calculateRoEForPrice('90', true, true, params)).toBe('100.00');
       });
 
       it('should calculate RoE for stop loss prices correctly', () => {
-        expect(calculateRoEForPrice('101', false, params)).toBe('10.00');
-        expect(calculateRoEForPrice('105', false, params)).toBe('50.00');
-        expect(calculateRoEForPrice('110', false, params)).toBe('100.00');
+        expect(calculateRoEForPrice('101', false, true, params)).toBe('-10.00');
+        expect(calculateRoEForPrice('105', false, true, params)).toBe('-50.00');
+        expect(calculateRoEForPrice('110', false, true, params)).toBe(
+          '-100.00',
+        );
       });
 
       it('should return zero RoE for invalid directions', () => {
         // TP price above entry for short (wrong direction)
-        expect(calculateRoEForPrice('101', true, params)).toBe('0.00');
+        expect(calculateRoEForPrice('101', true, false, params)).toBe('0.00');
 
         // SL price below entry for short (wrong direction)
-        expect(calculateRoEForPrice('99', false, params)).toBe('0.00');
+        expect(calculateRoEForPrice('99', false, false, params)).toBe('0.00');
       });
     });
 
@@ -1083,7 +1095,9 @@ describe('TPSL Validation Utilities', () => {
         };
 
         // Should calculate RoE based on entry price (120), not current price (100)
-        expect(calculateRoEForPrice('121.20', true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('121.20', true, true, params)).toBe(
+          '10.00',
+        );
       });
 
       it('should fall back to currentPrice when entryPrice not provided', () => {
@@ -1093,7 +1107,7 @@ describe('TPSL Validation Utilities', () => {
           leverage: 10,
         };
 
-        expect(calculateRoEForPrice('101', true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('101', true, true, params)).toBe('10.00');
       });
     });
 
@@ -1104,7 +1118,7 @@ describe('TPSL Validation Utilities', () => {
           direction: 'long' as const,
           leverage: 10,
         };
-        expect(calculateRoEForPrice('110', true, params)).toBe('');
+        expect(calculateRoEForPrice('110', true, true, params)).toBe('');
       });
 
       it('should return empty string when price is invalid', () => {
@@ -1114,8 +1128,8 @@ describe('TPSL Validation Utilities', () => {
           leverage: 10,
         };
 
-        expect(calculateRoEForPrice('', true, params)).toBe('');
-        expect(calculateRoEForPrice('invalid', true, params)).toBe('');
+        expect(calculateRoEForPrice('', true, true, params)).toBe('');
+        expect(calculateRoEForPrice('invalid', true, true, params)).toBe('');
       });
 
       it('should handle zero leverage by using default value', () => {
@@ -1126,7 +1140,7 @@ describe('TPSL Validation Utilities', () => {
         };
 
         // With 1x leverage, 10% price move = 10% RoE
-        expect(calculateRoEForPrice('110', true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('110', true, true, params)).toBe('10.00');
       });
 
       it('should handle price equal to base price', () => {
@@ -1136,8 +1150,8 @@ describe('TPSL Validation Utilities', () => {
           leverage: 10,
         };
 
-        expect(calculateRoEForPrice('100', true, params)).toBe('0.00');
-        expect(calculateRoEForPrice('100', false, params)).toBe('0.00');
+        expect(calculateRoEForPrice('100', true, true, params)).toBe('0.00');
+        expect(calculateRoEForPrice('100', false, true, params)).toBe('0.00');
       });
     });
 
@@ -1149,9 +1163,13 @@ describe('TPSL Validation Utilities', () => {
       };
 
       it('should handle various price formats', () => {
-        expect(calculateRoEForPrice('$101.00', true, params)).toBe('10.00');
-        expect(calculateRoEForPrice('1,101.00', true, params)).toBe('10010.00'); // 1101 - 100 = 1001, (1001/100)*10 = 10010%
-        expect(calculateRoEForPrice('$1,101.00', true, params)).toBe(
+        expect(calculateRoEForPrice('$101.00', true, true, params)).toBe(
+          '10.00',
+        );
+        expect(calculateRoEForPrice('1,101.00', true, true, params)).toBe(
+          '10010.00',
+        ); // 1101 - 100 = 1001, (1001/100)*10 = 10010%
+        expect(calculateRoEForPrice('$1,101.00', true, true, params)).toBe(
           '10010.00',
         );
       });
@@ -1171,10 +1189,10 @@ describe('TPSL Validation Utilities', () => {
       expect(safeParseRoEPercentage('10.00')).toBe('10'); // Clean integer display
     });
 
-    it('should use absolute values for display', () => {
-      expect(safeParseRoEPercentage('-10')).toBe('10');
-      expect(safeParseRoEPercentage('-10.123')).toBe('10.12');
-      expect(safeParseRoEPercentage('-25.50')).toBe('25.50');
+    it('should preserve sign for display', () => {
+      expect(safeParseRoEPercentage('-10')).toBe('-10');
+      expect(safeParseRoEPercentage('-10.123')).toBe('-10.12');
+      expect(safeParseRoEPercentage('-25.50')).toBe('-25.50');
     });
 
     it('should return empty string for invalid input', () => {
@@ -1208,9 +1226,9 @@ describe('TPSL Validation Utilities', () => {
         expect(formatRoEPercentageDisplay('.5', true)).toBe('.5');
       });
 
-      it('should handle negative values by showing absolute value', () => {
-        expect(formatRoEPercentageDisplay('-10.123', true)).toBe('10.123');
-        expect(formatRoEPercentageDisplay('-25', true)).toBe('25');
+      it('should preserve negative values when focused', () => {
+        expect(formatRoEPercentageDisplay('-10.123', true)).toBe('-10.123');
+        expect(formatRoEPercentageDisplay('-25', true)).toBe('-25');
       });
 
       it('should return empty string for invalid patterns when focused', () => {
@@ -1218,34 +1236,30 @@ describe('TPSL Validation Utilities', () => {
       });
 
       it('should handle edge cases in pattern matching', () => {
-        // '10..5' is parsed as 10 by parseFloat, so it returns the absolute value
-        expect(formatRoEPercentageDisplay('10..5', true)).toBe('10');
-        // '10.5.3' is parsed as 10.5 by parseFloat, so it returns the absolute value
-        expect(formatRoEPercentageDisplay('10.5.3', true)).toBe('10.5');
         expect(formatRoEPercentageDisplay('5.', true)).toBe('5.');
         expect(formatRoEPercentageDisplay('.', true)).toBe('.');
       });
     });
 
     describe('when input is not focused', () => {
-      it('should show clean display format for integers', () => {
-        expect(formatRoEPercentageDisplay('10', false)).toBe('10');
-        expect(formatRoEPercentageDisplay('100', false)).toBe('100');
-        expect(formatRoEPercentageDisplay('0', false)).toBe('0');
-        expect(formatRoEPercentageDisplay('10.00', false)).toBe('10');
-        expect(formatRoEPercentageDisplay('100.000', false)).toBe('100');
+      it('should show signed display format for integers', () => {
+        expect(formatRoEPercentageDisplay('10', false)).toBe('+ 10');
+        expect(formatRoEPercentageDisplay('100', false)).toBe('+ 100');
+        expect(formatRoEPercentageDisplay('0', false)).toBe('+ 0');
+        expect(formatRoEPercentageDisplay('10.00', false)).toBe('+ 10');
+        expect(formatRoEPercentageDisplay('100.000', false)).toBe('+ 100');
       });
 
-      it('should show decimal places when necessary', () => {
-        expect(formatRoEPercentageDisplay('10.5', false)).toBe('10.50');
-        expect(formatRoEPercentageDisplay('25.123', false)).toBe('25.12');
-        expect(formatRoEPercentageDisplay('99.99', false)).toBe('99.99');
+      it('should show signed decimal format when necessary', () => {
+        expect(formatRoEPercentageDisplay('10.5', false)).toBe('+ 10.50');
+        expect(formatRoEPercentageDisplay('25.123', false)).toBe('+ 25.12');
+        expect(formatRoEPercentageDisplay('99.99', false)).toBe('+ 99.99');
       });
 
-      it('should handle negative values by showing absolute value', () => {
-        expect(formatRoEPercentageDisplay('-10', false)).toBe('10');
-        expect(formatRoEPercentageDisplay('-10.5', false)).toBe('10.50');
-        expect(formatRoEPercentageDisplay('-25.123', false)).toBe('25.12');
+      it('should handle negative values with signed format', () => {
+        expect(formatRoEPercentageDisplay('-10', false)).toBe('- 10');
+        expect(formatRoEPercentageDisplay('-10.5', false)).toBe('- 10.50');
+        expect(formatRoEPercentageDisplay('-25.123', false)).toBe('- 25.12');
       });
     });
 
@@ -1260,8 +1274,8 @@ describe('TPSL Validation Utilities', () => {
 
       it('should handle zero correctly', () => {
         expect(formatRoEPercentageDisplay('0', true)).toBe('0');
-        expect(formatRoEPercentageDisplay('0.0', false)).toBe('0');
-        expect(formatRoEPercentageDisplay('0.00', false)).toBe('0');
+        expect(formatRoEPercentageDisplay('0.0', false)).toBe('+ 0');
+        expect(formatRoEPercentageDisplay('0.00', false)).toBe('+ 0');
       });
     });
   });
@@ -1326,6 +1340,94 @@ describe('TPSL Validation Utilities', () => {
     it('should handle edge cases', () => {
       expect(isValidStopLossPercentage(0.1, 10)).toBe(true);
       expect(isValidStopLossPercentage(-0.1, 10)).toBe(false);
+    });
+  });
+
+  describe('formatRoEPercentageDisplay with signed input', () => {
+    it('should handle focused input with signs correctly', () => {
+      // Given a focused input with sign patterns
+      expect(formatRoEPercentageDisplay('+', true)).toBe('+');
+      expect(formatRoEPercentageDisplay('-', true)).toBe('-');
+      expect(formatRoEPercentageDisplay('+10', true)).toBe('+10');
+      expect(formatRoEPercentageDisplay('-5', true)).toBe('-5');
+    });
+
+    it('should handle unfocused input with proper sign formatting', () => {
+      // Given unfocused input, should format with proper signs
+      expect(formatRoEPercentageDisplay('10', false)).toBe('+ 10');
+      expect(formatRoEPercentageDisplay('-5', false)).toBe('- 5');
+      expect(formatRoEPercentageDisplay('0', false)).toBe('+ 0');
+    });
+
+    it('should handle decimal values with signs', () => {
+      // Given decimal values with signs
+      expect(formatRoEPercentageDisplay('+10.5', true)).toBe('+10.5');
+      expect(formatRoEPercentageDisplay('-7.25', true)).toBe('-7.25');
+      expect(formatRoEPercentageDisplay('15.75', false)).toBe('+ 15.75');
+      expect(formatRoEPercentageDisplay('-8.33', false)).toBe('- 8.33');
+    });
+
+    it('should handle invalid input gracefully', () => {
+      // Given invalid input, should return empty string
+      expect(formatRoEPercentageDisplay('invalid', false)).toBe('');
+      expect(formatRoEPercentageDisplay('++5', true)).toBe(''); // Invalid pattern not preserved
+      expect(formatRoEPercentageDisplay('++5', false)).toBe(''); // Clean up when unfocused
+    });
+  });
+
+  describe('calculateRoEForPrice with position context', () => {
+    it('should clamp negative profit percentages to 0 when no position exists', () => {
+      // Given a price that would result in negative profit without position
+      const result = calculateRoEForPrice(
+        '2900', // Lower than current price
+        true, // isProfit = true
+        false, // isForPositionBoundTpsl = false (no position)
+        {
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 2,
+          entryPrice: 3000,
+        },
+      );
+
+      // Then percentage should be clamped to 0
+      expect(result).toBe('0.00');
+    });
+
+    it('should clamp positive loss percentages to 0 when no position exists', () => {
+      // Given a price that would result in positive loss without position
+      const result = calculateRoEForPrice(
+        '3100', // Higher than current price for stop loss
+        false, // isProfit = false
+        false, // isForPositionBoundTpsl = false (no position)
+        {
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 2,
+          entryPrice: 3000,
+        },
+      );
+
+      // Then percentage should be clamped to 0
+      expect(result).toBe('0.00');
+    });
+
+    it('should allow negative profit percentages when position exists', () => {
+      // Given a price that would result in negative profit with position
+      const result = calculateRoEForPrice(
+        '2900', // Lower than entry price
+        true, // isProfit = true
+        true, // isForPositionBoundTpsl = true (position exists)
+        {
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 2,
+          entryPrice: 3000,
+        },
+      );
+
+      // Then percentage should be negative (not clamped)
+      expect(parseFloat(result)).toBeLessThan(0);
     });
   });
 });

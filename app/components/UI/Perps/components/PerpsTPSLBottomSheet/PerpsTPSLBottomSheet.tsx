@@ -197,10 +197,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     handleStopLossPercentageButton,
     handleTakeProfitOff,
     handleStopLossOff,
-    handleSetTakeProfitPositive,
-    handleSetTakeProfitNegative,
-    handleSetStopLossPositive,
-    handleSetStopLossNegative,
   } = tpslForm.buttons;
 
   const {
@@ -763,38 +759,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               isDisabled={confirmDisabled}
               loading={isUpdating}
             />
-            {/* Sign Toggle Buttons - only show for percentage inputs when there's a position */}
-            {(focusedInput === 'takeProfitPercentage' ||
-              focusedInput === 'stopLossPercentage') && (
-              <View style={styles.signToggleContainer}>
-                <TouchableOpacity
-                  style={styles.signToggleButton}
-                  onPress={
-                    focusedInput === 'takeProfitPercentage'
-                      ? handleSetTakeProfitPositive
-                      : handleSetStopLossPositive
-                  }
-                  disabled={isUpdating}
-                >
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                    + (Profit)
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.signToggleButton}
-                  onPress={
-                    focusedInput === 'takeProfitPercentage'
-                      ? handleSetTakeProfitNegative
-                      : handleSetStopLossNegative
-                  }
-                  disabled={isUpdating}
-                >
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                    - (Loss)
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
             <View style={styles.keypadContainer}>
               <Keypad
                 value={

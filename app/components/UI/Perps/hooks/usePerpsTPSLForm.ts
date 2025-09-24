@@ -72,10 +72,6 @@ interface TPSLFormButtons {
   handleStopLossPercentageButton: (roePercentage: number) => void;
   handleTakeProfitOff: () => void;
   handleStopLossOff: () => void;
-  handleSetTakeProfitPositive: () => void;
-  handleSetTakeProfitNegative: () => void;
-  handleSetStopLossPositive: () => void;
-  handleSetStopLossNegative: () => void;
 }
 
 interface TPSLFormValidation {
@@ -852,163 +848,6 @@ export function usePerpsTPSLForm(
     setSlSourceOfTruth(null);
   }, []);
 
-  // Sign setter handlers
-  const handleSetTakeProfitPositive = useCallback(() => {
-    // If input is empty, just add the sign
-    if (!takeProfitPercentage) {
-      setTakeProfitPercentage('+');
-      return;
-    }
-
-    // If input contains only a sign, replace it
-    if (/^[+-]$/.test(takeProfitPercentage.trim())) {
-      setTakeProfitPercentage('+');
-      return;
-    }
-
-    if (!leverage) return;
-
-    const currentValue = parseFloat(
-      takeProfitPercentage.replace(/[^\d.-]/g, ''),
-    );
-    if (isNaN(currentValue)) return;
-
-    const absValue = Math.abs(currentValue);
-    setTakeProfitPercentage(`${absValue}`);
-
-    // Update price to stay in sync
-    const price = calculatePriceForRoE(absValue, true, {
-      currentPrice,
-      direction: actualDirection,
-      leverage,
-      entryPrice,
-    });
-    setTakeProfitPrice(price.toString());
-
-    // Clear button selection since this is manual input
-    setSelectedTpPercentage(null);
-    setTpUsingPercentage(true);
-  }, [
-    takeProfitPercentage,
-    leverage,
-    currentPrice,
-    actualDirection,
-    entryPrice,
-  ]);
-
-  const handleSetTakeProfitNegative = useCallback(() => {
-    // If input is empty, just add the sign
-    if (!takeProfitPercentage) {
-      setTakeProfitPercentage('-');
-      return;
-    }
-
-    // If input contains only a sign, replace it
-    if (/^[+-]$/.test(takeProfitPercentage.trim())) {
-      setTakeProfitPercentage('-');
-      return;
-    }
-
-    if (!leverage) return;
-
-    const currentValue = parseFloat(
-      takeProfitPercentage.replace(/[^\d.-]/g, ''),
-    );
-    if (isNaN(currentValue)) return;
-
-    const absValue = Math.abs(currentValue);
-    setTakeProfitPercentage(`-${absValue}`);
-
-    // Update price to stay in sync
-    const price = calculatePriceForRoE(-absValue, true, {
-      currentPrice,
-      direction: actualDirection,
-      leverage,
-      entryPrice,
-    });
-    setTakeProfitPrice(price.toString());
-
-    // Clear button selection since this is manual input
-    setSelectedTpPercentage(null);
-    setTpUsingPercentage(true);
-  }, [
-    takeProfitPercentage,
-    leverage,
-    currentPrice,
-    actualDirection,
-    entryPrice,
-  ]);
-
-  const handleSetStopLossPositive = useCallback(() => {
-    // If input is empty, just add the sign
-    if (!stopLossPercentage) {
-      setStopLossPercentage('+');
-      return;
-    }
-
-    // If input contains only a sign, replace it
-    if (/^[+-]$/.test(stopLossPercentage.trim())) {
-      setStopLossPercentage('+');
-      return;
-    }
-
-    if (!leverage) return;
-
-    const currentValue = parseFloat(stopLossPercentage.replace(/[^\d.-]/g, ''));
-    if (isNaN(currentValue)) return;
-
-    const absValue = Math.abs(currentValue);
-    setStopLossPercentage(`${absValue}`);
-
-    // Update price to stay in sync
-    const price = calculatePriceForRoE(absValue, false, {
-      currentPrice,
-      direction: actualDirection,
-      leverage,
-      entryPrice,
-    });
-    setStopLossPrice(price.toString());
-
-    // Clear button selection since this is manual input
-    setSelectedSlPercentage(null);
-    setSlUsingPercentage(true);
-  }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
-
-  const handleSetStopLossNegative = useCallback(() => {
-    // If input is empty, just add the sign
-    if (!stopLossPercentage) {
-      setStopLossPercentage('-');
-      return;
-    }
-
-    // If input contains only a sign, replace it
-    if (/^[+-]$/.test(stopLossPercentage.trim())) {
-      setStopLossPercentage('-');
-      return;
-    }
-
-    if (!leverage) return;
-
-    const currentValue = parseFloat(stopLossPercentage.replace(/[^\d.-]/g, ''));
-    if (isNaN(currentValue)) return;
-
-    const absValue = Math.abs(currentValue);
-    setStopLossPercentage(`-${absValue}`);
-
-    // Update price to stay in sync
-    const price = calculatePriceForRoE(-absValue, false, {
-      currentPrice,
-      direction: actualDirection,
-      leverage,
-      entryPrice,
-    });
-    setStopLossPrice(price.toString());
-
-    // Clear button selection since this is manual input
-    setSelectedSlPercentage(null);
-    setSlUsingPercentage(true);
-  }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
-
   // Validation logic
   // Use entryPrice for validation (which is the limit price for limit orders, or current price for market orders)
   // This ensures TP/SL are validated against the price where the order will execute
@@ -1111,10 +950,6 @@ export function usePerpsTPSLForm(
       handleStopLossPercentageButton,
       handleTakeProfitOff,
       handleStopLossOff,
-      handleSetTakeProfitPositive,
-      handleSetTakeProfitNegative,
-      handleSetStopLossPositive,
-      handleSetStopLossNegative,
     },
     validation: {
       isValid,
