@@ -574,7 +574,7 @@ describe('TradeWalletActions', () => {
     );
 
     expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeDefined();
   });
 
