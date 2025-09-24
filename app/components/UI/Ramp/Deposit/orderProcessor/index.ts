@@ -75,6 +75,7 @@ export async function processDepositOrder(
       account: order.account,
       lastTimeFetched: Date.now(),
       errorCount: 0,
+      forceUpdate: false,
     };
   } catch (error) {
     Logger.error(error as Error, {

@@ -779,7 +779,7 @@
       "webview_received_error": "WebView received error status code: {{code}}"
     },
     "order_processing": {
-      "title": "Processing {{currency}} deposit",
+      "title": "Processing deposit",
       "button": "Close",
       "description": "Card purchases typically take a few minutes",
       "bank_transfer_description": "Bank transfers typically take a few business days",
