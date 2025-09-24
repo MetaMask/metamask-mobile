@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
@@ -49,12 +55,13 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import {
   Skeleton,
   SkeletonProps,
 } from '../../../../../component-library/components/Skeleton';
 import { isE2E } from '../../../../../util/test/utils';
+import useSupportedTokens from '../../../Ramp/Deposit/hooks/useSupportedTokens';
+import { LINEA_MAINNET } from '../../../Ramp/Deposit/constants/networks';
 
 const SkeletonLoading = (props: SkeletonProps) => {
   if (isE2E) return null;
@@ -99,6 +106,7 @@ const CardHome = () => {
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
   });
+  const depositSupportedTokens = useSupportedTokens();
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -120,6 +128,17 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, mainBalance]);
 
+  const isPriorityTokenSupportedDeposit = useMemo(() => {
+    if (priorityToken?.symbol) {
+      return depositSupportedTokens.find(
+        (token) =>
+          token.symbol.toLowerCase() === priorityToken.symbol?.toLowerCase() &&
+          // Card feature only supports Linea for now
+          token.chainId === LINEA_MAINNET.chainId,
+      );
+    }
+  }, [priorityToken, depositSupportedTokens]);
+
   const renderAddFundsBottomSheet = useCallback(
     () => (
       <AddFundsBottomSheet
@@ -139,15 +158,44 @@ const CardHome = () => {
     ],
   );
 
+  // Track event only once after priorityToken and balances are loaded
+  const hasTrackedCardHomeView = useRef(false);
+
+  useEffect(() => {
+    const hasValidMainBalance =
+      mainBalance !== undefined &&
+      mainBalance !== TOKEN_BALANCE_LOADING &&
+      mainBalance !== TOKEN_BALANCE_LOADING_UPPERCASE;
+
+    const hasValidFiatBalance =
+      balanceFiat !== undefined &&
+      balanceFiat !== TOKEN_BALANCE_LOADING &&
+      balanceFiat !== TOKEN_BALANCE_LOADING_UPPERCASE &&
+      balanceFiat !== TOKEN_RATE_UNDEFINED;
+
+    const isLoaded =
+      !!priorityToken && (hasValidMainBalance || hasValidFiatBalance);
+
+    if (isLoaded && !hasTrackedCardHomeView.current) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
+          .addProperties({
+            token_symbol_priority: priorityToken?.symbol,
+            token_raw_balance_priority: mainBalance,
+            token_fiat_balance_priority: balanceFiat,
+          })
+          .build(),
+      );
+      hasTrackedCardHomeView.current = true;
+    }
+  }, [trackEvent, createEventBuilder, priorityToken, mainBalance, balanceFiat]);
+
   const addFundsAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
 
-    if (
-      priorityToken?.symbol &&
-      SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS.includes(priorityToken.symbol)
-    ) {
+    if (isPriorityTokenSupportedDeposit) {
       setOpenAddFundsBottomSheet(true);
     } else if (priorityToken) {
       openSwaps({
@@ -159,6 +207,7 @@ const CardHome = () => {
     createEventBuilder,
     priorityToken,
     openSwaps,
+    isPriorityTokenSupportedDeposit,
     selectedChainId,
   ]);
 
