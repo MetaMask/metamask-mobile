@@ -19,7 +19,11 @@ import { successfulFetch } from '@metamask/controller-utils';
 // Mock dependencies
 jest.mock('../utils/multi-subscription-token-vault');
 jest.mock('../../../../AppConstants', () => ({
-  REWARDS_API_URL: 'https://api.rewards.test',
+  REWARDS_API_URL: {
+    DEV: 'https://api.rewards.test',
+    UAT: 'https://api.rewards.test',
+    PRD: 'https://api.rewards.test',
+  },
   IS_DEV: false, // Default to PROD, will be overridden in tests
 }));
 jest.mock('react-native-device-info', () => ({
@@ -657,7 +661,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockSeasonStatusResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL}/seasons/${mockSeasonId}/status`,
+        `${AppConstants.REWARDS_API_URL.DEV}/seasons/${mockSeasonId}/status`,
         {
           credentials: 'omit',
           method: 'GET',
