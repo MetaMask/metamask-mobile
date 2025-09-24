@@ -1,5 +1,6 @@
 import { BaseController } from '@metamask/base-controller';
 import { toHex } from '@metamask/controller-utils';
+import { maxBy } from 'lodash';
 import {
   type RewardsControllerState,
   type RewardsAccountState,
@@ -150,6 +151,7 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #currentSeasonIdMap: Record<string, string> = {};
 
   /**
    * Calculate tier status and next tier information
@@ -369,6 +371,12 @@ export class RewardsController extends BaseController<
     seasonId: string,
     subscriptionId: string,
   ): string {
+    if (
+      seasonId === CURRENT_SEASON_ID &&
+      this.#currentSeasonIdMap[CURRENT_SEASON_ID]
+    ) {
+      seasonId = this.#currentSeasonIdMap[CURRENT_SEASON_ID];
+    }
     return `${seasonId}:${subscriptionId}`;
   }
 
@@ -784,6 +792,12 @@ export class RewardsController extends BaseController<
     }
 
     try {
+      Logger.log(
+        'RewardsController: Fetching fresh opt-in status for address count:',
+        {
+          addresses: params.addresses?.length,
+        },
+      );
       return await this.messagingSystem.call(
         'RewardsDataService:getOptInStatus',
         params,
@@ -810,6 +824,80 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Triggers a balance update if newer points events are detected
+   * @param pointsEvents - The points events response from the API
+   * @param params - The original request parameters containing seasonId and subscriptionId
+   */
+  private triggerBalanceUpdateIfNeeded(
+    pointsEvents: PaginatedPointsEventsDto,
+    params: GetPointsEventsDto,
+  ): void {
+    // Only proceed if there are results to process
+    if (pointsEvents.results.length === 0) {
+      return;
+    }
+
+    // Find the latest updatedAt from the points events response
+    const latestEvent = maxBy(pointsEvents.results, (event) =>
+      (event.updatedAt instanceof Date
+        ? event.updatedAt
+        : new Date(event.updatedAt)
+      ).getTime(),
+    );
+
+    if (!latestEvent) {
+      return;
+    }
+
+    const latestUpdatedAt =
+      latestEvent.updatedAt instanceof Date
+        ? latestEvent.updatedAt.getTime()
+        : new Date(latestEvent.updatedAt).getTime();
+
+    // Check if we have an active season status cache for the requested seasonId and subscription id
+    const cachedSeasonStatus = this.#getSeasonStatus(
+      params.subscriptionId,
+      params.seasonId,
+    );
+
+    if (!cachedSeasonStatus) {
+      return;
+    }
+
+    // Compare cache timestamps with latest updatedAt
+    // Add 500ms delay to the balance updated timestamp as it's always going to be earlier than the event it was updated for.
+    const cacheBalanceUpdatedAt =
+      (cachedSeasonStatus.balance.updatedAt || 0) + 500;
+    Logger.log(
+      'RewardsController: Comparing cache timestamps with latest updatedAt',
+      {
+        cacheBalanceUpdatedAt,
+        latestUpdatedAt,
+      },
+    );
+
+    // If cache timestamp is older than the latest event update, emit balance updated event
+    if (latestUpdatedAt > cacheBalanceUpdatedAt) {
+      Logger.log(
+        'RewardsController: Emitting balanceUpdated event due to newer points events',
+        {
+          seasonId: params.seasonId,
+          subscriptionId: params.subscriptionId,
+          latestUpdatedAt: new Date(latestUpdatedAt).toISOString(),
+          cacheBalanceUpdatedAt: new Date(cacheBalanceUpdatedAt).toISOString(),
+        },
+      );
+
+      this.invalidateSubscriptionCache(params.subscriptionId, params.seasonId);
+
+      this.messagingSystem.publish('RewardsController:balanceUpdated', {
+        seasonId: params.seasonId,
+        subscriptionId: params.subscriptionId,
+      });
+    }
+  }
+
+  /**
    * Get points events for a given season
    * @param params - The request parameters
    * @returns Promise<PaginatedPointsEventsDto> - The points events data
@@ -822,10 +910,22 @@ export class RewardsController extends BaseController<
       return { has_more: false, cursor: null, total_results: 0, results: [] };
 
     try {
+      Logger.log(
+        'RewardsController: Fetching fresh points events data via API call for seasonId & subscriptionId & page cursor',
+        {
+          seasonId: params.seasonId,
+          subscriptionId: params.subscriptionId,
+          cursor: params.cursor,
+        },
+      );
       const pointsEvents = await this.messagingSystem.call(
         'RewardsDataService:getPointsEvents',
         params,
       );
+
+      // Check if we should emit balance updated event
+      this.triggerBalanceUpdateIfNeeded(pointsEvents, params);
+
       return pointsEvents;
     } catch (error) {
       Logger.log(
@@ -928,6 +1028,21 @@ export class RewardsController extends BaseController<
 
         // Update season status with composite key
         state.seasonStatuses[compositeKey] = subscriptionSeasonStatus;
+
+        if (
+          seasonId === CURRENT_SEASON_ID &&
+          seasonState.id !== CURRENT_SEASON_ID &&
+          seasonState.id
+        ) {
+          this.#currentSeasonIdMap[CURRENT_SEASON_ID] = seasonState.id;
+          state.seasons[seasonState.id] = seasonState;
+          state.seasonStatuses[
+            this.#createSeasonSubscriptionCompositeKey(
+              seasonState.id,
+              subscriptionId,
+            )
+          ] = subscriptionSeasonStatus;
+        }
       });
 
       return subscriptionSeasonStatus;
@@ -936,8 +1051,28 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get season status:',
         error instanceof Error ? error.message : String(error),
       );
+      if (error instanceof Error && error.message.includes('403')) {
+        this.invalidateSubscriptionCache(subscriptionId);
+        this.invalidateAccountsAndSubscriptions();
+      }
       throw error;
     }
+  }
+
+  invalidateAccountsAndSubscriptions() {
+    this.update((state: RewardsControllerState) => {
+      if (state.activeAccount) {
+        state.activeAccount = {
+          ...state.activeAccount,
+          hasOptedIn: false,
+          subscriptionId: null,
+          account: state.activeAccount.account, // Ensure account is always present (never undefined)
+        };
+      }
+      state.accounts = {};
+      state.subscriptions = {};
+    });
+    Logger.log('RewardsController: Invalidated accounts and subscriptions');
   }
 
   /**
@@ -1007,7 +1142,10 @@ export class RewardsController extends BaseController<
    * @param account - The account to opt in
    * @param referralCode - Optional referral code
    */
-  async optIn(account: InternalAccount, referralCode?: string): Promise<void> {
+  async optIn(
+    account: InternalAccount,
+    referralCode?: string,
+  ): Promise<string | null> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) {
       Logger.log(
@@ -1016,7 +1154,7 @@ export class RewardsController extends BaseController<
           account: account.address,
         },
       );
-      return;
+      return null;
     }
 
     Logger.log('RewardsController: Starting optin process', {
@@ -1097,6 +1235,8 @@ export class RewardsController extends BaseController<
       state.subscriptions[optinResponse.subscription.id] =
         optinResponse.subscription;
     });
+
+    return optinResponse.subscription.id;
   }
 
   /**
@@ -1413,7 +1553,7 @@ export class RewardsController extends BaseController<
       );
 
       // Invalidate cache for the linked account
-      this.#invalidateSubscriptionCache(updatedSubscription.id);
+      this.invalidateSubscriptionCache(updatedSubscription.id);
       // Emit event to trigger UI refresh
       this.messagingSystem.publish('RewardsController:accountLinked', {
         subscriptionId: updatedSubscription.id,
@@ -1436,19 +1576,8 @@ export class RewardsController extends BaseController<
    * Opt out of the rewards program, deleting the subscription and all associated data
    * @returns Promise<boolean> - True if opt-out was successful, false otherwise
    */
-  async optOut(): Promise<boolean> {
+  async optOut(subscriptionId: string): Promise<boolean> {
     try {
-      // Get the current active account
-      const activeAccount = this.state.activeAccount;
-      if (!activeAccount?.subscriptionId) {
-        Logger.log(
-          'RewardsController: No active account or subscription ID found for opt-out',
-        );
-        return false;
-      }
-
-      const subscriptionId = activeAccount.subscriptionId;
-
       // Check if subscription exists in our map
       if (!this.state.subscriptions[subscriptionId]) {
         Logger.log(
@@ -1565,10 +1694,6 @@ export class RewardsController extends BaseController<
         };
       });
 
-      Logger.log('RewardsController: Successfully cached active boosts data', {
-        boostCount: response.boosts.length,
-      });
-
       return response.boosts;
     } catch (error) {
       Logger.log(
@@ -1644,13 +1769,6 @@ export class RewardsController extends BaseController<
         };
       });
 
-      Logger.log(
-        'RewardsController: Successfully cached unlocked rewards data',
-        {
-          rewardCount: (response || []).length,
-        },
-      );
-
       return response || [];
     } catch (error) {
       Logger.log(
@@ -1685,7 +1803,7 @@ export class RewardsController extends BaseController<
       );
 
       // Invalidate cache for the active subscription
-      this.#invalidateSubscriptionCache(subscriptionId);
+      this.invalidateSubscriptionCache(subscriptionId);
 
       // Emit event to trigger UI refresh
       this.messagingSystem.publish('RewardsController:rewardClaimed', {
@@ -1711,10 +1829,7 @@ export class RewardsController extends BaseController<
    * @param subscriptionId - The subscription ID to invalidate cache for
    * @param seasonId - The season ID (defaults to current season)
    */
-  #invalidateSubscriptionCache(
-    subscriptionId: string,
-    seasonId?: string,
-  ): void {
+  invalidateSubscriptionCache(subscriptionId: string, seasonId?: string): void {
     if (seasonId) {
       // Invalidate specific season
       const compositeKey = this.#createSeasonSubscriptionCompositeKey(

@@ -236,8 +236,10 @@ import { seedlessOnboardingControllerInit } from './controllers/seedless-onboard
 import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
+import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import { selectAssetsAccountApiBalancesEnabled } from '../../selectors/featureFlagController/assetsAccountApiBalances';
+import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -290,6 +292,7 @@ export class Engine {
 
   accountsController: AccountsController;
   gasFeeController: GasFeeController;
+  gatorPermissionsController: GatorPermissionsController;
   keyringController: KeyringController;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
@@ -1137,6 +1140,7 @@ export class Engine {
         AppMetadataController: appMetadataControllerInit,
         ApprovalController: ApprovalControllerInit,
         GasFeeController: GasFeeControllerInit,
+        GatorPermissionsController: GatorPermissionsControllerInit,
         TransactionController: TransactionControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
@@ -1183,6 +1187,8 @@ export class Engine {
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
     const rewardsController = controllersByName.RewardsController;
+    const gatorPermissionsController =
+      controllersByName.GatorPermissionsController;
 
     // Initialize and store RewardsDataService
     this.rewardsDataService = new RewardsDataService({
@@ -1198,6 +1204,7 @@ export class Engine {
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
+    this.gatorPermissionsController = gatorPermissionsController;
     this.transactionController = transactionController;
 
     const multichainNetworkController =
@@ -1502,6 +1509,7 @@ export class Engine {
         fetchEstimatedMultiLayerL1Fee,
       }),
       GasFeeController: this.gasFeeController,
+      GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
       PermissionController: permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
