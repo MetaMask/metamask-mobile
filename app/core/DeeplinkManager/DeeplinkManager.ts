@@ -13,7 +13,6 @@ import { RampType } from '../../reducers/fiatOrders/types';
 import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import Routes from '../../constants/navigation/Routes';
 import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
-import { handlePerpsUrl, handlePerpsAssetUrl } from './Handlers/handlePerpsUrl';
 
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
@@ -108,18 +107,6 @@ class DeeplinkManager {
     handleCreateAccountUrl({
       path: createAccountPath,
       navigation: this.navigation,
-    });
-  }
-
-  _handlePerps(perpsPath: string) {
-    handlePerpsUrl({
-      perpsPath,
-    });
-  }
-
-  _handlePerpsAsset(assetPath: string) {
-    handlePerpsAssetUrl({
-      assetPath,
     });
   }
 
