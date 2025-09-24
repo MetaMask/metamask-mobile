@@ -45,24 +45,33 @@ const OnboardingStep4: React.FC = () => {
     optin({ referralCode });
   }, [optin, referralCode]);
 
-  const renderIcon = () =>
-    isValidatingReferralCode ? (
-      <ActivityIndicator />
-    ) : referralCodeIsValid ? (
-      <Icon
-        name={IconName.Confirmation}
-        size={IconSize.Lg}
-        color={IconColor.SuccessDefault}
-      />
-    ) : referralCode.length >= 6 ? (
-      <Icon
-        name={IconName.Error}
-        size={IconSize.Lg}
-        color={IconColor.ErrorDefault}
-      />
-    ) : (
-      <></>
-    );
+  const renderIcon = () => {
+    if (isValidatingReferralCode) {
+      return <ActivityIndicator />;
+    }
+
+    if (referralCodeIsValid) {
+      return (
+        <Icon
+          name={IconName.Confirmation}
+          size={IconSize.Lg}
+          color={IconColor.SuccessDefault}
+        />
+      );
+    }
+
+    if (referralCode.length >= 6) {
+      return (
+        <Icon
+          name={IconName.Error}
+          size={IconSize.Lg}
+          color={IconColor.ErrorDefault}
+        />
+      );
+    }
+
+    return null;
+  };
 
   const renderStepInfo = () => (
     <Box alignItems={BoxAlignItems.Center} twClassName="min-h-[70%]">
