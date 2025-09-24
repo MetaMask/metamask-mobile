@@ -700,6 +700,74 @@ describe('UnifiedTransactionsView', () => {
     expect(footerProps.url).toBe('');
   });
 
+  describe('nonEvmExplorerChainId resolution', () => {
+    it('uses prop chainId when no non-EVM networks are enabled and chainId is CAIP', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [
+            { address: '0xabc', type: 'eip155:eoa' },
+            {
+              address: 'SoLAddreSS11111111111111111111111',
+              type: 'solana:data-account',
+            },
+          ];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectChainId) return '0x1';
+        if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectEVMEnabledNetworks) return [];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      render(<UnifiedTransactionsView chainId="solana:mainnet" />);
+
+      // nonEvmExplorerUrl should be computed using getAddressUrl with the CAIP chain id
+      expect(mockGetAddressUrl).toHaveBeenCalledWith(
+        'SoLAddreSS11111111111111111111111',
+        'solana:mainnet',
+      );
+    });
+
+    it('returns undefined (no address URL) when no non-EVM networks and prop chainId is not CAIP', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [
+            { address: '0xabc', type: 'eip155:eoa' },
+            {
+              address: 'SoLAddreSS11111111111111111111111',
+              type: 'solana:data-account',
+            },
+          ];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectChainId) return '0x1';
+        if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectEVMEnabledNetworks) return [];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      render(<UnifiedTransactionsView chainId="0x1" />);
+
+      // Since the chainId is not CAIP and there are no enabled non-EVM networks,
+      // nonEvmExplorerChainId is undefined and getAddressUrl should not be called
+      expect(mockGetAddressUrl).not.toHaveBeenCalled();
+    });
+  });
+
   describe('non-TransactionMeta EVM transactions (smart tx) status handling', () => {
     it.each([
       'submitted',
