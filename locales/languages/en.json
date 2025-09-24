@@ -5850,8 +5850,8 @@
         "cta_label": "Start a trade"
       },
       "referrals": {
-        "title": "Referrals",
-        "points": "Get 20% from friends you refer"
+        "title": "Refer friends",
+        "points": "10 points per 50 from friends"
       }
     },
     "referral": {
@@ -5863,7 +5863,7 @@
       },
       "info": {
         "title": "Share your code to earn more",
-        "description": "Your friends earn bonus points, and you get 20% of their rewards."
+        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
     "active_boosts": {
