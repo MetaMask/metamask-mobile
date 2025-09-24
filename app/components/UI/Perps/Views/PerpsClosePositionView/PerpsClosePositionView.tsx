@@ -152,7 +152,10 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
-  const positionValue = absSize * effectivePrice;
+  const positionValue = useMemo(
+    () => Math.round(absSize * effectivePrice * 100) / 100, // Round to 2 decimal places
+    [absSize, effectivePrice],
+  );
 
   // Calculate P&L based on effective price (limit price for limit orders)
   const entryPrice = parseFloat(position.entryPrice);
@@ -173,30 +176,60 @@ const PerpsClosePositionView: React.FC = () => {
   const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
-  const closingValue = positionValue * (closePercentage / 100);
+  const closingValue = useMemo(
+    () => Math.round(positionValue * (closePercentage / 100) * 100) / 100, // Round to 2 decimal places
+    [positionValue, closePercentage],
+  );
+  const closingValueString = useMemo(
+    () => closingValue.toString(),
+    [closingValue],
+  );
   const feeResults = usePerpsOrderFees({
     orderType,
-    amount: closingValue.toString(),
+    amount: closingValueString,
     isMaker: false, // Closing positions are typically taker orders
     coin: position.coin,
     isClosing: true, // This is a position closing operation
   });
 
+  // Memoize feeResults with deep equality to prevent re-renders when only reference changes
+  const stableFeeResults = useMemo(
+    () => feeResults,
+    [
+      feeResults.totalFee,
+      feeResults.protocolFee,
+      feeResults.metamaskFee,
+      feeResults.protocolFeeRate,
+      feeResults.metamaskFeeRate,
+      feeResults.isLoadingMetamaskFee,
+      feeResults.error,
+      feeResults.originalMetamaskFeeRate,
+      feeResults.feeDiscountPercentage,
+      feeResults.estimatedPoints,
+      feeResults.bonusBips,
+    ],
+  );
+
+  console.log(feeResults);
+
   // Simple boolean calculation for rewards state
-  const hasValidAmount = closePercentage > 0 && closingValue > 0;
+  const hasValidAmount = useMemo(
+    () => closePercentage > 0 && closingValue > 0,
+    [closePercentage, closingValue],
+  );
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
-    feeResults,
+    feeResults: stableFeeResults,
     hasValidAmount,
-    isFeesLoading: feeResults.isLoadingMetamaskFee,
-    orderAmount: closingValue.toString(),
+    isFeesLoading: stableFeeResults.isLoadingMetamaskFee,
+    orderAmount: closingValueString,
   });
 
   // Calculate what user will receive (initial margin - fees)
   // P&L is already shown separately in the margin section as "includes P&L"
   const receiveAmount =
-    (closePercentage / 100) * initialMargin - feeResults.totalFee;
+    (closePercentage / 100) * initialMargin - stableFeeResults.totalFee;
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
