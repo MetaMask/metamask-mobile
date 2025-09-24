@@ -95,6 +95,7 @@ jest.mock('../../hooks', () => ({
     getMinimumAmount: jest.fn(() => '10.00'),
   })),
   usePerpsNetwork: jest.fn(() => 'mainnet'),
+  usePerpsMeasurement: jest.fn(),
 }));
 
 // Mock components

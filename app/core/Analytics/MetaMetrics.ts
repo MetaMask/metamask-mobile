@@ -41,6 +41,7 @@ import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 import { segmentPersistor } from './SegmentPersistor';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -754,6 +755,30 @@ class MetaMetrics implements IMetaMetrics {
     if (isE2E) {
       MetaMetricsTestUtils.getInstance().trackEvent(event);
       return;
+    }
+
+    // Log Perps-related MetaMetrics events with filterable marker
+    // Only log Perps events to avoid noise from general app analytics
+    if (event.name?.toLowerCase().includes('perp')) {
+      if (__DEV__) {
+        // Development: Show actual property values for debugging
+        const propertySummary = event.properties
+          ? Object.entries(event.properties)
+              .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+              .join(', ')
+          : 'none';
+
+        DevLogger.log(`PERPSMARK_METRICS MetaMetrics: ${event.name}`, {
+          event: event.name,
+          properties: event.properties || {},
+          summary: propertySummary,
+          hasProperties: event.hasProperties,
+          isAnonymous: event.isAnonymous,
+          sensitiveProperties: event.sensitiveProperties
+            ? Object.keys(event.sensitiveProperties)
+            : [],
+        });
+      }
     }
 
     // if event does not have properties, only send the non-anonymous empty event
