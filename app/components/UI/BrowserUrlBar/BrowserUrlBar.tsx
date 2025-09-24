@@ -4,6 +4,7 @@ import {
   TextInput,
   TextInputSubmitEditingEventData,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
@@ -33,6 +34,7 @@ import URLParse from 'url-parse';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import { hasProperty } from '@metamask/utils';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -82,8 +84,14 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
       focus: () => inputRef?.current?.focus(),
-      setNativeProps: (props: object) =>
-        inputRef?.current?.setNativeProps(props),
+      setNativeProps: (props: object) => {
+        const inputText = hasProperty(props, 'text') ? props.text : null;
+
+        if (typeof inputText === 'string') {
+          inputValueRef.current = inputText;
+        }
+        inputRef?.current?.setNativeProps(props);
+      },
     }));
 
     /**
@@ -200,12 +208,23 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               returnKeyType={'go'}
               selectTextOnFocus
               keyboardAppearance={themeAppearance}
-              style={styles.textInput}
+              style={[styles.textInput, !isUrlBarFocused && styles.hidden]}
               onChangeText={onChangeTextInput}
               onSubmitEditing={onSubmitEditingInput}
               onBlur={onBlurInput}
               onFocus={onFocusInput}
             />
+            <TouchableWithoutFeedback
+              onPress={() => inputRef?.current?.focus()}
+            >
+              <Text
+                style={styles.urlBarText}
+                numberOfLines={1}
+                ellipsizeMode="head"
+              >
+                {inputValueRef.current || activeUrl}
+              </Text>
+            </TouchableWithoutFeedback>
           </View>
           {isUrlBarFocused ? (
             <ButtonIcon

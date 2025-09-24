@@ -81,12 +81,6 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-// Mock hooks
-const mockUseSeasonStatus = jest.fn();
-jest.mock('../hooks/useSeasonStatus', () => ({
-  useSeasonStatus: () => mockUseSeasonStatus(),
-}));
-
 // Mock ReferralDetails component
 jest.mock('../components/ReferralDetails/ReferralDetails', () => ({
   __esModule: true,
@@ -149,14 +143,6 @@ describe('RewardsReferralView', () => {
       // Assert
       expect(getByTestId('error-boundary-referralrewardsview')).toBeTruthy();
     });
-
-    it('should wrap content in SafeAreaView', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      // Assert
-      expect(getByTestId('safe-area-view')).toBeTruthy();
-    });
   });
 
   describe('navigation', () => {
@@ -218,41 +204,6 @@ describe('RewardsReferralView', () => {
     });
   });
 
-  describe('hooks integration', () => {
-    it('should call useSeasonStatus hook', () => {
-      // Act
-      render(<RewardsReferralView />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call useSeasonStatus hook on every render', () => {
-      // Act
-      const { rerender } = render(<RewardsReferralView />);
-
-      // Clear previous calls
-      mockUseSeasonStatus.mockClear();
-
-      // Re-render
-      rerender(<RewardsReferralView />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('styling', () => {
-    it('should apply correct styles to SafeAreaView', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-      const safeAreaView = getByTestId('safe-area-view');
-
-      // Assert - Check if Tailwind classes are applied correctly
-      expect(safeAreaView.props.style).toBeDefined();
-    });
-  });
-
   describe('error boundary integration', () => {
     it('should pass correct view prop to ErrorBoundary', () => {
       // Act
@@ -303,17 +254,6 @@ describe('RewardsReferralView', () => {
 
       // Assert
       expect(getByTestId('referral-details')).toBeTruthy();
-    });
-  });
-
-  describe('accessibility', () => {
-    it('should be accessible with screen readers', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-      const safeAreaView = getByTestId('safe-area-view');
-
-      // Assert - The component should be accessible
-      expect(safeAreaView).toBeTruthy();
     });
   });
 });

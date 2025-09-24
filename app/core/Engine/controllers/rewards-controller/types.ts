@@ -197,12 +197,6 @@ export interface EventAssetDto {
    * @example 'ETH'
    */
   symbol?: string;
-
-  /**
-   * Icon URL of the token
-   * @example 'https://example.com/icon.png'
-   */
-  iconUrl?: string;
 }
 
 /**
@@ -284,6 +278,12 @@ interface BasePointsEventDto {
    * @example '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
    */
   accountAddress: string | null;
+
+  /**
+   * Timestamp of the point earning activity
+   * @example '2021-01-01T00:00:00.000Z'
+   */
+  updatedAt: Date;
 }
 
 /**
@@ -603,6 +603,19 @@ export interface RewardsControllerRewardClaimedEvent {
 }
 
 /**
+ * Event emitted when balance data should be invalidated
+ */
+export interface RewardsControllerBalanceUpdatedEvent {
+  type: 'RewardsController:balanceUpdated';
+  payload: [
+    {
+      seasonId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -611,7 +624,8 @@ export type RewardsControllerEvents =
       payload: [RewardsControllerState, Patch[]];
     }
   | RewardsControllerAccountLinkedEvent
-  | RewardsControllerRewardClaimedEvent;
+  | RewardsControllerRewardClaimedEvent
+  | RewardsControllerBalanceUpdatedEvent;
 
 /**
  * Patch type for state changes
@@ -627,7 +641,10 @@ export interface Patch {
  */
 export interface RewardsControllerOptInAction {
   type: 'RewardsController:optIn';
-  handler: (account: InternalAccount, referralCode?: string) => Promise<void>;
+  handler: (
+    account: InternalAccount,
+    referralCode?: string,
+  ) => Promise<string | null>;
 }
 
 /**
@@ -784,7 +801,7 @@ export interface RewardsControllerGetCandidateSubscriptionIdAction {
  */
 export interface RewardsControllerOptOutAction {
   type: 'RewardsController:optOut';
-  handler: () => Promise<boolean>;
+  handler: (subscriptionId: string) => Promise<boolean>;
 }
 
 /**
