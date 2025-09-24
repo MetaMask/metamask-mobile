@@ -51,6 +51,11 @@ jest.mock('../../../hooks/usePointsEvents', () => ({
   usePointsEvents: (...args: unknown[]) => mockUsePointsEvents(...args),
 }));
 
+// Mock useAccountNames hook
+jest.mock('../../../../../hooks/DisplayName/useAccountNames', () => ({
+  useAccountNames: jest.fn(() => []),
+}));
+
 // Mock ActivityEventRow to simplify assertions
 jest.mock('./ActivityEventRow', () => ({
   ActivityEventRow: ({ event }: { event: { id: string } }) => {
@@ -147,7 +152,6 @@ const createMockEvent = (
             decimals: 0,
             name: 'BIO',
             symbol: 'BIO',
-            iconUrl: 'https://app.hyperliquid.xyz/coins/BIO.svg',
             amount: '287',
           },
         },

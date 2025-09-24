@@ -20,6 +20,10 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    MODALS: {
+      ID: 'RampModals',
+      TOKEN_SELECTOR: 'RampTokenSelectorModal',
+    },
   },
   DEPOSIT: {
     ID: 'Deposit',
@@ -95,6 +99,7 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
+    REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',

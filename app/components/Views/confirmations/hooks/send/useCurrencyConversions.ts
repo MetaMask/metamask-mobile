@@ -5,7 +5,7 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { RootState } from '../../../../../reducers';
-import { getCurrencySymbol, isDecimal } from '../../../../../util/number';
+import { getCurrencySymbol } from '../../../../../util/number';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import {
   selectConversionRateByChainId,
@@ -14,7 +14,10 @@ import {
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
-import { convertCurrency } from '../../utils/send';
+import {
+  convertCurrency,
+  isValidPositiveNumericString,
+} from '../../utils/send';
 
 interface ConversionArgs {
   amount?: string;
@@ -31,7 +34,7 @@ export const getFiatValueFn = ({
   decimals,
   exchangeRate,
 }: ConversionArgs) => {
-  if (!amount || !isDecimal(amount)) {
+  if (!amount || !isValidPositiveNumericString(amount)) {
     return '0.00';
   }
 
@@ -67,7 +70,7 @@ export const getNativeValueFn = ({
   decimals,
   exchangeRate,
 }: ConversionArgs) => {
-  if (!amount || !isDecimal(amount)) {
+  if (!amount || !isValidPositiveNumericString(amount)) {
     return '0';
   }
 

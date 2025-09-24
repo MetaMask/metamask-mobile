@@ -93,6 +93,12 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       }
 
       const handleTokenPress = async (token: BridgeToken) => {
+        // Navigate back to the previous screen immediately so we unmount the component
+        // And don't refetch the top tokens
+        // The chain switching will still happen in the background
+        // Chain switching is important for calling /suggestedGasFees endpoint for the right chain
+        // and also the next time you open up the token selector to fetch top tokens for the right chain
+        navigation.goBack();
         dispatch(setSourceToken(token));
 
         // Switch to the chain of the selected token
@@ -108,8 +114,6 @@ export const BridgeSourceTokenSelector: React.FC = () => {
           await onNonEvmNetworkChange(token.chainId as CaipChainId);
         }
         ///: END:ONLY_INCLUDE_IF
-
-        navigation.goBack();
       };
 
       const networkName = allNetworkConfigurations[item.chainId]?.name;

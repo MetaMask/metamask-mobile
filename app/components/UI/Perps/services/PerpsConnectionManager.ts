@@ -1,15 +1,15 @@
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
-import Engine from '../../../../core/Engine';
-import { store } from '../../../../store';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectPerpsNetwork } from '../selectors/perpsController';
-import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
-import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import BackgroundTimer from 'react-native-background-timer';
 import { captureException } from '@sentry/react-native';
+import BackgroundTimer from 'react-native-background-timer';
+import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { store } from '../../../../store';
 import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
+import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
+import { selectPerpsNetwork } from '../selectors/perpsController';
 
 // simple wait utility
 const wait = (ms: number): Promise<void> =>
@@ -39,6 +39,7 @@ class PerpsConnectionManagerClass {
   private balanceUpdateThrottleMs = PERPS_CONSTANTS.BALANCE_UPDATE_THROTTLE_MS;
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
+  private pendingReconnectPromise: Promise<void> | null = null;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -90,7 +91,18 @@ class PerpsConnectionManagerClass {
           },
         );
 
-        // Trigger reconnection asynchronously
+        // Immediately clear ALL cached data to prevent old account data from showing
+        const streamManager = getStreamManagerInstance();
+
+        // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
+        streamManager.positions.clearCache();
+        streamManager.orders.clearCache();
+        streamManager.account.clearCache();
+        streamManager.prices.clearCache();
+        streamManager.marketData.clearCache();
+
+        // Force the controller to reconnect with new account
+        // This ensures proper WebSocket reconnection at the controller level
         this.reconnectWithNewContext().catch((error) => {
           DevLogger.log(
             'PerpsConnectionManager: Failed to reconnect after account/network change',
@@ -449,6 +461,23 @@ class PerpsConnectionManagerClass {
    * Used when user switches accounts or networks
    */
   async reconnectWithNewContext(): Promise<void> {
+    // Cancel any pending reconnection and start fresh
+    this.pendingReconnectPromise = null;
+
+    // Create a new reconnection promise
+    this.pendingReconnectPromise = this.performReconnection();
+
+    try {
+      await this.pendingReconnectPromise;
+    } finally {
+      this.pendingReconnectPromise = null;
+    }
+  }
+
+  /**
+   * Performs the actual reconnection logic
+   */
+  private async performReconnection(): Promise<void> {
     DevLogger.log(
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
@@ -564,32 +593,7 @@ class PerpsConnectionManagerClass {
     }
   }
 
-  /**
-   * Update persisted perps balances in controller state
-   * This is called when account or position data changes
-   */
-  private updatePerpsBalances(): void {
-    const now = Date.now();
-    // Throttle updates to prevent too frequent state changes
-    if (now - this.lastBalanceUpdateTime < this.balanceUpdateThrottleMs) {
-      return;
-    }
-
-    try {
-      const controller = Engine.context.PerpsController;
-      const currentAccount = controller.state.accountState;
-
-      if (currentAccount) {
-        // Update persisted balances
-        controller.updatePerpsBalances(currentAccount);
-        this.lastBalanceUpdateTime = now;
-
-        DevLogger.log('PerpsConnectionManager: Updated persisted balances');
-      }
-    } catch (error) {
-      DevLogger.log('PerpsConnectionManager: Failed to update balances', error);
-    }
-  }
+  // Balance persistence removed - portfolio balances now use live account data directly
 
   /**
    * Pre-load critical WebSocket subscriptions to populate cache
@@ -621,18 +625,9 @@ class PerpsConnectionManagerClass {
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
 
-      // Add subscriptions that update persisted balances for portfolio
-      // Account updates (includes totalValue and unrealizedPnl) - throttled
-      const balanceAccountCleanup = streamManager.account.subscribe({
-        callback: () => this.updatePerpsBalances(),
-        throttleMs: this.balanceUpdateThrottleMs,
-      });
+      // Portfolio balance updates are now handled by usePerpsPortfolioBalance via usePerpsLiveAccount
 
-      // Position updates (immediate, no throttling for actual position changes)
-      const balancePositionCleanup = streamManager.positions.subscribe({
-        callback: () => this.updatePerpsBalances(),
-        throttleMs: 0, // No throttling for position changes
-      });
+      // Position updates are no longer needed for balance persistence since we use live streams
       // Price channel prewarm is async and subscribes to all market prices
       const priceCleanup = await streamManager.prices.prewarm();
 
@@ -641,8 +636,6 @@ class PerpsConnectionManagerClass {
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
-        balanceAccountCleanup,
-        balancePositionCleanup,
         priceCleanup,
       );
 

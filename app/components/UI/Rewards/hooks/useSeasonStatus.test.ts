@@ -4,6 +4,8 @@ import Engine from '../../../../core/Engine';
 import { setSeasonStatus } from '../../../../actions/rewards';
 import { setSeasonStatusLoading } from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
+import { CURRENT_SEASON_ID } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -15,13 +17,11 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
-jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectSeasonId: jest.fn(),
-}));
-
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -33,8 +33,22 @@ jest.mock('../../../../reducers/rewards', () => ({
   setSeasonStatusLoading: jest.fn(),
 }));
 
+// Mock the useInvalidateByRewardEvents hook
+const mockUseInvalidateByRewardEvents = jest.fn();
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: mockUseInvalidateByRewardEvents,
+}));
+
+// Mock React Navigation hooks
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 describe('useSeasonStatus', () => {
   const mockDispatch = jest.fn();
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
@@ -48,39 +62,26 @@ describe('useSeasonStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
-    // Mock useSelector calls in order: first call is seasonId, second is subscriptionId
-    let callCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return 'test-season-id'; // selectSeasonId
-      }
-      if (callCount === 2) {
-        return 'test-subscription-id'; // selectRewardsSubscriptionId
-      }
-      return null;
-    });
-  });
+    mockUseSelector.mockReturnValue('test-subscription-id'); // selectRewardsSubscriptionId
 
-  it('should return void', () => {
-    const { result } = renderHook(() => useSeasonStatus());
-    expect(result.current).toBeUndefined();
+    // Reset the mocked hooks
+    mockUseFocusEffect.mockClear();
+    mockUseInvalidateByRewardEvents.mockImplementation(() => {
+      // Mock implementation
+    });
   });
 
   it('should skip fetch when subscriptionId is missing', () => {
-    let callCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return 'test-season-id'; // selectSeasonId
-      }
-      if (callCount === 2) {
-        return null; // selectRewardsSubscriptionId - missing
-      }
-      return null;
-    });
+    mockUseSelector.mockReturnValue(null); // selectRewardsSubscriptionId - missing
 
     renderHook(() => useSeasonStatus());
+
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
 
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(null));
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
@@ -132,6 +133,13 @@ describe('useSeasonStatus', () => {
 
     renderHook(() => useSeasonStatus());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -139,7 +147,7 @@ describe('useSeasonStatus', () => {
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getSeasonStatus',
       'test-subscription-id',
-      'test-season-id',
+      CURRENT_SEASON_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(mockStatusData));
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
@@ -151,6 +159,13 @@ describe('useSeasonStatus', () => {
 
     renderHook(() => useSeasonStatus());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -158,54 +173,38 @@ describe('useSeasonStatus', () => {
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getSeasonStatus',
       'test-subscription-id',
-      'test-season-id',
+      CURRENT_SEASON_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(null));
     expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
   });
 
-  it('should use current as fallback when seasonId is null', async () => {
-    let callCount = 0;
-    mockUseSelector.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return null; // selectSeasonId - null
-      }
-      if (callCount === 2) {
-        return 'test-subscription-id'; // selectRewardsSubscriptionId
-      }
-      return null;
-    });
+  it('should register focus effect callback', () => {
+    renderHook(() => useSeasonStatus());
 
-    const mockStatusData = {
-      season: {
-        id: 'current',
-        name: 'Current Season',
-        startDate: 1640995200000,
-        endDate: 1672531200000,
-        tiers: [],
-      },
-      balance: {
-        total: 0,
-        refereePortion: 0,
-      },
-      tier: {
-        currentTier: { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
-        nextTier: null,
-        nextTierPointsNeeded: null,
-      },
-    };
-    mockEngineCall.mockResolvedValueOnce(mockStatusData);
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+  });
+
+  it('should prevent duplicate fetch calls when already loading', async () => {
+    // First call will start loading
+    mockEngineCall.mockImplementation(
+      () =>
+        new Promise(() => {
+          // Never resolves
+        }),
+    ); // Never resolves
 
     renderHook(() => useSeasonStatus());
 
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
 
-    expect(mockEngineCall).toHaveBeenCalledWith(
-      'RewardsController:getSeasonStatus',
-      'test-subscription-id',
-      'current',
-    );
+    // Trigger focus effect callback multiple times
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+    focusCallback();
+
+    // Should only be called once despite multiple focus triggers
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
   });
 });
