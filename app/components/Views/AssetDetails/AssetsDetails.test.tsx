@@ -16,6 +16,7 @@ jest.mock('../../../core/ClipboardManager', () => ({
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   getDecimalChainId: jest.fn(() => 1),
+  isPortfolioViewEnabled: jest.fn(() => true),
 }));
 
 jest.mock('@react-navigation/compat', () => ({
@@ -45,6 +46,36 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
+
+// Mock all selector modules to avoid dependency chain issues
+jest.mock('../../../selectors/accountsController');
+jest.mock('../../../selectors/multichainAccounts/accountTreeController');
+jest.mock('../../../selectors/smartTransactionsController');
+
+// Import and mock specific selectors after module mocks
+import { selectLastSelectedEvmAccount } from '../../../selectors/accountsController';
+
+const mockSelectLastSelectedEvmAccount =
+  selectLastSelectedEvmAccount as jest.MockedFunction<
+    typeof selectLastSelectedEvmAccount
+  >;
+
+// Set up the specific mocks we need
+mockSelectLastSelectedEvmAccount.mockReturnValue({
+  type: 'eip155:eoa' as const,
+  id: 'mock-account-id',
+  options: {},
+  metadata: {
+    name: 'Test Account',
+    importTime: Date.now(),
+    keyring: {
+      type: 'HD Key Tree',
+    },
+  },
+  address: '0x0', // MOCK_ADDRESS_1
+  scopes: ['eip155:1'],
+  methods: [],
+});
 
 const mockStore = configureMockStore();
 

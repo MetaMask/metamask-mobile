@@ -1166,8 +1166,6 @@
     "tpsl": {
       "title": "Take profit and stop loss",
       "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
-      "set": "Set",
-      "updating": "Updating...",
       "off": "Off",
       "current_price": "Current price",
       "leverage": "Leverage",
@@ -1189,7 +1187,7 @@
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
       "above": "above",
       "below": "below",
-      "dismiss_tpsl_keypad": "Dismiss"
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1487,29 +1485,28 @@
       "add_funds": "Add funds",
       "what_are_perps": {
         "title": "What are perps?",
-        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
-        "subtitle": "Here's how it works."
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it. Here's how it works."
       },
       "go_long_or_short": {
-        "title": "Go long or short on a token",
-        "description": "Pick a token to long or short, then set your order size.",
-        "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
+        "title": "Pick a token.\nGo long or short.",
+        "description": "Go long to profit if the price goes up. Go short to profit if the price goes down.",
+        "subtitle": "Set your margin: the amount you put into the trade."
       },
       "choose_leverage": {
-        "title": "Choose your leverage",
-        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+        "title": "Choose leverage",
+        "description": "Leverage amplifies both gains and losses.",
+        "subtitle": "With 10x leverage, a 1% price move = 10% gain or loss on your margin."
       },
       "watch_liquidation": {
-        "title": "Watch out for liquidation",
-        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+        "title": "Watch your liquidation price",
+        "description": "You’ll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
       },
       "close_anytime": {
         "title": "Close any time",
-        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+        "description": "Exit whenever you want. You’ll get back your margin plus profits, or minus losses."
       },
       "ready_to_trade": {
         "title": "Ready to trade?",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
         "description": "Fund your perps account with any token and make your first trade in seconds."
       },
       "got_it": "Got it"
@@ -5344,9 +5341,10 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network Fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Points",
+    "points": "Est. points",
     "points_tooltip": "Points",
-    "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5727,6 +5725,7 @@
     "toast_dismiss": "Dismiss",
 
     "events": {
+      "to": "to",
       "type": {
         "swap": "Swap",
         "perps": "Perps",
@@ -5755,15 +5754,15 @@
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking opt-in for accounts...",
-      "redirecting_to_dashboard": "Redirecting to dashboard...",
+      "checking_opt_in": "Checking accounts...",
+      "redirecting_to_dashboard": "Redirecting...",
       "intro_skip": "Not now",
 
       "step_confirm": "Next",
       "step_skip": "Skip",
 
       "step1_title": "Earn points on every trade",
-      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
+      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Add your accounts and watch your points add up.",
 
       "step2_title": "Level up for bigger perks",
       "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
@@ -5779,10 +5778,10 @@
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
-      "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
-      "step4_linking_accounts_loading": "Linking additional accounts...",
+      "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
+      "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
       "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
       "step4_legal_disclaimer_3":". We'll track onchain activity to reward you automatically –",
       "step4_legal_disclaimer_4":"learn more"
@@ -5790,48 +5789,49 @@
     },
 
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
-      "error_title": "Unable to Load Linked Accounts",
-      "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
+      "error_title": "Unable to Load Opted-in Accounts",
+      "error_description": "We couldn't detect your opted-in accounts. Please check your connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
-      "no_linked_accounts": "No linked accounts",
-      "all_accounts_linked_title": "All accounts are linked",
-      "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
-      "link_account_success_title": "Account {{accountName}} successfully linked",
-      "link_account_error_title": "Failed to link account",
-      "link_account_button": "Link"
+ "tab_linked_accounts": "Added ({{count}})",
+      "tab_unlinked_accounts": "Not added ({{count}})",
+      "no_linked_accounts": "No accounts opted in",
+      "all_accounts_linked_title": "All accounts opted in",
+      "all_accounts_linked_description": "You have added all your accounts to Rewards.",
+      "link_account_success_title": "{{accountName}} successfully added",
+      "link_account_error_title": "Failed to add account",
+      "link_account_button": "Add"
     },
 
     "optout": {
         "title": "Opt out of Rewards",
-        "description": "This will erase your points and progress. You won't be able to undo this.",
+        "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
         "confirm": "Opt out",
         "modal": {
           "confirmation_title": "Are you sure?",
-          "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll restart at 0.",
+          "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
           "cancel": "Cancel",
           "confirm": "Confirm",
-          "error_message": "Failed to opt out of rewards program. Please try again.",
+          "error_message": "Failed to opt out of Rewards. Please try again.",
           "processing": "Processing..."
         }
     },
 
     "unlinked_accounts_info": {
-      "title": "There are unlinked accounts",
-      "description": "If you want to earn points for the activity of these accounts you can link them in the settings page.",
+      "title": "Accounts not earning points",
+      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
       "go_to_settings": "Go to settings"
     },
 
     "unlinked_account_info": {
-      "title": "Account not linked",
+      "title": "Account not earning points",
       "description": "This account's activity is not being tracked for this season."
     },
 
-    "link_account": "Link account",
-    "linking_account": "Linking...",
+    "link_account": "Add account",
+    "linking_account": "Adding...",
 
     "ways_to_earn": {
       "title": "Ways to earn",
@@ -5851,21 +5851,20 @@
         "cta_label": "Start a trade"
       },
       "referrals": {
-        "title": "Referrals",
-        "points": "Get 20% from friends you refer"
+        "title": "Refer friends",
+        "points": "10 points per 50 from friends"
       }
     },
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
-      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Refer a friend",
         "share_referral_subject": "Join MetaMask Rewards"
       },
       "info": {
         "title": "Share your code to earn more",
-        "description": "Your friends earn bonus points, and you get 20% of their rewards."
+        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
     "active_boosts": {
@@ -5909,6 +5908,8 @@
     "summary_title": {
       "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
+      "bridge_approval_loading": "Approve",
+      "bridge_loading": "Bridge",
       "default": "Transaction",
       "perps_deposit": "Add funds",
       "swap": "Swap tokens",

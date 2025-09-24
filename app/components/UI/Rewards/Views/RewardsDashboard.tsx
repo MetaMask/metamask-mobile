@@ -38,7 +38,6 @@ import {
   selectRewardsSubscriptionId,
   selectHideUnlinkedAccountsBanner,
 } from '../../../../selectors/rewards';
-import { useSeasonStatus } from '../hooks/useSeasonStatus';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../hooks/useLinkAccount';
@@ -53,7 +52,6 @@ import RewardsLevels from '../components/Tabs/RewardsLevels';
 import RewardsActivity from '../components/Tabs/RewardsActivity';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
-import { useUnlockedRewards } from '../hooks/useUnlockedRewards';
 import Toast, {
   ToastContext,
 } from '../../../../component-library/components/Toast';
@@ -87,10 +85,6 @@ const RewardsDashboard: React.FC = () => {
   const { unlinkedAccounts } = useRewardOptinSummary({
     enabled: !hideUnlinkedAccountsBanner,
   });
-
-  // Sync rewards controller state with UI store
-  useSeasonStatus();
-  useUnlockedRewards();
 
   // Set navigation title
   useEffect(() => {
@@ -211,7 +205,9 @@ const RewardsDashboard: React.FC = () => {
               title={
                 <Box twClassName="mb-3">
                   <AccountDisplayItem account={selectedAccount} />
-                  {strings('rewards.unlinked_account_info.title')}
+                  <Text variant={TextVariant.BodyMd}>
+                    {strings('rewards.unlinked_account_info.title')}
+                  </Text>
                 </Box>
               }
               description={
