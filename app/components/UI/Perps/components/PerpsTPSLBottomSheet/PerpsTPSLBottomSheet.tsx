@@ -41,7 +41,7 @@ import {
 
 // Quick percentage buttons constants - RoE percentages
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
-const STOP_LOSS_PERCENTAGES = [5, 10, 25, 50]; // -5%, -10%, -25%, -50% RoE
+const STOP_LOSS_PERCENTAGES = [-5, -10, -25, -50]; // -5%, -10%, -25%, -50% RoE
 
 interface PerpsTPSLBottomSheetProps {
   isVisible: boolean;

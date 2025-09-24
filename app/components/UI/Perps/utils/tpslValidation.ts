@@ -304,14 +304,14 @@ export const calculatePriceForRoE = (
   } else if (isLong) {
     // For stop loss (negative RoE)
     // Long SL: price needs to go down
-    calculatedPrice = basePrice * (1 - Math.abs(priceChangeRatio));
+    calculatedPrice = basePrice * (1 - -priceChangeRatio);
     // Ensure price never goes negative
     if (calculatedPrice <= 0) {
       calculatedPrice = basePrice * 0.01; // Minimum 1% of base price
     }
   } else {
     // Short SL: price needs to go up
-    calculatedPrice = basePrice * (1 + Math.abs(priceChangeRatio));
+    calculatedPrice = basePrice * (1 + -priceChangeRatio);
   }
 
   // Determine appropriate precision based on the price magnitude
@@ -353,12 +353,14 @@ export const calculatePriceForRoE = (
  *
  * @param price The trigger price (as string, may include formatting)
  * @param isProfit Whether this is for take profit (true) or stop loss (false)
+ * @param isForPositionBoundTpsl Whether this is for position bound TP/SL roe calculation
  * @param params Current/entry price, direction, and leverage
  * @returns The RoE percentage as a string
  */
 export const calculateRoEForPrice = (
   price: string,
   isProfit: boolean,
+  isForPositionBoundTpsl: boolean,
   { currentPrice, direction, leverage = 1, entryPrice }: ValidationParams,
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
@@ -376,21 +378,17 @@ export const calculateRoEForPrice = (
   const priceChangeRatio = (priceNum - basePrice) / basePrice;
 
   // RoE% = priceChangeRatio * leverage * 100
-  let roePercentage = Math.abs(priceChangeRatio * leverage * 100);
-
-  // Determine sign based on direction and whether it's profit or loss
-  if (isProfit) {
-    // For take profit, check if price moved in the right direction
-    const isValidProfit = isLong ? priceNum > basePrice : priceNum < basePrice;
-    if (!isValidProfit) roePercentage = -roePercentage;
-  } else {
-    // For stop loss, check if price moved in the wrong direction (loss)
-    const isValidLoss = isLong ? priceNum < basePrice : priceNum > basePrice;
-    if (!isValidLoss) roePercentage = -roePercentage;
+  let roePercentage = priceChangeRatio * leverage * 100;
+  if (!isLong) {
+    roePercentage = -roePercentage;
   }
 
-  if (roePercentage < 0) {
-    roePercentage = 0;
+  if (!isForPositionBoundTpsl) {
+    if (isProfit && roePercentage < 0) {
+      roePercentage = 0;
+    } else if (!isProfit && roePercentage > 0) {
+      roePercentage = 0;
+    }
   }
 
   return roePercentage.toFixed(2);
@@ -411,9 +409,8 @@ export const safeParseRoEPercentage = (roePercent: string): string => {
     return ''; // Return empty string for NaN
   }
 
-  const absValue = Math.abs(parsed);
   // Show clean integers when possible (10% instead of 10.00%)
-  return absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
+  return parsed % 1 === 0 ? parsed.toFixed(0) : parsed.toFixed(2);
 };
 
 /**
@@ -430,10 +427,15 @@ export const formatRoEPercentageDisplay = (
     return '';
   }
 
-  // When focused, preserve the exact user input including decimal points
+  // When focused, preserve the exact user input including signs and decimal points
   if (isFocused) {
-    // Only allow valid numeric patterns
-    if (value === '.' || /^\d*\.?\d*$/.test(value)) {
+    // Allow valid numeric patterns with optional sign
+    if (
+      value === '.' ||
+      value === '+' ||
+      value === '-' ||
+      /^[+-]?\d*\.?\d*$/.test(value)
+    ) {
       return value;
     }
   }
@@ -443,15 +445,21 @@ export const formatRoEPercentageDisplay = (
     return '';
   }
 
-  const absValue = Math.abs(parsed);
-
   if (isFocused) {
     // This branch shouldn't be reached now, but keep as fallback
-    return absValue.toString();
+    return value;
   }
 
-  // When not focused, show clean display format
-  return absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
+  // When not focused, show clean display format with appropriate sign
+  const absValue = Math.abs(parsed);
+  const formattedValue =
+    absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
+
+  // Always show sign for display
+  if (parsed >= 0) {
+    return `+ ${formattedValue}`;
+  }
+  return `- ${formattedValue}`;
 };
 
 /**
