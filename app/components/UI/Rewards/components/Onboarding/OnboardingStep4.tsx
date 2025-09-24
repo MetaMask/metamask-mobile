@@ -119,6 +119,7 @@ const OnboardingStep4: React.FC = () => {
                 'rewards.onboarding.step4_referral_input_placeholder',
               )}
               value={referralCode}
+              autoCapitalize="characters"
               onChangeText={handleReferralCodeChange}
               isDisabled={optinLoading}
               size={TextFieldSize.Lg}
