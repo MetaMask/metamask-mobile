@@ -50,8 +50,10 @@ class NetworkListModal {
     return Matchers.getElementByID('delete-network-button');
   }
 
-  get networkMultiSelectorContainer(): DetoxElement {
-    return Matchers.getElementByID(NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER);
+  get popularNetworksContainer(): DetoxElement {
+    return Matchers.getElementByID(
+      NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER,
+    );
   }
 
   async getCustomNetwork(
@@ -126,7 +128,7 @@ class NetworkListModal {
   }
 
   async scrollToBottomOfNetworkMultiSelector(): Promise<void> {
-    await Gestures.swipe(this.networkMultiSelectorContainer, 'up', {
+    await Gestures.swipe(this.popularNetworksContainer, 'up', {
       speed: 'fast',
     });
   }
