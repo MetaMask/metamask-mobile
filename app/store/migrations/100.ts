@@ -1,45 +1,63 @@
-import { isObject } from '@metamask/utils';
-import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
+import { ensureValidState } from './util';
+import { isObject } from '@metamask/utils';
+import { BridgeStatusControllerState } from '@metamask/bridge-status-controller';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 /**
- * Migration 100: Remove old and unused UserStorageController properties
- * Delete `hasAccountSyncingSyncedAtLeastOnce` from `UserStorageController`
- * Delete `isAccountSyncingReadyToBeDispatched` from `UserStorageController`
- * Delete `isAccountSyncingInProgress` from `UserStorageController`
- * from the app storage
+ * Migration: Update bridge txHistory for solana to use txHash as key and txMetaId
  */
+const migration = (state: unknown) => {
+  const migrationVersion = 100;
 
-const migration = (state: unknown): unknown => {
-  if (!ensureValidState(state, 100)) {
+  // Ensure the state is valid for migration
+  if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  const userStorageControllerState =
-    state.engine.backgroundState.UserStorageController;
+  try {
+    const bridgeStatusControllerState =
+      state.engine.backgroundState.BridgeStatusController;
 
-  if (!isObject(userStorageControllerState)) {
+    if (!isObject(bridgeStatusControllerState)) {
+      return state;
+    }
+
+    if (!isObject(bridgeStatusControllerState.txHistory)) {
+      return state;
+    }
+
+    const { txHistory } =
+      bridgeStatusControllerState as BridgeStatusControllerState;
+
+    if (!isObject(txHistory)) {
+      return state;
+    }
+
+    Object.entries(txHistory).forEach(([key, historyItem]) => {
+      const srcChainId =
+        historyItem.status?.srcChain?.chainId ?? historyItem.quote?.srcChainId;
+      const isSolanaTx = isSolanaChainId(srcChainId);
+      const newId = historyItem.status?.srcChain?.txHash;
+      // If solana tx, use the src chain tx hash as the key and txMetaId
+      if (isSolanaTx && newId && newId !== key) {
+        txHistory[newId] = {
+          ...historyItem,
+          txMetaId: newId,
+        };
+        delete txHistory[key];
+      }
+    });
+
+    return state;
+  } catch (error) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 100: Invalid UserStorageController state error: '${typeof userStorageControllerState}'`,
+        `Migration ${migrationVersion}: Failed to update bridge txHistory for solana to use txHash as key and txMetaId. Error: ${error}`,
       ),
     );
     return state;
   }
-
-  if ('hasAccountSyncingSyncedAtLeastOnce' in userStorageControllerState) {
-    delete userStorageControllerState.hasAccountSyncingSyncedAtLeastOnce;
-  }
-
-  if ('isAccountSyncingReadyToBeDispatched' in userStorageControllerState) {
-    delete userStorageControllerState.isAccountSyncingReadyToBeDispatched;
-  }
-
-  if ('isAccountSyncingInProgress' in userStorageControllerState) {
-    delete userStorageControllerState.isAccountSyncingInProgress;
-  }
-
-  return state;
 };
 
 export default migration;
