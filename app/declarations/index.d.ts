@@ -298,6 +298,18 @@ declare module 'react-native-progress/Bar' {
   export default class ProgressBar extends React.Component<BarPropTypes> {}
 }
 
+// Augment the global Crypto interface to include createHmac method
+interface Crypto {
+  createHmac(
+    algorithm: string,
+    key: string | Buffer,
+  ): {
+    update(data: string): this;
+    digest(): Buffer;
+    digest(encoding: string): string;
+  };
+}
+
 /**
  * @sentry/react-native types for v^6.10.0
  * Types are overridden to ensure captureException receives an Error type for more reliable stack traces
