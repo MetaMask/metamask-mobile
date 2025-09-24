@@ -67,7 +67,8 @@ export function useNotificationAccountListProps() {
   const getEvmAddress = useCallback(
     (accountIds: string[]) => {
       const addresses = getEvmAddressesFromAccountIds(accountIds);
-      return addresses.at(0); // get first evm address - keyring only contains 1 EVM address
+      const address = addresses.at(0); // get first evm address - keyring only contains 1 EVM address
+      return address && toFormattedAddress(address);
     },
     [getEvmAddressesFromAccountIds],
   );
