@@ -1,30 +1,33 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsOrderForm } from './usePerpsOrderForm';
 import { usePerpsNetwork } from './usePerpsNetwork';
-import { usePerpsAccount } from './usePerpsAccount';
+import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 
 jest.mock('./usePerpsNetwork');
-jest.mock('./usePerpsAccount');
+jest.mock('./stream/usePerpsLiveAccount');
 
 describe('usePerpsOrderForm', () => {
   const mockUsePerpsNetwork = usePerpsNetwork as jest.MockedFunction<
     typeof usePerpsNetwork
   >;
-  const mockUsePerpsAccount = usePerpsAccount as jest.MockedFunction<
-    typeof usePerpsAccount
+  const mockUsePerpsLiveAccount = usePerpsLiveAccount as jest.MockedFunction<
+    typeof usePerpsLiveAccount
   >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsNetwork.mockReturnValue('mainnet');
-    mockUsePerpsAccount.mockReturnValue({
-      availableBalance: '1000',
-      totalBalance: '1000',
-      marginUsed: '0',
-      unrealizedPnl: '0',
-      returnOnEquity: '0',
-      totalValue: '1000',
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        availableBalance: '1000',
+        totalBalance: '1000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '1000',
+      },
+      isInitialLoading: false,
     });
   });
 
@@ -81,13 +84,16 @@ describe('usePerpsOrderForm', () => {
 
     it('should set amount to maxPossibleAmount when available balance times leverage is less than default amount', () => {
       // Arrange - Set low available balance
-      mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '2', // $2 available balance
-        totalBalance: '2',
-        marginUsed: '0',
-        unrealizedPnl: '0',
-        returnOnEquity: '0',
-        totalValue: '2',
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '2', // $2 available balance
+          totalBalance: '2',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '2',
+        },
+        isInitialLoading: false,
       });
 
       // Act
@@ -101,13 +107,16 @@ describe('usePerpsOrderForm', () => {
 
     it('should use default amount when available balance times leverage is greater than default amount', () => {
       // Arrange - Set sufficient available balance
-      mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '5', // $5 available balance
-        totalBalance: '5',
-        marginUsed: '0',
-        unrealizedPnl: '0',
-        returnOnEquity: '0',
-        totalValue: '5',
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '5', // $5 available balance
+          totalBalance: '5',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '5',
+        },
+        isInitialLoading: false,
       });
 
       // Act
@@ -266,13 +275,16 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('should not update amount when balance is 0', () => {
-      mockUsePerpsAccount.mockReturnValue({
-        availableBalance: '0',
-        totalBalance: '0',
-        marginUsed: '0',
-        unrealizedPnl: '0',
-        returnOnEquity: '0',
-        totalValue: '0',
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          availableBalance: '0',
+          totalBalance: '0',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalValue: '0',
+        },
+        isInitialLoading: false,
       });
 
       const { result } = renderHook(() => usePerpsOrderForm());
