@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 // Run E2E tests by tag, optionally split across runners.
 // For every spec file if the bypass quality gate is not set, duplicate them
@@ -303,6 +304,38 @@ function normalizePathForCompare(p) {
 }
 
 /**
+ * Escape a string for safe usage inside a RegExp
+ * @param {string} s - Raw string
+ * @returns {string} - Escaped string
+ */
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Resolve the test name prefix (the string used at the start of describe names)
+ * for a given TEST_SUITE_TAG by leveraging the tag factory functions in e2e/tags.js.
+ * Falls back to the raw suite tag if resolution fails.
+ * @param {string} suiteTag
+ * @returns {Promise<string>} prefix for testNamePattern (e.g. "WalletPlatform:" or "RegressionWalletPlatform:")
+ */
+async function resolveTestNamePrefix(suiteTag) {
+  try {
+    const tagsModuleUrl = pathToFileURL(path.resolve('e2e/tags.js')).href;
+    const tagsModule = await import(tagsModuleUrl);
+    const factory = tagsModule?.[suiteTag];
+    if (typeof factory === 'function') {
+      // Most factories append a trailing space after the prefix; trim it
+      const generated = String(factory(''));
+      return generated.trim();
+    }
+  } catch {
+    // ignore and fall through
+  }
+  return suiteTag;
+}
+
+/**
  * Main function
  * @returns A promise that resolves when the main function exits
  */
@@ -408,7 +441,10 @@ async function main() {
   const IS_IOS = PLATFORM === 'ios';
 
   const extraEnv = { IGNORE_BOXLOGS_DEVELOPMENT: 'true' };
-  const args = [...runFiles];
+  // Derive a robust Jest testNamePattern from the suite tag
+  const namePrefix = await resolveTestNamePrefix(testSuiteTag);
+  const testNamePatternArg = `--testNamePattern=^${escapeRegex(namePrefix)}`;
+  const args = [testNamePatternArg, ...runFiles];
 
   try {
     if (IS_IOS) {
