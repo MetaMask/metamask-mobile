@@ -1,13 +1,6 @@
-import React, {
-  useCallback,
-  useRef,
-  useEffect,
-  useState,
-  useMemo,
-} from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { FlatList, ListRenderItem, View, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useSelector } from 'react-redux';
 import {
   Box,
   Text,
@@ -31,7 +24,6 @@ import Banner, {
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { TabViewProps } from '../../../Perps/components/PerpsMarketTabs/PerpsMarketTabs.types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../../hooks/useLinkAccount';
 
@@ -55,7 +47,6 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     refresh: fetchOptInStatus,
   } = useRewardOptinSummary();
   const tw = useTailwind();
-  const unlinkedAccountsListRef = useRef<FlatList>(null);
 
   // Local state to track accounts that have been linked but not yet refetched from server
   const [locallyLinkedAccounts, setLocallyLinkedAccounts] = useState<
@@ -65,7 +56,6 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   const [linkingAccount, setLinkingAccount] = useState<InternalAccount | null>(
     null,
   );
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
   const { linkAccount, isLoading: isLinkingAccount } = useLinkAccount();
 
   // Compute final account lists with local state applied
@@ -85,37 +75,6 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
       ),
     [unlinkedAccounts, locallyLinkedAccounts],
   );
-
-  // Scroll to current account in unlinked accounts list when tab becomes active
-  const scrollToCurrentAccountInUnlinkedList = useCallback(() => {
-    if (!selectedAccount || !computedUnlinkedAccounts.length) return;
-
-    const currentAccountIndex = computedUnlinkedAccounts.findIndex(
-      (account: InternalAccount) => account.address === selectedAccount.address,
-    );
-
-    if (currentAccountIndex >= 0 && unlinkedAccountsListRef.current) {
-      // Add small delay to ensure the list is rendered
-      setTimeout(() => {
-        unlinkedAccountsListRef.current?.scrollToIndex({
-          index: currentAccountIndex,
-          animated: true,
-          viewPosition: 0.5, // Center the item in the view
-        });
-      }, 100);
-    }
-  }, [selectedAccount, computedUnlinkedAccounts]);
-
-  // Scroll to current account when unlinked accounts change
-  useEffect(() => {
-    if (!isLoadingOptInSummary && !hasErrorOptInSummary) {
-      scrollToCurrentAccountInUnlinkedList();
-    }
-  }, [
-    isLoadingOptInSummary,
-    hasErrorOptInSummary,
-    scrollToCurrentAccountInUnlinkedList,
-  ]);
 
   // Handle link account press with double-press prevention
   const handleLinkAccountPress = useCallback(
@@ -144,54 +103,46 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
 
   // Shared account item component
   const renderAccountItem = useCallback(
-    (account: AccountWithOptInStatus, showLinkButton: boolean = false) => {
-      const isCurrentAccount = selectedAccount?.address === account.address;
-
-      return (
-        <Box
-          twClassName="flex-row items-center justify-between px-3 rounded-lg"
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          <Box twClassName="flex-1">
-            <AccountDisplayItem
-              account={account}
-              twClassName="p-3"
-              isCurrentAccount={isCurrentAccount}
-            />
-          </Box>
-
-          {showLinkButton && (
-            <Pressable
-              disabled={isLinkingAccount}
-              onPress={() => handleLinkAccountPress(account)}
-              style={() =>
-                tw.style(
-                  'px-4 py-2 rounded-lg bg-pressed min-h-[32px] justify-center items-center',
-                  isLinkingAccount && 'opacity-90',
-                )
-              }
-            >
-              <Box
-                twClassName="flex-row items-center gap-2"
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  twClassName="text-primary"
-                >
-                  {strings('rewards.settings.link_account_button')}
-                </Text>
-              </Box>
-            </Pressable>
-          )}
+    (account: AccountWithOptInStatus, showLinkButton: boolean = false) => (
+      <Box
+        twClassName="flex-row items-center justify-between rounded-lg"
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+      >
+        <Box twClassName="flex-1">
+          <AccountDisplayItem account={account} />
         </Box>
-      );
-    },
-    [selectedAccount, isLinkingAccount, handleLinkAccountPress, tw],
+
+        {showLinkButton && (
+          <Pressable
+            disabled={isLinkingAccount}
+            onPress={() => handleLinkAccountPress(account)}
+            style={() =>
+              tw.style(
+                'px-4 py-2 rounded-lg bg-pressed min-h-[32px] justify-center items-center',
+                isLinkingAccount && 'opacity-90',
+              )
+            }
+          >
+            <Box
+              twClassName="flex-row items-center gap-2"
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-primary"
+              >
+                {strings('rewards.settings.link_account_button')}
+              </Text>
+            </Box>
+          </Pressable>
+        )}
+      </Box>
+    ),
+    [isLinkingAccount, handleLinkAccountPress, tw],
   );
 
   // Render individual account item for linked accounts
@@ -205,11 +156,18 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   }) => renderAccountItem(account, true);
 
   if (isLoadingOptInSummary) {
+    // Create an array of unique identifiers for skeleton items
+    const skeletonItems = [
+      { id: 'account-skeleton-1' },
+      { id: 'account-skeleton-2' },
+      { id: 'account-skeleton-3' },
+    ];
+
     return (
       <Box twClassName="gap-3">
-        {[...Array(3)].map((_, index) => (
+        {skeletonItems.map((item) => (
           <Box
-            key={index}
+            key={item.id}
             twClassName="flex-row items-center gap-3 py-3 px-4 rounded-lg"
           >
             <Skeleton height={40} width={40} style={tw.style('rounded-full')} />
@@ -259,7 +217,8 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
             data={computedLinkedAccounts}
             keyExtractor={(item) => item.id}
             renderItem={renderLinkedAccountItem}
-            showsVerticalScrollIndicator
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('gap-3 pt-4')}
           />
         ) : (
@@ -288,14 +247,11 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
         {computedUnlinkedAccounts.length > 0 ? (
           <Box twClassName="flex-1 relative">
             <FlatList
-              ref={unlinkedAccountsListRef}
               data={computedUnlinkedAccounts}
               keyExtractor={(item) => item.id}
               renderItem={renderUnlinkedAccountItem}
-              showsVerticalScrollIndicator
-              onScrollToIndexFailed={() => {
-                // Do nothing
-              }}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
               contentContainerStyle={tw.style('gap-3 pt-4')}
             />
 

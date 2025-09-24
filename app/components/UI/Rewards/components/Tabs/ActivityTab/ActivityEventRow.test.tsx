@@ -107,7 +107,6 @@ describe('ActivityEventRow', () => {
               decimals: 0,
               name: 'BIO',
               symbol: 'BIO',
-              iconUrl: 'https://app.hyperliquid.xyz/coins/BIO.svg',
               amount: '287',
             },
           },

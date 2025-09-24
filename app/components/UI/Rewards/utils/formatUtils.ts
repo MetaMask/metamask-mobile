@@ -145,9 +145,10 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
   const formattedAmount = formatNumber(
     parseFloat(Number(rawAmount).toFixed(3)),
   );
+  const destSymbol = payload.destAsset?.symbol;
 
-  return `${formattedAmount} ${symbol} to ${
-    payload.destAsset?.symbol || 'Unknown'
+  return `${formattedAmount} ${symbol}${
+    destSymbol ? ` ${strings('rewards.events.to')} ${destSymbol}` : ''
   }`;
 };
 
@@ -164,7 +165,6 @@ export const getEventDetails = (
   title: string;
   details: string | undefined;
   icon: IconName;
-  badgeImageUri?: string;
 } => {
   switch (event.type) {
     case 'SWAP':
@@ -172,49 +172,42 @@ export const getEventDetails = (
         title: strings('rewards.events.type.swap'),
         details: getSwapEventDetails(event.payload as SwapEventPayload),
         icon: IconName.SwapVertical,
-        badgeImageUri: (event.payload as SwapEventPayload).srcAsset.iconUrl,
       };
     case 'PERPS':
       return {
         title: getPerpsEventTitle(event.payload as PerpsEventPayload),
         details: getPerpsEventDetails(event.payload as PerpsEventPayload),
         icon: IconName.Candlestick,
-        badgeImageUri: (event.payload as PerpsEventPayload).asset.iconUrl,
       };
     case 'REFERRAL':
       return {
         title: strings('rewards.events.type.referral_action'),
         details: undefined,
         icon: IconName.UserCircleAdd,
-        badgeImageUri: undefined,
       };
     case 'SIGN_UP_BONUS':
       return {
         title: strings('rewards.events.type.sign_up_bonus'),
         details: accountName,
         icon: IconName.Edit,
-        badgeImageUri: undefined,
       };
     case 'LOYALTY_BONUS':
       return {
         title: strings('rewards.events.type.loyalty_bonus'),
         details: accountName,
         icon: IconName.ThumbUp,
-        badgeImageUri: undefined,
       };
     case 'ONE_TIME_BONUS':
       return {
         title: strings('rewards.events.type.one_time_bonus'),
         details: undefined,
         icon: IconName.Gift,
-        badgeImageUri: undefined,
       };
     default:
       return {
         title: strings('rewards.events.type.uncategorized_event'),
         details: undefined,
         icon: IconName.Star,
-        badgeImageUri: undefined,
       };
   }
 };

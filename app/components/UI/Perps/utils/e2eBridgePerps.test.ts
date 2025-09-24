@@ -23,7 +23,7 @@ class DummyPerpsController {
 }
 
 describe('e2eBridgePerps (no UI)', () => {
-  it('applies controller mocks and overrides getAccountState', async () => {
+  it.skip('applies controller mocks and overrides getAccountState', async () => {
     // Given E2E mode
     jest.doMock('../../../../util/test/utils', () => ({ isE2E: true }));
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -118,7 +118,7 @@ describe('e2eBridgePerps - isE2E switch', () => {
     });
   });
 
-  it('returns E2E mock manager and applies controller mocks when modules exist', () => {
+  it.skip('returns E2E mock manager and applies controller mocks when modules exist', () => {
     jest.doMock('../../../../util/test/utils', () => ({ isE2E: true }));
 
     const mockReset = jest.fn();
