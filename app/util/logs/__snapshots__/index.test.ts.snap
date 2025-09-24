@@ -455,7 +455,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "0xfa": true,
           "0xfa2": true,
         },
-        "showMultiRpcModal": false,
+        "showMultiRpcModal": true,
         "showTestNetworks": false,
         "smartAccountOptIn": true,
         "smartAccountOptInForAccounts": [],
