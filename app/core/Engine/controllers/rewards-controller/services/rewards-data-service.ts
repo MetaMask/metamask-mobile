@@ -273,7 +273,7 @@ export class RewardsDataService {
       case 'dev':
       case 'local':
       default:
-        return AppConstants.REWARDS_API_URL.UAT;
+        return AppConstants.REWARDS_API_URL.UAT; // temporary for v7.57, should be moved to DEV later
     }
   }
 
