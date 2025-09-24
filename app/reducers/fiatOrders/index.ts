@@ -245,6 +245,10 @@ export const getPendingOrders = createSelector(
     ),
 );
 
+export const getForceUpdateOrders = createSelector(ordersSelector, (orders) =>
+  orders.filter((order) => order.forceUpdate),
+);
+
 const customOrdersSelector: (
   state: RootState,
 ) => FiatOrdersState['customOrderIds'] = (state: RootState) =>

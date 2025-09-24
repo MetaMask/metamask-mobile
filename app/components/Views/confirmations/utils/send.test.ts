@@ -23,6 +23,7 @@ import {
   getFractionLength,
   getLayer1GasFeeForSend,
   handleSendPageNavigation,
+  isValidPositiveNumericString,
   prepareEVMTransaction,
   submitEvmTransaction,
   toBNWithDecimals,
@@ -136,7 +137,7 @@ describe('prepareEVMTransaction', () => {
         { from: '0x123', to: '0x456', value: '100' },
       ),
     ).toStrictEqual({
-      data: '0xf242432a0000000000000000000000000000000000000000000000000000000000000123000000000000000000000000000000000000000000000000000000000000045600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000064',
+      data: '0xf242432a000000000000000000000000000000000000000000000000000000000000012300000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000',
       from: '0x123',
       to: '0x123',
       value: '0x0',
@@ -327,6 +328,17 @@ describe('convertCurrency', () => {
     expect(convertCurrency('120.75', 0.5, 4, 2)).toEqual('60.37');
     expect(convertCurrency('120.75', 0.25, 4, 4)).toEqual('30.1875');
     expect(convertCurrency('0.01', 10, 4, 0)).toEqual('0');
+  });
+});
+
+describe('isValidPositiveNumericString', () => {
+  it('return true for decimal values and false otherwise', () => {
+    expect(isValidPositiveNumericString('10')).toBe(true);
+    expect(isValidPositiveNumericString('10.01')).toBe(true);
+    expect(isValidPositiveNumericString('.01')).toBe(true);
+    expect(isValidPositiveNumericString('-0.01')).toBe(false);
+    expect(isValidPositiveNumericString('abc')).toBe(false);
+    expect(isValidPositiveNumericString(' ')).toBe(false);
   });
 });
 

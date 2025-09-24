@@ -10,6 +10,7 @@ import { SwapBridgeNavigationLocation } from '../../../../../Bridge/hooks/useSwa
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockGoToSwaps = jest.fn();
+let mockIsFirstTimePerpsUser = false;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -23,6 +24,16 @@ jest.mock('../../../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: jest.fn(() => ({
     goToSwaps: mockGoToSwaps,
   })),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(
+    () =>
+      // For the isFirstTimePerpsUser selector
+      mockIsFirstTimePerpsUser,
+  ),
 }));
 
 // Mock getNativeAssetForChainId
@@ -106,6 +117,7 @@ jest.mock(
 describe('WaysToEarn', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsFirstTimePerpsUser = false;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -221,8 +233,9 @@ describe('WaysToEarn', () => {
     expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
-  it('navigates to perps route when perps CTA is pressed', () => {
+  it('navigates to perps tutorial for first-time users', () => {
     // Arrange
+    mockIsFirstTimePerpsUser = true;
     const { getByText } = render(<WaysToEarn />);
     const perpsButton = getByText('Trade Perps');
 
@@ -240,7 +253,34 @@ describe('WaysToEarn', () => {
 
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.TUTORIAL,
+    });
+  });
+
+  it('navigates to perps markets for returning users', () => {
+    // Arrange
+    mockIsFirstTimePerpsUser = false;
+    const { getByText } = render(<WaysToEarn />);
+    const perpsButton = getByText('Trade Perps');
+
+    // Act
+    fireEvent.press(perpsButton);
+
+    // Get the onPress handler from the modal navigation call
+    const modalCall = mockNavigate.mock.calls.find(
+      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+    );
+    const confirmAction = modalCall?.[1]?.confirmAction;
+
+    // Execute the CTA action
+    confirmAction?.onPress();
+
+    // Assert
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKETS,
+    });
   });
 
   it('includes supported networks section in swap modal description', () => {
@@ -284,12 +324,6 @@ describe('WaysToEarn', () => {
       expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
         location: SwapBridgeNavigationLocation.Rewards,
         sourcePage: 'rewards_overview',
-        sourceToken: {
-          address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-          symbol: 'ETH',
-          decimals: 18,
-          chainId: 'eip155:59144',
-        },
       });
     });
   });
