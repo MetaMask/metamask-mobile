@@ -19,6 +19,9 @@ on:
       builds:
         description: 'Whether any builds will happen'
         value: ${{ jobs.needs-e2e-build.outputs.builds }}
+      changed_files:
+        description: 'Changed files'
+        value: ${{ jobs.needs-e2e-build.outputs.changed_files }}
 
 jobs:
   needs-e2e-build:
@@ -28,6 +31,7 @@ jobs:
       android: ${{ steps.set-outputs.outputs.android_final }}
       ios: ${{ steps.set-outputs.outputs.ios_final }}
       builds: ${{ steps.set-outputs.outputs.builds }}
+      changed_files: ${{ steps.set-outputs.outputs.changed_files }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -38,7 +42,7 @@ jobs:
         with:
           # Specifying `ref` ensures that the head commit is checked out directly.
           ref: ${{ env.HEAD_COMMIT_HASH }}
-
+        
       - name: Check skip commit tag
         id: skip-tag
         run: |
@@ -114,6 +118,11 @@ jobs:
       - name: Set final outputs
         id: set-outputs
         run: |
+          {
+            echo "changed_files<<EOF"
+            echo "${{ steps.filter.outputs.catch_all_files }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
           # Skip if [skip-e2e] tag found or label exists on PR
           if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then
