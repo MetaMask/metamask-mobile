@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Dimensions, Image, TouchableOpacity, Platform } from 'react-native';
+import { Dimensions, TouchableOpacity, Platform } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -15,7 +15,6 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../util/theme';
 import {
   selectActiveBoosts,
   selectActiveBoostsLoading,
@@ -23,16 +22,14 @@ import {
 } from '../../../../../../reducers/rewards/selectors';
 import { PointsBoostDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
-import { AppThemeKey } from '../../../../../../util/theme/models';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../../../Bridge/hooks/useSwapBridgeNavigation';
-import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
-import Logger from '../../../../../../util/Logger';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import RewardsThemeImageComponent from '../../ThemeImageComponent';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
@@ -45,30 +42,12 @@ interface BoostCardProps {
 
 const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   const tw = useTailwind();
-  const { themeAppearance } = useTheme();
-
-  const token = getNativeAssetForChainId('eip155:59144');
 
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Rewards,
     sourcePage: 'rewards_overview',
-    sourceToken: {
-      address: token.address,
-      symbol: token.symbol,
-      decimals: token.decimals,
-      chainId: 'eip155:59144',
-    },
   });
-
-  // Get appropriate icon URL based on theme
-  const iconUrl = useMemo(
-    () =>
-      themeAppearance === AppThemeKey.light
-        ? boost.icon?.lightModeUrl
-        : boost.icon?.darkModeUrl,
-    [boost.icon, themeAppearance],
-  );
 
   const timeRemaining = useMemo(() => {
     if (!boost.endDate) {
@@ -136,14 +115,13 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
           </Box>
         </Box>
         {/* Boost Icon */}
-        {iconUrl && (
+        {boost.icon && (
           <Box
             twClassName="absolute right-2 bottom-2"
             testID={REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON}
           >
-            <Image
-              source={{ uri: iconUrl }}
-              resizeMode="contain"
+            <RewardsThemeImageComponent
+              themeImage={boost.icon}
               style={tw.style('h-16 w-16')}
             />
           </Box>
@@ -194,13 +172,6 @@ const ActiveBoosts: React.FC = () => {
   const hasError = useSelector(selectActiveBoostsError);
 
   const numBoosts = useMemo(() => activeBoosts?.length || 0, [activeBoosts]);
-
-  Logger.log('ActiveBoosts', {
-    isLoading,
-    numBoosts,
-    hasError,
-    activeBoosts: activeBoosts?.length,
-  });
 
   // Platform-specific gesture handling to prevent parent tab swipe
   const scrollNativeGesture = useMemo(() => Gesture.Native(), []);

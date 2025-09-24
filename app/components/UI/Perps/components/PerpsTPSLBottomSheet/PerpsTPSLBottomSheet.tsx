@@ -234,7 +234,12 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       } else if (focusedInput === 'stopLossPrice') {
         handleStopLossPriceChange(value);
       } else if (focusedInput === 'stopLossPercentage') {
-        handleStopLossPercentageChange(value);
+        const trimmedValue = value.trim();
+        const valueToUse =
+          trimmedValue.length === 1 && trimmedValue !== '0'
+            ? `-${value}`
+            : value.trim();
+        handleStopLossPercentageChange(valueToUse);
       }
     },
     [
