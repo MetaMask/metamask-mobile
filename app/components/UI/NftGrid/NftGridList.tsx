@@ -1,10 +1,4 @@
-import React, {
-  useMemo,
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-} from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { RefreshTestId } from '../CollectibleContracts/constants';
@@ -23,7 +17,8 @@ const NftGridList = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const actionSheetRef = useRef<typeof ActionSheet>();
-  const longPressedCollectible = useRef<Nft | null>(null);
+  const [longPressedCollectible, setLongPressedCollectible] =
+    useState<Nft | null>(null);
 
   const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
     multichainCollectiblesByEnabledNetworksSelector,
@@ -39,10 +34,11 @@ const NftGridList = () => {
     return owned;
   }, [collectiblesByEnabledNetworks]);
 
-  const onLongPress = useCallback((nft: Nft) => {
-    actionSheetRef.current.show();
-    longPressedCollectible.current = nft;
-  }, []);
+  useEffect(() => {
+    if (longPressedCollectible) {
+      actionSheetRef.current.show();
+    }
+  }, [longPressedCollectible]);
 
   // Loading state to make sure Nft tab is opened without lags
   useEffect(() => {
@@ -59,7 +55,7 @@ const NftGridList = () => {
           ListHeaderComponent={<NftGridHeader />}
           data={allFilteredCollectibles}
           renderItem={({ item }) => (
-            <NftGridItem item={item} onLongPress={onLongPress} />
+            <NftGridItem item={item} onLongPress={setLongPressedCollectible} />
           )}
           keyExtractor={(_, index) => index.toString()}
           testID={RefreshTestId}
@@ -74,7 +70,7 @@ const NftGridList = () => {
 
       <NftGridItemActionSheet
         actionSheetRef={actionSheetRef}
-        longPressedCollectible={longPressedCollectible.current}
+        longPressedCollectible={longPressedCollectible}
       />
     </>
   );
