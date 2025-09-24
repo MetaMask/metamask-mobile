@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { cardDefaultNavigationOptions } from '../../routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -640,7 +641,7 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 
@@ -657,7 +658,7 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 
@@ -672,7 +673,7 @@ describe('CardHome Component', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    const navigationOptions = CardHome.navigationOptions({
+    const navigationOptions = cardDefaultNavigationOptions({
       navigation: mockNavigation,
     });
 

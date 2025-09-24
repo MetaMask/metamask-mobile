@@ -22,7 +22,7 @@ export const headerStyle = StyleSheet.create({
   title: { alignSelf: 'center' },
 });
 
-const defaultNavigationOptions = ({
+export const cardDefaultNavigationOptions = ({
   navigation,
 }: {
   navigation: NavigationProp<ParamListBase>;
@@ -53,12 +53,12 @@ const CardRoutes = () => (
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
-        options={defaultNavigationOptions}
+        options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.WELCOME}
         component={CardWelcome}
-        options={defaultNavigationOptions}
+        options={cardDefaultNavigationOptions}
       />
     </Stack.Navigator>
   </CardSDKProvider>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import CardWelcome from './CardWelcome';
+import { cardDefaultNavigationOptions } from '../../routes';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -59,21 +60,14 @@ describe('CardWelcome', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigationOptions provides header components and close triggers goBack', () => {
-    interface MockNav {
-      goBack: jest.Mock;
-    }
-    interface HasNavOptions {
-      navigationOptions: (args: { navigation: MockNav }) => {
-        headerLeft: () => React.ReactElement;
-        headerRight: () => React.ReactElement;
-        headerTitle: () => React.ReactElement;
-      };
-    }
-    const navigation: MockNav = { goBack: mockGoBack };
-    const options = (CardWelcome as unknown as HasNavOptions).navigationOptions(
-      { navigation },
-    );
+  it('navigation options provides header components and close triggers goBack', () => {
+    const mockNavigation = {
+      goBack: mockGoBack,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+    const options = cardDefaultNavigationOptions({
+      navigation: mockNavigation,
+    });
     expect(options.headerTitle).toBeDefined();
     expect(options.headerLeft).toBeDefined();
     expect(options.headerRight).toBeDefined();
