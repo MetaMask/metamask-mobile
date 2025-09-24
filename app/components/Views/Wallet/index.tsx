@@ -404,7 +404,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
-    if (nftGridViewEnabled) {
+    if (nftGridViewEnabled && isRemoveGlobalNetworkSelectorEnabled()) {
       tabs.push(<NftGrid {...nftsTabProps} key={nftsTabProps.key} />);
     } else if (collectiblesEnabled) {
       tabs.push(

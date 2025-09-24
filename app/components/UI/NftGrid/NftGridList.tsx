@@ -1,4 +1,3 @@
-import { StyleSheet, View } from 'react-native';
 import React, {
   useMemo,
   useState,
@@ -7,85 +6,45 @@ import React, {
   useEffect,
 } from 'react';
 import { FlashList } from '@shopify/flash-list';
-import { MAINNET } from '../../../constants/network';
 import { useSelector } from 'react-redux';
-import {
-  selectChainId,
-  selectIsAllNetworks,
-  selectProviderType,
-  selectSelectedNetworkClientId,
-} from '../../../selectors/networkController';
-import { selectUseNftDetection } from '../../../selectors/preferencesController';
-import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { RefreshTestId } from '../CollectibleContracts/constants';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
-import {
-  multichainCollectiblesByEnabledNetworksSelector,
-  multichainCollectiblesSelector,
-} from '../../../reducers/collectibles';
+import { multichainCollectiblesByEnabledNetworksSelector } from '../../../reducers/collectibles';
 import NftGridListRefreshControl from './NftGridListRefreshControl';
 import NftGridEmpty from './NftGridEmpty';
 import NftGridFooter from './NftGridFooter';
 import NftGridItem from './NftGridItem';
-import { useTheme } from '../../../util/theme';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
-
-const styles = StyleSheet.create({
-  emptyView: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+import NftGridHeader from './NftGridHeader';
 
 const NftGridList = () => {
-  const { themeAppearance } = useTheme();
-  const chainId = useSelector(selectChainId);
-  const networkType = useSelector(selectProviderType);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const useNftDetection = useSelector(selectUseNftDetection);
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const actionSheetRef = useRef<typeof ActionSheet>();
   const longPressedCollectible = useRef<Nft | null>(null);
-
-  // Loading state
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-  const collectiblesData = useSelector(multichainCollectiblesSelector);
-  const allCollectibles = useMemo(
-    () => (Array.isArray(collectiblesData) ? collectiblesData : []),
-    [collectiblesData],
-  );
 
   const collectiblesByEnabledNetworks: Record<string, Nft[]> = useSelector(
     multichainCollectiblesByEnabledNetworksSelector,
   );
 
-  const isCollectionDetectionBannerVisible =
-    networkType === MAINNET && !useNftDetection;
-
-  const allFilteredCollectibles = useMemo(() => {
+  const allFilteredCollectibles: Nft[] = useMemo(() => {
     trace({ name: TraceName.LoadCollectibles });
-    let collectibles: Nft[] = [];
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      collectibles = Object.values(collectiblesByEnabledNetworks).flat();
-    } else {
-      // TODO juan might remove this logic since I have to ask if we can assume isRemoveGlobalNetworkSelectorEnabled is always true
-      // TODO look at chainId
-      collectibles = isAllNetworks
-        ? Object.values(allCollectibles).flat()
-        : allCollectibles[chainId as unknown as number] || [];
-    }
-    endTrace({ name: TraceName.LoadCollectibles });
-    return collectibles.filter(
-      (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
-    );
-  }, [allCollectibles, chainId, isAllNetworks, collectiblesByEnabledNetworks]);
 
-  // Handle initial loading state to avoid
+    const source = Object.values(collectiblesByEnabledNetworks).flat();
+    const owned = source.filter((c) => c.isCurrentlyOwned);
+
+    endTrace({ name: TraceName.LoadCollectibles });
+    return owned;
+  }, [collectiblesByEnabledNetworks]);
+
+  const onLongPress = useCallback((nft: Nft) => {
+    actionSheetRef.current.show();
+    longPressedCollectible.current = nft;
+  }, []);
+
+  // Loading state to make sure Nft tab is opened without lags
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitialLoading(false);
@@ -93,24 +52,11 @@ const NftGridList = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const onLongPress = useCallback((nft: Nft) => {
-    actionSheetRef.current.show();
-    longPressedCollectible.current = nft;
-  }, []);
-
   return (
     <>
       {!isInitialLoading && (
         <FlashList
-          ListHeaderComponent={
-            <>
-              {isCollectionDetectionBannerVisible && (
-                <View style={styles.emptyView}>
-                  <CollectibleDetectionModal />
-                </View>
-              )}
-            </>
-          }
+          ListHeaderComponent={<NftGridHeader />}
           data={allFilteredCollectibles}
           renderItem={({ item }) => (
             <NftGridItem item={item} onLongPress={onLongPress} />
@@ -127,11 +73,8 @@ const NftGridList = () => {
       <NftGridFooter />
 
       <NftGridItemActionSheet
-        chainId={chainId}
         actionSheetRef={actionSheetRef}
         longPressedCollectible={longPressedCollectible.current}
-        selectedNetworkClientId={selectedNetworkClientId}
-        themeAppearance={themeAppearance}
       />
     </>
   );

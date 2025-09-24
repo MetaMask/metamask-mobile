@@ -6,24 +6,24 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
-
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { AppThemeKey } from '../../../util/theme/models';
+import { useTheme } from '../../../util/theme';
+import { useSelector } from 'react-redux';
+import {
+  selectChainId,
+  selectSelectedNetworkClientId,
+} from '../../../selectors/networkController';
 
 const NftGridItemActionSheet = ({
-  chainId,
   actionSheetRef,
-  themeAppearance,
   longPressedCollectible,
-  selectedNetworkClientId,
 }: {
-  chainId: SupportedCaipChainId | `0x${string}`;
   actionSheetRef: React.RefObject<typeof ActionSheet>;
-  themeAppearance: AppThemeKey.light | AppThemeKey.dark;
   longPressedCollectible: Nft | null;
-  selectedNetworkClientId: string;
 }) => {
+  const chainId = useSelector(selectChainId);
+  const { themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const removeNft = () => {
     if (!longPressedCollectible) return;
@@ -68,6 +68,7 @@ const NftGridItemActionSheet = ({
       refreshMetadata();
     }
   };
+
   return (
     <ActionSheet
       ref={actionSheetRef}
@@ -79,7 +80,6 @@ const NftGridItemActionSheet = ({
       ]}
       cancelButtonIndex={2}
       destructiveButtonIndex={1}
-      // eslint-disable-next-line react/jsx-no-bind
       onPress={handleMenuAction}
       theme={themeAppearance}
     />
