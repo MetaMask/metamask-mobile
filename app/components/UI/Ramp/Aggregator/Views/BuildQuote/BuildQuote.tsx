@@ -284,7 +284,7 @@ const BuildQuote = () => {
   );
 
   const { balanceFiat, balanceBN } = useBalance(
-    selectedAsset && selectedAddress
+    selectedAsset && selectedAddress && selectedAsset.network
       ? {
           chainId: selectedAsset.network.chainId,
           assetId: selectedAsset.assetId,
@@ -377,22 +377,22 @@ const BuildQuote = () => {
     isFetchingRegions;
 
   const handleCancelPress = useCallback(() => {
-    if (!selectedAsset?.network.chainId) {
+    if (!selectedAsset?.network?.chainId) {
       return;
     }
 
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_destination: selectedAsset?.network.chainId,
+        chain_id_destination: selectedAsset.network.chainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_source: selectedAsset?.network.chainId,
+        chain_id_source: selectedAsset.network.chainId,
       });
     }
-  }, [screenLocation, isBuy, selectedAsset?.network.chainId, trackEvent]);
+  }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -627,14 +627,14 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_source: currentFiatCurrency.symbol,
           currency_destination: selectedAsset.symbol,
-          chain_id_destination: selectedAsset?.network.chainId,
+          chain_id_destination: selectedAsset.network?.chainId,
         });
       } else {
         trackEvent('OFFRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
           currency_destination: currentFiatCurrency.symbol,
           currency_source: selectedAsset.symbol,
-          chain_id_source: selectedAsset?.network.chainId,
+          chain_id_source: selectedAsset.network?.chainId,
         });
       }
     }
