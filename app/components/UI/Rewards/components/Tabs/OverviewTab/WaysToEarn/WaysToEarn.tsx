@@ -28,7 +28,6 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
-import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
 
@@ -153,17 +152,10 @@ export const WaysToEarn = () => {
   const navigation = useNavigation();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
-  const token = getNativeAssetForChainId('eip155:59144');
   // Use the swap/bridge navigation hook
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Rewards,
     sourcePage: 'rewards_overview',
-    sourceToken: {
-      address: token.address,
-      symbol: token.symbol,
-      decimals: token.decimals,
-      chainId: 'eip155:59144',
-    },
   });
 
   const goToPerps = useCallback(() => {
@@ -183,7 +175,6 @@ export const WaysToEarn = () => {
 
   const handleCTAPress = async (type: WayToEarnType) => {
     navigation.goBack(); // Close the modal first
-
     if (type === WayToEarnType.SWAPS) {
       goToSwaps();
     } else if (type === WayToEarnType.PERPS) {
