@@ -68,6 +68,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
 
+      # Cache CocoaPods to speed up pod install
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: pods-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            pods-${{ runner.os }}-
+
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
@@ -104,27 +113,8 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      # Fingerprint-based build decision
-      # IMPORTANT: Generate fingerprint AFTER setup but BEFORE any build modifications
-      - name: Generate current fingerprint
-        id: generate-fingerprint
-        run: |
-          FINGERPRINT=$(yarn -s fingerprint:generate)
-          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
-          echo "Current fingerprint: ${FINGERPRINT}"
-
-      - name: Check and restore cached app
-        id: cache-restore
-        uses: actions/cache@v4
-        with:
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
-          restore-keys: |
-            ios-app-${{ steps.generate-fingerprint.outputs.fingerprint }}
-
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building iOS E2E App (Full Build)..."
           yarn build:ios:main:e2e
@@ -156,88 +146,6 @@ jobs:
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-
-      - name: Repack App with JS updates
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
-        run: |
-          echo "📦 Repacking iOS app with updated JavaScript bundle..."
-          
-          # --- CRITICAL: Remap environment variables to match the full build script ---
-          # This ensures the bundling script we are about to call has the correct environment.
-          echo "🔄 Remapping environment variables for the bundler..."
-          export SEGMENT_WRITE_KEY="$SEGMENT_WRITE_KEY_QA"
-          export SEGMENT_PROXY_URL="$SEGMENT_PROXY_URL_QA"
-          export SEGMENT_DELETE_API_SOURCE_ID="$SEGMENT_DELETE_API_SOURCE_ID_QA"
-          export SEGMENT_REGULATIONS_ENDPOINT="$SEGMENT_REGULATIONS_ENDPOINT_QA"
-          export MM_SENTRY_DSN="$MM_SENTRY_DSN_TEST"
-          export IOS_GOOGLE_CLIENT_ID="$MAIN_IOS_GOOGLE_CLIENT_ID_UAT"
-          export IOS_GOOGLE_REDIRECT_URI="$MAIN_IOS_GOOGLE_REDIRECT_URI_UAT"
-          export ANDROID_APPLE_CLIENT_ID="$MAIN_ANDROID_APPLE_CLIENT_ID_UAT"
-          export ANDROID_GOOGLE_CLIENT_ID="$MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT"
-          export ANDROID_GOOGLE_SERVER_CLIENT_ID="$MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
-          # --- End of variable remapping ---
-
-          # --- Generate the bundle directly ---
-          # We call react-native bundle directly as the project's own scripts are Xcode-only.
-          # The variable remapping above ensures this command creates an identical bundle.
-          echo "🔄 Generating new JavaScript bundle..."
-          yarn react-native bundle \
-            --platform ios \
-            --dev false \
-            --entry-file index.js \
-            --bundle-output "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app/main.jsbundle" \
-            --sourcemap-output "sourcemaps/ios/index.js.map" \
-            --reset-cache
-          # --- End of bundling ---
-
-          # Verify the app and bundle exist after repack
-          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
-          VERIFY_BUNDLE_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app/main.jsbundle"
-          if [ ! -d "$APP_PATH" ]; then
-            echo "❌ Error: iOS .app not found after repack"
-            exit 1
-          fi
-          if [ ! -f "$VERIFY_BUNDLE_PATH" ]; then
-            echo "❌ Error: main.jsbundle not found after repack"
-            exit 1
-          fi
-
-          echo "✅ iOS .app successfully repacked"
-        env:
-          PLATFORM: ios
-          METAMASK_ENVIRONMENT: main
-          METAMASK_BUILD_TYPE: main
-          IS_TEST: true
-          IS_SIM_BUILD: "true"  # Ensures simulator build (.app) not device build (.ipa)
-          IGNORE_BOXLOGS_DEVELOPMENT: true
-          GITHUB_CI: "true"
-          CI: "true"
-
-          NODE_OPTIONS: "--max-old-space-size=4096" # Increase memory limit for build
-
-          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-
-          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
-          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
-          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-
-      # Cache build artifacts with the pre-build fingerprint
-      - name: Cache build artifacts
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)
