@@ -792,16 +792,115 @@ export class RewardsController extends BaseController<
     }
 
     try {
-      Logger.log(
-        'RewardsController: Fetching fresh opt-in status for address count:',
-        {
-          addresses: params.addresses?.length,
-        },
+      // Get all internal accounts to convert addresses to CAIP format
+      const allAccounts = this.messagingSystem.call(
+        'AccountsController:listMultichainAccounts',
       );
-      return await this.messagingSystem.call(
-        'RewardsDataService:getOptInStatus',
-        params,
-      );
+
+      // Create a map of address to internal account for quick lookup
+      const addressToAccountMap = new Map<string, InternalAccount>();
+      for (const account of allAccounts) {
+        addressToAccountMap.set(account.address.toLowerCase(), account);
+      }
+
+      // Arrays to track cached vs fresh data needed
+      const cachedResults: (boolean | null)[] = new Array(
+        params.addresses.length,
+      ).fill(null);
+      const addressesNeedingFresh: string[] = [];
+      const freshIndexMap: Map<string, number> = new Map();
+
+      // Check storage state for each address
+      for (let i = 0; i < params.addresses.length; i++) {
+        const address = params.addresses[i];
+        const internalAccount = addressToAccountMap.get(address.toLowerCase());
+
+        if (internalAccount) {
+          const caipAccount =
+            this.convertInternalAccountToCaipAccountId(internalAccount);
+          if (caipAccount) {
+            const accountState = this.#getAccountState(caipAccount);
+            if (accountState?.hasOptedIn !== undefined) {
+              // Use cached data
+              cachedResults[i] = accountState.hasOptedIn;
+              continue;
+            }
+          }
+        }
+
+        // No cached data found, need fresh API call
+        addressesNeedingFresh.push(address);
+        freshIndexMap.set(address, i);
+      }
+
+      // Make fresh API call only for addresses without cached data
+      let freshResults: boolean[] = [];
+      if (addressesNeedingFresh.length > 0) {
+        Logger.log(
+          'RewardsController: Making fresh opt-in status API call for addresses without cached data',
+          {
+            cachedCount: cachedResults.filter((result) => result !== null)
+              .length,
+            needFreshCount: addressesNeedingFresh.length,
+          },
+        );
+
+        const freshResponse = await this.messagingSystem.call(
+          'RewardsDataService:getOptInStatus',
+          { addresses: addressesNeedingFresh },
+        );
+        freshResults = freshResponse.ois;
+
+        // Update state with fresh results for future caching
+        for (let i = 0; i < addressesNeedingFresh.length; i++) {
+          const address = addressesNeedingFresh[i];
+          const hasOptedIn = freshResults[i];
+          const internalAccount = addressToAccountMap.get(
+            address.toLowerCase(),
+          );
+
+          if (internalAccount) {
+            const caipAccount =
+              this.convertInternalAccountToCaipAccountId(internalAccount);
+            if (caipAccount) {
+              this.update((state: RewardsControllerState) => {
+                // Update or create account state with fresh opt-in status
+                if (!state.accounts[caipAccount]) {
+                  state.accounts[caipAccount] = {
+                    account: caipAccount,
+                    hasOptedIn,
+                    subscriptionId: null,
+                    lastCheckedAuth: Date.now(),
+                    lastCheckedAuthError: false,
+                    perpsFeeDiscount: null,
+                    lastPerpsDiscountRateFetched: null,
+                  };
+                } else {
+                  state.accounts[caipAccount].hasOptedIn = hasOptedIn;
+                  state.accounts[caipAccount].lastCheckedAuth = Date.now();
+                }
+              });
+            }
+          }
+        }
+      }
+
+      // Combine cached and fresh results in the correct order
+      const finalResults: boolean[] = [];
+      let freshIndex = 0;
+
+      for (let i = 0; i < params.addresses.length; i++) {
+        if (cachedResults[i] !== null) {
+          // Use cached result
+          finalResults[i] = cachedResults[i] as boolean;
+        } else {
+          // Use fresh result
+          finalResults[i] = freshResults[freshIndex];
+          freshIndex++;
+        }
+      }
+
+      return { ois: finalResults };
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to get opt-in status:',
@@ -1416,31 +1515,43 @@ export class RewardsController extends BaseController<
       );
 
       // Call opt-in status check
-      const optInStatusResponse = await this.messagingSystem.call(
-        'RewardsDataService:getOptInStatus',
-        { addresses },
-      );
-
-      const optedInAccounts =
-        optInStatusResponse?.ois?.filter((ois: boolean) => ois) ?? [];
+      const optInStatusResponse = await this.getOptInStatus({ addresses });
+      if (!optInStatusResponse?.ois?.filter((ois: boolean) => ois).length) {
+        Logger.log(
+          'RewardsController: No candidate subscription ID found. No opted in accounts found via opt-in status response.',
+        );
+        return null;
+      }
 
       Logger.log(
-        'RewardsController: Opted in accounts:',
-        optedInAccounts?.length ?? 0,
+        'RewardsController: Found opted in account via opt-in status response. Attempting silent auth to determine candidate subscription ID.',
       );
 
       // Loop through all accounts that have opted in (ois[i] === true)
       // Only process the first 10 accounts with a 500ms delay between each
-      const maxAccounts = Math.min(10, optedInAccounts.length);
-      for (let i = 0; i < maxAccounts; i++) {
+      const maxSilentAuthAttempts = Math.min(
+        10,
+        optInStatusResponse.ois.length,
+      );
+      let silentAuthAttempts = 0;
+      for (let i = 0; i < allAccounts.length; i++) {
+        if (silentAuthAttempts > maxSilentAuthAttempts) break;
         const account = allAccounts[i];
-        if (!account) continue;
+        if (!account || optInStatusResponse.ois[i] === false) continue;
         try {
+          silentAuthAttempts++;
           const subscriptionId = await this.#performSilentAuth(
             account,
             false, // shouldBecomeActiveAccount = false
           );
           if (subscriptionId) {
+            Logger.log(
+              'RewardsController: Found candidate subscription ID via opt-in status response.',
+              {
+                subscriptionId,
+              },
+            );
+
             return subscriptionId;
           }
         } catch (error) {
@@ -1451,11 +1562,6 @@ export class RewardsController extends BaseController<
             error instanceof Error ? error.message : String(error),
           );
         }
-
-        // Add 500ms delay between accounts (except for the last one)
-        if (i < maxAccounts - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
       }
     } catch (error) {
       Logger.log(
@@ -1464,7 +1570,9 @@ export class RewardsController extends BaseController<
       );
     }
 
-    return null;
+    throw new Error(
+      'No candidate subscription ID found after all silent auth attempts. There is an opted in account but we cannot use it to fetch the season status.',
+    );
   }
 
   /**

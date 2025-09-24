@@ -83,8 +83,8 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: '#4459ff', // primary.default
-        backgroundColor: '#4459ff1a', // primary.muted
+        iconColor: '#3c4d9d0f',
+        backgroundColor: '#4459ff',
         hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
       });
