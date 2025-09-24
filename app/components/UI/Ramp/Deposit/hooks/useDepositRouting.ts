@@ -31,12 +31,10 @@ import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 
 export interface UseDepositRoutingParams {
-  cryptoCurrencyChainId: string;
   paymentMethodId: string;
 }
 
 export const useDepositRouting = ({
-  cryptoCurrencyChainId,
   paymentMethodId,
 }: UseDepositRoutingParams) => {
   const navigation = useNavigation();
@@ -122,12 +120,11 @@ export const useDepositRouting = ({
       navigation.navigate(
         ...createVerifyIdentityNavDetails({
           quote,
-          cryptoCurrencyChainId,
           paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote, paymentMethodId],
   );
 
   const navigateToBasicInfoCallback = useCallback(
@@ -194,12 +191,11 @@ export const useDepositRouting = ({
           quote,
           kycUrl,
           workFlowRunId,
-          cryptoCurrencyChainId,
           paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote, paymentMethodId],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -325,12 +321,11 @@ export const useDepositRouting = ({
           quote,
           sourceUrl: kycUrl,
           workFlowRunId,
-          cryptoCurrencyChainId,
           paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote, paymentMethodId],
   );
 
   const routeAfterAuthentication = useCallback(

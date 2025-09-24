@@ -132,7 +132,6 @@ const BuildQuote = () => {
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
     useDepositRouting({
-      cryptoCurrencyChainId: selectedCryptoCurrency?.chainId || '',
       paymentMethodId: selectedPaymentMethod?.id || '',
     });
 
