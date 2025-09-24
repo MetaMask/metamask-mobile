@@ -13,7 +13,7 @@ import * as tokenBottomSheetUtils from '../../UI/Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
-jest.mock('react-native-scrollable-tab-view', () => {
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
   const MockScrollableTabView = (props: {
     children?: unknown;
     [key: string]: unknown;
@@ -48,11 +48,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      getOrAddQRKeyring: jest.fn(),
-    },
-  },
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
