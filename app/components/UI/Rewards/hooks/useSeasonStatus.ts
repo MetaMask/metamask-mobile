@@ -57,7 +57,11 @@ export const useSeasonStatus = (): void => {
   );
 
   useInvalidateByRewardEvents(
-    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:balanceUpdated',
+    ],
     fetchSeasonStatus,
   );
 };
