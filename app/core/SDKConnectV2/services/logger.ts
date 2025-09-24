@@ -1,8 +1,9 @@
 const prefix = '[SDKConnectV2]';
 
-const prettify = (...args: unknown[]) => {
-  return args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
-};
+const prettify = (...args: unknown[]) =>
+  args
+    .map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg)))
+    .join(' ');
 
 export default {
   debug: (...args: unknown[]) => {
