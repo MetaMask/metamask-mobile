@@ -222,7 +222,7 @@
     "dismissSmartAccountSuggestionEnabled": false,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
-    "showMultiRpcModal": false,
+    "showMultiRpcModal": true,
     "showTestNetworks": false,
     "smartAccountOptIn": true,
     "smartAccountOptInForAccounts": [],
