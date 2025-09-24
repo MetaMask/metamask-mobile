@@ -225,9 +225,9 @@ _Note: Position close "transactions" are HyperLiquid SDK operations, not MetaMas
 ### Perp Homescreen Tab Viewed
 
 Status: ✅ Implemented
-**Implementation:** MetaMetrics.events.ts + PerpsTabView.tsx:103
-**Properties:** Timestamp, Open Position (array: Asset, Leverage, Direction)
-**Note:** Perp Account $ Balance property removed for privacy compliance
+**Implementation:** MetaMetrics.events.ts + PerpsTabView.tsx:95
+**Properties:** Timestamp, Open Position (count of positions)
+**Note:** Changed from detailed position array to simple count for privacy compliance - provides analytics value without tracking identifiable trading behavior
 
 ### Perp Position Close Screen Viewed
 

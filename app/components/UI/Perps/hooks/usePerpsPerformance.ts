@@ -18,6 +18,12 @@ const validatePerformance = (
   const target = PerpsPerformanceTargets[name];
   if (!target) return;
 
+  const valid = duration <= target;
+  DevLogger.log(`AAABBB Performance target validation ${name} -> ${valid}`, {
+    metric: name,
+    duration: `${duration.toFixed(0)}ms`,
+    target: `${target}ms`,
+  });
   if (duration > target) {
     const percentOver = ((duration - target) / target) * 100;
     const priority = PerpsMetricPriorities[name] || 'MEDIUM';
@@ -76,11 +82,11 @@ export const usePerpsPerformance = () => {
       const result = operation();
       const duration = performance.now() - startTime;
 
-      // Validate against performance targets
-      validatePerformance(name, duration);
-
       // Report to Sentry
       setMeasurement(name, duration, 'millisecond');
+
+      // Validate against performance targets
+      validatePerformance(name, duration);
       return result;
     },
     [],

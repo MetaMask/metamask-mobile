@@ -32,18 +32,15 @@ import {
   TouchablePerpsComponent,
   useCoordinatedPress,
 } from '../../components/PressablePerpsComponent/PressablePerpsComponent';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+import { PerpsEventProperties } from '../../constants/eventNames';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsLivePositions,
-  usePerpsPerformance,
 } from '../../hooks';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import styleSheet from './PerpsTabView.styles';
@@ -62,10 +59,19 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { account } = usePerpsLiveAccount();
 
   const hasTrackedHomescreen = useRef(false);
-  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
+  });
+
+  // Track Perps tab load performance - measures time from tab mount to data ready
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.PERPS_TAB_LOADED,
+    dependencies: [
+      !isInitialLoading,
+      positions,
+      account?.totalBalance !== undefined,
+    ],
   });
 
   const orders = usePerpsLiveOrders({
@@ -83,11 +89,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
-  // Start measuring position data load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
-  }, [startMeasure]);
-
   // Track homescreen tab viewed - only once when positions and account are loaded
   useEffect(() => {
     if (
@@ -96,24 +97,14 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       positions &&
       account?.totalBalance !== undefined
     ) {
-      // Track position data loaded performance
-      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
-
-      // Track homescreen tab viewed event with exact property names from requirements
+      // Track homescreen tab viewed event - privacy compliant with position count only
       track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
-        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
-          [PerpsEventProperties.ASSET]: p.coin,
-          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
-          [PerpsEventProperties.DIRECTION]:
-            parseFloat(p.size) > 0
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-        })),
+        [PerpsEventProperties.OPEN_POSITION]: positions.length,
       });
 
       hasTrackedHomescreen.current = true;
     }
-  }, [isInitialLoading, positions, account?.totalBalance, track, endMeasure]);
+  }, [isInitialLoading, positions, account?.totalBalance, track]);
 
   const handleManageBalancePress = useCallback(() => {
     if (!isEligible) {

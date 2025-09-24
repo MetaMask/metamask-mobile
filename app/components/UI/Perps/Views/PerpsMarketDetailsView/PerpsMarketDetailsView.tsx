@@ -50,10 +50,10 @@ import {
 } from '../../constants/eventNames';
 import {
   usePerpsConnection,
-  usePerpsPerformance,
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
@@ -90,17 +90,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
 
-  // Track screen load time
-  const { startMeasure, endMeasure } = usePerpsPerformance();
-  const hasTrackedAssetView = useRef(false);
-
   const isEligible = useSelector(selectPerpsEligibility);
-
-  // Start measuring screen load time on mount
-  useEffect(() => {
-    startMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
-    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
-  }, [startMeasure]);
 
   // Set navigation header with proper back button
   useEffect(() => {
@@ -224,7 +214,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
-  // Track screen load and position data loaded
+  // Track Perps asset screen load performance
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.ASSET_SCREEN_LOADED,
+    dependencies: [market, marketStats, !isLoadingHistory, !isLoadingPosition],
+  });
+
+  // Track asset screen viewed event - separate from performance measurement
+  const hasTrackedAssetView = useRef(false);
   useEffect(() => {
     if (
       market &&
@@ -233,16 +230,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !isLoadingPosition &&
       !hasTrackedAssetView.current
     ) {
-      // Track asset screen loaded
-      endMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
-
-      // Track asset screen viewed event - only once
       track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
         [PerpsEventProperties.ASSET]: market.symbol,
         [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
         [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
       });
-
       hasTrackedAssetView.current = true;
     }
   }, [
@@ -252,15 +244,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isLoadingPosition,
     existingPosition,
     track,
-    endMeasure,
   ]);
-
-  useEffect(() => {
-    if (!isLoadingPosition && market) {
-      // Track position data loaded for asset screen
-      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
-    }
-  }, [isLoadingPosition, market, endMeasure]);
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
