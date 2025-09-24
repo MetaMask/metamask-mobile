@@ -102,7 +102,7 @@ function OrderListItem({ order }: Props) {
       caipChainId = orderNetwork;
     } else if (orderNetwork.startsWith('0x')) {
       caipChainId = toEvmCaipChainId(orderNetwork as `0x${string}`);
-    } else if (!isNaN(Number(orderNetwork))) {
+    } else if (orderNetwork && !isNaN(Number(orderNetwork))) {
       caipChainId = toCaipChainId('eip155', orderNetwork);
     }
   } catch {
