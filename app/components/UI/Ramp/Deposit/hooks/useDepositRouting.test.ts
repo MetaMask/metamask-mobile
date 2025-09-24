@@ -250,11 +250,7 @@ describe('useDepositRouting', () => {
   });
 
   it('should create the hook with correct parameters', () => {
-    const mockParams = {
-      paymentMethodId: 'sepa_bank_transfer',
-    };
-
-    const { result } = renderHook(() => useDepositRouting(mockParams));
+    const { result } = renderHook(() => useDepositRouting());
 
     expect(result.current.routeAfterAuthentication).toBeDefined();
     expect(result.current.navigateToKycWebview).toBeDefined();
@@ -267,13 +263,10 @@ describe('useDepositRouting', () => {
   describe('Manual bank transfer payment method routing', () => {
     it('should navigate to BankDetails when manual bank transfer payment method is used and KYC is approved', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'sepa_bank_transfer',
-      };
 
       mockSelectedPaymentMethod = { isManualBankTransfer: true };
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -300,14 +293,11 @@ describe('useDepositRouting', () => {
 
     it('should throw error when manual bank transfer createOrder fails', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'sepa_bank_transfer',
-      };
 
       mockSelectedPaymentMethod = { isManualBankTransfer: true };
       mockCreateOrder = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -318,11 +308,8 @@ describe('useDepositRouting', () => {
   describe('Non-manual bank transfer payment method routing', () => {
     it('should navigate to WebviewModal when non-manual bank transfer payment method is used and KYC is approved', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -356,14 +343,11 @@ describe('useDepositRouting', () => {
 
     it('should call endTrace for both DepositContinueFlow and DepositInputOtp when navigating to WebviewModal', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
       mockEndTrace.mockClear();
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -389,16 +373,13 @@ describe('useDepositRouting', () => {
   describe('KYC forms routing', () => {
     it('should navigate to BasicInfo when personalDetails form is not submitted', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -415,16 +396,13 @@ describe('useDepositRouting', () => {
 
     it('should navigate to BasicInfo when address form is not submitted', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -441,16 +419,13 @@ describe('useDepositRouting', () => {
 
     it('should navigate to BasicInfo when SSN form is not submitted for US user', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -467,9 +442,6 @@ describe('useDepositRouting', () => {
 
     it('should auto-submit purpose of usage form when it is not submitted', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest
         .fn()
@@ -488,7 +460,7 @@ describe('useDepositRouting', () => {
         formsRequired: [{ type: 'PURPOSE_OF_USAGE' }],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -512,9 +484,6 @@ describe('useDepositRouting', () => {
 
     it('should navigate to AdditionalVerification when idProof form is not submitted', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
@@ -532,7 +501,7 @@ describe('useDepositRouting', () => {
         ],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -554,9 +523,6 @@ describe('useDepositRouting', () => {
 
     it('should throw error when idProof form is not submitted but no form data is returned', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
@@ -566,7 +532,7 @@ describe('useDepositRouting', () => {
         formsRequired: [{ type: 'IDPROOF' }],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -575,9 +541,6 @@ describe('useDepositRouting', () => {
 
     it('should throw error when all forms are submitted but no clear next step exists', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
@@ -587,7 +550,7 @@ describe('useDepositRouting', () => {
         formsRequired: [],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -601,16 +564,13 @@ describe('useDepositRouting', () => {
 
     it('should not auto-submit purpose of usage form when it is already submitted', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -626,9 +586,6 @@ describe('useDepositRouting', () => {
 
     it('should not auto-submit purpose of usage form when depth limit is exceeded', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'ADDITIONAL_FORMS_REQUIRED',
@@ -638,7 +595,7 @@ describe('useDepositRouting', () => {
         formsRequired: [{ type: 'PURPOSE_OF_USAGE' }],
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -651,16 +608,13 @@ describe('useDepositRouting', () => {
   describe('KYC status handling', () => {
     it('should navigate to KycProcessing when KYC is not approved', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const success = await result.current.routeAfterAuthentication(mockQuote);
 
@@ -677,12 +631,9 @@ describe('useDepositRouting', () => {
   describe('Error handling', () => {
     it('should throw error when user details are missing', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockFetchUserDetails = jest.fn().mockResolvedValue(null);
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
       ).rejects.toThrow('Missing user details');
@@ -690,15 +641,12 @@ describe('useDepositRouting', () => {
 
     it('should throw error when KYC forms fetch fails', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest
         .fn()
         .mockRejectedValue(new Error('KYC forms fetch failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -707,13 +655,10 @@ describe('useDepositRouting', () => {
 
     it('should throw error when payment URL generation fails', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGeneratePaymentUrl = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -722,13 +667,10 @@ describe('useDepositRouting', () => {
 
     it('should throw error when OTT token request fails', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockRequestOtt = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -737,14 +679,11 @@ describe('useDepositRouting', () => {
 
     it('should throw error when createOrder fails for manual bank transfer flow', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'sepa_bank_transfer',
-      };
 
       mockSelectedPaymentMethod = { isManualBankTransfer: true };
       mockCreateOrder = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -753,16 +692,13 @@ describe('useDepositRouting', () => {
 
     it('should throw error when createOrder throws for manual bank transfer flow', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'sepa_bank_transfer',
-      };
 
       mockSelectedPaymentMethod = { isManualBankTransfer: true };
       mockCreateOrder = jest
         .fn()
         .mockRejectedValue(new Error('Order creation failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -771,15 +707,12 @@ describe('useDepositRouting', () => {
 
     it('should throw error when requestOtt throws for non-manual bank transfer flow', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockRequestOtt = jest
         .fn()
         .mockRejectedValue(new Error('OTT request failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -788,15 +721,12 @@ describe('useDepositRouting', () => {
 
     it('should throw error when generatePaymentUrl throws for non-manual bank transfer flow', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGeneratePaymentUrl = jest
         .fn()
         .mockRejectedValue(new Error('Payment URL generation failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -805,15 +735,12 @@ describe('useDepositRouting', () => {
 
     it('should throw error when fetchUserDetails throws', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockFetchUserDetails = jest
         .fn()
         .mockRejectedValue(new Error('User details fetch failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -825,15 +752,12 @@ describe('useDepositRouting', () => {
     it('navigates to Login when user is unauthorized', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
 
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
       mockGetKycRequirement = jest.fn().mockImplementation(() => {
         const error = new Error('Unauthorized');
         (error as AxiosError).status = 401;
         throw error;
       });
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
       await result.current.routeAfterAuthentication(mockQuote);
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
 
@@ -846,14 +770,11 @@ describe('useDepositRouting', () => {
 
   describe('handleNavigationStateChange', () => {
     it('processes order and navigates when URL contains orderId', async () => {
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
       // Set payment method to non-manual bank transfer
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
@@ -879,9 +800,6 @@ describe('useDepositRouting', () => {
     });
 
     it('tracks RAMPS_TRANSACTION_CONFIRMED event when order is processed successfully', async () => {
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
@@ -901,7 +819,7 @@ describe('useDepositRouting', () => {
       };
       mockGetOrder.mockResolvedValue(testOrder);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
@@ -939,15 +857,12 @@ describe('useDepositRouting', () => {
     });
 
     it('does not track analytics when order processing fails', async () => {
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
       const mockHandleNewOrder = jest
         .fn()
         .mockRejectedValue(new Error('Processing failed'));
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
@@ -973,11 +888,7 @@ describe('useDepositRouting', () => {
     });
 
     it('does nothing when URL does not start with REDIRECTION_URL', async () => {
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
-
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
@@ -1001,11 +912,7 @@ describe('useDepositRouting', () => {
     });
 
     it('does nothing when REDIRECTION_URL has no orderId', async () => {
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
-
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
@@ -1027,15 +934,12 @@ describe('useDepositRouting', () => {
     });
 
     it('handles error when getOrder fails', async () => {
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
       mockGetOrder = jest.fn().mockRejectedValue(new Error('Get order failed'));
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
@@ -1061,15 +965,12 @@ describe('useDepositRouting', () => {
     });
 
     it('handles error when getOrder returns null', async () => {
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
       const mockHandleNewOrder = jest.fn().mockResolvedValue(undefined);
       mockUseHandleNewOrder.mockReturnValue(mockHandleNewOrder);
 
       mockGetOrder = jest.fn().mockResolvedValue(null);
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
@@ -1098,11 +999,8 @@ describe('useDepositRouting', () => {
   describe('Navigation callback methods', () => {
     it('should call popToBuildQuote before navigating in navigateToVerifyIdentity', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       result.current.navigateToVerifyIdentity({ quote: mockQuote });
 
@@ -1115,11 +1013,8 @@ describe('useDepositRouting', () => {
 
     it('should call popToBuildQuote before navigating in navigateToKycWebview', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       result.current.navigateToKycWebview({
         quote: mockQuote,
@@ -1143,16 +1038,13 @@ describe('useDepositRouting', () => {
   describe('Analytics tracking', () => {
     it('tracks RAMPS_KYC_STARTED event when personalDetails form is required', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
@@ -1167,15 +1059,12 @@ describe('useDepositRouting', () => {
 
     it('does not track analytics event when no KYC forms are required', async () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-      const mockParams = {
-        paymentMethodId: 'credit_debit_card',
-      };
 
       mockGetKycRequirement = jest.fn().mockResolvedValue({
         status: 'APPROVED',
       });
 
-      const { result } = renderHook(() => useDepositRouting(mockParams));
+      const { result } = renderHook(() => useDepositRouting());
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),

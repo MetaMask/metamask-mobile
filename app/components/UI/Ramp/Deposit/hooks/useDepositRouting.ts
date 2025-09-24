@@ -30,13 +30,7 @@ import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 
-export interface UseDepositRoutingParams {
-  paymentMethodId: string;
-}
-
-export const useDepositRouting = ({
-  paymentMethodId,
-}: UseDepositRoutingParams) => {
+export const useDepositRouting = () => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const {
@@ -120,11 +114,10 @@ export const useDepositRouting = ({
       navigation.navigate(
         ...createVerifyIdentityNavDetails({
           quote,
-          paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const navigateToBasicInfoCallback = useCallback(
@@ -191,11 +184,10 @@ export const useDepositRouting = ({
           quote,
           kycUrl,
           workFlowRunId,
-          paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -321,11 +313,10 @@ export const useDepositRouting = ({
           quote,
           sourceUrl: kycUrl,
           workFlowRunId,
-          paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const routeAfterAuthentication = useCallback(
@@ -359,11 +350,7 @@ export const useDepositRouting = ({
               }
 
               if (selectedPaymentMethod?.isManualBankTransfer) {
-                const order = await createOrder(
-                  quote,
-                  selectedWalletAddress,
-                  paymentMethodId,
-                );
+                const order = await createOrder(quote, selectedWalletAddress);
 
                 if (!order) {
                   throw new Error('Missing order');
@@ -494,12 +481,10 @@ export const useDepositRouting = ({
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
-
       createOrder,
       requestOtt,
       generatePaymentUrl,
       selectedWalletAddress,
-      paymentMethodId,
       themeAppearance,
       colors,
     ],

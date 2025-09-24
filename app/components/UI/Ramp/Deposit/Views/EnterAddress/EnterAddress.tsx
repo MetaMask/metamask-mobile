@@ -69,9 +69,7 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const { routeAfterAuthentication } = useDepositRouting({
-    paymentMethodId: quote.paymentMethod,
-  });
+  const { routeAfterAuthentication } = useDepositRouting();
 
   const initialFormData: AddressFormData = {
     addressLine1: previousFormData?.addressLine1 || '',

@@ -48,9 +48,7 @@ const KycProcessing = () => {
   const { quote } = useParams<KycProcessingParams>();
   const trackEvent = useAnalytics();
 
-  const { routeAfterAuthentication } = useDepositRouting({
-    paymentMethodId: quote.paymentMethod,
-  });
+  const { routeAfterAuthentication } = useDepositRouting();
 
   const [{ data: kycForms, error: kycFormsError }] = useDepositSdkMethod(
     {

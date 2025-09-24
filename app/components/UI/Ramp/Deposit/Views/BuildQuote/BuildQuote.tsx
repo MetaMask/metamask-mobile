@@ -131,9 +131,7 @@ const BuildQuote = () => {
   );
 
   const { routeAfterAuthentication, navigateToVerifyIdentity } =
-    useDepositRouting({
-      paymentMethodId: selectedPaymentMethod?.id || '',
-    });
+    useDepositRouting();
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 

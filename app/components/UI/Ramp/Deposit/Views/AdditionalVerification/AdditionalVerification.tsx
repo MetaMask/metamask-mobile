@@ -27,7 +27,6 @@ interface AdditionalVerificationParams {
   quote: BuyQuote;
   kycUrl: string;
   workFlowRunId: string;
-  paymentMethodId: string;
 }
 
 export const createAdditionalVerificationNavDetails =
@@ -37,14 +36,12 @@ export const createAdditionalVerificationNavDetails =
 
 const AdditionalVerification = () => {
   const navigation = useNavigation();
-  const { quote, kycUrl, workFlowRunId, paymentMethodId } =
+  const { quote, kycUrl, workFlowRunId } =
     useParams<AdditionalVerificationParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { navigateToKycWebview } = useDepositRouting({
-    paymentMethodId,
-  });
+  const { navigateToKycWebview } = useDepositRouting();
 
   React.useEffect(() => {
     navigation.setOptions(
