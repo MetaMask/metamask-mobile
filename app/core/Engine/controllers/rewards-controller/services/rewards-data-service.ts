@@ -163,6 +163,8 @@ export class RewardsDataService {
 
   readonly #locale: string;
 
+  readonly #rewardsApiUrl: string;
+
   constructor({
     messenger,
     fetch: fetchFunction,
@@ -178,6 +180,7 @@ export class RewardsDataService {
     this.#fetch = fetchFunction;
     this.#appType = appType;
     this.#locale = locale;
+    this.#rewardsApiUrl = this.getRewardsApiBaseUrl();
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -249,6 +252,31 @@ export class RewardsDataService {
     );
   }
 
+  private getRewardsApiBaseUrl() {
+    // always using url from env var if set
+    if (process.env.REWARDS_API_URL) return process.env.REWARDS_API_URL;
+    // otherwise using default per-env url
+    return this.getDefaultRewardsApiBaseUrlForMetaMaskEnv();
+  }
+
+  private getDefaultRewardsApiBaseUrlForMetaMaskEnv() {
+    const env = process.env.METAMASK_ENVIRONMENT;
+    switch (env) {
+      case 'e2e':
+      case 'exp':
+        return AppConstants.REWARDS_API_URL.UAT;
+      case 'pre-release':
+      case 'production':
+      case 'beta':
+      case 'rc':
+        return AppConstants.REWARDS_API_URL.PRD;
+      case 'dev':
+      case 'local':
+      default:
+        return AppConstants.REWARDS_API_URL.UAT;
+    }
+  }
+
   /**
    * Make a request to the rewards API
    * @param endpoint - The endpoint to request
@@ -294,7 +322,7 @@ export class RewardsDataService {
       headers['Accept-Language'] = this.#locale;
     }
 
-    const url = `${AppConstants.REWARDS_API_URL}${endpoint}`;
+    const url = `${this.#rewardsApiUrl}${endpoint}`;
 
     // Create AbortController for timeout handling
     const controller = new AbortController();

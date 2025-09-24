@@ -657,7 +657,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockSeasonStatusResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL}/seasons/${mockSeasonId}/status`,
+        `${AppConstants.REWARDS_API_URL.DEV}/seasons/${mockSeasonId}/status`,
         {
           credentials: 'omit',
           method: 'GET',
