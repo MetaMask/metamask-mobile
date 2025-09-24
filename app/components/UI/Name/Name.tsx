@@ -68,26 +68,20 @@ const Name: React.FC<NameProperties> = ({
   type,
   value,
   variation,
-  shouldShowWalletName,
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
     throw new Error('Unsupported NameType: ' + type);
   }
 
-  const { accountWalletName, image, name, variant, isFirstPartyContractName } =
+  const { image, name, variant, isFirstPartyContractName, subtitle } =
     useDisplayName({
       preferContractSymbol,
       type,
       value,
       variation,
     });
-  let iconSize;
-  if (shouldShowWalletName) {
-    iconSize = AvatarSize.Md;
-  } else {
-    iconSize = AvatarSize.Sm;
-  }
+  const iconSize = subtitle ? AvatarSize.Md : AvatarSize.Sm;
 
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: variant,
@@ -141,13 +135,13 @@ const Name: React.FC<NameProperties> = ({
             <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
               {truncatedName}
             </NameLabel>
-            {accountWalletName && shouldShowWalletName && (
+            {subtitle && (
               <Text
                 numberOfLines={1}
                 color={TextColor.Alternative}
                 variant={TextVariant.BodySM}
               >
-                {accountWalletName}
+                {subtitle}
               </Text>
             )}
           </View>

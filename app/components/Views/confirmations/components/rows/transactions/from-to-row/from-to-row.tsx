@@ -1,6 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
 
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -15,17 +14,11 @@ import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './from-to-row.styles';
-import { selectWalletsMap } from '../../../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectMultichainAccountsState2Enabled } from '../../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 const FromToRow = () => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
-  const isBip44 = useSelector(selectMultichainAccountsState2Enabled);
-  const walletsMap = useSelector(selectWalletsMap) || {};
-  const haveMoreThanOneWallet = Object.keys(walletsMap).length > 1;
-  const shouldShowWalletName = isBip44 && haveMoreThanOneWallet;
 
   if (!transactionMetadata) {
     return null;
@@ -45,7 +38,6 @@ const FromToRow = () => {
             type={NameType.EthereumAddress}
             value={fromAddress}
             variation={chainId}
-            shouldShowWalletName={shouldShowWalletName}
           />
         </View>
 
@@ -62,7 +54,6 @@ const FromToRow = () => {
             type={NameType.EthereumAddress}
             value={toAddress}
             variation={chainId}
-            shouldShowWalletName={shouldShowWalletName}
           />
         </View>
       </View>

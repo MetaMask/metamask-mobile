@@ -107,7 +107,7 @@ describe('Name', () => {
       mockUseDisplayName.mockReturnValue({
         variant: DisplayNameVariant.Recognized,
         name: KNOWN_NAME_MOCK,
-        accountWalletName: mockAccountWalletName,
+        subtitle: mockAccountWalletName,
       });
 
       const wrapper = render(
@@ -116,7 +116,6 @@ describe('Name', () => {
             type={NameType.EthereumAddress}
             value={KNOWN_ADDRESS_CHECKSUMMED}
             variation={CHAIN_IDS.MAINNET}
-            shouldShowWalletName
           />
         </Provider>,
       );

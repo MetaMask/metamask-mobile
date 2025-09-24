@@ -14,12 +14,12 @@ export interface UseDisplayNameRequest {
 }
 
 export interface UseDisplayNameResponse {
-  accountWalletName?: string;
   contractDisplayName?: string;
   image?: string;
-  name?: string;
-  variant: DisplayNameVariant;
   isFirstPartyContractName?: boolean;
+  name?: string;
+  subtitle?: string;
+  variant: DisplayNameVariant;
 }
 
 /**
@@ -107,7 +107,7 @@ export function useDisplayNames(
     const { name: nftCollectionName, image: nftCollectionImage } =
       nftNames[index] || {};
     const accountName = accountNames[index];
-    const accountWalletName = accountWalletNames[index];
+    const subtitle = accountWalletNames[index];
 
     const name =
       accountName ||
@@ -122,12 +122,12 @@ export function useDisplayNames(
       firstPartyContractName !== undefined && firstPartyContractName !== null;
 
     return {
-      accountWalletName,
       contractDisplayName: erc20Token?.name,
       image,
-      name,
-      variant: getVariant({ name, accountName }),
       isFirstPartyContractName,
+      name,
+      subtitle,
+      variant: getVariant({ name, accountName }),
     };
   });
 }

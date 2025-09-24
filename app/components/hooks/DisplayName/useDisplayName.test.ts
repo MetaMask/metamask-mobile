@@ -185,7 +185,7 @@ describe('useDisplayName', () => {
 
       expect(displayName).toEqual(
         expect.objectContaining({
-          accountWalletName: KNOWN_ACCOUNT_WALLET_NAME,
+          subtitle: KNOWN_ACCOUNT_WALLET_NAME,
         }),
       );
     });
