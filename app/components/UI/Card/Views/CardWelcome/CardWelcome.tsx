@@ -1,8 +1,4 @@
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, View } from 'react-native';
 
@@ -18,11 +14,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import MetalCard from '../../../../../images/metal-card.png';
 import { useTheme } from '../../../../../util/theme';
-import createStyles, { headerStyle } from './CardWelcome.styles';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import createStyles from './CardWelcome.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardWelcomeSelectors } from '../../../../../../e2e/selectors/Card/CardWelcome.selectors';
 
@@ -77,36 +69,5 @@ const CardWelcome = () => {
     </SafeAreaView>
   );
 };
-
-CardWelcome.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      style={headerStyle.invisibleIcon}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Lg}
-      iconName={IconName.Close}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-});
 
 export default CardWelcome;

@@ -4,8 +4,48 @@ import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import { CardSDKProvider } from '../sdk';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../locales/i18n';
+import { StyleSheet, View } from 'react-native';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 const Stack = createStackNavigator();
+
+export const headerStyle = StyleSheet.create({
+  icon: { marginHorizontal: 16 },
+  title: { alignSelf: 'center' },
+});
+
+const defaultNavigationOptions = ({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}) => ({
+  headerLeft: () => <View />,
+  headerTitle: () => (
+    <Text
+      variant={TextVariant.HeadingSM}
+      style={headerStyle.title}
+      testID={'card-view-title'}
+    >
+      {strings('card.card')}
+    </Text>
+  ),
+  headerRight: () => (
+    <ButtonIcon
+      style={headerStyle.icon}
+      size={ButtonIconSizes.Lg}
+      iconName={IconName.Close}
+      onPress={() => navigation.goBack()}
+    />
+  ),
+});
 
 const CardRoutes = () => (
   <CardSDKProvider>
@@ -13,12 +53,12 @@ const CardRoutes = () => (
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
-        options={CardHome.navigationOptions}
+        options={defaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.WELCOME}
         component={CardWelcome}
-        options={CardWelcome.navigationOptions}
+        options={defaultNavigationOptions}
       />
     </Stack.Navigator>
   </CardSDKProvider>

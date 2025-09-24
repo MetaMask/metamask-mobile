@@ -27,12 +27,4 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export const headerStyle = StyleSheet.create({
-  icon: { marginHorizontal: 16 },
-  invisibleIcon: {
-    display: 'none',
-  },
-  title: { alignSelf: 'center' },
-});
-
 export default createStyles;

@@ -15,14 +15,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
@@ -30,7 +23,7 @@ import SensitiveText, {
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import createStyles, { headerStyle } from './CardHome.styles';
+import createStyles from './CardHome.styles';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -385,36 +378,5 @@ const CardHome = () => {
     </ScrollView>
   );
 };
-
-CardHome.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerLeft: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      style={headerStyle.invisibleIcon}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingSM}
-      style={headerStyle.title}
-      testID={'card-view-title'}
-    >
-      {strings('card.card')}
-    </Text>
-  ),
-  headerRight: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSizes.Lg}
-      iconName={IconName.Close}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-});
 
 export default CardHome;
