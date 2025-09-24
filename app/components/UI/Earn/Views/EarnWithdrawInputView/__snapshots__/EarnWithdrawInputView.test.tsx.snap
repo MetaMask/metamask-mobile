@@ -770,44 +770,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="1"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  1
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      1
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -822,44 +950,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="2"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  2
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      2
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -874,44 +1130,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="3"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  3
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      3
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                           </View>
                           <View
@@ -940,44 +1324,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="4"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  4
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      4
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -992,44 +1504,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="5"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  5
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      5
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -1044,44 +1684,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="6"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  6
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      6
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                           </View>
                           <View
@@ -1110,44 +1878,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="7"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  7
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      7
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -1162,44 +2058,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="8"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  8
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      8
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -1214,44 +2238,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="9"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  9
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      9
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                           </View>
                           <View
@@ -1280,46 +2432,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
                                     {
-                                      "backgroundColor": "transparent",
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
                                     },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="."
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  .
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      .
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -1334,44 +2612,172 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
                               >
-                                <Text
-                                  accessibilityRole="none"
+                                <View
+                                  accessibilityLabel="0"
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Bold",
-                                        "fontSize": 32,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 40,
-                                        "textAlign": "center",
+                                        "alignItems": "center",
+                                        "backgroundColor": "#3c4d9d0f",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
                                 >
-                                  0
-                                </Text>
-                              </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <Text
+                                      accessibilityRole="none"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 32,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 40,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      0
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                             <View
                               style={
@@ -1386,41 +2792,164 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 ]
                               }
                             >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                delayLongPress={500}
-                                onLongPress={[Function]}
-                                onPress={[Function]}
+                              <View
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "borderRadius": 12,
-                                      "height": 40,
-                                      "justifyContent": "center",
-                                      "paddingHorizontal": 16,
+                                      "transform": [
+                                        {
+                                          "scale": 1,
+                                        },
+                                      ],
                                     },
-                                    undefined,
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="keypad-delete-button"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="Backspace"
+                                <View
+                                  accessibilityRole="button"
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 32,
-                                        "width": 32,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 12,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
                                       },
-                                      undefined,
                                     ]
                                   }
-                                />
-                              </TouchableOpacity>
+                                  testID="keypad-delete-button"
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "bottom": 0,
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "left": 0,
+                                        "opacity": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                    testID="spinner-container"
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                      testID="spinner"
+                                    >
+                                      <View
+                                        style={
+                                          [
+                                            {
+                                              "transform": [
+                                                {
+                                                  "rotate": "0deg",
+                                                },
+                                              ],
+                                            },
+                                          ]
+                                        }
+                                        testID="spinner-animated-view"
+                                      >
+                                        <SvgMock
+                                          fill="currentColor"
+                                          name="Loading"
+                                          style={
+                                            [
+                                              {
+                                                "color": "#121314",
+                                                "height": 20,
+                                                "width": 20,
+                                              },
+                                              undefined,
+                                            ]
+                                          }
+                                          testID="spinner-icon"
+                                        />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                      }
+                                    }
+                                    testID="content-container"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Backspace"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "height": 32,
+                                            "width": 32,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </View>
+                                </View>
+                              </View>
                             </View>
                           </View>
                         </View>
