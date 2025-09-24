@@ -91,6 +91,20 @@ describe('textUtils', () => {
           height,
         },
       },
+      currentTarget: null as never,
+      target: null as never,
+      bubbles: false,
+      cancelable: false,
+      defaultPrevented: false,
+      eventPhase: 0,
+      isTrusted: false,
+      preventDefault: jest.fn(),
+      isDefaultPrevented: jest.fn(() => false),
+      stopPropagation: jest.fn(),
+      isPropagationStopped: jest.fn(() => false),
+      persist: jest.fn(),
+      timeStamp: Date.now(),
+      type: 'layout',
     });
 
     beforeEach(() => {

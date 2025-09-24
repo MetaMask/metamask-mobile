@@ -3,7 +3,12 @@ import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (params: {
   theme: Theme;
-  vars: { shouldShowSkipButton: boolean };
+  vars: {
+    shouldShowSkipButton: boolean;
+    titleFontSize?: number | null;
+    descriptionFontSize?: number | null;
+    subtitleFontSize?: number | null;
+  };
 }) =>
   StyleSheet.create({
     container: {
@@ -39,16 +44,25 @@ const createStyles = (params: {
     title: {
       textAlign: 'left',
       marginBottom: 6,
-      lineHeight: 30,
+      fontSize: params.vars.titleFontSize || 24,
+      lineHeight: params.vars.titleFontSize
+        ? params.vars.titleFontSize + 6
+        : 30,
     },
     description: {
       textAlign: 'left',
-      lineHeight: 22,
+      fontSize: params.vars.descriptionFontSize || 16,
+      lineHeight: params.vars.descriptionFontSize
+        ? params.vars.descriptionFontSize + 6
+        : 22,
       marginBottom: 16,
     },
     subtitle: {
       textAlign: 'left',
-      lineHeight: 22,
+      fontSize: params.vars.subtitleFontSize || 16,
+      lineHeight: params.vars.subtitleFontSize
+        ? params.vars.subtitleFontSize + 6
+        : 22,
     },
     progressContainer: {
       flexDirection: 'row',

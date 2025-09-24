@@ -44,6 +44,7 @@ import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
+import { createFontScaleHandler } from '../../utils/textUtils';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   SHORT_LONG = '01_Short_Long',
@@ -132,6 +133,13 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
+
+  // Font scaling state
+  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
+  const [descriptionFontSize, setDescriptionFontSize] = useState<number | null>(
+    null,
+  );
+  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
   const scrollableTabViewRef = useRef<
     typeof ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
@@ -164,6 +172,34 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
+    titleFontSize,
+    descriptionFontSize,
+    subtitleFontSize,
+  });
+
+  // Create font scale handlers with height constraints for 160px headerSection
+  const handleTitleLayout = createFontScaleHandler({
+    maxHeight: 60,
+    currentFontSize: styles.title.fontSize || 24,
+    setter: setTitleFontSize,
+    minFontSize: 20,
+    currentValue: titleFontSize,
+  });
+
+  const handleDescriptionLayout = createFontScaleHandler({
+    maxHeight: 50,
+    currentFontSize: styles.description.fontSize || 16,
+    setter: setDescriptionFontSize,
+    minFontSize: 16,
+    currentValue: descriptionFontSize,
+  });
+
+  const handleSubtitleLayout = createFontScaleHandler({
+    maxHeight: 40,
+    currentFontSize: styles.subtitle.fontSize || 16,
+    setter: setSubtitleFontSize,
+    minFontSize: 16,
+    currentValue: subtitleFontSize,
   });
 
   const PerpsOnboardingAnimation = useMemo(
@@ -407,6 +443,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                     variant={TextVariant.HeadingLG}
                     color={TextColor.Default}
                     style={styles.title}
+                    onLayout={handleTitleLayout}
                   >
                     {screen.title}
                   </Text>
@@ -414,6 +451,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                     style={styles.description}
+                    onLayout={handleDescriptionLayout}
                   >
                     {screen.description}
                   </Text>
@@ -422,6 +460,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
                       style={styles.subtitle}
+                      onLayout={handleSubtitleLayout}
                     >
                       {screen.subtitle}
                     </Text>
