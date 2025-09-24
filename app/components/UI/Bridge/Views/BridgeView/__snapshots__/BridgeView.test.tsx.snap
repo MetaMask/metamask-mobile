@@ -437,29 +437,22 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       <View
                                         alignItems="flex-end"
                                         flexDirection="row"
-                                        gap={4}
+                                        gap={8}
                                         justifyContent="flex-end"
                                         style={
                                           [
                                             {
                                               "alignItems": "flex-end",
                                               "flexDirection": "row",
-                                              "gap": 4,
+                                              "gap": 8,
                                               "justifyContent": "flex-end",
                                             },
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 100,
                                               "paddingLeft": 8,
                                               "paddingRight": 11,
                                               "paddingVertical": 8,
-                                              "shadowColor": "#0000001a",
-                                              "shadowOffset": {
-                                                "height": 2,
-                                                "width": 0,
-                                              },
-                                              "shadowOpacity": 1,
-                                              "shadowRadius": 4,
                                             },
                                           ]
                                         }
@@ -691,13 +684,13 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "#f3f5f9",
-                                        "borderRadius": 16,
+                                        "borderRadius": 22,
                                         "display": "flex",
-                                        "height": 32,
+                                        "height": 44,
                                         "justifyContent": "center",
                                         "position": "absolute",
-                                        "top": -16,
-                                        "width": 32,
+                                        "top": -22,
+                                        "width": 44,
                                       },
                                     ]
                                   }
@@ -713,10 +706,10 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       {
                                         "alignItems": "center",
                                         "borderRadius": 8,
-                                        "height": 24,
+                                        "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
-                                        "width": 24,
+                                        "width": 32,
                                       }
                                     }
                                     testID="arrow-button"
@@ -724,15 +717,15 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                     <SvgMock
                                       color="#121314"
                                       fill="currentColor"
-                                      height={16}
-                                      name="Arrow2Down"
+                                      height={24}
+                                      name="SwapVertical"
                                       style={
                                         {
-                                          "height": 16,
-                                          "width": 16,
+                                          "height": 24,
+                                          "width": 24,
                                         }
                                       }
-                                      width={16}
+                                      width={24}
                                     />
                                   </TouchableOpacity>
                                 </View>
@@ -741,7 +734,9 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                 style={
                                   [
                                     {},
-                                    undefined,
+                                    {
+                                      "marginTop": 16,
+                                    },
                                   ]
                                 }
                               >
@@ -1412,29 +1407,22 @@ exports[`BridgeView renders 1`] = `
                                       <View
                                         alignItems="flex-end"
                                         flexDirection="row"
-                                        gap={4}
+                                        gap={8}
                                         justifyContent="flex-end"
                                         style={
                                           [
                                             {
                                               "alignItems": "flex-end",
                                               "flexDirection": "row",
-                                              "gap": 4,
+                                              "gap": 8,
                                               "justifyContent": "flex-end",
                                             },
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "#f3f5f9",
                                               "borderRadius": 100,
                                               "paddingLeft": 8,
                                               "paddingRight": 11,
                                               "paddingVertical": 8,
-                                              "shadowColor": "#0000001a",
-                                              "shadowOffset": {
-                                                "height": 2,
-                                                "width": 0,
-                                              },
-                                              "shadowOpacity": 1,
-                                              "shadowRadius": 4,
                                             },
                                           ]
                                         }
@@ -1666,13 +1654,13 @@ exports[`BridgeView renders 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "#f3f5f9",
-                                        "borderRadius": 16,
+                                        "borderRadius": 22,
                                         "display": "flex",
-                                        "height": 32,
+                                        "height": 44,
                                         "justifyContent": "center",
                                         "position": "absolute",
-                                        "top": -16,
-                                        "width": 32,
+                                        "top": -22,
+                                        "width": 44,
                                       },
                                     ]
                                   }
@@ -1688,10 +1676,10 @@ exports[`BridgeView renders 1`] = `
                                       {
                                         "alignItems": "center",
                                         "borderRadius": 8,
-                                        "height": 24,
+                                        "height": 32,
                                         "justifyContent": "center",
                                         "opacity": 1,
-                                        "width": 24,
+                                        "width": 32,
                                       }
                                     }
                                     testID="arrow-button"
@@ -1699,15 +1687,15 @@ exports[`BridgeView renders 1`] = `
                                     <SvgMock
                                       color="#121314"
                                       fill="currentColor"
-                                      height={16}
-                                      name="Arrow2Down"
+                                      height={24}
+                                      name="SwapVertical"
                                       style={
                                         {
-                                          "height": 16,
-                                          "width": 16,
+                                          "height": 24,
+                                          "width": 24,
                                         }
                                       }
-                                      width={16}
+                                      width={24}
                                     />
                                   </TouchableOpacity>
                                 </View>
@@ -1716,7 +1704,9 @@ exports[`BridgeView renders 1`] = `
                                 style={
                                   [
                                     {},
-                                    undefined,
+                                    {
+                                      "marginTop": 16,
+                                    },
                                   ]
                                 }
                               >

@@ -88,7 +88,14 @@ const createStyles = (params: { theme: Theme }) => {
       marginTop: 8,
       alignSelf: 'center',
     },
-    // End section
+    tokensList: {
+      marginTop: 10,
+    },
+    searchInput: {
+      borderRadius: 12,
+      borderWidth: 0,
+      backgroundColor: theme.colors.background.section,
+    },
   });
 };
 
@@ -229,6 +236,8 @@ export const BridgeTokenSelectorBase: React.FC<
     return tokensToRender;
   }, [pending, tokensToRender]);
 
+  const placeholderTextColor = theme.colors.text.alternative;
+
   return (
     <ReusableModal
       ref={modalRef}
@@ -242,6 +251,8 @@ export const BridgeTokenSelectorBase: React.FC<
         ]}
       >
         <Box style={styles.notch} />
+
+        {/* Header */}
         <Box gap={4}>
           <BottomSheetHeader>
             <Box
@@ -259,8 +270,8 @@ export const BridgeTokenSelectorBase: React.FC<
                 >
                   <Icon
                     name={IconName.Close}
-                    size={IconSize.Sm}
                     color={theme.colors.icon.default}
+                    size={IconSize.Lg}
                   />
                 </TouchableOpacity>
               </Box>
@@ -268,7 +279,8 @@ export const BridgeTokenSelectorBase: React.FC<
           </BottomSheetHeader>
         </Box>
 
-        <Box style={styles.buttonContainer} gap={16}>
+        {/* Search + networks */}
+        <Box style={styles.buttonContainer} gap={20}>
           {networksBar}
 
           <TextFieldSearch
@@ -276,10 +288,14 @@ export const BridgeTokenSelectorBase: React.FC<
             onChangeText={handleSearchTextChange}
             placeholder={strings('swaps.search_token')}
             testID="bridge-token-search-input"
+            style={styles.searchInput}
+            placeholderTextColor={placeholderTextColor}
           />
         </Box>
 
+        {/* Tokens */}
         <ListComponent
+          style={styles.tokensList}
           data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
