@@ -13,9 +13,9 @@ import Avatar, {
 } from '../../../../../component-library/components/Avatars/Avatar';
 
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 const styles = StyleSheet.create({

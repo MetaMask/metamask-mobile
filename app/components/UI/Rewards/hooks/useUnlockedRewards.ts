@@ -59,7 +59,11 @@ export const useUnlockedRewards = (): void => {
 
   // Listen for account linked events to trigger refetch
   useInvalidateByRewardEvents(
-    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:balanceUpdated',
+    ],
     fetchUnlockedRewards,
   );
 };
