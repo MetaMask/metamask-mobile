@@ -49,7 +49,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
 
     {actionButtonText && onAction && (
       <Button
-        variant={ButtonVariant.Tertiary}
+        variant={ButtonVariant.Secondary}
         onPress={onAction}
         {...actionButtonProps}
       >
