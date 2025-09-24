@@ -163,6 +163,16 @@ class TestableRewardsController extends RewardsController {
   }
 
   // Add other private methods as needed
+  public testGetSeasonStatus(
+    subscriptionId: string,
+    seasonId: string = CURRENT_SEASON_ID,
+  ): SeasonStatusState | null {
+    return this.state.seasonStatuses[`${subscriptionId}:${seasonId}`] || null;
+  }
+
+  public testUpdate(callback: (state: RewardsControllerState) => void) {
+    this.update(callback);
+  }
 
   public invalidateAccountsAndSubscriptions() {
     this.update((state: RewardsControllerState) => {
@@ -273,6 +283,58 @@ const createTestSeasonStatus = (
     currentTierId: overrides.currentTierId || 'silver',
   };
 };
+
+// Helper function to create test season status state (state format with proper structure)
+const createTestSeasonStatusState = (
+  overrides: Partial<{
+    balance: Partial<{
+      total: number;
+      refereePortion: number;
+      updatedAt: number;
+    }>;
+    lastFetched: number;
+  }> = {},
+): SeasonStatusState => ({
+  season: {
+    id: 'current',
+    name: 'Test Season',
+    startDate: Date.now() - 86400000,
+    endDate: Date.now() + 86400000,
+    tiers: [],
+  },
+  balance: {
+    total: 100,
+    refereePortion: 0,
+    updatedAt: Date.now(),
+    ...overrides.balance,
+  },
+  tier: {
+    currentTier: {
+      id: 'bronze',
+      name: 'Bronze',
+      pointsNeeded: 0,
+      image: {
+        lightModeUrl: 'bronze-light',
+        darkModeUrl: 'bronze-dark',
+      },
+      levelNumber: '1',
+      rewards: [],
+    },
+    nextTier: {
+      id: 'silver',
+      name: 'Silver',
+      pointsNeeded: 1000,
+      image: {
+        lightModeUrl: 'silver-light',
+        darkModeUrl: 'silver-dark',
+      },
+      levelNumber: '2',
+      rewards: [],
+    },
+    nextTierPointsNeeded: 1000,
+  },
+  lastFetched: overrides.lastFetched ?? Date.now(),
+});
 
 describe('RewardsController', () => {
   let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
@@ -773,7 +835,7 @@ describe('RewardsController', () => {
         ],
       };
 
-      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockMessenger.call.mockResolvedValue(mockResponse as any);
 
       const result = await controller.getPointsEvents(mockRequest);
 
@@ -808,7 +870,7 @@ describe('RewardsController', () => {
         ],
       };
 
-      mockMessenger.call.mockResolvedValue(mockResponse);
+      mockMessenger.call.mockResolvedValue(mockResponse as unknown as any);
 
       const result = await controller.getPointsEvents(mockRequest);
 
@@ -837,6 +899,573 @@ describe('RewardsController', () => {
         'RewardsController: Failed to get points events:',
         'API error',
       );
+    });
+
+    describe('balance updated event emission', () => {
+      let testableController: TestableRewardsController;
+
+      beforeEach(() => {
+        testableController = new TestableRewardsController({
+          messenger: mockMessenger,
+        });
+        // Clear any previous mock calls
+        mockMessenger.publish.mockClear();
+      });
+
+      it('should emit balance updated event when earliest event is newer than cached balance timestamp', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const now = new Date();
+        const olderTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
+        const newerTimestamp = new Date(now.getTime() - 1000); // 1 second ago
+
+        // Set up cached season status with older balance timestamp
+        testableController.testUpdate((state) => {
+          state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
+            {
+              balance: {
+                total: 100,
+                refereePortion: 0,
+                updatedAt: olderTimestamp.getTime(),
+              },
+              lastFetched: now.getTime(),
+            },
+          );
+        });
+
+        // Clear mock calls from state setup
+        mockMessenger.publish.mockClear();
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 1,
+          results: [
+            {
+              id: 'event-1',
+              type: 'SWAP' as const,
+              timestamp: newerTimestamp,
+              value: 50,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: newerTimestamp, // Newer than cached balance
+              payload: null,
+            },
+          ],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(mockResponse);
+        expect(mockMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          {
+            seasonId: 'current',
+            subscriptionId: 'sub-123',
+          },
+        );
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Emitting balanceUpdated event due to newer points events',
+          expect.objectContaining({
+            seasonId: 'current',
+            subscriptionId: 'sub-123',
+          }),
+        );
+      });
+
+      it('should not emit balance updated event when cached balance and season status are newer than earliest event', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const now = new Date();
+        const olderTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
+        const newerTimestamp = new Date(now.getTime() - 1000); // 1 second ago
+
+        // Set up cached season status with newer balance and season status timestamps
+        testableController.testUpdate((state) => {
+          state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
+            {
+              balance: {
+                total: 100,
+                refereePortion: 0,
+                updatedAt: newerTimestamp.getTime(), // Newer than event
+              },
+              lastFetched: now.getTime(), // Also newer than event
+            },
+          );
+        });
+
+        // Clear mock calls from state setup
+        mockMessenger.publish.mockClear();
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 1,
+          results: [
+            {
+              id: 'event-1',
+              type: 'SWAP' as const,
+              timestamp: olderTimestamp,
+              value: 50,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: olderTimestamp, // Older than cached balance
+              payload: null,
+            },
+          ],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(mockResponse);
+        // Should NOT emit because both balance and season status timestamps are newer than event
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          expect.any(Object),
+        );
+      });
+
+      it('should not emit balance updated event when no cached season status exists', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 1,
+          results: [
+            {
+              id: 'event-1',
+              type: 'SWAP' as const,
+              timestamp: new Date(),
+              value: 50,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date(),
+              payload: null,
+            },
+          ],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(mockResponse);
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          expect.any(Object),
+        );
+      });
+
+      it('should not emit balance updated event when points events result is empty', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 0,
+          results: [],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(mockResponse);
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          expect.any(Object),
+        );
+      });
+
+      it('should find the latest event from multiple points events with different timestamps', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const now = new Date();
+        const earliestTimestamp = new Date(now.getTime() - 10000); // 10 seconds ago
+        const middleTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago
+        const latestTimestamp = new Date(now.getTime() - 1000); // 1 second ago
+        const cachedTimestamp = new Date(now.getTime() - 15000); // 15 seconds ago
+
+        // Set up cached season status with very old balance timestamp
+        testableController.testUpdate((state) => {
+          state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
+            {
+              balance: {
+                total: 100,
+                refereePortion: 0,
+                updatedAt: cachedTimestamp.getTime(),
+              },
+              lastFetched: now.getTime(),
+            },
+          );
+        });
+
+        // Clear mock calls from state setup
+        mockMessenger.publish.mockClear();
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 3,
+          results: [
+            {
+              id: 'event-1',
+              type: 'SWAP' as const,
+              timestamp: latestTimestamp,
+              value: 50,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: latestTimestamp, // Latest - should be used for comparison
+              payload: null,
+            },
+            {
+              id: 'event-2',
+              type: 'PERPS' as const,
+              timestamp: earliestTimestamp,
+              value: 30,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: earliestTimestamp, // Earliest
+              payload: null,
+            },
+            {
+              id: 'event-3',
+              type: 'SWAP' as const,
+              timestamp: middleTimestamp,
+              value: 25,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: middleTimestamp, // Middle
+              payload: null,
+            },
+          ],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(mockResponse);
+        expect(mockMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          {
+            seasonId: 'current',
+            subscriptionId: 'sub-123',
+          },
+        );
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Comparing cache timestamps with latest updatedAt',
+          expect.objectContaining({
+            latestUpdatedAt: latestTimestamp.getTime(),
+          }),
+        );
+      });
+
+      it('should handle Date vs string updatedAt timestamps in points events', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const now = new Date();
+        const eventTimestamp = new Date(now.getTime() - 1000);
+        const cachedTimestamp = new Date(now.getTime() - 5000);
+
+        // Set up cached season status
+        testableController.testUpdate((state) => {
+          state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
+            {
+              balance: {
+                total: 100,
+                refereePortion: 0,
+                updatedAt: cachedTimestamp.getTime(),
+              },
+              lastFetched: now.getTime(),
+            },
+          );
+        });
+
+        // Clear mock calls from state setup
+        mockMessenger.publish.mockClear();
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 1,
+          results: [
+            {
+              id: 'event-1',
+              type: 'SWAP' as const,
+              timestamp: eventTimestamp,
+              value: 50,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: new Date(eventTimestamp.toISOString()), // Test Date parsing from string
+              payload: null,
+            },
+          ],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(mockResponse);
+        expect(mockMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          {
+            seasonId: 'current',
+            subscriptionId: 'sub-123',
+          },
+        );
+      });
+
+      it('should add 500ms buffer to cached balance timestamp and include season status timestamp in comparison', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const now = new Date();
+        const eventTimestamp = new Date(now.getTime() - 1000); // 1 second ago
+        const cachedTimestamp = new Date(now.getTime() - 1500); // 1.5 seconds ago
+
+        // Set up cached season status - without 300ms buffer, balance cache would be older
+        // With 500ms buffer: cachedTimestamp + 500ms = now - 1000ms, which is newer than eventTimestamp
+        // Season status timestamp (now) is also newer than eventTimestamp
+        testableController.testUpdate((state) => {
+          state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
+            {
+              balance: {
+                total: 100,
+                refereePortion: 0,
+                updatedAt: cachedTimestamp.getTime(),
+              },
+              lastFetched: now.getTime(),
+            },
+          );
+        });
+
+        // Clear mock calls from state setup
+        mockMessenger.publish.mockClear();
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 1,
+          results: [
+            {
+              id: 'event-1',
+              type: 'SWAP' as const,
+              timestamp: eventTimestamp,
+              value: 50,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: eventTimestamp,
+              payload: null,
+            },
+          ],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(mockResponse);
+        // Should NOT emit because both balance (+ 500ms buffer) and season status are newer than event
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          expect.any(Object),
+        );
+
+        // Verify the 500ms buffer was added in logging and season status timestamp is included
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Comparing cache timestamps with latest updatedAt',
+          expect.objectContaining({
+            cacheBalanceUpdatedAt: cachedTimestamp.getTime() + 500,
+            latestUpdatedAt: eventTimestamp.getTime(),
+          }),
+        );
+      });
+
+      it('should not emit balance updated event when both cache timestamps are newer than latest event', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const now = new Date();
+        const eventTimestamp = new Date(now.getTime() - 5000); // 5 seconds ago (oldest)
+        const newerBalanceTimestamp = new Date(now.getTime() - 1000); // 1 second ago
+        const newerSeasonStatusTimestamp = new Date(now.getTime() - 2000); // 2 seconds ago
+
+        // Set up cached season status where both timestamps are newer than event
+        testableController.testUpdate((state) => {
+          state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
+            {
+              balance: {
+                total: 100,
+                refereePortion: 0,
+                updatedAt: newerBalanceTimestamp.getTime(), // Newer than event
+              },
+              lastFetched: newerSeasonStatusTimestamp.getTime(), // Newer than event
+            },
+          );
+        });
+
+        // Clear mock calls from state setup
+        mockMessenger.publish.mockClear();
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 1,
+          results: [
+            {
+              id: 'event-1',
+              type: 'SWAP' as const,
+              timestamp: eventTimestamp,
+              value: 50,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: eventTimestamp,
+              payload: null,
+            },
+          ],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse as any);
+
+        // Act
+        const result = await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        expect(result).toEqual(mockResponse);
+        // Should NOT emit because both cache timestamps are newer than event
+        expect(mockMessenger.publish).not.toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          expect.any(Object),
+        );
+      });
+
+      it('should invalidate subscription cache when balance updated event is emitted', async () => {
+        // Arrange
+        const mockRequest = {
+          seasonId: 'current',
+          subscriptionId: 'sub-123',
+          cursor: null,
+        };
+
+        const now = new Date();
+        const olderTimestamp = new Date(now.getTime() - 5000);
+        const newerTimestamp = new Date(now.getTime() - 1000);
+
+        // Set up cached season status with older balance timestamp
+        testableController.testUpdate((state) => {
+          state.seasonStatuses['current:sub-123'] = createTestSeasonStatusState(
+            {
+              balance: {
+                total: 100,
+                refereePortion: 0,
+                updatedAt: olderTimestamp.getTime(),
+              },
+              lastFetched: now.getTime(),
+            },
+          );
+        });
+
+        // Clear mock calls from state setup
+        mockMessenger.publish.mockClear();
+
+        const mockResponse = {
+          has_more: false,
+          cursor: null,
+          total_results: 1,
+          results: [
+            {
+              id: 'event-1',
+              type: 'SWAP' as const,
+              timestamp: newerTimestamp,
+              value: 50,
+              bonus: { bips: 0, bonuses: [] },
+              accountAddress: '0x123',
+              updatedAt: newerTimestamp,
+              payload: null,
+            },
+          ],
+        };
+
+        mockMessenger.call.mockResolvedValue(mockResponse);
+
+        // Act
+        await testableController.getPointsEvents(mockRequest);
+
+        // Assert
+        // Verify that the cache was invalidated (season status should be removed)
+        const cachedSeasonStatus = testableController.testGetSeasonStatus(
+          'sub-123',
+          'current',
+        );
+        expect(cachedSeasonStatus).toBeNull();
+
+        expect(mockMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:balanceUpdated',
+          {
+            seasonId: 'current',
+            subscriptionId: 'sub-123',
+          },
+        );
+      });
     });
   });
 
@@ -1371,6 +2000,13 @@ describe('RewardsController', () => {
         'RewardsDataService:getSeasonStatus',
         mockSeasonId,
         mockSubscriptionId,
+      );
+
+      // Verify fresh fetch was logged
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh season status data via API call for subscriptionId & seasonId',
+        mockSubscriptionId,
+        mockSeasonId,
       );
 
       // Expect the result to be the converted state object, not the original DTO
