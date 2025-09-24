@@ -46,6 +46,7 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
 // internal dependencies
 import createStyles from './index.styles';
@@ -303,7 +304,12 @@ const NetworkManager = () => {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} style={containerStyle} shouldNavigateBack>
+    <BottomSheet
+      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_MANAGER_BOTTOM_SHEET}
+      ref={sheetRef}
+      style={containerStyle}
+      shouldNavigateBack
+    >
       <View style={styles.sheet}>
         <Text
           variant={TextVariant.HeadingMD}
