@@ -58,7 +58,7 @@ export function useSnapNameResolution({
   );
 
   useEffect(() => {
-    if (!filteredSnaps.length || !domain || !chainId) {
+    if (filteredSnaps.length === 0 || !domain || !chainId) {
       return;
     }
 
