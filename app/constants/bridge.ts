@@ -1,10 +1,6 @@
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { CaipChainId, Hex } from '@metamask/utils';
-import {
-  BRIDGE_DEV_API_BASE_URL,
-  BRIDGE_PROD_API_BASE_URL,
-} from '@metamask/bridge-controller';
 import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 
 // TODO read from feature flags
@@ -45,7 +41,8 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [SolScope.Mainnet]: 'Solana',
 };
 
-export const BRIDGE_API_BASE_URL =
-  process.env.BRIDGE_USE_DEV_APIS === 'true'
-    ? BRIDGE_DEV_API_BASE_URL
-    : BRIDGE_PROD_API_BASE_URL;
+// export const BRIDGE_API_BASE_URL =
+//   process.env.BRIDGE_USE_DEV_APIS === 'true'
+//     ? BRIDGE_DEV_API_BASE_URL
+//     : BRIDGE_PROD_API_BASE_URL;
+export const BRIDGE_API_BASE_URL = 'http://localhost:3000';

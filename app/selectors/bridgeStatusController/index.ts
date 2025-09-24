@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { RootState } from '../../reducers';
+import { areAddressesEqual } from '../../util/address';
 
 export const selectBridgeStatusState = (state: RootState) =>
   state.engine.backgroundState.BridgeStatusController;
@@ -18,7 +19,7 @@ export const selectBridgeHistoryForAccount = createSelector(
     return Object.keys(txHistory).reduce<Record<string, BridgeHistoryItem>>(
       (acc, txMetaId) => {
         const txHistoryItem = txHistory[txMetaId];
-        if (txHistoryItem.account === selectedAddress) {
+        if (areAddressesEqual(txHistoryItem.account, selectedAddress || '')) {
           acc[txMetaId] = txHistoryItem;
         }
         return acc;

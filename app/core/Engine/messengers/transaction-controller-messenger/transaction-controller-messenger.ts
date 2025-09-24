@@ -25,7 +25,10 @@ import {
   SmartTransactionsControllerSmartTransactionEvent,
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
 } from '@metamask/smart-transactions-controller';
-import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
+import {
+  KeyringControllerSignEip7702AuthorizationAction,
+  KeyringControllerSignTypedMessageAction,
+} from '@metamask/keyring-controller';
 import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
@@ -38,6 +41,7 @@ type MessengerActions =
   | BridgeStatusControllerActions
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | KeyringControllerSignEip7702AuthorizationAction
+  | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
   | RemoteFeatureFlagControllerGetStateAction;
@@ -99,6 +103,7 @@ export function getTransactionControllerInitMessenger(
       'ApprovalController:endFlow',
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
+      'KeyringController:signTypedMessage',
       'BridgeStatusController:submitTx',
       'NetworkController:getEIP1559Compatibility',
     ],
