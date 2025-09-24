@@ -318,7 +318,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -779,7 +779,7 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
