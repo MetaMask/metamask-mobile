@@ -401,7 +401,14 @@ class FixtureBuilder {
                         type: 'HD Key Tree',
                       },
                     },
-                    options: {},
+                    options: {
+                      entropy: {
+                        type: 'mnemonic',
+                        id: '01JXA9KQBWD60ZB6STX279GQMF',
+                        derivationPath: "m/44'/60'/0'/0/0",
+                        groupIndex: 0,
+                      },
+                    },
                     methods: [
                       'personal_sign',
                       'eth_signTransaction',
