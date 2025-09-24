@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image } from 'react-native';
 import { isCaipChainId, toCaipChainId } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 import createStyles from './OrderListItem.styles';
 import {
@@ -92,9 +93,21 @@ function OrderListItem({ order }: Props) {
     ? 'fiat_on_ramp_aggregator.purchased_currency'
     : 'fiat_on_ramp_aggregator.sold_currency';
 
-  const caipChainId = isCaipChainId(order.network)
-    ? order.network
-    : toCaipChainId('eip155', order.network);
+  const orderNetwork = order.network;
+
+  let caipChainId;
+
+  try {
+    if (isCaipChainId(orderNetwork)) {
+      caipChainId = orderNetwork;
+    } else if (orderNetwork.startsWith('0x')) {
+      caipChainId = toEvmCaipChainId(orderNetwork as `0x${string}`);
+    } else if (orderNetwork && !isNaN(Number(orderNetwork))) {
+      caipChainId = toCaipChainId('eip155', orderNetwork);
+    }
+  } catch {
+    caipChainId = null;
+  }
 
   return (
     <ListItem
@@ -108,12 +121,16 @@ function OrderListItem({ order }: Props) {
       <ListItemColumn>
         <BadgeWrapper
           badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={getNetworkImageSource({
-                chainId: caipChainId,
-              })}
-            />
+            <>
+              {caipChainId ? (
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={getNetworkImageSource({
+                    chainId: caipChainId,
+                  })}
+                />
+              ) : null}
+            </>
           }
         >
           <Image
