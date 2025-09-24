@@ -226,24 +226,6 @@ jest.mock('../../../../../actions/rewards', () => ({
   })),
 }));
 
-// Mock SeasonTierImage
-jest.mock('../SeasonTierImage', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return ReactActual.forwardRef(
-    (
-      { tierOrder, testID, ...props }: { tierOrder?: number; testID?: string },
-      ref: unknown,
-    ) =>
-      ReactActual.createElement(View, {
-        testID: testID || 'season-tier-image',
-        ref,
-        'data-tier-order': tierOrder,
-        ...props,
-      }),
-  );
-});
-
 // Mock lodash capitalize but preserve the rest of lodash
 jest.mock('lodash', () => {
   const actual = jest.requireActual('lodash');
