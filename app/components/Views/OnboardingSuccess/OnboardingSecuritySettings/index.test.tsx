@@ -3,7 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectSeedlessOnboardingAuthConnection } from '../../../../selectors/seedlessOnboardingController';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import OnboardingSecuritySettings from './';
 
 const mockUseMetrics = jest.fn();
@@ -20,10 +21,6 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../util/networks', () => ({
   toggleUseSafeChainsListValidation: jest.fn(),
-}));
-
-jest.mock('../../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
-  SEEDLESS_ONBOARDING_ENABLED: true,
 }));
 
 jest.mock(
@@ -74,7 +71,7 @@ describe('OnboardingSecuritySettings', () => {
     it('should render correctly with no auth connection', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return false;
+        if (selector === selectSeedlessOnboardingAuthConnection) return null;
         return null;
       });
       const { toJSON } = renderWithProvider(<OnboardingSecuritySettings />);
@@ -84,7 +81,7 @@ describe('OnboardingSecuritySettings', () => {
     it('should always render NetworkDetailsCheckSettings regardless of auth connection', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return false;
+        if (selector === selectSeedlessOnboardingAuthConnection) return null;
         return null;
       });
       const { getByTestId } = renderWithProvider(
@@ -95,10 +92,11 @@ describe('OnboardingSecuritySettings', () => {
   });
 
   describe('Social login detection and conditional rendering', () => {
-    it('should render security sections when social login is enabled', () => {
+    it('should render security sections when auth connection is Google', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return true;
+        if (selector === selectSeedlessOnboardingAuthConnection)
+          return AuthConnection.Google;
         return null;
       });
 
@@ -114,10 +112,11 @@ describe('OnboardingSecuritySettings', () => {
       );
     });
 
-    it('should render security sections when social login is active', () => {
+    it('should render security sections when auth connection is Apple', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return true;
+        if (selector === selectSeedlessOnboardingAuthConnection)
+          return AuthConnection.Apple;
         return null;
       });
 
@@ -133,10 +132,10 @@ describe('OnboardingSecuritySettings', () => {
       );
     });
 
-    it('should NOT render security sections when social login is disabled', () => {
+    it('should NOT render security sections when auth connection is null', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return false;
+        if (selector === selectSeedlessOnboardingAuthConnection) return null;
         return null;
       });
 
@@ -146,10 +145,11 @@ describe('OnboardingSecuritySettings', () => {
       expect(mockDeleteMetaMetricsData).not.toHaveBeenCalled();
     });
 
-    it('should NOT render security sections when social login is undefined', () => {
+    it('should NOT render security sections when auth connection is undefined', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return undefined;
+        if (selector === selectSeedlessOnboardingAuthConnection)
+          return undefined;
         return null;
       });
 
@@ -159,10 +159,11 @@ describe('OnboardingSecuritySettings', () => {
       expect(mockDeleteMetaMetricsData).not.toHaveBeenCalled();
     });
 
-    it('should NOT render security sections for SRP users', () => {
+    it('should NOT render security sections for non-social login auth connections', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return false;
+        if (selector === selectSeedlessOnboardingAuthConnection)
+          return 'OTHER_AUTH_TYPE';
         return null;
       });
 
@@ -177,7 +178,8 @@ describe('OnboardingSecuritySettings', () => {
     beforeEach(() => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return true;
+        if (selector === selectSeedlessOnboardingAuthConnection)
+          return AuthConnection.Google;
         return null;
       });
     });
@@ -211,24 +213,25 @@ describe('OnboardingSecuritySettings', () => {
   });
 
   describe('Selector usage', () => {
-    it('should call selectSeedlessOnboardingLoginFlow selector', () => {
+    it('should call selectSeedlessOnboardingAuthConnection selector', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return true;
+        if (selector === selectSeedlessOnboardingAuthConnection)
+          return AuthConnection.Google;
         return null;
       });
 
       renderWithProvider(<OnboardingSecuritySettings />);
 
       expect(useSelector).toHaveBeenCalledWith(
-        selectSeedlessOnboardingLoginFlow,
+        selectSeedlessOnboardingAuthConnection,
       );
     });
 
     it('should call selectUseSafeChainsListValidation selector', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return false;
+        if (selector === selectSeedlessOnboardingAuthConnection) return null;
         return null;
       });
 
@@ -244,7 +247,8 @@ describe('OnboardingSecuritySettings', () => {
     beforeEach(() => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectUseSafeChainsListValidation) return false;
-        if (selector === selectSeedlessOnboardingLoginFlow) return true;
+        if (selector === selectSeedlessOnboardingAuthConnection)
+          return AuthConnection.Google;
         return null;
       });
     });
