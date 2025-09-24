@@ -14,6 +14,10 @@ import Animated, {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BN4 from 'bnjs4';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -32,7 +36,6 @@ import BaseSelectorButton from '../../../../../Base/SelectorButton';
 import StyledButton from '../../../../StyledButton';
 
 import ScreenLayout from '../../components/ScreenLayout';
-import Box from '../../components/Box';
 import Row from '../../components/Row';
 import AssetSelectorButton from '../../components/AssetSelectorButton';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
@@ -40,7 +43,6 @@ import AmountInput from '../../components/AmountInput';
 import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
-import TokenIcon from '../../../../Swaps/components/TokenIcon';
 
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
@@ -88,15 +90,10 @@ import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
 import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
-import ListItem from '../../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 import { FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
@@ -736,47 +733,6 @@ const BuildQuote = () => {
     );
   }
 
-  if (isFetching) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content>
-            <View style={styles.flexRow}>
-              <SkeletonText large thick />
-              <SkeletonText thick smaller spacingHorizontal />
-            </View>
-            <SkeletonText thin small spacingTop spacingVertical />
-            <Box compact>
-              <ListItem>
-                <ListItemColumn>
-                  <SkeletonText />
-                </ListItemColumn>
-                <ListItemColumnEnd widthType={WidthType.Fill}>
-                  <SkeletonText thin smaller />
-                </ListItemColumnEnd>
-              </ListItem>
-            </Box>
-            <SkeletonText spacingTopSmall spacingVertical thin medium />
-            <SkeletonText thin smaller spacingVertical />
-            <Box compact>
-              <ListItem>
-                <ListItemColumn>
-                  <View style={styles.flexRow}>
-                    <SkeletonText medium />
-                  </View>
-                </ListItemColumn>
-                <ListItemColumnEnd widthType={WidthType.Fill}>
-                  <SkeletonText thin small />
-                </ListItemColumnEnd>
-              </ListItem>
-            </Box>
-            <SkeletonText spacingTopSmall spacingVertical thin medium />
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
   if (!isFetching && cryptoCurrencies && cryptoCurrencies.length === 0) {
     return (
       <ScreenLayout>
@@ -892,14 +848,18 @@ const BuildQuote = () => {
             <Row style={styles.selectors}>
               <AccountSelector isEvmOnly={isSell} />
               <View style={styles.spacer} />
-              <SelectorButton
-                accessibilityRole="button"
-                accessible
-                onPress={handleChangeRegion}
-                testID={BuildQuoteSelectors.REGION_DROPDOWN}
-              >
-                <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
-              </SelectorButton>
+              {isFetchingRegions ? (
+                <SkeletonText thick />
+              ) : (
+                <SelectorButton
+                  accessibilityRole="button"
+                  accessible
+                  onPress={handleChangeRegion}
+                  testID={BuildQuoteSelectors.REGION_DROPDOWN}
+                >
+                  <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
+                </SelectorButton>
+              )}
               {isSell ? (
                 <>
                   <View style={styles.spacer} />
@@ -916,6 +876,7 @@ const BuildQuote = () => {
               ) : null}
             </Row>
             <AssetSelectorButton
+              loading={isFetchingRegions || isFetchingCryptoCurrencies}
               label={
                 isBuy
                   ? strings('fiat_on_ramp_aggregator.want_to_buy')
@@ -933,10 +894,11 @@ const BuildQuote = () => {
                     ) : null
                   }
                 >
-                  <TokenIcon
-                    medium
-                    icon={selectedAsset?.logo}
-                    symbol={selectedAsset?.symbol}
+                  <AvatarToken
+                    name={selectedAsset?.symbol}
+                    src={{ uri: selectedAsset?.logo }}
+                    size={AvatarTokenSize.Lg}
+                    key={selectedAsset?.logo}
                   />
                 </BadgeWrapper>
               }
@@ -945,17 +907,24 @@ const BuildQuote = () => {
               onPress={handleAssetSelectorPress}
             />
             <Row>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {addressBalance !== undefined && selectedAddress !== null ? (
-                  <>
-                    {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                    {addressBalance}
-                    {balanceFiat ? ` ≈ ${balanceFiat}` : null}
-                  </>
-                ) : (
-                  ''
-                )}
-              </Text>
+              {isFetchingRegions || isFetchingCryptoCurrencies ? (
+                <SkeletonText thin medium />
+              ) : (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {addressBalance !== undefined && selectedAddress !== null ? (
+                    <>
+                      {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
+                      {addressBalance}
+                      {balanceFiat ? ` ≈ ${balanceFiat}` : null}
+                    </>
+                  ) : (
+                    ''
+                  )}
+                </Text>
+              )}
             </Row>
 
             <AmountInput
@@ -970,6 +939,7 @@ const BuildQuote = () => {
               }
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
               onPress={onAmountInputPress}
+              loading={isFetchingRegions || isFetchingFiatCurrency}
               onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
             {amountNumber > 0 &&
@@ -1043,6 +1013,12 @@ const BuildQuote = () => {
             )}
             <Row>
               <PaymentMethodSelector
+                loading={
+                  isFetchingRegions ||
+                  // isFetchingCryptoCurrencies ||
+                  // isFetchingFiatCurrency ||
+                  isFetchingPaymentMethods
+                }
                 label={
                   isBuy
                     ? strings('fiat_on_ramp_aggregator.update_payment_method')
@@ -1072,7 +1048,7 @@ const BuildQuote = () => {
               onPress={handleGetQuotePress}
               accessibilityRole="button"
               accessible
-              disabled={amountNumber <= 0}
+              disabled={amountNumber <= 0 || isFetching}
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </StyledButton>
@@ -1136,21 +1112,23 @@ const BuildQuote = () => {
         location={screenLocation}
         rampType={rampType}
       />
-      <RegionModal
-        isVisible={isRegionModalVisible}
-        title={strings('fiat_on_ramp_aggregator.region.title')}
-        description={strings(
-          isBuy
-            ? 'fiat_on_ramp_aggregator.region.description'
-            : 'fiat_on_ramp_aggregator.region.sell_description',
-        )}
-        data={regions}
-        dismiss={hideRegionModal as () => void}
-        onRegionPress={handleRegionPress}
-        location={screenLocation}
-        selectedRegion={selectedRegion}
-        rampType={rampType}
-      />
+      {regions && (
+        <RegionModal
+          isVisible={isRegionModalVisible}
+          title={strings('fiat_on_ramp_aggregator.region.title')}
+          description={strings(
+            isBuy
+              ? 'fiat_on_ramp_aggregator.region.description'
+              : 'fiat_on_ramp_aggregator.region.sell_description',
+          )}
+          data={regions}
+          dismiss={hideRegionModal as () => void}
+          onRegionPress={handleRegionPress}
+          location={screenLocation}
+          selectedRegion={selectedRegion}
+          rampType={rampType}
+        />
+      )}
     </ScreenLayout>
   );
 };

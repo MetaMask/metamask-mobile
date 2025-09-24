@@ -260,19 +260,21 @@ const RegionsView = () => {
         link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
       />
 
-      <RegionModal
-        isVisible={isRegionModalVisible}
-        title={strings('fiat_on_ramp_aggregator.region.select_region_title')}
-        description={strings(
-          'fiat_on_ramp_aggregator.region.select_country_registered',
-        )}
-        data={data}
-        dismiss={hideRegionModal as () => void}
-        onRegionPress={handleRegionPress}
-        location={'Region Screen'}
-        selectedRegion={selectedRegion}
-        rampType={rampType}
-      />
+      {data && (
+        <RegionModal
+          isVisible={isRegionModalVisible}
+          title={strings('fiat_on_ramp_aggregator.region.select_region_title')}
+          description={strings(
+            'fiat_on_ramp_aggregator.region.select_country_registered',
+          )}
+          data={data}
+          dismiss={hideRegionModal as () => void}
+          onRegionPress={handleRegionPress}
+          location={'Region Screen'}
+          selectedRegion={selectedRegion}
+          rampType={rampType}
+        />
+      )}
     </ScreenLayout>
   );
 };
