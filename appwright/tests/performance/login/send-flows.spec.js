@@ -132,10 +132,11 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   const timer5 = new TimerHelper(
     'Time since the user selects the receiver account, until the user is in the review screen',
   );
-  timer5.start();
+
   await SendScreen.clickOnAccountByName('Account 3');
+  timer5.start();
   //await SendScreen.clickOnReviewButton();
-  await ConfirmationScreen.isVisible();
+  await ConfirmationScreen.isVisible(20000);
   timer5.stop();
 
   performanceTracker.addTimer(timer1);

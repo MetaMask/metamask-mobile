@@ -92,7 +92,7 @@ class SendScreen {
   }
 
   async clickOnAccountByName(accountName) {
-    const account = await AppwrightSelectors.getElementByID(this._device, accountName);
+    const account = await AppwrightSelectors.getElementByCatchAll(this._device, accountName);
     await account.tap();
   }
 
@@ -170,7 +170,7 @@ class SendScreen {
     if (!this._device) {
       await Gestures.tapTextByXpath(network);
     } else {
-      const networkButton = await AppwrightSelectors.getElementByID(this._device, network);
+      const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);
       await networkButton.tap();
     }
   }

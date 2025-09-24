@@ -54,8 +54,8 @@ class ConfirmationScreen {
   }
 
   async isVisible(timeout = 10000) {
-    const confirmButton = await this.confirmButton;
-    await appwrightExpect(confirmButton).toBeVisible({ timeout });
+    const titleElement = await AppwrightSelectors.getElementByCatchAll(this._device, 'Transaction request');
+    await appwrightExpect(titleElement).toBeVisible({ timeout });
   }
 }
 
