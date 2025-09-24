@@ -1,8 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, View, useColorScheme } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
@@ -16,9 +15,8 @@ import Text, {
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Character from '../../../../../images/character_1.png';
+import Character from '../../../../../images/character_3x.png';
 import StorageWrapper from '../../../../../store/storage-wrapper';
-import { baseStyles } from '../../../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import { useTheme } from '../../../../../util/theme';
 import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
@@ -79,41 +77,25 @@ const PerpsGTMModal = () => {
   };
 
   return (
-    <View
-      style={[
-        baseStyles.flexGrow,
-        { backgroundColor: theme.colors.background.default },
-      ]}
+    <SafeAreaView
+      style={styles.pageContainer}
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
     >
-      <ScrollView
-        style={baseStyles.flexGrow}
-        contentContainerStyle={styles.scroll}
-        bounces={false}
-        scrollEnabled={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.wrapper}>
-          <Text style={styles.title} variant={TextVariant.HeadingLG}>
-            {strings('perps.gtm_content.title')}
+      {/* Content */}
+      <View style={styles.contentContainer}>
+        <Text style={styles.title} variant={TextVariant.HeadingLG}>
+          {strings('perps.gtm_content.title')}
+        </Text>
+        <View style={styles.ctas}>
+          <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
+            {strings('perps.gtm_content.title_description')}
           </Text>
-          <View style={styles.ctas}>
-            <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
-              {strings('perps.gtm_content.title_description')}
-            </Text>
-
-            <View style={styles.largeImageWrapper}>
-              <Image
-                source={Character}
-                style={styles.image}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
+          <Image source={Character} style={styles.image} />
         </View>
-      </ScrollView>
+      </View>
 
-      <View style={styles.createWrapper}>
+      {/* Footer */}
+      <View style={styles.footerContainer}>
         <ButtonBase
           onPress={() => tryPerpsNow()}
           testID={PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON}
@@ -148,7 +130,7 @@ const PerpsGTMModal = () => {
           }
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
