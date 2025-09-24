@@ -101,7 +101,7 @@ import migration97 from './097';
 import migration98 from './098';
 import migration99 from './099';
 import migration100 from './100';
-import migration101 from './101';
+import migration102 from './102';
 
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
@@ -220,7 +220,7 @@ export const migrationList: MigrationsList = {
   98: migration98,
   99: migration99,
   100: migration100,
-  101: migration101,
+  102: migration102,
 };
 
 // Enable both synchronous and asynchronous migrations
@@ -305,7 +305,7 @@ export const asyncifyMigrations = (
       ) => {
         let state = await incomingState;
 
-        if (!didInflate && Number(migrationNumber) > 98) {
+        if (!didInflate && Number(migrationNumber) > 102) {
           state = await inflateFromControllers(state);
           didInflate = true;
         }
@@ -319,7 +319,7 @@ export const asyncifyMigrations = (
           onMigrationsComplete(migratedState);
         }
 
-        if (Number(migrationNumber) === lastVersion && lastVersion > 98) {
+        if (Number(migrationNumber) === lastVersion && lastVersion >= 102) {
           const s2 = migratedState as StateWithEngine;
           const hasControllers = Boolean(
             s2.engine?.backgroundState &&
