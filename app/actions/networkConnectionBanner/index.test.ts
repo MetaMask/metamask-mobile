@@ -5,7 +5,7 @@ import {
 } from '.';
 import { NetworkConnectionBannerStatus } from '../../components/UI/NetworkConnectionBanner/types';
 
-describe('networkConnectionBanner', () => {
+describe('networkConnectionBanner actions', () => {
   describe('NetworkConnectionBannerActionType', () => {
     it('should have correct action type values', () => {
       expect(
@@ -18,47 +18,38 @@ describe('networkConnectionBanner', () => {
   });
 
   describe('showNetworkConnectionBanner', () => {
-    it('should create an action to show the network connection banner with valid chainId, status, networkName and rpcUrl', () => {
-      const chainId = '0x1';
-      const networkName = 'Ethereum Mainnet';
-      const rpcUrl = 'https://mainnet.infura.io/v3/123';
-
-      expect(
-        showNetworkConnectionBanner({
+    it.each([
+      {
+        chainId: '0x1',
+        status: 'slow' as const,
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/123',
+      },
+      {
+        chainId: '0x89',
+        status: 'unavailable' as const,
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      },
+    ] as const)(
+      'should create an action to show the network connection banner with valid chainId, status, networkName and rpcUrl for $status status',
+      ({ chainId, status, networkName, rpcUrl }) => {
+        expect(
+          showNetworkConnectionBanner({
+            chainId,
+            status,
+            networkName,
+            rpcUrl,
+          }),
+        ).toStrictEqual({
+          type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
           chainId,
-          status: 'slow',
+          status,
           networkName,
           rpcUrl,
-        }),
-      ).toStrictEqual({
-        type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
-        chainId,
-        status: 'slow',
-        networkName,
-        rpcUrl,
-      });
-    });
-
-    it('should create an action to show the network connection banner with valid chainId, status, networkName and rpcUrl for unavailable status', () => {
-      const chainId = '0x89';
-      const networkName = 'Polygon Mainnet';
-      const rpcUrl = 'https://polygon-rpc.com';
-
-      expect(
-        showNetworkConnectionBanner({
-          chainId,
-          status: 'unavailable',
-          networkName,
-          rpcUrl,
-        }),
-      ).toStrictEqual({
-        type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
-        chainId,
-        status: 'unavailable',
-        networkName,
-        rpcUrl,
-      });
-    });
+        });
+      },
+    );
 
     it('should require chainId, status, networkName and rpcUrl parameters', () => {
       const chainId = '0x1';
