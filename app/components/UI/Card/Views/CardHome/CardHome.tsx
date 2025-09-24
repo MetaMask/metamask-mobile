@@ -48,19 +48,9 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import {
-  Skeleton,
-  SkeletonProps,
-} from '../../../../../component-library/components/Skeleton';
-import { isE2E } from '../../../../../util/test/utils';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import useSupportedTokens from '../../../Ramp/Deposit/hooks/useSupportedTokens';
 import { LINEA_MAINNET } from '../../../Ramp/Deposit/constants/networks';
-
-const SkeletonLoading = (props: SkeletonProps) => {
-  if (isE2E) return null;
-
-  return <Skeleton {...props} />;
-};
 
 /**
  * CardHome Component
@@ -262,7 +252,7 @@ const CardHome = () => {
             {isLoadingPriorityToken ||
             balanceAmount === TOKEN_BALANCE_LOADING ||
             balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-              <SkeletonLoading
+              <Skeleton
                 height={28}
                 width={'50%'}
                 style={styles.skeletonRounded}
@@ -326,7 +316,7 @@ const CardHome = () => {
           ]}
         >
           {isLoadingPriorityToken || !priorityToken ? (
-            <SkeletonLoading
+            <Skeleton
               height={50}
               width={'100%'}
               style={styles.skeletonRounded}
@@ -344,7 +334,7 @@ const CardHome = () => {
           ]}
         >
           {isLoadingPriorityToken ? (
-            <SkeletonLoading
+            <Skeleton
               height={28}
               width={'100%'}
               style={styles.skeletonRounded}
