@@ -364,6 +364,9 @@ describe('useAccountInfo', () => {
                   },
                 },
               },
+              accountToWalletMap: {
+                [accountId]: MOCK_WALLET_ID,
+              },
             },
           },
         },
