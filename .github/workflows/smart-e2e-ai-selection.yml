@@ -314,9 +314,8 @@ jobs:
           **Test Plan:**
           - **Test Jobs:** ${{ needs.platform-conditions.outputs.actual-total-jobs }} total (dynamically generated based on test files)
           - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
+          - **Platform Jobs:** iOS: ${{ needs.platform-conditions.outputs.actual-ios-jobs }}, Android: ${{ needs.platform-conditions.outputs.actual-android-jobs }}
 
-          **Test File Breakdown:**
-          ${{ needs.analyze-and-plan.outputs.breakdown || '(No breakdown available)' }}
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
 
