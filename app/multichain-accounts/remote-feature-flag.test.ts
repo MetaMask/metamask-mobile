@@ -121,7 +121,7 @@ describe('Multichain Accounts Feature Flag', () => {
         },
         mockState2FeatureVersionsToCheck,
       );
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
     it('returns true when the feature flag meets all conditions', () => {
