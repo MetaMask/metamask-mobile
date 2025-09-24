@@ -27,7 +27,6 @@ import {
   multichainCollectibleContractsSelector,
   multichainCollectiblesSelector,
   multichainCollectiblesByEnabledNetworksSelector,
-  multichainCollectibleContractsByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import AppConstants from '../../../core/AppConstants';
@@ -669,11 +668,7 @@ const CollectibleContracts = ({
               </>
             }
             isDisabled={isDisabled}
-            onPress={
-              isEvmSelected || isMultichainAccountsState2Enabled
-                ? showFilterControls
-                : () => null
-            }
+            onPress={showFilterControls}
             endIconName={
               isEvmSelected || isMultichainAccountsState2Enabled
                 ? IconName.ArrowDown
