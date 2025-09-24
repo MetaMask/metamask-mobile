@@ -352,6 +352,240 @@ describe('OnboardingIntroStep', () => {
     });
   });
 
+  describe('candidateSubscriptionId states', () => {
+    it('should show skeleton when candidateSubscriptionId is pending', () => {
+      const mockSelectorWithPending = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: 'pending',
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorPending = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorPending.mockImplementation(mockSelectorWithPending);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Should not render the main container when loading
+      expect(screen.queryByTestId('onboarding-intro-container')).toBeNull();
+    });
+
+    it('should show error banner when candidateSubscriptionId is error', () => {
+      const mockSelectorWithError = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: 'error',
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorError.mockImplementation(mockSelectorWithError);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Should show error banner
+      expect(
+        screen.getByText('mocked_rewards.auth_fail_banner.title'),
+      ).toBeDefined();
+      expect(
+        screen.getByText('mocked_rewards.auth_fail_banner.description'),
+      ).toBeDefined();
+
+      // Should show retry and cancel buttons
+      expect(
+        screen.getByText('mocked_rewards.auth_fail_banner.cta_retry'),
+      ).toBeDefined();
+      expect(
+        screen.getByText('mocked_rewards.auth_fail_banner.cta_cancel'),
+      ).toBeDefined();
+    });
+
+    it('should dispatch setCandidateSubscriptionId with retry when retry button is pressed', () => {
+      const mockSelectorWithError = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: 'error',
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorError.mockImplementation(mockSelectorWithError);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      const retryButton = screen.getByText(
+        'mocked_rewards.auth_fail_banner.cta_retry',
+      );
+      fireEvent.press(retryButton);
+
+      // Should dispatch setCandidateSubscriptionId with 'retry'
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: expect.stringContaining('setCandidateSubscriptionId'),
+          payload: 'retry',
+        }),
+      );
+    });
+
+    it('should navigate to wallet view when cancel button is pressed', () => {
+      const mockSelectorWithError = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: 'error',
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorError.mockImplementation(mockSelectorWithError);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      const cancelButton = screen.getByText(
+        'mocked_rewards.auth_fail_banner.cta_cancel',
+      );
+      fireEvent.press(cancelButton);
+
+      // Should navigate to wallet view
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle missing account gracefully', () => {
       const mockSelectorWithNoAccount = jest.fn((selector) => {

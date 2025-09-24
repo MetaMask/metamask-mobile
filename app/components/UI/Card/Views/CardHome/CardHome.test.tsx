@@ -115,16 +115,6 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
 
-// Mock useSupportedTokens so that supported deposit tokens include only USDC & USDT on Linea.
-// Card feature only supports Linea for now, so chainId must match LINEA_MAINNET (59144 decimal).
-jest.mock('../../../Ramp/Deposit/hooks/useSupportedTokens', () => ({
-  __esModule: true,
-  default: () => [
-    { symbol: 'USDC', chainId: 'eip155:59144' },
-    { symbol: 'USDT', chainId: 'eip155:59144' },
-  ],
-}));
-
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {

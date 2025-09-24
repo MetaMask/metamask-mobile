@@ -67,11 +67,14 @@ import { multichainAccountServiceInit } from '../controllers/multichain-account-
 import { networkEnablementControllerInit } from '../controllers/network-enablement-controller/network-enablement-controller-init';
 import { rewardsControllerInit } from '../controllers/rewards-controller';
 import { RewardsController } from '../controllers/rewards-controller/RewardsController';
+import { predictControllerInit } from '../controllers/predict-controller';
+import { PredictController } from '../../../components/UI/Predict/controllers/PredictController';
 import { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
 jest.mock('../controllers/app-metadata-controller');
+jest.mock('../controllers/predict-controller');
 jest.mock('../controllers/approval-controller');
 jest.mock(
   '../controllers/currency-rate-controller/currency-rate-controller-init',
@@ -169,9 +172,11 @@ describe('initModularizedControllers', () => {
     networkEnablementControllerInit,
   );
   const mockRewardsControllerInit = jest.mocked(rewardsControllerInit);
+  const mockPredictControllerInit = jest.mocked(predictControllerInit);
   const mockGatorPermissionsControllerInit = jest.mocked(
     GatorPermissionsControllerInit,
   );
+
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -212,6 +217,7 @@ describe('initModularizedControllers', () => {
           BridgeController: mockBridgeControllerInit,
           BridgeStatusController: mockBridgeStatusControllerInit,
           RewardsController: mockRewardsControllerInit,
+          PredictController: mockPredictControllerInit,
           GatorPermissionsController: mockGatorPermissionsControllerInit,
         },
         persistedState: {},
@@ -297,6 +303,9 @@ describe('initModularizedControllers', () => {
     });
     mockRewardsControllerInit.mockReturnValue({
       controller: {} as unknown as RewardsController,
+    });
+    mockPredictControllerInit.mockReturnValue({
+      controller: {} as unknown as PredictController,
     });
     mockGatorPermissionsControllerInit.mockReturnValue({
       controller: {} as unknown as GatorPermissionsController,
