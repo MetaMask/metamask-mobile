@@ -12,6 +12,7 @@ import AddressBarScreen from '../../../../../wdio/screen-objects/BrowserObject/A
 import ExternalWebsitesScreen from '../../../../../wdio/screen-objects/BrowserObject/ExternalWebsitesScreen.js';
 import AccountApprovalModal from '../../../../../wdio/screen-objects/Modals/AccountApprovalModal.js';
 
+// There is a bug in this flow specifically on the samsung s23 device.
 test('Measure Warm Start: Login To Wallet Screen', async ({
   device,
   performanceTracker,

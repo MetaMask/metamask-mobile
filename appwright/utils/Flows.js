@@ -144,8 +144,8 @@ export async function login(device, options = {}) {
 
   // Only tap intro screens on first login
   if (!skipIntro) {
-    await tapPerpsBottomSheetGotItButton(device);
     await dismissMultichainAccountsIntroModal(device);
+    await tapPerpsBottomSheetGotItButton(device);
     await dismissSystemDialogs(device);
   }
 }

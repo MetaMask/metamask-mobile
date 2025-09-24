@@ -19,7 +19,7 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+      return AppwrightSelectors.getElementByText(this._device, 'Accounts');
     }
   }
 

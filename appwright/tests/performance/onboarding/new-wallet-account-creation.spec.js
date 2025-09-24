@@ -31,7 +31,6 @@ test('Account creation after fresh install', async ({
   WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
   WalletMainScreen.device = device;
-  tapPerpsBottomSheetGotItButton.device = device;
   AccountListComponent.device = device;
 
   await OnboardingScreen.tapCreateNewWalletButton();
@@ -59,7 +58,7 @@ test('Account creation after fresh install', async ({
 
   await OnboardingSucessScreen.tapDone();
 
-  await tapPerpsBottomSheetGotItButton();
+  await tapPerpsBottomSheetGotItButton(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
 

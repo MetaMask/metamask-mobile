@@ -28,7 +28,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   AddAccountModal.device = device;
   AddNewHdAccountComponent.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2, 120000);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
