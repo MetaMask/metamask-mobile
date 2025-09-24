@@ -6646,9 +6646,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@metamask/account-tree-controller@npm:1.2.0"
+"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@1.2.0-preview-c20b7569":
+  version: 1.2.0-preview-c20b7569
+  resolution: "@metamask-previews/account-tree-controller@npm:1.2.0-preview-c20b7569"
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/snaps-sdk": ^9.0.0
@@ -6666,7 +6666,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 61a2dfd463039ec2a4eb000612d7e819759cd9e105a26d82793f6550521ad080ee84349fad541db744055bfda9337cbb45fa3e58c76264d2e99f1d554eb83ce4
+  checksum: b5a545a5fbde5b26fcd22003083a4643b97b8d3876bca99370fc4ffb6159651ee7ae72c6bee4584cf7f004b84f7d1009b50e4b7a515ece0552fd5be1dc87ce56
   languageName: node
   linkType: hard
 
@@ -7690,9 +7690,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-account-service@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/multichain-account-service@npm:1.1.0"
+"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@1.1.0-preview-c20b7569":
+  version: 1.1.0-preview-c20b7569
+  resolution: "@metamask-previews/multichain-account-service@npm:1.1.0-preview-c20b7569"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@metamask/base-controller": ^8.4.0
@@ -7714,7 +7714,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 558ccf460a6f7c761e6296a05b90e217624a19090f4e9b573da2fde657b49ae86abcd9cf649bd665d8849f2716665d7eb512247de2953d12fd995e416773f63c
+  checksum: 043c478139bbb6e4a764a1866802cd19141d93d393fde29f719b8d2310befce95f9ab8690fcb26949a745bef2e48909024dd6ae7cc1e99b3c2a289ca12abb1a1
   languageName: node
   linkType: hard
 
@@ -33674,7 +33674,7 @@ __metadata:
     "@ledgerhq/react-native-hw-transport-ble": ^6.34.1
     "@metamask/abi-utils": ^3.0.0
     "@metamask/account-api": ^0.12.0
-    "@metamask/account-tree-controller": ^1.2.0
+    "@metamask/account-tree-controller": "npm:@metamask-previews/account-tree-controller@1.2.0-preview-c20b7569"
     "@metamask/accounts-controller": ^33.1.0
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
@@ -33726,7 +33726,7 @@ __metadata:
     "@metamask/mobile-provider": ^3.0.0
     "@metamask/mobile-wallet-protocol-core": ^0.1.1
     "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.1
-    "@metamask/multichain-account-service": ^1.1.0
+    "@metamask/multichain-account-service": "npm:@metamask-previews/multichain-account-service@1.1.0-preview-c20b7569"
     "@metamask/multichain-api-client": ^0.6.5
     "@metamask/multichain-api-middleware": ^1.0.0
     "@metamask/multichain-network-controller": ^0.12.0
