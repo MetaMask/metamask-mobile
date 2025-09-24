@@ -177,7 +177,9 @@ jest.mock('../MultichainTransactionsView/MultichainTransactionsFooter', () => ({
   default: (props: unknown) => mockMultichainTransactionsFooter(props),
 }));
 
-const mockGetAddressUrl = jest.fn(() => 'https://solscan.io/account/0xabc');
+const mockGetAddressUrl = jest.fn(
+  (_address?: string, _chainId?: string) => 'https://solscan.io/account/0xabc',
+);
 
 jest.mock('../../../core/Multichain/utils', () => ({
   __esModule: true,
@@ -310,7 +312,7 @@ describe('UnifiedTransactionsView', () => {
     mockMultichainTransactionsFooter.mockClear();
     mockGetAddressUrl.mockClear();
     mockGetAddressUrl.mockImplementation(
-      (address: string) => `https://solscan.io/account/${address}`,
+      (address?: string) => `https://solscan.io/account/${address}`,
     );
     mockGetBlockExplorerAddressUrl.mockClear();
     mockGetBlockExplorerAddressUrl.mockImplementation(() => ({
