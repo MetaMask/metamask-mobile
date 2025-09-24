@@ -53,28 +53,32 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {
-      'rewards.ways_to_earn.title': 'Ways to Earn',
+      'rewards.ways_to_earn.title': 'Ways to earn',
       'rewards.ways_to_earn.swap.title': 'Swap',
-      'rewards.ways_to_earn.swap.description': 'Earn 2+ points per swap',
+      'rewards.ways_to_earn.swap.description': '80 points per $100',
+      'rewards.ways_to_earn.swap.sheet.title': 'Swap tokens',
+      'rewards.ways_to_earn.swap.sheet.points': '80 points per $100',
       'rewards.ways_to_earn.swap.sheet.description':
-        'Earn points when you swap tokens',
-      'rewards.ways_to_earn.swap.sheet.cta_label': 'Start Swapping',
-      'rewards.ways_to_earn.perps.title': 'Trade Perps',
-      'rewards.ways_to_earn.perps.description': 'Earn 1+ point per trade',
-      'rewards.ways_to_earn.perps.sheet.title': 'Trade Perps',
+        'Swap tokens on supported networks to earn points for every dollar you trade.',
+      'rewards.ways_to_earn.swap.sheet.cta_label': 'Start a swap',
+      'rewards.ways_to_earn.perps.title': 'Perps',
+      'rewards.ways_to_earn.perps.description': '10 points per $100',
+      'rewards.ways_to_earn.perps.sheet.title': 'Trade perps',
+      'rewards.ways_to_earn.perps.sheet.points': '10 points per $100',
       'rewards.ways_to_earn.perps.sheet.description':
-        'Earn points when you trade perpetuals',
-      'rewards.ways_to_earn.perps.sheet.cta_label': 'Start Trading',
-      'rewards.ways_to_earn.referrals.title': 'Refer Friends',
+        'Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.',
+      'rewards.ways_to_earn.perps.sheet.cta_label': 'Start a trade',
+      'rewards.ways_to_earn.referrals.title': 'Refer friends',
       'rewards.ways_to_earn.referrals.description':
-        'Earn 10+ points per referral',
-      'rewards.ways_to_earn.loyalty.title': 'Loyalty Bonus',
+        '10 points per 50 from friends',
+      'rewards.ways_to_earn.loyalty.title': 'Loyalty bonus',
       'rewards.ways_to_earn.loyalty.description':
         'Earn points from past trades',
-      'rewards.ways_to_earn.loyalty.sheet.title': 'Loyalty Bonus',
+      'rewards.ways_to_earn.loyalty.sheet.title': 'Loyalty bonus',
+      'rewards.ways_to_earn.loyalty.sheet.points': '250 points per $1250',
       'rewards.ways_to_earn.loyalty.sheet.description':
-        'Earn points from past trades',
-      'rewards.ways_to_earn.loyalty.sheet.cta_label': 'Add Accounts',
+        'Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.',
+      'rewards.ways_to_earn.loyalty.sheet.cta_label': 'Add accounts',
     };
     return mockStrings[key] || key;
   }),
@@ -83,9 +87,9 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 // Mock the SwapSupportedNetworksSection component
 jest.mock('./SwapSupportedNetworksSection', () => ({
   SwapSupportedNetworksSection: () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     const { Text } = jest.requireActual('react-native');
-    return React.createElement(
+    return ReactActual.createElement(
       Text,
       { testID: 'swap-supported-networks' },
       'Supported Networks',
@@ -138,7 +142,7 @@ describe('WaysToEarn', () => {
     const { getByText } = render(<WaysToEarn />);
 
     // Assert
-    expect(getByText('Ways to Earn')).toBeOnTheScreen();
+    expect(getByText('Ways to earn')).toBeOnTheScreen();
   });
 
   it('renders all earning ways', () => {
@@ -147,9 +151,9 @@ describe('WaysToEarn', () => {
 
     // Assert
     expect(getByText('Swap')).toBeOnTheScreen();
-    expect(getByText('Trade Perps')).toBeOnTheScreen();
-    expect(getByText('Refer Friends')).toBeOnTheScreen();
-    expect(getByText('Loyalty Bonus')).toBeOnTheScreen();
+    expect(getByText('Perps')).toBeOnTheScreen();
+    expect(getByText('Refer friends')).toBeOnTheScreen();
+    expect(getByText('Loyalty bonus')).toBeOnTheScreen();
   });
 
   it('displays correct descriptions for each earning way', () => {
@@ -157,16 +161,16 @@ describe('WaysToEarn', () => {
     const { getByText } = render(<WaysToEarn />);
 
     // Assert
-    expect(getByText('Earn 2+ points per swap')).toBeOnTheScreen();
-    expect(getByText('Earn 1+ point per trade')).toBeOnTheScreen();
-    expect(getByText('Earn 10+ points per referral')).toBeOnTheScreen();
+    expect(getByText('80 points per $100')).toBeOnTheScreen();
+    expect(getByText('10 points per $100')).toBeOnTheScreen();
+    expect(getByText('10 points per 50 from friends')).toBeOnTheScreen();
     expect(getByText('Earn points from past trades')).toBeOnTheScreen();
   });
 
   it('navigates to referrals when referral item is pressed', () => {
     // Arrange
     const { getByText } = render(<WaysToEarn />);
-    const referralButton = getByText('Refer Friends');
+    const referralButton = getByText('Refer friends');
 
     // Act
     fireEvent.press(referralButton);
@@ -191,7 +195,7 @@ describe('WaysToEarn', () => {
         showIcon: false,
         showCancelButton: false,
         confirmAction: expect.objectContaining({
-          label: 'Start Swapping',
+          label: 'Start a swap',
           variant: 'Primary',
         }),
       }),
@@ -201,7 +205,7 @@ describe('WaysToEarn', () => {
   it('opens modal for perps earning way when pressed', () => {
     // Arrange
     const { getByText } = render(<WaysToEarn />);
-    const perpsButton = getByText('Trade Perps');
+    const perpsButton = getByText('Perps');
 
     // Act
     fireEvent.press(perpsButton);
@@ -214,7 +218,7 @@ describe('WaysToEarn', () => {
         showIcon: false,
         showCancelButton: false,
         confirmAction: expect.objectContaining({
-          label: 'Start Trading',
+          label: 'Start a trade',
           variant: 'Primary',
         }),
       }),
@@ -247,7 +251,7 @@ describe('WaysToEarn', () => {
     // Arrange
     mockIsFirstTimePerpsUser = true;
     const { getByText } = render(<WaysToEarn />);
-    const perpsButton = getByText('Trade Perps');
+    const perpsButton = getByText('Perps');
 
     // Act
     fireEvent.press(perpsButton);
@@ -272,7 +276,7 @@ describe('WaysToEarn', () => {
     // Arrange
     mockIsFirstTimePerpsUser = false;
     const { getByText } = render(<WaysToEarn />);
-    const perpsButton = getByText('Trade Perps');
+    const perpsButton = getByText('Perps');
 
     // Act
     fireEvent.press(perpsButton);
@@ -296,7 +300,7 @@ describe('WaysToEarn', () => {
   it('opens modal for loyalty earning way when pressed', () => {
     // Arrange
     const { getByText } = render(<WaysToEarn />);
-    const loyaltyButton = getByText('Loyalty Bonus');
+    const loyaltyButton = getByText('Loyalty bonus');
 
     // Act
     fireEvent.press(loyaltyButton);
@@ -309,7 +313,7 @@ describe('WaysToEarn', () => {
         showIcon: false,
         showCancelButton: false,
         confirmAction: expect.objectContaining({
-          label: 'Add Accounts',
+          label: 'Add accounts',
           variant: 'Primary',
         }),
       }),
@@ -319,7 +323,7 @@ describe('WaysToEarn', () => {
   it('navigates to rewards settings when loyalty CTA is pressed', () => {
     // Arrange
     const { getByText } = render(<WaysToEarn />);
-    const loyaltyButton = getByText('Loyalty Bonus');
+    const loyaltyButton = getByText('Loyalty bonus');
 
     // Act
     fireEvent.press(loyaltyButton);
@@ -341,7 +345,7 @@ describe('WaysToEarn', () => {
   it('displays loyalty bonus modal with correct title and description', () => {
     // Arrange
     const { getByText } = render(<WaysToEarn />);
-    const loyaltyButton = getByText('Loyalty Bonus');
+    const loyaltyButton = getByText('Loyalty bonus');
 
     // Act
     fireEvent.press(loyaltyButton);
