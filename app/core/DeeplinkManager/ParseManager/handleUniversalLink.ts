@@ -183,15 +183,16 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
     const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleCreateAccount(deeplinkUrl);
-  } else if (
-    action === SUPPORTED_ACTIONS.PERPS ||
-    action === SUPPORTED_ACTIONS.PERPS_MARKETS
-  ) {
-    const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePerps(perpsPath);
-  } else if (action === SUPPORTED_ACTIONS.PERPS_ASSET) {
-    const assetPath = urlObj.href.replace(BASE_URL_ACTION, '');
-    instance._handlePerpsAsset(assetPath);
+    // Disabled for 7.55.0 to force user to update
+    // } else if (
+    //   action === SUPPORTED_ACTIONS.PERPS ||
+    //   action === SUPPORTED_ACTIONS.PERPS_MARKETS
+    // ) {
+    //   const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    //   instance._handlePerps(perpsPath);
+    // } else if (action === SUPPORTED_ACTIONS.PERPS_ASSET) {
+    //   const assetPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    //   instance._handlePerpsAsset(assetPath);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;
