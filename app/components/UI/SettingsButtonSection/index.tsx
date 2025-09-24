@@ -45,7 +45,16 @@ const SettingsButtonSection = ({
   const styles = createStyles();
 
   const updateShowModalState = () => setModalVisible(!modalVisible);
-  const onButtonPress = () => (onPress ? onPress() : updateShowModalState());
+  const [isButtonPressed, setIsButtonPressed] = useState(false);
+
+  const onButtonPress = () => {
+    if (isButtonPressed) {
+      return;
+    }
+    setIsButtonPressed(true);
+    onPress ? onPress() : updateShowModalState();
+    setTimeout(() => setIsButtonPressed(false), 200);
+  };
   const onModalConfirmPress = () => {
     modalOnConfirm?.();
     setModalVisible(!modalVisible);
