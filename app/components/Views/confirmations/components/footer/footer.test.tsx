@@ -357,5 +357,29 @@ describe('Footer', () => {
       });
       expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
     });
+
+    it('renders standard button label even if alerts if quotes loading', async () => {
+      (useAlerts as jest.Mock).mockReturnValue({
+        ...baseMockUseAlerts,
+        hasUnconfirmedDangerAlerts: true,
+      });
+
+      const { getByText } = renderWithProvider(<Footer />, {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          {
+            confirmationMetrics: {
+              isTransactionBridgeQuotesLoadingById: {
+                [transactionIdMock]: true,
+              },
+            },
+          },
+        ),
+      });
+
+      expect(getByText('Confirm')).toBeDefined();
+    });
   });
 });
