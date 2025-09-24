@@ -58,6 +58,9 @@ jest.mock('react-native-quick-crypto', () => ({
       );
     }),
   },
+  randomUUID: jest.fn(
+    () => 'mock-uuid-' + Math.random().toString(36).substr(2, 9),
+  ),
 }));
 
 jest.mock('react-native-blob-jsi-helper', () => ({}));

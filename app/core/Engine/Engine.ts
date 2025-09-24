@@ -240,6 +240,7 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
+import { predictControllerInit } from './controllers/predict-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
@@ -1194,6 +1195,7 @@ export class Engine {
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
+        PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
       },
       persistedState: initialState as EngineState,
@@ -1211,6 +1213,7 @@ export class Engine {
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
+    const predictController = controllersByName.PredictController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -1605,6 +1608,7 @@ export class Engine {
       SeedlessOnboardingController: seedlessOnboardingController,
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
+      PredictController: predictController,
       RewardsController: rewardsController,
     };
 
@@ -2350,6 +2354,7 @@ export default {
       BridgeStatusController,
       EarnController,
       PerpsController,
+      PredictController,
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
@@ -2407,6 +2412,7 @@ export default {
       BridgeStatusController,
       EarnController,
       PerpsController,
+      PredictController,
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,

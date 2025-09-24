@@ -253,6 +253,15 @@ const Routes = {
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
+  PREDICT: {
+    ROOT: 'Predict',
+    MARKET_LIST: 'PredictMarketList',
+    MARKET_DETAILS: 'PredictMarketDetails',
+    MODALS: {
+      ROOT: 'PredictModals',
+      CASH_OUT: 'PredictCashOut',
+    },
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
