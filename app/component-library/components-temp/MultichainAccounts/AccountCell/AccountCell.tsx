@@ -30,6 +30,7 @@ interface AccountCellProps {
   isSelected: boolean;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
+  endContainer?: React.ReactNode;
 }
 
 const AccountCell = ({
@@ -38,6 +39,7 @@ const AccountCell = ({
   isSelected,
   hideMenu = false,
   startAccessory,
+  endContainer,
 }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
@@ -109,25 +111,29 @@ const AccountCell = ({
         )}
       </View>
       <View style={styles.endContainer}>
-        <Text
-          variant={TextVariant.BodyMDBold}
-          color={TextColor.Default}
-          testID={AccountCellIds.BALANCE}
-        >
-          {displayBalance}
-        </Text>
-        {!hideMenu && (
-          <TouchableOpacity
-            testID={AccountCellIds.MENU}
-            style={styles.menuButton}
-            onPress={handleMenuPress}
-          >
-            <Icon
-              name={IconName.MoreVertical}
-              size={IconSize.Md}
-              color={TextColor.Alternative}
-            />
-          </TouchableOpacity>
+        {endContainer || (
+          <>
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={TextColor.Default}
+              testID={AccountCellIds.BALANCE}
+            >
+              {displayBalance}
+            </Text>
+            {!hideMenu && (
+              <TouchableOpacity
+                testID={AccountCellIds.MENU}
+                style={styles.menuButton}
+                onPress={handleMenuPress}
+              >
+                <Icon
+                  name={IconName.MoreVertical}
+                  size={IconSize.Md}
+                  color={TextColor.Alternative}
+                />
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
     </Box>

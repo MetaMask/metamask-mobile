@@ -16,7 +16,7 @@ export const createStyles = () =>
       flex: 1,
     },
     switchElement: {
-      marginLeft: 16,
+      // marginLeft: 16,
     },
     switch: {
       alignSelf: 'flex-start',

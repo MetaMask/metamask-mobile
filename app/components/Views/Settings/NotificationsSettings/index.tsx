@@ -31,6 +31,7 @@ import styleSheet, {
 import { ResetNotificationsButton } from './ResetNotificationsButton';
 import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
+import { useFirstHDWalletAccounts } from './AccountsList.hooks';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
@@ -38,6 +39,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
+  const hasFirstHDWallet = Boolean(useFirstHDWalletAccounts());
 
   const loadingText = useSwitchNotificationLoadingText();
 
@@ -83,16 +85,20 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           <FeatureAnnouncementToggle />
 
           {/* Account Notification Toggles */}
-          <SessionHeader
-            title={strings(
-              'app_settings.notifications_opts.account_session_title',
-            )}
-            description={strings(
-              'app_settings.notifications_opts.account_session_desc',
-            )}
-            styles={styles}
-          />
-          <AccountsList />
+          {hasFirstHDWallet && (
+            <>
+              <SessionHeader
+                title={strings(
+                  'app_settings.notifications_opts.account_session_title',
+                )}
+                description={strings(
+                  'app_settings.notifications_opts.account_session_desc',
+                )}
+                styles={styles}
+              />
+              <AccountsList />
+            </>
+          )}
 
           {/* Reset Notifications Button */}
           <ResetNotificationsButton />
