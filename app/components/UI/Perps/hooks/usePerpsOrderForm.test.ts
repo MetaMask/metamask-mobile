@@ -3,9 +3,65 @@ import { usePerpsOrderForm } from './usePerpsOrderForm';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
+import {
+  PerpsStreamManager,
+  PerpsStreamProvider,
+} from '../providers/PerpsStreamManager';
+import React from 'react';
 
 jest.mock('./usePerpsNetwork');
 jest.mock('./stream/usePerpsLiveAccount');
+
+// Create a mock stream manager for testing
+const createMockStreamManager = (): PerpsStreamManager => {
+  const mockStreamManager = {
+    prices: {
+      subscribe: jest.fn(() => jest.fn()),
+      subscribeToSymbols: jest.fn(() => jest.fn()),
+      prewarm: jest.fn(() => jest.fn()),
+      cleanupPrewarm: jest.fn(),
+      clearCache: jest.fn(),
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+      prewarm: jest.fn(() => jest.fn()),
+      cleanupPrewarm: jest.fn(),
+      clearCache: jest.fn(),
+    },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+      prewarm: jest.fn(() => jest.fn()),
+      cleanupPrewarm: jest.fn(),
+      clearCache: jest.fn(),
+    },
+    fills: {
+      subscribe: jest.fn(() => jest.fn()),
+      clearCache: jest.fn(),
+    },
+    account: {
+      subscribe: jest.fn(() => jest.fn()),
+      prewarm: jest.fn(() => jest.fn()),
+      cleanupPrewarm: jest.fn(),
+      clearCache: jest.fn(),
+    },
+    marketData: {
+      subscribe: jest.fn(() => jest.fn()),
+      prewarm: jest.fn(() => jest.fn()),
+      refresh: jest.fn(),
+      clearCache: jest.fn(),
+    },
+  } as unknown as PerpsStreamManager;
+
+  return mockStreamManager;
+};
+
+// Test wrapper component
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  return React.createElement(PerpsStreamProvider, {
+    testStreamManager: createMockStreamManager(),
+    children,
+  } as React.ComponentProps<typeof PerpsStreamProvider>);
+}
 
 describe('usePerpsOrderForm', () => {
   const mockUsePerpsNetwork = usePerpsNetwork as jest.MockedFunction<
