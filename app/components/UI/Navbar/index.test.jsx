@@ -5,6 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
+  getAddressListNavbarOptions,
   getDepositNavbarOptions,
   getNetworkNavbarOptions,
   getOnboardingNavbarOptions,
@@ -114,6 +115,92 @@ describe('getNetworkNavbarOptions', () => {
     );
 
     expect(getByText('Test Title')).toBeTruthy();
+  });
+});
+
+describe('getAddressListNavbarOptions', () => {
+  const mockNavigation = {
+    goBack: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns navbar options with correct structure', () => {
+    const options = getAddressListNavbarOptions(
+      mockNavigation,
+      'Receiving address',
+      'test-back-button',
+    );
+
+    expect(options).toBeDefined();
+    expect(options.headerTitle).toBeInstanceOf(Function);
+    expect(options.headerLeft).toBeInstanceOf(Function);
+  });
+
+  it('renders title correctly', () => {
+    const title = 'Test Title';
+    const options = getAddressListNavbarOptions(
+      mockNavigation,
+      title,
+      'test-back-button',
+    );
+
+    const { getByText } = renderWithProvider(<options.headerTitle />, {
+      state: { engine: { backgroundState } },
+    });
+
+    expect(getByText(title)).toBeTruthy();
+  });
+
+  it('calls navigation.goBack when back button is pressed', () => {
+    const options = getAddressListNavbarOptions(
+      mockNavigation,
+      'Test Title',
+      'test-back-button',
+    );
+
+    const { getByTestId } = renderWithProvider(<options.headerLeft />, {
+      state: { engine: { backgroundState } },
+    });
+
+    const backButton = getByTestId('test-back-button');
+    fireEvent.press(backButton);
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles different titles', () => {
+    const titles = ['Receiving address', 'Account Details', ''];
+
+    titles.forEach((title) => {
+      expect(() => {
+        const options = getAddressListNavbarOptions(
+          mockNavigation,
+          title,
+          'test-back-button',
+        );
+        expect(options).toBeDefined();
+        expect(options.headerTitle).toBeInstanceOf(Function);
+      }).not.toThrow();
+    });
+  });
+
+  it('handles different test IDs', () => {
+    const testIds = ['back-button', 'go-back', 'navigation-back'];
+
+    testIds.forEach((testId) => {
+      expect(() => {
+        const options = getAddressListNavbarOptions(
+          mockNavigation,
+          'Test Title',
+          testId,
+        );
+        expect(options).toBeDefined();
+        expect(options.headerLeft).toBeInstanceOf(Function);
+      }).not.toThrow();
+    });
   });
 });
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -23,11 +23,10 @@ import { CaipChainId, Hex } from '@metamask/utils';
 // We use ReusableModal instead of BottomSheet to prevent the keyboard from pushing the search input off screen
 import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FlashList } from '@shopify/flash-list';
 import { FlatList } from 'react-native-gesture-handler';
 
-// FlashList cannot scroll on Android here, so we use FlatList
-const ListComponent = Platform.OS === 'ios' ? FlashList : FlatList;
+// FlashList on iOS had some issues so we use FlatList for both platforms now
+const ListComponent = FlatList;
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -116,7 +115,7 @@ export const LoadingSkeleton = () => {
   const { styles } = useStyles(createStyles, {});
 
   return (
-    <Box style={styles.loadingSkeleton} gap={20}>
+    <Box style={styles.loadingSkeleton}>
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
@@ -139,6 +138,7 @@ interface BridgeTokenSelectorBaseProps {
   pending?: boolean;
   chainIdToFetchMetadata?: Hex | CaipChainId;
   title?: string;
+  scrollResetKey?: string | Hex | CaipChainId;
 }
 
 export const BridgeTokenSelectorBase: React.FC<
@@ -150,6 +150,7 @@ export const BridgeTokenSelectorBase: React.FC<
   pending,
   chainIdToFetchMetadata: chainId,
   title,
+  scrollResetKey,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const safeAreaInsets = useSafeAreaInsets();
@@ -280,6 +281,7 @@ export const BridgeTokenSelectorBase: React.FC<
         </Box>
 
         <ListComponent
+          key={scrollResetKey}
           data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
@@ -292,6 +294,11 @@ export const BridgeTokenSelectorBase: React.FC<
           showsHorizontalScrollIndicator={false}
           bounces
           scrollEnabled
+          removeClippedSubviews
+          maxToRenderPerBatch={40}
+          windowSize={10}
+          initialNumToRender={50}
+          updateCellsBatchingPeriod={100}
         />
       </Box>
     </ReusableModal>
