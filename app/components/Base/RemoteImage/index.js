@@ -38,6 +38,7 @@ import {
 } from '../../../util/networks/customNetworks';
 
 import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+import { Image as ExpoImage } from 'expo-image';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -204,8 +205,8 @@ const RemoteImage = (props) => {
   if (props.fadeIn) {
     const { style, ...restProps } = props;
     const badge = {
-      top: -4,
-      right: -4,
+      bottom: 5,
+      right: 5,
     };
     return (
       <>
@@ -226,7 +227,7 @@ const RemoteImage = (props) => {
                     />
                   }
                 >
-                  <Image
+                  <ExpoImage
                     source={{ uri }}
                     style={{
                       width: dimensions.width,
@@ -250,12 +251,12 @@ const RemoteImage = (props) => {
                   }
                 >
                   <View style={style}>
-                    <Image
+                    <ExpoImage
                       style={styles.imageStyle}
                       {...restProps}
                       source={{ uri }}
                       onError={onError}
-                      resizeMode={'cover'}
+                      contentFit={'cover'}
                     />
                   </View>
                 </BadgeWrapper>
@@ -264,14 +265,14 @@ const RemoteImage = (props) => {
           </FadeIn>
         ) : (
           <FadeIn placeholderStyle={props.placeholderStyle}>
-            <Image {...props} source={{ uri }} onError={onError} />
+            <ExpoImage {...props} source={{ uri }} onError={onError} />
           </FadeIn>
         )}
       </>
     );
   }
 
-  return <Image {...props} source={{ uri }} onError={onError} />;
+  return <ExpoImage {...props} source={{ uri }} onError={onError} />;
 };
 
 RemoteImage.propTypes = {
