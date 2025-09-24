@@ -116,7 +116,7 @@ jobs:
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
         run: |
-          echo "🏗 Building iOS E2E App (Full Build)..."
+          echo "🏗 Building iOS E2E App..."
           yarn build:ios:main:e2e
         shell: bash
         env:
@@ -166,9 +166,7 @@ jobs:
           name: index.js.map
           path: sourcemaps/ios/index.js.map
           retention-days: 7
-          # Using 'warn' because sourcemaps are generated fresh during repack
-          # and may not exist if the build failed early or during full builds
-          if-no-files-found: warn
+          if-no-files-found: error
         continue-on-error: true
 
       # Generate artifact download URL and display upload status summary
