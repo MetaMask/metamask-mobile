@@ -51,15 +51,13 @@ const NftGridItem = ({
         />
       </TouchableOpacity>
 
-      {item.name && (
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="mt-2 text-default"
-          numberOfLines={1}
-        >
-          {item.name}
-        </Text>
-      )}
+      <Text
+        variant={TextVariant.BodyMd}
+        twClassName="mt-2 text-default"
+        numberOfLines={1}
+      >
+        {item.name || '-'}
+      </Text>
 
       {/* TODO: check if is better to use collection name from nft contract? */}
       <Text

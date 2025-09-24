@@ -77,7 +77,7 @@ describe('NftGridItem', () => {
     );
 
     // Should render without crashing
-    expect(toJSON()).toBeDefined();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles NFT without collection name gracefully', () => {
