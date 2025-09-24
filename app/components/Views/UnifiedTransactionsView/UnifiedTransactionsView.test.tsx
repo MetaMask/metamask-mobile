@@ -94,6 +94,10 @@ jest.mock(
 jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
   selectIsPopularNetwork: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+  selectNetworkConfigurations: jest.fn(),
+  selectProviderType: jest.fn(),
+  selectRpcUrl: jest.fn(),
 }));
 jest.mock('../../../selectors/networkEnablementController', () => ({
   selectEVMEnabledNetworks: jest.fn(),
@@ -112,8 +116,12 @@ jest.mock('../../../util/activity', () => ({
 jest.mock('../../../util/transactions', () => ({
   addAccountTimeFlagFilter: jest.fn(() => false),
 }));
+
 jest.mock('../../../util/networks', () => ({
+  __esModule: true,
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
+  findBlockExplorerForRpc: jest.fn(() => 'https://explorer.example'),
+  getBlockExplorerAddressUrl: jest.fn(),
 }));
 jest.mock('../../UI/Transactions/utils', () => ({
   filterDuplicateOutgoingTransactions: jest.fn((arr: unknown[]) => arr),
@@ -135,6 +143,46 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
     bridgeHistoryItemsBySrcTxHash:
       (global as { __bridgeMap?: Record<string, unknown> }).__bridgeMap || {},
   }),
+}));
+
+const mockTransactionsFooter = jest.fn((props: unknown) => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ReactActual.createElement(
+    Text,
+    { testID: 'transactions-footer' },
+    JSON.stringify(props),
+  );
+});
+
+jest.mock('../../UI/Transactions/TransactionsFooter', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockTransactionsFooter(props),
+}));
+
+const mockMultichainTransactionsFooter = jest.fn((props: unknown) => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ReactActual.createElement(
+    Text,
+    { testID: 'multichain-transactions-footer' },
+    JSON.stringify(props),
+  );
+});
+
+jest.mock('../MultichainTransactionsView/MultichainTransactionsFooter', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockMultichainTransactionsFooter(props),
+}));
+
+const mockGetAddressUrl = jest.fn(
+  (_address?: string, _chainId?: string) => 'https://solscan.io/account/0xabc',
+);
+
+jest.mock('../../../core/Multichain/utils', () => ({
+  __esModule: true,
+  getAddressUrl: (address: string, chainId: string) =>
+    mockGetAddressUrl(address, chainId),
 }));
 
 // Mock refresh util
@@ -237,9 +285,14 @@ const { selectSelectedAccountGroupInternalAccounts } = jest.requireMock(
 const { selectTokens } = jest.requireMock(
   '../../../selectors/tokensController',
 );
-const { selectChainId, selectIsPopularNetwork } = jest.requireMock(
-  '../../../selectors/networkController',
-);
+const {
+  selectChainId,
+  selectIsPopularNetwork,
+  selectEvmNetworkConfigurationsByChainId,
+  selectNetworkConfigurations,
+  selectProviderType,
+  selectRpcUrl,
+} = jest.requireMock('../../../selectors/networkController');
 const { selectEVMEnabledNetworks, selectNonEVMEnabledNetworks } =
   jest.requireMock('../../../selectors/networkEnablementController');
 const { selectCurrentCurrency } = jest.requireMock(
@@ -248,12 +301,26 @@ const { selectCurrentCurrency } = jest.requireMock(
 const { updateIncomingTransactions } = jest.requireMock(
   '../../../util/transaction-controller',
 );
+const networksMock = jest.requireMock('../../../util/networks');
+const { isRemoveGlobalNetworkSelectorEnabled } = networksMock;
 
 describe('UnifiedTransactionsView', () => {
   const mockUseSelector = useSelector as unknown as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTransactionsFooter.mockClear();
+    mockMultichainTransactionsFooter.mockClear();
+    mockGetAddressUrl.mockClear();
+    mockGetAddressUrl.mockImplementation(
+      (address?: string) => `https://solscan.io/account/${address}`,
+    );
+    networksMock.getBlockExplorerAddressUrl.mockClear();
+    networksMock.getBlockExplorerAddressUrl.mockImplementation(() => ({
+      url: 'https://explorer.example/address/0xabc',
+      title: 'explorer.example',
+    }));
+    isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
 
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
@@ -263,10 +330,26 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectSelectedAccountGroupInternalAccounts)
-        return [{ address: '0xabc' }];
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
       if (selector === selectTokens) return [];
       if (selector === selectChainId) return '0x1';
       if (selector === selectIsPopularNetwork) return false;
+      if (selector === selectEvmNetworkConfigurationsByChainId)
+        return {
+          '0x1': {
+            blockExplorerUrls: ['https://explorer.example'],
+            defaultBlockExplorerUrlIndex: 0,
+          },
+        };
+      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderType) return 'rpc';
+      if (selector === selectRpcUrl) return 'https://rpc.example';
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
       if (selector === selectCurrentCurrency) return 'USD';
@@ -302,7 +385,13 @@ describe('UnifiedTransactionsView', () => {
       if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
         return { transactions: [] };
       if (selector === selectSelectedAccountGroupInternalAccounts)
-        return [{ address: '0xabc' }];
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
@@ -338,7 +427,13 @@ describe('UnifiedTransactionsView', () => {
           ],
         };
       if (selector === selectSelectedAccountGroupInternalAccounts)
-        return [{ address: '0xabc' }];
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
@@ -352,6 +447,325 @@ describe('UnifiedTransactionsView', () => {
 
     const { queryAllByTestId } = render(<UnifiedTransactionsView />);
     expect(queryAllByTestId(/non-evm-item-/).length).toBe(2);
+  });
+
+  it('renders TransactionsFooter when only EVM networks are enabled', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return { transactions: [] };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectChainId) return '0x1';
+      if (selector === selectIsPopularNetwork) return false;
+      if (selector === selectEvmNetworkConfigurationsByChainId)
+        return {
+          '0x1': {
+            blockExplorerUrls: ['https://explorer.example'],
+            defaultBlockExplorerUrlIndex: 0,
+          },
+        };
+      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderType) return 'rpc';
+      if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectEVMEnabledNetworks) return ['0x1'];
+      if (selector === selectNonEVMEnabledNetworks) return [];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
+    render(<UnifiedTransactionsView />);
+
+    expect(mockTransactionsFooter).toHaveBeenCalledTimes(1);
+    expect(mockMultichainTransactionsFooter).not.toHaveBeenCalled();
+    const footerProps = mockTransactionsFooter.mock.calls[0][0] as {
+      chainId?: string;
+      providerType?: string;
+      rpcBlockExplorer?: string;
+    };
+    expect(footerProps.chainId).toBe('0x1');
+    expect(footerProps.providerType).toBe('rpc');
+    expect(footerProps.rpcBlockExplorer).toBe('https://explorer.example');
+  });
+
+  describe('block explorer url', () => {
+    it('uses selected chain block explorer when global selector is enabled with a single chain', () => {
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectChainId) return '0x1';
+        if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectEvmNetworkConfigurationsByChainId)
+          return {
+            '0x5': {
+              blockExplorerUrls: [
+                'https://explorer0.example',
+                'https://explorer1.example',
+              ],
+              defaultBlockExplorerUrlIndex: 1,
+            },
+          };
+        if (selector === selectNetworkConfigurations) return {};
+        if (selector === selectProviderType) return 'rpc';
+        if (selector === selectRpcUrl) return 'https://rpc.example';
+        if (selector === selectEVMEnabledNetworks) return ['0x5'];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      render(<UnifiedTransactionsView />);
+
+      expect(mockTransactionsFooter).toHaveBeenCalledTimes(1);
+      const footerProps = mockTransactionsFooter.mock.calls[0][0] as {
+        rpcBlockExplorer?: string;
+        onViewBlockExplorer?: () => void;
+      };
+      expect(footerProps.rpcBlockExplorer).toBe('https://explorer1.example');
+
+      footerProps.onViewBlockExplorer?.();
+      expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledWith(
+        'rpc',
+        '0xabc',
+        'https://explorer1.example',
+      );
+      expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledTimes(1);
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+    });
+
+    it('omits block explorer when multiple EVM chains are selected with global selector enabled', () => {
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      networksMock.getBlockExplorerAddressUrl.mockImplementationOnce(() => ({
+        url: undefined,
+        title: 'explorer.example',
+      }));
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectChainId) return '0x1';
+        if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectEvmNetworkConfigurationsByChainId)
+          return {
+            '0x1': {
+              blockExplorerUrls: ['https://explorer0.example'],
+              defaultBlockExplorerUrlIndex: 0,
+            },
+            '0x5': {
+              blockExplorerUrls: ['https://explorer1.example'],
+              defaultBlockExplorerUrlIndex: 0,
+            },
+          };
+        if (selector === selectNetworkConfigurations) return {};
+        if (selector === selectProviderType) return 'rpc';
+        if (selector === selectRpcUrl) return 'https://rpc.example';
+        if (selector === selectEVMEnabledNetworks) return ['0x1', '0x5'];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      render(<UnifiedTransactionsView />);
+
+      expect(mockTransactionsFooter).toHaveBeenCalledTimes(1);
+      const footerProps = mockTransactionsFooter.mock.calls[0][0] as {
+        rpcBlockExplorer?: string;
+        onViewBlockExplorer?: () => void;
+      };
+      expect(footerProps.rpcBlockExplorer).toBeUndefined();
+
+      footerProps.onViewBlockExplorer?.();
+      expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledWith(
+        'rpc',
+        '0xabc',
+        undefined,
+      );
+      expect(networksMock.getBlockExplorerAddressUrl).toHaveBeenCalledTimes(1);
+      isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+    });
+  });
+
+  it('renders MultichainTransactionsFooter with explorer link for Solana-only selection', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return {
+          transactions: [
+            { id: 'n1', timestamp: 1000, chain: 'solana:mainnet' },
+          ],
+        };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [
+          { address: '0xabc', type: 'eip155:eoa' },
+          {
+            address: 'SoLAddreSS11111111111111111111111',
+            type: 'solana:data-account',
+          },
+        ];
+      if (selector === selectSelectedInternalAccount)
+        return { address: '0xabc', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectChainId) return '0x1';
+      if (selector === selectIsPopularNetwork) return false;
+      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderType) return 'rpc';
+      if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectEVMEnabledNetworks) return [];
+      if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
+    render(<UnifiedTransactionsView />);
+
+    expect(mockMultichainTransactionsFooter).toHaveBeenCalledTimes(1);
+    const footerProps = mockMultichainTransactionsFooter.mock.calls[0][0] as {
+      showExplorerLink?: boolean;
+      hasTransactions?: boolean;
+      url?: string;
+    };
+    expect(footerProps.showExplorerLink).toBe(true);
+    expect(footerProps.hasTransactions).toBe(true);
+    expect(footerProps.url).toContain('solscan.io');
+    expect(footerProps.url).toContain('SoLAddreSS11111111111111111111111');
+    expect(mockTransactionsFooter).not.toHaveBeenCalled();
+  });
+
+  it('hides explorer link when enabled non-EVM chains are not all Solana', () => {
+    mockGetAddressUrl.mockImplementation(() => '');
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+        return [];
+      if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+        return {
+          transactions: [
+            {
+              id: 'n1',
+              timestamp: 1000,
+              chain: 'bip122:000000000019d6689c085ae165831e93',
+            },
+          ],
+        };
+      if (selector === selectSelectedAccountGroupInternalAccounts)
+        return [{ address: 'bc1abcd', type: 'bip122:p2wpkh' }];
+      if (selector === selectSelectedInternalAccount)
+        return { address: 'bc1abcd', metadata: { importTime: 0 } };
+      if (selector === selectTokens) return [];
+      if (selector === selectChainId)
+        return 'bip122:000000000019d6689c085ae165831e93';
+      if (selector === selectIsPopularNetwork) return false;
+      if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderType) return 'rpc';
+      if (selector === selectRpcUrl) return 'https://rpc.example';
+      if (selector === selectEVMEnabledNetworks) return [];
+      if (selector === selectNonEVMEnabledNetworks)
+        return ['bip122:000000000019d6689c085ae165831e93'];
+      if (selector === selectCurrentCurrency) return 'USD';
+      return undefined;
+    });
+
+    render(<UnifiedTransactionsView />);
+
+    expect(mockMultichainTransactionsFooter).toHaveBeenCalledTimes(1);
+    const footerProps = mockMultichainTransactionsFooter.mock.calls[0][0] as {
+      showExplorerLink?: boolean;
+      url?: string;
+    };
+    expect(footerProps.showExplorerLink).toBe(false);
+    expect(footerProps.url).toBe('');
+  });
+
+  describe('nonEvmExplorerChainId resolution', () => {
+    it('uses prop chainId when no non-EVM networks are enabled and chainId is CAIP', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [
+            { address: '0xabc', type: 'eip155:eoa' },
+            {
+              address: 'SoLAddreSS11111111111111111111111',
+              type: 'solana:data-account',
+            },
+          ];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectChainId) return '0x1';
+        if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectEVMEnabledNetworks) return [];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      render(<UnifiedTransactionsView chainId="solana:mainnet" />);
+
+      // nonEvmExplorerUrl should be computed using getAddressUrl with the CAIP chain id
+      expect(mockGetAddressUrl).toHaveBeenCalledWith(
+        'SoLAddreSS11111111111111111111111',
+        'solana:mainnet',
+      );
+    });
+
+    it('returns undefined (no address URL) when no non-EVM networks and prop chainId is not CAIP', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectSortedEVMTransactionsForSelectedAccountGroup)
+          return [];
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
+          return { transactions: [] };
+        if (selector === selectSelectedAccountGroupInternalAccounts)
+          return [
+            { address: '0xabc', type: 'eip155:eoa' },
+            {
+              address: 'SoLAddreSS11111111111111111111111',
+              type: 'solana:data-account',
+            },
+          ];
+        if (selector === selectSelectedInternalAccount)
+          return { address: '0xabc', metadata: { importTime: 0 } };
+        if (selector === selectTokens) return [];
+        if (selector === selectChainId) return '0x1';
+        if (selector === selectIsPopularNetwork) return false;
+        if (selector === selectEVMEnabledNetworks) return [];
+        if (selector === selectNonEVMEnabledNetworks) return [];
+        if (selector === selectCurrentCurrency) return 'USD';
+        return undefined;
+      });
+
+      render(<UnifiedTransactionsView chainId="0x1" />);
+
+      // Since the chainId is not CAIP and there are no enabled non-EVM networks,
+      // nonEvmExplorerChainId is undefined and getAddressUrl should not be called
+      expect(mockGetAddressUrl).not.toHaveBeenCalled();
+    });
   });
 
   describe('non-TransactionMeta EVM transactions (smart tx) status handling', () => {
@@ -379,7 +793,7 @@ describe('UnifiedTransactionsView', () => {
           if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
             return { transactions: [] };
           if (selector === selectSelectedAccountGroupInternalAccounts)
-            return [{ address: '0xabc' }];
+            return [{ address: '0xabc', type: 'eip155:eoa' }];
           if (selector === selectSelectedInternalAccount)
             return { address: '0xabc', metadata: { importTime: 0 } };
           if (selector === selectTokens) return [];
@@ -416,7 +830,7 @@ describe('UnifiedTransactionsView', () => {
         if (selector === selectNonEvmTransactionsForSelectedAccountGroup)
           return { transactions: [] };
         if (selector === selectSelectedAccountGroupInternalAccounts)
-          return [{ address: '0xabc' }];
+          return [{ address: '0xabc', type: 'eip155:eoa' }];
         if (selector === selectSelectedInternalAccount)
           return { address: '0xabc', metadata: { importTime: 0 } };
         if (selector === selectTokens) return [];
@@ -451,7 +865,7 @@ describe('UnifiedTransactionsView', () => {
           ],
         };
       if (selector === selectSelectedAccountGroupInternalAccounts)
-        return [{ address: '0xabc' }];
+        return [{ address: '0xabc', type: 'eip155:eoa' }];
       if (selector === selectSelectedInternalAccount)
         return { address: '0xabc', metadata: { importTime: 0 } };
       if (selector === selectTokens) return [];
