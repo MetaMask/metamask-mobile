@@ -50,12 +50,14 @@ export const QRHardwareContextProvider: React.FC<{
         return;
       }
       e.preventDefault();
-      Engine.getQrKeyringScanner().rejectPendingScan(
-        new Error('Request cancelled'),
-      );
+      if (isSigningQRObject) {
+        Engine.getQrKeyringScanner().rejectPendingScan(
+          new Error('Request cancelled'),
+        );
+      }
       navigation.dispatch(e.data.action);
     },
-    [isRequestCompleted, navigation],
+    [isRequestCompleted, navigation, isSigningQRObject],
   );
 
   useEffect(() => {
