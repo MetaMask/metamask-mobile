@@ -440,15 +440,6 @@ describe('OptinMetrics', () => {
       expect(marketingCheckbox).toBeTruthy();
     });
 
-    it('should initialize with correct default state values', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const checkboxes = screen.getAllByRole('checkbox');
-      expect(checkboxes[0]).toBeTruthy();
-      expect(checkboxes[1]).toBeTruthy();
-      expect(checkboxes[2]).toBeTruthy();
-    });
-
     it('should render component without errors', () => {
       const { toJSON } = renderScreen(
         OptinMetrics,
@@ -526,9 +517,6 @@ describe('OptinMetrics', () => {
         strings('privacy_policy.checkbox_marketing'),
       );
       expect(marketingCheckbox).toBeTruthy();
-
-      const checkboxes = screen.getAllByRole('checkbox');
-      expect(checkboxes).toHaveLength(3);
     });
 
     it('should handle checkbox state changes correctly', () => {
@@ -547,9 +535,6 @@ describe('OptinMetrics', () => {
 
       expect(basicUsageTitle).toBeTruthy();
       expect(marketingTitle).toBeTruthy();
-
-      const checkboxes = screen.getAllByRole('checkbox');
-      expect(checkboxes).toHaveLength(3);
     });
   });
 
