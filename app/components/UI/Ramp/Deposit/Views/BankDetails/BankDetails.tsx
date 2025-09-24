@@ -62,13 +62,8 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const {
-    sdk,
-    selectedRegion,
-    logoutFromProvider,
-    selectedCryptoCurrency,
-    selectedPaymentMethod,
-  } = useDepositSDK();
+  const { sdk, selectedRegion, logoutFromProvider, selectedCryptoCurrency } =
+    useDepositSDK();
   const trackEvent = useAnalytics();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
@@ -231,7 +226,9 @@ const BankDetails = () => {
         navigation,
         {
           title: strings('deposit.bank_details.navbar_title', {
-            paymentMethod: selectedPaymentMethod?.shortName ?? '',
+            paymentMethod: hasDepositOrderField(order?.data, 'paymentMethod')
+              ? order.data.paymentMethod?.shortName
+              : '',
           }),
         },
         theme,
@@ -258,7 +255,7 @@ const BankDetails = () => {
         destination: Routes.DEPOSIT.BANK_DETAILS,
       },
     });
-  }, [navigation, theme, selectedPaymentMethod]);
+  }, [navigation, theme, order?.data]);
 
   const handleBankTransferSent = useCallback(async () => {
     setCancelOrderError(null);

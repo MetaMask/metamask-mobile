@@ -68,11 +68,9 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     allNetworkConfigurations[chainId as `${string}:${string}`]?.name ||
     'Unknown Network';
 
-  const networkImageSource = chainId
-    ? getNetworkImageSource({
-        chainId,
-      })
-    : null;
+  const networkImageSource = getNetworkImageSource({
+    chainId,
+  });
 
   const getIconContainerStyle = () => {
     if (order.state === FIAT_ORDER_STATES.COMPLETED) {
@@ -130,7 +128,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
               badgeElement={
                 <BadgeNetwork
                   name={networkName}
-                  imageSource={networkImageSource || undefined}
+                  imageSource={networkImageSource}
                 />
               }
             >

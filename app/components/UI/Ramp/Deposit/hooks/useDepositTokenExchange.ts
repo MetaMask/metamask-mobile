@@ -3,7 +3,7 @@ import Logger from '../../../../../util/Logger';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 interface UseTokenExchangeParams {
-  fiatCurrency: string;
+  fiatCurrency: string | null;
   fiatAmount: string;
   token: DepositCryptoCurrency | null;
   tokens: DepositCryptoCurrency[] | null;
@@ -45,7 +45,7 @@ const useDepositTokenExchange = ({
   try {
     if (rate) {
       tokenAmount = (parseFloat(fiatAmount || '0') / rate).toFixed(
-        token.decimals ?? 0,
+        token.decimals,
       );
     }
   } catch (e) {

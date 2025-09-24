@@ -15,7 +15,7 @@ export const useFetchTokenRatesMulti = ({
   fiatCurrency,
 }: {
   tokens: DepositCryptoCurrency[] | null;
-  fiatCurrency: string;
+  fiatCurrency: string | null;
 }): UseFetchTokenRatesMultiResult => {
   const [rates, setRates] = useState<Record<string, number | null>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -25,11 +25,11 @@ export const useFetchTokenRatesMulti = ({
     const fetchTokenRates = async () => {
       setIsLoading(true);
       try {
-        if (!tokens) {
+        if (!tokens || !fiatCurrency) {
           return;
         }
 
-        const assetIds = tokens?.map((token) => token.assetId).join(',');
+        const assetIds = tokens.map((token) => token.assetId).join(',');
         const url = new URL(PRICE_API_URL);
         const params = new URLSearchParams({
           assetIds,
@@ -45,7 +45,7 @@ export const useFetchTokenRatesMulti = ({
         const newRates: Record<string, number | null> = {};
         const responseKeys = Object.keys(response);
 
-        tokens?.forEach((token) => {
+        tokens.forEach((token) => {
           const responseKey = responseKeys.find(
             (key) => key.toLowerCase() === token.assetId.toLowerCase(),
           );

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { BuyQuote, DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 import styleSheet from './BuildQuote.styles';
 
@@ -69,16 +69,8 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { MUSD_PLACEHOLDER } from '../../constants/constants';
 
-const MUSD_PLACEHOLDER: DepositCryptoCurrency = {
-  assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-  chainId: 'eip155:1',
-  name: 'MetaMask USD',
-  symbol: 'mUSD',
-  decimals: 6,
-  iconUrl:
-    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
-};
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
 }
@@ -149,7 +141,7 @@ const BuildQuote = () => {
     isLoading: isLoadingTokenAmount,
     error: errorLoadingTokenAmount,
   } = useDepositTokenExchange({
-    fiatCurrency: selectedRegion?.currency || 'USD',
+    fiatCurrency: selectedRegion?.currency || null,
     fiatAmount: amount,
     token: selectedCryptoCurrency,
     tokens: cryptoCurrencies,

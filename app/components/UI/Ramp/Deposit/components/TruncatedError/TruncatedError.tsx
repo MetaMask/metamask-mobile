@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { NativeSyntheticEvent, View, TextLayoutEventData } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -25,18 +25,19 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   const navigation = useNavigation();
   const [isTruncated, setIsTruncated] = useState(false);
 
-  const handleTextLayout = (
-    event: NativeSyntheticEvent<TextLayoutEventData>,
-  ) => {
-    const { lines } = event.nativeEvent;
-    setIsTruncated(lines.length > maxLines);
-  };
+  const handleTextLayout = useCallback(
+    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
+      const { lines } = event.nativeEvent;
+      setIsTruncated(lines.length > maxLines);
+    },
+    [maxLines],
+  );
 
-  const handleSeeMore = () => {
+  const handleSeeMore = useCallback(() => {
     navigation.navigate(
       ...createErrorDetailsModalNavigationDetails({ errorMessage: error }),
     );
-  };
+  }, [error, navigation]);
 
   return (
     <View style={styles.container}>

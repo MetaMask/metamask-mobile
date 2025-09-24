@@ -227,7 +227,7 @@ function RegionSelectorModal() {
         data={dataSearchResults}
         renderItem={renderRegionItem}
         extraData={selectedRegion?.isoCode}
-        keyExtractor={(item) => item?.isoCode || ''}
+        keyExtractor={(item) => item?.isoCode}
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"

@@ -1,3 +1,5 @@
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
 export const TRANSAK_URL = 'https://www.transak.com';
 export const CONSENSYS_PRIVACY_POLICY_URL =
@@ -90,3 +92,13 @@ export const US_STATES = [
   { code: 'WI', name: 'Wisconsin' },
   { code: 'WY', name: 'Wyoming' },
 ];
+
+export const MUSD_PLACEHOLDER: DepositCryptoCurrency = {
+  assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  chainId: 'eip155:1',
+  name: 'MetaMask USD',
+  symbol: 'mUSD',
+  decimals: 6,
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+};
