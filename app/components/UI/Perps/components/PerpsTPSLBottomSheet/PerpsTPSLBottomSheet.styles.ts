@@ -189,4 +189,23 @@ export const createStyles = (colors: Theme['colors']) =>
       width: '100%',
       marginBottom: 8,
     },
+    signToggleContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 8,
+      marginBottom: 8,
+      paddingHorizontal: 16,
+    },
+    signToggleButton: {
+      flex: 1,
+      height: 40,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+    },
   });

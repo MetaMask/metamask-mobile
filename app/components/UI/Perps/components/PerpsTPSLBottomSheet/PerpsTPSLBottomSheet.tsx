@@ -197,6 +197,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     handleStopLossPercentageButton,
     handleTakeProfitOff,
     handleStopLossOff,
+    handleSetTakeProfitPositive,
+    handleSetTakeProfitNegative,
+    handleSetStopLossPositive,
+    handleSetStopLossNegative,
   } = tpslForm.buttons;
 
   const {
@@ -416,6 +420,25 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 : styles.priceInfoContainer
             }
           >
+            {position && (
+              <View style={styles.priceInfoRow}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.tpsl.entry_price')}
+                </Text>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {position.entryPrice &&
+                  position.entryPrice !== 'null' &&
+                  position.entryPrice !== '0.00'
+                    ? formatPerpsFiat(position.entryPrice, {
+                        ranges: PRICE_RANGES_POSITION_VIEW,
+                      })
+                    : '--'}
+                </Text>
+              </View>
+            )}
             <View style={styles.priceInfoRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {orderType === 'limit' &&
@@ -633,7 +656,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
-                    -{percentage}%
+                    {percentage}%
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -740,6 +763,38 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               isDisabled={confirmDisabled}
               loading={isUpdating}
             />
+            {/* Sign Toggle Buttons - only show for percentage inputs when there's a position */}
+            {(focusedInput === 'takeProfitPercentage' ||
+              focusedInput === 'stopLossPercentage') && (
+              <View style={styles.signToggleContainer}>
+                <TouchableOpacity
+                  style={styles.signToggleButton}
+                  onPress={
+                    focusedInput === 'takeProfitPercentage'
+                      ? handleSetTakeProfitPositive
+                      : handleSetStopLossPositive
+                  }
+                  disabled={isUpdating}
+                >
+                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                    + (Profit)
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.signToggleButton}
+                  onPress={
+                    focusedInput === 'takeProfitPercentage'
+                      ? handleSetTakeProfitNegative
+                      : handleSetStopLossNegative
+                  }
+                  disabled={isUpdating}
+                >
+                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                    - (Loss)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
             <View style={styles.keypadContainer}>
               <Keypad
                 value={

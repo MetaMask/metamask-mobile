@@ -429,12 +429,12 @@ export const formatRoEPercentageDisplay = (
 
   // When focused, preserve the exact user input including signs and decimal points
   if (isFocused) {
-    // Allow valid numeric patterns with optional sign
+    // Allow valid numeric patterns with optional sign and space
     if (
       value === '.' ||
       value === '+' ||
       value === '-' ||
-      /^[+-]?\d*\.?\d*$/.test(value)
+      /^[+-]?\s?\d*\.?\d*$/.test(value)
     ) {
       return value;
     }

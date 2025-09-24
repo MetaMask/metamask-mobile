@@ -72,6 +72,10 @@ interface TPSLFormButtons {
   handleStopLossPercentageButton: (roePercentage: number) => void;
   handleTakeProfitOff: () => void;
   handleStopLossOff: () => void;
+  handleSetTakeProfitPositive: () => void;
+  handleSetTakeProfitNegative: () => void;
+  handleSetStopLossPositive: () => void;
+  handleSetStopLossNegative: () => void;
 }
 
 interface TPSLFormValidation {
@@ -360,14 +364,30 @@ export function usePerpsTPSLForm(
   const handleTakeProfitPercentageChange = useCallback(
     (text: string) => {
       // Allow numbers, decimal point, and plus/minus signs
-      const sanitized = text.replace(/[^0-9.+-]/g, '');
+      // Also handle en-dash (–) and em-dash (—) which might come from typing --
+      const sanitized = text.replace(/[–—]/g, '-').replace(/[^0-9.+-]/g, '');
 
       // Handle sign placement - only allow at the beginning
       let finalValue = sanitized;
       if (sanitized.includes('+') || sanitized.includes('-')) {
-        const sign = sanitized.includes('-') ? '-' : '+';
-        const numberPart = sanitized.replace(/[+-]/g, '');
-        finalValue = sign + ' ' + numberPart;
+        // Remove duplicate consecutive signs but keep the first one
+        // e.g., "++" becomes "+", "--" becomes "-"
+        finalValue = sanitized.replace(/([+-])\1+/g, '$1');
+
+        // Only do mixed sign cleanup if there are actually mixed signs
+        // Check if there are different types of signs in the string
+        const hasPlus = finalValue.includes('+');
+        const hasMinus = finalValue.includes('-');
+        if (hasPlus && hasMinus) {
+          // Mixed signs - keep only the first sign
+          const firstSignMatch = finalValue.match(/[+-]/);
+          if (firstSignMatch) {
+            const sign = firstSignMatch[0];
+            const restOfString = finalValue.substring(1);
+            const numberPart = restOfString.replace(/[+-]/g, '');
+            finalValue = numberPart ? sign + numberPart : sign;
+          }
+        }
       }
 
       // Prevent multiple decimal points
@@ -472,14 +492,29 @@ export function usePerpsTPSLForm(
   const handleStopLossPercentageChange = useCallback(
     (text: string) => {
       // Allow numbers, decimal point, and plus/minus signs
-      const sanitized = text.replace(/[^0-9.+-]/g, '');
+      // Also handle en-dash (–) and em-dash (—) which might come from typing --
+      const sanitized = text.replace(/[–—]/g, '-').replace(/[^0-9.+-]/g, '');
 
       // Handle sign placement - only allow at the beginning
       let finalValue = sanitized;
       if (sanitized.includes('+') || sanitized.includes('-')) {
-        const sign = sanitized.includes('-') ? '-' : '+';
-        const numberPart = sanitized.replace(/[+-]/g, '');
-        finalValue = sign + ' ' + numberPart;
+        // Remove duplicate consecutive signs but keep the first one
+        // e.g., "++" becomes "+", "--" becomes "-"
+        finalValue = sanitized.replace(/([+-])\1+/g, '$1');
+        // Only do mixed sign cleanup if there are actually mixed signs
+        // Check if there are different types of signs in the string
+        const hasPlus = finalValue.includes('+');
+        const hasMinus = finalValue.includes('-');
+        if (hasPlus && hasMinus) {
+          // Mixed signs - keep only the first sign
+          const firstSignMatch = finalValue.match(/[+-]/);
+          if (firstSignMatch) {
+            const sign = firstSignMatch[0];
+            const restOfString = finalValue.substring(1);
+            const numberPart = restOfString.replace(/[+-]/g, '');
+            finalValue = numberPart ? sign + numberPart : sign;
+          }
+        }
       }
 
       // Prevent multiple decimal points
@@ -559,7 +594,21 @@ export function usePerpsTPSLForm(
         },
       );
       if (roePercent && roePercent !== '') {
-        setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
+        const formattedPercent = safeParseRoEPercentage(roePercent);
+        setTakeProfitPercentage(formattedPercent);
+
+        // If percentage was clamped to 0, sync price to match 0% RoE
+        if (formattedPercent === '0') {
+          const zeroRoePrice = calculatePriceForRoE(0, true, {
+            currentPrice,
+            direction: actualDirection,
+            leverage,
+            entryPrice,
+          });
+          if (zeroRoePrice && zeroRoePrice !== takeProfitPrice) {
+            setTakeProfitPrice(zeroRoePrice.toString());
+          }
+        }
       }
     }
   }, [
@@ -630,7 +679,21 @@ export function usePerpsTPSLForm(
         },
       );
       if (roePercent && roePercent !== '') {
-        setStopLossPercentage(safeParseRoEPercentage(roePercent));
+        const formattedPercent = safeParseRoEPercentage(roePercent);
+        setStopLossPercentage(formattedPercent);
+
+        // If percentage was clamped to 0, sync price to match 0% RoE
+        if (formattedPercent === '0') {
+          const zeroRoePrice = calculatePriceForRoE(0, false, {
+            currentPrice,
+            direction: actualDirection,
+            leverage,
+            entryPrice,
+          });
+          if (zeroRoePrice && zeroRoePrice !== stopLossPrice) {
+            setStopLossPrice(zeroRoePrice.toString());
+          }
+        }
       }
     }
   }, [
@@ -789,6 +852,163 @@ export function usePerpsTPSLForm(
     setSlSourceOfTruth(null);
   }, []);
 
+  // Sign setter handlers
+  const handleSetTakeProfitPositive = useCallback(() => {
+    // If input is empty, just add the sign
+    if (!takeProfitPercentage) {
+      setTakeProfitPercentage('+');
+      return;
+    }
+
+    // If input contains only a sign, replace it
+    if (/^[+-]$/.test(takeProfitPercentage.trim())) {
+      setTakeProfitPercentage('+');
+      return;
+    }
+
+    if (!leverage) return;
+
+    const currentValue = parseFloat(
+      takeProfitPercentage.replace(/[^\d.-]/g, ''),
+    );
+    if (isNaN(currentValue)) return;
+
+    const absValue = Math.abs(currentValue);
+    setTakeProfitPercentage(`${absValue}`);
+
+    // Update price to stay in sync
+    const price = calculatePriceForRoE(absValue, true, {
+      currentPrice,
+      direction: actualDirection,
+      leverage,
+      entryPrice,
+    });
+    setTakeProfitPrice(price.toString());
+
+    // Clear button selection since this is manual input
+    setSelectedTpPercentage(null);
+    setTpUsingPercentage(true);
+  }, [
+    takeProfitPercentage,
+    leverage,
+    currentPrice,
+    actualDirection,
+    entryPrice,
+  ]);
+
+  const handleSetTakeProfitNegative = useCallback(() => {
+    // If input is empty, just add the sign
+    if (!takeProfitPercentage) {
+      setTakeProfitPercentage('-');
+      return;
+    }
+
+    // If input contains only a sign, replace it
+    if (/^[+-]$/.test(takeProfitPercentage.trim())) {
+      setTakeProfitPercentage('-');
+      return;
+    }
+
+    if (!leverage) return;
+
+    const currentValue = parseFloat(
+      takeProfitPercentage.replace(/[^\d.-]/g, ''),
+    );
+    if (isNaN(currentValue)) return;
+
+    const absValue = Math.abs(currentValue);
+    setTakeProfitPercentage(`-${absValue}`);
+
+    // Update price to stay in sync
+    const price = calculatePriceForRoE(-absValue, true, {
+      currentPrice,
+      direction: actualDirection,
+      leverage,
+      entryPrice,
+    });
+    setTakeProfitPrice(price.toString());
+
+    // Clear button selection since this is manual input
+    setSelectedTpPercentage(null);
+    setTpUsingPercentage(true);
+  }, [
+    takeProfitPercentage,
+    leverage,
+    currentPrice,
+    actualDirection,
+    entryPrice,
+  ]);
+
+  const handleSetStopLossPositive = useCallback(() => {
+    // If input is empty, just add the sign
+    if (!stopLossPercentage) {
+      setStopLossPercentage('+');
+      return;
+    }
+
+    // If input contains only a sign, replace it
+    if (/^[+-]$/.test(stopLossPercentage.trim())) {
+      setStopLossPercentage('+');
+      return;
+    }
+
+    if (!leverage) return;
+
+    const currentValue = parseFloat(stopLossPercentage.replace(/[^\d.-]/g, ''));
+    if (isNaN(currentValue)) return;
+
+    const absValue = Math.abs(currentValue);
+    setStopLossPercentage(`${absValue}`);
+
+    // Update price to stay in sync
+    const price = calculatePriceForRoE(absValue, false, {
+      currentPrice,
+      direction: actualDirection,
+      leverage,
+      entryPrice,
+    });
+    setStopLossPrice(price.toString());
+
+    // Clear button selection since this is manual input
+    setSelectedSlPercentage(null);
+    setSlUsingPercentage(true);
+  }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
+
+  const handleSetStopLossNegative = useCallback(() => {
+    // If input is empty, just add the sign
+    if (!stopLossPercentage) {
+      setStopLossPercentage('-');
+      return;
+    }
+
+    // If input contains only a sign, replace it
+    if (/^[+-]$/.test(stopLossPercentage.trim())) {
+      setStopLossPercentage('-');
+      return;
+    }
+
+    if (!leverage) return;
+
+    const currentValue = parseFloat(stopLossPercentage.replace(/[^\d.-]/g, ''));
+    if (isNaN(currentValue)) return;
+
+    const absValue = Math.abs(currentValue);
+    setStopLossPercentage(`-${absValue}`);
+
+    // Update price to stay in sync
+    const price = calculatePriceForRoE(-absValue, false, {
+      currentPrice,
+      direction: actualDirection,
+      leverage,
+      entryPrice,
+    });
+    setStopLossPrice(price.toString());
+
+    // Clear button selection since this is manual input
+    setSelectedSlPercentage(null);
+    setSlUsingPercentage(true);
+  }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
+
   // Validation logic
   // Use entryPrice for validation (which is the limit price for limit orders, or current price for market orders)
   // This ensures TP/SL are validated against the price where the order will execute
@@ -891,6 +1111,10 @@ export function usePerpsTPSLForm(
       handleStopLossPercentageButton,
       handleTakeProfitOff,
       handleStopLossOff,
+      handleSetTakeProfitPositive,
+      handleSetTakeProfitNegative,
+      handleSetStopLossPositive,
+      handleSetStopLossNegative,
     },
     validation: {
       isValid,
