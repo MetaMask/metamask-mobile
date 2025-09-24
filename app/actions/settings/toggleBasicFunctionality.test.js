@@ -35,10 +35,10 @@ describe('toggleBasicFunctionality action', () => {
 
     // Verify Redux state is still updated
     expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
-    
+
     // Verify MultichainAccountService was NOT called
     expect(mockSetBasicFunctionality).not.toHaveBeenCalled();
-    
+
     // Verify feature flag was checked
     expect(mockIsMultichainAccountsState2Enabled).toHaveBeenCalled();
   });
@@ -52,10 +52,10 @@ describe('toggleBasicFunctionality action', () => {
 
     // Verify Redux state is updated
     expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
-    
+
     // Verify MultichainAccountService WAS called
     expect(mockSetBasicFunctionality).toHaveBeenCalledWith(true);
-    
+
     // Verify feature flag was checked
     expect(mockIsMultichainAccountsState2Enabled).toHaveBeenCalled();
   });
@@ -63,11 +63,11 @@ describe('toggleBasicFunctionality action', () => {
   it('handles MultichainAccountService errors gracefully when State 2 is enabled', async () => {
     // Mock State 2 as enabled
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-    
+
     // Mock MultichainAccountService to throw an error
     const mockError = new Error('Service error');
     mockSetBasicFunctionality.mockRejectedValue(mockError);
-    
+
     // Spy on console.error
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
@@ -76,10 +76,10 @@ describe('toggleBasicFunctionality action', () => {
 
     // Verify Redux state is still updated despite service error
     expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(false));
-    
+
     // Verify MultichainAccountService was called
     expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
-    
+
     // Verify error was logged
     expect(consoleSpy).toHaveBeenCalledWith(
       'Failed to set basic functionality on MultichainAccountService:',
