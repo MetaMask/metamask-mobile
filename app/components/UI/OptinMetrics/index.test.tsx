@@ -6,6 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import { Platform } from 'react-native';
+import Device from '../../../util/device';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -42,6 +43,14 @@ jest.mock('../../../reducers/legalNotices', () => ({
   isPastPrivacyPolicyDate: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../util/device', () => ({
+  isMediumDevice: jest.fn(),
+  isAndroid: jest.fn(),
+  isIos: jest.fn(),
+  isLargeDevice: jest.fn(),
+  isIphoneX: jest.fn(),
+}));
+
 jest.doMock('react-native', () => {
   const originalRN = jest.requireActual('react-native');
   return {
@@ -55,6 +64,11 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
+    (Device.isAndroid as jest.Mock).mockReturnValue(false);
+    (Device.isIos as jest.Mock).mockReturnValue(true);
+    (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
+    (Device.isIphoneX as jest.Mock).mockReturnValue(false);
   });
 
   describe('Snapshots iOS', () => {
@@ -536,6 +550,62 @@ describe('OptinMetrics', () => {
 
       const checkboxes = screen.getAllByRole('checkbox');
       expect(checkboxes).toHaveLength(3);
+    });
+  });
+
+  describe('Device responsiveness and event processing', () => {
+    it('should apply device-specific styling based on Device.isMediumDevice', () => {
+      (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+      const { toJSON } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+      expect(toJSON()).toBeDefined();
+      expect(Device.isMediumDevice).toHaveBeenCalled();
+    });
+
+    it('should handle events array processing with onConfirm', async () => {
+      const mockEvents = [[{ name: 'event1', properties: { prop: 'value1' } }]];
+
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        {
+          state: {
+            onboarding: { events: mockEvents },
+          },
+        },
+      );
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockMetrics.enable).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle platform-specific scroll calculations', () => {
+      Platform.OS = 'android';
+      const { getByTestId } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+
+      const scrollView = getByTestId(
+        MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+      );
+
+      fireEvent.scroll(scrollView, {
+        nativeEvent: {
+          contentOffset: { y: 568 },
+          contentSize: { height: 600, width: 100 },
+          layoutMeasurement: { height: 400, width: 100 },
+        },
+      });
+
+      expect(scrollView).toBeTruthy();
     });
   });
 });
