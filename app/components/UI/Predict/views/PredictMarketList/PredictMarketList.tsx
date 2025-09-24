@@ -7,7 +7,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { default as React, useState } from 'react';
 import { Pressable, SafeAreaView, View } from 'react-native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,

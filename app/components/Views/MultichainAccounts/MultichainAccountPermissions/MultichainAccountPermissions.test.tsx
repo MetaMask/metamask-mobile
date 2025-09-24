@@ -15,7 +15,7 @@ const mockEvmAccount1Address = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const mockEvmAccount2Address = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 const mockGroupId1 = 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0';
 
-jest.mock('react-native-scrollable-tab-view', () => ({
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   DefaultTabBar: ({ children }: { children: React.ReactNode }) => (

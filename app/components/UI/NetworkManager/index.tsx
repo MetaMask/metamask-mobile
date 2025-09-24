@@ -6,8 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import ScrollableTabView, {
   ChangeTabProperties,
-} from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+} from '@tommasini/react-native-scrollable-tab-view';
+import DefaultTabBar from '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 import { CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 
@@ -171,7 +171,7 @@ const NetworkManager = () => {
   );
 
   const onChangeTab = useCallback(
-    (obj: ChangeTabProperties) => {
+    (obj: typeof ChangeTabProperties) => {
       const isDefaultTab = obj.ref.props.tabLabel === strings('wallet.default');
       const eventType = isDefaultTab
         ? MetaMetricsEvents.ASSET_FILTER_SELECTED

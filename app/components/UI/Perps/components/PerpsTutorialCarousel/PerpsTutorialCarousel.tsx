@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { Image, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -131,7 +131,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
-    ScrollableTabView & { goToPage: (pageNumber: number) => void }
+    typeof ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
   const hasTrackedViewed = useRef(false);
   const hasTrackedStarted = useRef(false);

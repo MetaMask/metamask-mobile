@@ -1,7 +1,7 @@
-diff --git a/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js b/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
+diff --git a/node_modules/@tommasini/react-native-scrollable-tab-view/DefaultTabBar.js b/node_modules/@tommasini/react-native-scrollable-tab-view/DefaultTabBar.js
 index 81a8a70..812c3e6 100644
---- a/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
-+++ b/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
+--- a/node_modules/@tommasini/react-native-scrollable-tab-view/DefaultTabBar.js
++++ b/node_modules/@tommasini/react-native-scrollable-tab-view/DefaultTabBar.js
 @@ -23,6 +23,7 @@ const DefaultTabBar = createReactClass({
      tabStyle: DeprecatedPropTypes.ViewPropTypes.style,
      renderTab: PropTypes.func,
@@ -45,10 +45,10 @@ index 81a8a70..812c3e6 100644
            ]}
          />
        </View>
-diff --git a/node_modules/react-native-scrollable-tab-view/index.js b/node_modules/react-native-scrollable-tab-view/index.js
+diff --git a/node_modules/@tommasini/react-native-scrollable-tab-view/index.js b/node_modules/@tommasini/react-native-scrollable-tab-view/index.js
 index dc9d4f4..4965309 100644
---- a/node_modules/react-native-scrollable-tab-view/index.js
-+++ b/node_modules/react-native-scrollable-tab-view/index.js
+--- a/node_modules/@tommasini/react-native-scrollable-tab-view/index.js
++++ b/node_modules/@tommasini/react-native-scrollable-tab-view/index.js
 @@ -13,17 +13,14 @@ const {
    InteractionManager,
  } = ReactNative;
