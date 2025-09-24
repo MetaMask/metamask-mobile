@@ -154,6 +154,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       tokensList={tokensList}
       pending={pending}
       chainIdToFetchMetadata={selectedDestChainId}
+      scrollResetKey={selectedDestChainId}
     />
   );
 };
