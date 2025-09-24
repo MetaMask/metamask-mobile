@@ -2,13 +2,8 @@ import Engine from '../../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectTokensByChainIdAndAddress } from '../../../../../../selectors/tokensController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { HYPERLIQUID_ASSET_CONFIGS } from '../../../../../UI/Perps/constants/hyperLiquidConfig';
-import { Hex, parseCaipAssetId } from '@metamask/utils';
 import { useAsyncResult } from '../../../../../hooks/useAsyncResult';
-
-export const ARBITRUM_USDC_ADDRESS = parseCaipAssetId(
-  HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet,
-).assetReference.toLowerCase() as Hex;
+import { ARBITRUM_USDC_ADDRESS } from '../../../constants/perps';
 
 const USDC_SYMBOL = 'USDC';
 const USDC_DECIMALS = 6;
@@ -21,7 +16,8 @@ export function usePerpsDepositInit() {
   );
 
   const hasToken = Object.values(tokens).some(
-    (token) => token.address.toLowerCase() === ARBITRUM_USDC_ADDRESS,
+    (token) =>
+      token.address.toLowerCase() === ARBITRUM_USDC_ADDRESS.toLowerCase(),
   );
 
   const { error } = useAsyncResult(async () => {

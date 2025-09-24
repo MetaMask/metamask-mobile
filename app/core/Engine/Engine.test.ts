@@ -45,6 +45,9 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
   selectSmartTransactionsEnabled: jest.fn().mockReturnValue(false),
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
+  selectPendingSmartTransactionsForSelectedAccountGroup: jest
+    .fn()
+    .mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
   ...jest.requireActual('../../selectors/settings'),
@@ -125,6 +128,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('DeFiPositionsController');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
+    expect(engine.context).toHaveProperty('GatorPermissionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -201,6 +205,18 @@ describe('Engine', () => {
         previousAppVersion: '', // This will be managed by the controller
         previousMigrationVersion: 0, // This will be managed by the controller
         currentMigrationVersion,
+      },
+      GatorPermissionsController: {
+        gatorPermissionsMapSerialized: JSON.stringify({
+          'native-token-stream': {},
+          'native-token-periodic': {},
+          'erc20-token-stream': {},
+          'erc20-token-periodic': {},
+          other: {},
+        }),
+        gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
+        isFetchingGatorPermissions: false,
+        isGatorPermissionsEnabled: false,
       },
     };
 

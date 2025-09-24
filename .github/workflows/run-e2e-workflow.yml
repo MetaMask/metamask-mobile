@@ -42,7 +42,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && fromJSON('["ghcr.io/cirruslabs/macos-runner:sequoia", "low-priority"]') || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:sequoia' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
@@ -94,7 +94,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up E2E environment
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config 
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@f932aba72712f44367f89f6e259ea0c8cfedcf68
         with:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
@@ -160,22 +160,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-      - name: Clean environment before tests (iOS only)
-        if: ${{ inputs.platform == 'ios' }}
-        run: |
-          echo "🧹 Cleaning iOS environment before E2E tests..."
-
-          # Clean up lock files (iOS-specific issue)
-          find . -name "*.lock" -type f -delete 2>/dev/null || true
-
-          # Reset iOS simulator
-          xcrun simctl shutdown all 2>/dev/null || true
-          xcrun simctl erase all 2>/dev/null || true
-
-          # Clean any hanging processes
-          pkill -f "Metro\|node\|npm" 2>/dev/null || true
-
-          echo "✅ iOS environment cleaned"
 
       - name: Run E2E tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}

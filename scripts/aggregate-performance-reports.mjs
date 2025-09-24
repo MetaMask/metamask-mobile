@@ -153,7 +153,12 @@ function processTestReport(testReport) {
     testName: testReport.testName,
     steps: testReport.steps || [],
     totalTime: testReport.total,
-    videoURL: testReport.videoURL || null
+    videoURL: testReport.videoURL || null,
+    sessionId: testReport.sessionId || null,
+    device: testReport.device || null,
+    // Include profiling data if available
+    profilingData: testReport.profilingData || null,
+    profilingSummary: testReport.profilingSummary || null
   };
   
   if (testReport.testFailed) {
@@ -185,6 +190,16 @@ function createEmptyReport(outputPath) {
     testsByPlatform: { android: 0, ios: 0 },
     devices: [],
     platformDevices: { Android: [], iOS: [] },
+    profilingStats: {
+      testsWithProfiling: 0,
+      testsWithVideo: 0,
+      profilingCoverage: '0%',
+      totalPerformanceIssues: 0,
+      totalCriticalIssues: 0,
+      avgCpuUsage: '0%',
+      avgMemoryUsage: '0 MB',
+      profilingTestCount: 0
+    },
     metadata: {
       generatedAt: new Date().toISOString(),
       totalReports: 0,
@@ -226,6 +241,16 @@ function createFallbackReport(outputPath, error) {
       testsByPlatform: { android: 0, ios: 0 },
       devices: [],
       platformDevices: { Android: [], iOS: [] },
+      profilingStats: {
+        testsWithProfiling: 0,
+        testsWithVideo: 0,
+        profilingCoverage: '0%',
+        totalPerformanceIssues: 0,
+        totalCriticalIssues: 0,
+        avgCpuUsage: '0%',
+        avgMemoryUsage: '0 MB',
+        profilingTestCount: 0
+      },
       metadata: {
         generatedAt: new Date().toISOString(),
         totalReports: 0,
@@ -254,11 +279,36 @@ function createFallbackReport(outputPath, error) {
 function createSummary(groupedResults) {
   let totalTests = 0;
   const devices = [];
+  let totalTestsWithProfiling = 0;
+  let totalTestsWithVideo = 0;
+  let totalPerformanceIssues = 0;
+  let totalCriticalIssues = 0;
+  let totalCpuUsage = 0;
+  let totalMemoryUsage = 0;
+  let profilingTestCount = 0;
   
   Object.keys(groupedResults).forEach(platform => {
     Object.keys(groupedResults[platform]).forEach(device => {
       devices.push(`${platform}-${device}`);
-      totalTests += groupedResults[platform][device].length;
+      const deviceTests = groupedResults[platform][device];
+      totalTests += deviceTests.length;
+      
+      // Count profiling data across all tests
+      deviceTests.forEach(test => {
+        if (test.profilingData && !test.profilingData.error) {
+          totalTestsWithProfiling++;
+        }
+        if (test.videoURL) {
+          totalTestsWithVideo++;
+        }
+        if (test.profilingSummary && !test.profilingSummary.error) {
+          totalPerformanceIssues += test.profilingSummary.issues || 0;
+          totalCriticalIssues += test.profilingSummary.criticalIssues || 0;
+          totalCpuUsage += test.profilingSummary.cpu?.avg || 0;
+          totalMemoryUsage += test.profilingSummary.memory?.avg || 0;
+          profilingTestCount++;
+        }
+      });
     });
   });
   
@@ -281,12 +331,27 @@ function createSummary(groupedResults) {
     });
   });
   
+  // Calculate profiling averages
+  const avgCpuUsage = profilingTestCount > 0 ? (totalCpuUsage / profilingTestCount).toFixed(2) : 0;
+  const avgMemoryUsage = profilingTestCount > 0 ? (totalMemoryUsage / profilingTestCount).toFixed(2) : 0;
+  const profilingCoverage = totalTests > 0 ? ((totalTestsWithProfiling / totalTests) * 100).toFixed(1) : 0;
+  
   const summary = {
     totalTests,
     platforms,
     testsByPlatform,
     devices: summaryDevices,
     platformDevices,
+    profilingStats: {
+      testsWithProfiling: totalTestsWithProfiling,
+      testsWithVideo: totalTestsWithVideo,
+      profilingCoverage: `${profilingCoverage}%`,
+      totalPerformanceIssues,
+      totalCriticalIssues,
+      avgCpuUsage: `${avgCpuUsage}%`,
+      avgMemoryUsage: `${avgMemoryUsage} MB`,
+      profilingTestCount
+    },
     metadata: {
       generatedAt: new Date().toISOString(),
       totalReports: summaryDevices.length,
@@ -306,6 +371,7 @@ function createSummary(groupedResults) {
   
   return summary;
 }
+
 
 /**
  * Main aggregation function
@@ -453,7 +519,11 @@ function aggregateReports() {
     const summary = createSummary(groupedResults);
     fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
     
+    
     console.log(`✅ Combined report saved: ${summary.totalTests} tests across ${summary.devices.length} device configurations`);
+    console.log(`📊 Profiling data: ${summary.profilingStats.testsWithProfiling} tests with profiling data (${summary.profilingStats.profilingCoverage} coverage)`);
+    console.log(`⚠️ Performance issues: ${summary.profilingStats.totalPerformanceIssues} total, ${summary.profilingStats.totalCriticalIssues} critical`);
+    console.log(`📈 Average CPU: ${summary.profilingStats.avgCpuUsage}, Memory: ${summary.profilingStats.avgMemoryUsage}`);
     console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
     console.log('📋 Aggregated report saved to: appwright/aggregated-reports/aggregated-performance-report.json');
     

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { FlatList, Image, ImageSourcePropType } from 'react-native';
 import {
   Box,
@@ -24,6 +24,12 @@ import swapIllustration from '../../../../../../../images/rewards/rewards-swap.p
 import perpIllustration from '../../../../../../../images/rewards/rewards-trade.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
+import { useSelector } from 'react-redux';
+import { selectIsFirstTimePerpsUser } from '../../../../../Perps/selectors/perpsController';
 
 export enum WayToEarnType {
   SWAPS = 'swaps',
@@ -144,14 +150,35 @@ const getBottomSheetData = (type: WayToEarnType) => {
 
 export const WaysToEarn = () => {
   const navigation = useNavigation();
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+
+  // Use the swap/bridge navigation hook
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.Rewards,
+    sourcePage: 'rewards_overview',
+  });
+
+  const goToPerps = useCallback(() => {
+    let params: Record<string, string> | null = null;
+    if (isFirstTimePerpsUser) {
+      params = {
+        screen: Routes.PERPS.TUTORIAL,
+      };
+    } else {
+      params = {
+        screen: Routes.PERPS.MARKETS,
+      };
+    }
+
+    navigation.navigate(Routes.PERPS.ROOT, params);
+  }, [navigation, isFirstTimePerpsUser]);
 
   const handleCTAPress = async (type: WayToEarnType) => {
     navigation.goBack(); // Close the modal first
-
     if (type === WayToEarnType.SWAPS) {
-      navigation.navigate(Routes.SWAPS);
+      goToSwaps();
     } else if (type === WayToEarnType.PERPS) {
-      navigation.navigate(Routes.PERPS.ROOT);
+      goToPerps();
     }
   };
 
@@ -200,7 +227,7 @@ export const WaysToEarn = () => {
           scrollEnabled={false}
           renderItem={({ item: wayToEarn }) => (
             <ButtonBase
-              twClassName="h-16 px-4 py-4 bg-inherit"
+              twClassName="h-auto px-4 py-4 bg-inherit"
               onPress={() => handleEarningWayPress(wayToEarn)}
             >
               <Box

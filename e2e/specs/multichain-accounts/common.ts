@@ -47,6 +47,7 @@ export const withMultichainAccountDetailsEnabledFixtures = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
+        .ensureMultichainIntroModalSuppressed()
         .build(),
       restartDevice: true,
       testSpecificMock,

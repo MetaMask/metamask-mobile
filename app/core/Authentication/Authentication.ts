@@ -163,9 +163,7 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    if (isMultichainAccountsState2Enabled()) {
-      await this.attemptMultichainAccountWalletDiscovery();
-    } else {
+    if (!isMultichainAccountsState2Enabled()) {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -263,9 +261,7 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    if (isMultichainAccountsState2Enabled()) {
-      await this.attemptMultichainAccountWalletDiscovery();
-    } else {
+    if (!isMultichainAccountsState2Enabled()) {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -680,11 +676,17 @@ class AuthenticationService {
     locked = false,
     navigateToLogin = true,
   } = {}): Promise<void> => {
-    const { KeyringController } = Engine.context;
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
+
+    if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // SeedlessOnboardingController.setLocked() will not throw, it swallow the error in the function
+      await SeedlessOnboardingController.setLocked();
+    }
+
     // async check seedless password outdated skip cache when app lock
     // the function swallowed the error
     this.checkIsSeedlessPasswordOutdated(true);

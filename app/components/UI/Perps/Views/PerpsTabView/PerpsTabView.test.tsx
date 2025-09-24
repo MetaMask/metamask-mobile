@@ -98,6 +98,17 @@ jest.mock('../../hooks', () => ({
 // Mock stream hooks separately since they're imported from different path
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveOrders: jest.fn(() => []),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      availableBalance: '1000.00',
+      totalBalance: '1000.00',
+      marginUsed: '0.00',
+      unrealizedPnl: '0.00',
+      returnOnEquity: '0.00',
+      totalValue: '1000.00',
+    },
+    isInitialLoading: false,
+  })),
 }));
 
 // Mock formatUtils
@@ -258,11 +269,9 @@ describe('PerpsTabView', () => {
   });
 
   describe('Hook Integration', () => {
-    it('should call getAccountState on mount when connected and initialized', () => {
-      const mockGetAccountState = jest.fn();
-      mockUsePerpsTrading.mockReturnValue({
-        getAccountState: mockGetAccountState,
-      });
+    it('should use live account data when component mounts', () => {
+      const mockUsePerpsLiveAccount =
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount;
 
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
@@ -271,14 +280,12 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(mockGetAccountState).toHaveBeenCalled();
+      expect(mockUsePerpsLiveAccount).toHaveBeenCalled();
     });
 
-    it('should not call getAccountState when not connected', () => {
-      const mockGetAccountState = jest.fn();
-      mockUsePerpsTrading.mockReturnValue({
-        getAccountState: mockGetAccountState,
-      });
+    it('should still use live account data even when not connected', () => {
+      const mockUsePerpsLiveAccount =
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount;
 
       mockUsePerpsConnection.mockReturnValue({
         isConnected: false,
@@ -287,14 +294,13 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(mockGetAccountState).not.toHaveBeenCalled();
+      // usePerpsLiveAccount should still be called regardless of connection status
+      expect(mockUsePerpsLiveAccount).toHaveBeenCalled();
     });
 
-    it('should not call getAccountState when not initialized', () => {
-      const mockGetAccountState = jest.fn();
-      mockUsePerpsTrading.mockReturnValue({
-        getAccountState: mockGetAccountState,
-      });
+    it('should still use live account data even when not initialized', () => {
+      const mockUsePerpsLiveAccount =
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount;
 
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
@@ -303,7 +309,8 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(mockGetAccountState).not.toHaveBeenCalled();
+      // usePerpsLiveAccount should still be called regardless of initialization status
+      expect(mockUsePerpsLiveAccount).toHaveBeenCalled();
     });
   });
 
