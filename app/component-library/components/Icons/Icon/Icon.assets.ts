@@ -150,6 +150,7 @@ import mapSVG from './assets/map.svg';
 import menuSVG from './assets/menu.svg';
 import messagequestionSVG from './assets/message-question.svg';
 import messagesSVG from './assets/messages.svg';
+import metamaskfoxoutlineSVG from './assets/metamask-fox-outline.svg';
 import micSVG from './assets/mic.svg';
 import minusboldSVG from './assets/minus-bold.svg';
 import minussquareSVG from './assets/minus-square.svg';
@@ -427,6 +428,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Menu]: menuSVG,
   [IconName.MessageQuestion]: messagequestionSVG,
   [IconName.Messages]: messagesSVG,
+  [IconName.MetamaskFoxOutline]: metamaskfoxoutlineSVG,
   [IconName.Mic]: micSVG,
   [IconName.MinusBold]: minusboldSVG,
   [IconName.MinusSquare]: minussquareSVG,

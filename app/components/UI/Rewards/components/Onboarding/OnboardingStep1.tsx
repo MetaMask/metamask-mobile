@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import step1Img from '../../../../../images/rewards/rewards-onboarding-step1.png';
 import Step1BgImg from '../../../../../images/rewards/rewards-onboarding-step1-bg.svg';
 import { setOnboardingActiveStep } from '../../../../../actions/rewards';
@@ -39,7 +39,7 @@ const OnboardingStep1: React.FC = () => {
 
       <Image
         source={step1Img}
-        style={tw.style('flex-1 max-h-[75%] z-10')}
+        style={tw.style('h-80 z-10')}
         testID="step-1-image"
         resizeMode="contain"
       />
@@ -47,7 +47,7 @@ const OnboardingStep1: React.FC = () => {
   );
 
   const renderStepInfo = () => (
-    <>
+    <Box twClassName="flex-col gap-2 min-h-30">
       <Text variant={TextVariant.HeadingLg} twClassName="text-center">
         {strings('rewards.onboarding.step1_title')}
       </Text>
@@ -57,7 +57,7 @@ const OnboardingStep1: React.FC = () => {
       >
         {strings('rewards.onboarding.step1_description')}
       </Text>
-    </>
+    </Box>
   );
 
   return (

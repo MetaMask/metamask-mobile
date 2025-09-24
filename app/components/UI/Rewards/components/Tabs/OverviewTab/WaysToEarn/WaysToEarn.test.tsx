@@ -4,13 +4,45 @@ import { useNavigation } from '@react-navigation/native';
 import { WaysToEarn, WayToEarnType } from './WaysToEarn';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
+import { SwapBridgeNavigationLocation } from '../../../../../Bridge/hooks/useSwapBridgeNavigation';
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockGoToSwaps = jest.fn();
+let mockIsFirstTimePerpsUser = false;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+// Mock useSwapBridgeNavigation hook
+jest.mock('../../../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
+  SwapBridgeNavigationLocation: {
+    Rewards: 'rewards',
+  },
+  useSwapBridgeNavigation: jest.fn(() => ({
+    goToSwaps: mockGoToSwaps,
+  })),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(
+    () =>
+      // For the isFirstTimePerpsUser selector
+      mockIsFirstTimePerpsUser,
+  ),
+}));
+
+// Mock getNativeAssetForChainId
+jest.mock('@metamask/bridge-controller', () => ({
+  getNativeAssetForChainId: jest.fn(() => ({
+    address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+    symbol: 'ETH',
+    decimals: 18,
+  })),
 }));
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -85,6 +117,7 @@ jest.mock(
 describe('WaysToEarn', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsFirstTimePerpsUser = false;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -197,11 +230,12 @@ describe('WaysToEarn', () => {
 
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SWAPS);
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
-  it('navigates to perps route when perps CTA is pressed', () => {
+  it('navigates to perps tutorial for first-time users', () => {
     // Arrange
+    mockIsFirstTimePerpsUser = true;
     const { getByText } = render(<WaysToEarn />);
     const perpsButton = getByText('Trade Perps');
 
@@ -219,7 +253,34 @@ describe('WaysToEarn', () => {
 
     // Assert
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.TUTORIAL,
+    });
+  });
+
+  it('navigates to perps markets for returning users', () => {
+    // Arrange
+    mockIsFirstTimePerpsUser = false;
+    const { getByText } = render(<WaysToEarn />);
+    const perpsButton = getByText('Trade Perps');
+
+    // Act
+    fireEvent.press(perpsButton);
+
+    // Get the onPress handler from the modal navigation call
+    const modalCall = mockNavigate.mock.calls.find(
+      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+    );
+    const confirmAction = modalCall?.[1]?.confirmAction;
+
+    // Execute the CTA action
+    confirmAction?.onPress();
+
+    // Assert
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKETS,
+    });
   });
 
   it('includes supported networks section in swap modal description', () => {
@@ -246,6 +307,24 @@ describe('WaysToEarn', () => {
       expect(WayToEarnType.SWAPS).toBe('swaps');
       expect(WayToEarnType.PERPS).toBe('perps');
       expect(WayToEarnType.REFERRALS).toBe('referrals');
+    });
+  });
+
+  describe('useSwapBridgeNavigation integration', () => {
+    it('configures the hook with correct parameters', () => {
+      // Import the actual hook module to verify mock calls
+      const { useSwapBridgeNavigation } = jest.requireMock(
+        '../../../../../Bridge/hooks/useSwapBridgeNavigation',
+      );
+
+      // Render the component to trigger the hook
+      render(<WaysToEarn />);
+
+      // Assert the hook was called with correct parameters
+      expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
+        location: SwapBridgeNavigationLocation.Rewards,
+        sourcePage: 'rewards_overview',
+      });
     });
   });
 });
