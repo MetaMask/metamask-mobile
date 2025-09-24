@@ -32,7 +32,7 @@ const mockOrderData = {
     status: 'created',
     orderType: 'buy',
     walletAddress: '0x123...',
-    paymentMethod: 'sepa_bank_transfer',
+    paymentMethod: MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
     paymentDetails: [
       {
         fiatCurrency: 'USD',

@@ -66,7 +66,7 @@ const OrderProcessing = () => {
     navigation.setOptions(
       getDepositNavbarOptions(navigation, { title }, theme),
     );
-  }, [navigation, theme, order?.state, order?.cryptocurrency]);
+  }, [navigation, theme, order?.state]);
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {

@@ -38,11 +38,11 @@ function getDepositAnalyticsPayload(
     amount_source: Number(order.fiatAmount),
     amount_destination: Number(fiatOrder.cryptoAmount),
     exchange_rate: Number(order.exchangeRate),
-    payment_method_id: order.paymentMethod.id,
+    payment_method_id: order?.paymentMethod?.id || '',
     country: selectedRegion?.isoCode || '',
-    chain_id: order.cryptoCurrency.chainId,
-    currency_destination: order.cryptoCurrency.assetId,
-    currency_source: order.fiatCurrency,
+    chain_id: order?.cryptoCurrency?.chainId || '',
+    currency_destination: order?.cryptoCurrency?.assetId || '',
+    currency_source: order?.fiatCurrency || '',
   };
 
   if (fiatOrder.state === FIAT_ORDER_STATES.COMPLETED) {

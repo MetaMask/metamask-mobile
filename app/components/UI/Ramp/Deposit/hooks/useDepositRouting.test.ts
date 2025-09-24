@@ -274,11 +274,7 @@ describe('useDepositRouting', () => {
 
       expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
       expect(mockFetchUserDetails).toHaveBeenCalled();
-      expect(mockCreateOrder).toHaveBeenCalledWith(
-        mockQuote,
-        '0x123',
-        'sepa_bank_transfer',
-      );
+      expect(mockCreateOrder).toHaveBeenCalledWith(mockQuote, '0x123');
 
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
@@ -517,7 +513,6 @@ describe('useDepositRouting', () => {
         quote: mockQuote,
         kycUrl: 'test-kyc-url',
         workFlowRunId: 'test-workflow-run-id',
-        paymentMethodId: 'credit_debit_card',
       });
     });
 
@@ -1007,7 +1002,6 @@ describe('useDepositRouting', () => {
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('VerifyIdentity', {
         quote: mockQuote,
-        paymentMethodId: 'credit_debit_card',
       });
     });
 
@@ -1029,7 +1023,6 @@ describe('useDepositRouting', () => {
           quote: mockQuote,
           sourceUrl: 'test-url',
           workFlowRunId: 'test-workflow-id',
-          paymentMethodId: 'credit_debit_card',
         },
       });
     });

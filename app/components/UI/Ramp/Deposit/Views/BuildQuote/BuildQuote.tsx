@@ -205,6 +205,8 @@ const BuildQuote = () => {
   }, [navigation]);
 
   const handleOnPressContinue = useCallback(async () => {
+    setError(null);
+
     if (!selectedCryptoCurrency || !selectedPaymentMethod) {
       return;
     }
