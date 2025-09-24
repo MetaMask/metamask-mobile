@@ -89,10 +89,10 @@ describe('useAccountInfo', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
+              enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '0.0.0',
+                minimumVersion: '7.0.0',
               },
             },
           },
@@ -126,10 +126,10 @@ describe('useAccountInfo', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
+              enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '0.0.0',
+                minimumVersion: '7.0.0',
               },
             },
           },
@@ -176,10 +176,10 @@ describe('useAccountInfo', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
+              enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '0.0.0',
+                minimumVersion: '7.0.0',
               },
             },
           },
@@ -220,6 +220,7 @@ describe('useAccountInfo', () => {
       },
     );
 
+
     expect(result?.current?.walletName).toEqual('First Wallet');
   });
 
@@ -229,10 +230,10 @@ describe('useAccountInfo', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
+              enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '0.0.0',
+                minimumVersion: '7.0.0',
               },
             },
           },
@@ -304,10 +305,10 @@ describe('useAccountInfo', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
+              enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '0.0.0',
+                minimumVersion: '7.0.0',
               },
             },
           },
@@ -341,10 +342,10 @@ describe('useAccountInfo', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
+              enableMultichainAccountsState2: {
                 enabled: true,
                 featureVersion: '2',
-                minimumVersion: '0.0.0',
+                minimumVersion: '7.0.0',
               },
             },
           },
