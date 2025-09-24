@@ -34,44 +34,54 @@ const scaleVertical = (size: number) => {
 
 const scaleHorizontal = (size: number) => Math.ceil(size * widthScale);
 
-const createStyles = (theme: Theme, isDarkMode: boolean) =>
+const createStyles = (
+  theme: Theme,
+  isDarkMode: boolean,
+  titleFontSize?: number | null,
+  subtitleFontSize?: number | null,
+) =>
   StyleSheet.create({
     pageContainer: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
     },
-    contentContainer: {
+    headerContainer: {
       alignItems: 'center',
       paddingTop: scaleVertical(50),
-      flexGrow: 1,
+      paddingHorizontal: scaleHorizontal(16),
+      minHeight: '35%',
+      maxHeight: '40%',
+    },
+    contentImageContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: scaleHorizontal(20),
+      paddingVertical: scaleVertical(10),
     },
     image: {
-      flexShrink: 1,
-      marginTop: scaleVertical(20),
       width: '100%',
+      height: '100%',
+      resizeMode: 'contain',
+      minWidth: '80%',
+      minHeight: '80%',
     },
     title: {
-      fontSize: scaleFont(47),
-      lineHeight: scaleFont(48),
+      fontSize: titleFontSize || scaleFont(47),
+      lineHeight: titleFontSize ? titleFontSize + 1 : scaleFont(48),
       textAlign: 'center',
       paddingTop: scaleVertical(12),
-      paddingHorizontal: scaleHorizontal(16),
       fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
       ...(Platform.OS === 'ios' ? { fontWeight: '900' } : {}),
     },
     titleDescription: {
       paddingTop: scaleVertical(10),
       paddingHorizontal: scaleHorizontal(8),
-      marginBottom: scaleVertical(16),
       textAlign: 'center',
-      fontSize: scaleFont(16),
+      fontSize: subtitleFontSize || scaleFont(16),
+      lineHeight: subtitleFontSize ? subtitleFontSize + 4 : scaleFont(20),
       fontFamily: 'Geist-Regular',
       fontWeight: '500',
-    },
-    ctas: {
-      flex: 1,
-      width: '100%',
-      paddingHorizontal: scaleHorizontal(30),
     },
     footerContainer: {
       display: 'flex',
