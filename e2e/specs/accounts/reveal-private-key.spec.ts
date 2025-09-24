@@ -9,7 +9,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import { Mockttp } from 'mockttp';
-import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(RegressionAccounts('Account details private key'), () => {
@@ -22,7 +22,7 @@ describe(RegressionAccounts('Account details private key'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      remoteFeatureMultichainAccountsAccountDetails(false),
+      remoteFeatureMultichainAccountsAccountDetailsV2(false),
     );
   };
 
