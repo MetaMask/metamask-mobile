@@ -39,7 +39,7 @@ jobs:
 
 
   regression-confirmations-redesigned-android:
-    name: 'Confirmations Regression (Android) - ${{ matrix.split }}'
+    name: 'Confirmations Redesigned Regression (Android) - ${{ matrix.split }}'
     needs: [build-android-apks]
     strategy:
       matrix:
