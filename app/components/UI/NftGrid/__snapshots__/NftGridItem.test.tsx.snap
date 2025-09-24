@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NftGridItem renders correctly 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+      "padding": 5,
+    }
+  }
+>
+  <TouchableOpacity
+    onLongPress={[Function]}
+    onPress={[Function]}
+    style={
+      {
+        "aspectRatio": 1,
+      }
+    }
+    testID="collectible-Test NFT-456"
+  />
+  Test NFT
+  Test Collection
+</View>
+`;

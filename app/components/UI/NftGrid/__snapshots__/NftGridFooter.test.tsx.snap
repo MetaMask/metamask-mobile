@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NftGridFooter renders correctly without spinner 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flex": 1,
+      "marginBottom": 25,
+      "marginTop": 20,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#686e7d",
+        "fontFamily": "Geist Regular",
+        "fontSize": 14,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+  >
+    Don’t see your NFT?
+  </Text>
+  <TouchableOpacity
+    disabled={false}
+    onPress={[Function]}
+    testID="import-collectible-button"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#4459ff",
+          "fontFamily": "Geist Regular",
+          "fontSize": 14,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Import NFTs
+    </Text>
+  </TouchableOpacity>
+</View>
+`;
