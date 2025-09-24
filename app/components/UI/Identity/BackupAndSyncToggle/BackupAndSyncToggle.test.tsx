@@ -231,4 +231,5 @@ describe('BackupAndSyncToggle', () => {
       },
     });
   });
+
 });
