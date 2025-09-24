@@ -13,6 +13,7 @@ import {
   isValidStopLossPrice,
   isValidTakeProfitPrice,
   safeParseRoEPercentage,
+  sanitizePercentageInput,
   validateTPSLPrices,
 } from '../utils/tpslValidation';
 import type { Position } from '../controllers/types';
@@ -359,43 +360,8 @@ export function usePerpsTPSLForm(
 
   const handleTakeProfitPercentageChange = useCallback(
     (text: string) => {
-      // Allow numbers, decimal point, and plus/minus signs
-      // Also handle en-dash (–) and em-dash (—) which might come from typing --
-      const sanitized = text.replace(/[–—]/g, '-').replace(/[^0-9.+-]/g, '');
-
-      // Handle sign placement - only allow at the beginning
-      let finalValue = sanitized;
-      if (sanitized.includes('+') || sanitized.includes('-')) {
-        // Remove duplicate consecutive signs but keep the first one
-        // e.g., "++" becomes "+", "--" becomes "-"
-        finalValue = sanitized.replace(/([+-])\1+/g, '$1');
-
-        // Only do mixed sign cleanup if there are actually mixed signs
-        // Check if there are different types of signs in the string
-        const hasPlus = finalValue.includes('+');
-        const hasMinus = finalValue.includes('-');
-        if (hasPlus && hasMinus) {
-          // Mixed signs - keep only the first sign
-          const firstSignMatch = finalValue.match(/[+-]/);
-          if (firstSignMatch) {
-            const sign = firstSignMatch[0];
-            const restOfString = finalValue.substring(1);
-            const numberPart = restOfString.replace(/[+-]/g, '');
-            finalValue = numberPart ? sign + numberPart : sign;
-          }
-        }
-      }
-
-      // Prevent multiple decimal points
-      const parts = finalValue.replace(/[+-]/g, '').split('.');
-      if (parts.length > 2) return;
-
-      // Allow erasing but prevent adding when there are more than 5 decimal places
-      if (
-        parts[1]?.length > 5 &&
-        finalValue.length >= takeProfitPercentage.length
-      )
-        return;
+      const finalValue = sanitizePercentageInput(text, takeProfitPercentage, 5);
+      if (finalValue === null) return; // Invalid input, don't update state
 
       setTakeProfitPercentage(finalValue);
 
@@ -430,7 +396,7 @@ export function usePerpsTPSLForm(
       leverage,
       entryPrice,
       tpPriceInputFocused,
-      takeProfitPercentage.length,
+      takeProfitPercentage,
     ],
   );
 
@@ -487,42 +453,8 @@ export function usePerpsTPSLForm(
 
   const handleStopLossPercentageChange = useCallback(
     (text: string) => {
-      // Allow numbers, decimal point, and plus/minus signs
-      // Also handle en-dash (–) and em-dash (—) which might come from typing --
-      const sanitized = text.replace(/[–—]/g, '-').replace(/[^0-9.+-]/g, '');
-
-      // Handle sign placement - only allow at the beginning
-      let finalValue = sanitized;
-      if (sanitized.includes('+') || sanitized.includes('-')) {
-        // Remove duplicate consecutive signs but keep the first one
-        // e.g., "++" becomes "+", "--" becomes "-"
-        finalValue = sanitized.replace(/([+-])\1+/g, '$1');
-        // Only do mixed sign cleanup if there are actually mixed signs
-        // Check if there are different types of signs in the string
-        const hasPlus = finalValue.includes('+');
-        const hasMinus = finalValue.includes('-');
-        if (hasPlus && hasMinus) {
-          // Mixed signs - keep only the first sign
-          const firstSignMatch = finalValue.match(/[+-]/);
-          if (firstSignMatch) {
-            const sign = firstSignMatch[0];
-            const restOfString = finalValue.substring(1);
-            const numberPart = restOfString.replace(/[+-]/g, '');
-            finalValue = numberPart ? sign + numberPart : sign;
-          }
-        }
-      }
-
-      // Prevent multiple decimal points
-      const parts = finalValue.replace(/[+-]/g, '').split('.');
-      if (parts.length > 2) return;
-
-      // Allow erasing but prevent adding when there are more than 5 decimal places
-      if (
-        parts[1]?.length > 5 &&
-        finalValue.length >= stopLossPercentage.length
-      )
-        return;
+      const finalValue = sanitizePercentageInput(text, stopLossPercentage, 5);
+      if (finalValue === null) return; // Invalid input, don't update state
 
       setStopLossPercentage(finalValue);
 
@@ -557,7 +489,7 @@ export function usePerpsTPSLForm(
       leverage,
       entryPrice,
       slPriceInputFocused,
-      stopLossPercentage.length,
+      stopLossPercentage,
     ],
   );
 

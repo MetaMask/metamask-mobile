@@ -486,3 +486,60 @@ export const isValidStopLossPercentage = (
   const maxAllowed = getMaxStopLossPercentage(leverage);
   return percentage <= maxAllowed;
 };
+
+/**
+ * Sanitizes input text for percentage fields by handling signs and decimal points
+ * @param text - Raw input text
+ * @param currentValue - Current field value for length comparison (optional)
+ * @param maxDecimalPlaces - Maximum allowed decimal places (default: 5)
+ * @returns Sanitized text with proper sign and decimal handling, or null if validation fails
+ */
+export const sanitizePercentageInput = (
+  text: string,
+  currentValue?: string,
+  maxDecimalPlaces: number = 5,
+): string | null => {
+  // Allow numbers, decimal point, and plus/minus signs
+  // Also handle en-dash (–) and em-dash (—) which might come from typing --
+  const sanitized = text.replace(/[–—]/g, '-').replace(/[^0-9.+-]/g, '');
+
+  // Handle sign placement - only allow at the beginning
+  let finalValue = sanitized;
+  if (sanitized.includes('+') || sanitized.includes('-')) {
+    // Remove duplicate consecutive signs but keep the first one
+    // e.g., "++" becomes "+", "--" becomes "-"
+    finalValue = sanitized.replace(/([+-])\1+/g, '$1');
+
+    // Only do mixed sign cleanup if there are actually mixed signs
+    // Check if there are different types of signs in the string
+    const hasPlus = finalValue.includes('+');
+    const hasMinus = finalValue.includes('-');
+    if (hasPlus && hasMinus) {
+      // Mixed signs - keep only the first sign
+      const firstSignMatch = finalValue.match(/[+-]/);
+      if (firstSignMatch) {
+        const sign = firstSignMatch[0];
+        const restOfString = finalValue.substring(1);
+        const numberPart = restOfString.replace(/[+-]/g, '');
+        finalValue = numberPart ? sign + numberPart : sign;
+      }
+    }
+  }
+
+  // Prevent multiple decimal points
+  const parts = finalValue.replace(/[+-]/g, '').split('.');
+  if (parts.length > 2) return null; // Return null for invalid input
+
+  // Allow erasing but prevent adding when there are more than maxDecimalPlaces decimal places
+  if (currentValue !== undefined) {
+    const decimalPart = parts[1];
+    if (
+      decimalPart?.length > maxDecimalPlaces &&
+      finalValue.length >= currentValue.length
+    ) {
+      return null; // Return null to prevent the update
+    }
+  }
+
+  return finalValue;
+};

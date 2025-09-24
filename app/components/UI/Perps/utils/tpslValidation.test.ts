@@ -15,6 +15,7 @@ import {
   formatRoEPercentageDisplay,
   getMaxStopLossPercentage,
   isValidStopLossPercentage,
+  sanitizePercentageInput,
 } from './tpslValidation';
 
 describe('TPSL Validation Utilities', () => {
@@ -1372,6 +1373,66 @@ describe('TPSL Validation Utilities', () => {
       expect(formatRoEPercentageDisplay('invalid', false)).toBe('');
       expect(formatRoEPercentageDisplay('++5', true)).toBe(''); // Invalid pattern not preserved
       expect(formatRoEPercentageDisplay('++5', false)).toBe(''); // Clean up when unfocused
+    });
+  });
+
+  describe('sanitizePercentageInput', () => {
+    it('should remove invalid characters', () => {
+      expect(sanitizePercentageInput('abc123def')).toBe('123');
+      expect(sanitizePercentageInput('12.34@#$')).toBe('12.34');
+      expect(sanitizePercentageInput('$%^&*()12.5')).toBe('12.5');
+    });
+
+    it('should handle signs correctly', () => {
+      expect(sanitizePercentageInput('+10.5')).toBe('+10.5');
+      expect(sanitizePercentageInput('-25.75')).toBe('-25.75');
+      expect(sanitizePercentageInput('++10')).toBe('+10');
+      expect(sanitizePercentageInput('--5')).toBe('-5');
+    });
+
+    it('should handle mixed signs by keeping the first one', () => {
+      expect(sanitizePercentageInput('+-10')).toBe('+10');
+      expect(sanitizePercentageInput('-+5')).toBe('-5');
+      expect(sanitizePercentageInput('+--10')).toBe('+10');
+    });
+
+    it('should handle en-dash and em-dash', () => {
+      expect(sanitizePercentageInput('–10')).toBe('-10');
+      expect(sanitizePercentageInput('—25')).toBe('-25');
+      expect(sanitizePercentageInput('––10')).toBe('-10');
+    });
+
+    it('should prevent multiple decimal points', () => {
+      expect(sanitizePercentageInput('10.5.25')).toBe(null);
+      expect(sanitizePercentageInput('1.2.3.4')).toBe(null);
+      expect(sanitizePercentageInput('10.5')).toBe('10.5');
+    });
+
+    it('should handle edge cases', () => {
+      expect(sanitizePercentageInput('.')).toBe('.');
+      expect(sanitizePercentageInput('+')).toBe('+');
+      expect(sanitizePercentageInput('-')).toBe('-');
+      expect(sanitizePercentageInput('')).toBe('');
+    });
+
+    it('should limit decimal places when currentValue is provided', () => {
+      // Should allow up to 5 decimal places by default
+      expect(sanitizePercentageInput('10.12345', '10.1234')).toBe('10.12345');
+
+      // Should prevent adding more than 5 decimal places
+      expect(sanitizePercentageInput('10.123456', '10.12345')).toBe(null);
+
+      // Should allow erasing (shorter length)
+      expect(sanitizePercentageInput('10.1234', '10.12345')).toBe('10.1234');
+
+      // Should work with custom max decimal places
+      expect(sanitizePercentageInput('10.123', '10.12', 2)).toBe(null);
+      expect(sanitizePercentageInput('10.12', '10.1', 2)).toBe('10.12');
+    });
+
+    it('should work without currentValue parameter', () => {
+      // Should not limit decimal places when currentValue is not provided
+      expect(sanitizePercentageInput('10.123456789')).toBe('10.123456789');
     });
   });
 
