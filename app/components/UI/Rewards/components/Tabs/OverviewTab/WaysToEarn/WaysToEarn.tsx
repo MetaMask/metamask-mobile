@@ -186,8 +186,6 @@ export const WaysToEarn = () => {
       case WayToEarnType.LOYALTY:
         navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         break;
-      default:
-        break;
     }
   };
 
