@@ -624,18 +624,17 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               variant={TextVariant.BodySM}
               style={[warningStyles.textStyle, styles.warningText]}
             >
-              {strings('perps.order.leverage_modal.liquidation_warning', {
-                direction:
-                  direction === 'long'
-                    ? strings('perps.order.leverage_modal.drops')
-                    : strings('perps.order.leverage_modal.rises'),
-                percentage:
-                  !isDragging && isCalculating ? (
-                    <Skeleton height={16} width={40} />
-                  ) : (
-                    `${liquidationDropPercentage.toFixed(1)}%`
-                  ),
-              })}
+              {!isDragging && isCalculating ? (
+                <Skeleton height={16} width={200} />
+              ) : (
+                strings('perps.order.leverage_modal.liquidation_warning', {
+                  direction:
+                    direction === 'long'
+                      ? strings('perps.order.leverage_modal.drops')
+                      : strings('perps.order.leverage_modal.rises'),
+                  percentage: `${liquidationDropPercentage.toFixed(1)}%`,
+                })
+              )}
             </Text>
           </View>
         </View>
