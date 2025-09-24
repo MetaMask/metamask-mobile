@@ -1,5 +1,5 @@
 import BN from 'bnjs4';
-import { toHex } from '@metamask/controller-utils';
+import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
 import {
@@ -7,6 +7,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { addHexPrefix } from 'ethereumjs-util';
+import { toHex } from '@metamask/controller-utils';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
@@ -33,6 +34,19 @@ const captureSendStartedEvent = (location: string) => {
       .build(),
   );
 };
+
+export function isValidPositiveNumericString(str: string) {
+  const decimalRegex = /^(\d+(\.\d+)?|\.\d+)$/;
+
+  if (!decimalRegex.test(str)) return false;
+
+  try {
+    const num = new BigNumber(str);
+    return num.isGreaterThanOrEqualTo(new BigNumber(0));
+  } catch {
+    return false;
+  }
+}
 
 export const handleSendPageNavigation = (
   navigate: <RouteName extends string>(
@@ -192,7 +206,7 @@ export function formatToFixedDecimals(
 
     let newValue = `${intPart}.${fracPart}`;
     if (trimTrailingZero) {
-      newValue = newValue.replace(/\.?[0]+$/, '');
+      newValue = newValue.replace(/\.?0+$/, '');
     }
     return newValue.replace(/\.?[.]+$/, '');
   }
@@ -247,16 +261,16 @@ export const getLayer1GasFeeForSend = async ({
   chainId: Hex;
   from: Hex;
   value: string;
-}): Promise<Hex | undefined> => {
+}) => {
   const txParams = {
     chainId,
     from,
     value: fromTokenMinUnits(value, asset.decimals),
   };
-  return (await fetchEstimatedMultiLayerL1Fee(undefined, {
+  return await fetchEstimatedMultiLayerL1Fee(undefined, {
     txParams,
     chainId,
-  })) as Hex | undefined;
+  });
 };
 
 export const convertCurrency = (
