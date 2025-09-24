@@ -177,16 +177,17 @@ jobs:
           export ANDROID_GOOGLE_SERVER_CLIENT_ID="$MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT"
           # --- End of variable remapping ---
 
-          # --- Use the project's own bundling script ---
-          # This is the same script Xcode runs during a full build, ensuring an identical bundle.
-          echo "🔄 Generating new JavaScript bundle using the native build script..."
-          export SENTRY_PROPERTIES=sentry.debug.properties
-          export SENTRY_DISABLE_AUTO_UPLOAD=true
-          export BUNDLE_OUTPUT="build/Build/Products/Release-iphonesimulator/MetaMask.app/main.jsbundle"
-          export SOURCEMAP_OUTPUT="../sourcemaps/ios/index.js.map"
-          
-          # CRITICAL: Change to the 'ios' directory to match Xcode's execution environment
-          cd ios && ../scripts/ios/bundle-js-and-sentry-upload.sh && cd ..
+          # --- Generate the bundle directly ---
+          # We call react-native bundle directly as the project's own scripts are Xcode-only.
+          # The variable remapping above ensures this command creates an identical bundle.
+          echo "🔄 Generating new JavaScript bundle..."
+          yarn react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app/main.jsbundle" \
+            --sourcemap-output "sourcemaps/ios/index.js.map" \
+            --reset-cache
           # --- End of bundling ---
 
           # Verify the app and bundle exist after repack
