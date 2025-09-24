@@ -55,18 +55,26 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
     const mockStrings: Record<string, string> = {
       'rewards.ways_to_earn.title': 'Ways to Earn',
       'rewards.ways_to_earn.swap.title': 'Swap',
-      'rewards.ways_to_earn.swap.points': 'Earn 2+ points per swap',
-      'rewards.ways_to_earn.swap.sheet_description':
+      'rewards.ways_to_earn.swap.description': 'Earn 2+ points per swap',
+      'rewards.ways_to_earn.swap.sheet.description':
         'Earn points when you swap tokens',
-      'rewards.ways_to_earn.swap.cta_label': 'Start Swapping',
+      'rewards.ways_to_earn.swap.sheet.cta_label': 'Start Swapping',
       'rewards.ways_to_earn.perps.title': 'Trade Perps',
-      'rewards.ways_to_earn.perps.points': 'Earn 1+ point per trade',
-      'rewards.ways_to_earn.perps.sheet_title': 'Trade Perps',
-      'rewards.ways_to_earn.perps.sheet_description':
+      'rewards.ways_to_earn.perps.description': 'Earn 1+ point per trade',
+      'rewards.ways_to_earn.perps.sheet.title': 'Trade Perps',
+      'rewards.ways_to_earn.perps.sheet.description':
         'Earn points when you trade perpetuals',
-      'rewards.ways_to_earn.perps.cta_label': 'Start Trading',
+      'rewards.ways_to_earn.perps.sheet.cta_label': 'Start Trading',
       'rewards.ways_to_earn.referrals.title': 'Refer Friends',
-      'rewards.ways_to_earn.referrals.points': 'Earn 10+ points per referral',
+      'rewards.ways_to_earn.referrals.description':
+        'Earn 10+ points per referral',
+      'rewards.ways_to_earn.loyalty.title': 'Loyalty Bonus',
+      'rewards.ways_to_earn.loyalty.description':
+        'Earn points from past trades',
+      'rewards.ways_to_earn.loyalty.sheet.title': 'Loyalty Bonus',
+      'rewards.ways_to_earn.loyalty.sheet.description':
+        'Earn points from past trades',
+      'rewards.ways_to_earn.loyalty.sheet.cta_label': 'Add Accounts',
     };
     return mockStrings[key] || key;
   }),
@@ -141,6 +149,7 @@ describe('WaysToEarn', () => {
     expect(getByText('Swap')).toBeOnTheScreen();
     expect(getByText('Trade Perps')).toBeOnTheScreen();
     expect(getByText('Refer Friends')).toBeOnTheScreen();
+    expect(getByText('Loyalty Bonus')).toBeOnTheScreen();
   });
 
   it('displays correct descriptions for each earning way', () => {
@@ -151,6 +160,7 @@ describe('WaysToEarn', () => {
     expect(getByText('Earn 2+ points per swap')).toBeOnTheScreen();
     expect(getByText('Earn 1+ point per trade')).toBeOnTheScreen();
     expect(getByText('Earn 10+ points per referral')).toBeOnTheScreen();
+    expect(getByText('Earn points from past trades')).toBeOnTheScreen();
   });
 
   it('navigates to referrals when referral item is pressed', () => {
@@ -283,6 +293,70 @@ describe('WaysToEarn', () => {
     });
   });
 
+  it('opens modal for loyalty earning way when pressed', () => {
+    // Arrange
+    const { getByText } = render(<WaysToEarn />);
+    const loyaltyButton = getByText('Loyalty Bonus');
+
+    // Act
+    fireEvent.press(loyaltyButton);
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      expect.objectContaining({
+        type: ModalType.Confirmation,
+        showIcon: false,
+        showCancelButton: false,
+        confirmAction: expect.objectContaining({
+          label: 'Add Accounts',
+          variant: 'Primary',
+        }),
+      }),
+    );
+  });
+
+  it('navigates to rewards settings when loyalty CTA is pressed', () => {
+    // Arrange
+    const { getByText } = render(<WaysToEarn />);
+    const loyaltyButton = getByText('Loyalty Bonus');
+
+    // Act
+    fireEvent.press(loyaltyButton);
+
+    // Get the onPress handler from the modal navigation call
+    const modalCall = mockNavigate.mock.calls.find(
+      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+    );
+    const confirmAction = modalCall?.[1]?.confirmAction;
+
+    // Execute the CTA action
+    confirmAction?.onPress();
+
+    // Assert
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+  });
+
+  it('displays loyalty bonus modal with correct title and description', () => {
+    // Arrange
+    const { getByText } = render(<WaysToEarn />);
+    const loyaltyButton = getByText('Loyalty Bonus');
+
+    // Act
+    fireEvent.press(loyaltyButton);
+
+    // Get the modal navigation call
+    const modalCall = mockNavigate.mock.calls.find(
+      (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+    );
+
+    // Assert
+    expect(modalCall).toBeTruthy();
+    expect(modalCall?.[1]?.title).toBeTruthy();
+    expect(modalCall?.[1]?.description).toBeTruthy();
+  });
+
   it('includes supported networks section in swap modal description', () => {
     // Arrange
     const { getByText } = render(<WaysToEarn />);
@@ -307,6 +381,7 @@ describe('WaysToEarn', () => {
       expect(WayToEarnType.SWAPS).toBe('swaps');
       expect(WayToEarnType.PERPS).toBe('perps');
       expect(WayToEarnType.REFERRALS).toBe('referrals');
+      expect(WayToEarnType.LOYALTY).toBe('loyalty');
     });
   });
 
