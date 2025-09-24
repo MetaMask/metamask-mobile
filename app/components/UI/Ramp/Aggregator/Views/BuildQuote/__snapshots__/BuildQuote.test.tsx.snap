@@ -431,7 +431,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1100,7 +1100,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1769,7 +1769,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -2437,7 +2437,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -3383,7 +3383,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -4051,7 +4051,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -4997,7 +4997,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -5665,7 +5665,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -5823,9 +5823,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         }
                                       }
                                     >
-                                      Account 2
                                        
-                                      (0xC4966...4a756)
+                                      0xC4966...4a756
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -8336,7 +8335,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -9282,7 +9281,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -9950,7 +9949,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -10896,7 +10895,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -11054,9 +11053,8 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         }
                                       }
                                     >
-                                      Account 2
                                        
-                                      (0xC4966...4a756)
+                                      0xC4966...4a756
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -13613,7 +13611,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -13771,9 +13769,8 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         }
                                       }
                                     >
-                                      Account 2
                                        
-                                      (0xC4966...4a756)
+                                      0xC4966...4a756
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
@@ -16310,7 +16307,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -16978,7 +16975,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
