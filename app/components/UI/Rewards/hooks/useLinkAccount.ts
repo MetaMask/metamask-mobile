@@ -1,13 +1,9 @@
-import { useCallback, useState, useContext } from 'react';
+import { useCallback, useState } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import { IconColor } from '../../../../component-library/components/Icons/Icon/Icon.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button/Button.types';
+import useRewardsToast from './useRewardsToast';
 
 interface UseLinkAccountResult {
   linkAccount: (account: InternalAccount) => Promise<boolean>;
@@ -20,7 +16,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { toastRef } = useContext(ToastContext);
+  const { showToast, RewardsToastOptions } = useRewardsToast();
 
   const linkAccount = useCallback(
     async (account: InternalAccount): Promise<boolean> => {
@@ -35,78 +31,31 @@ export const useLinkAccount = (): UseLinkAccountResult => {
         );
 
         if (success) {
-          if (toastRef?.current) {
-            toastRef.current.showToast({
-              variant: ToastVariants.Icon,
-              iconName: IconName.Check,
-              iconColor: IconColor.Success,
-              labelOptions: [
-                {
-                  label: strings(
-                    'rewards.settings.link_account_success_title',
-                    {
-                      accountName: account.metadata.name,
-                    },
-                  ),
-                },
-              ],
-              hasNoTimeout: false,
-              closeButtonOptions: {
-                variant: ButtonVariants.Primary,
-                endIconName: IconName.CircleX,
-                label: strings('rewards.toast_dismiss'),
-                onPress: () => {
-                  toastRef.current?.closeToast();
-                },
-              },
-            });
-          }
+          showToast(
+            RewardsToastOptions.success(
+              strings('rewards.settings.link_account_success_title', {
+                accountName: account.metadata.name,
+              }),
+            ),
+          );
           return true;
         }
 
-        if (toastRef?.current) {
-          toastRef.current.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.CircleX,
-            iconColor: IconColor.Error,
-            labelOptions: [
-              { label: strings('rewards.settings.link_account_error_title') },
-            ],
-            hasNoTimeout: false,
-            closeButtonOptions: {
-              variant: ButtonVariants.Primary,
-              endIconName: IconName.CircleX,
-              label: strings('rewards.toast_dismiss'),
-              onPress: () => {
-                toastRef.current?.closeToast();
-              },
-            },
-          });
-        }
+        showToast(
+          RewardsToastOptions.error(
+            strings('rewards.settings.link_account_error_title'),
+          ),
+        );
 
         setIsError(true);
         setError('Failed to link account');
         return false;
       } catch (err) {
-        if (toastRef?.current) {
-          toastRef.current.showToast({
-            variant: ToastVariants.Icon,
-            iconName: IconName.CircleX,
-            iconColor: IconColor.Error,
-            labelOptions: [
-              { label: strings('rewards.settings.link_account_error_title') },
-            ],
-            hasNoTimeout: false,
-            closeButtonOptions: {
-              variant: ButtonVariants.Primary,
-              endIconName: IconName.CircleX,
-              label: strings('rewards.toast_dismiss'),
-              onPress: () => {
-                toastRef.current?.closeToast();
-              },
-            },
-          });
-        }
+        showToast(
+          RewardsToastOptions.error(
+            strings('rewards.settings.link_account_error_title'),
+          ),
+        );
 
         Logger.log('useLinkAccount: Failed to link account', err);
         setIsError(true);
@@ -116,7 +65,7 @@ export const useLinkAccount = (): UseLinkAccountResult => {
         setIsLoading(false);
       }
     },
-    [toastRef],
+    [RewardsToastOptions, showToast],
   );
 
   return {

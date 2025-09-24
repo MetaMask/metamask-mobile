@@ -523,7 +523,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -2411,7 +2411,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -4299,7 +4299,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -6187,7 +6187,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -8002,7 +8002,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -13524,7 +13524,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -15339,7 +15339,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -24564,7 +24564,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={

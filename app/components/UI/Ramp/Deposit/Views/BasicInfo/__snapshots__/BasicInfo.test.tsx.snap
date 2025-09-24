@@ -523,7 +523,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -3671,7 +3671,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -5249,7 +5249,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -6827,7 +6827,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -8465,7 +8465,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -10088,7 +10088,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
