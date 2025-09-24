@@ -58,6 +58,7 @@ export interface TutorialScreen {
   title: string;
   description: string;
   subtitle?: string;
+  footerText?: string;
   content?: React.ReactNode;
   riveArtboardName?: PERPS_RIVE_ARTBOARD_NAMES;
 }
@@ -68,6 +69,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
       id: 'what_are_perps',
       title: strings('perps.tutorial.what_are_perps.title'),
       description: strings('perps.tutorial.what_are_perps.description'),
+      subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
       content: (
         <Image
           source={Character}
@@ -92,7 +94,6 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
       id: 'choose_leverage',
       title: strings('perps.tutorial.choose_leverage.title'),
       description: strings('perps.tutorial.choose_leverage.description'),
-      subtitle: strings('perps.tutorial.choose_leverage.subtitle'),
       riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
     },
     {
@@ -113,6 +114,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
+    footerText: strings('perps.tutorial.ready_to_trade.footer_text'),
     riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
   };
 
@@ -397,50 +399,63 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <View key={screen.id} style={styles.screenContainer}>
-              {/* Header Section - Fixed height for text content */}
-              <View style={styles.headerSection}>
-                <Text
-                  variant={TextVariant.HeadingMD}
-                  color={TextColor.Default}
-                  style={styles.title}
-                >
-                  {screen.title}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                  style={styles.description}
-                >
-                  {screen.description}
-                </Text>
-                {screen.subtitle && (
+            <>
+              <View key={screen.id} style={styles.screenContainer}>
+                {/* Header Section - Fixed height for text content */}
+                <View style={styles.headerSection}>
+                  <Text
+                    variant={TextVariant.HeadingLG}
+                    color={TextColor.Default}
+                    style={styles.title}
+                  >
+                    {screen.title}
+                  </Text>
                   <Text
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
-                    style={styles.subtitle}
+                    style={styles.description}
                   >
-                    {screen.subtitle}
+                    {screen.description}
+                  </Text>
+                  {screen.subtitle && (
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                      style={styles.subtitle}
+                    >
+                      {screen.subtitle}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Content Section */}
+                <View style={styles.contentSection}>
+                  {screen?.content && screen.content}
+                  {screen?.riveArtboardName && (
+                    <Rive
+                      key={screen.id}
+                      style={styles.animation}
+                      artboardName={screen.riveArtboardName}
+                      source={PerpsOnboardingAnimation}
+                      fit={Fit.FitWidth}
+                      alignment={Alignment.Center}
+                      autoplay
+                    />
+                  )}
+                </View>
+              </View>
+              <View style={styles.footerTextContainer}>
+                {screen.footerText && (
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.footerText}
+                  >
+                    {screen.footerText}
                   </Text>
                 )}
               </View>
-
-              {/* Content Section */}
-              <View style={styles.contentSection}>
-                {screen?.content && screen.content}
-                {screen?.riveArtboardName && (
-                  <Rive
-                    key={screen.id}
-                    style={styles.animation}
-                    artboardName={screen.riveArtboardName}
-                    source={PerpsOnboardingAnimation}
-                    fit={Fit.FitWidth}
-                    alignment={Alignment.Center}
-                    autoplay
-                  />
-                )}
-              </View>
-            </View>
+            </>
           ))}
         </ScrollableTabView>
       </View>

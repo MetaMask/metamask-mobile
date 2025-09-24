@@ -24,6 +24,7 @@ const createStyles = (params: {
     },
     headerSection: {
       height: 160,
+      paddingHorizontal: 8,
       justifyContent: 'flex-start',
       alignItems: 'stretch',
     },
@@ -31,13 +32,13 @@ const createStyles = (params: {
       flex: 1,
     },
     animation: {
-      bottom: 50,
+      bottom: 60,
       flex: 1,
+      minHeight: 350,
     },
     title: {
       textAlign: 'left',
       marginBottom: 6,
-      fontSize: 26,
       lineHeight: 30,
     },
     description: {
@@ -70,7 +71,13 @@ const createStyles = (params: {
     },
     footer: {
       paddingHorizontal: 16,
-      marginVertical: 8,
+      marginTop: 16,
+    },
+    footerTextContainer: {
+      paddingHorizontal: 16,
+    },
+    footerText: {
+      textAlign: 'center',
     },
     fundsInfoText: {
       textAlign: 'center',
