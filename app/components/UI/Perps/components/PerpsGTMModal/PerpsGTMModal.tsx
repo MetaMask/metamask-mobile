@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, SafeAreaView, View, useColorScheme } from 'react-native';
-
+import { Image, View, useColorScheme } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
