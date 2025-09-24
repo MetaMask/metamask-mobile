@@ -63,7 +63,7 @@ export const useSeasonStatus = (): void => {
   }, [dispatch, subscriptionId]);
 
   useEffect(() => {
-    if (!seasonStatusError) return;
+    if (!seasonStatusError || !subscriptionId) return;
 
     // Show modal when no existing data
     navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
@@ -84,7 +84,13 @@ export const useSeasonStatus = (): void => {
       showCancelButton: true,
       cancelLabel: strings('rewards.season_status_error.dismiss_button'),
     });
-  }, [seasonStatusError, fetchSeasonStatus, navigation, dispatch]);
+  }, [
+    seasonStatusError,
+    fetchSeasonStatus,
+    navigation,
+    dispatch,
+    subscriptionId,
+  ]);
 
   // Refresh data when screen comes into focus (each time page is visited)
   useFocusEffect(
