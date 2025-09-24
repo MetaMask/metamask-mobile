@@ -46,7 +46,7 @@ jobs:
       - name: Enable Corepack and setup Yarn
         run: |
           corepack enable
-          corepack prepare yarn@1.22.22 --activate
+          corepack prepare yarn@3.8.7 --activate
 
       - name: Install JavaScript dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -56,15 +56,10 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --frozen-lockfile
+          command: yarn install --immutable
 
-      - name: Install Detox CLI with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn global add detox-cli
+      - name: Verify Detox CLI
+        run: yarn detox --version
 
       - name: Setup Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.2.app

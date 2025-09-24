@@ -403,7 +403,15 @@ exports[`Regions View renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -736,7 +744,7 @@ exports[`Regions View renders correctly 1`] = `
                         <View />
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1152,7 +1160,15 @@ exports[`Regions View renders correctly while loading 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1338,7 +1354,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1754,7 +1770,15 @@ exports[`Regions View renders correctly with error 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1976,7 +2000,7 @@ exports[`Regions View renders correctly with error 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2392,7 +2416,15 @@ exports[`Regions View renders correctly with no data 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2578,7 +2610,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2994,7 +3026,15 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3216,7 +3256,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3632,7 +3672,15 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3963,7 +4011,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         <View />
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -4379,7 +4427,15 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -5110,7 +5166,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         </View>
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -5526,7 +5582,15 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -6257,7 +6321,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                         </View>
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -6673,7 +6737,15 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -7152,7 +7224,15 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                 swipeDirection="down"
                                 swipeThreshold={100}
                               >
-                                <RCTSafeAreaView
+                                <RNCSafeAreaView
+                                  edges={
+                                    {
+                                      "bottom": "additive",
+                                      "left": "additive",
+                                      "right": "additive",
+                                      "top": "additive",
+                                    }
+                                  }
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
@@ -7188,7 +7268,15 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       }
                                     />
                                   </View>
-                                  <RCTSafeAreaView
+                                  <RNCSafeAreaView
+                                    edges={
+                                      {
+                                        "bottom": "additive",
+                                        "left": "additive",
+                                        "right": "additive",
+                                        "top": "off",
+                                      }
+                                    }
                                     style={
                                       {
                                         "flex": 1,
@@ -7711,15 +7799,15 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         </View>
                                       </View>
                                     </View>
-                                  </RCTSafeAreaView>
+                                  </RNCSafeAreaView>
                                   <View />
-                                </RCTSafeAreaView>
+                                </RNCSafeAreaView>
                               </View>
                             </View>
                           </Modal>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

@@ -8,6 +8,7 @@ import {
 import Engine from '../../../../core/Engine';
 import type { SubscriptionReferralDetailsState } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useFocusEffect } from '@react-navigation/native';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 export const useReferralDetails = (): null => {
   const dispatch = useDispatch();
@@ -51,6 +52,16 @@ export const useReferralDetails = (): null => {
     useCallback(() => {
       fetchReferralDetails();
     }, [fetchReferralDetails]),
+  );
+
+  // Listen for events that should trigger a refetch of referral details
+  useInvalidateByRewardEvents(
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:balanceUpdated',
+    ],
+    fetchReferralDetails,
   );
 
   return null;
