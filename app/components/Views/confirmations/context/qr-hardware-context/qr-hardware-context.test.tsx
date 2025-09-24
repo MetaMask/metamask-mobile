@@ -37,6 +37,8 @@ jest.mock('../../../../../core/Engine', () => ({
   getQrKeyringScanner: jest.fn(() => mockQrScanner),
 }));
 
+jest.mock('../../hooks/gas/useGasFeeToken');
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
