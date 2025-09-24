@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../component-library/hooks';
@@ -14,8 +14,8 @@ import styleSheet from '../DefaultSettings/index.styles';
 
 const SecuritySettings = () => {
   const { styles } = useStyles(styleSheet, {});
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const { isEnabled } = useMetrics();
+  const analyticsEnabled = isEnabled();
 
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
@@ -23,10 +23,6 @@ const SecuritySettings = () => {
     SEEDLESS_ONBOARDING_ENABLED && isSocialLogin;
 
   useOnboardingHeader(strings('default_settings.drawer_security_title'));
-
-  useEffect(() => {
-    setAnalyticsEnabled(isEnabled());
-  }, [isEnabled]);
 
   return (
     <ScrollView style={styles.root}>
