@@ -17035,16 +17035,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.0.0":
-  version: 18.19.125
-  resolution: "@types/node@npm:18.19.125"
-  dependencies:
-    undici-types: ~5.26.4
-  checksum: b05252814da510f2d520569f7296a78a7beec6fc2d4dae4779b6596d70e3138cfaac79c6854a5f845a13a9cfb4374c3445ba3dda70ca6b46ef270a0ac7d70b36
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.11.18":
+"@types/node@npm:^18.0.0, @types/node@npm:^18.11.18":
   version: 18.19.127
   resolution: "@types/node@npm:18.19.127"
   dependencies:
@@ -22600,17 +22591,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^5.1.2":
+"chalk@npm:^5.1.2, chalk@npm:^5.3.0, chalk@npm:^5.4.1":
   version: 5.6.2
   resolution: "chalk@npm:5.6.2"
   checksum: 4ee2d47a626d79ca27cb5299ecdcce840ef5755e287412536522344db0fc51ca0f6d6433202332c29e2288c6a90a2b31f3bd626bc8c14743b6b6ee28abd3b796
-  languageName: node
-  linkType: hard
-
-"chalk@npm:^5.3.0, chalk@npm:^5.4.1":
-  version: 5.6.0
-  resolution: "chalk@npm:5.6.0"
-  checksum: 245d4b53c29c88da9e291f318c86b6b3ee65aa81568f9e10fafc984a6ef520412dee513057d07cc0f4614ab5a46cb07a0394fab3794d88d48c89c17b2d8fbf7f
   languageName: node
   linkType: hard
 
@@ -24786,14 +24770,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"detect-libc@npm:^2.0.0, detect-libc@npm:^2.0.2, detect-libc@npm:^2.0.4":
-  version: 2.1.0
-  resolution: "detect-libc@npm:2.1.0"
-  checksum: a6430901d590bacc622e4304b9510fa99f5f8e71be7b5272d5dd03e07f361b9b5452da3416a8215125575946ec3c97c82bd6c51937a3923ab33405481a70e9ae
-  languageName: node
-  linkType: hard
-
-"detect-libc@npm:^2.0.3":
+"detect-libc@npm:^2.0.0, detect-libc@npm:^2.0.2, detect-libc@npm:^2.0.3, detect-libc@npm:^2.0.4":
   version: 2.1.1
   resolution: "detect-libc@npm:2.1.1"
   checksum: fcda34a75f08a7f7857f469999b2cd76a2cb7bd591be4d069c63c4c6c2928c9bae2c82d4bfe8676920ce1acecf2cc1a6ef699b57a9456051e1eb0c770b19bb0d
