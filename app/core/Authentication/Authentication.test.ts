@@ -995,6 +995,7 @@ describe('Authentication', () => {
         exportEncryptionKey: jest.fn(),
         storeKeyringEncryptionKey: jest.fn(),
         updateBackupMetadataState: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
       };
       Engine.context.KeyringController.state.keyrings = [
         { metadata: { id: 'test-keyring' } },
@@ -1030,6 +1031,7 @@ describe('Authentication', () => {
           .fn()
           .mockRejectedValue(new Error('Backup failed')),
         clearState: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
       };
       Engine.context.KeyringController.state.keyrings = [
         { metadata: { id: 'test-keyring' } },
@@ -1184,6 +1186,7 @@ describe('Authentication', () => {
         loadKeyringEncryptionKey: jest.fn(),
         submitGlobalPassword: jest.fn(),
         checkIsPasswordOutdated: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
         setLocked: jest.fn(),
@@ -1591,6 +1594,7 @@ describe('Authentication', () => {
         submitGlobalPassword: jest.fn(),
         fetchAllSecretData: jest.fn(),
         revokeRefreshToken: jest.fn().mockResolvedValue(undefined),
+        setLocked: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       jest.spyOn(Authentication, 'resetPassword');
@@ -1907,6 +1911,11 @@ describe('Authentication', () => {
       await expect(
         Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
       ).rejects.toThrow('change password failed');
+
+      // expect SeedlessOnboardingController.setLocked to be called
+      expect(
+        Engine.context.SeedlessOnboardingController.setLocked,
+      ).toHaveBeenCalled();
 
       expect(Authentication.lockApp).toHaveBeenCalledWith({ locked: true });
     });
