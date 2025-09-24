@@ -2379,51 +2379,51 @@ workflows:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
       - save-gradle-cache@1: {}
-      - script@1:
-          title: Rename release files
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
+      # - script@1:
+      #     title: Rename release files
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           set -ex
 
-                # Set base paths for release builds
-                if [ "$IS_DEV_BUILD" = "true" ]; then
-                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
-                else
-                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
-                    BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
-                fi
+      #           # Set base paths for release builds
+      #           if [ "$IS_DEV_BUILD" = "true" ]; then
+      #               APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
+      #           else
+      #               APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
+      #               BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
+      #           fi
 
-                # Generate new names based on build type and version
-                if [ -n "$COMMAND_YARN" ]; then
-                  NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$COMMAND_YARN" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
-                else
-                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
-                fi
+      #           # Generate new names based on build type and version
+      #           if [ -n "$COMMAND_YARN" ]; then
+      #             NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$COMMAND_YARN" | sed 's/:/-/g')"
+      #             NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
+      #           else
+      #             NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
+      #           fi
 
-                # Rename APK
-                if [ "$IS_DEV_BUILD" = "true" ]; then
-                    OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
-                    OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-debug.aab"
-                else
-                    OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
-                    OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
-                fi
+      #           # Rename APK
+      #           if [ "$IS_DEV_BUILD" = "true" ]; then
+      #               OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
+      #               OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-debug.aab"
+      #           else
+      #               OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+      #               OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
+      #           fi
 
-                NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
-                cp "$OLD_APK" "$NEW_APK"
+      #           NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
+      #           cp "$OLD_APK" "$NEW_APK"
 
-                # Rename AAB
-                if [ -n "$BUNDLE_DIR" ]; then
-                    NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
-                    cp "$OLD_AAB" "$NEW_AAB"
-                fi
+      #           # Rename AAB
+      #           if [ -n "$BUNDLE_DIR" ]; then
+      #               NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
+      #               cp "$OLD_AAB" "$NEW_AAB"
+      #           fi
 
-                # Export new names as environment variables
-                envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
-                envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
-                envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
+      #           # Export new names as environment variables
+      #           envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
+      #           envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
+      #           envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
