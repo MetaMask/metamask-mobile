@@ -5038,9 +5038,9 @@
   integrity sha512-xFz/L5/2tjduzIUj+86P63ACExD2icbrDeJzB6nfjhZ4GsfIcOHSm1Rwc5q945Ef88eVwMpqZhMv19i9K0dWmA==
 
 "@metamask/bridge-controller@^43.2.0":
-  version "43.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-43.2.0.tgz#a9bc4f131c0790789fcfa1ee9b071bc2fdf79ff8"
-  integrity sha512-FtsavADLXWhPrOKx0r7T89EV4Fpu0XCj+kPGHB5pjCoVd086zbTN9FF4IXgclqjuL0x4GEWjzKXdfOIryWyO+g==
+  version "43.2.1"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-43.2.1.tgz#a2394832729a4c2f77f54cab3c2b01e2252cc5ef"
+  integrity sha512-o9X/4l9bJT9hFE1Pd/bwqYG9/QVMCe3mlLv2BVRvK84Ua0goZYfbzngxjivC3hr+Dm2+4E5qWVz293wLFlcwNw==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -6380,6 +6380,23 @@
   version "11.8.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.8.0.tgz#0d1f1b4097fa3645258cb397a9256e2c54b5c164"
   integrity sha512-EJqiuvVBAjV1vd1kBhmVmRtGfadrBfY3ImcAMjl+8MSSByTB3VNwvlIBLQdp+TwdAomUdenJCx2BvOSQykm8Hg==
+  dependencies:
+    "@ethereumjs/tx" "^4.2.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@noble/hashes" "^1.3.1"
+    "@scure/base" "^1.1.3"
+    "@types/debug" "^4.1.7"
+    "@types/lodash" "^4.17.20"
+    debug "^4.3.4"
+    lodash "^4.17.21"
+    pony-cause "^2.1.10"
+    semver "^7.5.4"
+    uuid "^9.0.1"
+
+"@metamask/utils@^11.8.1":
+  version "11.8.1"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.8.1.tgz#27b5f1629ba2215269174a4450fc6949872f7279"
+  integrity sha512-DIbsNUyqWLFgqJlZxi1OOCMYvI23GqFCvNJAtzv8/WXWzJfnJnvp1M24j7VvUe3URBi3S86UgQ7+7aWU9p/cnQ==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"
