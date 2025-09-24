@@ -251,6 +251,8 @@ const RewardsClaimBottomSheetModal = ({
     if (showInput) {
       return (
         <TextField
+          textAlignVertical="center"
+          textAlign="left"
           placeholder={inputPlaceholder}
           onChangeText={setInputValue}
           value={inputValue}

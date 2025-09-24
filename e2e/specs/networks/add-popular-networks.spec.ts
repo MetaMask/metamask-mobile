@@ -35,7 +35,7 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
 
           await WalletView.tapTokenNetworkFilter();
           await Assertions.expectElementToBeVisible(
-            NetworkListModal.networkMultiSelectorContainer,
+            NetworkListModal.popularNetworksContainer,
           );
 
           await NetworkListModal.tapNetworkMenuButton('Arbitrum One');
