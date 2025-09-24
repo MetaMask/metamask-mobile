@@ -5724,6 +5724,7 @@
     "toast_dismiss": "Dismiss",
 
     "events": {
+      "to": "to",
       "type": {
         "swap": "Swap",
         "perps": "Perps",
@@ -5856,7 +5857,6 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
-      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Refer a friend",
         "share_referral_subject": "Join MetaMask Rewards"
@@ -5907,6 +5907,8 @@
     "summary_title": {
       "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
+      "bridge_approval_loading": "Approve",
+      "bridge_loading": "Bridge",
       "default": "Transaction",
       "perps_deposit": "Add funds",
       "swap": "Swap tokens",

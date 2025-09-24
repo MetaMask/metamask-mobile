@@ -295,7 +295,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(metaMetricsSwitch.props.value).toBe(true);
           expect(marketingSwitch.props.value).toBe(false);
           expect(mockMetrics.enable).toHaveBeenCalledWith();
-          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalledWith();
+          expect(mockMetrics.enableSocialLogin).not.toHaveBeenCalled();
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
             deviceProp: 'Device value',
