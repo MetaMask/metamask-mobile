@@ -136,7 +136,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SendScreen.clickOnAccountByName('Account 3');
   timer5.start();
   //await SendScreen.clickOnReviewButton();
-  await ConfirmationScreen.isVisible(20000);
+  await ConfirmationScreen.isVisible('Solana', 20000);
   timer5.stop();
 
   performanceTracker.addTimer(timer1);

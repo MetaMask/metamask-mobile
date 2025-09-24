@@ -53,8 +53,8 @@ class ConfirmationScreen {
     //await confirmButton.tap();
   }
 
-  async isVisible(timeout = 10000) {
-    const titleElement = await AppwrightSelectors.getElementByCatchAll(this._device, 'Transaction request');
+  async isVisible(network, timeout = 10000) {
+    const titleElement = await AppwrightSelectors.getElementByCatchAll(this._device, network === 'Solana' ? 'Transaction request' : 'Review');
     await appwrightExpect(titleElement).toBeVisible({ timeout });
   }
 }

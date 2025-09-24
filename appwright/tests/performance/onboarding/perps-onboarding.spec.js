@@ -51,7 +51,7 @@ test('Perps onboarding + add funds 10 USD ARB.USDC', async ({
   await screensSetup(device);
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_1, 120000);
-  await TabBarModal.tapActionButton();
+  await TabBarModal.tapTradeButton();
 
   // Open Perps tab
   await TimerHelper.withTimer(
