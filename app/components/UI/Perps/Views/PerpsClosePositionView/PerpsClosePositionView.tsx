@@ -70,6 +70,7 @@ import ListItemColumn, {
 } from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import RewardPointsDisplay from '../../components/RewardPointsDisplay';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -559,6 +560,38 @@ const PerpsClosePositionView: React.FC = () => {
           </Text>
         </View>
       </View>
+
+      {/* Rewards Points Estimation */}
+      {rewardsState.shouldShowRewardsRow && (
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryLabel}>
+            <TouchableOpacity
+              onPress={() => handleTooltipPress('points')}
+              style={styles.labelWithTooltip}
+              testID={PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON}
+            >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('perps.points')}
+              </Text>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.Muted}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.summaryValue}>
+            <RewardPointsDisplay
+              estimatedPoints={rewardsState.estimatedPoints}
+              bonusBips={rewardsState.bonusBips}
+              isLoading={rewardsState.isLoading}
+              hasError={rewardsState.hasError}
+              shouldShow={rewardsState.shouldShowRewardsRow}
+              isRefresh={rewardsState.isRefresh}
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 
