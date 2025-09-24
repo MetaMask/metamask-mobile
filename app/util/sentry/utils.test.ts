@@ -96,14 +96,14 @@ describe('deriveSentryEnvironment', () => {
     const METAMASK_ENVIRONMENT = 'dev';
 
     const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT);
-    expect(env).toBe('dev');
+    expect(env).toBe('development');
   });
 
-  it('returns dev for non-dev with both undefined environment and build type', async () => {
+  it('returns development for non-dev with both undefined environment and build type', async () => {
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev);
-    expect(env).toBe('dev');
+    expect(env).toBe('development');
   });
 
   it('returns production for non-dev production environment and undefined  build type', async () => {
@@ -114,14 +114,14 @@ describe('deriveSentryEnvironment', () => {
     expect(env).toBe('production');
   });
 
-  it('returns dev for dev environment', async () => {
+  it('returns development for dev environment', async () => {
     const isDev = true;
 
     const env = deriveSentryEnvironment(isDev, '', '');
-    expect(env).toBe('dev');
+    expect(env).toBe('development');
   });
 
-  it('returns dev for dev environment regardless of environment and build type', async () => {
+  it('returns development for dev environment regardless of environment and build type', async () => {
     const isDev = true;
     const METAMASK_ENVIRONMENT = 'production';
     const METAMASK_BUILD_TYPE = 'flask';
@@ -131,7 +131,7 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe('dev');
+    expect(env).toBe('development');
   });
 
   it('returns main-rc for rc environment and main build type', async () => {
