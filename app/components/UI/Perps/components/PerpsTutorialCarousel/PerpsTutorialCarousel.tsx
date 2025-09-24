@@ -44,6 +44,7 @@ import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
+import { createFontScaleHandler } from '../../utils/textUtils';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   SHORT_LONG = '01_Short_Long',
@@ -58,6 +59,7 @@ export interface TutorialScreen {
   title: string;
   description: string;
   subtitle?: string;
+  footerText?: string;
   content?: React.ReactNode;
   riveArtboardName?: PERPS_RIVE_ARTBOARD_NAMES;
 }
@@ -68,6 +70,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
       id: 'what_are_perps',
       title: strings('perps.tutorial.what_are_perps.title'),
       description: strings('perps.tutorial.what_are_perps.description'),
+      subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
       content: (
         <Image
           source={Character}
@@ -92,7 +95,6 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
       id: 'choose_leverage',
       title: strings('perps.tutorial.choose_leverage.title'),
       description: strings('perps.tutorial.choose_leverage.description'),
-      subtitle: strings('perps.tutorial.choose_leverage.subtitle'),
       riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
     },
     {
@@ -113,6 +115,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
+    footerText: strings('perps.tutorial.ready_to_trade.footer_text'),
     riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
   };
 
@@ -130,6 +133,13 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
+
+  // Font scaling state
+  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
+  const [descriptionFontSize, setDescriptionFontSize] = useState<number | null>(
+    null,
+  );
+  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
   const scrollableTabViewRef = useRef<
     typeof ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
@@ -162,6 +172,34 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
+    titleFontSize,
+    descriptionFontSize,
+    subtitleFontSize,
+  });
+
+  // Create font scale handlers with height constraints for 160px headerSection
+  const handleTitleLayout = createFontScaleHandler({
+    maxHeight: 60,
+    currentFontSize: styles.title.fontSize || 24,
+    setter: setTitleFontSize,
+    minFontSize: 20,
+    currentValue: titleFontSize,
+  });
+
+  const handleDescriptionLayout = createFontScaleHandler({
+    maxHeight: 50,
+    currentFontSize: styles.description.fontSize || 16,
+    setter: setDescriptionFontSize,
+    minFontSize: 16,
+    currentValue: descriptionFontSize,
+  });
+
+  const handleSubtitleLayout = createFontScaleHandler({
+    maxHeight: 40,
+    currentFontSize: styles.subtitle.fontSize || 16,
+    setter: setSubtitleFontSize,
+    minFontSize: 16,
+    currentValue: subtitleFontSize,
   });
 
   const PerpsOnboardingAnimation = useMemo(
@@ -397,50 +435,66 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <View key={screen.id} style={styles.screenContainer}>
-              {/* Header Section - Fixed height for text content */}
-              <View style={styles.headerSection}>
-                <Text
-                  variant={TextVariant.HeadingMD}
-                  color={TextColor.Default}
-                  style={styles.title}
-                >
-                  {screen.title}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                  style={styles.description}
-                >
-                  {screen.description}
-                </Text>
-                {screen.subtitle && (
+            <>
+              <View key={screen.id} style={styles.screenContainer}>
+                {/* Header Section - Fixed height for text content */}
+                <View style={styles.headerSection}>
+                  <Text
+                    variant={TextVariant.HeadingLG}
+                    color={TextColor.Default}
+                    style={styles.title}
+                    onLayout={handleTitleLayout}
+                  >
+                    {screen.title}
+                  </Text>
                   <Text
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
-                    style={styles.subtitle}
+                    style={styles.description}
+                    onLayout={handleDescriptionLayout}
                   >
-                    {screen.subtitle}
+                    {screen.description}
+                  </Text>
+                  {screen.subtitle && (
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                      style={styles.subtitle}
+                      onLayout={handleSubtitleLayout}
+                    >
+                      {screen.subtitle}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Content Section */}
+                <View style={styles.contentSection}>
+                  {screen?.content && screen.content}
+                  {screen?.riveArtboardName && (
+                    <Rive
+                      key={screen.id}
+                      style={styles.animation}
+                      artboardName={screen.riveArtboardName}
+                      source={PerpsOnboardingAnimation}
+                      fit={Fit.FitWidth}
+                      alignment={Alignment.Center}
+                      autoplay
+                    />
+                  )}
+                </View>
+              </View>
+              <View style={styles.footerTextContainer}>
+                {screen.footerText && (
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.footerText}
+                  >
+                    {screen.footerText}
                   </Text>
                 )}
               </View>
-
-              {/* Content Section */}
-              <View style={styles.contentSection}>
-                {screen?.content && screen.content}
-                {screen?.riveArtboardName && (
-                  <Rive
-                    key={screen.id}
-                    style={styles.animation}
-                    artboardName={screen.riveArtboardName}
-                    source={PerpsOnboardingAnimation}
-                    fit={Fit.FitWidth}
-                    alignment={Alignment.Center}
-                    autoplay
-                  />
-                )}
-              </View>
-            </View>
+            </>
           ))}
         </ScrollableTabView>
       </View>
