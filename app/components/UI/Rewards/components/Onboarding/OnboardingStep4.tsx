@@ -96,7 +96,7 @@ const OnboardingStep4: React.FC = () => {
               size={TextFieldSize.Lg}
               style={tw.style(
                 'bg-background-pressed',
-                !!referralCode &&
+                referralCode.length >= 6 &&
                   !referralCodeIsValid &&
                   !isValidatingReferralCode
                   ? 'border-error-default'
@@ -111,7 +111,7 @@ const OnboardingStep4: React.FC = () => {
                     size={IconSize.Lg}
                     color={IconColor.SuccessDefault}
                   />
-                ) : referralCode ? (
+                ) : referralCode.length >= 6 ? (
                   <Icon
                     name={IconName.Error}
                     size={IconSize.Lg}
@@ -123,7 +123,7 @@ const OnboardingStep4: React.FC = () => {
               }
               isError={!referralCodeIsValid}
             />
-            {!!referralCode &&
+            {referralCode.length >= 6 &&
               !referralCodeIsValid &&
               !isValidatingReferralCode && (
                 <Text twClassName="text-error-default">

@@ -67,6 +67,13 @@ export const useValidateReferralCode = (
   const setReferralCode = useCallback(
     (code: string) => {
       setReferralCodeState(code);
+      // If not at minLength, do NOT validate; keep referral code state but clear error/validating state
+      if (code.length < 6) {
+        debouncedValidation.cancel();
+        setIsValidating(false);
+        setError('minLength 6 characters');
+        return;
+      }
       if (code.trim()) {
         setIsValidating(true);
       }
