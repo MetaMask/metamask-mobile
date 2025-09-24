@@ -1,7 +1,4 @@
-# Dynamic AI Smart E2E Test Selection
-# Analyzes code changes and dynamically generates test jobs for selected tags
-
-name: Smart E2E AI Selection
+name: AI E2E Selection
 
 on:
   pull_request:
@@ -45,7 +42,7 @@ jobs:
   analyze-and-plan:
     name: 'AI Analysis & Test Planning'
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'smart-e2e') || contains(github.event.pull_request.labels.*.name, 'smart-e2e-android') || contains(github.event.pull_request.labels.*.name, 'smart-e2e-ios')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ai-e2e') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-ios')
     outputs:
       selected-tags: ${{ steps.ai-analysis.outputs.tags }}
       selected-tags-display: ${{ steps.ai-analysis.outputs.tags_display }}
@@ -212,7 +209,7 @@ jobs:
           fi
 
           # Create readable test plan with file breakdown
-          echo "## 🎯 Smart E2E Test Plan" >> "$GITHUB_STEP_SUMMARY"
+          echo "## 🎯 AI E2E Test Plan" >> "$GITHUB_STEP_SUMMARY"
 
           if [ "$TAG_COUNT" -eq 0 ]; then
             {
@@ -253,9 +250,9 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
-  # Step 2: Delete all existing Smart E2E comments
+  # Step 2: Delete all existing AI E2E comments
   delete-existing-comments:
-    name: 'Delete Existing Smart E2E Comments'
+    name: 'Delete Existing AI E2E Comments'
     needs: [analyze-and-plan]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -264,17 +261,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "🗑️ Deleting all existing Smart E2E comments..."
+          echo "🗑️ Deleting all existing AI E2E comments..."
 
-          # Get all Smart E2E comment IDs
+          # Get all AI E2E comment IDs
           ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
-            --jq '.[] | select(.body | test("🤖 Smart E2E Test Analysis")) | .id')
+            --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis")) | .id')
 
           COMMENT_COUNT=$(echo "$ALL_COMMENT_IDS" | wc -l | tr -d ' ')
-          echo "📊 Found $COMMENT_COUNT existing Smart E2E comments"
+          echo "📊 Found $COMMENT_COUNT existing AI E2E comments"
 
           if [ -n "$ALL_COMMENT_IDS" ] && [ "$COMMENT_COUNT" -gt 0 ]; then
-            echo "🗑️ Deleting all $COMMENT_COUNT Smart E2E comments..."
+            echo "🗑️ Deleting all $COMMENT_COUNT AI E2E comments..."
 
             echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
               if [ -n "$COMMENT_ID" ]; then
@@ -285,7 +282,7 @@ jobs:
             done
             echo "✨ Cleanup completed - deleted all $COMMENT_COUNT comments"
           else
-            echo "📝 No existing Smart E2E comments found"
+            echo "📝 No existing AI E2E comments found"
           fi
 
   # Step 3: Post AI analysis to PR
@@ -304,7 +301,7 @@ jobs:
         run: |
           # Generate the PR comment content
           cat > pr_comment.md << EOF
-          ## 🤖 Smart E2E Test Analysis
+          ## 🤖 AI E2E Test Analysis
 
           **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
 
@@ -319,11 +316,11 @@ jobs:
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
 
-          <!-- smart-e2e-analysis -->
+          <!-- ai-e2e-analysis -->
           EOF
 
           # Create new comment (all existing comments were deleted in previous job)
-          echo "📝 Creating new Smart E2E comment..."
+          echo "📝 Creating new AI E2E comment..."
           gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
           echo "✅ Successfully created new comment"
 
@@ -354,8 +351,8 @@ jobs:
             IOS_ENABLED="${{ github.event.inputs.enable_ios }}"
             ANDROID_ENABLED="${{ github.event.inputs.enable_android }}"
           else
-            IOS_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'smart-e2e-ios') || contains(github.event.pull_request.labels.*.name, 'smart-e2e') }}"
-            ANDROID_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'smart-e2e-android') || contains(github.event.pull_request.labels.*.name, 'smart-e2e') }}"
+            IOS_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-ios') || contains(github.event.pull_request.labels.*.name, 'ai-e2e') }}"
+            ANDROID_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e') }}"
           fi
 
           # Calculate final conditions
@@ -422,7 +419,7 @@ jobs:
     secrets: inherit
 
   # Step 5: Dynamic iOS E2E Tests using reusable workflow
-  ios-smart-tests:
+  ios-ai-tests:
     needs: [analyze-and-plan, platform-conditions, build-ios]
     if: needs.platform-conditions.outputs.should-test-ios == 'true' && needs.build-ios.result == 'success'
     strategy:
@@ -439,7 +436,7 @@ jobs:
     secrets: inherit
 
   # Step 6: Dynamic Android E2E Tests using reusable workflow
-  android-smart-tests:
+  android-ai-tests:
     needs: [analyze-and-plan, platform-conditions, build-android]
     if: needs.platform-conditions.outputs.should-test-android == 'true' && needs.build-android.result == 'success'
     strategy:
@@ -456,41 +453,41 @@ jobs:
     secrets: inherit
 
   # Step 7: Report iOS Test Results
-  report-ios-smart-tests:
-    name: '📊 iOS Smart E2E Test Report'
-    needs: [platform-conditions, ios-smart-tests]
+  report-ios-ai-tests:
+    name: '📊 iOS AI E2E Test Report'
+    needs: [platform-conditions, ios-ai-tests]
     if: needs.platform-conditions.outputs.should-test-ios == 'true' && (success() || failure())
     uses: ./.github/workflows/report-e2e-tests.yml
     with:
       platform: 'ios'
-      test-type: 'smart-e2e'
+      test-type: 'ai-e2e'
       artifact-pattern: 'iOS-*-test-results'
-      report-name: 'iOS Smart E2E Test Results'
+      report-name: 'iOS AI E2E Test Results'
 
   # Step 8: Report Android Test Results
-  report-android-smart-tests:
-    name: '📊 Android Smart E2E Test Report'
-    needs: [platform-conditions, android-smart-tests]
+  report-android-ai-tests:
+    name: '📊 Android AI E2E Test Report'
+    needs: [platform-conditions, android-ai-tests]
     if: needs.platform-conditions.outputs.should-test-android == 'true' && (success() || failure())
     uses: ./.github/workflows/report-e2e-tests.yml
     with:
       platform: 'android'
-      test-type: 'smart-e2e'
+      test-type: 'ai-e2e'
       artifact-pattern: 'Android-*-test-results'
-      report-name: 'Android Smart E2E Test Results'
+      report-name: 'Android AI E2E Test Results'
 
   # Step 9: Final Summary Report
   report-results:
-    name: '📊 Smart E2E Test Results Summary'
+    name: '📊 AI E2E Test Results Summary'
     runs-on: ubuntu-latest
     needs:
       [
         analyze-and-plan,
         platform-conditions,
-        ios-smart-tests,
-        android-smart-tests,
-        report-ios-smart-tests,
-        report-android-smart-tests,
+        ios-ai-tests,
+        android-ai-tests,
+        report-ios-ai-tests,
+        report-android-ai-tests,
       ]
     if: always() && needs.analyze-and-plan.result == 'success'
     steps:
@@ -500,7 +497,7 @@ jobs:
       - name: Generate test report
         run: |
           {
-            echo "## 🎯 Smart E2E Test Execution Report"
+            echo "## 🎯 AI E2E Test Execution Report"
             echo "- **Trigger**: ${{ github.event_name }}"
             echo "- **Strategy**: ${{ needs.analyze-and-plan.outputs.test-strategy }}"
             echo "- **Selected Tags**: ${{ needs.analyze-and-plan.outputs.selected-tags-display }}"
@@ -509,8 +506,8 @@ jobs:
             echo "- **Android Jobs**: ${{ needs.platform-conditions.outputs.actual-android-jobs }} (enabled: ${{ needs.platform-conditions.outputs.should-build-android }})"
             echo "- **Total CI Jobs**: ${{ needs.platform-conditions.outputs.actual-total-jobs }}"
             echo ""
-            echo "- **iOS Result**: ${{ needs.ios-smart-tests.result || 'skipped' }}"
-            echo "- **Android Result**: ${{ needs.android-smart-tests.result || 'skipped' }}"
+            echo "- **iOS Result**: ${{ needs.ios-ai-tests.result || 'skipped' }}"
+            echo "- **Android Result**: ${{ needs.android-ai-tests.result || 'skipped' }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Delete existing comment and create final results comment
@@ -518,11 +515,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Delete existing Smart E2E comment first
-          echo "🗑️ Deleting existing Smart E2E comment before creating final results..."
+          # Delete existing AI E2E comment first
+          echo "🗑️ Deleting existing AI E2E comment before creating final results..."
 
           COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
-            --jq '.[] | select(.body | test("🤖 Smart E2E Test Analysis")) | .id' \
+            --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis")) | .id' \
             | tail -1)
 
           if [ -n "$COMMENT_ID" ] && [ "$COMMENT_ID" != "null" ] && [ "$COMMENT_ID" != "" ]; then
@@ -531,12 +528,12 @@ jobs:
               --method DELETE > /dev/null 2>&1 || echo "   ⚠️ Failed to delete comment $COMMENT_ID"
             echo "✅ Deleted existing comment"
           else
-            echo "📝 No existing Smart E2E comment found to delete"
+            echo "📝 No existing AI E2E comment found to delete"
           fi
 
           # Generate status icon based on results
-          IOS_RESULT="${{ needs.ios-smart-tests.result || 'skipped' }}"
-          ANDROID_RESULT="${{ needs.android-smart-tests.result || 'skipped' }}"
+          IOS_RESULT="${{ needs.ios-ai-tests.result || 'skipped' }}"
+          ANDROID_RESULT="${{ needs.android-ai-tests.result || 'skipped' }}"
 
           # Determine overall status
           if [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
@@ -555,7 +552,7 @@ jobs:
 
           # Generate final comment content
           cat > pr_comment_final.md << EOF
-          ## 🤖 Smart E2E Test Analysis $STATUS_ICON
+          ## 🤖 AI E2E Test Analysis $STATUS_ICON
 
           **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
 
@@ -569,26 +566,26 @@ jobs:
           - iOS enabled: ${{ needs.platform-conditions.outputs.should-build-ios }}
           - Android enabled: ${{ needs.platform-conditions.outputs.should-build-android }}
 
-          _$STATUS_ICON [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Smart E2E AI Selection_
+          _$STATUS_ICON [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • AI E2E Selection_
 
-          <!-- smart-e2e-analysis -->
+          <!-- ai-e2e-analysis -->
           EOF
 
           # Create new final comment
-          echo "📝 Creating new Smart E2E final results comment..."
+          echo "📝 Creating new AI E2E final results comment..."
           gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment_final.md
           echo "✅ Successfully created final results comment"
 
       - name: Check test results
         run: |
-          IOS_RESULT="${{ needs.ios-smart-tests.result }}"
-          ANDROID_RESULT="${{ needs.android-smart-tests.result }}"
+          IOS_RESULT="${{ needs.ios-ai-tests.result }}"
+          ANDROID_RESULT="${{ needs.android-ai-tests.result }}"
           SHOULD_RUN_TESTS="${{ needs.analyze-and-plan.outputs.should-run-tests }}"
           TOTAL_JOBS="${{ needs.platform-conditions.outputs.actual-total-jobs }}"
 
           if [[ "$SHOULD_RUN_TESTS" == "false" ]] || [[ "$TOTAL_JOBS" == "0" ]]; then
             echo "ℹ️ No E2E tests were needed based on AI analysis"
-            echo "✅ Smart E2E analysis completed - no testing required"
+            echo "✅ AI E2E analysis completed - no testing required"
           elif [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
             echo "❌ Some E2E tests failed"
             exit 1

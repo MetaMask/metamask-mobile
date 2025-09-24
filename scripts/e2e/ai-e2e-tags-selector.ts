@@ -1,5 +1,5 @@
 /**
- * AI-Powered E2E Tag Selector
+ * AI E2E Tag Selector
  * Uses Claude AI to analyze code changes and intelligently select E2E test tags
  * Requires E2E_CLAUDE_API_KEY environment variable
  * Designed for CI integration
@@ -641,9 +641,9 @@ RESPOND WITH JSON ONLY:
 
   private printHelp(): void {
     console.log(`
-AI-Enhanced Smart E2E Tag Selector
+AI E2E Tag Selector
 
-Usage: node scripts/smart-e2e-selector-ai.ts [options]
+Usage: node scripts/ai-e2e-tags-selector.ts [options]
 
 Uses Claude AI for intelligent test selection with keyword fallback.
 Runs same selected tests on both iOS and Android platforms.
@@ -672,13 +672,13 @@ Environment:
 
 Examples:
   # AI analysis for CI
-  E2E_CLAUDE_API_KEY=sk-ant-xxx node scripts/smart-e2e-selector-ai.ts --output json
+  E2E_CLAUDE_API_KEY=sk-ant-xxx node scripts/ai-e2e-tags-selector.ts --output json
 
   # Tags only output for CI integration
-  node scripts/smart-e2e-selector-ai.ts --output tags
+  node scripts/ai-e2e-tags-selector.ts --output tags
 
   # Show which tags are used in pipelines
-  node scripts/smart-e2e-selector-ai.ts --show-tags
+  node scripts/ai-e2e-tags-selector.ts --show-tags
 `);
   }
 }
