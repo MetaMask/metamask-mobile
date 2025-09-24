@@ -18,71 +18,41 @@ const logger = {
 };
 
 /**
- * Convert bytes to human readable format
- */
-function formatBytes(bytes) {
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  if (bytes === 0) return '0 B';
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
-}
-
-/**
- * Get file size in human readable format
- */
-function getFileSize(filePath) {
-  try {
-    const stats = fs.statSync(filePath);
-    return formatBytes(stats.size);
-  } catch (error) {
-    return 'Unknown size';
-  }
-}
-
-/**
- * Get directory size recursively
- */
-function getDirSize(dirPath) {
-  let totalSize = 0;
-  
-  function calculateSize(itemPath) {
-    const stats = fs.statSync(itemPath);
-    if (stats.isFile()) {
-      totalSize += stats.size;
-    } else if (stats.isDirectory()) {
-      const items = fs.readdirSync(itemPath);
-      items.forEach(item => {
-        calculateSize(path.join(itemPath, item));
-      });
-    }
-  }
-  
-  try {
-    calculateSize(dirPath);
-    return formatBytes(totalSize);
-  } catch (error) {
-    return 'Unknown size';
-  }
-}
-
-/**
  * Get CI keystore configuration for Android
  */
 function getCiKeystoreConfig() {
-  // CI environment provides keystore configuration via setup-e2e-env
-  const keystorePath = process.env.ANDROID_KEYSTORE_PATH || 'android/app/debug.keystore';
-  const keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD || 'android';
-  const keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS || 'androiddebugkey';
-  const keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD || 'android';
+  const isCI = !!process.env.CI;
+  const keystorePath = process.env.ANDROID_KEYSTORE_PATH;
+  const keystorePassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD;
+  const keyAlias = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS;
+  const keyPassword = process.env.BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD;
 
-  logger.info(`Using keystore: ${keystorePath}`);
-  logger.info(`Using key alias: ${keyAlias}`);
+  if (isCI) {
+    // In CI, all keystore env vars must be set
+    if (!keystorePath || !keystorePassword || !keyAlias || !keyPassword) {
+      logger.error(
+        'Missing required Android keystore environment variables in CI. ' +
+        'Please ensure ANDROID_KEYSTORE_PATH, BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD, ' +
+        'BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS, and BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD are set.'
+      );
+      process.exit(1);
+    }
+  }
+
+  // Use defaults only in local/dev environments
+  const finalKeystorePath = keystorePath || 'android/app/debug.keystore';
+  const finalKeystorePassword = keystorePassword || 'android';
+  const finalKeyAlias = keyAlias || 'androiddebugkey';
+  const finalKeyPassword = keyPassword || 'android';
+
+  logger.info(`Using keystore: ${finalKeystorePath}`);
+  logger.info(`Using key alias: ${finalKeyAlias}`);
 
   return {
-    keyStorePath: keystorePath,
-    keyStorePassword: `pass:${keystorePassword}`,
-    keyAlias,
-    keyPassword: `pass:${keyPassword}`,
+    keyStorePath: finalKeystorePath,
+    keyStorePassword: `pass:${finalKeystorePassword}`,
+    keyAlias: finalKeyAlias,
+    keyPassword: `pass:${finalKeyPassword}`,
   };
 }
 
@@ -106,8 +76,6 @@ async function repackAndroid() {
     if (!fs.existsSync(mainSourceApk)) {
       throw new Error(`Main APK not found: ${mainSourceApk}`);
     }
-
-    logger.info(`Main APK size: ${getFileSize(mainSourceApk)}`);
 
     // Ensure sourcemap directory exists
     const sourcemapDir = path.dirname(sourcemapOutputPath);
@@ -160,11 +128,10 @@ async function repackAndroid() {
 
     const duration = Math.round((Date.now() - startTime) / 1000);
     logger.success(`🎉 Android APK repack completed in ${duration}s`);
-    logger.success(`Main APK: ${mainFinalApk} (${getFileSize(mainFinalApk)})`);
 
     // Check sourcemap
     if (fs.existsSync(sourcemapOutputPath)) {
-      logger.success(`Sourcemap: ${sourcemapOutputPath} (${getFileSize(sourcemapOutputPath)})`);
+      logger.success(`Sourcemap: ${sourcemapOutputPath}`);
     }
 
   } catch (error) {
