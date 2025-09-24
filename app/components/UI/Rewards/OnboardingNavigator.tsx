@@ -12,7 +12,6 @@ import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
 import { setOnboardingActiveStep } from '../../../reducers/rewards';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { useNavigation } from '@react-navigation/native';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 
@@ -22,7 +21,6 @@ const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const account = useSelector(selectSelectedInternalAccount);
   const dispatch = useDispatch();
 
   useGeoRewardsMetadata();
@@ -33,7 +31,7 @@ const OnboardingNavigator: React.FC = () => {
       dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
       navigation.navigate(Routes.REWARDS_ONBOARDING_INTRO);
     }
-  }, [account, subscriptionId, dispatch, navigation]);
+  }, [subscriptionId, dispatch, navigation]);
 
   const getInitialRoute = useCallback(() => {
     switch (activeStep) {
