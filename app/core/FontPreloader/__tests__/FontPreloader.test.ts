@@ -17,7 +17,7 @@ jest.mock('react-native', () => ({
 jest.mock(
   '../../../component-library/components/Texts/Text/Text.utils',
   () => ({
-    getFontFamily: jest.fn((variant) => `Geist Regular`),
+    getFontFamily: jest.fn((_variant) => `Geist Regular`),
   }),
 );
 
@@ -81,9 +81,10 @@ describe('FontPreloader', () => {
   it('should handle errors gracefully', async () => {
     // Mock setTimeout to throw an error
     const originalSetTimeout = global.setTimeout;
-    global.setTimeout = jest.fn().mockImplementation(() => {
+    const mockSetTimeout = jest.fn().mockImplementation(() => {
       throw new Error('Test error');
-    }) as any;
+    });
+    global.setTimeout = mockSetTimeout as unknown as typeof setTimeout;
 
     // Should still resolve even if there's an error
     await expect(FontPreloader.preloadFonts()).resolves.toBeUndefined();
