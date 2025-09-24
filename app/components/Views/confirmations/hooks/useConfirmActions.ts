@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { ApprovalType } from '@metamask/controller-utils';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
+import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
@@ -68,11 +69,19 @@ export const useConfirmActions = () => {
   }, [selectedGasFeeToken, transactionMetadata]);
 
   const onReject = useCallback(
-    async (error?: Error, skipNavigation = false) => {
+    async (error?: Error, skipNavigation = false, navigateToHome = false) => {
       await cancelQRScanRequestIfPresent();
       onRequestReject(error);
       if (!skipNavigation) {
         navigation.goBack();
+      }
+      if (navigateToHome) {
+        navigation.navigate(Routes.WALLET.HOME, {
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
+        });
       }
       if (isSignatureReq) {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);

@@ -454,8 +454,8 @@ describe('RewardSettingsTabs', () => {
         <RewardSettingsTabs initialTabIndex={0} />,
       );
 
-      expect(getByText('Account 1 (current)')).toBeTruthy();
-      expect(getByText('Account 2 ')).toBeTruthy();
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Account 2')).toBeTruthy();
     });
   });
 
