@@ -38,4 +38,12 @@ describe('handleHomeUrl', () => {
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith('ABC');
   });
+
+  it('navigates to home screen gracefully when given no homePath', () => {
+    const mocks = arrangeMocks();
+    handleHomeUrl({ homePath: undefined });
+
+    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
+  });
 });
