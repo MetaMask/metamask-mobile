@@ -9,7 +9,7 @@ import Avatar, {
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useAccountName } from '../../../../../hooks/useAccountName';
+import { useAccountGroupName } from '../../../../../hooks/multichainAccounts/useAccountGroupName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { createAddressSelectorNavDetails } from '../../../../../Views/AddressSelector/AddressSelector';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
@@ -32,7 +32,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const accountName = useAccountName();
+  const accountName = useAccountGroupName();
   const { styles, theme } = useStyles(stylesheet, {});
 
   const accountAvatarType = useSelector(selectAvatarAccountType);

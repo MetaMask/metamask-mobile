@@ -13,7 +13,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 
-import { useAccountName } from '../../../../hooks/useAccountName';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { formatAddress } from '../../../../../util/address';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
@@ -39,7 +39,7 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
     selectSelectedInternalAccountFormattedAddress,
   );
   const selectedChainId = useSelector(selectChainId);
-  const accountName = useAccountName();
+  const accountName = useAccountGroupName();
 
   const selectedFormattedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,

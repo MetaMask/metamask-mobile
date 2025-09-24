@@ -20,7 +20,7 @@ import {
 } from '../../utils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import { useAccountName } from '../../../../../hooks/useAccountName';
+import { useAccountGroupName } from '../../../../../hooks/multichainAccounts/useAccountGroupName';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -44,7 +44,7 @@ interface DepositOrderContentProps {
 
 const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const accountName = useAccountName();
+  const accountName = useAccountGroupName();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
