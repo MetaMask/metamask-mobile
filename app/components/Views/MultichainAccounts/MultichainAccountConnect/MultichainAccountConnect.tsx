@@ -132,10 +132,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [hostInfo.permissions, hostInfo.metadata.origin],
   );
 
-  const requestedRequestWithExistingPermissions = useMemo(() => mergeCaip25Values(
-      existingPermissionsCaip25CaveatValue,
-      requestedCaip25CaveatValue,
-    ), [existingPermissionsCaip25CaveatValue, requestedCaip25CaveatValue]);
+  const requestedRequestWithExistingPermissions = useMemo(
+    () =>
+      mergeCaip25Values(
+        existingPermissionsCaip25CaveatValue,
+        requestedCaip25CaveatValue,
+      ),
+    [existingPermissionsCaip25CaveatValue, requestedCaip25CaveatValue],
+  );
 
   const requestedCaipAccountIds = useMemo(
     () => getCaipAccountIdsFromCaip25CaveatValue(requestedCaip25CaveatValue),
