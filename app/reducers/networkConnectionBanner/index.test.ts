@@ -1,15 +1,15 @@
 import {
   showNetworkConnectionBanner,
   hideNetworkConnectionBanner,
-} from '../../actions/networkConnectionBanners';
+} from '../../actions/networkConnectionBanner';
 
-import reducer, { NetworkConnectionBannersState } from '.';
+import reducer, { NetworkConnectionBannerState } from '.';
 
-const initialState: Readonly<NetworkConnectionBannersState> = {
+const initialState: Readonly<NetworkConnectionBannerState> = {
   visible: false,
 };
 
-describe('networkConnectionBanners reducer', () => {
+describe('networkConnectionBanner reducer', () => {
   describe('default case', () => {
     it('should return the initial state', () => {
       // @ts-expect-error - null is not a valid action type

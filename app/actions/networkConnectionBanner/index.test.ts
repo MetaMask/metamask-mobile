@@ -1,18 +1,18 @@
 import {
   showNetworkConnectionBanner,
   hideNetworkConnectionBanner,
-  NetworkConnectionBannersActionType,
+  NetworkConnectionBannerActionType,
 } from '.';
 import { NetworkConnectionBannerStatus } from '../../components/UI/NetworkConnectionBanner/types';
 
-describe('networkConnectionBanners', () => {
-  describe('NetworkConnectionBannersActionType', () => {
+describe('networkConnectionBanner', () => {
+  describe('NetworkConnectionBannerActionType', () => {
     it('should have correct action type values', () => {
       expect(
-        NetworkConnectionBannersActionType.SHOW_NETWORK_CONNECTION_BANNER,
+        NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
       ).toBe('SHOW_NETWORK_CONNECTION_BANNER');
       expect(
-        NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER,
+        NetworkConnectionBannerActionType.HIDE_NETWORK_CONNECTION_BANNER,
       ).toBe('HIDE_NETWORK_CONNECTION_BANNER');
     });
   });
@@ -27,7 +27,7 @@ describe('networkConnectionBanners', () => {
           status: 'slow',
         }),
       ).toStrictEqual({
-        type: NetworkConnectionBannersActionType.SHOW_NETWORK_CONNECTION_BANNER,
+        type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
         chainId,
         status: 'slow',
       });
@@ -42,7 +42,7 @@ describe('networkConnectionBanners', () => {
           status: 'unavailable',
         }),
       ).toStrictEqual({
-        type: NetworkConnectionBannersActionType.SHOW_NETWORK_CONNECTION_BANNER,
+        type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
         chainId,
         status: 'unavailable',
       });
@@ -63,7 +63,7 @@ describe('networkConnectionBanners', () => {
   describe('hideNetworkConnectionBanner', () => {
     it('should create an action to hide the network connection banner', () => {
       expect(hideNetworkConnectionBanner()).toStrictEqual({
-        type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER,
+        type: NetworkConnectionBannerActionType.HIDE_NETWORK_CONNECTION_BANNER,
       });
     });
 
@@ -71,7 +71,7 @@ describe('networkConnectionBanners', () => {
       const action = hideNetworkConnectionBanner();
 
       expect(action).toStrictEqual({
-        type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER,
+        type: NetworkConnectionBannerActionType.HIDE_NETWORK_CONNECTION_BANNER,
       });
       expect(Object.keys(action)).toStrictEqual(['type']);
     });

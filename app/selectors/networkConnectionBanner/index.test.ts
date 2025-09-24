@@ -1,9 +1,9 @@
-import { selectNetworkConnectionBannersState } from './index';
+import { selectNetworkConnectionBannerState } from './index';
 import { RootState } from '../../reducers';
-import { NetworkConnectionBannersState } from '../../reducers/networkConnectionBanners';
+import { NetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
 
 describe('networkConnectionBanners selectors', () => {
-  const mockNetworkConnectionBannersState: NetworkConnectionBannersState = {
+  const mockNetworkConnectionBannersState: NetworkConnectionBannerState = {
     visible: false,
   };
 
@@ -11,9 +11,9 @@ describe('networkConnectionBanners selectors', () => {
     networkConnectionBanners: mockNetworkConnectionBannersState,
   } as unknown as RootState;
 
-  describe('selectNetworkConnectionBannersState', () => {
+  describe('selectNetworkConnectionBannerState', () => {
     it('should return the network connection banners state', () => {
-      const result = selectNetworkConnectionBannersState(mockState);
+      const result = selectNetworkConnectionBannerState(mockState);
 
       expect(result).toBe(mockState.networkConnectionBanners);
     });
@@ -40,7 +40,7 @@ describe('networkConnectionBanners selectors', () => {
           },
         } as unknown as RootState;
 
-        const result = selectNetworkConnectionBannersState(
+        const result = selectNetworkConnectionBannerState(
           stateWithVisibleBanner,
         );
 
@@ -59,7 +59,7 @@ describe('networkConnectionBanners selectors', () => {
         },
       } as unknown as RootState;
 
-      const result = selectNetworkConnectionBannersState(stateWithHiddenBanner);
+      const result = selectNetworkConnectionBannerState(stateWithHiddenBanner);
 
       expect(result).toStrictEqual({
         visible: false,
@@ -67,8 +67,8 @@ describe('networkConnectionBanners selectors', () => {
     });
 
     it('should return the same reference when called multiple times with same state', () => {
-      const result1 = selectNetworkConnectionBannersState(mockState);
-      const result2 = selectNetworkConnectionBannersState(mockState);
+      const result1 = selectNetworkConnectionBannerState(mockState);
+      const result2 = selectNetworkConnectionBannerState(mockState);
 
       expect(result1).toBe(result2);
     });
@@ -88,8 +88,8 @@ describe('networkConnectionBanners selectors', () => {
         },
       } as unknown as RootState;
 
-      const result1 = selectNetworkConnectionBannersState(state1);
-      const result2 = selectNetworkConnectionBannersState(state2);
+      const result1 = selectNetworkConnectionBannerState(state1);
+      const result2 = selectNetworkConnectionBannerState(state2);
 
       expect(result1).not.toBe(result2);
       expect(result1).toStrictEqual({

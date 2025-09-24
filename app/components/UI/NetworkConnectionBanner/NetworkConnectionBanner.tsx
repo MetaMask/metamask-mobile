@@ -11,7 +11,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import Spinner, { SpinnerSize } from '../AnimatedSpinner';
-import { useNetworkConnectionBanners } from '../../hooks/useNetworkConnectionBanners';
+import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 import { strings } from '../../../../locales/i18n';
 
 /**
@@ -20,11 +20,11 @@ import { strings } from '../../../../locales/i18n';
  * Shows when any network takes more than 5 seconds to initialize or is not available.
  */
 const NetworkConnectionBanner: React.FC = () => {
-  const { networkConnectionBannersState, currentNetwork, updateRpc } =
-    useNetworkConnectionBanners();
+  const { networkConnectionBannerState, currentNetwork, updateRpc } =
+    useNetworkConnectionBanner();
   const tw = useTailwind();
 
-  if (!networkConnectionBannersState.visible || !currentNetwork) {
+  if (!networkConnectionBannerState.visible || !currentNetwork) {
     return null;
   }
 
@@ -34,14 +34,14 @@ const NetworkConnectionBanner: React.FC = () => {
         variant={BannerVariant.Alert}
         severity={BannerAlertSeverity.Warning}
         startAccessory={
-          networkConnectionBannersState.status === 'slow' ? (
+          networkConnectionBannerState.status === 'slow' ? (
             <Spinner size={SpinnerSize.SM} />
           ) : (
             <Icon name={IconName.Danger} size={IconSize.Md} />
           )
         }
         title={strings(
-          networkConnectionBannersState.status === 'slow'
+          networkConnectionBannerState.status === 'slow'
             ? 'network_connection_banner.still_connecting_network'
             : 'network_connection_banner.unable_to_connect_network',
           {
@@ -52,7 +52,7 @@ const NetworkConnectionBanner: React.FC = () => {
           variant: ButtonVariants.Link,
           label: strings('network_connection_banner.update_rpc'),
           onPress: () =>
-            updateRpc(currentNetwork, networkConnectionBannersState.status),
+            updateRpc(currentNetwork, networkConnectionBannerState.status),
         }}
       />
     </View>

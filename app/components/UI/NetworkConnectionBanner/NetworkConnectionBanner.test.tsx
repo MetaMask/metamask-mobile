@@ -6,9 +6,9 @@ import {
 } from '@metamask/network-controller';
 
 import NetworkConnectionBanner from './NetworkConnectionBanner';
-import { useNetworkConnectionBanners } from '../../hooks/useNetworkConnectionBanners';
+import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 
-jest.mock('../../hooks/useNetworkConnectionBanners');
+jest.mock('../../hooks/useNetworkConnectionBanner');
 
 jest.mock('../AnimatedSpinner', () => ({
   __esModule: true,
@@ -46,9 +46,9 @@ jest.mock('../../../component-library/components/Icons/Icon', () => ({
   },
 }));
 
-const mockUseNetworkConnectionBanners =
-  useNetworkConnectionBanners as jest.MockedFunction<
-    typeof useNetworkConnectionBanners
+const mockuseNetworkConnectionBanner =
+  useNetworkConnectionBanner as jest.MockedFunction<
+    typeof useNetworkConnectionBanner
   >;
 
 const mockNetworkConfiguration: NetworkConfiguration = {
@@ -75,8 +75,8 @@ describe('NetworkConnectionBanner', () => {
 
   describe('snapshots', () => {
     it('should match snapshot when banner is not visible', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: { visible: false },
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: { visible: false },
         currentNetwork: mockNetworkConfiguration,
         updateRpc: mockUpdateRpc,
       });
@@ -100,8 +100,8 @@ describe('NetworkConnectionBanner', () => {
     it.each(statusSnapshotTestCases)(
       'should match snapshot $name',
       ({ status }) => {
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
@@ -123,8 +123,8 @@ describe('NetworkConnectionBanner', () => {
         name: 'Polygon Mainnet',
       };
 
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
           status: 'slow',
@@ -141,8 +141,8 @@ describe('NetworkConnectionBanner', () => {
 
   describe('when banner is not visible', () => {
     it('should not render when visible is false', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: { visible: false },
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: { visible: false },
         currentNetwork: mockNetworkConfiguration,
         updateRpc: mockUpdateRpc,
       });
@@ -153,8 +153,8 @@ describe('NetworkConnectionBanner', () => {
     });
 
     it('should not render when currentNetwork is undefined', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
@@ -169,8 +169,8 @@ describe('NetworkConnectionBanner', () => {
     });
 
     it('should not render when both visible is false and currentNetwork is undefined', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: { visible: false },
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: { visible: false },
         currentNetwork: undefined,
         updateRpc: mockUpdateRpc,
       });
@@ -198,8 +198,8 @@ describe('NetworkConnectionBanner', () => {
     it.each(statusTestCases)(
       'should render the banner with correct structure for $status status',
       ({ status, expectedMessage, expectedIconTestId }) => {
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
@@ -219,8 +219,8 @@ describe('NetworkConnectionBanner', () => {
     it.each(statusTestCases)(
       'should display network name in the message for $status status',
       ({ status, expectedMessage }) => {
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
@@ -238,8 +238,8 @@ describe('NetworkConnectionBanner', () => {
     it.each(statusTestCases)(
       'should call updateRpc when Update RPC button is pressed for $status status',
       ({ status }) => {
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
@@ -260,8 +260,8 @@ describe('NetworkConnectionBanner', () => {
     it.each(statusTestCases)(
       'should render button with correct variant and properties for $status status',
       ({ status }) => {
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
@@ -280,8 +280,8 @@ describe('NetworkConnectionBanner', () => {
     describe('status transitions', () => {
       it('should update message when status changes from slow to unavailable', () => {
         // Start with slow status
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status: 'slow',
@@ -297,8 +297,8 @@ describe('NetworkConnectionBanner', () => {
         ).toBeTruthy();
 
         // Change to unavailable status
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status: 'unavailable',
@@ -316,8 +316,8 @@ describe('NetworkConnectionBanner', () => {
 
       it('should update message when status changes from unavailable to slow', () => {
         // Start with unavailable status
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status: 'unavailable',
@@ -333,8 +333,8 @@ describe('NetworkConnectionBanner', () => {
         ).toBeTruthy();
 
         // Change to slow status
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status: 'slow',
@@ -360,8 +360,8 @@ describe('NetworkConnectionBanner', () => {
         name: 'Polygon Mainnet',
       };
 
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
           status: 'slow',
@@ -381,8 +381,8 @@ describe('NetworkConnectionBanner', () => {
         name: 'Test-Network (Beta)',
       };
 
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
@@ -404,8 +404,8 @@ describe('NetworkConnectionBanner', () => {
         name: 'Very Long Network Name That Might Cause Layout Issues',
       };
 
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
@@ -439,8 +439,8 @@ describe('NetworkConnectionBanner', () => {
     it.each(accessibilityTestCases)(
       'should render with proper accessibility structure for $status status',
       ({ status, expectedMessage }) => {
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
@@ -460,8 +460,8 @@ describe('NetworkConnectionBanner', () => {
     it.each(accessibilityTestCases)(
       'should have accessible button for updating RPC for $status status',
       ({ status }) => {
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
@@ -502,8 +502,8 @@ describe('NetworkConnectionBanner', () => {
           name: '',
         };
 
-        mockUseNetworkConnectionBanners.mockReturnValue({
-          networkConnectionBannersState: {
+        mockuseNetworkConnectionBanner.mockReturnValue({
+          networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
@@ -519,8 +519,8 @@ describe('NetworkConnectionBanner', () => {
     );
 
     it('should handle multiple rapid button presses', () => {
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
@@ -545,8 +545,8 @@ describe('NetworkConnectionBanner', () => {
   describe('component lifecycle', () => {
     it('should update when hook values change', () => {
       // Initially not visible
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: { visible: false },
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: { visible: false },
         currentNetwork: mockNetworkConfiguration,
         updateRpc: mockUpdateRpc,
       });
@@ -558,8 +558,8 @@ describe('NetworkConnectionBanner', () => {
       expect(queryByTestId('animated-spinner')).toBeNull();
 
       // Make it visible
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
@@ -575,8 +575,8 @@ describe('NetworkConnectionBanner', () => {
 
     it('should handle hook returning different network', () => {
       // Initially Ethereum
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
@@ -596,8 +596,8 @@ describe('NetworkConnectionBanner', () => {
         name: 'Polygon Mainnet',
       };
 
-      mockUseNetworkConnectionBanners.mockReturnValue({
-        networkConnectionBannersState: {
+      mockuseNetworkConnectionBanner.mockReturnValue({
+        networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
           status: 'slow',

@@ -6,25 +6,24 @@ import {
   NetworkStatus,
 } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
-import { selectNetworkConnectionBannersState } from '../../../selectors/networkConnectionBanners';
+import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../useMetrics';
 import {
   hideNetworkConnectionBanner,
   showNetworkConnectionBanner,
-} from '../../../actions/networkConnectionBanners';
+} from '../../../actions/networkConnectionBanner';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
-import { NetworkConnectionBannersState } from '../../../reducers/networkConnectionBanners';
-import { isE2E } from '../../../util/test/utils';
+import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
 
 const SLOW_BANNER_TIMEOUT = 5 * 1000; // 5 seconds
 const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
 
-const useNetworkConnectionBanners = (): {
-  networkConnectionBannersState: NetworkConnectionBannersState;
+const useNetworkConnectionBanner = (): {
+  networkConnectionBannerState: NetworkConnectionBannerState;
   currentNetwork: NetworkConfiguration | undefined;
   updateRpc: (
     network: NetworkConfiguration,
@@ -34,19 +33,19 @@ const useNetworkConnectionBanners = (): {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const networkConnectionBannersState = useSelector(
-    selectNetworkConnectionBannersState,
+  const networkConnectionBannerState = useSelector(
+    selectNetworkConnectionBannerState,
   );
 
   // Use ref to access current banner state without causing timer effect to re-run
-  const bannerStateRef = useRef(networkConnectionBannersState);
+  const bannerStateRef = useRef(networkConnectionBannerState);
 
   const networkConfigurationByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
   const evmEnabledNetworksChainIds = useSelector(selectEVMEnabledNetworks);
-  const currentNetwork = networkConnectionBannersState.visible
-    ? networkConfigurationByChainId[networkConnectionBannersState.chainId]
+  const currentNetwork = networkConnectionBannerState.visible
+    ? networkConfigurationByChainId[networkConnectionBannerState.chainId]
     : undefined;
 
   useEffect(() => {
@@ -85,10 +84,6 @@ const useNetworkConnectionBanners = (): {
   }
 
   useEffect(() => {
-    if (isE2E) {
-      return;
-    }
-
     const checkNetworkStatus = (timeoutType: NetworkConnectionBannerStatus) => {
       const currentBannerState = bannerStateRef.current;
       const networksMetadata =
@@ -170,32 +165,32 @@ const useNetworkConnectionBanners = (): {
   }, [evmEnabledNetworksChainIds, dispatch]);
 
   useEffect(() => {
-    bannerStateRef.current = networkConnectionBannersState;
-  }, [networkConnectionBannersState]);
+    bannerStateRef.current = networkConnectionBannerState;
+  }, [networkConnectionBannerState]);
 
   useEffect(() => {
-    if (networkConnectionBannersState.visible) {
+    if (networkConnectionBannerState.visible) {
       trackEvent(
         createEventBuilder(
-          networkConnectionBannersState.status === 'slow'
+          networkConnectionBannerState.status === 'slow'
             ? MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN
             : MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
         )
           .addProperties({
             chain_id_caip: `eip155:${hexToNumber(
-              networkConnectionBannersState.chainId,
+              networkConnectionBannerState.chainId,
             )}`,
           })
           .build(),
       );
     }
-  }, [networkConnectionBannersState, trackEvent, createEventBuilder]);
+  }, [networkConnectionBannerState, trackEvent, createEventBuilder]);
 
   return {
-    networkConnectionBannersState,
+    networkConnectionBannerState,
     currentNetwork,
     updateRpc,
   };
 };
 
-export default useNetworkConnectionBanners;
+export default useNetworkConnectionBanner;

@@ -4,7 +4,7 @@ import { NetworkConnectionBannerStatus } from '../../components/UI/NetworkConnec
 /**
  * Different action types available for different RPC event flow
  */
-export enum NetworkConnectionBannersActionType {
+export enum NetworkConnectionBannerActionType {
   SHOW_NETWORK_CONNECTION_BANNER = 'SHOW_NETWORK_CONNECTION_BANNER',
   HIDE_NETWORK_CONNECTION_BANNER = 'HIDE_NETWORK_CONNECTION_BANNER',
 }
@@ -15,7 +15,7 @@ export enum NetworkConnectionBannersActionType {
  * status is required to identify the status of the network connection banner
  */
 export interface ShowNetworkConnectionBannerAction extends Action {
-  type: NetworkConnectionBannersActionType.SHOW_NETWORK_CONNECTION_BANNER;
+  type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER;
   chainId: Hex;
   status: NetworkConnectionBannerStatus;
 }
@@ -25,7 +25,7 @@ export interface ShowNetworkConnectionBannerAction extends Action {
  * No parameters needed - just hides the currently visible banner
  */
 export interface HideNetworkConnectionBannerAction extends Action {
-  type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER;
+  type: NetworkConnectionBannerActionType.HIDE_NETWORK_CONNECTION_BANNER;
 }
 
 export type NetworkConnectionBannerAction =
@@ -46,7 +46,7 @@ export function showNetworkConnectionBanner({
   status: NetworkConnectionBannerStatus;
 }): ShowNetworkConnectionBannerAction {
   return {
-    type: NetworkConnectionBannersActionType.SHOW_NETWORK_CONNECTION_BANNER,
+    type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
     chainId,
     status,
   };
@@ -58,6 +58,6 @@ export function showNetworkConnectionBanner({
  */
 export function hideNetworkConnectionBanner(): HideNetworkConnectionBannerAction {
   return {
-    type: NetworkConnectionBannersActionType.HIDE_NETWORK_CONNECTION_BANNER,
+    type: NetworkConnectionBannerActionType.HIDE_NETWORK_CONNECTION_BANNER,
   };
 }

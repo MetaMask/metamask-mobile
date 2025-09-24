@@ -1225,7 +1225,6 @@ const Wallet = ({
         style={styles.wrapper}
         testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
       >
-        <NetworkConnectionBanner />
         {!basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
@@ -1242,6 +1241,7 @@ const Wallet = ({
             />
           </View>
         ) : null}
+        <NetworkConnectionBanner />
         <>
           {isMultichainAccountsState2Enabled ? (
             <AccountGroupBalance />
