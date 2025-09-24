@@ -28,6 +28,9 @@ export function useSnapNameResolution({
 }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [results, setResults] = useState<AddressResolution[]>([]);
+  const [responses, setResponses] = useState<
+    { status: string; value?: DomainLookupResult }[]
+  >([]);
 
   const snaps = useSelector(getNameLookupSnaps);
 
@@ -95,6 +98,7 @@ export function useSnapNameResolution({
               (response as PromiseFulfilledResult<DomainLookupResult>).value
                 .resolvedAddresses,
           );
+        setResponses(responses);
         setResults(resolutions);
         setLoading(false);
       }
@@ -107,5 +111,5 @@ export function useSnapNameResolution({
     };
   }, [filteredSnaps, domain, chainId]);
 
-  return { results, loading };
+  return { responses, results, loading };
 }
