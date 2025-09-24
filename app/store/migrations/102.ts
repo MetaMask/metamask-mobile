@@ -253,6 +253,7 @@ export default function migrate(state: unknown): unknown {
         return {
           ...order,
           data: updatedData,
+          forceUpdate: needsUpdate,
         };
       }
 
