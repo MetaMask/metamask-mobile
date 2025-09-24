@@ -39,6 +39,7 @@ const createStyles = (
   isDarkMode: boolean,
   titleFontSize?: number | null,
   subtitleFontSize?: number | null,
+  useSystemFont?: boolean,
 ) =>
   StyleSheet.create({
     pageContainer: {
@@ -67,12 +68,24 @@ const createStyles = (
       minHeight: '80%',
     },
     title: {
-      fontSize: titleFontSize || scaleFont(47),
-      lineHeight: titleFontSize ? titleFontSize + 1 : scaleFont(48),
+      fontSize: titleFontSize || scaleFont(useSystemFont ? 44 : 47), // Slightly smaller base for system fonts
+      lineHeight: titleFontSize
+        ? titleFontSize + 1
+        : scaleFont(useSystemFont ? 46 : 48),
       textAlign: 'center',
       paddingTop: scaleVertical(12),
-      fontFamily: Platform.OS === 'ios' ? 'MM Poly' : 'MM Poly Regular',
-      ...(Platform.OS === 'ios' ? { fontWeight: '900' } : {}),
+      fontFamily: useSystemFont
+        ? Platform.OS === 'ios'
+          ? 'System'
+          : 'Roboto'
+        : Platform.OS === 'ios'
+        ? 'MM Poly'
+        : 'MM Poly Regular',
+      fontWeight: useSystemFont
+        ? '700'
+        : Platform.OS === 'ios'
+        ? '900'
+        : 'normal',
     },
     titleDescription: {
       paddingTop: scaleVertical(10),
@@ -80,7 +93,11 @@ const createStyles = (
       textAlign: 'center',
       fontSize: subtitleFontSize || scaleFont(16),
       lineHeight: subtitleFontSize ? subtitleFontSize + 4 : scaleFont(20),
-      fontFamily: 'Geist-Regular',
+      fontFamily: useSystemFont
+        ? Platform.OS === 'ios'
+          ? 'System'
+          : 'Roboto'
+        : 'Geist-Regular',
       fontWeight: '500',
     },
     footerContainer: {

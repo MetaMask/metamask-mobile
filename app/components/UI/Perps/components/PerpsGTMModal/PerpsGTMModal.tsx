@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, LayoutChangeEvent, View, useColorScheme } from 'react-native';
+import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
@@ -28,6 +28,10 @@ import {
   PERPS_GTM_MODAL_ENGAGE,
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
+import {
+  createFontScaleHandler,
+  hasNonLatinCharacters,
+} from '../../utils/textUtils';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -38,38 +42,34 @@ const PerpsGTMModal = () => {
   const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
   const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
 
+  const titleText = strings('perps.gtm_content.title');
+  const subtitleText = strings('perps.gtm_content.title_description');
+  const useSystemFont =
+    hasNonLatinCharacters(titleText) || hasNonLatinCharacters(subtitleText);
+
   const styles = createStyles(
     theme,
     isDarkMode,
     titleFontSize,
     subtitleFontSize,
+    useSystemFont,
   );
 
-  const handleTitleLayout = (event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
-    const maxTitleHeight = 120; // Approximate max height for title in header section
+  const handleTitleLayout = createFontScaleHandler({
+    maxHeight: useSystemFont ? 100 : 120, // System fonts typically render taller
+    currentFontSize: styles.title.fontSize,
+    setter: setTitleFontSize,
+    minFontSize: useSystemFont ? 28 : 32, // Slightly smaller min for system fonts
+    currentValue: titleFontSize,
+  });
 
-    if (height > maxTitleHeight && titleFontSize === null) {
-      // Scale down font size proportionally
-      const currentFontSize = styles.title.fontSize;
-      const scaleFactor = maxTitleHeight / height;
-      const newFontSize = Math.max(currentFontSize * scaleFactor, 32); // Min font size of 32
-      setTitleFontSize(newFontSize);
-    }
-  };
-
-  const handleSubtitleLayout = (event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
-    const maxSubtitleHeight = 80; // Approximate max height for subtitle in header section
-
-    if (height > maxSubtitleHeight && subtitleFontSize === null) {
-      // Scale down font size proportionally
-      const currentFontSize = styles.titleDescription.fontSize;
-      const scaleFactor = maxSubtitleHeight / height;
-      const newFontSize = Math.max(currentFontSize * scaleFactor, 14); // Min font size of 14
-      setSubtitleFontSize(newFontSize);
-    }
-  };
+  const handleSubtitleLayout = createFontScaleHandler({
+    maxHeight: useSystemFont ? 70 : 80, // System fonts typically render taller
+    currentFontSize: styles.titleDescription.fontSize,
+    setter: setSubtitleFontSize,
+    minFontSize: useSystemFont ? 12 : 14, // Slightly smaller min for system fonts
+    currentValue: subtitleFontSize,
+  });
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
@@ -121,14 +121,14 @@ const PerpsGTMModal = () => {
           variant={TextVariant.HeadingLG}
           onLayout={handleTitleLayout}
         >
-          {strings('perps.gtm_content.title')}
+          {titleText}
         </Text>
         <Text
           variant={TextVariant.BodyMD}
           style={styles.titleDescription}
           onLayout={handleSubtitleLayout}
         >
-          {strings('perps.gtm_content.title_description')}
+          {subtitleText}
         </Text>
       </View>
 
