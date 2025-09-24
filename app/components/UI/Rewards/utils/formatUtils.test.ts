@@ -103,6 +103,7 @@ describe('formatUtils', () => {
         value: 100,
         bonus: null,
         accountAddress: TEST_ADDRESS,
+        updatedAt: new Date('2024-01-15T14:30:00Z'),
       };
 
       switch (type) {
