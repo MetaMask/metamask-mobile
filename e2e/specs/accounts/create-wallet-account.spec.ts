@@ -6,6 +6,8 @@ import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-acc
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import AddressList from '../../pages/MultichainAccounts/AddressList';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
+import { defaultGanacheOptions } from '../../framework/Constants';
+import { completeSrpQuiz } from '../multisrp/utils';
 
 describe(SmokeAccounts('Create wallet accounts'), () => {
   const FIRST = 0;
@@ -48,9 +50,11 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
         });
       }
       await AddressList.tapBackButton();
-      await AccountDetails.tapBackButton();
 
-      // Select Account 3
+      await AccountDetails.tapAccountSrpLink();
+      await completeSrpQuiz(defaultGanacheOptions.mnemonic);
+
+      await WalletView.tapIdenticon();
       await AccountListBottomSheet.tapAccountByNameV2(visibleAccounts[LAST]);
 
       // Switch to Solana

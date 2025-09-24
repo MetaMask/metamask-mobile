@@ -32,6 +32,12 @@ class AccountDetails {
     return Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
   }
 
+  get accountSrpLink(): DetoxElement {
+    return Matchers.getElementByID(
+      AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK,
+    );
+  }
+
   get exportPrivateKeyButton(): DetoxElement {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
@@ -97,6 +103,12 @@ class AccountDetails {
   async tapExportSrpButton(): Promise<void> {
     await Gestures.waitAndTap(this.exportSrpButton, {
       elemDescription: 'Export SRP Button in Account Details',
+    });
+  }
+
+  async tapAccountSrpLink(): Promise<void> {
+    await Gestures.waitAndTap(this.accountSrpLink, {
+      elemDescription: 'View Account SRP in Account Details',
     });
   }
 }
