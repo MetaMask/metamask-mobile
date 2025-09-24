@@ -1,9 +1,12 @@
+import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import {
   isMultichainAccountsRemoteFeatureEnabled,
-  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
-  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  STATE_1_FLAG,
+  STATE_2_FLAG,
+  MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+  MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
 } from '../../../multichain-accounts/remote-feature-flag';
 
 /**
@@ -11,11 +14,16 @@ import {
  * @param featureVersions - The versions of the feature to check against.
  * @returns Boolean indicating if the multichain accounts feature is enabled for the specified versions.
  */
-const createMultichainAccountsStateSelector = (featureVersions: string[]) =>
+const createMultichainAccountsStateSelector = (
+  featureVersionsToCheck: {
+    version: string;
+    featureKey: keyof FeatureFlags;
+  }[],
+) =>
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags): boolean =>
     isMultichainAccountsRemoteFeatureEnabled(
       remoteFeatureFlags,
-      featureVersions,
+      featureVersionsToCheck,
     ),
   );
 
@@ -25,8 +33,14 @@ const createMultichainAccountsStateSelector = (featureVersions: string[]) =>
  */
 export const selectMultichainAccountsState1Enabled =
   createMultichainAccountsStateSelector([
-    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
-    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_1,
+      featureKey: STATE_1_FLAG,
+    },
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      featureKey: STATE_2_FLAG,
+    },
   ]);
 
 /**
@@ -35,5 +49,8 @@ export const selectMultichainAccountsState1Enabled =
  */
 export const selectMultichainAccountsState2Enabled =
   createMultichainAccountsStateSelector([
-    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+    {
+      version: MULTICHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      featureKey: STATE_2_FLAG,
+    },
   ]);

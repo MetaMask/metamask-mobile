@@ -30,7 +30,7 @@ import ActionListItem from '../../../component-library/components-temp/ActionLis
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
-import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
+import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
@@ -47,6 +47,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
@@ -80,8 +81,8 @@ function TradeWalletActions() {
 
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
-  const swapsIsLive = useSelector((state: RootState) =>
-    selectIsSwapsLive(state, chainId),
+  const isSwapsEnabled = useSelector((state: RootState) =>
+    selectIsSwapsEnabled(state, chainId),
   );
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
@@ -90,6 +91,7 @@ function TradeWalletActions() {
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const isStablecoinLendingEnabled = useSelector(
@@ -130,6 +132,21 @@ function TradeWalletActions() {
     postCallback.current = () => {
       navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKETS,
+      });
+    };
+    handleNavigateBack();
+  }, [handleNavigateBack, navigate]);
+
+  const onPredict = useCallback(() => {
+    postCallback.current = () => {
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.PREDICT.ROOT,
+          params: {
+            screen: Routes.PREDICT.MARKET_LIST,
+          },
+        },
       });
     };
     handleNavigateBack();
@@ -258,7 +275,7 @@ function TradeWalletActions() {
                     iconName={IconName.SwapVertical}
                     onPress={goToSwaps}
                     testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-                    isDisabled={!canSignTransactions || !swapsIsLive}
+                    isDisabled={!isSwapsEnabled}
                   />
                 )}
                 {isPerpsEnabled && isEvmSelected && (
@@ -268,6 +285,16 @@ function TradeWalletActions() {
                     iconName={IconName.Candlestick}
                     onPress={onPerps}
                     testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
+                    isDisabled={!canSignTransactions}
+                  />
+                )}
+                {isPredictEnabled && isEvmSelected && (
+                  <ActionListItem
+                    label={strings('asset_overview.predict_button')}
+                    description={strings('asset_overview.predict_description')}
+                    iconName={IconName.Speedometer}
+                    onPress={onPredict}
+                    testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
                     isDisabled={!canSignTransactions}
                   />
                 )}

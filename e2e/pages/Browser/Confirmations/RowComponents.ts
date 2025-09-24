@@ -49,6 +49,10 @@ class RowComponents {
   get ApproveRow(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.APPROVE_ROW);
   }
+
+  get NetworkAndOrigin(): DetoxElement {
+    return Matchers.getElementByID(ConfirmationRowComponentIDs.NETWORK);
+  }
 }
 
 export default new RowComponents();

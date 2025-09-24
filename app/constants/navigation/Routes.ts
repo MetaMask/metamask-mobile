@@ -20,6 +20,10 @@ const Routes = {
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
+    MODALS: {
+      ID: 'RampModals',
+      TOKEN_SELECTOR: 'RampTokenSelectorModal',
+    },
   },
   DEPOSIT: {
     ID: 'Deposit',
@@ -248,6 +252,15 @@ const Routes = {
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
+  },
+  PREDICT: {
+    ROOT: 'Predict',
+    MARKET_LIST: 'PredictMarketList',
+    MARKET_DETAILS: 'PredictMarketDetails',
+    MODALS: {
+      ROOT: 'PredictModals',
+      CASH_OUT: 'PredictCashOut',
+    },
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
