@@ -5701,10 +5701,10 @@
     "@metamask/utils" "^11.8.0"
     async-mutex "^0.5.0"
 
-"@metamask/multichain-api-client@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.8.0.tgz#8b955f28507feb7ab71a026c64647710271586fb"
-  integrity sha512-/se1vs+ULUIkdXCoU5E7OoQQ0aU7zUwiLxbJi7IIfAWKWB8klpUs/p8BcL0qNgkDL/lmqQyqTumFD48t/Wq9/Q==
+"@metamask/multichain-api-client@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.7.0.tgz#682b1926618a81dc3012287a9bcbc8bfa11f81f0"
+  integrity sha512-CkcdxYxSMkxIicJ5c89eGzkm0wM1H8iHcs6F/6lsA3Rhb0azrmIyhKHT2sLstddS06O8WwDA0c85ROMOPZa8Ew==
 
 "@metamask/multichain-api-middleware@1.1.0":
   version "1.1.0"
