@@ -517,7 +517,15 @@ exports[`Root Component render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -535,7 +543,7 @@ exports[`Root Component render matches snapshot 1`] = `
                           ]
                         }
                       />
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

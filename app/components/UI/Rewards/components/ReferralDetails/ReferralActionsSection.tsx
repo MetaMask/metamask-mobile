@@ -41,13 +41,7 @@ const ReferralActionsSection: React.FC<ReferralActionsSectionProps> = ({
       label={strings('rewards.referral.referral_link')}
       value={referralCode ? `${REFERRAL_LINK_PATH}${referralCode}` : undefined}
       onCopy={() =>
-        referralCode
-          ? onCopyLink?.(
-              `${strings(
-                'rewards.referral.share_referral_message_prefix',
-              )}${buildReferralUrl(referralCode)}`,
-            )
-          : null
+        referralCode ? onCopyLink?.(buildReferralUrl(referralCode)) : null
       }
       valueLoading={referralCodeLoading}
     />

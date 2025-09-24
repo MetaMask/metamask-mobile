@@ -37,6 +37,8 @@ jest.mock('../../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
 }));
 
+jest.mock('../../hooks/gas/useGasFeeToken');
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
