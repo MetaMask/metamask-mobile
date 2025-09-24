@@ -44,8 +44,8 @@ describe('handleUniversalLinks', () => {
   const mockHandleOpenHome = jest.fn();
   const mockHandleSwap = jest.fn();
   const mockHandleCreateAccount = jest.fn();
-  const mockHandlePerps = jest.fn();
-  const mockHandlePerpsAsset = jest.fn();
+  // const mockHandlePerps = jest.fn();
+  // const mockHandlePerpsAsset = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -65,8 +65,8 @@ describe('handleUniversalLinks', () => {
     _handleOpenHome: mockHandleOpenHome,
     _handleSwap: mockHandleSwap,
     _handleCreateAccount: mockHandleCreateAccount,
-    _handlePerps: mockHandlePerps,
-    _handlePerpsAsset: mockHandlePerpsAsset,
+    // _handlePerps: mockHandlePerps,
+    // _handlePerpsAsset: mockHandlePerpsAsset,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -415,75 +415,76 @@ describe('handleUniversalLinks', () => {
     });
   });
 
-  describe('ACTIONS.PERPS', () => {
-    it('calls _handlePerps when action is PERPS', async () => {
-      const perpsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS}/markets`;
-      const perpsUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: perpsUrl,
-        pathname: `/${ACTIONS.PERPS}/markets`,
-      };
+  // Disabled for 7.55.0 to force user to update
+  // describe('ACTIONS.PERPS', () => {
+  //   it('calls _handlePerps when action is PERPS', async () => {
+  //     const perpsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS}/markets`;
+  //     const perpsUrlObj = {
+  //       ...urlObj,
+  //       hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+  //       href: perpsUrl,
+  //       pathname: `/${ACTIONS.PERPS}/markets`,
+  //     };
 
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: perpsUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: perpsUrl,
-        source: 'test-source',
-      });
+  //     await handleUniversalLink({
+  //       instance,
+  //       handled,
+  //       urlObj: perpsUrlObj,
+  //       browserCallBack: mockBrowserCallBack,
+  //       url: perpsUrl,
+  //       source: 'test-source',
+  //     });
 
-      expect(handled).toHaveBeenCalled();
-      expect(mockHandlePerps).toHaveBeenCalledWith('/markets');
-    });
+  //     expect(handled).toHaveBeenCalled();
+  //     expect(mockHandlePerps).toHaveBeenCalledWith('/markets');
+  //   });
 
-    it('calls _handlePerps when action is PERPS_MARKETS', async () => {
-      const perpsMarketsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_MARKETS}`;
-      const perpsMarketsUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: perpsMarketsUrl,
-        pathname: `/${ACTIONS.PERPS_MARKETS}`,
-      };
+  //   it('calls _handlePerps when action is PERPS_MARKETS', async () => {
+  //     const perpsMarketsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_MARKETS}`;
+  //     const perpsMarketsUrlObj = {
+  //       ...urlObj,
+  //       hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+  //       href: perpsMarketsUrl,
+  //       pathname: `/${ACTIONS.PERPS_MARKETS}`,
+  //     };
 
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: perpsMarketsUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: perpsMarketsUrl,
-        source: 'test-source',
-      });
+  //     await handleUniversalLink({
+  //       instance,
+  //       handled,
+  //       urlObj: perpsMarketsUrlObj,
+  //       browserCallBack: mockBrowserCallBack,
+  //       url: perpsMarketsUrl,
+  //       source: 'test-source',
+  //     });
 
-      expect(handled).toHaveBeenCalled();
-      expect(mockHandlePerps).toHaveBeenCalledWith('');
-    });
-  });
+  //     expect(handled).toHaveBeenCalled();
+  //     expect(mockHandlePerps).toHaveBeenCalledWith('');
+  //   });
+  // });
 
-  describe('ACTIONS.PERPS_ASSET', () => {
-    it('calls _handlePerpsAsset when action is PERPS_ASSET', async () => {
-      const perpsAssetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}/BTC`;
-      const perpsAssetUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: perpsAssetUrl,
-        pathname: `/${ACTIONS.PERPS_ASSET}/BTC`,
-      };
+  // describe('ACTIONS.PERPS_ASSET', () => {
+  //   it('calls _handlePerpsAsset when action is PERPS_ASSET', async () => {
+  //     const perpsAssetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}/BTC`;
+  //     const perpsAssetUrlObj = {
+  //       ...urlObj,
+  //       hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+  //       href: perpsAssetUrl,
+  //       pathname: `/${ACTIONS.PERPS_ASSET}/BTC`,
+  //     };
 
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: perpsAssetUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: perpsAssetUrl,
-        source: 'test-source',
-      });
+  //     await handleUniversalLink({
+  //       instance,
+  //       handled,
+  //       urlObj: perpsAssetUrlObj,
+  //       browserCallBack: mockBrowserCallBack,
+  //       url: perpsAssetUrl,
+  //       source: 'test-source',
+  //     });
 
-      expect(handled).toHaveBeenCalled();
-      expect(mockHandlePerpsAsset).toHaveBeenCalledWith('/BTC');
-    });
-  });
+  //     expect(handled).toHaveBeenCalled();
+  //     expect(mockHandlePerpsAsset).toHaveBeenCalledWith('/BTC');
+  //   });
+  // });
 
   describe('ACTIONS.WC', () => {
     const testCases = [
