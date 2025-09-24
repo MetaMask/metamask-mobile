@@ -22,6 +22,9 @@ ignores:
   - 'reflect-metadata'
   # Husky is used for pre-commit hooks
   - 'husky'
+  # esbuild dependencies are used for smart E2E AI analysis script
+  - 'esbuild'
+  - 'esbuild-register'
   # Remove this once it's used in the project
   - 'rive-react-native'
   # Appwright will be used in a follow up PR. We will remove once PR is ready
