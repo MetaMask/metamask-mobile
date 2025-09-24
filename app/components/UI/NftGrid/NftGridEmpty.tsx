@@ -41,7 +41,7 @@ const NftGridEmpty = () => {
   );
 
   return (
-    <View style={styles.emptyContainer}>
+    <View style={styles.emptyContainer} testID="nft-empty-container">
       <Image
         style={styles.emptyImageContainer}
         source={noNftsPlaceholder}
