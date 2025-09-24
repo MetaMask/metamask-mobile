@@ -4,20 +4,24 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
 import { RegressionIdentity } from '../../../tags';
-import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures';
-import { arrangeTestUtils } from '../../identity/utils/helpers';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures';
+import { arrangeTestUtils } from '../utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../../identity/utils/user-storage/userStorageMockttpController';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+} from '../utils/user-storage/userStorageMockttpController';
 import { goToImportSrp, inputSrp } from '../../multisrp/utils';
 import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
-import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../../identity/utils/constants';
-import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
-import { createUserStorageController } from '../../identity/utils/mocks';
+import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants';
+import { createUserStorageController } from '../utils/mocks';
+import {
+  USER_STORAGE_GROUPS_FEATURE_KEY,
+  USER_STORAGE_WALLETS_FEATURE_KEY,
+} from '@metamask/account-tree-controller';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
+import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
 
 describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -29,7 +33,7 @@ describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
 
   const DEFAULT_ACCOUNT_NAME = 'Account 1';
   const SECOND_ACCOUNT_NAME = 'Account 2';
-  const SRP_2_FIRST_ACCOUNT = 'Account 3';
+  const SRP_2_FIRST_ACCOUNT = 'Account 1';
   const SRP_2_SECOND_ACCOUNT = 'Number 4';
 
   /**
@@ -39,18 +43,27 @@ describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
    * Phase 3: Login to a fresh app instance and verify all accounts from both SRPs persist and are visible after importing the second SRP.
    */
 
-  it('should add accounts across multiple SRPs and sync them', async () => {
+  it('adds accounts across multiple SRPs and syncs them', async () => {
     await withIdentityFixtures(
       {
-        userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
+        userStorageFeatures: [
+          USER_STORAGE_GROUPS_FEATURE_KEY,
+          USER_STORAGE_WALLETS_FEATURE_KEY,
+        ],
         sharedUserStorageController,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
 
         await WalletView.tapIdenticon();
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(
+          AccountListBottomSheet.getAccountElementByAccountNameV2(
             DEFAULT_ACCOUNT_NAME,
           ),
           {
@@ -67,12 +80,11 @@ describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
             UserStorageMockttpControllerEvents.PUT_SINGLE,
           );
 
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateEthereumAccount();
+        await AccountListBottomSheet.tapAddAccountButtonV2();
         await waitUntilEventsEmittedNumberEquals(1);
 
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(
+          AccountListBottomSheet.getAccountElementByAccountNameV2(
             SECOND_ACCOUNT_NAME,
           ),
           {
@@ -87,28 +99,24 @@ describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
 
+        await Assertions.expectElementToBeVisible(WalletView.container);
+        await WalletView.tapIdenticon();
+
         await waitUntilSyncedAccountsNumberEquals(3);
 
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        const secretPhraseImportedText = 'Secret Recovery Phrase 2 imported';
-        // Waiting for toast notification to appear and disappear
-        await Assertions.expectTextDisplayed(secretPhraseImportedText);
-        await Assertions.expectTextNotDisplayed(secretPhraseImportedText);
-
         // Create second account for SRP 2
-        await WalletView.tapIdenticon();
-        await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
-        );
+        await AccountListBottomSheet.tapAddAccountButtonV2({
+          srpIndex: 1,
+        });
 
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateEthereumAccount();
-        await AddNewHdAccountComponent.tapSrpSelector();
-        await SRPListItemComponent.tapListItemByIndex(1);
-        await AddNewHdAccountComponent.enterName(SRP_2_SECOND_ACCOUNT);
-        await WalletView.tapIdenticon();
+        await AccountListBottomSheet.tapAccountEllipsisButtonV2(3);
+        await AccountDetails.tapEditAccountName();
+        await EditAccountName.updateAccountName(SRP_2_SECOND_ACCOUNT);
+        await EditAccountName.tapSave();
+        await AccountDetails.tapBackButton();
+
         await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.getAccountElementByAccountName(
+          AccountListBottomSheet.getAccountElementByAccountNameV2(
             SRP_2_SECOND_ACCOUNT,
           ),
           {
@@ -116,14 +124,23 @@ describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
         await device.enableSynchronization();
-        await waitUntilEventsEmittedNumberEquals(6);
+        await waitUntilEventsEmittedNumberEquals(5);
       },
     );
 
     await withIdentityFixtures(
       {
-        userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
+        userStorageFeatures: [
+          USER_STORAGE_GROUPS_FEATURE_KEY,
+          USER_STORAGE_WALLETS_FEATURE_KEY,
+        ],
         sharedUserStorageController,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
       },
       async () => {
         await loginToApp();
@@ -143,7 +160,9 @@ describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
 
         for (const accountName of visibleAccounts) {
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountName(accountName),
+            AccountListBottomSheet.getAccountElementByAccountNameV2(
+              accountName,
+            ),
             {
               description: `Account with name "${accountName}" should be visible`,
             },

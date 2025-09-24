@@ -1,27 +1,27 @@
-import {
-  importWalletWithRecoveryPhrase,
-  loginToApp,
-} from '../../../viewHelper';
+import { loginToApp } from '../../../viewHelper';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
 import { RegressionIdentity } from '../../../tags';
-import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { withIdentityFixtures } from '../../identity/utils/withIdentityFixtures';
-import { arrangeTestUtils } from '../../identity/utils/helpers';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures';
+import { arrangeTestUtils } from '../utils/helpers';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
-} from '../../identity/utils/user-storage/userStorageMockttpController';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
-import FixtureBuilder, {
+} from '../utils/user-storage/userStorageMockttpController';
+import {
   DEFAULT_FIXTURE_ACCOUNT,
   DEFAULT_FIXTURE_ACCOUNT_2,
 } from '../../../framework/fixtures/FixtureBuilder';
-import { defaultGanacheOptions } from '../../../framework/Constants';
-import { createUserStorageController } from '../../identity/utils/mocks';
+import { createUserStorageController } from '../utils/mocks';
+import {
+  USER_STORAGE_GROUPS_FEATURE_KEY,
+  USER_STORAGE_WALLETS_FEATURE_KEY,
+} from '@metamask/account-tree-controller';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(RegressionIdentity('Account syncing - Accounts with Balances'), () => {
+describe(RegressionIdentity('Account syncing - Accounts with activity'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {
@@ -37,12 +37,21 @@ describe(RegressionIdentity('Account syncing - Accounts with Balances'), () => {
   const itif = (condition: boolean) => (condition ? it : it.skip);
 
   itif(device.getPlatform() === 'ios')(
-    'should gracefully handle adding accounts with balances and synced accounts',
+    'gracefully handles adding accounts with activity and synced accounts',
     async () => {
       await withIdentityFixtures(
         {
-          userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
+          userStorageFeatures: [
+            USER_STORAGE_GROUPS_FEATURE_KEY,
+            USER_STORAGE_WALLETS_FEATURE_KEY,
+          ],
           sharedUserStorageController,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(true),
+            );
+          },
         },
         async ({ mockServer: _mockServer, userStorageMockttpController }) => {
           const { prepareEventsEmittedCounter } = arrangeTestUtils(
@@ -58,31 +67,35 @@ describe(RegressionIdentity('Account syncing - Accounts with Balances'), () => {
           await WalletView.tapIdenticon();
           // Should see default account
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountName('Account 1'),
+            AccountListBottomSheet.getAccountElementByAccountNameV2(
+              'Account 1',
+            ),
           );
 
           // Add another second EVM account
-          await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateEthereumAccount();
+          await AccountListBottomSheet.tapAddAccountButtonV2();
 
           await waitUntilEventsEmittedNumberEquals(1);
         },
       );
 
-      const onboardingFixture = new FixtureBuilder()
-        .withOnboardingFixture()
-        .build();
       await withIdentityFixtures(
         {
-          userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
+          userStorageFeatures: [
+            USER_STORAGE_GROUPS_FEATURE_KEY,
+            USER_STORAGE_WALLETS_FEATURE_KEY,
+          ],
           sharedUserStorageController,
-          fixture: onboardingFixture,
           mockBalancesAccounts: balancesAccounts,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureMultichainAccountsAccountDetailsV2(true),
+            );
+          },
         },
         async () => {
-          await importWalletWithRecoveryPhrase({
-            seedPhrase: defaultGanacheOptions.mnemonic,
-          });
+          await loginToApp();
 
           await WalletView.tapIdenticon();
 
@@ -90,7 +103,7 @@ describe(RegressionIdentity('Account syncing - Accounts with Balances'), () => {
 
           for (const accountName of visibleAccounts) {
             await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.getAccountElementByAccountName(
+              AccountListBottomSheet.getAccountElementByAccountNameV2(
                 accountName,
               ),
               {
