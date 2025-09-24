@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
@@ -40,7 +40,6 @@ const MultichainAccountSelectorList = ({
   selectedAccountGroups,
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
-  showCheckbox = false,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -55,8 +54,7 @@ const MultichainAccountSelectorList = ({
   const [lastCreatedAccountId, setLastCreatedAccountId] = useState<
     string | null
   >(null);
-  const internalListRef =
-    useRef<FlashListRef<FlattenedMultichainAccountListItem>>(null);
+  const internalListRef = useRef(null);
   const listRefToUse = listRef || internalListRef;
 
   const selectedIdSet = useMemo(
@@ -157,16 +155,6 @@ const MultichainAccountSelectorList = ({
     return items;
   }, [filteredWalletSections]);
 
-  // Compute first selected account index for initial positioning only
-  const initialSelectedIndex = useMemo(() => {
-    const targetId = selectedAccountGroups?.[0]?.id;
-    if (!targetId) return undefined;
-    const idx = flattenedData.findIndex(
-      (item) => item.type === 'cell' && item.data.id === targetId,
-    );
-    return idx > 0 ? idx : undefined;
-  }, [flattenedData, selectedAccountGroups]);
-
   // Reset scroll to top when search text changes
   useEffect(() => {
     if (listRefToUse.current) {
@@ -216,7 +204,7 @@ const MultichainAccountSelectorList = ({
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
     useCallback(
-      ({ item }: { item: FlattenedMultichainAccountListItem }) => {
+      ({ item }) => {
         switch (item.type) {
           case 'header': {
             return <AccountListHeader title={item.data.title} />;
@@ -230,7 +218,6 @@ const MultichainAccountSelectorList = ({
                 avatarAccountType={avatarAccountType}
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
-                showCheckbox={showCheckbox}
               />
             );
           }
@@ -253,7 +240,6 @@ const MultichainAccountSelectorList = ({
         handleSelectAccount,
         handleAccountCreated,
         avatarAccountType,
-        showCheckbox,
       ],
     );
 
@@ -293,7 +279,6 @@ const MultichainAccountSelectorList = ({
           value={searchText}
           onChangeText={setSearchText}
           placeholder={strings('accounts.search_your_accounts')}
-          placeholderTextColor={styles.searchPlaceholderText.color}
           testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
           autoFocus={false}
           style={styles.searchTextField}
@@ -321,7 +306,6 @@ const MultichainAccountSelectorList = ({
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
-            initialScrollIndex={initialSelectedIndex}
             renderScrollComponent={
               ScrollView as React.ComponentType<ScrollViewProps>
             }

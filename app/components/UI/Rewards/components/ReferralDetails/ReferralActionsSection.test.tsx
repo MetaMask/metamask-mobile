@@ -67,12 +67,8 @@ describe('ReferralActionsSection', () => {
         <ReferralActionsSection {...defaultProps} />,
       );
 
-      expect(
-        getByTestId('copyable-field-rewards.referral.referral_code'),
-      ).toBeTruthy();
-      expect(
-        getByTestId('copyable-field-rewards.referral.referral_link'),
-      ).toBeTruthy();
+      expect(getByTestId('copyable-field-your-referral-code')).toBeTruthy();
+      expect(getByTestId('copyable-field-your-referral-link')).toBeTruthy();
       expect(getByText('Share Referral Link')).toBeTruthy();
     });
 
@@ -81,12 +77,8 @@ describe('ReferralActionsSection', () => {
         <ReferralActionsSection {...defaultProps} referralCode={null} />,
       );
 
-      expect(
-        getByTestId('copyable-field-rewards.referral.referral_code'),
-      ).toBeTruthy();
-      expect(
-        getByTestId('copyable-field-rewards.referral.referral_link'),
-      ).toBeTruthy();
+      expect(getByTestId('copyable-field-your-referral-code')).toBeTruthy();
+      expect(getByTestId('copyable-field-your-referral-link')).toBeTruthy();
     });
   });
 
@@ -108,9 +100,7 @@ describe('ReferralActionsSection', () => {
         />,
       );
 
-      const copyButton = getByTestId(
-        'copy-button-rewards.referral.referral_code',
-      );
+      const copyButton = getByTestId('copy-button-your-referral-code');
       fireEvent.press(copyButton);
 
       expect(mockOnCopyCode).toHaveBeenCalledTimes(1);
@@ -123,9 +113,7 @@ describe('ReferralActionsSection', () => {
         <ReferralActionsSection {...defaultProps} />,
       );
 
-      expect(
-        getByText('link.metamask.io/rewards?referral=TEST123'),
-      ).toBeTruthy();
+      expect(getByText('https://mm.io/invite/TEST123')).toBeTruthy();
     });
 
     it('should call onCopyLink with correct URL when referral link copy button is pressed', () => {
@@ -137,13 +125,11 @@ describe('ReferralActionsSection', () => {
         />,
       );
 
-      const copyButton = getByTestId(
-        'copy-button-rewards.referral.referral_link',
-      );
+      const copyButton = getByTestId('copy-button-your-referral-link');
       fireEvent.press(copyButton);
 
       expect(mockOnCopyLink).toHaveBeenCalledWith(
-        'rewards.referral.share_referral_message_prefixhttps://link.metamask.io/rewards?referral=TEST123',
+        'https://mm.io/invite/TEST123',
       );
     });
 
@@ -152,9 +138,7 @@ describe('ReferralActionsSection', () => {
         <ReferralActionsSection {...defaultProps} referralCode="CUSTOM456" />,
       );
 
-      expect(
-        getByText('link.metamask.io/rewards?referral=CUSTOM456'),
-      ).toBeTruthy();
+      expect(getByText('https://mm.io/invite/CUSTOM456')).toBeTruthy();
     });
   });
 
@@ -172,7 +156,7 @@ describe('ReferralActionsSection', () => {
       fireEvent.press(shareButton);
 
       expect(mockOnShareLink).toHaveBeenCalledWith(
-        'https://link.metamask.io/rewards?referral=TEST123',
+        'https://mm.io/invite/TEST123',
       );
     });
   });
@@ -183,9 +167,7 @@ describe('ReferralActionsSection', () => {
         <ReferralActionsSection {...defaultProps} onCopyCode={undefined} />,
       );
 
-      const copyButton = getByTestId(
-        'copy-button-rewards.referral.referral_code',
-      );
+      const copyButton = getByTestId('copy-button-your-referral-code');
       expect(() => fireEvent.press(copyButton)).not.toThrow();
     });
 
@@ -194,9 +176,7 @@ describe('ReferralActionsSection', () => {
         <ReferralActionsSection {...defaultProps} onCopyLink={undefined} />,
       );
 
-      const copyButton = getByTestId(
-        'copy-button-rewards.referral.referral_link',
-      );
+      const copyButton = getByTestId('copy-button-your-referral-link');
       expect(() => fireEvent.press(copyButton)).not.toThrow();
     });
   });
@@ -209,9 +189,7 @@ describe('ReferralActionsSection', () => {
       );
 
       expect(getByText(specialCode)).toBeTruthy();
-      expect(
-        getByText(`link.metamask.io/rewards?referral=${specialCode}`),
-      ).toBeTruthy();
+      expect(getByText(`https://mm.io/invite/${specialCode}`)).toBeTruthy();
     });
 
     it('should handle very long referral codes', () => {
@@ -221,9 +199,7 @@ describe('ReferralActionsSection', () => {
       );
 
       expect(getByText(longCode)).toBeTruthy();
-      expect(
-        getByText(`link.metamask.io/rewards?referral=${longCode}`),
-      ).toBeTruthy();
+      expect(getByText(`https://mm.io/invite/${longCode}`)).toBeTruthy();
     });
   });
 });

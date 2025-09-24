@@ -178,10 +178,6 @@ export const usePerpsClosePosition = (
             [PerpsEventProperties.METAMASK_FEE]: feeResults?.metamaskFee,
             [PerpsEventProperties.METAMASK_FEE_RATE]:
               feeResults?.metamaskFeeRate,
-            [PerpsEventProperties.DISCOUNT_PERCENTAGE]:
-              feeResults?.feeDiscountPercentage,
-            [PerpsEventProperties.ESTIMATED_REWARDS]:
-              feeResults?.estimatedPoints,
             [PerpsEventProperties.PERCENTAGE_CLOSED]: closePercentage,
             [PerpsEventProperties.CLOSE_TYPE]: closeType,
           });

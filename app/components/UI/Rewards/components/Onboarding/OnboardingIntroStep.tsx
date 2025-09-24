@@ -156,10 +156,10 @@ const OnboardingIntroStep: React.FC = () => {
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Center}
     >
-      <Box twClassName="justify-center items-center">
+      <Box twClassName="justify-center items-center gap-1">
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-[44px]'),
             // eslint-disable-next-line react-native/no-inline-styles
             { fontFamily: 'MM Poly Regular', fontWeight: '400' },
           ]}
@@ -168,7 +168,7 @@ const OnboardingIntroStep: React.FC = () => {
         </RNText>
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-[44px]'),
             // eslint-disable-next-line react-native/no-inline-styles
             { fontFamily: 'MM Poly Regular', fontWeight: '400' },
           ]}
@@ -189,7 +189,7 @@ const OnboardingIntroStep: React.FC = () => {
    * Renders the intro image section
    */
   const renderImage = () => (
-    <Box twClassName="flex-1 justify-center items-center py-2">
+    <Box twClassName="flex-1 justify-center items-center">
       <Image
         source={intro}
         resizeMode="contain"
@@ -212,9 +212,7 @@ const OnboardingIntroStep: React.FC = () => {
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
       >
-        <Text twClassName="text-white">
-          {strings('rewards.onboarding.intro_confirm')}
-        </Text>
+        {strings('rewards.onboarding.intro_confirm')}
       </Button>
       <Button
         variant={ButtonVariant.Tertiary}

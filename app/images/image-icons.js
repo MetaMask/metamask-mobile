@@ -39,7 +39,6 @@ import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
 import FRAX from './frax.png';
-import XDC from './xdc.png';
 import AAVE from './aave-token-round.png';
 
 export default {
@@ -87,5 +86,4 @@ export default {
   OMNI: OMNI_TOKEN,
   HL,
   FRAX,
-  XDC,
 };

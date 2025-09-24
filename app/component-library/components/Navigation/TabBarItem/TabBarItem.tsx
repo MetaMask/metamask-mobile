@@ -5,16 +5,19 @@ import React from 'react';
 
 // External dependencies.
 import { ButtonAnimated } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  useTailwind,
+  ThemeProvider,
+  Theme,
+} from '@metamask/design-system-twrnc-preset';
 import Icon, { IconColor, IconSize } from '../../Icons/Icon';
 import { default as MMText, TextColor, TextVariant } from '../../Texts/Text';
 
 // Internal dependencies
 import { TabBarItemProps } from './TabBarItem.types';
-import TradeTabBarItem from '../TradeTabBarItem';
 
 // Internal component that uses the locked theme for trade button
-const TabBarItem = ({
+const TabBarItemInner = ({
   iconName,
   isActive = false,
   isTradeButton = false,
@@ -23,16 +26,30 @@ const TabBarItem = ({
 }: TabBarItemProps) => {
   const tw = useTailwind(); // Gets theme from ThemeProvider context
 
-  const iconColor = isActive ? IconColor.Default : IconColor.Alternative;
+  const getIconColor = () => {
+    if (isTradeButton) {
+      // Force light theme icon color for trade button (white on primary background)
+      return tw.color('text-primary-inverse');
+    }
+    return isActive ? IconColor.Default : IconColor.Alternative;
+  };
 
   return isTradeButton ? (
-    <TradeTabBarItem
+    <ButtonAnimated
+      style={({ pressed }) =>
+        tw.style(
+          'h-[45px] w-[45px] items-center justify-center rounded-full bg-primary-default px-1 py-1',
+          pressed && 'bg-primary-default-pressed',
+        )
+      }
       testID={props.testID}
-      label={label}
       accessibilityLabel={label}
       accessible
       accessibilityRole="button"
-    />
+      {...props}
+    >
+      <Icon name={iconName} size={IconSize.Md} color={getIconColor()} />
+    </ButtonAnimated>
   ) : (
     <ButtonAnimated
       style={tw.style(
@@ -44,8 +61,8 @@ const TabBarItem = ({
       accessibilityRole="button"
       {...props}
     >
-      <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
-      {label && (
+      <Icon name={iconName} size={IconSize.Lg} color={getIconColor()} />
+      {!isTradeButton && label && (
         <MMText
           variant={TextVariant.BodyXSMedium}
           color={isActive ? TextColor.Default : TextColor.Alternative}
@@ -58,6 +75,23 @@ const TabBarItem = ({
       )}
     </ButtonAnimated>
   );
+};
+
+/*
+ * Lock TradeButton to light theme
+ * The useTailwind hook needs to be called inside the ThemeProvider context to get the locked theme.
+ * By splitting into two components, we ensure the hook gets the correct theme context for all color calculations.
+ */
+const TabBarItem = (props: TabBarItemProps) => {
+  if (props.isTradeButton) {
+    return (
+      <ThemeProvider theme={Theme.Light}>
+        <TabBarItemInner {...props} />
+      </ThemeProvider>
+    );
+  }
+
+  return <TabBarItemInner {...props} />;
 };
 
 export default TabBarItem;

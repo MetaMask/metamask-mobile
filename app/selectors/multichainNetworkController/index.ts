@@ -13,9 +13,6 @@ import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
 import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
-///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
-///: END:ONLY_INCLUDE_IF
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController;
@@ -40,24 +37,12 @@ export const selectSelectedNonEvmNetworkChainId = createDeepEqualSelector(
  * @returns An object where the keys are chain IDs and the values are network configurations.
  */
 export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
-  [
-    selectMultichainNetworkControllerState,
-    selectIsSolanaTestnetEnabled,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-    selectIsBitcoinTestnetEnabled,
-    ///: END:ONLY_INCLUDE_IF
-  ],
+  [selectMultichainNetworkControllerState, selectIsSolanaTestnetEnabled],
   (
     multichainNetworkControllerState: MultichainNetworkControllerState,
     isSolanaTestnetEnabled: Json,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-    isBitcoinTestnetEnabled: Json,
-    ///: END:ONLY_INCLUDE_IF
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-    const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
-    ///: END:ONLY_INCLUDE_IF
     const extendedNonEvmData: Record<
       CaipChainId,
       {
@@ -121,9 +106,8 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       BtcScope.Mainnet,
-      ...(isBitcoinTestnetEnabledBoolean
-        ? [BtcScope.Testnet, BtcScope.Signet]
-        : []),
+      BtcScope.Testnet,
+      BtcScope.Signet,
       ///: END:ONLY_INCLUDE_IF
       SolScope.Mainnet,
       ...(isSolanaTestnetEnabledBoolean ? [SolScope.Devnet] : []),

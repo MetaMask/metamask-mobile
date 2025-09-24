@@ -48,5 +48,4 @@ export type PerpsTooltipContentKey =
   | 'limit_price'
   | 'tp_sl'
   | 'close_position_you_receive'
-  | 'tpsl_count_warning'
-  | 'points';
+  | 'tpsl_count_warning';

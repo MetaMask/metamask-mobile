@@ -3,9 +3,9 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
 import type { OrderFormState } from '../types';
 import { calculateMarginRequired } from '../utils/orderCalculations';
+import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { OrderType } from '../controllers/types';
-import { usePerpsLiveAccount } from './stream';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
@@ -53,7 +53,7 @@ export function usePerpsOrderForm(
   const currentNetwork = usePerpsNetwork();
   const { account } = usePerpsLiveAccount();
 
-  // Get available balance from live account data
+  // Get available balance
   const availableBalance = parseFloat(
     account?.availableBalance?.toString() || '0',
   );

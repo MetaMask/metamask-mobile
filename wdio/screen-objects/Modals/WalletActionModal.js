@@ -40,14 +40,6 @@ class WalletActionModal {
     }
   }
 
-  get perpsButton() {
-    if (!this._device) {
-      return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON);
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON);
-    }
-  }
-
   async tapSendButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.sendButton);
@@ -75,15 +67,6 @@ class WalletActionModal {
       await Gestures.waitAndTap(this.bridgeButton);
     } else {
       const element = await this.bridgeButton;
-      await element.tap();
-    }
-  }
-
-  async tapPerpsButton() {
-    if (!this._device) {
-      await Gestures.waitAndTap(this.perpsButton);
-    } else {
-      const element = await this.perpsButton;
       await element.tap();
     }
   }

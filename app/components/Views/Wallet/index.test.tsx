@@ -570,7 +570,7 @@ describe('Wallet', () => {
           displayBuyButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
           displayBridgeButton: expect.any(Boolean),
-          chainId: expect.any(String),
+          swapsIsLive: expect.any(Boolean),
           goToBridge: expect.any(Function),
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),

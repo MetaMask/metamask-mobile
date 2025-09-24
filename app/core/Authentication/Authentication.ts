@@ -32,7 +32,7 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { isMultichainAccountsState2Enabled } from '../../multichain-accounts/remote-feature-flag';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
-import { discoverAccounts } from '../../multichain-accounts/discovery';
+import { discoverAndCreateAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
 import {
@@ -85,16 +85,7 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private async dispatchLogin(
-    options: {
-      clearAccountTreeState: boolean;
-    } = {
-      clearAccountTreeState: false,
-    },
-  ): Promise<void> {
-    if (options.clearAccountTreeState) {
-      AccountTreeInitService.clearState();
-    }
+  private async dispatchLogin(): Promise<void> {
     await AccountTreeInitService.initializeAccountTree();
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
@@ -163,7 +154,9 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    if (!isMultichainAccountsState2Enabled()) {
+    if (isMultichainAccountsState2Enabled()) {
+      await this.attemptMultichainAccountWalletDiscovery();
+    } else {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -221,7 +214,9 @@ class AuthenticationService {
     entropySource?: EntropySourceId,
   ): Promise<void> => {
     await this.retryAccountDiscovery(async (): Promise<void> => {
-      await discoverAccounts(entropySource ?? this.getPrimaryEntropySourceId());
+      await discoverAndCreateAccounts(
+        entropySource ?? this.getPrimaryEntropySourceId(),
+      );
     });
   };
 
@@ -261,7 +256,9 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    if (!isMultichainAccountsState2Enabled()) {
+    if (isMultichainAccountsState2Enabled()) {
+      await this.attemptMultichainAccountWalletDiscovery();
+    } else {
       await Promise.all(
         Object.values(WalletClientType).map(async (clientType) => {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
@@ -495,9 +492,7 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      await this.dispatchLogin({
-        clearAccountTreeState: true,
-      });
+      await this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -530,9 +525,7 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      await this.dispatchLogin({
-        clearAccountTreeState: true,
-      });
+      await this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -570,9 +570,6 @@ const getEvmNetworkImageSource = ({ networkType, chainId }) => {
   return getTestNetImage(networkType);
 };
 
-// getNetworkImageSource is called a lot and could be relatively expensive, so we cache the results
-const imageSourceCache = new Map();
-
 /**
  * Gets the image source for a network given both the network type and the Hex EVM chain ID or CaipChainId.
  *
@@ -582,28 +579,16 @@ const imageSourceCache = new Map();
  * @returns {Object} - Image source of the network.
  */
 export const getNetworkImageSource = ({ networkType, chainId }) => {
-  const cacheKey = `${networkType}-${chainId}`;
-  if (imageSourceCache.has(cacheKey)) {
-    return imageSourceCache.get(cacheKey);
-  }
-
   let hexChainId = chainId;
   if (isCaipChainId(chainId)) {
     const { namespace, reference } = parseCaipChainId(chainId);
     if (namespace !== KnownCaipNamespace.Eip155) {
-      const nonEvmImageSource = getNonEvmNetworkImageSourceByChainId(chainId);
-      imageSourceCache.set(cacheKey, nonEvmImageSource);
-      return nonEvmImageSource;
+      return getNonEvmNetworkImageSourceByChainId(chainId);
     }
     hexChainId = toHex(reference === '0' ? '1' : reference); // default to mainnet if chainId is 0
   }
 
-  const imageSource = getEvmNetworkImageSource({
-    networkType,
-    chainId: hexChainId,
-  });
-  imageSourceCache.set(cacheKey, imageSource);
-  return imageSource;
+  return getEvmNetworkImageSource({ networkType, chainId: hexChainId });
 };
 
 /**
@@ -677,8 +662,7 @@ export const isPerDappSelectedNetworkEnabled = () => true;
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
-export const isRemoveGlobalNetworkSelectorEnabled = () =>
-  process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+export const isRemoveGlobalNetworkSelectorEnabled = () => true;
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {

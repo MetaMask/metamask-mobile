@@ -316,7 +316,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
                     twClassName="text-primary text-center"
                   >
                     {strings('rewards.linking_account', {
-                      accountName: linkingAccount.address,
+                      accountName: linkingAccount.metadata.name,
                     })}
                   </Text>
                 </Box>

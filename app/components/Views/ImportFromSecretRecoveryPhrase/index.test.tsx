@@ -1247,7 +1247,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
   describe('Create password UI', () => {
     it('renders create password UI', async () => {
-      const { getByText, getByTestId } = await renderCreatePasswordUI();
+      const { getByText } = await renderCreatePasswordUI();
 
       await waitFor(() => {
         expect(
@@ -1257,7 +1257,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           getByText(strings('import_from_seed.metamask_password_description')),
         ).toBeOnTheScreen();
         expect(
-          getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+          getByText(strings('import_from_seed.create_new_password')),
         ).toBeOnTheScreen();
         expect(
           getByText(strings('import_from_seed.confirm_password')),
@@ -1265,14 +1265,40 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('on clicking eye icon, password visibility is toggled', async () => {
-      const { getByTestId } = await renderCreatePasswordUI();
+    it('password strength indicator is shown on password input', async () => {
+      const { getByText, getByPlaceholderText } =
+        await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'weakpass');
+      });
+
+      await waitFor(() => {
+        expect(getByText('Password strength: Weak')).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
+
+      await waitFor(() => {
+        expect(getByText('Password strength: Good')).toBeOnTheScreen();
+      });
+    });
+
+    it('on clicking eye icon, password visibility is toggled', async () => {
+      const { getByPlaceholderText, getByTestId } =
+        await renderCreatePasswordUI();
+
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
+      );
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
 
       const newPasswordVisibilityIcon = getByTestId(
@@ -1296,13 +1322,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('error message is shown when passwords do not match', async () => {
-      const { getByText, getByTestId } = await renderCreatePasswordUI();
+      const { getByText, getByPlaceholderText } =
+        await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
 
       fireEvent.changeText(passwordInput, 'StrongPass123!');
@@ -1316,15 +1343,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('confirm password field is disabled until new password is entered', async () => {
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByPlaceholderText } = await renderCreatePasswordUI();
 
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
       expect(confirmPasswordInput.props.editable).toBe(false);
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
       fireEvent.changeText(passwordInput, 'StrongPass123!');
 
@@ -1334,10 +1361,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('confirm password field is cleared when new password is removed', async () => {
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByPlaceholderText } = await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
 
       await act(async () => {
@@ -1346,8 +1373,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       expect(passwordInput.props.value).toBe('StrongPass123!');
 
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
 
       await act(async () => {
@@ -1370,10 +1397,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('minimum password length requirement message shown when create new password field value is less than 8 characters', async () => {
-      const { getByText, getByTestId } = await renderCreatePasswordUI();
+      const { getByText, getByPlaceholderText } =
+        await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
 
       await act(async () => {
@@ -1392,13 +1420,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('confirm password field is focused when new password field is entered', async () => {
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByPlaceholderText } = await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
 
       // Enter password and press next
@@ -1450,13 +1478,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
 
     it('error message is shown when passcode is not set', async () => {
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByText, getByPlaceholderText, getByTestId } =
+        await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
 
       // Enter valid passwords
@@ -1477,8 +1506,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         .mockRejectedValueOnce(new Error('Error: Passcode not set.'));
 
       // Try to import
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      const confirmButton = getByText(
+        strings('import_from_seed.create_password_cta'),
       );
       fireEvent.press(confirmButton);
 
@@ -1489,13 +1518,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
     it('Import seed phrase with optin metrics flow', async () => {
       mockIsEnabled.mockReturnValue(false);
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByPlaceholderText } =
+        await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
       // Enter valid passwords
       fireEvent.changeText(passwordInput, 'StrongPass123!');
@@ -1543,19 +1573,20 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         // Mock second call in handleRejectedOsBiometricPrompt
         .mockResolvedValueOnce();
 
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByPlaceholderText, getByText } =
+        await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      const confirmButton = getByText(
+        strings('import_from_seed.create_password_cta'),
       );
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
@@ -1599,19 +1630,20 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         // Mock second call in handleRejectedOsBiometricPrompt: this should also fail
         .mockRejectedValueOnce(new Error('Wallet creation failed'));
 
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByPlaceholderText, getByText } =
+        await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
       );
-      const confirmButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      const confirmButton = getByText(
+        strings('import_from_seed.create_password_cta'),
       );
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
@@ -1752,15 +1784,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      const { getByTestId } = await renderCreatePasswordUI(
-        mockOnboardingTraceCtx,
-      );
+      const { getByTestId, getByPlaceholderText } =
+        await renderCreatePasswordUI(mockOnboardingTraceCtx);
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
@@ -1801,13 +1832,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      const { getByTestId } = await renderCreatePasswordUI();
+      const { getByTestId, getByPlaceholderText } =
+        await renderCreatePasswordUI();
 
-      const passwordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      const passwordInput = getByPlaceholderText(
+        strings('import_from_seed.enter_strong_password'),
       );
-      const confirmPasswordInput = getByTestId(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      const confirmPasswordInput = getByPlaceholderText(
+        strings('import_from_seed.re_enter_password'),
       );
       const learnMoreCheckbox = getByTestId(
         ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,

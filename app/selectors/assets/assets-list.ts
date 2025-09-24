@@ -218,23 +218,13 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       tokenSortConfig,
     );
 
-    // Remove duplicates by creating a unique key for deduplication
-    const uniqueTokensMap = new Map();
-
-    tokensSorted.forEach(
-      ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
-        const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
-        if (!uniqueTokensMap.has(uniqueKey)) {
-          uniqueTokensMap.set(uniqueKey, {
-            address: assetId || '',
-            chainId: chainId?.toString() || '',
-            isStaked: Boolean(isStaked),
-          });
-        }
-      },
+    return tokensSorted.map(
+      ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => ({
+        address: assetId,
+        chainId,
+        isStaked,
+      }),
     );
-
-    return Array.from(uniqueTokensMap.values());
   },
 );
 
@@ -255,12 +245,10 @@ export const selectAsset = createDeepEqualSelector(
           (item) =>
             item.chainId === chainId && item.stakedAsset.assetId === address,
         )?.stakedAsset
-      : assets[chainId]?.find((item: Asset & { isStaked?: boolean }) => {
-          // Normalize isStaked values: treat undefined as false
-          const itemIsStaked = Boolean(item.isStaked);
-          const targetIsStaked = Boolean(isStaked);
-          return item.assetId === address && itemIsStaked === targetIsStaked;
-        });
+      : assets[chainId]?.find(
+          (item: Asset & { isStaked?: boolean }) =>
+            item.assetId === address && item.isStaked === isStaked,
+        );
 
     return asset ? assetToToken(asset, tokensChainsCache) : undefined;
   },

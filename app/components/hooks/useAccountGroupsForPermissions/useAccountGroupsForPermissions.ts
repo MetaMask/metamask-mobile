@@ -8,10 +8,7 @@ import { CaipAccountId, CaipChainId, CaipNamespace } from '@metamask/utils';
 import { useMemo } from 'react';
 import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
 import { hasChainIdSupport, hasNamespaceSupport } from './utils';
-import {
-  selectAccountGroupWithInternalAccounts,
-  selectSelectedAccountGroupId,
-} from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectAccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 
 /**
  * Checks if an account group has any connected accounts
@@ -118,14 +115,9 @@ export const useAccountGroupsForPermissions = (
   requestedCaipChainIds: CaipChainId[],
   requestedNamespacesWithoutWallet: CaipNamespace[],
 ) => {
-  const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
   const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
 
   const result = useMemo(() => {
-    const selectedAccountGroup = accountGroups.find(
-      (accountGroup) => accountGroup.id === selectedAccountGroupId,
-    );
-
     const connectedAccountIds =
       getCaipAccountIdsFromCaip25CaveatValue(existingPermission);
     const requestedNamespaceSet = new Set(requestedNamespacesWithoutWallet);
@@ -136,20 +128,7 @@ export const useAccountGroupsForPermissions = (
     const priorityConnectedGroups: AccountGroupWithInternalAccounts[] = [];
     const prioritySupportedGroups: AccountGroupWithInternalAccounts[] = [];
 
-    let accountGroupsWithSelectedAccountGroup: AccountGroupWithInternalAccounts[] =
-      [];
-
-    if (selectedAccountGroup) {
-      accountGroupsWithSelectedAccountGroup = [
-        selectedAccountGroup,
-        ...accountGroups,
-      ];
-    }
-
-    (accountGroupsWithSelectedAccountGroup.length
-      ? accountGroupsWithSelectedAccountGroup
-      : accountGroups
-    ).forEach((accountGroup) => {
+    accountGroups.forEach((accountGroup) => {
       const isConnected = hasConnectedAccounts(
         accountGroup,
         connectedAccountIds,
@@ -180,12 +159,14 @@ export const useAccountGroupsForPermissions = (
     });
 
     return {
-      supportedAccountGroups: Array.from(
-        new Set([...prioritySupportedGroups, ...supportedAccountGroups]),
-      ),
-      connectedAccountGroups: Array.from(
-        new Set([...priorityConnectedGroups, ...connectedAccountGroups]),
-      ),
+      supportedAccountGroups: [
+        ...prioritySupportedGroups,
+        ...supportedAccountGroups,
+      ],
+      connectedAccountGroups: [
+        ...priorityConnectedGroups,
+        ...connectedAccountGroups,
+      ],
       connectedCaipAccountIds: connectedAccountIds,
     };
   }, [
@@ -194,7 +175,6 @@ export const useAccountGroupsForPermissions = (
     requestedCaipAccountIds,
     requestedCaipChainIds,
     requestedNamespacesWithoutWallet,
-    selectedAccountGroupId,
   ]);
 
   return {

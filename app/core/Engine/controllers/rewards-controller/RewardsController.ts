@@ -19,12 +19,7 @@ import {
   type GetPointsEventsDto,
   type OptInStatusInputDto,
   type OptInStatusDto,
-  type PointsBoostDto,
-  type ActiveBoostsState,
-  type UnlockedRewardsState,
-  type RewardDto,
   CURRENT_SEASON_ID,
-  ClaimRewardDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -42,9 +37,6 @@ import {
   parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
-import { base58 } from 'ethers/lib/utils';
-import { isNonEvmAddress } from '../../../Multichain/utils';
-import { signSolanaRewardsMessage } from './utils/solana-snap';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -65,64 +57,16 @@ const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
-// Active boosts cache threshold
-const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 60 minutes
-
-// Unlocked rewards cache threshold
-const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
-
 /**
  * State metadata for the RewardsController
  */
 const metadata = {
-  activeAccount: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
-  accounts: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
-  subscriptions: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
-  seasons: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
-  subscriptionReferralDetails: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
-  seasonStatuses: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
-  activeBoosts: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
-  unlockedRewards: {
-    includeInStateLogs: true,
-    persist: true,
-    anonymous: false,
-    usedInUi: true,
-  },
+  activeAccount: { persist: true, anonymous: false },
+  accounts: { persist: true, anonymous: false },
+  subscriptions: { persist: true, anonymous: false },
+  seasons: { persist: true, anonymous: false },
+  subscriptionReferralDetails: { persist: true, anonymous: false },
+  seasonStatuses: { persist: true, anonymous: false },
 };
 /**
  * Get the default state for the RewardsController
@@ -134,8 +78,6 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
-  activeBoosts: {},
-  unlockedRewards: {},
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -315,18 +257,6 @@ export class RewardsController extends BaseController<
       'RewardsController:getOptInStatus',
       this.getOptInStatus.bind(this),
     );
-    this.messagingSystem.registerActionHandler(
-      'RewardsController:getActivePointsBoosts',
-      this.getActivePointsBoosts.bind(this),
-    );
-    this.messagingSystem.registerActionHandler(
-      'RewardsController:getUnlockedRewards',
-      this.getUnlockedRewards.bind(this),
-    );
-    this.messagingSystem.registerActionHandler(
-      'RewardsController:claimReward',
-      this.claimReward.bind(this),
-    );
   }
 
   /**
@@ -363,9 +293,9 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Create composite key for state storage
+   * Create composite key for season status storage
    */
-  #createSeasonSubscriptionCompositeKey(
+  #createSeasonStatusCompositeKey(
     seasonId: string,
     subscriptionId: string,
   ): string {
@@ -379,42 +309,11 @@ export class RewardsController extends BaseController<
     subscriptionId: string,
     seasonId: string = CURRENT_SEASON_ID,
   ): SeasonStatusState | null {
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+    const compositeKey = this.#createSeasonStatusCompositeKey(
       seasonId,
       subscriptionId,
     );
     return this.state.seasonStatuses[compositeKey] || null;
-  }
-
-  /**
-   * Get stored active boosts for a given composite key
-   */
-  #getActiveBoosts(
-    subscriptionId: string,
-    seasonId: string,
-  ): ActiveBoostsState | null {
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-      seasonId,
-      subscriptionId,
-    );
-    return this.state.activeBoosts[compositeKey] || null;
-  }
-
-  /**
-   * Get cached unlocked rewards for a subscription and season
-   * @param subscriptionId - The subscription ID
-   * @param seasonId - The season ID (defaults to current season)
-   * @returns The cached unlocked rewards state or null if not found
-   */
-  #getUnlockedRewards(
-    subscriptionId: string,
-    seasonId: string,
-  ): UnlockedRewardsState | null {
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-      seasonId,
-      subscriptionId,
-    );
-    return this.state.unlockedRewards[compositeKey] || null;
   }
 
   /**
@@ -426,20 +325,7 @@ export class RewardsController extends BaseController<
   ): Promise<string> {
     const message = `rewards,${account.address},${timestamp}`;
 
-    if (isSolanaAddress(account.address)) {
-      const result = await signSolanaRewardsMessage(
-        account.address,
-        Buffer.from(message, 'utf8').toString('base64'),
-      );
-      return `0x${Buffer.from(base58.decode(result.signature)).toString(
-        'hex',
-      )}`;
-    } else if (!isNonEvmAddress(account.address)) {
-      const result = await this.#signEvmMessage(account, message);
-      return result;
-    }
-
-    throw new Error('Unsupported account type for signing rewards message');
+    return await this.#signEvmMessage(account, message);
   }
 
   async #signEvmMessage(
@@ -483,7 +369,7 @@ export class RewardsController extends BaseController<
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      if (errorMessage && !errorMessage?.includes('Engine does not exist')) {
+      if (errorMessage && !errorMessage?.includes('Engine does not exis')) {
         Logger.log(
           'RewardsController: Silent authentication failed:',
           error instanceof Error ? error.message : String(error),
@@ -496,8 +382,8 @@ export class RewardsController extends BaseController<
    * Check if silent authentication should be skipped
    */
   #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
-    // Skip for hardware
-    if (isHardwareAccount(address)) return true;
+    // Skip for hardware and Solana accounts
+    if (isHardwareAccount(address) || isSolanaAddress(address)) return true;
 
     const now = Date.now();
 
@@ -708,7 +594,7 @@ export class RewardsController extends BaseController<
       );
       return {
         hasOptedIn: !!accountState.hasOptedIn,
-        discountBips: accountState.perpsFeeDiscount,
+        discount: accountState.perpsFeeDiscount,
       };
     }
 
@@ -731,7 +617,7 @@ export class RewardsController extends BaseController<
             subscriptionId: null,
             lastCheckedAuth: Date.now(),
             lastCheckedAuthError: false,
-            perpsFeeDiscount: perpsDiscountData.discountBips ?? 0,
+            perpsFeeDiscount: perpsDiscountData.discount ?? 0,
             lastPerpsDiscountRateFetched: Date.now(),
           };
         } else {
@@ -741,7 +627,7 @@ export class RewardsController extends BaseController<
             state.accounts[account].subscriptionId = null;
           }
           state.accounts[account].perpsFeeDiscount =
-            perpsDiscountData.discountBips ?? 0;
+            perpsDiscountData.discount ?? 0;
           state.accounts[account].lastPerpsDiscountRateFetched = Date.now();
         }
       });
@@ -800,13 +686,13 @@ export class RewardsController extends BaseController<
   /**
    * Get perps fee discount for an account with caching and threshold logic
    * @param account - The account address in CAIP-10 format
-   * @returns Promise<number> - The discount in basis points
+   * @returns Promise<number> - The discount number value
    */
   async getPerpsDiscountForAccount(account: CaipAccountId): Promise<number> {
     const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) return 0;
     const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
-    return perpsDiscountData?.discountBips || 0;
+    return perpsDiscountData?.discount || 0;
   }
 
   /**
@@ -917,7 +803,7 @@ export class RewardsController extends BaseController<
       const subscriptionSeasonStatus =
         this.#convertSeasonStatusToSubscriptionState(seasonStatus);
 
-      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
+      const compositeKey = this.#createSeasonStatusCompositeKey(
         seasonId,
         subscriptionId,
       );
@@ -1341,6 +1227,14 @@ export class RewardsController extends BaseController<
       return false;
     }
 
+    // Check if account is non-EVM (Solana) and throw error
+    if (isSolanaAddress?.(account.address)) {
+      Logger.log(
+        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
+      );
+      return false;
+    }
+
     // Convert account to CAIP format
     const caipAccount = this.convertInternalAccountToCaipAccountId(account);
     if (!caipAccount) {
@@ -1411,14 +1305,6 @@ export class RewardsController extends BaseController<
           subscriptionId: updatedSubscription.id,
         },
       );
-
-      // Invalidate cache for the linked account
-      this.#invalidateSubscriptionCache(updatedSubscription.id);
-      // Emit event to trigger UI refresh
-      this.messagingSystem.publish('RewardsController:accountLinked', {
-        subscriptionId: updatedSubscription.id,
-        account: caipAccount,
-      });
 
       return true;
     } catch (error) {
@@ -1500,257 +1386,5 @@ export class RewardsController extends BaseController<
       Logger.log('RewardsController: Failed to opt out', error);
       return false;
     }
-  }
-
-  /**
-   * Get active points boosts for the current season
-   * Get active points boosts for the current season with caching
-   * @param seasonId - The season ID to get points boosts for
-   * @param subscriptionId - The subscription ID to get points boosts for
-   * @returns Promise<PointsBoostDto[]> - The active points boosts
-   */
-  async getActivePointsBoosts(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<PointsBoostDto[]> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
-    if (!rewardsEnabled) {
-      return [];
-    }
-
-    // Check if we have cached active boosts and if threshold hasn't been reached
-    const cachedActiveBoosts = this.#getActiveBoosts(subscriptionId, seasonId);
-    if (
-      cachedActiveBoosts?.lastFetched &&
-      Date.now() - cachedActiveBoosts.lastFetched <
-        ACTIVE_BOOSTS_CACHE_THRESHOLD_MS
-    ) {
-      Logger.log(
-        'RewardsController: Using cached active boosts data for',
-        subscriptionId,
-        seasonId,
-        {
-          boostCount: cachedActiveBoosts.boosts.length,
-          cacheAge: Math.round(
-            (Date.now() - cachedActiveBoosts.lastFetched) / 1000,
-          ),
-          maxAge: Math.round(ACTIVE_BOOSTS_CACHE_THRESHOLD_MS / 1000),
-        },
-      );
-      return cachedActiveBoosts.boosts;
-    }
-
-    try {
-      Logger.log(
-        'RewardsController: Fetching fresh active boosts data via API call for subscriptionId & seasonId',
-        subscriptionId,
-        seasonId,
-      );
-      const response = await this.messagingSystem.call(
-        'RewardsDataService:getActivePointsBoosts',
-        seasonId,
-        subscriptionId,
-      );
-
-      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-        seasonId,
-        subscriptionId,
-      );
-
-      // Update state with cached active boosts
-      this.update((state: RewardsControllerState) => {
-        state.activeBoosts[compositeKey] = {
-          boosts: response.boosts,
-          lastFetched: Date.now(),
-        };
-      });
-
-      Logger.log('RewardsController: Successfully cached active boosts data', {
-        boostCount: response.boosts.length,
-      });
-
-      return response.boosts;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to get active points boosts:',
-        error instanceof Error ? error.message : String(error),
-      );
-      return [];
-    }
-  }
-
-  /**
-   * Get unlocked rewards with caching
-   * @param seasonId - The season ID
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<RewardDto[]> - The unlocked rewards data
-   */
-  async getUnlockedRewards(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<RewardDto[]> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
-    if (!rewardsEnabled) {
-      return [];
-    }
-
-    // Check if we have cached unlocked rewards and if threshold hasn't been reached
-    const cachedUnlockedRewards = this.#getUnlockedRewards(
-      subscriptionId,
-      seasonId,
-    );
-    if (
-      cachedUnlockedRewards?.lastFetched &&
-      Date.now() - cachedUnlockedRewards.lastFetched <
-        UNLOCKED_REWARDS_CACHE_THRESHOLD_MS
-    ) {
-      Logger.log(
-        'RewardsController: Using cached unlocked rewards data for',
-        subscriptionId,
-        seasonId,
-        {
-          rewardCount: cachedUnlockedRewards.rewards.length,
-          cacheAge: Math.round(
-            (Date.now() - cachedUnlockedRewards.lastFetched) / 1000,
-          ),
-          maxAge: Math.round(UNLOCKED_REWARDS_CACHE_THRESHOLD_MS / 1000),
-        },
-      );
-      return cachedUnlockedRewards.rewards;
-    }
-
-    try {
-      Logger.log(
-        'RewardsController: Fetching fresh unlocked rewards data via API call for subscriptionId & seasonId',
-        subscriptionId,
-        seasonId,
-      );
-      const response = (await this.messagingSystem.call(
-        'RewardsDataService:getUnlockedRewards',
-        seasonId,
-        subscriptionId,
-      )) as RewardDto[];
-
-      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-        seasonId,
-        subscriptionId,
-      );
-
-      // Update state with cached unlocked rewards
-      this.update((state: RewardsControllerState) => {
-        state.unlockedRewards[compositeKey] = {
-          rewards: response || [],
-          lastFetched: Date.now(),
-        };
-      });
-
-      Logger.log(
-        'RewardsController: Successfully cached unlocked rewards data',
-        {
-          rewardCount: (response || []).length,
-        },
-      );
-
-      return response || [];
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to get unlocked rewards:',
-        error instanceof Error ? error.message : String(error),
-      );
-      return [];
-    }
-  }
-
-  /**
-   * Claim a reward
-   * @param rewardId - The reward ID
-   * @param dto - The claim reward request body
-   * @param subscriptionId - The subscription ID for authentication
-   */
-  async claimReward(
-    rewardId: string,
-    subscriptionId: string,
-    dto?: ClaimRewardDto,
-  ): Promise<void> {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
-    if (!rewardsEnabled) {
-      throw new Error('Rewards are not enabled');
-    }
-    try {
-      await this.messagingSystem.call(
-        'RewardsDataService:claimReward',
-        rewardId,
-        subscriptionId,
-        dto,
-      );
-
-      // Invalidate cache for the active subscription
-      this.#invalidateSubscriptionCache(subscriptionId);
-
-      // Emit event to trigger UI refresh
-      this.messagingSystem.publish('RewardsController:rewardClaimed', {
-        rewardId,
-        subscriptionId,
-      });
-
-      Logger.log('RewardsController: Successfully claimed reward', {
-        rewardId,
-        subscriptionId,
-      });
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to claim reward:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Invalidate cached data for a subscription
-   * @param subscriptionId - The subscription ID to invalidate cache for
-   * @param seasonId - The season ID (defaults to current season)
-   */
-  #invalidateSubscriptionCache(
-    subscriptionId: string,
-    seasonId?: string,
-  ): void {
-    if (seasonId) {
-      // Invalidate specific season
-      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-        seasonId,
-        subscriptionId,
-      );
-      this.update((state: RewardsControllerState) => {
-        delete state.seasonStatuses[compositeKey];
-        delete state.unlockedRewards[compositeKey];
-        delete state.activeBoosts[compositeKey];
-      });
-    } else {
-      // Invalidate all seasons for this subscription
-      this.update((state: RewardsControllerState) => {
-        Object.keys(state.seasonStatuses).forEach((key) => {
-          if (key.includes(subscriptionId)) {
-            delete state.seasonStatuses[key];
-          }
-        });
-        Object.keys(state.unlockedRewards).forEach((key) => {
-          if (key.includes(subscriptionId)) {
-            delete state.unlockedRewards[key];
-          }
-        });
-        Object.keys(state.activeBoosts).forEach((key) => {
-          if (key.includes(subscriptionId)) {
-            delete state.activeBoosts[key];
-          }
-        });
-      });
-    }
-
-    Logger.log(
-      'RewardsController: Invalidated cache for subscription',
-      subscriptionId,
-      seasonId || 'all seasons',
-    );
   }
 }

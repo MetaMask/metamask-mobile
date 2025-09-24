@@ -531,6 +531,39 @@ describe('RewardSettingsTabs', () => {
       expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
     });
 
+    it('should show linking overlay when account is being linked', async () => {
+      const mockLinkAccount = jest.fn(
+        () => new Promise((resolve) => setTimeout(() => resolve(true), 100)),
+      );
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: false,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [mockAccount1],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+      });
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const linkButton = getByText(
+        'mocked_rewards.settings.link_account_button',
+      );
+      fireEvent.press(linkButton);
+
+      await waitFor(() => {
+        expect(getByTestId('icon-Loading')).toBeTruthy();
+        expect(
+          getByText('mocked_rewards.linking_account_Account 1'),
+        ).toBeTruthy();
+      });
+    });
+
     it('should prevent double-press on link button', async () => {
       const mockLinkAccount = jest.fn().mockResolvedValue(true);
       mockUseLinkAccount.mockReturnValue({

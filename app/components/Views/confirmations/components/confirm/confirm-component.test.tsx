@@ -186,7 +186,6 @@ describe('Confirm', () => {
       .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
   });
-
   afterEach(() => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
