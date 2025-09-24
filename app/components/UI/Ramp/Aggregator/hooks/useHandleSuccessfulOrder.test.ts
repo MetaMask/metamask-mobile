@@ -83,4 +83,44 @@ describe('useHandleSuccessfulOrder', () => {
       currency_destination: 'USD',
     });
   });
+
+  it('should track event for buy orders', async () => {
+    const { result } = renderHook(() => useHandleSuccessfulOrder());
+
+    const buyOrder = {
+      id: 'test-order-id',
+      orderType: OrderOrderTypeEnum.Buy,
+      account: '0x123',
+      data: {
+        cryptoCurrency: {
+          network: {
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          },
+          symbol: 'USDC',
+        },
+        fiatCurrency: {
+          symbol: 'USD',
+        },
+        provider: {
+          name: 'TestProvider',
+        },
+        paymentMethod: {
+          id: 'test-payment-method',
+        },
+      },
+    } as FiatOrder;
+
+    await result.current(buyOrder);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_PURCHASE_SUBMITTED', {
+      payment_method_id: 'test-payment-method',
+      order_type: OrderOrderTypeEnum.Buy,
+      is_apple_pay: false,
+      provider_onramp: 'TestProvider',
+      chain_id_destination: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      currency_destination: 'USDC',
+      currency_source: 'USD',
+      has_zero_currency_destination_balance: false,
+    });
+  });
 });
