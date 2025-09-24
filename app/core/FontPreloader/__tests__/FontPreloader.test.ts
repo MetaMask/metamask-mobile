@@ -81,9 +81,9 @@ describe('FontPreloader', () => {
   it('should handle errors gracefully', async () => {
     // Mock setTimeout to throw an error
     const originalSetTimeout = global.setTimeout;
-    global.setTimeout = jest.fn(() => {
+    global.setTimeout = jest.fn().mockImplementation(() => {
       throw new Error('Test error');
-    });
+    }) as any;
 
     // Should still resolve even if there's an error
     await expect(FontPreloader.preloadFonts()).resolves.toBeUndefined();

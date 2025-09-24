@@ -25,7 +25,10 @@ export const useFontPreloader = () => {
           }
         })
         .catch((error) => {
-          Logger.error('useFontPreloader: Font loading failed', error);
+          Logger.error(
+            new Error('useFontPreloader: Font loading failed'),
+            error,
+          );
           if (isMounted) {
             // Still set to true to prevent blocking the app
             setFontsLoaded(true);
@@ -72,7 +75,7 @@ export const useFontPreloaderWithStatus = () => {
         })
         .catch((error) => {
           Logger.error(
-            'useFontPreloaderWithStatus: Font loading failed',
+            new Error('useFontPreloaderWithStatus: Font loading failed'),
             error,
           );
           if (isMounted) {

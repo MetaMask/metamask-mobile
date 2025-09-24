@@ -56,7 +56,10 @@ class FontPreloader {
           this.preloadFontsNative(fontVariants, resolve);
         }
       } catch (error) {
-        Logger.error('FontPreloader: Error during font preloading', error);
+        Logger.error(
+          new Error('FontPreloader: Error during font preloading'),
+          error,
+        );
         // Still resolve to prevent blocking the app
         this.fontsLoaded = true;
         resolve();
@@ -108,7 +111,10 @@ class FontPreloader {
           resolve();
         })
         .catch((error) => {
-          Logger.error('FontPreloader: Web font loading failed', error);
+          Logger.error(
+            new Error('FontPreloader: Web font loading failed'),
+            error,
+          );
           // Fallback: wait for a short time then resolve
           setTimeout(() => {
             document.body.removeChild(preloadContainer);
