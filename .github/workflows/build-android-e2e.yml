@@ -78,7 +78,6 @@ jobs:
             android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
-            android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
             android-apk-
 

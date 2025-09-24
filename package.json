@@ -53,6 +53,7 @@
     "repack:android": "node scripts/repack-e2e.js",
     "build:android:flask:local": "./scripts/build.sh android flask local",
     "build:android:flask:test": "./scripts/build.sh android flask test",
+    "build:android:flask:e2e": "./scripts/build.sh android flask e2e",
     "build:android:qa:prod": "./scripts/build.sh android qa production",
     "build:android:qa:local": "./scripts/build.sh android qa local",
     "build:android:checksum": "./scripts/checksum.sh",

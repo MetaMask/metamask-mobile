@@ -18,16 +18,22 @@ const logger = {
 };
 
 /**
+ * Convert bytes to human readable format
+ */
+function formatBytes(bytes) {
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  if (bytes === 0) return '0 B';
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+/**
  * Get file size in human readable format
  */
 function getFileSize(filePath) {
   try {
     const stats = fs.statSync(filePath);
-    const bytes = stats.size;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 B';
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return formatBytes(stats.size);
   } catch (error) {
     return 'Unknown size';
   }
@@ -38,7 +44,7 @@ function getFileSize(filePath) {
  */
 function getDirSize(dirPath) {
   let totalSize = 0;
-
+  
   function calculateSize(itemPath) {
     const stats = fs.statSync(itemPath);
     if (stats.isFile()) {
@@ -50,14 +56,10 @@ function getDirSize(dirPath) {
       });
     }
   }
-
+  
   try {
     calculateSize(dirPath);
-    const bytes = totalSize;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 B';
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return formatBytes(totalSize);
   } catch (error) {
     return 'Unknown size';
   }
