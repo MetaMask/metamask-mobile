@@ -157,6 +157,11 @@ remapEnvVariable() {
 # Mapping for Main env variables in the dev environment
 remapMainDevEnvVariables() {
   	echo "Remapping Main target environment variables for the dev environment"
+	remapEnvVariable "SEGMENT_WRITE_KEY_DEV" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_DEV" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+	# Only dev environment uses the dev DSN, this is for the Sentry project test-metamask-mobile
   	remapEnvVariable "MM_SENTRY_DSN_DEV" "MM_SENTRY_DSN"
 }
 
@@ -166,7 +171,6 @@ remapEnvVariableQA() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
 
 	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
@@ -182,7 +186,6 @@ remapMainE2EEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
 
 	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
@@ -198,7 +201,6 @@ remapMainTestEnvVariables() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
 
 	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
@@ -270,10 +272,10 @@ remapFlaskE2EEnvVariables() {
 # Mapping for Main env variables in the beta environment
 remapMainBetaEnvVariables() {
   	echo "Remapping Main target environment variables for the beta environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
-    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
-    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_BETA" "SEGMENT_WRITE_KEY"
+    remapEnvVariable "SEGMENT_PROXY_URL_BETA" "SEGMENT_PROXY_URL"
+    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
 
 	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
 	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"

@@ -21,9 +21,11 @@ export const getFeatureFlagAppEnvironment = () => {
       return EnvironmentType.Production;
     case 'beta':
       return EnvironmentType.Beta;
+    // TODO: Remove pre-release case once verified that pre-release is no longer used
     case 'pre-release':
     case 'rc':
       return EnvironmentType.ReleaseCandidate;
+    // TODO: Create LD environment for e2e and mirror test values
     case 'e2e':
     case 'test':
       return EnvironmentType.Test;

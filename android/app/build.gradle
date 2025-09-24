@@ -325,7 +325,7 @@ android {
                 signingConfig signingConfigs.mainTest
             } else if (env == 'e2e') {
                 signingConfig signingConfigs.mainE2e
-            } else if (env == 'prod') {
+            } else if (env == 'production') {
                 signingConfig signingConfigs.mainProd
             } else if (env == 'rc') {
                 signingConfig signingConfigs.mainRc
@@ -346,7 +346,7 @@ android {
               signingConfig signingConfigs.flaskTest
             } else if (System.getenv("METAMASK_ENVIRONMENT") == 'e2e') {
               signingConfig signingConfigs.flaskE2e
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'prod')  {
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'production')  {
               signingConfig signingConfigs.flaskProd
             } else if (System.getenv("METAMASK_ENVIRONMENT") == 'dev') {
               signingConfig signingConfigs.flaskDev

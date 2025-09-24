@@ -528,6 +528,8 @@ export function deriveSentryEnvironment(
     switch (metamaskEnvironment) {
       case 'production':
         return 'production';
+      case 'dev':
+        return 'development';
       case 'beta':
         return 'main-beta';
       case 'rc':
