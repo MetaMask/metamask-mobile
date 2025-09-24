@@ -7,8 +7,14 @@ import {
 import NotificationOptionToggle from './NotificationOptionToggle';
 import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 import AccountListHeader from '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/AccountListHeader';
+import { useTheme } from '../../../../util/theme';
+import { useStyles } from '../../../../component-library/hooks';
+import styleSheet from './NotificationsSettings.styles';
 
 export const AccountsList = () => {
+  const theme = useTheme();
+  const { styles } = useStyles(styleSheet, { theme });
+
   const { accountAvatarType, firstHDWalletGroups } = useAccountProps();
   const {
     isAnyAccountLoading,
@@ -24,7 +30,10 @@ export const AccountsList = () => {
 
   return (
     <View>
-      <AccountListHeader title={firstHDWalletGroups.title} />
+      <AccountListHeader
+        title={firstHDWalletGroups.title}
+        containerStyle={styles.accountHeader}
+      />
       <FlatList
         data={firstHDWalletGroups.data}
         keyExtractor={(item) => `address-${item.id}`}
