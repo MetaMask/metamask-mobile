@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import { Image, TouchableOpacity, Animated } from 'react-native';
+import { TouchableOpacity, Animated } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -24,6 +24,7 @@ import { AppThemeKey } from '../../../../../../util/theme/models';
 import { formatNumber } from '../../../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import RewardItem from './RewardItem';
+import RewardsThemeImageComponent from '../../ThemeImageComponent';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
@@ -39,15 +40,6 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
   const tw = useTailwind();
   const { themeAppearance, brandColors } = useTheme();
   const animatedRotation = useRef(new Animated.Value(0)).current;
-
-  // Get appropriate image URL based on theme
-  const imageUrl = useMemo(
-    () =>
-      themeAppearance === AppThemeKey.light
-        ? tier.image?.lightModeUrl
-        : tier.image?.darkModeUrl,
-    [tier.image, themeAppearance],
-  );
 
   const seasonRewards = useMemo(() => tier.rewards || [], [tier.rewards]);
 
@@ -78,10 +70,9 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
       >
         {/* Tier Image */}
         <Box twClassName="mr-4" testID={REWARDS_VIEW_SELECTORS.TIER_IMAGE}>
-          {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              resizeMode="contain"
+          {tier.image ? (
+            <RewardsThemeImageComponent
+              themeImage={tier.image}
               style={tw.style('h-12 w-12')}
             />
           ) : (

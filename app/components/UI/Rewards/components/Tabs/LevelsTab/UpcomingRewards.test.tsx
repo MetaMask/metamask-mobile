@@ -74,6 +74,32 @@ jest.mock('../../../utils/formatUtils', () => ({
 // Use actual design system components
 // Remove mocks to let real components render with testIDs
 
+// Mock RewardsThemeImageComponent
+jest.mock('../../ThemeImageComponent', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      (
+        props: {
+          themeImage?: { lightModeUrl?: string; darkModeUrl?: string };
+          style?: unknown;
+          testID?: string;
+        },
+        ref: unknown,
+      ) =>
+        ReactActual.createElement(View, {
+          testID: props.testID || 'rewards-theme-image',
+          'data-light-mode-url': props.themeImage?.lightModeUrl,
+          'data-dark-mode-url': props.themeImage?.darkModeUrl,
+          style: props.style,
+          ref,
+        }),
+    ),
+  };
+});
+
 // Mock only essential React Native components for testing
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
@@ -186,5 +212,96 @@ describe('UpcomingRewards', () => {
 
     const { toJSON } = render(<UpcomingRewards />);
     expect(toJSON()).toBeNull();
+  });
+
+  describe('RewardsThemeImageComponent Integration', () => {
+    it('should render RewardsThemeImageComponent for tier with image', () => {
+      const { getByTestId } = render(<UpcomingRewards />);
+
+      expect(getByTestId('rewards-theme-image')).toBeTruthy();
+    });
+
+    it('should pass correct themeImage prop to RewardsThemeImageComponent', () => {
+      const { getByTestId } = render(<UpcomingRewards />);
+
+      const tierImage = getByTestId('rewards-theme-image');
+      expect(tierImage.props['data-light-mode-url']).toBe(
+        'https://example.com/light.png',
+      );
+      expect(tierImage.props['data-dark-mode-url']).toBe(
+        'https://example.com/dark.png',
+      );
+    });
+
+    it('should pass correct style prop to RewardsThemeImageComponent', () => {
+      const { getByTestId } = render(<UpcomingRewards />);
+
+      const tierImage = getByTestId('rewards-theme-image');
+      expect(tierImage.props.style).toBeDefined();
+    });
+
+    it('should render fallback icon when tier has no image', () => {
+      // Given: tier without image
+      const tierWithoutImage = {
+        ...mockSeasonTier,
+        image: undefined,
+      } as unknown as SeasonTierDto;
+
+      mockSelectSeasonTiers.mockReturnValue([
+        mockCurrentTier,
+        tierWithoutImage,
+      ]);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonTiers)
+          return [mockCurrentTier, tierWithoutImage];
+        if (selector === selectCurrentTier) return mockCurrentTier;
+        return [];
+      });
+
+      const { queryByTestId, getByTestId } = render(<UpcomingRewards />);
+
+      // Should not render RewardsThemeImageComponent
+      expect(queryByTestId('rewards-theme-image')).toBeNull();
+
+      // Should render tier image testID from TIER_IMAGE selector
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TIER_IMAGE)).toBeTruthy();
+    });
+
+    it('should update RewardsThemeImageComponent when tier data changes', () => {
+      // Given: initial tier with image
+      const { getByTestId, rerender } = render(<UpcomingRewards />);
+      const initialTierImage = getByTestId('rewards-theme-image');
+      expect(initialTierImage.props['data-light-mode-url']).toBe(
+        'https://example.com/light.png',
+      );
+
+      // When: tier changes to different image URLs
+      const updatedTier = {
+        ...mockSeasonTier,
+        image: {
+          lightModeUrl: 'https://example.com/updated-light.png',
+          darkModeUrl: 'https://example.com/updated-dark.png',
+        },
+      };
+
+      mockSelectSeasonTiers.mockReturnValue([mockCurrentTier, updatedTier]);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonTiers)
+          return [mockCurrentTier, updatedTier];
+        if (selector === selectCurrentTier) return mockCurrentTier;
+        return [];
+      });
+
+      rerender(<UpcomingRewards />);
+
+      // Then: new image URLs are used
+      const updatedTierImage = getByTestId('rewards-theme-image');
+      expect(updatedTierImage.props['data-light-mode-url']).toBe(
+        'https://example.com/updated-light.png',
+      );
+      expect(updatedTierImage.props['data-dark-mode-url']).toBe(
+        'https://example.com/updated-dark.png',
+      );
+    });
   });
 });

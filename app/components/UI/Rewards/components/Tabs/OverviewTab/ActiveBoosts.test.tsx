@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { ReactTestInstance } from 'react-test-renderer';
 import ActiveBoosts from './ActiveBoosts';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { PointsBoostDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
@@ -84,6 +83,32 @@ jest.mock('../../../../../../component-library/components/Skeleton', () => ({
     return <View testID={testID || 'skeleton'} {...props} />;
   },
 }));
+
+// Mock RewardsThemeImageComponent
+jest.mock('../../ThemeImageComponent', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      (
+        props: {
+          themeImage?: { lightModeUrl?: string; darkModeUrl?: string };
+          style?: unknown;
+          testID?: string;
+        },
+        ref: unknown,
+      ) =>
+        ReactActual.createElement(View, {
+          testID: props.testID || 'rewards-theme-image',
+          'data-light-mode-url': props.themeImage?.lightModeUrl,
+          'data-dark-mode-url': props.themeImage?.darkModeUrl,
+          style: props.style,
+          ref,
+        }),
+    ),
+  };
+});
 
 const mockFormatTimeRemaining = jest.requireMock(
   '../../../utils/formatUtils',
@@ -451,8 +476,8 @@ describe('ActiveBoosts', () => {
     });
   });
 
-  describe('Theme Integration', () => {
-    it('should use light mode icon URL in light theme', () => {
+  describe('RewardsThemeImageComponent Integration', () => {
+    it('should render RewardsThemeImageComponent for boost with icon', () => {
       const stateWithBoosts = {
         rewards: {
           activeBoosts: [mockBoost],
@@ -463,17 +488,30 @@ describe('ActiveBoosts', () => {
 
       const { getByTestId } = renderWithProvider(stateWithBoosts);
 
-      const iconContainer = getByTestId(
-        REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON,
-      );
-      const imageElement = iconContainer.children[0] as ReactTestInstance;
+      expect(getByTestId('rewards-theme-image')).toBeTruthy();
+    });
 
-      expect(imageElement.props.source.uri).toBe(
+    it('should pass correct themeImage prop to RewardsThemeImageComponent', () => {
+      const stateWithBoosts = {
+        rewards: {
+          activeBoosts: [mockBoost],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(stateWithBoosts);
+
+      const boostIcon = getByTestId('rewards-theme-image');
+      expect(boostIcon.props['data-light-mode-url']).toBe(
         'https://example.com/light-icon.png',
+      );
+      expect(boostIcon.props['data-dark-mode-url']).toBe(
+        'https://example.com/dark-icon.png',
       );
     });
 
-    it('should use correct icon URL based on theme', () => {
+    it('should pass correct style prop to RewardsThemeImageComponent', () => {
       const stateWithBoosts = {
         rewards: {
           activeBoosts: [mockBoost],
@@ -484,14 +522,90 @@ describe('ActiveBoosts', () => {
 
       const { getByTestId } = renderWithProvider(stateWithBoosts);
 
-      const iconContainer = getByTestId(
-        REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON,
-      );
-      const imageElement = iconContainer.children[0] as ReactTestInstance;
+      const boostIcon = getByTestId('rewards-theme-image');
+      expect(boostIcon.props.style).toBeDefined();
+    });
 
-      // Since the mock always returns light theme, expect light mode URL
-      expect(imageElement.props.source.uri).toBe(
+    it('should not render RewardsThemeImageComponent when boost has no icon', () => {
+      const boostWithoutIcon: PointsBoostDto = {
+        ...mockBoost,
+        icon: undefined as unknown as {
+          lightModeUrl: string;
+          darkModeUrl: string;
+        },
+      };
+
+      const stateWithBoosts = {
+        rewards: {
+          activeBoosts: [boostWithoutIcon],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+        },
+      };
+
+      const { queryByTestId, getByTestId } =
+        renderWithProvider(stateWithBoosts);
+
+      // Card should still render
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD),
+      ).toBeTruthy();
+
+      // But RewardsThemeImageComponent should not be present
+      expect(queryByTestId('rewards-theme-image')).toBeNull();
+
+      // Icon container should also not be present
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON),
+      ).toBeNull();
+    });
+
+    it('should update RewardsThemeImageComponent when boost data changes', () => {
+      const initialState = {
+        rewards: {
+          activeBoosts: [mockBoost],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+        },
+      };
+
+      const { getByTestId, rerender } = renderWithProvider(initialState);
+
+      const initialBoostIcon = getByTestId('rewards-theme-image');
+      expect(initialBoostIcon.props['data-light-mode-url']).toBe(
         'https://example.com/light-icon.png',
+      );
+
+      // When: boost changes to different image URLs
+      const updatedBoost: PointsBoostDto = {
+        ...mockBoost,
+        icon: {
+          lightModeUrl: 'https://example.com/updated-light-icon.png',
+          darkModeUrl: 'https://example.com/updated-dark-icon.png',
+        },
+      };
+
+      const updatedState = {
+        rewards: {
+          activeBoosts: [updatedBoost],
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+        },
+      };
+
+      rerender(
+        <Provider store={createMockStore(updatedState)}>
+          <ActiveBoosts />
+        </Provider>,
+      );
+
+      // Then: new image URLs are used
+      const updatedBoostIcon = getByTestId('rewards-theme-image');
+      expect(updatedBoostIcon.props['data-light-mode-url']).toBe(
+        'https://example.com/updated-light-icon.png',
+      );
+      expect(updatedBoostIcon.props['data-dark-mode-url']).toBe(
+        'https://example.com/updated-dark-icon.png',
       );
     });
   });
@@ -517,7 +631,7 @@ describe('ActiveBoosts', () => {
       expect(styles.length).toBeGreaterThan(0);
     });
 
-    it('should render boost icon with correct dimensions', () => {
+    it('should render boost icon container with correct testID', () => {
       const stateWithBoosts = {
         rewards: {
           activeBoosts: [mockBoost],
@@ -531,10 +645,11 @@ describe('ActiveBoosts', () => {
       const iconContainer = getByTestId(
         REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON,
       );
-      const imageElement = iconContainer.children[0] as ReactTestInstance;
+      expect(iconContainer).toBeTruthy();
 
-      expect(imageElement.props.style).toEqual({ testID: 'tw-h-16 w-16' });
-      expect(imageElement.props.resizeMode).toBe('contain');
+      // The RewardsThemeImageComponent should be inside the container
+      const rewardsThemeImage = getByTestId('rewards-theme-image');
+      expect(rewardsThemeImage).toBeTruthy();
     });
   });
 
@@ -542,9 +657,9 @@ describe('ActiveBoosts', () => {
     it('should handle boost without icon gracefully', () => {
       const boostWithoutIcon: PointsBoostDto = {
         ...mockBoost,
-        icon: {
-          lightModeUrl: '',
-          darkModeUrl: '',
+        icon: undefined as unknown as {
+          lightModeUrl: string;
+          darkModeUrl: string;
         },
       };
 
@@ -564,10 +679,11 @@ describe('ActiveBoosts', () => {
         getByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD),
       ).toBeTruthy();
 
-      // But icon should not be present
+      // But icon container and RewardsThemeImageComponent should not be present
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_ICON),
       ).toBeNull();
+      expect(queryByTestId('rewards-theme-image')).toBeNull();
     });
 
     it('should handle expired boost correctly', () => {
