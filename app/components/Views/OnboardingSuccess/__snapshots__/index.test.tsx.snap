@@ -1,5 +1,167 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders matching snapshot with route params backedUpSRP false and noSRP true 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    [
+      {
+        "backgroundColor": "#3D065F",
+        "flexGrow": 1,
+        "paddingBottom": 16,
+      },
+    ]
+  }
+  testID="onboarding-success-screen"
+>
+  <View>
+    <View
+      style={
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+          "justifyContent": "space-between",
+          "rowGap": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "center",
+              "paddingVertical": 32,
+            }
+          }
+        >
+          <View
+            testID="mock-rive-animation"
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+                "marginTop": 24,
+                "paddingHorizontal": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Bold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                  "marginBottom": 24,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Setting up your wallet.
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginBottom": 8,
+              "marginTop": 4,
+              "paddingHorizontal": 0,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="onboarding-success-done-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Done
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "column",
+              "marginBottom": 0,
+              "marginTop": 12,
+              "rowGap": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "paddingVertical": 0,
+              }
+            }
+            testID="onboarding-success-manage-default-settings-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Manage default settings
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
 exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE adds networks to the network controller 1`] = `
 <RCTScrollView
   contentContainerStyle={
@@ -734,6 +896,346 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               }
             >
               [missing "en.onboarding_success.subtitle" translation]
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginBottom": 8,
+              "marginTop": 4,
+              "paddingHorizontal": 0,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="onboarding-success-done-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Done
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "column",
+              "marginBottom": 0,
+              "marginTop": 12,
+              "rowGap": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "paddingVertical": 0,
+              }
+            }
+            testID="onboarding-success-manage-default-settings-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Manage default settings
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OnboardingSuccessComponent renders matching snapshot when successFlow is IMPORT_FROM_SEED_PHRASE 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    [
+      {
+        "backgroundColor": "#3D065F",
+        "flexGrow": 1,
+        "paddingBottom": 16,
+      },
+    ]
+  }
+  testID="onboarding-success-screen"
+>
+  <View>
+    <View
+      style={
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+          "justifyContent": "space-between",
+          "rowGap": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "center",
+              "paddingVertical": 32,
+            }
+          }
+        >
+          <View
+            testID="mock-rive-animation"
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+                "marginTop": 24,
+                "paddingHorizontal": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Bold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                  "marginBottom": 24,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Setting up your wallet.
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "marginBottom": 8,
+              "marginTop": 4,
+              "paddingHorizontal": 0,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="onboarding-success-done-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Done
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "column",
+              "marginBottom": 0,
+              "marginTop": 12,
+              "rowGap": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "paddingVertical": 0,
+              }
+            }
+            testID="onboarding-success-manage-default-settings-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Manage default settings
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OnboardingSuccessComponent renders matching snapshot when successFlow is NO_BACKED_UP_SRP 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    [
+      {
+        "backgroundColor": "#3D065F",
+        "flexGrow": 1,
+        "paddingBottom": 16,
+      },
+    ]
+  }
+  testID="onboarding-success-screen"
+>
+  <View>
+    <View
+      style={
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+          "justifyContent": "space-between",
+          "rowGap": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "center",
+              "paddingVertical": 32,
+            }
+          }
+        >
+          <View
+            testID="mock-rive-animation"
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+                "marginTop": 24,
+                "paddingHorizontal": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Bold",
+                  "fontSize": 32,
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                  "marginBottom": 24,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Reminder set!
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "marginTop": 16,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Remember to back up your Secret Recovery Phrase to keep your wallet secure.
             </Text>
           </View>
         </View>
