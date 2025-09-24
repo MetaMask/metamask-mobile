@@ -100,6 +100,9 @@ const useNetworkConnectionBanner = (): {
             evmEnabledNetworkChainId,
           );
         const networkMetadata = networksMetadata[networkClientId];
+        if (!networkMetadata) {
+          continue;
+        }
         const networkStatus = networkMetadata?.status;
 
         if (networkStatus !== NetworkStatus.Available) {
