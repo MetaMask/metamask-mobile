@@ -1,6 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
-import { throttle } from 'lodash';
 import {
   ConnectionRequest,
   isConnectionRequest,
@@ -23,6 +22,7 @@ export class ConnectionRegistry {
 
   private readonly ready: Promise<void>;
   private connections = new Map<string, Connection>();
+  private deeplinks = new Set<string>();
 
   constructor(
     relayURL: string,
@@ -36,14 +36,6 @@ export class ConnectionRegistry {
     this.store = store;
     this.ready = this.initialize();
     this.setupAppStateListener();
-
-    // Throttled function to prevent failure due to rapid,
-    // duplicate calls from the host app.
-    this.handleConnectDeeplink = throttle(
-      this._handleConnectDeeplink.bind(this),
-      1000,
-      { leading: true, trailing: false },
-    );
   }
 
   /**
@@ -82,9 +74,10 @@ export class ConnectionRegistry {
    * 5. Sync the connection list to the host application
    * 6. Hide loading indicator
    */
-  public handleConnectDeeplink: (url: string) => void;
+  public async handleConnectDeeplink(url: string): Promise<void> {
+    if (this.deeplinks.has(url)) return;
+    this.deeplinks.add(url);
 
-  private async _handleConnectDeeplink(url: string): Promise<void> {
     logger.debug('Handling connect deeplink: ', url);
 
     let conn: Connection | undefined;
@@ -99,7 +92,7 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save(conninfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
-      logger.debug('Handled connect deeplink.');
+      logger.debug('Handled connect deeplink.', conninfo);
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, url);
       this.hostapp.showConnectionError();

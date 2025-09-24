@@ -4,7 +4,7 @@ export default {
   debug: (...args: unknown[]) => {
     if (process.env.SDK_CONNECT_V2_DEBUG === 'true') {
       // eslint-disable-next-line no-console
-      console.debug(prefix, ...args);
+      console.debug(prefix, ...args.map((arg) => JSON.stringify(arg)));
     }
   },
   error: (...args: unknown[]) => {
