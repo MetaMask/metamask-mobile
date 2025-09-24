@@ -784,6 +784,12 @@ export class RewardsController extends BaseController<
     }
 
     try {
+      Logger.log(
+        'RewardsController: Fetching fresh opt-in status for address count:',
+        {
+          addresses: params.addresses?.length,
+        },
+      );
       return await this.messagingSystem.call(
         'RewardsDataService:getOptInStatus',
         params,
@@ -822,6 +828,14 @@ export class RewardsController extends BaseController<
       return { has_more: false, cursor: null, total_results: 0, results: [] };
 
     try {
+      Logger.log(
+        'RewardsController: Fetching fresh points events data via API call for seasonId & subscriptionId & page cursor',
+        {
+          seasonId: params.seasonId,
+          subscriptionId: params.subscriptionId,
+          cursor: params.cursor,
+        },
+      );
       const pointsEvents = await this.messagingSystem.call(
         'RewardsDataService:getPointsEvents',
         params,
@@ -1579,10 +1593,6 @@ export class RewardsController extends BaseController<
         };
       });
 
-      Logger.log('RewardsController: Successfully cached active boosts data', {
-        boostCount: response.boosts.length,
-      });
-
       return response.boosts;
     } catch (error) {
       Logger.log(
@@ -1657,13 +1667,6 @@ export class RewardsController extends BaseController<
           lastFetched: Date.now(),
         };
       });
-
-      Logger.log(
-        'RewardsController: Successfully cached unlocked rewards data',
-        {
-          rewardCount: (response || []).length,
-        },
-      );
 
       return response || [];
     } catch (error) {
