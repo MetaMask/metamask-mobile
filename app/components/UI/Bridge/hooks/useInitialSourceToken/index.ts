@@ -2,6 +2,7 @@ import {
   selectSourceToken,
   setSourceAmount,
   setSourceToken,
+  selectBip44DefaultPair,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { BridgeToken } from '../../types';
@@ -43,6 +44,11 @@ export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
+/**
+ *
+ * @param initialSourceToken The initial source token to set, e.g. coming in from Asset Details page or a deeplink
+ * @param initialSourceAmount The initial source amount to set, e.g. coming in from a deeplink
+ */
 export const useInitialSourceToken = (
   initialSourceToken?: BridgeToken,
   initialSourceAmount?: string,
@@ -68,14 +74,22 @@ export const useInitialSourceToken = (
     selectedChainId: selectedEvmChainId,
     selectedNetworkName: selectedEvmNetworkName,
   });
+  const bip44DefaultPair = useSelector(selectBip44DefaultPair);
 
   const chainId = isEvmNetworkSelected
     ? selectedEvmChainId
     : selectedNonEvmNetworkChainId;
 
-  // Will default to the native token of the current chain if no token is provided
-  if (!initialSourceToken && !sourceToken) {
-    dispatch(setSourceToken(getNativeSourceToken(chainId)));
+  // If no initial source token is provided,
+  // set the source token to the bip44 default pair (preferred) or the native token of the current chain
+  if (!initialSourceToken) {
+    if (bip44DefaultPair) {
+      dispatch(setSourceToken(bip44DefaultPair.sourceAsset));
+      return;
+    }
+    if (!sourceToken) {
+      dispatch(setSourceToken(getNativeSourceToken(chainId)));
+    }
     return;
   }
 

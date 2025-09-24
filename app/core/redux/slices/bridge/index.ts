@@ -1,6 +1,11 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import { Hex, CaipChainId } from '@metamask/utils';
+import {
+  Hex,
+  CaipChainId,
+  parseCaipChainId,
+  CaipAssetType,
+} from '@metamask/utils';
 import { createSelector } from 'reselect';
 import {
   selectChainId,
@@ -34,6 +39,7 @@ import {
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { isUnifiedSwapsEnvVarEnabled } from './utils/isUnifiedSwapsEnvVarEnabled';
+import { Bip44DefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -493,6 +499,36 @@ export const selectNoFeeAssets = createSelector(
     }
     const caipChainId = formatChainIdToCaip(chainId);
     return bridgeFeatureFlags.chains[caipChainId]?.noFeeAssets;
+  },
+);
+
+export const selectBip44DefaultPair = createSelector(
+  selectBridgeFeatureFlags,
+  selectChainId,
+  (bridgeFeatureFlags, chainId) => {
+    try {
+      const caipChainId = formatChainIdToCaip(chainId);
+      const { namespace } = parseCaipChainId(caipChainId);
+      const bip44DefaultPair =
+        bridgeFeatureFlags.bip44DefaultPairs?.[namespace]?.standard;
+
+      if (!bip44DefaultPair) {
+        return undefined;
+      }
+
+      // If 0th entry doesn't exist, error thrown and we return undefined
+      const [sourceAssetId, destAssetId] = Object.entries(bip44DefaultPair)[0];
+      const sourceAsset = Bip44DefaultPairs[sourceAssetId as CaipAssetType];
+      const destAsset = Bip44DefaultPairs[destAssetId as CaipAssetType];
+
+      if (!sourceAsset || !destAsset) {
+        return undefined;
+      }
+
+      return { sourceAsset, destAsset };
+    } catch (error) {
+      return undefined;
+    }
   },
 );
 
