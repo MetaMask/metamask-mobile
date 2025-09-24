@@ -17,26 +17,32 @@ import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-r
 
 const SIGNATURE_LIST = [
   {
-    specName: 'Personal Sign',
-    testDappBtn: TestDApp.tapPersonalSignButton.bind(TestDApp),
-    requestType: RequestTypes.PersonalSignRequest,
+    specName: 'Typed V1 Sign',
+    testDappBtn: TestDApp.tapTypedSignButton.bind(TestDApp),
+    requestType: RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.NetworkAndOrigin);
     },
   },
   {
-    specName: 'SIWE Sign',
-    testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
-    requestType: RequestTypes.PersonalSignRequest,
+    specName: 'Typed V3 Sign',
+    testDappBtn: TestDApp.tapTypedV3SignButton.bind(TestDApp),
+    requestType: RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(
-        RowComponents.SiweSigningAccountInfo,
-      );
+      await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
+    },
+  },
+  {
+    specName: 'Typed V4 Sign',
+    testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
+    requestType: RequestTypes.TypedSignRequest,
+    additionAssertions: async () => {
+      await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
     },
   },
 ];
 
-describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
+describe(SmokeConfirmationsRedesigned('Typed Signature Requests'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
