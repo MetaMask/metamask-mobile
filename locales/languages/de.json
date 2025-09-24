@@ -1512,6 +1512,7 @@
       "got_it": "Verstanden"
     },
     "points": "Punkte",
+    "estimated_points": "Geschätzte Punkte",
     "unable_to_load": "Laden fehlgeschlagen",
     "points_error": "Wir können momentan keine Punkte laden",
     "points_error_content": "Aber keine Sorge, Sie verdienen weiterhin Punkte. Sie werden bald auf Ihrem Konto erscheinen, oder schauen Sie später auf der Registerkarte „Belohnungen“ nach.",

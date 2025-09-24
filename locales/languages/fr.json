@@ -1512,6 +1512,7 @@
       "got_it": "J’ai compris"
     },
     "points": "Points",
+    "estimated_points": "Est. Points",
     "unable_to_load": "Impossible de charger",
     "points_error": "Nous ne pouvons pas charger les points pour le moment",
     "points_error_content": "Ne vous inquiétez pas, vous continuez à gagner des points. Ils apparaîtront bientôt sur votre compte, ou vous pouvez consulter l’onglet « Récompenses » plus tard.",

@@ -203,7 +203,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
-    feeResults,
+    feeResults: stableFeeResults,
     hasValidAmount,
     isFeesLoading: stableFeeResults.isLoadingMetamaskFee,
     orderAmount: closingValueString,

@@ -26,7 +26,7 @@ const RewardsIconAnimation = require('../../../../../animations/rewards_icon_ani
 
 const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
   estimatedPoints,
-  bonusBips,
+  bonusBips: _bonusBips,
   isLoading = false,
   hasError = false,
   shouldShow = true,
@@ -110,11 +110,6 @@ const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
         <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
           {formattedEstimatedPoints}
         </Text>
-        {bonusBips && bonusBips > 0 && typeof bonusBips === 'number' ? (
-          <Text variant={TextVariant.BodySM} color={TextColor.Success}>
-            {`+${(bonusBips / 100).toFixed(1)}%`}
-          </Text>
-        ) : null}
       </View>
     );
   }
@@ -136,7 +131,16 @@ const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
       />
 
       {/* Points Display Container */}
-      <View style={styles.pointsContainer}>{displayContent}</View>
+      <View
+        style={[
+          styles.pointsContainer,
+          displayState === RewardDisplayState.Loaded
+            ? styles.pointsContainerLoaded
+            : styles.pointsContainerLoading,
+        ]}
+      >
+        {displayContent}
+      </View>
     </View>
   );
 };
