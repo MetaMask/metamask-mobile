@@ -5806,14 +5806,14 @@
 
     "optout": {
         "title": "Opt out of Rewards",
-        "description": "This will erase your points and progress. You won't be able to undo this.",
+        "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
         "confirm": "Opt out",
         "modal": {
           "confirmation_title": "Are you sure?",
-          "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll restart at 0.",
+          "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
           "cancel": "Cancel",
           "confirm": "Confirm",
-          "error_message": "Failed to opt out of rewards program. Please try again.",
+          "error_message": "Failed to opt out of Rewards. Please try again.",
           "processing": "Processing..."
         }
     },
