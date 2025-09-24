@@ -7,4 +7,4 @@ import { RootState } from '../../reducers';
  * @returns - NetworkConnectionBannerState state
  */
 export const selectNetworkConnectionBannerState = (state: RootState) =>
-  state.networkConnectionBanners;
+  state.networkConnectionBanner;

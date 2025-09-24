@@ -23,7 +23,7 @@ jest.mock('@react-navigation/native');
 jest.mock('../../../core/Engine');
 jest.mock('../../../selectors/networkEnablementController');
 jest.mock('../useMetrics');
-jest.mock('../../../selectors/networkConnectionBanners');
+jest.mock('../../../selectors/networkConnectionBanner');
 jest.mock('../../../selectors/networkController');
 
 const mockStore = configureMockStore();
@@ -134,7 +134,7 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     store = mockStore({
-      networkConnectionBanners: {
+      networkConnectionBanner: {
         visible: false,
         chainId: undefined,
       },

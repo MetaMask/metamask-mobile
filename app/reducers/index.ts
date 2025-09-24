@@ -134,7 +134,7 @@ export interface RootState {
   performance?: PerformanceState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
-  networkConnectionBanners: NetworkConnectionBannerState;
+  networkConnectionBanner: NetworkConnectionBannerState;
 }
 
 const baseReducers = {
@@ -174,7 +174,7 @@ const baseReducers = {
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
-  networkConnectionBanners: networkConnectionBannerReducer,
+  networkConnectionBanner: networkConnectionBannerReducer,
 };
 
 if (isTest) {

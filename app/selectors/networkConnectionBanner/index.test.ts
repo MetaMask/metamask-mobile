@@ -2,20 +2,20 @@ import { selectNetworkConnectionBannerState } from './index';
 import { RootState } from '../../reducers';
 import { NetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
 
-describe('networkConnectionBanners selectors', () => {
+describe('networkConnectionBanner selectors', () => {
   const mockNetworkConnectionBannersState: NetworkConnectionBannerState = {
     visible: false,
   };
 
   const mockState = {
-    networkConnectionBanners: mockNetworkConnectionBannersState,
+    networkConnectionBanner: mockNetworkConnectionBannersState,
   } as unknown as RootState;
 
   describe('selectNetworkConnectionBannerState', () => {
     it('should return the network connection banners state', () => {
       const result = selectNetworkConnectionBannerState(mockState);
 
-      expect(result).toBe(mockState.networkConnectionBanners);
+      expect(result).toBe(mockState.networkConnectionBanner);
     });
 
     it.each([
@@ -33,7 +33,7 @@ describe('networkConnectionBanners selectors', () => {
       'should return state with visible true and $description when banner is shown',
       ({ status, chainId }) => {
         const stateWithVisibleBanner = {
-          networkConnectionBanners: {
+          networkConnectionBanner: {
             visible: true,
             chainId,
             status,
@@ -54,7 +54,7 @@ describe('networkConnectionBanners selectors', () => {
 
     it('should return state with visible false when banner is hidden', () => {
       const stateWithHiddenBanner = {
-        networkConnectionBanners: {
+        networkConnectionBanner: {
           visible: false,
         },
       } as unknown as RootState;
@@ -75,13 +75,13 @@ describe('networkConnectionBanners selectors', () => {
 
     it('should return different references when state changes', () => {
       const state1 = {
-        networkConnectionBanners: {
+        networkConnectionBanner: {
           visible: false,
         },
       } as unknown as RootState;
 
       const state2 = {
-        networkConnectionBanners: {
+        networkConnectionBanner: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
