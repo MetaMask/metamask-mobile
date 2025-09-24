@@ -32,8 +32,7 @@ function getCiKeystoreConfig() {
     if (!keystorePath || !keystorePassword || !keyAlias || !keyPassword) {
       logger.error(
         'Missing required Android keystore environment variables in CI. ' +
-        'Please ensure ANDROID_KEYSTORE_PATH, BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD, ' +
-        'BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS, and BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD are set.'
+        'Please check that setup-e2e-env action has configure-keystores: true'
       );
       process.exit(1);
     }
