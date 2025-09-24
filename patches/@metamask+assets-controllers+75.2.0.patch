@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index 3c779a5..4b65ed7 100644
+index 3c779a5..2439d2e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -93,7 +93,7 @@ index 3c779a5..4b65ed7 100644
          }
          catch {
              // Ignore ERC-1155 contract error
-@@ -630,26 +612,33 @@ class NftController extends base_controller_1.BaseController {
+@@ -630,26 +612,28 @@ class NftController extends base_controller_1.BaseController {
      }
  }
  exports.NftController = NftController;
@@ -114,11 +114,6 @@ index 3c779a5..4b65ed7 100644
      const selectedAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
      __classPrivateFieldSet(this, _NftController_selectedAccountId, selectedAccount.id, "f");
 +    const newDisplayNftMedia = Boolean(displayNftMedia || openSeaEnabled);
-+    console.log('AAAAAAKJHADGHKJADJKADK onPreferencesControllerStateChange', {
-+        displayNftMedia,
-+        openSeaEnabled,
-+        newDisplayNftMedia,
-+    });
      // Get current state values
      if (__classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== ipfsGateway ||
 -        __classPrivateFieldGet(this, _NftController_openSeaEnabled, "f") !== openSeaEnabled ||
@@ -133,7 +128,7 @@ index 3c779a5..4b65ed7 100644
          if (needsUpdateNftMetadata && selectedAccount) {
              await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, selectedAccount);
          }
-@@ -664,7 +653,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
+@@ -664,7 +648,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
      const oldSelectedAccountId = __classPrivateFieldGet(this, _NftController_selectedAccountId, "f");
      __classPrivateFieldSet(this, _NftController_selectedAccountId, internalAccount.id, "f");
      const needsUpdateNftMetadata = ((__classPrivateFieldGet(this, _NftController_isIpfsGatewayEnabled, "f") && __classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== '') ||
@@ -142,7 +137,7 @@ index 3c779a5..4b65ed7 100644
          oldSelectedAccountId !== internalAccount.id;
      if (needsUpdateNftMetadata) {
          await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, internalAccount);
-@@ -689,7 +678,6 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
+@@ -689,7 +673,6 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
      });
  }, _NftController_getNftCollectionApi = function _NftController_getNftCollectionApi() {
      // False negative.
@@ -150,7 +145,7 @@ index 3c779a5..4b65ed7 100644
      return `${controller_utils_1.NFT_API_BASE_URL}/collections`;
  }, _NftController_getNftInformationFromApi = 
  /**
-@@ -783,7 +771,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -783,7 +766,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              tokenURI: tokenURI ?? null,
          };
      }
@@ -159,7 +154,7 @@ index 3c779a5..4b65ed7 100644
      if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
          return {
              image: null,
-@@ -883,7 +871,7 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
+@@ -883,7 +866,7 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', networkClientId);
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
          (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromTokenURI).call(this, contractAddress, tokenId, networkClientId)),
@@ -168,7 +163,7 @@ index 3c779a5..4b65ed7 100644
              ? (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromApi).call(this, contractAddress, tokenId))
              : undefined,
      ]);
-@@ -933,13 +921,9 @@ async function _NftController_getNftContractInformation(contractAddress, nftMeta
+@@ -933,13 +916,9 @@ async function _NftController_getNftContractInformation(contractAddress, nftMeta
          return {
              address: contractAddress,
              ...blockchainContractData,
@@ -182,7 +177,7 @@ index 3c779a5..4b65ed7 100644
                  image_url: nftMetadataFromApi?.collection?.image ??
                      nftMetadataFromApi?.collection?.imageUrl ??
                      null,
-@@ -952,25 +936,13 @@ async function _NftController_getNftContractInformation(contractAddress, nftMeta
+@@ -952,25 +931,13 @@ async function _NftController_getNftContractInformation(contractAddress, nftMeta
      /* istanbul ignore next */
      return {
          address: contractAddress,
@@ -208,7 +203,7 @@ index 3c779a5..4b65ed7 100644
          collection: { name: null, image_url: null },
      };
  }, _NftController_addIndividualNft = 
-@@ -1066,22 +1038,7 @@ async function _NftController_addNftContract(networkClientId, { tokenAddress, us
+@@ -1066,22 +1033,7 @@ async function _NftController_addNftContract(networkClientId, { tokenAddress, us
          // will be fixed once detection uses networkClientIds
          // get name and symbol if ERC721 then put together the metadata
          const contractInformation = await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftContractInformation).call(this, checksumHexAddress, nftMetadata, networkClientId);
@@ -232,7 +227,7 @@ index 3c779a5..4b65ed7 100644
          // If the nft is auto-detected we want some valid metadata to be present
          if (source === constants_1.Source.Detected &&
              'address' in contractInformation &&
-@@ -1157,7 +1114,6 @@ async function _NftController_addNftContract(networkClientId, { tokenAddress, us
+@@ -1157,7 +1109,6 @@ async function _NftController_addNftContract(networkClientId, { tokenAddress, us
      }
      if (type !== controller_utils_1.ERC721 && type !== controller_utils_1.ERC1155) {
          throw rpc_errors_1.rpcErrors.invalidParams(
