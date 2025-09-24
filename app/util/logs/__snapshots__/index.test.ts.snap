@@ -1133,7 +1133,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "0xfa": true,
           "0xfa2": true,
         },
-        "showMultiRpcModal": false,
+        "showMultiRpcModal": true,
         "showTestNetworks": false,
         "smartAccountOptIn": true,
         "smartAccountOptInForAccounts": [],
