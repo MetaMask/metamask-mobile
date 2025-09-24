@@ -136,20 +136,10 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    addText: {
-      fontSize: 14,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
     footer: {
       flex: 1,
       alignItems: 'center',
       marginTop: 8,
-    },
-    emptyText: {
-      color: colors.text.alternative,
-      marginBottom: 8,
-      fontSize: 14,
     },
     spinner: {
       marginBottom: 8,
