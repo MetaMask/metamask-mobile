@@ -316,7 +316,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
-                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -348,7 +347,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                         fill="currentColor"
                                         height={20}
                                         name="CheckBold"
-                                        onPress={[Function]}
                                         style={
                                           {
                                             "height": 20,
@@ -442,7 +440,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
-                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -994,7 +991,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
-                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1026,7 +1022,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                         fill="currentColor"
                                         height={20}
                                         name="CheckBold"
-                                        onPress={[Function]}
                                         style={
                                           {
                                             "height": 20,
@@ -1120,7 +1115,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
-                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1784,7 +1778,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
-                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1816,7 +1809,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                         fill="currentColor"
                                         height={20}
                                         name="CheckBold"
-                                        onPress={[Function]}
                                         style={
                                           {
                                             "height": 20,
@@ -1910,7 +1902,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                     accessibilityRole="checkbox"
                                     accessible={true}
                                     disabled={false}
-                                    onPress={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",

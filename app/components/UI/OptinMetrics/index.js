@@ -436,11 +436,6 @@ class OptinMetrics extends PureComponent {
                     isChecked={this.state.isBasicUsageChecked}
                     accessibilityRole={'checkbox'}
                     accessible
-                    onPress={() =>
-                      this.setState((prevState) => ({
-                        isBasicUsageChecked: !prevState.isBasicUsageChecked,
-                      }))
-                    }
                   />
                   <View style={styles.flexContainer}>
                     <Text
@@ -481,11 +476,6 @@ class OptinMetrics extends PureComponent {
                     isChecked={this.state.isCheckboxChecked}
                     accessibilityRole={'checkbox'}
                     accessible
-                    onPress={() =>
-                      this.setState((prevState) => ({
-                        isCheckboxChecked: !prevState.isCheckboxChecked,
-                      }))
-                    }
                   />
                   <View style={styles.flexContainer}>
                     <Text
