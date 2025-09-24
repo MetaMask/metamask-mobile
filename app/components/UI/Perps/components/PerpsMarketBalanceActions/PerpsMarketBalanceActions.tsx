@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Modal, Animated } from 'react-native';
+import { Modal, Animated, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -267,16 +267,18 @@ const PerpsMarketBalanceActions: React.FC<
 
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (
-        <Modal visible transparent animationType="none" statusBarTranslucent>
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={() => setIsEligibilityModalVisible(false)}
-            contentKey={'geo_block'}
-            testID={
-              PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
-            }
-          />
-        </Modal>
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+              testID={
+                PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+              }
+            />
+          </Modal>
+        </View>
       )}
     </>
   );
