@@ -62,7 +62,7 @@ describe('useAccountInfo', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
+              enableMultichainAccountsState2: {
                 enabled: false,
                 featureVersion: null,
                 minimumVersion: null,
@@ -278,7 +278,7 @@ describe('useAccountInfo', () => {
         backgroundState: {
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              enableMultichainAccounts: {
+              enableMultichainAccountsState2: {
                 enabled: false,
                 featureVersion: null,
                 minimumVersion: null,
