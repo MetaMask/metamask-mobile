@@ -95,32 +95,39 @@ const useNetworkConnectionBanner = (): {
       } | null = null;
 
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
-        const networkClientId =
-          Engine.context.NetworkController.findNetworkClientIdByChainId(
-            evmEnabledNetworkChainId,
-          );
-        const networkMetadata = networksMetadata[networkClientId];
-        if (!networkMetadata) {
-          continue;
-        }
-        const networkStatus = networkMetadata?.status;
-
-        if (networkStatus !== NetworkStatus.Available) {
-          const networkConfig =
-            Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
-              networkClientId,
+        try {
+          const networkClientId =
+            Engine.context.NetworkController.findNetworkClientIdByChainId(
+              evmEnabledNetworkChainId,
             );
-
-          if (!networkConfig) {
+          const networkMetadata = networksMetadata[networkClientId];
+          if (!networkMetadata) {
             continue;
           }
+          const networkStatus = networkMetadata?.status;
 
-          firstUnavailableNetwork = {
-            chainId: evmEnabledNetworkChainId,
-            status: timeoutType,
-          };
+          if (networkStatus !== NetworkStatus.Available) {
+            const networkConfig =
+              Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
+                networkClientId,
+              );
 
-          break; // Only show one banner at a time
+            if (!networkConfig) {
+              continue;
+            }
+
+            firstUnavailableNetwork = {
+              chainId: evmEnabledNetworkChainId,
+              status: timeoutType,
+            };
+
+            break; // Only show one banner at a time
+          }
+        } catch {
+          // TODO: remove this once we update the fixtures on e2e tests
+          // If there is an error, continue to the next network
+          // findNetworkClientIdByChainId and getNetworkConfigurationByNetworkClientId can throw errors
+          continue;
         }
       }
 
