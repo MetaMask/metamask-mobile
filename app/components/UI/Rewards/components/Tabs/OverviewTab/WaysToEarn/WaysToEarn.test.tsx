@@ -324,12 +324,6 @@ describe('WaysToEarn', () => {
       expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
         location: SwapBridgeNavigationLocation.Rewards,
         sourcePage: 'rewards_overview',
-        sourceToken: {
-          address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-          symbol: 'ETH',
-          decimals: 18,
-          chainId: 'eip155:59144',
-        },
       });
     });
   });

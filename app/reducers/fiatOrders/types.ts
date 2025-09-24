@@ -59,6 +59,7 @@ export interface FiatOrder {
   orderType: OrderOrderTypeEnum | DepositOrderType; // Order type
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
+  forceUpdate?: boolean; // Force update when processing
   data: Order | WyreOrder | DepositOrder; // Original provider data
 }
 
