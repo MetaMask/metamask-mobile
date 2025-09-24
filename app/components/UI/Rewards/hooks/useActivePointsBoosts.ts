@@ -73,7 +73,11 @@ export const useActivePointsBoosts = (): void => {
 
   // Listen for events that should trigger a refetch of active boosts
   useInvalidateByRewardEvents(
-    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:balanceUpdated',
+    ],
     fetchActivePointsBoosts,
   );
 };
