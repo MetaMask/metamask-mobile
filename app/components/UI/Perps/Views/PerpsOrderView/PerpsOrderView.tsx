@@ -479,24 +479,34 @@ const PerpsOrderViewContentBase: React.FC = () => {
         : price; // fallback to current price for market orders or when no limit price set
 
     if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
-      const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
-        currentPrice: price,
-        direction: orderForm.direction,
-        leverage: orderForm.leverage,
-        entryPrice,
-      });
+      const tpRoE = calculateRoEForPrice(
+        orderForm.takeProfitPrice,
+        true,
+        false,
+        {
+          currentPrice: price,
+          direction: orderForm.direction,
+          leverage: orderForm.leverage,
+          entryPrice,
+        },
+      );
       const absRoE = Math.abs(parseFloat(tpRoE || '0'));
       tpDisplay =
         absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
     if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
-      const slRoE = calculateRoEForPrice(orderForm.stopLossPrice, false, {
-        currentPrice: price,
-        direction: orderForm.direction,
-        leverage: orderForm.leverage,
-        entryPrice,
-      });
+      const slRoE = calculateRoEForPrice(
+        orderForm.stopLossPrice,
+        false,
+        false,
+        {
+          currentPrice: price,
+          direction: orderForm.direction,
+          leverage: orderForm.leverage,
+          entryPrice,
+        },
+      );
       const absRoE = Math.abs(parseFloat(slRoE || '0'));
       slDisplay =
         absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
