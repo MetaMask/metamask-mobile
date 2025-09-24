@@ -71,6 +71,7 @@ import {
   getSessionScopes,
   KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
+import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
 import {
   makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
@@ -813,6 +814,8 @@ export class BackgroundBridge extends EventEmitter {
               transactionMeta: { chainId },
               securityAlertId,
             }),
+          isAuxiliaryFundsSupported: (chainId) =>
+            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
         },
         Engine.controllerMessenger,
       ),
@@ -848,6 +851,8 @@ export class BackgroundBridge extends EventEmitter {
               {},
             );
           },
+          isAuxiliaryFundsSupported: (chainId) =>
+            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
         },
         Engine.controllerMessenger,
       ),
