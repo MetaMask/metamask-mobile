@@ -442,7 +442,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                             "bottom": "additive",
                             "left": "additive",
                             "right": "additive",
-                            "top": "additive",
+                            "top": "off",
                           }
                         }
                         style={
@@ -1659,7 +1659,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                             "bottom": "additive",
                             "left": "additive",
                             "right": "additive",
-                            "top": "additive",
+                            "top": "off",
                           }
                         }
                         style={
@@ -2435,7 +2435,7 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                             "bottom": "additive",
                             "left": "additive",
                             "right": "additive",
-                            "top": "additive",
+                            "top": "off",
                           }
                         }
                         style={
@@ -3040,7 +3040,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                             "bottom": "additive",
                             "left": "additive",
                             "right": "additive",
-                            "top": "additive",
+                            "top": "off",
                           }
                         }
                         style={
@@ -3683,7 +3683,7 @@ exports[`Settings renders correctly 1`] = `
                             "bottom": "additive",
                             "left": "additive",
                             "right": "additive",
-                            "top": "additive",
+                            "top": "off",
                           }
                         }
                         style={
@@ -4326,7 +4326,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                             "bottom": "additive",
                             "left": "additive",
                             "right": "additive",
-                            "top": "additive",
+                            "top": "off",
                           }
                         }
                         style={

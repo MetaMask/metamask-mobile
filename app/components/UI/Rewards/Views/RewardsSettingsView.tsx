@@ -36,7 +36,7 @@ const RewardsSettingsView: React.FC = () => {
   const { colors } = useTheme();
   const hasAccountOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const toastRef = useRef<ToastRef>(null);
-  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout(toastRef);
+  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
 
   // Set navigation title with back button
   useEffect(() => {
