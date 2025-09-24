@@ -58,6 +58,10 @@ export function useSnapNameResolution({
   );
 
   useEffect(() => {
+    if (!filteredSnaps.length || !domain || !chainId) {
+      return;
+    }
+
     let cancelled = false;
     async function fetchResolutions() {
       setLoading(true);
