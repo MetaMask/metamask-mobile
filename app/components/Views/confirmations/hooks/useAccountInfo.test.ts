@@ -220,7 +220,6 @@ describe('useAccountInfo', () => {
       },
     );
 
-
     expect(result?.current?.walletName).toEqual('First Wallet');
   });
 
