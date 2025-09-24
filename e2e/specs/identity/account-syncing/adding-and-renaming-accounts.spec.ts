@@ -18,6 +18,7 @@ import {
 } from '@metamask/account-tree-controller';
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
+import TestHelpers from '../../../helpers';
 
 describe(
   SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
@@ -57,6 +58,8 @@ describe(
         },
         async ({ userStorageMockttpController }) => {
           await loginToApp();
+          // KDF Delay
+          await TestHelpers.delay(3000);
 
           await WalletView.tapIdenticon();
 
@@ -122,6 +125,8 @@ describe(
             );
 
           await loginToApp();
+          // KDF Delay
+          await TestHelpers.delay(3000);
 
           await WalletView.tapIdenticon();
           await Assertions.expectElementToBeVisible(
@@ -182,6 +187,8 @@ describe(
         },
         async () => {
           await loginToApp();
+          // KDF Delay
+          await TestHelpers.delay(3000);
 
           await device.disableSynchronization();
 

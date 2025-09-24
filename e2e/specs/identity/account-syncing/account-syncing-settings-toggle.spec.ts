@@ -59,6 +59,8 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
       async ({ userStorageMockttpController }) => {
         // Phase 1: Initial setup and verification of default account
         await loginToApp();
+        // KDF Delay
+        await TestHelpers.delay(3000);
 
         // Open account list to verify initial state
         await WalletView.tapIdenticon();
@@ -166,6 +168,9 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
       async () => {
         // Login to fresh app instance to test sync restoration
         await loginToApp();
+        // KDF Delay
+        await TestHelpers.delay(3000);
+
         await WalletView.tapIdenticon();
 
         await Assertions.expectElementToBeVisible(

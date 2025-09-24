@@ -57,6 +57,8 @@ describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
+        // KDF Delay
+        await TestHelpers.delay(3000);
 
         await WalletView.tapIdenticon();
 
@@ -132,6 +134,9 @@ describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
       },
       async () => {
         await loginToApp();
+        // KDF Delay
+        await TestHelpers.delay(3000);
+
         await WalletView.tapIdenticon();
 
         await Assertions.expectElementToBeVisible(

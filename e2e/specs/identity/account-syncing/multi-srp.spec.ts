@@ -60,6 +60,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
+        // KDF Delay
+        await TestHelpers.delay(3000);
 
         await WalletView.tapIdenticon();
         await Assertions.expectElementToBeVisible(
@@ -98,6 +100,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await goToImportSrp();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
+        // KDF Delay
+        await TestHelpers.delay(3000);
 
         await Assertions.expectElementToBeVisible(WalletView.container);
         await WalletView.tapIdenticon();
@@ -108,6 +112,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await AccountListBottomSheet.tapAddAccountButtonV2({
           srpIndex: 1,
         });
+
+        await waitUntilSyncedAccountsNumberEquals(4);
 
         await AccountListBottomSheet.tapAccountEllipsisButtonV2(3);
         await AccountDetails.tapEditAccountName();
@@ -144,10 +150,16 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
       },
       async () => {
         await loginToApp();
+        // KDF Delay
+        await TestHelpers.delay(3000);
+
         await goToImportSrp();
         await device.disableSynchronization();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
+        // KDF Delay
+        await TestHelpers.delay(3000);
+
         await Assertions.expectElementToBeVisible(WalletView.container);
         await WalletView.tapIdenticon();
         await device.enableSynchronization();
