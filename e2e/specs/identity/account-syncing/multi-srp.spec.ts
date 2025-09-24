@@ -3,7 +3,7 @@ import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { RegressionIdentity } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
@@ -23,7 +23,7 @@ import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mo
 import AccountDetails from '../../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../../pages/MultichainAccounts/EditAccountName';
 
-describe(RegressionIdentity('Account syncing - Mutiple SRPs'), () => {
+describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {

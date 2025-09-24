@@ -3,7 +3,7 @@ import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { RegressionIdentity } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
@@ -22,149 +22,144 @@ import {
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(
-  RegressionIdentity('Account syncing - Unsupported Account types'),
-  () => {
-    let sharedUserStorageController: UserStorageMockttpController;
+describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
+  let sharedUserStorageController: UserStorageMockttpController;
 
-    beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
-      sharedUserStorageController = createUserStorageController();
-    });
+  beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
+    sharedUserStorageController = createUserStorageController();
+  });
 
-    const DEFAULT_ACCOUNT_NAME = 'Account 1';
-    const SECOND_ACCOUNT_NAME = 'Account 2';
-    const IMPORTED_ACCOUNT_NAME = 'Account 3';
-    /**
-     * This test verifies that imported accounts are not synced to user storage:
-     * Phase 1: Create regular accounts and import a private key account
-     * Phase 2: Verify the imported account is visible in the current session
-     * Phase 3: Login to a fresh app instance and verify only regular accounts persist (imported accounts are excluded)
-     */
+  const DEFAULT_ACCOUNT_NAME = 'Account 1';
+  const SECOND_ACCOUNT_NAME = 'Account 2';
+  const IMPORTED_ACCOUNT_NAME = 'Account 3';
+  /**
+   * This test verifies that imported accounts are not synced to user storage:
+   * Phase 1: Create regular accounts and import a private key account
+   * Phase 2: Verify the imported account is visible in the current session
+   * Phase 3: Login to a fresh app instance and verify only regular accounts persist (imported accounts are excluded)
+   */
 
-    it('does not sync imported accounts and excludes them when logging into a fresh app instance', async () => {
-      await withIdentityFixtures(
-        {
-          userStorageFeatures: [
-            USER_STORAGE_GROUPS_FEATURE_KEY,
-            USER_STORAGE_WALLETS_FEATURE_KEY,
-          ],
-          sharedUserStorageController,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
+  it('does not sync imported accounts and excludes them when logging into a fresh app instance', async () => {
+    await withIdentityFixtures(
+      {
+        userStorageFeatures: [
+          USER_STORAGE_GROUPS_FEATURE_KEY,
+          USER_STORAGE_WALLETS_FEATURE_KEY,
+        ],
+        sharedUserStorageController,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
+      },
+      async ({ userStorageMockttpController }) => {
+        await loginToApp();
+
+        await WalletView.tapIdenticon();
+
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
+          {
+            description: 'Account List Bottom Sheet should be visible',
           },
-        },
-        async ({ userStorageMockttpController }) => {
-          await loginToApp();
+        );
 
-          await WalletView.tapIdenticon();
-
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.accountList,
-            {
-              description: 'Account List Bottom Sheet should be visible',
-            },
-          );
-
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
-              DEFAULT_ACCOUNT_NAME,
-            ),
-            {
-              description: `Account with name "${DEFAULT_ACCOUNT_NAME}" should be visible`,
-            },
-          );
-
-          const { prepareEventsEmittedCounter } = arrangeTestUtils(
-            userStorageMockttpController,
-          );
-          const { waitUntilEventsEmittedNumberEquals } =
-            prepareEventsEmittedCounter(
-              UserStorageMockttpControllerEvents.PUT_SINGLE,
-            );
-
-          await AccountListBottomSheet.tapAddAccountButtonV2();
-          await waitUntilEventsEmittedNumberEquals(1);
-
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
-              SECOND_ACCOUNT_NAME,
-            ),
-            {
-              description: `Account with name "${SECOND_ACCOUNT_NAME}" should be visible`,
-            },
-          );
-
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.accountList,
-          );
-
-          await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapImportAccount();
-          await Assertions.expectElementToBeVisible(
-            ImportAccountView.container,
-          );
-          await ImportAccountView.enterPrivateKey(
-            IDENTITY_TEAM_IMPORTED_PRIVATE_KEY,
-          );
-          await Assertions.expectElementToBeVisible(
-            SuccessImportAccountView.container,
-          );
-          await SuccessImportAccountView.tapCloseButton();
-
-          // Right now there's a bug in the naming of imported accounts, so we just wait a while and reload the app
-          await TestHelpers.delay(2000);
-        },
-      );
-
-      await withIdentityFixtures(
-        {
-          userStorageFeatures: [
-            USER_STORAGE_GROUPS_FEATURE_KEY,
-            USER_STORAGE_WALLETS_FEATURE_KEY,
-          ],
-          sharedUserStorageController,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(true),
-            );
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.getAccountElementByAccountNameV2(
+            DEFAULT_ACCOUNT_NAME,
+          ),
+          {
+            description: `Account with name "${DEFAULT_ACCOUNT_NAME}" should be visible`,
           },
-        },
-        async () => {
-          await loginToApp();
-          await WalletView.tapIdenticon();
+        );
 
+        const { prepareEventsEmittedCounter } = arrangeTestUtils(
+          userStorageMockttpController,
+        );
+        const { waitUntilEventsEmittedNumberEquals } =
+          prepareEventsEmittedCounter(
+            UserStorageMockttpControllerEvents.PUT_SINGLE,
+          );
+
+        await AccountListBottomSheet.tapAddAccountButtonV2();
+        await waitUntilEventsEmittedNumberEquals(1);
+
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.getAccountElementByAccountNameV2(
+            SECOND_ACCOUNT_NAME,
+          ),
+          {
+            description: `Account with name "${SECOND_ACCOUNT_NAME}" should be visible`,
+          },
+        );
+
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
+        );
+
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapImportAccount();
+        await Assertions.expectElementToBeVisible(ImportAccountView.container);
+        await ImportAccountView.enterPrivateKey(
+          IDENTITY_TEAM_IMPORTED_PRIVATE_KEY,
+        );
+        await Assertions.expectElementToBeVisible(
+          SuccessImportAccountView.container,
+        );
+        await SuccessImportAccountView.tapCloseButton();
+
+        // Right now there's a bug in the naming of imported accounts, so we just wait a while and reload the app
+        await TestHelpers.delay(2000);
+      },
+    );
+
+    await withIdentityFixtures(
+      {
+        userStorageFeatures: [
+          USER_STORAGE_GROUPS_FEATURE_KEY,
+          USER_STORAGE_WALLETS_FEATURE_KEY,
+        ],
+        sharedUserStorageController,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(true),
+          );
+        },
+      },
+      async () => {
+        await loginToApp();
+        await WalletView.tapIdenticon();
+
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
+          {
+            description: 'Account List Bottom Sheet should be visible',
+          },
+        );
+
+        const visibleAccounts = [DEFAULT_ACCOUNT_NAME, SECOND_ACCOUNT_NAME];
+
+        for (const accountName of visibleAccounts) {
           await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.accountList,
+            AccountListBottomSheet.getAccountElementByAccountNameV2(
+              accountName,
+            ),
             {
-              description: 'Account List Bottom Sheet should be visible',
+              description: `Account with name "${accountName}" should be visible`,
             },
           );
+        }
 
-          const visibleAccounts = [DEFAULT_ACCOUNT_NAME, SECOND_ACCOUNT_NAME];
-
-          for (const accountName of visibleAccounts) {
-            await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.getAccountElementByAccountNameV2(
-                accountName,
-              ),
-              {
-                description: `Account with name "${accountName}" should be visible`,
-              },
-            );
-          }
-
-          await Assertions.expectElementToNotBeVisible(
-            AccountListBottomSheet.getAccountElementByAccountNameV2(
-              IMPORTED_ACCOUNT_NAME,
-            ),
-          );
-        },
-      );
-    });
-  },
-);
+        await Assertions.expectElementToNotBeVisible(
+          AccountListBottomSheet.getAccountElementByAccountNameV2(
+            IMPORTED_ACCOUNT_NAME,
+          ),
+        );
+      },
+    );
+  });
+});

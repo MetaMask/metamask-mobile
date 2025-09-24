@@ -2,7 +2,7 @@ import { loginToApp } from '../../../viewHelper';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { RegressionIdentity } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers';
 import {
@@ -21,7 +21,7 @@ import {
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(RegressionIdentity('Account syncing - Accounts with activity'), () => {
+describe(SmokeIdentity('Account syncing - Accounts with activity'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {
