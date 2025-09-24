@@ -4,9 +4,7 @@ import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
-
-import NftGridMedia from './NftGridMedia';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import CollectibleMedia from '../CollectibleMedia';
 
 const styles = StyleSheet.create({
   container: {
@@ -14,6 +12,9 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   collectible: {
+    aspectRatio: 1,
+  },
+  collectibleIcon: {
     aspectRatio: 1,
   },
 });
@@ -24,11 +25,9 @@ const debouncedNavigation = debounce((navigation, collectible) => {
 
 const NftGridItem = ({
   item,
-  chainId,
   onLongPress,
 }: {
   item: Nft;
-  chainId: SupportedCaipChainId | `0x${string}`;
   onLongPress: (nft: Nft) => void;
 }) => {
   const navigation = useNavigation();
@@ -45,8 +44,11 @@ const NftGridItem = ({
         onLongPress={() => onLongPress(item)}
         testID={`collectible-${item.name}-${item.tokenId}`}
       >
-        {/* Change after looking at collectiblemedia */}
-        <NftGridMedia image={item.image} chainId={chainId} />
+        <CollectibleMedia
+          style={styles.collectibleIcon}
+          collectible={item}
+          isTokenImage
+        />
       </TouchableOpacity>
 
       {item.name && (

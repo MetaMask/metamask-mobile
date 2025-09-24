@@ -113,11 +113,7 @@ const NftGridList = () => {
           }
           data={allFilteredCollectibles}
           renderItem={({ item }) => (
-            <NftGridItem
-              item={item}
-              chainId={chainId}
-              onLongPress={onLongPress}
-            />
+            <NftGridItem item={item} onLongPress={onLongPress} />
           )}
           keyExtractor={(_, index) => index.toString()}
           testID={RefreshTestId}
