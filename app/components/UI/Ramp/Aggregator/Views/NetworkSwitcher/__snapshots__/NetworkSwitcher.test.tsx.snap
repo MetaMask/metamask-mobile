@@ -385,7 +385,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1989,7 +1989,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -3044,7 +3044,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -4099,7 +4099,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -5154,7 +5154,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -6473,7 +6473,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -7792,7 +7792,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -8414,7 +8414,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -9036,7 +9036,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={

@@ -3207,7 +3207,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 "bottom": "additive",
                                 "left": "additive",
                                 "right": "additive",
-                                "top": "additive",
+                                "top": "off",
                               }
                             }
                             style={

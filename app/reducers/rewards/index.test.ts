@@ -4,6 +4,7 @@ import rewardsReducer, {
   setSeasonStatus,
   setReferralDetails,
   setSeasonStatusLoading,
+  setSeasonStatusError,
   setReferralDetailsLoading,
   resetRewardsState,
   setOnboardingActiveStep,
@@ -29,6 +30,7 @@ describe('rewardsReducer', () => {
   const initialState: RewardsState = {
     activeTab: 'overview',
     seasonStatusLoading: false,
+    seasonStatusError: null,
 
     seasonId: null,
     seasonName: null,
@@ -576,6 +578,98 @@ describe('rewardsReducer', () => {
       });
     });
 
+    describe('setSeasonStatusError', () => {
+      it('should set season status error to a string message', () => {
+        // Arrange
+        const errorMessage = 'Failed to fetch season status';
+        const action = setSeasonStatusError(errorMessage);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(errorMessage);
+      });
+
+      it('should clear season status error when set to null', () => {
+        // Arrange
+        const stateWithError = {
+          ...initialState,
+          seasonStatusError: 'Previous error message',
+        };
+        const action = setSeasonStatusError(null);
+
+        // Act
+        const state = rewardsReducer(stateWithError, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(null);
+      });
+
+      it('should replace existing error with new error message', () => {
+        // Arrange
+        const stateWithError = {
+          ...initialState,
+          seasonStatusError: 'Old error message',
+        };
+        const newErrorMessage = 'New error message';
+        const action = setSeasonStatusError(newErrorMessage);
+
+        // Act
+        const state = rewardsReducer(stateWithError, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(newErrorMessage);
+      });
+
+      it('should handle network timeout error message', () => {
+        // Arrange
+        const timeoutError = 'Request timed out while fetching season status';
+        const action = setSeasonStatusError(timeoutError);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(timeoutError);
+      });
+
+      it('should handle API error response message', () => {
+        // Arrange
+        const apiError = 'API returned 500: Internal server error';
+        const action = setSeasonStatusError(apiError);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(apiError);
+      });
+
+      it('should not affect other state properties when setting error', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          seasonName: 'Test Season',
+          seasonId: 'season-123',
+          balanceTotal: 1000,
+          seasonStatusLoading: false,
+        };
+        const errorMessage = 'Something went wrong';
+        const action = setSeasonStatusError(errorMessage);
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(errorMessage);
+        expect(state.seasonName).toBe('Test Season');
+        expect(state.seasonId).toBe('season-123');
+        expect(state.balanceTotal).toBe(1000);
+        expect(state.seasonStatusLoading).toBe(false);
+      });
+    });
+
     describe('setReferralDetailsLoading', () => {
       it('should set referral details loading to true when no referral code exists', () => {
         // Arrange
@@ -974,6 +1068,7 @@ describe('rewardsReducer', () => {
             levelNumber: 'Level 10',
             rewards: [],
           },
+          seasonStatusError: null,
           nextTier: {
             id: 'tier-diamond',
             name: 'Diamond',
@@ -1128,6 +1223,7 @@ describe('rewardsReducer', () => {
               backgroundColor: '#FF0000',
             },
           ],
+          seasonStatusError: null,
           activeBoostsLoading: false,
           activeBoostsError: false,
           unlockedRewards: [],

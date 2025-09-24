@@ -385,7 +385,7 @@ exports[`GetStarted renders correctly 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1022,7 +1022,7 @@ exports[`GetStarted renders correctly 2`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1659,7 +1659,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -2077,7 +2077,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
