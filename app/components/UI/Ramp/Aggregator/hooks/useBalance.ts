@@ -8,17 +8,16 @@ import {
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
-import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   balanceToFiat,
   hexToBN,
   renderFromTokenMinimalUnit,
   renderFromWei,
-  toHexadecimal,
   weiToFiat,
 } from '../../../../../util/number';
 import { CaipChainId, Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -42,7 +41,6 @@ export default function useBalance(asset?: Asset) {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multiChainTokenBalance = useSelector(selectMultichainBalances);
   ///: END:ONLY_INCLUDE_IF
-  const chainId = useSelector(selectEvmChainId);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -82,18 +80,19 @@ export default function useBalance(asset?: Asset) {
   }
 
   ///: END:ONLY_INCLUDE_IF
-  if (!balance && asset.address === NATIVE_ADDRESS) {
+  if (!balance && asset.address === NATIVE_ADDRESS && asset.chainId) {
+    const hexChainId = toHex(asset.chainId);
     // Chain id should exist in accountsByChainId in AccountTrackerController at this point in time
-    if (!accountsByChainId[toHexadecimal(chainId)]) {
+    if (!accountsByChainId[hexChainId]) {
       return defaultReturn;
     }
 
     balance = renderFromWei(
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+      accountsByChainId[hexChainId][selectedAddress]?.balance,
     );
 
     balanceBN = hexToBN(
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+      accountsByChainId[hexChainId][selectedAddress]?.balance,
     );
 
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);

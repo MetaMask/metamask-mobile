@@ -39,6 +39,9 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../sele
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { getCaipChainIdFromCryptoCurrency } from '../../utils';
+import NetworksFilterBar from '../../../Deposit/components/NetworksFilterBar';
+import { CaipChainId } from '@metamask/utils';
+import NetworksFilterSelector from '../../../Deposit/components/NetworksFilterSelector/NetworksFilterSelector';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -58,10 +61,14 @@ function TokenSelectModal() {
 
   const { tokens } = useParams<TokenSelectModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
+  const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
+    null,
+  );
+  const [isEditingNetworkFilter, setIsEditingNetworkFilter] = useState(false);
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-  const { setSelectedAsset } = useRampSDK();
+  const { setSelectedAsset, selectedAsset } = useRampSDK();
 
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -99,26 +106,42 @@ function TokenSelectModal() {
     [networksByCaipChainId],
   );
 
+  const networkFilteredTokens = useMemo(() => {
+    if (!networkFilter || networkFilter.length === 0) {
+      return tokens;
+    }
+    return tokens.filter((token) => {
+      const caipChainId = getCaipChainIdFromCryptoCurrency(token);
+      return caipChainId ? networkFilter.includes(caipChainId) : false;
+    });
+  }, [tokens, networkFilter]);
+
   const tokenFuse = useMemo(
     () =>
-      new Fuse(tokens, {
+      new Fuse(networkFilteredTokens, {
         shouldSort: true,
         threshold: 0.45,
         location: 0,
         distance: 100,
         maxPatternLength: 32,
         minMatchCharLength: 1,
-        keys: ['symbol', 'address', 'name'],
+        keys: [
+          'symbol',
+          'address',
+          'name',
+          'network.shortName',
+          'network.name',
+        ],
       }),
-    [tokens],
+    [networkFilteredTokens],
   );
 
   const searchTokenResults = useMemo(
     () =>
       searchString.length > 0
         ? tokenFuse.search(searchString)?.slice(0, MAX_TOKENS_RESULTS) || []
-        : tokens || [],
-    [searchString, tokenFuse, tokens],
+        : networkFilteredTokens || [],
+    [networkFilteredTokens, searchString, tokenFuse],
   );
 
   const handleSelectTokenCallback = useCallback(
@@ -154,6 +177,7 @@ function TokenSelectModal() {
     ({ item: token }: { item: CryptoCurrency }) => (
       <ListItemSelect
         onPress={() => handleSelectTokenCallback(token)}
+        isSelected={selectedAsset?.id === token.id}
         accessibilityRole="button"
         accessible
       >
@@ -179,9 +203,10 @@ function TokenSelectModal() {
       </ListItemSelect>
     ),
     [
+      selectedAsset?.id,
+      getNetworkImageForToken,
       colors.text.alternative,
       handleSelectTokenCallback,
-      getNetworkImageForToken,
     ],
   );
 
@@ -198,6 +223,17 @@ function TokenSelectModal() {
     [searchString],
   );
 
+  const uniqueNetworks = useMemo(() => {
+    const uniqueNetworksSet = new Set<CaipChainId>();
+    for (const token of tokens) {
+      const caipChainId = getCaipChainIdFromCryptoCurrency(token);
+      if (caipChainId) {
+        uniqueNetworksSet.add(caipChainId);
+      }
+    }
+    return Array.from(uniqueNetworksSet);
+  }, [tokens]);
+
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
@@ -205,29 +241,47 @@ function TokenSelectModal() {
           {strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         </Text>
       </BottomSheetHeader>
-      <View style={styles.searchContainer}>
-        <TextFieldSearch
-          value={searchString}
-          showClearButton={searchString.length > 0}
-          onPressClearButton={clearSearchText}
-          onFocus={scrollToTop}
-          onChangeText={handleSearchTextChange}
-          placeholder={strings(
-            'fiat_on_ramp_aggregator.search_by_cryptocurrency',
-          )}
-          testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
+      {isEditingNetworkFilter ? (
+        <NetworksFilterSelector
+          networks={uniqueNetworks}
+          networkFilter={networkFilter}
+          setNetworkFilter={setNetworkFilter}
+          setIsEditingNetworkFilter={setIsEditingNetworkFilter}
         />
-      </View>
-      <FlatList
-        style={styles.list}
-        ref={listRef}
-        data={searchTokenResults}
-        renderItem={renderToken}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={renderEmptyList}
-        keyboardDismissMode="none"
-        keyboardShouldPersistTaps="always"
-      />
+      ) : (
+        <>
+          <NetworksFilterBar
+            networks={uniqueNetworks}
+            networkFilter={networkFilter}
+            setNetworkFilter={setNetworkFilter}
+            setIsEditingNetworkFilter={setIsEditingNetworkFilter}
+          />
+          <View style={styles.searchContainer}>
+            <TextFieldSearch
+              value={searchString}
+              showClearButton={searchString.length > 0}
+              onPressClearButton={clearSearchText}
+              onFocus={scrollToTop}
+              onChangeText={handleSearchTextChange}
+              placeholder={strings(
+                'fiat_on_ramp_aggregator.search_by_cryptocurrency',
+              )}
+              testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
+            />
+          </View>
+          <FlatList
+            style={styles.list}
+            ref={listRef}
+            data={searchTokenResults}
+            extraData={selectedAsset?.id}
+            renderItem={renderToken}
+            keyExtractor={(item) => item.id}
+            ListEmptyComponent={renderEmptyList}
+            keyboardDismissMode="none"
+            keyboardShouldPersistTaps="always"
+          />
+        </>
+      )}
     </BottomSheet>
   );
 }

@@ -122,6 +122,7 @@ describe('useBalance', () => {
         useBalance({
           address: NATIVE_ADDRESS,
           decimals: 18,
+          chainId: '0x1',
         }),
       {
         state: initialState,
@@ -141,6 +142,7 @@ describe('useBalance', () => {
         useBalance({
           address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           decimals: 6,
+          chainId: '0x1',
         }),
       {
         state: initialState,

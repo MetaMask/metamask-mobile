@@ -4,14 +4,14 @@ import AccountSelector from './AccountSelector';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampSDK } from '../sdk';
-import { useAccountName } from '../../../../hooks/useAccountName';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 
 jest.mock('../sdk', () => ({
   useRampSDK: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useAccountName', () => ({
-  useAccountName: jest.fn(),
+jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
+  useAccountGroupName: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/fiatOrders', () => ({
@@ -59,8 +59,8 @@ const defaultState = {
 };
 
 const mockUseRampSDK = useRampSDK as jest.MockedFunction<typeof useRampSDK>;
-const mockUseAccountName = useAccountName as jest.MockedFunction<
-  typeof useAccountName
+const mockUseAccountGroupName = useAccountGroupName as jest.MockedFunction<
+  typeof useAccountGroupName
 >;
 
 describe('AccountSelector', () => {
@@ -69,26 +69,25 @@ describe('AccountSelector', () => {
     mockUseRampSDK.mockReturnValue({
       selectedAddress: '0x1234567890123456789012345678901234567890',
     } as ReturnType<typeof useRampSDK>);
-    mockUseAccountName.mockReturnValue('Test Account');
+    mockUseAccountGroupName.mockReturnValue('Test Account');
   });
 
   it('renders correctly with selected address', () => {
     renderWithProvider(<AccountSelector />, {
       state: defaultState,
     });
-
-    expect(screen.getByText('Test Account')).toBeTruthy();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly without account name', () => {
-    mockUseAccountName.mockReturnValue('');
+    mockUseAccountGroupName.mockReturnValue('');
 
     renderWithProvider(<AccountSelector />, {
       state: defaultState,
     });
 
     // Text should be empty but element should exist
-    expect(screen.getByText('')).toBeTruthy();
+    expect(screen.getByText('')).toBeTruthy(); // TODO: change to null when account group name is implemented
   });
 
   it('renders loading state when no address', () => {
@@ -117,7 +116,7 @@ describe('AccountSelector', () => {
     });
 
     // Should show loading text when no address
-    expect(screen.getByText('Account is loading...')).toBeTruthy();
+    expect(screen.getByText('Account is loading...')).toBeTruthy(); // TODO: change to null when account group name is implemented
   });
 
   it('calls navigation when pressed', () => {

@@ -23,9 +23,9 @@ import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
-
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
+
 import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
@@ -283,8 +283,8 @@ const BuildQuote = () => {
     hexChainIdForBalance,
   );
 
-  const { balanceFiat, balanceBN, balance } = useBalance(
-    selectedAsset
+  const { balanceFiat, balanceBN } = useBalance(
+    selectedAsset && selectedAddress
       ? {
           chainId: selectedAsset.network.chainId,
           assetId: selectedAsset.assetId,
@@ -944,18 +944,19 @@ const BuildQuote = () => {
               assetName={selectedAsset?.name ?? ''}
               onPress={handleAssetSelectorPress}
             />
-            {addressBalance ? (
-              <Row>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                  {selectedAsset?.assetId && balance ? balance : addressBalance}
-                  {balanceFiat ? ` ≈ ${balanceFiat}` : null}
-                </Text>
-              </Row>
-            ) : null}
+            <Row>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {addressBalance !== undefined && selectedAddress !== null ? (
+                  <>
+                    {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
+                    {addressBalance}
+                    {balanceFiat ? ` ≈ ${balanceFiat}` : null}
+                  </>
+                ) : (
+                  ''
+                )}
+              </Text>
+            </Row>
 
             <AmountInput
               highlighted={amountFocused}

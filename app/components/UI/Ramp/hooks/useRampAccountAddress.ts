@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 
 /**
  * Hook that returns the appropriate account address for a given CAIP chain identifier.
@@ -27,7 +28,11 @@ function useRampAccountAddress(
 
     const account = selectInternalAccountByScope(caipChainId);
 
-    return account?.address || null;
+    if (!account?.address) {
+      return null;
+    }
+
+    return getFormattedAddressFromInternalAccount(account);
   }, [caipChainId, selectInternalAccountByScope]);
 }
 

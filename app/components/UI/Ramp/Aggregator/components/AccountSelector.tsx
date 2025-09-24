@@ -12,7 +12,7 @@ import Avatar, {
   AvatarSize,
 } from '../../../../../component-library/components/Avatars/Avatar';
 
-import { useAccountName } from '../../../../hooks/useAccountName';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 
 const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const navigation = useNavigation();
-  const accountName = useAccountName();
+  const accountName = useAccountGroupName();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );

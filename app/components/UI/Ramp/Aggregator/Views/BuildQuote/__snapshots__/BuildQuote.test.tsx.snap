@@ -5560,9 +5560,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "marginVertical": 3,
                                         }
                                       }
-                                    >
-                                      Account 2
-                                    </Text>
+                                    />
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -10746,9 +10744,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "marginVertical": 3,
                                         }
                                       }
-                                    >
-                                      Account 2
-                                    </Text>
+                                    />
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
@@ -13514,9 +13510,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "marginVertical": 3,
                                         }
                                       }
-                                    >
-                                      Account 2
-                                    </Text>
+                                    />
                                     <Text
                                       allowFontScaling={false}
                                       selectable={false}
