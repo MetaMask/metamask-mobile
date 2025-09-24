@@ -78,7 +78,7 @@ export class ConnectionRegistry {
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
 
-    logger.debug('Handling connect deeplink: ', url);
+    logger.debug('Handling connect deeplink:', url);
 
     let conn: Connection | undefined;
     let conninfo: ConnectionInfo | undefined;
