@@ -677,6 +677,10 @@ export class BackgroundBridge extends EventEmitter {
           PermissionController,
           origin,
         ),
+        updateCaveat: PermissionController.updateCaveat.bind(
+          PermissionController,
+          origin,
+        ),
         getSelectedNetworkClientId: () =>
           NetworkController.state.selectedNetworkClientId,
         revokePermissionForOrigin: PermissionController.revokePermission.bind(

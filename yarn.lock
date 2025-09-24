@@ -5095,7 +5095,7 @@
     "@metamask/utils" "^8.2.0"
     "@types/eslint" "^8.44.7"
 
-"@metamask/chain-agnostic-permission@^1.0.0", "@metamask/chain-agnostic-permission@^1.1.0":
+"@metamask/chain-agnostic-permission@^1.0.0", "@metamask/chain-agnostic-permission@^1.1.0", "@metamask/chain-agnostic-permission@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/chain-agnostic-permission/-/chain-agnostic-permission-1.1.1.tgz#3769399b727a468ebd8c1359205c6690acb2c333"
   integrity sha512-qyhClL7ZFGwuOR1+R0uasTAxUgLbVxtHiQ/mb/7/ZQLZYGWofVnxwaIE4Sh1n6VsGnYDZQJTXyiF6F4Kp2czew==
@@ -5312,7 +5312,7 @@
     pify "^5.0.0"
     safe-stable-stringify "^2.4.3"
 
-"@metamask/eth-json-rpc-provider@^4.1.5", "@metamask/eth-json-rpc-provider@^4.1.6", "@metamask/eth-json-rpc-provider@^4.1.7", "@metamask/eth-json-rpc-provider@^4.1.8":
+"@metamask/eth-json-rpc-provider@^4.1.5", "@metamask/eth-json-rpc-provider@^4.1.6", "@metamask/eth-json-rpc-provider@^4.1.7":
   version "4.1.8"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-4.1.8.tgz#1ff84270b240b75d14064bcc2ecb3bb14e718401"
   integrity sha512-aU3VkuDSSot+RtRhQOUMdlu3LAZ5fE/rOdq5mUOKtFwefZPQTttoI59KY+qj5zzGIbSh6as5PQ55rAAs7jMO3A==
@@ -5321,6 +5321,17 @@
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^11.1.0"
+    uuid "^8.3.2"
+
+"@metamask/eth-json-rpc-provider@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-5.0.0.tgz#b1607316ec5a7e9fd2fc9eb9ed0057c353e76fed"
+  integrity sha512-+I+ca5rnpEuGUUPQRpjUOJckvuaxjlgbqF0q1BpCoEFghG5ou4bVdaIvdf3ixk6854m+lS0OLtsj0qjuI4pXiA==
+  dependencies:
+    "@metamask/json-rpc-engine" "^10.1.0"
+    "@metamask/rpc-errors" "^7.0.2"
+    "@metamask/safe-event-emitter" "^3.0.0"
+    "@metamask/utils" "^11.8.0"
     uuid "^8.3.2"
 
 "@metamask/eth-ledger-bridge-keyring@11.1.0":
@@ -5489,14 +5500,14 @@
     "@metamask/snaps-utils" "^11.0.0"
     "@metamask/utils" "^11.8.0"
 
-"@metamask/json-rpc-engine@^10.0.0", "@metamask/json-rpc-engine@^10.0.2", "@metamask/json-rpc-engine@^10.0.3":
-  version "10.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-10.0.3.tgz#9258c4718abe305121872414a5c828e43cfcc0f9"
-  integrity sha512-p01QhlLIiTFXivEJCRx0LXEvPUaUPCedI9A8qV9jcLGGNSj1UTWM9GeifoeTweOMdmpIk5Rxg10H9f0JPUC9Ig==
+"@metamask/json-rpc-engine@^10.0.0", "@metamask/json-rpc-engine@^10.0.2", "@metamask/json-rpc-engine@^10.0.3", "@metamask/json-rpc-engine@^10.1.0":
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-10.1.0.tgz#36fc18a1fd47c8d51af4b5e304c016f1017fa694"
+  integrity sha512-VbX1RNdAQJG8HpTNfn5bC9VJkqf8tCIA8d9GWeM+hqt9sWUCpJ7HkDCqmCt1fB5hEm5oaDugGaJqIO3Z+Z4r5g==
   dependencies:
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^11.1.0"
+    "@metamask/utils" "^11.8.0"
 
 "@metamask/json-rpc-middleware-stream@^8.0.6", "@metamask/json-rpc-middleware-stream@^8.0.7":
   version "8.0.7"
@@ -5689,24 +5700,24 @@
     "@metamask/utils" "^11.8.0"
     async-mutex "^0.5.0"
 
-"@metamask/multichain-api-client@^0.6.5":
-  version "0.6.5"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.5.tgz#b269eec6b484e7ca9a43088fbcb454334cacb242"
-  integrity sha512-DP8uZZLrmZwvMr/RvMqymS4IdQW37Nv2ZUqX90/f5JdTzqePVhMMdyrc14+BTZpYV2RNu7flhcDXa7gmTvJPbw==
+"@metamask/multichain-api-client@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.8.0.tgz#8b955f28507feb7ab71a026c64647710271586fb"
+  integrity sha512-/se1vs+ULUIkdXCoU5E7OoQQ0aU7zUwiLxbJi7IIfAWKWB8klpUs/p8BcL0qNgkDL/lmqQyqTumFD48t/Wq9/Q==
 
-"@metamask/multichain-api-middleware@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-middleware/-/multichain-api-middleware-1.0.0.tgz#6a4165bcb4502ac0e1be52e90e32751cc090a1a5"
-  integrity sha512-JTbOIn7RvSB7v9+uHYpZFngqX+KswpbVORNxRxt06z1lpi7bgkVE8F5jZwpKy/jl0/zibGmvAhK9I7IXsQ8hgQ==
+"@metamask/multichain-api-middleware@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-middleware/-/multichain-api-middleware-1.1.0.tgz#e04d89712af8ca0ae658c19188c6eca53b9c7058"
+  integrity sha512-QVR5M9eXR7g2VClfwyFS2Cg9JnUxk19yI3Qx9Btf4ahIpbG0Y6OIuile/ansBykt7pIuEHTtNkN0syUhxcxP8Q==
   dependencies:
     "@metamask/api-specs" "^0.14.0"
-    "@metamask/chain-agnostic-permission" "^1.0.0"
-    "@metamask/controller-utils" "^11.10.0"
-    "@metamask/json-rpc-engine" "^10.0.3"
-    "@metamask/network-controller" "^24.0.0"
+    "@metamask/chain-agnostic-permission" "^1.1.1"
+    "@metamask/controller-utils" "^11.14.0"
+    "@metamask/json-rpc-engine" "^10.1.0"
+    "@metamask/network-controller" "^24.2.0"
     "@metamask/permission-controller" "^11.0.6"
     "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.8.0"
     "@open-rpc/meta-schema" "^1.14.6"
     "@open-rpc/schema-utils-js" "^2.0.5"
     jsonschema "^1.4.1"
@@ -5742,22 +5753,22 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^24.0.0", "@metamask/network-controller@^24.1.0":
-  version "24.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-24.1.0.tgz#4d2dd9ddfb06ee274456c05a4b0e935a7b803c4b"
-  integrity sha512-sgMVPAOVDu6tg9BL/In8W7Fs8isWGmY08gW+JJcQr6h2x5oTjJfATg2zwucxgxb++CV37IbnvBviyjF4y16o0Q==
+"@metamask/network-controller@^24.1.0", "@metamask/network-controller@^24.2.0":
+  version "24.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-24.2.0.tgz#2451f887e0c3d2a4f27f6f3f4c0756e77fa174ff"
+  integrity sha512-Vz2R/5u9hTIkDa5eVK7Z3QcdE8iBJhzerM3lopvLznSAjaasiyGYP18KiZ2+q7dJeWAgifxSeuy6k8kvFE9vEQ==
   dependencies:
-    "@metamask/base-controller" "^8.1.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/controller-utils" "^11.14.0"
     "@metamask/eth-block-tracker" "^12.0.1"
     "@metamask/eth-json-rpc-infura" "^10.2.0"
     "@metamask/eth-json-rpc-middleware" "^17.0.1"
-    "@metamask/eth-json-rpc-provider" "^4.1.8"
+    "@metamask/eth-json-rpc-provider" "^5.0.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/json-rpc-engine" "^10.0.3"
+    "@metamask/json-rpc-engine" "^10.1.0"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/swappable-obj-proxy" "^2.3.0"
-    "@metamask/utils" "^11.4.2"
+    "@metamask/utils" "^11.8.0"
     async-mutex "^0.5.0"
     fast-deep-equal "^3.1.3"
     immer "^9.0.6"
@@ -6239,10 +6250,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.11.tgz#f60e5b821f05fc9d26d82a2a34f0b09de705678d"
   integrity sha512-1xXnq/9FbrvFMdXtPKta31VrMQAYsD4FKDnxDL7gVNffpOUWSO4nX+k/pYgGj+94GNqiHdQTvkpP2+OQN0Pz8Q==
 
-"@metamask/solana-wallet-standard@^0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-standard/-/solana-wallet-standard-0.5.1.tgz#a12d3e35850992bada94d3819948e12b17d4b757"
-  integrity sha512-y4t6DUEQuLc3U0BnPGhKA3XGDM6SYdY6yBlzAlSAciTnEDgKXXiX1smeY8l57GB6VoqpzutnhMcXZbJc/DjszA==
+"@metamask/solana-wallet-standard@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-standard/-/solana-wallet-standard-0.6.0.tgz#ad2a2fe751e9af2d99fbb7635df327af668901aa"
+  integrity sha512-gF763JvLIywPttw+vfRdZx0uHlB0sEbxOGFedblMk78SbQ/KyQrmjHRkFVVrG21oLZgCNEh3uQpCWBdW2+eUzw==
   dependencies:
     "@solana/wallet-standard-chains" "^1.1.1"
     "@solana/wallet-standard-features" "^1.3.0"
