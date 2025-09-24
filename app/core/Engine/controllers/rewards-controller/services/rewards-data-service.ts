@@ -264,11 +264,11 @@ export class RewardsDataService {
     switch (env) {
       case 'e2e':
       case 'exp':
-        return AppConstants.REWARDS_API_URL.UAT;
+      case 'rc':
       case 'pre-release':
+        return AppConstants.REWARDS_API_URL.UAT;
       case 'production':
       case 'beta':
-      case 'rc':
         return AppConstants.REWARDS_API_URL.PRD;
       case 'dev':
       case 'local':
