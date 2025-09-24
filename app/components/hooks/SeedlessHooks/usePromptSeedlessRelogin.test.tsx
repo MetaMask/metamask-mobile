@@ -36,7 +36,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock imports
-import { useMetrics as mockUseMetrics } from '../useMetrics';
+import mockUseMetrics from '../useMetrics/useMetrics';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { useDeleteWallet } from '../DeleteWallet';
 

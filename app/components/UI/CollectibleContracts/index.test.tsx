@@ -24,7 +24,7 @@ import { createMockAccountsControllerState } from '../../../util/test/accountsCo
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
+import mockUseMetrics from '../../hooks/useMetrics/useMetrics';
 
 // eslint-disable-next-line import/no-namespace
 import * as assetUtils from '../../../util/assets';

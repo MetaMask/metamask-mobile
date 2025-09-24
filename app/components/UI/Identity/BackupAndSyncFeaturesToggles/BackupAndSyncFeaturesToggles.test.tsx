@@ -6,7 +6,7 @@ import BackupAndSyncFeaturesToggles, {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { useMetrics as mockUseMetrics } from '../../../../components/hooks/useMetrics';
+import mockUseMetrics from '../../../../components/hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 

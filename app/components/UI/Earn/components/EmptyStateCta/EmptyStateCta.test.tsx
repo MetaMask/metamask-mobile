@@ -7,10 +7,8 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/account
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';
 import { act, fireEvent } from '@testing-library/react-native';
-import {
-  MetaMetricsEvents,
-  useMetrics as mockUseMetrics,
-} from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import mockUseMetrics from '../../../../hooks/useMetrics/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import {
   selectPooledStakingEnabledFlag,

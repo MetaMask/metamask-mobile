@@ -12,10 +12,8 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import AutoDetectNFTSettings from './index';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import {
-  MetaMetricsEvents,
-  useMetrics as mockUseMetrics,
-} from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import mockUseMetrics from '../../../hooks/useMetrics/useMetrics';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;

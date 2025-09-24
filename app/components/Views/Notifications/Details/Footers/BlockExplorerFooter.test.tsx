@@ -5,10 +5,8 @@ import { useSelector } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BlockExplorerFooter from './BlockExplorerFooter';
-import {
-  MetaMetricsEvents,
-  useMetrics as mockUseMetrics,
-} from '../../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../components/hooks/useMetrics';
+import mockUseMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
 import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
 import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';

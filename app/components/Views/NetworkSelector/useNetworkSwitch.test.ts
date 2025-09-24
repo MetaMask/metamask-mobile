@@ -7,7 +7,7 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
+import mockUseMetrics from '../../hooks/useMetrics/useMetrics';
 import Engine from '../../../core/Engine';
 
 // Mock the feature flags

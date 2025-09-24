@@ -8,7 +8,7 @@ import { TokenStandard } from '../../../../../../../../UI/SimulationDetails/type
 import { getTokenDetails } from '../../../../../../../../../util/address';
 import { backgroundState } from '../../../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../../../util/test/renderWithProvider';
-import { useMetrics as mockUseMetrics } from '../../../../../../../../hooks/useMetrics';
+import mockUseMetrics from '../../../../../../../../hooks/useMetrics/useMetrics';
 
 const mockInitialState = {
   engine: {

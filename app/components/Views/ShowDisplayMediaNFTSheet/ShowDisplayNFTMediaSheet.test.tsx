@@ -7,7 +7,7 @@ import ShowDisplayNFTMediaSheet from './ShowDisplayNFTMediaSheet';
 import Routes from '../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
-import { useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
+import mockUseMetrics from '../../hooks/useMetrics/useMetrics';
 
 const setDisplayNftMediaSpy = jest.spyOn(
   Engine.context.PreferencesController,

@@ -2,10 +2,8 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import { DeepLinkModal } from './';
 import { fireEvent, act } from '@testing-library/react-native';
 import { useParams } from '../../../util/navigation/navUtils';
-import {
-  MetaMetricsEvents,
-  useMetrics as mockUseMetrics,
-} from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../components/hooks/useMetrics';
+import mockUseMetrics from '../../../components/hooks/useMetrics/useMetrics';
 import { setDeepLinkModalDisabled } from '../../../actions/settings';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useNavigation } from '@react-navigation/native';

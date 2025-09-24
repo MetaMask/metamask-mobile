@@ -16,7 +16,7 @@ import {
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
 import { strings } from '../../../../locales/i18n';
-import { useMetrics as mockUseMetrics } from '../../hooks/useMetrics';
+import mockUseMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';

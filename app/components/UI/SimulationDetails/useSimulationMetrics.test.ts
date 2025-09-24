@@ -8,7 +8,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useDispatch } from 'react-redux';
 
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
-import { useMetrics as mockUseMetrics } from '../../../components/hooks/useMetrics';
+import mockUseMetrics from '../../../components/hooks/useMetrics/useMetrics';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {

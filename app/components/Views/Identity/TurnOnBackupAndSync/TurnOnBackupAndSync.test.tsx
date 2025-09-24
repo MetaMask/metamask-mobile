@@ -7,7 +7,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { useMetrics as mockUseMetrics } from '../../../hooks/useMetrics';
+import mockUseMetrics from '../../../hooks/useMetrics/useMetrics';
 
 jest.mock('../../../hooks/useMetrics/useMetrics');
 const { trackEvent } = mockUseMetrics();

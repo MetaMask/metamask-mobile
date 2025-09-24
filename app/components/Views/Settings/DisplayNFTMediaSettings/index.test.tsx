@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import DisplayNFTMediaSettings from '.';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
-import { useMetrics as mockMockMetrics } from '../../../hooks/useMetrics';
+import mockMockMetrics from '../../../hooks/useMetrics/useMetrics';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
