@@ -24,7 +24,7 @@ class ConfirmationScreen {
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByID(this._device, ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    return AppwrightSelectors.getElementByID(this._device, 'confirm-button');
   }
 
   async isAccountSendToVisible() {
@@ -51,6 +51,11 @@ class ConfirmationScreen {
     const confirmButton = await this.confirmButton;
     console.log('confirmButton', confirmButton);
     //await confirmButton.tap();
+  }
+
+  async isVisible(timeout = 10000) {
+    const confirmButton = await this.confirmButton;
+    await appwrightExpect(confirmButton).toBeVisible({ timeout });
   }
 }
 

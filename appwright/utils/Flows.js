@@ -77,10 +77,11 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  await OnboardingSheet.tapNotNow();
+  await tapPerpsBottomSheetGotItButton(device);
+  await dismissMultichainAccountsIntroModal(device);
+  await dismissSystemDialogs(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
-  await dismissSystemDialogs(device);
 }
 
 export async function importSRPFlow(device, srp) {
@@ -109,7 +110,7 @@ export async function importSRPFlow(device, srp) {
   timer.stop();
 
   timer2.start();
-  await AccountListComponent.tapAddAccountButton();
+  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 
@@ -129,25 +130,26 @@ export async function importSRPFlow(device, srp) {
   return timers;
 }
 
-export async function login(device, scenarioType) {
+export async function login(device, options = {}) {
   LoginScreen.device = device;
+  const { skipIntro = false, scenarioType = 'login' } = options;
 
   const password = getPasswordForScenario(scenarioType);
 
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  await tapPerpsBottomSheetGotItButton(device);
   // Wait for app to settle after unlock
   await dismissSystemDialogs(device);
+
+  // Only tap intro screens on first login
+  if (!skipIntro) {
+    await tapPerpsBottomSheetGotItButton(device);
+    await dismissMultichainAccountsIntroModal(device);
+    await dismissSystemDialogs(device);
+  }
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
-  // Only skip perps onboarding on Android devices
-  // if (!AppwrightSelectors.isAndroid(device)) {
-  //   console.log('Skipping perps onboarding skip - not an Android device');
-  //   return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
-  // }
-  await dismissMultichainAccountsIntroModal(device);
   console.log('Looking for perps onboarding button...');
   const button = await AppwrightSelectors.getElementByID(
     device,

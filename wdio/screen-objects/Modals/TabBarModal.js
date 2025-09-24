@@ -80,8 +80,18 @@ class TabBarModal {
     if (!this._device) {
       await Gestures.waitAndTap(this.browserButton);
     } else {
-      const browserIcon = await this.browserButton;
-      await browserIcon.tap();
+      try {
+        const browserIcon = await this.browserButton;
+        await browserIcon.tap();
+      } catch (error) {
+        if (error.message.includes('not found')) {
+          console.log('Browser button not found, retrying...');
+          const browserIcon = await this.browserButton;
+          await browserIcon.tap();
+        } else {
+          throw error;
+        }
+      }
     }
   }
 
