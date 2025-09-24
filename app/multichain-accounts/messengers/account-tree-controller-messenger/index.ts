@@ -20,6 +20,7 @@ export function getAccountTreeControllerMessenger(
       'AccountsController:listMultichainAccounts',
       'AccountsController:getAccount',
       'AccountsController:getSelectedMultichainAccount',
+      'AccountsController:getSelectedAccount',
       'AccountsController:setSelectedAccount',
       'SnapController:get',
       'KeyringController:getState',
