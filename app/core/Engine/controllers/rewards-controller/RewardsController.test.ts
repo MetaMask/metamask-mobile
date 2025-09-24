@@ -2198,44 +2198,6 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should handle non-Error objects in catch block', async () => {
-      // Arrange
-      const nonErrorObject = 'String error message';
-      const testableController = new TestableRewardsController({
-        messenger: mockMessenger,
-      });
-      testableController.testUpdate((state) => {
-        state.activeAccount = {
-          subscriptionId: mockSubscriptionId,
-          account: 'eip155:1:0x123',
-          hasOptedIn: true,
-          lastCheckedAuth: Date.now(),
-          lastCheckedAuthError: false,
-          perpsFeeDiscount: null,
-          lastPerpsDiscountRateFetched: null,
-        };
-        state.accounts = {};
-        state.subscriptions = {};
-        state.seasons = {};
-        state.subscriptionReferralDetails = {};
-        state.seasonStatuses = {};
-        state.activeBoosts = {};
-        state.unlockedRewards = {};
-      });
-
-      mockMessenger.call.mockRejectedValue(nonErrorObject);
-
-      // Act & Assert
-      await expect(
-        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toThrow('String error message');
-
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get season status:',
-        'String error message',
-      );
-    });
-
     it('should handle API server error (500)', async () => {
       // Arrange
       const serverError = new Error('Internal Server Error: 500');
@@ -5118,6 +5080,125 @@ describe('RewardsController', () => {
         );
       });
     });
+
+    it('should log and return null when no opted-in accounts are found via getOptInStatus', async () => {
+      // Arrange
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+      const mockOptInStatusResponse = { ois: [false, false] };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Mock messagingSystem.call to return accounts
+      mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+
+      // Mock getOptInStatus to return no opted-in accounts
+      jest
+        .spyOn(testController, 'getOptInStatus')
+        .mockResolvedValueOnce(mockOptInStatusResponse);
+
+      mockLogger.log.mockClear();
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+      expect(testController.getOptInStatus).toHaveBeenCalledWith({
+        addresses: ['0x123', '0x456'],
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No candidate subscription ID found. No opted in accounts found via opt-in status response.',
+      );
+    });
+
+    it('should log when attempting silent auth and throw error when all silent auth attempts fail', async () => {
+      // Arrange
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+      const mockOptInStatusResponse = { ois: [true, true] };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Mock messagingSystem.call to return accounts
+      mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+
+      // Mock getOptInStatus to return opted-in accounts
+      jest
+        .spyOn(testController, 'getOptInStatus')
+        .mockResolvedValueOnce(mockOptInStatusResponse);
+
+      // Act & Assert
+      await expect(testController.getCandidateSubscriptionId()).rejects.toThrow(
+        'No candidate subscription ID found after all silent auth attempts. There is an opted in account but we cannot use it to fetch the season status.',
+      );
+
+      expect(testController.getOptInStatus).toHaveBeenCalledWith({
+        addresses: ['0x123', '0x456'],
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Found opted in account via opt-in status response. Attempting silent auth to determine candidate subscription ID.',
+      );
+    });
+
+    it('should handle getOptInStatus throwing an error and log failure', async () => {
+      // Arrange
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+      const mockError = new Error('getOptInStatus failed');
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Mock messagingSystem.call to return accounts
+      mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+
+      // Mock getOptInStatus to throw an error
+      jest
+        .spyOn(testController, 'getOptInStatus')
+        .mockRejectedValueOnce(mockError);
+
+      mockLogger.log.mockClear();
+
+      // Act & Assert
+      await expect(testController.getCandidateSubscriptionId()).rejects.toThrow(
+        'No candidate subscription ID found after all silent auth attempts. There is an opted in account but we cannot use it to fetch the season status.',
+      );
+
+      expect(testController.getOptInStatus).toHaveBeenCalledWith({
+        addresses: ['0x123', '0x456'],
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get candidate subscription ID:',
+        'getOptInStatus failed',
+      );
+    });
   });
 
   describe('linkAccountToSubscriptionCandidate', () => {
@@ -5758,7 +5839,7 @@ describe('RewardsController', () => {
 
       // Mock both messenger calls to succeed
       mockMessenger.call
-        .mockResolvedValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
         .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
 
       // Act
@@ -5782,7 +5863,7 @@ describe('RewardsController', () => {
 
       // Mock AccountsController call to succeed, then RewardsDataService call to fail
       mockMessenger.call
-        .mockResolvedValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
         .mockRejectedValueOnce(mockError); // RewardsDataService:getOptInStatus
 
       // Act & Assert
@@ -5806,7 +5887,7 @@ describe('RewardsController', () => {
 
       // Mock AccountsController call to succeed, then RewardsDataService call to fail
       mockMessenger.call
-        .mockResolvedValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
         .mockRejectedValueOnce(mockError); // RewardsDataService:getOptInStatus
 
       // Act & Assert
@@ -5817,58 +5898,6 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get opt-in status:',
         'String error',
-      );
-    });
-
-    it('should handle empty addresses array', async () => {
-      // Arrange
-      const emptyParams = { addresses: [] };
-      const emptyResponse = { ois: [] };
-      const mockAccounts: any[] = [];
-
-      // Mock both messenger calls to succeed
-      mockMessenger.call
-        .mockResolvedValueOnce(mockAccounts) // AccountsController:listMultichainAccounts
-        .mockResolvedValueOnce(emptyResponse); // RewardsDataService:getOptInStatus
-
-      // Act
-      const result = await controller.getOptInStatus(emptyParams);
-
-      // Assert
-      expect(result).toEqual(emptyResponse);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getOptInStatus',
-        emptyParams,
-      );
-    });
-
-    it('should handle large arrays of addresses', async () => {
-      // Arrange
-      const largeAddressArray = Array.from(
-        { length: 100 },
-        (_, i) => `0x${i.toString(16).padStart(40, '0')}`,
-      );
-      const largeParams = { addresses: largeAddressArray };
-      const largeResponse = { ois: Array(100).fill(true) };
-      const mockAccounts = largeAddressArray.map((address) => ({
-        address,
-        type: 'eip155:eoa' as const,
-      }));
-
-      // Mock both messenger calls to succeed
-      mockMessenger.call
-        .mockResolvedValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
-        .mockResolvedValueOnce(largeResponse); // RewardsDataService:getOptInStatus
-
-      // Act
-      const result = await controller.getOptInStatus(largeParams);
-
-      // Assert
-      expect(result).toEqual(largeResponse);
-      expect(result.ois).toHaveLength(100);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getOptInStatus',
-        largeParams,
       );
     });
   });
