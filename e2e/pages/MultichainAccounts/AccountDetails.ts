@@ -38,6 +38,10 @@ class AccountDetails {
     );
   }
 
+  get privateKeysLink(): DetoxElement {
+    return Matchers.getElementByID(AccountDetailsIds.PRIVATE_KEYS_LINK);
+  }
+
   get exportSrpButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
@@ -75,6 +79,12 @@ class AccountDetails {
   async tapNetworksLink(): Promise<void> {
     await Gestures.waitAndTap(this.networksLink, {
       elemDescription: 'Networks Link in Account Details',
+    });
+  }
+
+  async tapPrivateKeyLink(): Promise<void> {
+    await Gestures.waitAndTap(this.privateKeysLink, {
+      elemDescription: 'Unlock to reveal Private Keys in Account Details',
     });
   }
 

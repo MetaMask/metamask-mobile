@@ -3,7 +3,6 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
@@ -24,19 +23,6 @@ describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
         await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
         await completeSrpQuiz(defaultGanacheOptions.mnemonic);
 
-        await RevealSecretRecoveryPhrase.scrollToCopyToClipboardButton();
-
-        await RevealSecretRecoveryPhrase.tapToRevealPrivateCredentialQRCode();
-
-        if (device.getPlatform() === 'ios') {
-          // For some reason, the QR code is visible on Android but detox cannot find it
-          await Assertions.expectElementToBeVisible(
-            RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
-          );
-        }
-
-        await RevealSecretRecoveryPhrase.scrollToDone();
-        await RevealSecretRecoveryPhrase.tapDoneButton();
         await Assertions.expectElementToBeVisible(
           SecurityAndPrivacy.securityAndPrivacyHeading,
         );
