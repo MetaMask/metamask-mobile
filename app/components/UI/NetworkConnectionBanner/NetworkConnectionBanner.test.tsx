@@ -1,9 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import {
-  NetworkConfiguration,
-  RpcEndpointType,
-} from '@metamask/network-controller';
 
 import NetworkConnectionBanner from './NetworkConnectionBanner';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
@@ -51,21 +47,6 @@ const mockuseNetworkConnectionBanner =
     typeof useNetworkConnectionBanner
   >;
 
-const mockNetworkConfiguration: NetworkConfiguration = {
-  chainId: '0x1',
-  name: 'Ethereum Mainnet',
-  rpcEndpoints: [
-    {
-      url: 'https://mainnet.infura.io/v3/test',
-      networkClientId: '0x1',
-      type: RpcEndpointType.Custom,
-    },
-  ],
-  defaultRpcEndpointIndex: 0,
-  blockExplorerUrls: ['https://etherscan.io'],
-  nativeCurrency: 'ETH',
-};
-
 describe('NetworkConnectionBanner', () => {
   const mockUpdateRpc = jest.fn();
 
@@ -77,7 +58,6 @@ describe('NetworkConnectionBanner', () => {
     it('should match snapshot when banner is not visible', () => {
       mockuseNetworkConnectionBanner.mockReturnValue({
         networkConnectionBannerState: { visible: false },
-        currentNetwork: mockNetworkConfiguration,
         updateRpc: mockUpdateRpc,
       });
 
@@ -105,8 +85,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status,
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -117,19 +98,14 @@ describe('NetworkConnectionBanner', () => {
     );
 
     it('should match snapshot for different network', () => {
-      const polygonNetwork: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        chainId: '0x89',
-        name: 'Polygon Mainnet',
-      };
-
       mockuseNetworkConnectionBanner.mockReturnValue({
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
           status: 'slow',
+          networkName: 'Polygon Mainnet',
+          rpcUrl: 'https://polygon-rpc.com',
         },
-        currentNetwork: polygonNetwork,
         updateRpc: mockUpdateRpc,
       });
 
@@ -143,35 +119,6 @@ describe('NetworkConnectionBanner', () => {
     it('should not render when visible is false', () => {
       mockuseNetworkConnectionBanner.mockReturnValue({
         networkConnectionBannerState: { visible: false },
-        currentNetwork: mockNetworkConfiguration,
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { queryByTestId } = render(<NetworkConnectionBanner />);
-
-      expect(queryByTestId('animated-spinner')).toBeNull();
-    });
-
-    it('should not render when currentNetwork is undefined', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x1',
-          status: 'slow',
-        },
-        currentNetwork: undefined,
-        updateRpc: mockUpdateRpc,
-      });
-
-      const { queryByTestId } = render(<NetworkConnectionBanner />);
-
-      expect(queryByTestId('animated-spinner')).toBeNull();
-    });
-
-    it('should not render when both visible is false and currentNetwork is undefined', () => {
-      mockuseNetworkConnectionBanner.mockReturnValue({
-        networkConnectionBannerState: { visible: false },
-        currentNetwork: undefined,
         updateRpc: mockUpdateRpc,
       });
 
@@ -203,8 +150,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status,
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -224,8 +172,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status,
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -243,8 +192,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status,
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -253,7 +203,11 @@ describe('NetworkConnectionBanner', () => {
         const updateButton = getByText('Update RPC');
         fireEvent.press(updateButton);
 
-        expect(mockUpdateRpc).toHaveBeenCalledTimes(1);
+        expect(mockUpdateRpc).toHaveBeenCalledWith(
+          'https://mainnet.infura.io/v3/test',
+          status,
+          '0x1',
+        );
       },
     );
 
@@ -265,8 +219,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status,
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -285,8 +240,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status: 'slow',
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -302,8 +258,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status: 'unavailable',
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -321,8 +278,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status: 'unavailable',
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -338,8 +296,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status: 'slow',
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -354,19 +313,14 @@ describe('NetworkConnectionBanner', () => {
 
   describe('with different network configurations', () => {
     it('should display different network names correctly', () => {
-      const polygonNetwork: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        chainId: '0x89',
-        name: 'Polygon Mainnet',
-      };
-
       mockuseNetworkConnectionBanner.mockReturnValue({
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
           status: 'slow',
+          networkName: 'Polygon Mainnet',
+          rpcUrl: 'https://polygon-rpc.com',
         },
-        currentNetwork: polygonNetwork,
         updateRpc: mockUpdateRpc,
       });
 
@@ -376,18 +330,14 @@ describe('NetworkConnectionBanner', () => {
     });
 
     it('should handle network with special characters in name', () => {
-      const specialNetwork: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        name: 'Test-Network (Beta)',
-      };
-
       mockuseNetworkConnectionBanner.mockReturnValue({
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
+          networkName: 'Test-Network (Beta)',
+          rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
-        currentNetwork: specialNetwork,
         updateRpc: mockUpdateRpc,
       });
 
@@ -399,18 +349,14 @@ describe('NetworkConnectionBanner', () => {
     });
 
     it('should handle network with very long name', () => {
-      const longNameNetwork: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        name: 'Very Long Network Name That Might Cause Layout Issues',
-      };
-
       mockuseNetworkConnectionBanner.mockReturnValue({
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x1',
           status: 'slow',
+          networkName: 'Very Long Network Name That Might Cause Layout Issues',
+          rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
-        currentNetwork: longNameNetwork,
         updateRpc: mockUpdateRpc,
       });
 
@@ -444,8 +390,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status,
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -465,8 +412,9 @@ describe('NetworkConnectionBanner', () => {
             visible: true,
             chainId: '0x1',
             status,
+            networkName: 'Ethereum Mainnet',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: mockNetworkConfiguration,
           updateRpc: mockUpdateRpc,
         });
 
@@ -477,7 +425,11 @@ describe('NetworkConnectionBanner', () => {
 
         // Test that button is pressable
         fireEvent.press(updateButton);
-        expect(mockUpdateRpc).toHaveBeenCalled();
+        expect(mockUpdateRpc).toHaveBeenCalledWith(
+          'https://mainnet.infura.io/v3/test',
+          status,
+          '0x1',
+        );
       },
     );
   });
@@ -497,18 +449,14 @@ describe('NetworkConnectionBanner', () => {
     it.each(emptyNameTestCases)(
       'should handle network with empty name for $status status',
       ({ status, expectedMessage }) => {
-        const networkWithEmptyName: NetworkConfiguration = {
-          ...mockNetworkConfiguration,
-          name: '',
-        };
-
         mockuseNetworkConnectionBanner.mockReturnValue({
           networkConnectionBannerState: {
             visible: true,
             chainId: '0x1',
             status,
+            networkName: '',
+            rpcUrl: 'https://mainnet.infura.io/v3/test',
           },
-          currentNetwork: networkWithEmptyName,
           updateRpc: mockUpdateRpc,
         });
 
@@ -524,8 +472,9 @@ describe('NetworkConnectionBanner', () => {
           visible: true,
           chainId: '0x1',
           status: 'slow',
+          networkName: 'Ethereum Mainnet',
+          rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
-        currentNetwork: mockNetworkConfiguration,
         updateRpc: mockUpdateRpc,
       });
 
@@ -539,6 +488,11 @@ describe('NetworkConnectionBanner', () => {
       fireEvent.press(updateButton);
 
       expect(mockUpdateRpc).toHaveBeenCalledTimes(3);
+      expect(mockUpdateRpc).toHaveBeenCalledWith(
+        'https://mainnet.infura.io/v3/test',
+        'slow',
+        '0x1',
+      );
     });
   });
 
@@ -547,7 +501,6 @@ describe('NetworkConnectionBanner', () => {
       // Initially not visible
       mockuseNetworkConnectionBanner.mockReturnValue({
         networkConnectionBannerState: { visible: false },
-        currentNetwork: mockNetworkConfiguration,
         updateRpc: mockUpdateRpc,
       });
 
@@ -563,8 +516,9 @@ describe('NetworkConnectionBanner', () => {
           visible: true,
           chainId: '0x1',
           status: 'slow',
+          networkName: 'Ethereum Mainnet',
+          rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
-        currentNetwork: mockNetworkConfiguration,
         updateRpc: mockUpdateRpc,
       });
 
@@ -580,8 +534,9 @@ describe('NetworkConnectionBanner', () => {
           visible: true,
           chainId: '0x1',
           status: 'slow',
+          networkName: 'Ethereum Mainnet',
+          rpcUrl: 'https://mainnet.infura.io/v3/test',
         },
-        currentNetwork: mockNetworkConfiguration,
         updateRpc: mockUpdateRpc,
       });
 
@@ -590,19 +545,14 @@ describe('NetworkConnectionBanner', () => {
       expect(getByText('Still connecting to Ethereum Mainnet...')).toBeTruthy();
 
       // Switch to Polygon
-      const polygonNetwork: NetworkConfiguration = {
-        ...mockNetworkConfiguration,
-        chainId: '0x89',
-        name: 'Polygon Mainnet',
-      };
-
       mockuseNetworkConnectionBanner.mockReturnValue({
         networkConnectionBannerState: {
           visible: true,
           chainId: '0x89',
           status: 'slow',
+          networkName: 'Polygon Mainnet',
+          rpcUrl: 'https://polygon-rpc.com',
         },
-        currentNetwork: polygonNetwork,
         updateRpc: mockUpdateRpc,
       });
 

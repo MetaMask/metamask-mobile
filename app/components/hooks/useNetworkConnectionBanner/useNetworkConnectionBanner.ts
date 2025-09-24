@@ -1,10 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex, hexToNumber } from '@metamask/utils';
-import {
-  NetworkConfiguration,
-  NetworkStatus,
-} from '@metamask/network-controller';
+import { NetworkStatus } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
 import Engine from '../../../core/Engine';
@@ -14,7 +11,6 @@ import {
   hideNetworkConnectionBanner,
   showNetworkConnectionBanner,
 } from '../../../actions/networkConnectionBanner';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
@@ -24,10 +20,10 @@ const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
 
 const useNetworkConnectionBanner = (): {
   networkConnectionBannerState: NetworkConnectionBannerState;
-  currentNetwork: NetworkConfiguration | undefined;
   updateRpc: (
-    network: NetworkConfiguration,
+    rpcUrl: string,
     status: NetworkConnectionBannerStatus,
+    chainId: string,
   ) => void;
 } => {
   const dispatch = useDispatch();
@@ -40,27 +36,17 @@ const useNetworkConnectionBanner = (): {
   // Use ref to access current banner state without causing timer effect to re-run
   const bannerStateRef = useRef(networkConnectionBannerState);
 
-  const networkConfigurationByChainId = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
   const evmEnabledNetworksChainIds = useSelector(selectEVMEnabledNetworks);
-  const currentNetwork = networkConnectionBannerState.visible
-    ? networkConfigurationByChainId[networkConnectionBannerState.chainId]
-    : undefined;
 
   useEffect(() => {
     Engine.lookupEnabledNetworks();
   }, []);
 
   function updateRpc(
-    network: NetworkConfiguration,
+    rpcUrl: string,
     status: NetworkConnectionBannerStatus,
+    chainId: string,
   ) {
-    const defaultEndpointIndex = network.defaultRpcEndpointIndex || 0;
-    const rpcUrl =
-      network.rpcEndpoints[defaultEndpointIndex]?.url ||
-      network.rpcEndpoints[0]?.url;
-
     navigation.navigate(Routes.EDIT_NETWORK, {
       network: rpcUrl,
       shouldNetworkSwitchPopToWallet: false,
@@ -75,7 +61,7 @@ const useNetworkConnectionBanner = (): {
           : MetaMetricsEvents.UNAVAILABLE_RPC_UPDATE_RPC_CLICKED,
       )
         .addProperties({
-          chain_id_caip: `eip155:${hexToNumber(network.chainId)}`,
+          chain_id_caip: `eip155:${hexToNumber(chainId)}`,
         })
         .build(),
     );
@@ -92,6 +78,8 @@ const useNetworkConnectionBanner = (): {
       let firstUnavailableNetwork: {
         chainId: Hex;
         status: NetworkConnectionBannerStatus;
+        networkName: string;
+        rpcUrl: string;
       } | null = null;
 
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
@@ -116,9 +104,16 @@ const useNetworkConnectionBanner = (): {
               continue;
             }
 
+            const rpcUrl =
+              networkConfig.rpcEndpoints[
+                networkConfig.defaultRpcEndpointIndex || 0
+              ]?.url || networkConfig.rpcEndpoints[0]?.url;
+
             firstUnavailableNetwork = {
               chainId: evmEnabledNetworkChainId,
               status: timeoutType,
+              networkName: networkConfig.name,
+              rpcUrl,
             };
 
             break; // Only show one banner at a time
@@ -149,6 +144,8 @@ const useNetworkConnectionBanner = (): {
             showNetworkConnectionBanner({
               chainId: firstUnavailableNetwork.chainId,
               status: firstUnavailableNetwork.status,
+              networkName: firstUnavailableNetwork.networkName,
+              rpcUrl: firstUnavailableNetwork.rpcUrl,
             }),
           );
         }
@@ -198,7 +195,6 @@ const useNetworkConnectionBanner = (): {
 
   return {
     networkConnectionBannerState,
-    currentNetwork,
     updateRpc,
   };
 };

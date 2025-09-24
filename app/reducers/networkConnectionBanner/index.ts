@@ -16,6 +16,8 @@ export type NetworkConnectionBannerState =
       visible: true;
       chainId: Hex;
       status: NetworkConnectionBannerStatus;
+      networkName: string;
+      rpcUrl: string;
     };
 
 /**
@@ -43,6 +45,8 @@ const networkConnectionBannerReducer = (
         visible: true,
         chainId: action.chainId,
         status: action.status,
+        networkName: action.networkName,
+        rpcUrl: action.rpcUrl,
       };
     case NetworkConnectionBannerActionType.HIDE_NETWORK_CONNECTION_BANNER:
       return {

@@ -18,45 +18,72 @@ describe('networkConnectionBanner', () => {
   });
 
   describe('showNetworkConnectionBanner', () => {
-    it('should create an action to show the network connection banner with valid chainId and slow status', () => {
+    it('should create an action to show the network connection banner with valid chainId, status, networkName and rpcUrl', () => {
       const chainId = '0x1';
+      const networkName = 'Ethereum Mainnet';
+      const rpcUrl = 'https://mainnet.infura.io/v3/123';
 
       expect(
         showNetworkConnectionBanner({
           chainId,
           status: 'slow',
+          networkName,
+          rpcUrl,
         }),
       ).toStrictEqual({
         type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
         chainId,
         status: 'slow',
+        networkName,
+        rpcUrl,
       });
     });
 
-    it('should create an action to show the network connection banner with valid chainId and unavailable status', () => {
+    it('should create an action to show the network connection banner with valid chainId, status, networkName and rpcUrl for unavailable status', () => {
       const chainId = '0x89';
+      const networkName = 'Polygon Mainnet';
+      const rpcUrl = 'https://polygon-rpc.com';
 
       expect(
         showNetworkConnectionBanner({
           chainId,
           status: 'unavailable',
+          networkName,
+          rpcUrl,
         }),
       ).toStrictEqual({
         type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
         chainId,
         status: 'unavailable',
+        networkName,
+        rpcUrl,
       });
     });
 
-    it('should require both chainId and status parameters', () => {
+    it('should require chainId, status, networkName and rpcUrl parameters', () => {
       const chainId = '0x1';
       const status: NetworkConnectionBannerStatus = 'slow';
+      const networkName = 'Ethereum Mainnet';
+      const rpcUrl = 'https://mainnet.infura.io/v3/123';
 
-      const action = showNetworkConnectionBanner({ chainId, status });
+      const action = showNetworkConnectionBanner({
+        chainId,
+        status,
+        networkName,
+        rpcUrl,
+      });
 
       expect(action.chainId).toBe(chainId);
       expect(action.status).toBe(status);
-      expect(Object.keys(action)).toEqual(['type', 'chainId', 'status']);
+      expect(action.networkName).toBe(networkName);
+      expect(action.rpcUrl).toBe(rpcUrl);
+      expect(Object.keys(action)).toEqual([
+        'type',
+        'chainId',
+        'status',
+        'networkName',
+        'rpcUrl',
+      ]);
     });
   });
 

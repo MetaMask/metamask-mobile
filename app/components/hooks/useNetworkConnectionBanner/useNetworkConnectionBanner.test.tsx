@@ -14,7 +14,6 @@ import useNetworkConnectionBanner from './useNetworkConnectionBanner';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents, useMetrics } from '../useMetrics';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -24,7 +23,6 @@ jest.mock('../../../core/Engine');
 jest.mock('../../../selectors/networkEnablementController');
 jest.mock('../useMetrics');
 jest.mock('../../../selectors/networkConnectionBanner');
-jest.mock('../../../selectors/networkController');
 
 const mockStore = configureMockStore();
 const mockNavigation = {
@@ -57,6 +55,13 @@ const mockNetworkConfigurationByChainId: Record<Hex, NetworkConfiguration> = {
     ...mockNetworkConfiguration,
     chainId: '0x89',
     name: 'Polygon Mainnet',
+    rpcEndpoints: [
+      {
+        url: 'https://polygon-rpc.com',
+        networkClientId: '0x89',
+        type: RpcEndpointType.Custom,
+      },
+    ],
   },
 };
 
@@ -112,9 +117,6 @@ describe('useNetworkConnectionBanner', () => {
     jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
       visible: false,
     });
-    jest
-      .mocked(selectEvmNetworkConfigurationsByChainId)
-      .mockReturnValue(mockNetworkConfigurationByChainId);
 
     // Mock Engine methods directly (safer than spyOn after jest.mock)
     Engine.lookupEnabledNetworks = mockEngine.lookupEnabledNetworks;
@@ -174,7 +176,6 @@ describe('useNetworkConnectionBanner', () => {
         // @ts-expect-error - chainId is not defined in the initial state
         result.current.networkConnectionBannerState.chainId,
       ).toBeUndefined();
-      expect(result.current.currentNetwork).toBeUndefined();
       expect(typeof result.current.updateRpc).toBe('function');
     });
 
@@ -185,79 +186,47 @@ describe('useNetworkConnectionBanner', () => {
     });
   });
 
-  describe('currentNetwork computation', () => {
-    it('should return network configuration when chainId is provided', () => {
-      (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status: 'slow',
-      });
-
-      const { result } = renderHookWithProvider();
-
-      expect(result.current.currentNetwork).toEqual(mockNetworkConfiguration);
-    });
-
-    it('should return undefined when chainId is not provided', () => {
-      (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
-        visible: false,
-      });
-
-      const { result } = renderHookWithProvider();
-
-      expect(result.current.currentNetwork).toBeUndefined();
-    });
-
-    it('should return undefined when chainId is not found in configurations', () => {
-      (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
-        visible: true,
-        chainId: '0x999',
-        status: 'slow',
-      });
-
-      const { result } = renderHookWithProvider();
-
-      expect(result.current.currentNetwork).toBeUndefined();
-    });
-  });
-
   describe('updateRpc function', () => {
-    it('should navigate to edit network screen when currentNetwork exists', () => {
+    it('should navigate to edit network screen with provided rpcUrl', () => {
       const status = 'slow';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const chainId = '0x1';
       (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
         visible: true,
-        chainId: '0x1',
+        chainId,
         status,
       });
 
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.updateRpc(mockNetworkConfiguration, status);
+        result.current.updateRpc(rpcUrl, status, chainId);
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.EDIT_NETWORK,
         {
-          network: 'https://mainnet.infura.io/v3/test',
+          network: rpcUrl,
           shouldNetworkSwitchPopToWallet: false,
           shouldShowPopularNetworks: false,
         },
       );
     });
 
-    it('should track slow RPC update event when currentNetwork exists', () => {
+    it('should track slow RPC update event', () => {
       const status = 'slow';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const chainId = '0x1';
       (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
         visible: true,
-        chainId: '0x1',
+        chainId,
         status,
       });
 
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.updateRpc(mockNetworkConfiguration, status);
+        result.current.updateRpc(rpcUrl, status, chainId);
       });
 
       expect(stableCreateEventBuilder).toHaveBeenCalledWith(
@@ -266,18 +235,20 @@ describe('useNetworkConnectionBanner', () => {
       expect(stableTrackEvent).toHaveBeenCalled();
     });
 
-    it('should track unavailable RPC update event when currentNetwork exists', () => {
+    it('should track unavailable RPC update event', () => {
       const status = 'unavailable';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const chainId = '0x1';
       (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
         visible: true,
-        chainId: '0x1',
+        chainId,
         status,
       });
 
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.updateRpc(mockNetworkConfiguration, status);
+        result.current.updateRpc(rpcUrl, status, chainId);
       });
 
       expect(stableCreateEventBuilder).toHaveBeenCalledWith(
@@ -286,58 +257,27 @@ describe('useNetworkConnectionBanner', () => {
       expect(stableTrackEvent).toHaveBeenCalled();
     });
 
-    it('should dispatch hideNetworkConnectionBanner when currentNetwork exists', () => {
+    it('should dispatch hideNetworkConnectionBanner', () => {
       const status = 'slow';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const chainId = '0x1';
       (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
         visible: true,
-        chainId: '0x1',
+        chainId,
         status,
       });
 
       const { result } = renderHookWithProvider();
 
       act(() => {
-        result.current.updateRpc(mockNetworkConfiguration, status);
+        result.current.updateRpc(rpcUrl, status, chainId);
       });
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('HIDE_NETWORK_CONNECTION_BANNER');
-    });
-
-    it('should use fallback RPC URL when defaultEndpointIndex is not available', () => {
-      const status = 'slow';
-      const networkConfigWithoutDefaultIndex = {
-        ...mockNetworkConfiguration,
-        defaultRpcEndpointIndex: undefined,
-      };
-
-      (
-        selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock
-      ).mockReturnValue({
-        '0x1': networkConfigWithoutDefaultIndex,
+      expect(actions[0]).toStrictEqual({
+        type: 'HIDE_NETWORK_CONNECTION_BANNER',
       });
-
-      (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
-        visible: true,
-        chainId: '0x1',
-        status,
-      });
-
-      const { result } = renderHookWithProvider();
-
-      act(() => {
-        result.current.updateRpc(mockNetworkConfiguration, status);
-      });
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.EDIT_NETWORK,
-        {
-          network: 'https://mainnet.infura.io/v3/test',
-          shouldNetworkSwitchPopToWallet: false,
-          shouldShowPopularNetworks: false,
-        },
-      );
     });
   });
 
@@ -355,9 +295,13 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x89'); // Polygon network is unavailable
-      expect(actions[0].status).toBe('slow');
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
     });
 
     it('should not show banner if already visible for the same network', () => {
@@ -365,6 +309,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x89', // Same as the unavailable network in our mock
         status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       renderHookWithProvider();
@@ -382,6 +328,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x1', // Different from the unavailable network (0x89)
         status: 'slow',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/test',
       });
 
       renderHookWithProvider();
@@ -392,9 +340,13 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x89'); // Should update to the actual problematic network
-      expect(actions[0].status).toBe('slow');
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
     });
 
     it('should update banner when problematic network changes', () => {
@@ -403,6 +355,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x89',
         status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       // Mock that 0x89 is now available but 0x1 is unavailable
@@ -429,9 +383,13 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x1'); // Should update to the new problematic network
-      expect(actions[0].status).toBe('slow');
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x1',
+        status: 'slow',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/test',
+      });
     });
 
     it('should hide banner when all networks become available', () => {
@@ -440,6 +398,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x89',
         status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       const allAvailableNetworkMetadata = {
@@ -470,7 +430,9 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('HIDE_NETWORK_CONNECTION_BANNER');
+      expect(actions[0]).toStrictEqual({
+        type: 'HIDE_NETWORK_CONNECTION_BANNER',
+      });
     });
 
     it('should show slow banner after 5 seconds for slow networks', () => {
@@ -487,9 +449,13 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x89');
-      expect(actions[0].status).toBe('slow');
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
     });
 
     it('should show unavailable banner after 30 seconds for unavailable networks', () => {
@@ -506,13 +472,21 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(2); // Both slow and unavailable banners
-      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x89');
-      expect(actions[0].status).toBe('slow');
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
 
-      expect(actions[1].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[1].chainId).toBe('0x89');
-      expect(actions[1].status).toBe('unavailable');
+      expect(actions[1]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'unavailable',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
     });
 
     it('should track correct events for slow banner', () => {
@@ -520,6 +494,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x89',
         status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       renderHookWithProvider();
@@ -535,6 +511,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x89',
         status: 'unavailable',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       renderHookWithProvider();
@@ -562,6 +540,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x89',
         status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       renderHookWithProvider();
@@ -573,9 +553,13 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x89');
-      expect(actions[0].status).toBe('unavailable');
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'unavailable',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
     });
 
     it('should update from unavailable to slow status when network improves', () => {
@@ -584,6 +568,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x89',
         status: 'unavailable',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       renderHookWithProvider();
@@ -595,9 +581,13 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
-      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x89');
-      expect(actions[0].status).toBe('slow'); // Should update to slow status
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
     });
 
     it('should show unavailable banner for networks that are truly unavailable', () => {
@@ -634,13 +624,23 @@ describe('useNetworkConnectionBanner', () => {
 
       const actions = store.getActions();
       expect(actions).toHaveLength(2);
-      expect(actions[0].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[0].chainId).toBe('0x89'); // Polygon network is unavailable
-      expect(actions[0].status).toBe('slow');
-
-      expect(actions[1].type).toBe('SHOW_NETWORK_CONNECTION_BANNER');
-      expect(actions[1].chainId).toBe('0x89'); // Polygon network is unavailable
+      expect(actions[0]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
+      expect(actions[1]).toStrictEqual({
+        type: 'SHOW_NETWORK_CONNECTION_BANNER',
+        chainId: '0x89',
+        status: 'unavailable',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+      });
       expect(actions[1].status).toBe('unavailable');
+      expect(actions[1].networkName).toBe('Polygon Mainnet');
+      expect(actions[1].rpcUrl).toBe('https://polygon-rpc.com');
     });
 
     it('should track banner shown event when showing banner', () => {
@@ -649,6 +649,8 @@ describe('useNetworkConnectionBanner', () => {
         visible: true,
         chainId: '0x89',
         status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       renderHookWithProvider();

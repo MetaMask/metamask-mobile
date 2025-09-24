@@ -18,6 +18,8 @@ export interface ShowNetworkConnectionBannerAction extends Action {
   type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER;
   chainId: Hex;
   status: NetworkConnectionBannerStatus;
+  networkName: string;
+  rpcUrl: string;
 }
 
 /**
@@ -41,14 +43,20 @@ export type NetworkConnectionBannerAction =
 export function showNetworkConnectionBanner({
   chainId,
   status,
+  networkName,
+  rpcUrl,
 }: {
   chainId: Hex;
   status: NetworkConnectionBannerStatus;
+  networkName: string;
+  rpcUrl: string;
 }): ShowNetworkConnectionBannerAction {
   return {
     type: NetworkConnectionBannerActionType.SHOW_NETWORK_CONNECTION_BANNER,
     chainId,
     status,
+    networkName,
+    rpcUrl,
   };
 }
 

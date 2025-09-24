@@ -21,6 +21,8 @@ describe('networkConnectionBanner reducer', () => {
         visible: true,
         chainId: '0x1',
         status: 'slow',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/123',
       } as const;
       const unknownAction = {
         type: 'UNKNOWN_ACTION_TYPE',
@@ -45,11 +47,15 @@ describe('networkConnectionBanner reducer', () => {
   });
 
   describe('SHOW_SLOW_RPC_CONNECTION_BANNER', () => {
-    it('should show banner with chainId and status when action is dispatched', () => {
+    it('should show banner with chainId, status, networkName and rpcUrl when action is dispatched', () => {
       const chainId = '0x1';
+      const networkName = 'Ethereum Mainnet';
+      const rpcUrl = 'https://mainnet.infura.io/v3/123';
       const action = showNetworkConnectionBanner({
         chainId,
         status: 'slow',
+        networkName,
+        rpcUrl,
       });
 
       const result = reducer(initialState, action);
@@ -58,20 +64,28 @@ describe('networkConnectionBanner reducer', () => {
         visible: true,
         chainId,
         status: 'slow',
+        networkName,
+        rpcUrl,
       });
     });
 
-    it('should update existing state when banner is already visible with chainId and status', () => {
+    it('should update existing state when banner is already visible with chainId, status, networkName and rpcUrl', () => {
       const existingState = {
         visible: true,
         chainId: '0x1',
         status: 'slow',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/123',
       } as const;
 
       const newChainId = '0x89';
+      const newNetworkName = 'Polygon Mainnet';
+      const newNetworkRpcUrl = 'https://polygon-rpc.com';
       const action = showNetworkConnectionBanner({
         chainId: newChainId,
         status: 'slow',
+        networkName: newNetworkName,
+        rpcUrl: newNetworkRpcUrl,
       });
 
       const result = reducer(existingState, action);
@@ -80,16 +94,20 @@ describe('networkConnectionBanner reducer', () => {
         visible: true,
         chainId: newChainId,
         status: 'slow',
+        networkName: newNetworkName,
+        rpcUrl: newNetworkRpcUrl,
       });
     });
   });
 
   describe('HIDE_SLOW_RPC_CONNECTION_BANNER', () => {
-    it('should hide banner and clear chainId and status when action is dispatched', () => {
+    it('should hide banner and clear chainId, status, networkName and rpcUrl when action is dispatched', () => {
       const existingState = {
         visible: true,
         chainId: '0x1',
         status: 'slow',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/123',
       } as const;
       const action = hideNetworkConnectionBanner();
 
@@ -112,9 +130,13 @@ describe('networkConnectionBanner reducer', () => {
   describe('state transitions', () => {
     it('should handle complete show-hide cycle', () => {
       const chainId = '0x89';
+      const networkName = 'Polygon Mainnet';
+      const rpcUrl = 'https://polygon-rpc.com';
       const showAction = showNetworkConnectionBanner({
         chainId,
         status: 'slow',
+        networkName,
+        rpcUrl,
       });
       const hideAction = hideNetworkConnectionBanner();
 
@@ -124,6 +146,8 @@ describe('networkConnectionBanner reducer', () => {
         visible: true,
         chainId,
         status: 'slow',
+        networkName,
+        rpcUrl,
       });
 
       const afterHide = reducer(afterShow, hideAction);
@@ -140,6 +164,8 @@ describe('networkConnectionBanner reducer', () => {
         visible: true,
         chainId: '0x1',
         status: 'slow',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/123',
       } as const;
       const action = hideNetworkConnectionBanner();
 
@@ -150,6 +176,8 @@ describe('networkConnectionBanner reducer', () => {
         visible: true,
         chainId: '0x1',
         status: 'slow',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/123',
       });
     });
 
@@ -157,6 +185,8 @@ describe('networkConnectionBanner reducer', () => {
       const action = showNetworkConnectionBanner({
         chainId: '0x89',
         status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
 
       const result = reducer(initialState, action);
@@ -166,6 +196,8 @@ describe('networkConnectionBanner reducer', () => {
         visible: true,
         chainId: '0x89',
         status: 'slow',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
       });
     });
   });

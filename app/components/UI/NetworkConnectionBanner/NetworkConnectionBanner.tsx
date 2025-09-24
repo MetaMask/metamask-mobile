@@ -20,11 +20,11 @@ import { strings } from '../../../../locales/i18n';
  * Shows when any network takes more than 5 seconds to initialize or is not available.
  */
 const NetworkConnectionBanner: React.FC = () => {
-  const { networkConnectionBannerState, currentNetwork, updateRpc } =
+  const { networkConnectionBannerState, updateRpc } =
     useNetworkConnectionBanner();
   const tw = useTailwind();
 
-  if (!networkConnectionBannerState.visible || !currentNetwork) {
+  if (!networkConnectionBannerState.visible) {
     return null;
   }
 
@@ -45,14 +45,18 @@ const NetworkConnectionBanner: React.FC = () => {
             ? 'network_connection_banner.still_connecting_network'
             : 'network_connection_banner.unable_to_connect_network',
           {
-            networkName: currentNetwork.name,
+            networkName: networkConnectionBannerState.networkName,
           },
         )}
         actionButtonProps={{
           variant: ButtonVariants.Link,
           label: strings('network_connection_banner.update_rpc'),
           onPress: () =>
-            updateRpc(currentNetwork, networkConnectionBannerState.status),
+            updateRpc(
+              networkConnectionBannerState.rpcUrl,
+              networkConnectionBannerState.status,
+              networkConnectionBannerState.chainId,
+            ),
         }}
       />
     </View>

@@ -22,21 +22,27 @@ describe('networkConnectionBanner selectors', () => {
       {
         status: 'slow',
         chainId: '0x1',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/123',
         description: 'slow status',
       },
       {
         status: 'unavailable',
         chainId: '0x89',
+        networkName: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
         description: 'unavailable status',
       },
     ])(
       'should return state with visible true and $description when banner is shown',
-      ({ status, chainId }) => {
+      ({ status, chainId, networkName, rpcUrl }) => {
         const stateWithVisibleBanner = {
           networkConnectionBanner: {
             visible: true,
             chainId,
             status,
+            networkName,
+            rpcUrl,
           },
         } as unknown as RootState;
 
@@ -48,6 +54,8 @@ describe('networkConnectionBanner selectors', () => {
           visible: true,
           chainId,
           status,
+          networkName,
+          rpcUrl,
         });
       },
     );
@@ -85,6 +93,8 @@ describe('networkConnectionBanner selectors', () => {
           visible: true,
           chainId: '0x1',
           status: 'slow',
+          networkName: 'Ethereum Mainnet',
+          rpcUrl: 'https://mainnet.infura.io/v3/123',
         },
       } as unknown as RootState;
 
@@ -99,6 +109,8 @@ describe('networkConnectionBanner selectors', () => {
         visible: true,
         chainId: '0x1',
         status: 'slow',
+        networkName: 'Ethereum Mainnet',
+        rpcUrl: 'https://mainnet.infura.io/v3/123',
       });
     });
   });
