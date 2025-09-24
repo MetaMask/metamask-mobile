@@ -235,7 +235,6 @@ jest.mock('../../../core/Engine', () => {
   return {
     context: {
       KeyringController: {
-        getOrAddQRKeyring: async () => ({ subscribe: () => ({}) }),
         state: {
           keyrings: [
             {

@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
-index 83eb804..6033da4 100644
+index 7881684..43daef4 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
 @@ -17,7 +17,7 @@ const metadata = {
@@ -108,8 +108,8 @@ index 83eb804..6033da4 100644
              }
          });
      }
-@@ -399,6 +401,16 @@ class PreferencesController extends base_controller_1.BaseController {
-             state.smartAccountOptInForAccounts = accounts;
+@@ -388,6 +390,16 @@ class PreferencesController extends base_controller_1.BaseController {
+             state.smartAccountOptIn = smartAccountOptIn;
          });
      }
 +    /**
@@ -122,11 +122,11 @@ index 83eb804..6033da4 100644
 +        state.tokenNetworkFilter = tokenNetworkFilter;
 +      });
 +    }
- }
- exports.PreferencesController = PreferencesController;
- _PreferencesController_instances = new WeakSet(), _PreferencesController_syncIdentities = function _PreferencesController_syncIdentities(addresses) {
+     /**
+      * Add account to list of accounts for which user has optedin
+      * smart account upgrade.
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
-index 7c24a04..892e601 100644
+index 4505e52..65c19d4 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 @@ -71,7 +71,7 @@ export type PreferencesState = {
@@ -147,8 +147,8 @@ index 7c24a04..892e601 100644
      /**
       * Controls whether to use the safe chains list validation
       */
-@@ -134,6 +134,10 @@ export type PreferencesState = {
-      * User to opt in for smart account upgrade for specific accounts.
+@@ -136,6 +136,10 @@ export type PreferencesState = {
+      * @deprecated This preference is deprecated and will be removed in the future.
       */
      smartAccountOptInForAccounts: Hex[];
 +    /**
@@ -158,7 +158,7 @@ index 7c24a04..892e601 100644
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
-@@ -215,11 +219,11 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -217,11 +221,11 @@ export declare class PreferencesController extends BaseController<typeof name, P
       */
      setUseNftDetection(useNftDetection: boolean): void;
      /**
@@ -173,7 +173,7 @@ index 7c24a04..892e601 100644
      /**
       * Toggle the security alert enabled setting.
       *
-@@ -254,9 +258,9 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -256,9 +260,9 @@ export declare class PreferencesController extends BaseController<typeof name, P
      /**
       * Toggle multi rpc migration modal.
       *
@@ -185,8 +185,8 @@ index 7c24a04..892e601 100644
      /**
       * A setter for the user to opt into smart transactions
       *
-@@ -306,6 +310,12 @@ export declare class PreferencesController extends BaseController<typeof name, P
-      * @param accounts - accounts for which user wants to optin for smart account upgrade
+@@ -309,6 +313,12 @@ export declare class PreferencesController extends BaseController<typeof name, P
+      * @deprecated This method is deprecated and will be removed in the future.
       */
      setSmartAccountOptInForAccounts(accounts?: Hex[]): void;
 +    /**
@@ -198,4 +198,3 @@ index 7c24a04..892e601 100644
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.cts.map
-\ No newline at end of file

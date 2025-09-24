@@ -25,7 +25,6 @@ jest.mock('../../../../../../core/Engine', () => ({
       state: {
         keyrings: [],
       },
-      getOrAddQRKeyring: jest.fn(),
     },
     GasFeeController: {
       startPolling: jest.fn(),
