@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList, Image, ImageSourcePropType } from 'react-native';
+import { FlatList } from 'react-native';
 import {
   Box,
   Text,
@@ -13,16 +13,12 @@ import {
   IconSize,
   IconColor,
   ButtonVariant,
-  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { SwapSupportedNetworksSection } from './SwapSupportedNetworksSection';
 import MetamaskRewardsPointsImage from '../../../../../../../images/rewards/metamask-rewards-points.svg';
-import swapIllustration from '../../../../../../../images/rewards/rewards-swap.png';
-import perpIllustration from '../../../../../../../images/rewards/rewards-trade.png';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
 import {
   SwapBridgeNavigationLocation,
@@ -77,45 +73,26 @@ const Separator = () => <Box twClassName="border-b border-muted" />;
 const WaysToEarnSheetTitle = ({
   title,
   points,
-  illustration,
 }: {
   title: string;
   points: string;
-  illustration?: ImageSourcePropType;
-}) => {
-  const tw = useTailwind();
-  return (
+}) => (
+  <>
+    <Text variant={TextVariant.HeadingLg}>{title}</Text>
     <Box
-      twClassName="w-full flex-row"
-      justifyContent={BoxJustifyContent.Between}
+      flexDirection={BoxFlexDirection.Row}
+      twClassName="bg-muted px-2 mt-2 py-1 rounded-md gap-1"
+      alignItems={BoxAlignItems.Center}
     >
-      {/* Title and points */}
-      <Box twClassName="gap-4">
-        <Text variant={TextVariant.HeadingLg}>{title}</Text>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          twClassName="bg-muted px-2 py-1 rounded-md gap-1"
-          alignItems={BoxAlignItems.Center}
-        >
-          <MetamaskRewardsPointsImage
-            width={16}
-            height={16}
-            name="MetamaskRewardsPoints"
-          />
-          <Text variant={TextVariant.BodySm}>{points}</Text>
-        </Box>
-      </Box>
-      {/* Illustration */}
-      {illustration && (
-        <Image
-          source={illustration}
-          resizeMode="contain"
-          style={tw.style('h-16 w-16')}
-        />
-      )}
+      <MetamaskRewardsPointsImage
+        width={16}
+        height={16}
+        name="MetamaskRewardsPoints"
+      />
+      <Text variant={TextVariant.BodySm}>{points}</Text>
     </Box>
-  );
-};
+  </>
+);
 
 const getBottomSheetData = (type: WayToEarnType) => {
   switch (type) {
@@ -125,11 +102,10 @@ const getBottomSheetData = (type: WayToEarnType) => {
           <WaysToEarnSheetTitle
             title={strings('rewards.ways_to_earn.swap.sheet.title')}
             points={strings('rewards.ways_to_earn.swap.sheet.points')}
-            illustration={swapIllustration}
           />
         ),
         description: (
-          <Box twClassName="flex flex-col gap-6 mt-4">
+          <Box twClassName="flex flex-col gap-8">
             <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
               {strings('rewards.ways_to_earn.swap.sheet.description')}
             </Text>
@@ -144,7 +120,6 @@ const getBottomSheetData = (type: WayToEarnType) => {
           <WaysToEarnSheetTitle
             title={strings('rewards.ways_to_earn.perps.sheet.title')}
             points={strings('rewards.ways_to_earn.perps.sheet.points')}
-            illustration={perpIllustration}
           />
         ),
         description: (
