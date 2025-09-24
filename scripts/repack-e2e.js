@@ -49,6 +49,8 @@ function getCiKeystoreConfig() {
 
   return {
     keyStorePath: finalKeystorePath,
+    // NOTE: @expo/repack-app requires 'pass:' prefix format for inline passwords
+    // This is not a security issue - it's the tool's required format
     keyStorePassword: `pass:${finalKeystorePassword}`,
     keyAlias: finalKeyAlias,
     keyPassword: `pass:${finalKeyPassword}`,

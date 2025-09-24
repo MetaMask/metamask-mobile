@@ -76,7 +76,7 @@ jobs:
             android/app/build/outputs/apk/prod/release/app-prod-release.apk
             android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
             android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
-          key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
           restore-keys: |
             android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
             android-apk-
@@ -189,7 +189,7 @@ jobs:
             android/app/build/outputs/apk/prod/release/app-prod-release.apk
             android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
             android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
-          key: android-apk-${{ github.event.pull_request.number || 'main' }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
         id: upload-apk
