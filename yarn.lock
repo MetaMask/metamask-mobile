@@ -4938,10 +4938,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^75.2.0":
-  version "75.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-75.2.0.tgz#826235291f458af74f9abc0966e0a42f0a427a22"
-  integrity sha512-l/P7i2PuiKFAdmtIXGSxmrOYy+jphQyDoP3ao4+jxtwKPSeRnLc7g642xIXPNuURRzy7DrLdFZN5Apve3D35lw==
+"@metamask/assets-controllers@^77.0.0":
+  version "77.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-77.0.0.tgz#3307e674690532c535f9191b90b517e09ba56c9e"
+  integrity sha512-ZJkh41KkD2sa3Ozdu7pDm0yCtk3XOKSpYvtOkqxSIAZI5XF8k5eXC7qbnhd7lVm4NVyc63GzVYXPhE+Sfv0X2A==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -5899,13 +5899,13 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^19.0.0":
-  version "19.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-19.0.0.tgz#3df75108bf7dabea2842a91992e52df20ad1d1e6"
-  integrity sha512-bYPxrd9VsUDe71qJCbnBX9VnaH45A3tIzmKp+vdHR1qTEi3Mxm5oYCZaonYUk9lqu2E+P1mF7Ia4LrswKKsjqw==
+"@metamask/preferences-controller@^20.0.0":
+  version "20.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-20.0.0.tgz#1dfd37e5e5d750a15351fae30eebfdb3cbf4d761"
+  integrity sha512-oGkB6CywHQdB7L+JUJIKlTF5pGtkhrkRunwbM7jSCBQ2MRRgZQHKe0E01PbrHT6f7aQuCdpZ0sH2mSqHd6cizQ==
   dependencies:
-    "@metamask/base-controller" "^8.1.0"
-    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/base-controller" "^8.4.0"
+    "@metamask/controller-utils" "^11.14.0"
 
 "@metamask/preinstalled-example-snap@^0.7.1":
   version "0.7.1"
