@@ -193,24 +193,7 @@ const PerpsClosePositionView: React.FC = () => {
   });
 
   // Memoize feeResults with deep equality to prevent re-renders when only reference changes
-  const stableFeeResults = useMemo(
-    () => feeResults,
-    [
-      feeResults.totalFee,
-      feeResults.protocolFee,
-      feeResults.metamaskFee,
-      feeResults.protocolFeeRate,
-      feeResults.metamaskFeeRate,
-      feeResults.isLoadingMetamaskFee,
-      feeResults.error,
-      feeResults.originalMetamaskFeeRate,
-      feeResults.feeDiscountPercentage,
-      feeResults.estimatedPoints,
-      feeResults.bonusBips,
-    ],
-  );
-
-  console.log(feeResults);
+  const stableFeeResults = useMemo(() => feeResults, [feeResults]);
 
   // Simple boolean calculation for rewards state
   const hasValidAmount = useMemo(
@@ -220,7 +203,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
-    feeResults: stableFeeResults,
+    feeResults,
     hasValidAmount,
     isFeesLoading: stableFeeResults.isLoadingMetamaskFee,
     orderAmount: closingValueString,
