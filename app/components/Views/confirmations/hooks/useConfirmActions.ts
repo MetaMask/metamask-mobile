@@ -93,10 +93,10 @@ export const useConfirmActions = () => {
     isTransactionReq,
     ledgerSigningInProgress,
     navigation,
-    openLedgerSignModal,
-    setScannerVisible,
     onRequestConfirm,
     onTransactionConfirm,
+    openLedgerSignModal,
+    setScannerVisible,
   ]);
 
   return { onConfirm, onReject };
