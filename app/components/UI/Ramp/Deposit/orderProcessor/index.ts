@@ -41,6 +41,7 @@ export const depositOrderToFiatOrder = (
   createdAt: depositOrder.createdAt,
   amount: depositOrder.fiatAmount,
   fee: depositOrder.totalFeesFiat,
+  forceUpdate: false,
   cryptoAmount: depositOrder.cryptoAmount || 0,
   cryptoFee: depositOrder.totalFeesFiat || 0,
   currency: depositOrder.fiatCurrency,
