@@ -105,8 +105,6 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
           },
         );
 
-        console.log('-'.repeat(100));
-
         // Phase 2: Disable account sync and create third account
         await AccountListBottomSheet.swipeToDismissAccountsModal();
         await Assertions.expectElementToNotBeVisible(
