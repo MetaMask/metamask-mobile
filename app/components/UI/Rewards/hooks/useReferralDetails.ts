@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
@@ -7,17 +7,22 @@ import {
 } from '../../../../reducers/rewards';
 import Engine from '../../../../core/Engine';
 import type { SubscriptionReferralDetailsState } from '../../../../core/Engine/controllers/rewards-controller/types';
-import Logger from '../../../../util/Logger';
+import { useFocusEffect } from '@react-navigation/native';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 export const useReferralDetails = (): null => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isLoadingRef = useRef(false);
 
   const fetchReferralDetails = useCallback(async (): Promise<void> => {
     if (!subscriptionId) {
-      Logger.log('useReferralDetails: No subscription ID available');
       return;
     }
+    if (isLoadingRef.current) {
+      return;
+    }
+    isLoadingRef.current = true;
 
     try {
       dispatch(setReferralDetailsLoading(true));
@@ -34,29 +39,30 @@ export const useReferralDetails = (): null => {
           refereeCount: referralDetails?.totalReferees,
         }),
       );
-
-      if (referralDetails) {
-        Logger.log(
-          'useReferralDetails: Successfully fetched referral details',
-          {
-            referralCode: referralDetails.referralCode,
-            refereeCount: referralDetails.totalReferees,
-          },
-        );
-      }
-    } catch (fetchError) {
-      Logger.log(
-        'useReferralDetails: Failed to fetch referral details:',
-        fetchError instanceof Error ? fetchError.message : 'Unknown error',
-      );
+    } catch (error) {
+      // Silently handle errors - the loading state will be reset in finally
+      console.error('Failed to fetch referral details:', error);
     } finally {
+      isLoadingRef.current = false;
       dispatch(setReferralDetailsLoading(false));
     }
   }, [dispatch, subscriptionId]);
 
-  useEffect(() => {
-    fetchReferralDetails();
-  }, [fetchReferralDetails]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchReferralDetails();
+    }, [fetchReferralDetails]),
+  );
+
+  // Listen for events that should trigger a refetch of referral details
+  useInvalidateByRewardEvents(
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:balanceUpdated',
+    ],
+    fetchReferralDetails,
+  );
 
   return null;
 };
