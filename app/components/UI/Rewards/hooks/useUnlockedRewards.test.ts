@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import {
   setUnlockedRewards,
   setUnlockedRewardLoading,
+  setUnlockedRewardError,
 } from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 import { RewardClaimStatus } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -31,6 +32,7 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../reducers/rewards', () => ({
   setUnlockedRewards: jest.fn(),
   setUnlockedRewardLoading: jest.fn(),
+  setUnlockedRewardError: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -117,8 +119,9 @@ describe('useUnlockedRewards', () => {
 
     renderHook(() => useUnlockedRewards());
 
-    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards([]));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards(null));
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(false));
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -137,8 +140,9 @@ describe('useUnlockedRewards', () => {
 
     renderHook(() => useUnlockedRewards());
 
-    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards([]));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards(null));
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(false));
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -151,6 +155,7 @@ describe('useUnlockedRewards', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(true));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(false));
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getUnlockedRewards',
       'test-season-id',
@@ -162,7 +167,7 @@ describe('useUnlockedRewards', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
   });
 
-  it('should handle fetch error gracefully', async () => {
+  it('should handle fetch error gracefully and dispatch error state', async () => {
     const mockError = new Error('Network error');
     mockEngineCall.mockRejectedValue(mockError);
 
@@ -172,13 +177,15 @@ describe('useUnlockedRewards', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(true));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(false));
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getUnlockedRewards',
       'test-season-id',
       'test-subscription-id',
     );
-    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards([]));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(true));
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
+    // Keep existing data on error to prevent UI flash (no setUnlockedRewards called)
   });
 
   it('should handle empty rewards array', async () => {
@@ -280,8 +287,9 @@ describe('useUnlockedRewards', () => {
 
     renderHook(() => useUnlockedRewards());
 
-    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards([]));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewards(null));
     expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardLoading(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setUnlockedRewardError(false));
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
