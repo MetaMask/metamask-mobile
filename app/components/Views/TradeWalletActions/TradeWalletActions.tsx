@@ -54,6 +54,7 @@ import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
+import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -71,6 +72,7 @@ interface TradeWalletActionsParams {
 function TradeWalletActions() {
   const { navigate } = useNavigation();
   const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
+  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
   const postCallback = useRef<() => void>();
   const [visible, setIsVisible] = useState(true);
@@ -129,13 +131,21 @@ function TradeWalletActions() {
   }, [goToSwapsBase, handleNavigateBack]);
 
   const onPerps = useCallback(() => {
-    postCallback.current = () => {
-      navigate(Routes.PERPS.ROOT, {
+    let params: Record<string, string> | null = null;
+    if (isFirstTimePerpsUser) {
+      params = {
+        screen: Routes.PERPS.TUTORIAL,
+      };
+    } else {
+      params = {
         screen: Routes.PERPS.MARKETS,
-      });
+      };
+    }
+    postCallback.current = () => {
+      navigate(Routes.PERPS.ROOT, params);
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
+  }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
