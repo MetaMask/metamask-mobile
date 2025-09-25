@@ -1556,7 +1556,7 @@ describe('OnboardingSuccess', () => {
     });
   });
 
-  describe('E2E Test Behavior', () => {
+  describe('isE2E Tests', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
