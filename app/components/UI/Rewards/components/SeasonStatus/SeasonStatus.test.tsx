@@ -1,14 +1,16 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import SeasonStatus from './SeasonStatus';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 
 // Mock individual selectors
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
@@ -33,6 +35,20 @@ import {
   selectCurrentTier,
   selectNextTier,
 } from '../../../../../reducers/rewards/selectors';
+
+// Mock rewards selectors
+jest.mock('../../../../../selectors/rewards', () => ({
+  selectSeasonStatusError: jest.fn(),
+}));
+
+import { selectSeasonStatusError } from '../../../../../selectors/rewards';
+
+// Mock useSeasonStatus hook
+jest.mock('../../hooks/useSeasonStatus', () => ({
+  useSeasonStatus: jest.fn(),
+}));
+
+import { useSeasonStatus } from '../../hooks/useSeasonStatus';
 
 const mockSelectSeasonStatusLoading =
   selectSeasonStatusLoading as jest.MockedFunction<
@@ -59,6 +75,13 @@ const mockSelectCurrentTier = selectCurrentTier as jest.MockedFunction<
 >;
 const mockSelectNextTier = selectNextTier as jest.MockedFunction<
   typeof selectNextTier
+>;
+const mockSelectSeasonStatusError =
+  selectSeasonStatusError as jest.MockedFunction<
+    typeof selectSeasonStatusError
+  >;
+const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
+  typeof useSeasonStatus
 >;
 
 // Mock date utility
@@ -154,6 +177,55 @@ jest.mock('../../../../../component-library/components/Skeleton', () => ({
   },
 }));
 
+// Mock Banner component
+jest.mock('../../../../../component-library/components/Banners/Banner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return ReactActual.forwardRef(
+    (
+      {
+        title,
+        description,
+        onClose,
+        testID,
+        ...props
+      }: {
+        title?: string;
+        description?: string;
+        onClose?: () => void;
+        testID?: string;
+      },
+      ref: unknown,
+    ) =>
+      ReactActual.createElement(
+        View,
+        {
+          testID: testID || 'banner',
+          ref,
+          ...props,
+        },
+        [
+          ReactActual.createElement(Text, { key: 'title' }, title),
+          ReactActual.createElement(Text, { key: 'description' }, description),
+          onClose &&
+            ReactActual.createElement(
+              TouchableOpacity,
+              { key: 'close', onPress: onClose },
+              ReactActual.createElement(Text, {}, '×'),
+            ),
+        ],
+      ),
+  );
+});
+
+// Mock setSeasonStatusError action
+jest.mock('../../../../../actions/rewards', () => ({
+  setSeasonStatusError: jest.fn((payload) => ({
+    type: 'rewards/setSeasonStatusError',
+    payload,
+  })),
+}));
+
 // Mock lodash capitalize but preserve the rest of lodash
 jest.mock('lodash', () => {
   const actual = jest.requireActual('lodash');
@@ -190,9 +262,12 @@ jest.mock('../ThemeImageComponent', () => {
 });
 
 describe('SeasonStatus', () => {
+  const mockDispatch = jest.fn();
+
   // Default mock values
   const defaultMockValues = {
     seasonStatusLoading: false,
+    seasonStatusError: null,
     seasonStartDate: new Date('2024-01-01T00:00:00Z'),
     seasonEndDate: new Date('2024-12-31T23:59:59Z'),
     balanceTotal: 1500,
@@ -265,8 +340,15 @@ describe('SeasonStatus', () => {
     );
 
     // Setup default mock returns
+    mockUseDispatch.mockReturnValue(mockDispatch);
+    mockUseSeasonStatus.mockImplementation(() => {
+      // Mock implementation
+    });
     mockSelectSeasonStatusLoading.mockReturnValue(
       defaultMockValues.seasonStatusLoading,
+    );
+    mockSelectSeasonStatusError.mockReturnValue(
+      defaultMockValues.seasonStatusError,
     );
     mockSelectSeasonStartDate.mockReturnValue(
       defaultMockValues.seasonStartDate,
@@ -658,6 +740,22 @@ describe('SeasonStatus', () => {
       // Then: new tier level and name are displayed
       expect(getByText('Level 3')).toBeTruthy();
       expect(getByText('Gold')).toBeTruthy();
+    });
+  });
+
+  describe('seasonStatusError states', () => {
+    it('should not show error banner when no seasonStatusError', () => {
+      // Given: no error state
+      mockSelectSeasonStatusError.mockReturnValue(null);
+
+      // When: component renders
+      const { queryByText, getByText } = render(<SeasonStatus />);
+
+      // Then: error banner should not be displayed, normal content should be shown
+      expect(
+        queryByText('rewards.season_status_error.error_fetching_title'),
+      ).toBeNull();
+      expect(getByText('Bronze')).toBeTruthy();
     });
   });
 });
