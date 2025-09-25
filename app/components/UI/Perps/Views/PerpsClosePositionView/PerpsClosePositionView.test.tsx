@@ -57,8 +57,6 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-// usePerpsScreenTracking removed - migrated to usePerpsMeasurement
-
 jest.mock('../../../../hooks/useMetrics');
 
 // Only mock components that would cause issues in tests

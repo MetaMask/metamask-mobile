@@ -40,15 +40,13 @@ export function usePerpsDepositView({
     !isKeyboardVisible &&
     (isQuotesLoading || Boolean(quotes?.length) || sourceAmounts?.length === 0);
 
-  // Track quote received performance - declarative
+  // Track quote received performance
   usePerpsMeasurement({
     measurementName: PerpsMeasurementName.QUOTE_RECEIVED,
     conditions: [!!(quotes && quotes.length > 0), !isQuotesLoading],
   });
 
-  // Track source token list loading performance
-
-  // Track source token list loaded performance - declarative
+  // Track source token list loaded performance
   usePerpsMeasurement({
     measurementName: PerpsMeasurementName.FUNDING_SOURCE_TOKEN_LIST_LOADED,
     conditions: [!!(sourceAmounts && sourceAmounts.length > 0)],
