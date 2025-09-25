@@ -97,13 +97,6 @@ export const setupRegionAwareOnRampMocks = async (
       responseCode: 200,
       response: RAMPS_QUOTE_RESPONSE,
     },
-
-    {
-      urlEndpoint:
-        'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000000.png',
-      responseCode: 200,
-      response: '',
-    },
   ];
 
   // Set up all mocks

@@ -9,7 +9,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:
-        /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices\?assetIds=.*&vsCurrency=usd$/,
+        /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices\?assetIds=.*&vsCurrency=(usd|USD)$/,
       responseCode: 200,
       response: {
         'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f': {

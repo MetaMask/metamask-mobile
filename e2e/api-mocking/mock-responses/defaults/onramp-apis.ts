@@ -40,5 +40,31 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
         orderId: null,
       },
     },
+    // Add callback URL mocks for both production and UAT environments
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-content\.api\.cx\.metamask\.io\/regions\/fake-callback/,
+      responseCode: 200,
+      response: { success: true },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-content\.uat-api\.cx\.metamask\.io\/regions\/fake-callback/,
+      responseCode: 200,
+      response: { success: true },
+    },
+    // Add token icon mocks for both production and UAT static domains
+    {
+      urlEndpoint:
+        /^https:\/\/static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/.*/,
+      responseCode: 200,
+      response: '', // Return empty response for icon requests
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/uat-static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/.*/,
+      responseCode: 200,
+      response: '', // Return empty response for UAT icon requests
+    },
   ],
 };
