@@ -40,9 +40,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.active_boosts.title': 'Active boosts',
+      'rewards.active_boosts_title': 'Active boosts',
       'rewards.season_1': 'Season 1',
-      'rewards.active_boosts.error': 'Failed to load active boosts',
+      'rewards.active_boosts_error.error_fetching_title':
+        'Failed to load active boosts',
+      'rewards.active_boosts_error.error_fetching_description':
+        "We couldn't load your current active boosts. Please check your connection and try again.",
+      'rewards.active_boosts_error.retry_button': 'Retry',
+      'rewards.active_boosts_error.dismiss_button': 'Dismiss',
     };
     return translations[key] || key;
   }),
@@ -131,6 +136,7 @@ interface MockState {
     activeBoosts: PointsBoostDto[] | null;
     activeBoostsLoading: boolean;
     activeBoostsError: boolean;
+    seasonStartDate: Date | null;
   };
 }
 
@@ -187,6 +193,7 @@ describe('ActiveBoosts', () => {
       activeBoosts: [],
       activeBoostsLoading: false,
       activeBoostsError: false,
+      seasonStartDate: null,
     },
   };
 
@@ -194,7 +201,7 @@ describe('ActiveBoosts', () => {
     const store = createMockStore(state);
     return render(
       <Provider store={store}>
-        <ActiveBoosts />
+        <ActiveBoosts fetchActivePointsBoosts={jest.fn()} />
       </Provider>,
     );
   };
@@ -210,6 +217,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [],
           activeBoostsLoading: true,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -228,6 +236,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -240,6 +249,27 @@ describe('ActiveBoosts', () => {
       // Should not show loading skeleton
       expect(queryByTestId('skeleton')).toBeNull();
     });
+
+    it('should render loading state when activeBoosts is null and seasonStartDate exists', () => {
+      const loadingWithSeasonState = {
+        rewards: {
+          activeBoosts: null,
+          activeBoostsLoading: false,
+          activeBoostsError: false,
+          seasonStartDate: new Date('2024-01-01'),
+        },
+      };
+
+      const { getByText, getByTestId } = renderWithProvider(
+        loadingWithSeasonState,
+      );
+
+      // Should show section header with loading indicator
+      expect(getByText('Active boosts')).toBeTruthy();
+
+      // Should show loading skeleton due to seasonStartDate logic
+      expect(getByTestId('skeleton')).toBeTruthy();
+    });
   });
 
   describe('Error States', () => {
@@ -249,6 +279,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [],
           activeBoostsLoading: false,
           activeBoostsError: true,
+          seasonStartDate: null,
         },
       };
 
@@ -261,58 +292,13 @@ describe('ActiveBoosts', () => {
       expect(getByText('Failed to load active boosts')).toBeTruthy();
     });
 
-    it('should render error banner and skeleton when both loading and error', () => {
-      const loadingErrorState = {
-        rewards: {
-          activeBoosts: [],
-          activeBoostsLoading: true,
-          activeBoostsError: true,
-        },
-      };
-
-      const { getByText, getByTestId } = renderWithProvider(loadingErrorState);
-
-      // Should show section header
-      expect(getByText('Active boosts')).toBeTruthy();
-
-      // Should show error message
-      expect(getByText('Failed to load active boosts')).toBeTruthy();
-
-      // Should show loading skeleton
-      expect(getByTestId('skeleton')).toBeTruthy();
-    });
-
-    it('should render error banner but no boosts when error and boosts are available', () => {
-      const errorWithBoostsState = {
-        rewards: {
-          activeBoosts: [mockBoost],
-          activeBoostsLoading: false,
-          activeBoostsError: true,
-        },
-      };
-
-      const { getByText, queryByTestId } =
-        renderWithProvider(errorWithBoostsState);
-
-      // Should show section header with count
-      expect(getByText('Active boosts')).toBeTruthy();
-      expect(getByText('1')).toBeTruthy();
-
-      // Should show error message
-      expect(getByText('Failed to load active boosts')).toBeTruthy();
-
-      // Should NOT show boost cards when there's an error
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD),
-      ).toBeNull();
-    });
-
     it('should not render anything when error and no boosts and not loading', () => {
       const errorEmptyState = {
         rewards: {
           activeBoosts: [],
           activeBoostsLoading: false,
           activeBoostsError: true,
+          seasonStartDate: null,
         },
       };
 
@@ -331,6 +317,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost, mockSeasonLongBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -346,6 +333,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -371,6 +359,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -392,6 +381,7 @@ describe('ActiveBoosts', () => {
           ],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -414,6 +404,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -433,6 +424,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockSeasonLongBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -450,6 +442,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -465,6 +458,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoostWithoutEndDate],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -483,6 +477,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -497,6 +492,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -517,6 +513,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -540,6 +537,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [boostWithoutIcon],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -566,6 +564,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -590,12 +589,13 @@ describe('ActiveBoosts', () => {
           activeBoosts: [updatedBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
       rerender(
         <Provider store={createMockStore(updatedState)}>
-          <ActiveBoosts />
+          <ActiveBoosts fetchActivePointsBoosts={jest.fn()} />
         </Provider>,
       );
 
@@ -617,6 +617,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -637,6 +638,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -668,6 +670,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [boostWithoutIcon],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -700,6 +703,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [expiredBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 
@@ -722,6 +726,7 @@ describe('ActiveBoosts', () => {
           activeBoosts: [mockBoost],
           activeBoostsLoading: false,
           activeBoostsError: false,
+          seasonStartDate: null,
         },
       };
 

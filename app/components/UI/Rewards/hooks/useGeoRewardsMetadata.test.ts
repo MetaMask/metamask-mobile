@@ -6,6 +6,7 @@ import Engine from '../../../../core/Engine';
 import {
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
+  setGeoRewardsMetadataError,
 } from '../../../../reducers/rewards';
 import { GeoRewardsMetadata } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -23,6 +24,7 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../reducers/rewards', () => ({
   setGeoRewardsMetadata: jest.fn(),
   setGeoRewardsMetadataLoading: jest.fn(),
+  setGeoRewardsMetadataError: jest.fn(),
 }));
 
 // Mock React hooks
@@ -53,6 +55,10 @@ describe('useGeoRewardsMetadata', () => {
     setGeoRewardsMetadataLoading as jest.MockedFunction<
       typeof setGeoRewardsMetadataLoading
     >;
+  const mockSetGeoRewardsMetadataError =
+    setGeoRewardsMetadataError as jest.MockedFunction<
+      typeof setGeoRewardsMetadataError
+    >;
 
   const createMockMetadata = (
     geoLocation: string = 'US',
@@ -73,19 +79,26 @@ describe('useGeoRewardsMetadata', () => {
       type: 'rewards/setGeoRewardsMetadataLoading',
       payload: false,
     });
+    mockSetGeoRewardsMetadataError.mockReturnValue({
+      type: 'rewards/setGeoRewardsMetadataError',
+      payload: false,
+    });
 
     // Reset the mocked hooks
     mockUseFocusEffect.mockClear();
   });
 
   describe('hook initialization', () => {
-    it('should return null', () => {
-      const { result } = renderHook(() => useGeoRewardsMetadata());
+    it('should return a fetch function', () => {
+      const { result } = renderHook(() => useGeoRewardsMetadata({}));
 
       // Verify that the focus effect callback was registered
       expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
 
-      expect(result.current).toBeNull();
+      expect(result.current).toEqual({
+        fetchGeoRewardsMetadata: expect.any(Function),
+      });
+      expect(typeof result.current.fetchGeoRewardsMetadata).toBe('function');
     });
   });
 
@@ -94,7 +107,7 @@ describe('useGeoRewardsMetadata', () => {
       const mockMetadata = createMockMetadata('US', true);
       mockEngineCall.mockResolvedValueOnce(mockMetadata);
 
-      const { result } = renderHook(() => useGeoRewardsMetadata());
+      const { result } = renderHook(() => useGeoRewardsMetadata({}));
 
       // Verify that the focus effect callback was registered
       expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
@@ -108,6 +121,9 @@ describe('useGeoRewardsMetadata', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(
         mockSetGeoRewardsMetadataLoading(true),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetGeoRewardsMetadataError(false),
       );
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getGeoRewardsMetadata',
@@ -118,14 +134,16 @@ describe('useGeoRewardsMetadata', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         mockSetGeoRewardsMetadataLoading(false),
       );
-      expect(result.current).toBeNull();
+      expect(result.current).toEqual({
+        fetchGeoRewardsMetadata: expect.any(Function),
+      });
     });
 
-    it('should handle errors when focus effect is triggered', async () => {
+    it('should handle errors when focus effect is triggered and dispatch error state', async () => {
       const mockError = new Error('Network failed');
       mockEngineCall.mockRejectedValueOnce(mockError);
 
-      const { result } = renderHook(() => useGeoRewardsMetadata());
+      const { result } = renderHook(() => useGeoRewardsMetadata({}));
 
       // Verify that the focus effect callback was registered
       expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
@@ -140,40 +158,21 @@ describe('useGeoRewardsMetadata', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         mockSetGeoRewardsMetadataLoading(true),
       );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetGeoRewardsMetadataError(false),
+      );
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:getGeoRewardsMetadata',
       );
       expect(mockDispatch).toHaveBeenCalledWith(
-        mockSetGeoRewardsMetadata(null),
+        mockSetGeoRewardsMetadataError(true),
       );
       expect(mockDispatch).toHaveBeenCalledWith(
         mockSetGeoRewardsMetadataLoading(false),
       );
-      expect(result.current).toBeNull();
-    });
-
-    it('should not make duplicate calls when already loading', async () => {
-      // Mock a never-resolving promise to simulate loading state
-      mockEngineCall.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves
-          }),
-      );
-
-      const { result } = renderHook(() => useGeoRewardsMetadata());
-
-      // Execute the focus effect callback twice quickly
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-
-      await act(async () => {
-        focusCallback();
-        focusCallback(); // Second call should be ignored
+      expect(result.current).toEqual({
+        fetchGeoRewardsMetadata: expect.any(Function),
       });
-
-      // Should only be called once despite two focus triggers
-      expect(mockEngineCall).toHaveBeenCalledTimes(1);
-      expect(result.current).toBeNull();
     });
   });
 
