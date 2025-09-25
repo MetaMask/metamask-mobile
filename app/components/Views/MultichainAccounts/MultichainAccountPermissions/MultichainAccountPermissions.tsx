@@ -190,7 +190,7 @@ export const MultichainAccountPermissions = (
       });
 
       // Navigate back
-      navigation.goBack();
+      navigation.navigate(Routes.BROWSER.HOME);
     } catch (error) {
       console.error('Error updating permissions:', error);
       // TODO: Show error to user
@@ -348,7 +348,7 @@ export const MultichainAccountPermissions = (
         screenTitle={strings('accounts.edit_accounts_title')}
         showDisconnectAllButton
         onUserAction={() => {
-          // TODO: Implement user action handler
+          // Not used in this component.
         }}
         isRenderedAsBottomSheet={false}
       />

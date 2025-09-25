@@ -7,6 +7,10 @@ import {
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import { CompletedRequest, Mockttp } from 'mockttp';
+import {
+  USER_STORAGE_GROUPS_FEATURE_KEY,
+  USER_STORAGE_WALLETS_FEATURE_KEY,
+} from '@metamask/account-tree-controller';
 
 const baseUrl =
   'https://user-storage\\.api\\.cx\\.metamask\\.io\\/api\\/v1\\/userstorage';
@@ -22,6 +26,14 @@ export const pathRegexps = {
   ),
   [USER_STORAGE_FEATURE_NAMES.addressBook]: new RegExp(
     `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.addressBook}`,
+    'u',
+  ),
+  [USER_STORAGE_GROUPS_FEATURE_KEY]: new RegExp(
+    `${baseUrl}/${USER_STORAGE_GROUPS_FEATURE_KEY}`,
+    'u',
+  ),
+  [USER_STORAGE_WALLETS_FEATURE_KEY]: new RegExp(
+    `${baseUrl}/${USER_STORAGE_WALLETS_FEATURE_KEY}`,
     'u',
   ),
 };

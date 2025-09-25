@@ -66,7 +66,7 @@ export const styleSheet = (params: {
     inputText: {
       fontSize: getFontSizeForInputLength(contentLength),
       lineHeight: 75,
-      fontWeight: '500',
+      fontFamily: 'Geist Medium',
     },
     inputWrapper: {
       alignItems: 'center',

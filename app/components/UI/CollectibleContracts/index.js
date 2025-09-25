@@ -27,7 +27,6 @@ import {
   multichainCollectibleContractsSelector,
   multichainCollectiblesSelector,
   multichainCollectiblesByEnabledNetworksSelector,
-  multichainCollectibleContractsByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import AppConstants from '../../../core/AppConstants';
@@ -82,6 +81,8 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { multichainCollectibleForEvmAccount } from '../../../selectors/nftController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -209,7 +210,10 @@ const CollectibleContracts = ({
   const allNetworks = useSelector(selectNetworkConfigurations);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const collectibleContractsByEnabledNetworks = useSelector(
-    multichainCollectibleContractsByEnabledNetworksSelector,
+    multichainCollectibleForEvmAccount,
+  );
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
   );
 
   const { enabledNetworks, getNetworkInfo, isDisabled } =
@@ -664,8 +668,12 @@ const CollectibleContracts = ({
               </>
             }
             isDisabled={isDisabled}
-            onPress={isEvmSelected ? showFilterControls : () => null}
-            endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
+            onPress={showFilterControls}
+            endIconName={
+              isEvmSelected || isMultichainAccountsState2Enabled
+                ? IconName.ArrowDown
+                : undefined
+            }
             style={
               isDisabled ? styles.controlButtonDisabled : styles.controlButton
             }

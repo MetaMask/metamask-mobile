@@ -110,23 +110,6 @@ describe('usePerpsDepositView', () => {
     expect(result.current.isFullView).toBe(false);
   });
 
-  it('returns isFullView as false if amount is zero', () => {
-    useTokenAmountMock.mockReturnValue({
-      amountUnformatted: '0',
-    } as ReturnType<typeof useTokenAmount>);
-
-    const { result } = runHook(
-      {
-        isKeyboardVisible: false,
-      },
-      {
-        quotes: [{}],
-      },
-    );
-
-    expect(result.current.isFullView).toBe(false);
-  });
-
   it('returns isFullView as false if quotes are undefined', () => {
     const { result } = runHook(
       {

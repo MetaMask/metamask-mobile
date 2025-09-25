@@ -3,14 +3,34 @@
 exports[`Header should render correctly 1`] = `
 <View
   style={
-    {
-      "flexDirection": "row",
-      "flexWrap": "wrap",
-      "marginTop": 4,
-    }
+    [
+      {},
+      {
+        "flex": 1,
+        "paddingInline": 4,
+      },
+    ]
   }
 >
-  Notification Announcement
-  This is a mock of description
+  <View
+    style={
+      [
+        {},
+        undefined,
+      ]
+    }
+  >
+    Notification Announcement
+  </View>
+  <View
+    style={
+      [
+        {},
+        undefined,
+      ]
+    }
+  >
+    This is a mock of description
+  </View>
 </View>
 `;

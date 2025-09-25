@@ -35,7 +35,7 @@ import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
@@ -2454,7 +2454,7 @@ export class NetworkSettings extends PureComponent {
                             </View>
                           }
                           secondaryText={
-                            formattedName ? formatNetworkRpcUrl(rpcUrl) : ''
+                            formattedName ? formatNetworkRpcUrl(url) : ''
                           }
                           showSecondaryTextIcon={false}
                           isSelected={rpcUrl === url}

@@ -50,7 +50,11 @@ import {
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
-import { formatPrice } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  formatPrice,
+  PRICE_RANGES_DETAILED_VIEW,
+} from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import {
   LEVERAGE_COLORS,
@@ -653,7 +657,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     variant={TextVariant.BodyMD}
                     style={{ color: warningStyles.priceColor }}
                   >
-                    {formatPrice(dynamicLiquidationPrice)}
+                    {formatPerpsFiat(dynamicLiquidationPrice, {
+                      ranges: PRICE_RANGES_DETAILED_VIEW,
+                    })}
                   </Text>
                 )}
               </View>
