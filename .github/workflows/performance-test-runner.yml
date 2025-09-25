@@ -138,6 +138,7 @@ jobs:
         env:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+        working-directory: '.'
         run: |
           echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
