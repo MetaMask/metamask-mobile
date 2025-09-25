@@ -2030,17 +2030,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@consensys/native-ramps-sdk@npm:^2.0.0-beta.2":
-  version: 2.0.0-beta.2
-  resolution: "@consensys/native-ramps-sdk@npm:2.0.0-beta.2"
+"@consensys/native-ramps-sdk@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@consensys/native-ramps-sdk@npm:2.1.1"
   dependencies:
+    "@metamask/utils": ^11.5.0
     async: ^3.2.3
     axios: ^1.11.0
     axios-retry: ^3.1.2
     crypto-js: ^4.2.0
     reflect-metadata: ^0.1.13
     uuid: ^9.0.0
-  checksum: 66331cba7db0a398c69953b43202b7435e0cfde7a43c24c2db74cdcdd74c7aa899b484492e9655b4ef5b52ac182aef1f0d447359af282a6cd265417f78051e52
+  checksum: d2bd7f442ab9245b7abb83b2ff585662f4c48196593552267863723425d48b32f205da064b7ee2c9a30be333c93afad431603bec96936c2801aa12d74e1667ae
   languageName: node
   linkType: hard
 
@@ -8606,7 +8607,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.2.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.7.0, @metamask/utils@npm:^11.8.0, @metamask/utils@npm:^11.8.1":
+"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.1.0, @metamask/utils@npm:^11.2.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.5.0, @metamask/utils@npm:^11.7.0, @metamask/utils@npm:^11.8.0, @metamask/utils@npm:^11.8.1":
   version: 11.8.1
   resolution: "@metamask/utils@npm:11.8.1"
   dependencies:
@@ -33653,7 +33654,7 @@ __metadata:
     "@babel/register": ^7.24.6
     "@babel/runtime": ^7.25.0
     "@config-plugins/detox": ^9.0.0
-    "@consensys/native-ramps-sdk": ^2.0.0-beta.2
+    "@consensys/native-ramps-sdk": ^2.1.1
     "@consensys/on-ramp-sdk": 2.1.11
     "@craftzdog/react-native-buffer": ^6.1.0
     "@cucumber/message-streams": ^4.0.1
