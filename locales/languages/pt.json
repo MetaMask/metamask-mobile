@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "Desconectar",
     "cancel": "Cancelar"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Voltar ao app",
-    "postNetworkSwitchTitle": "Troca de rede bem-sucedida",
-    "description": "Por favor, volte ao app para continuar usando os serviços relevantes."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Voltar ao app",
+    "networkSwitchMethodLabel": "Troca de rede bem-sucedida"
   },
   "sdk_feedback_modal": {
     "ok": "OK",

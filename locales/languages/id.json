@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "Memutus koneksi",
     "cancel": "Batal"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Kembali ke aplikasi",
-    "postNetworkSwitchTitle": "Jaringan berhasil dialihkan",
-    "description": "Kembali ke aplikasi untuk terus menggunakan layanannya."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Kembali ke aplikasi",
+    "networkSwitchMethodLabel": "Jaringan berhasil dialihkan"
   },
   "sdk_feedback_modal": {
     "ok": "Oke",
