@@ -171,6 +171,13 @@ export interface PredictActivityClaimWinnings {
   // tbd
 }
 
+export enum PredictPositionStatus {
+  OPEN = 'open',
+  REDEEMABLE = 'redeemable',
+  WON = 'won',
+  LOST = 'lost',
+}
+
 export type PredictPosition = {
   id: string;
   providerId: string;
@@ -183,7 +190,7 @@ export type PredictPosition = {
   icon: string;
   amount: number;
   price: number;
-  status: 'open' | 'redeemable' | 'won' | 'lost';
+  status: PredictPositionStatus;
   size: number;
   outcomeIndex: number;
   realizedPnl?: number;

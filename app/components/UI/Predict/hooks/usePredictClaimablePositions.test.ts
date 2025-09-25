@@ -6,7 +6,7 @@ import { usePredictClaim } from './usePredictClaim';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
-import type { PredictPosition } from '../types';
+import { PredictPosition, PredictPositionStatus } from '../types';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -52,7 +52,7 @@ const MOCK_POSITION_1: PredictPosition = {
   title: 'title-1',
   icon: 'icon-1',
   amount: 10,
-  status: 'open',
+  status: PredictPositionStatus.OPEN,
   claimable: false,
   initialValue: 5,
   avgPrice: 0.5,
@@ -75,7 +75,7 @@ const MOCK_POSITION_2: PredictPosition = {
   title: 'title-2',
   icon: 'icon-2',
   amount: 20,
-  status: 'open',
+  status: PredictPositionStatus.OPEN,
   claimable: false,
   initialValue: 8,
   avgPrice: 0.4,
@@ -98,7 +98,7 @@ const MOCK_CLAIMED_POSITION: PredictPosition = {
   title: 'title-claimed-1',
   icon: 'icon-claimed-1',
   amount: 5,
-  status: 'redeemable',
+  status: PredictPositionStatus.REDEEMABLE,
   claimable: true,
   initialValue: 5,
   avgPrice: 1,

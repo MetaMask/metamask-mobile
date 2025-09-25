@@ -5,6 +5,7 @@ import { Interface, parseUnits } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
 import {
   PredictMarketStatus,
+  PredictPositionStatus,
   Side,
   type PredictCategory,
   type PredictMarket,
@@ -707,6 +708,22 @@ export const getMarketFromPolymarketApi = async ({
   return market as PolymarketApiMarket[];
 };
 
+export const getPredictPositionStatus = ({
+  claimable,
+  cashPnl,
+}: {
+  claimable: boolean;
+  cashPnl: number;
+}) => {
+  if (!claimable) {
+    return PredictPositionStatus.OPEN;
+  }
+  if (cashPnl > 0) {
+    return PredictPositionStatus.WON;
+  }
+  return PredictPositionStatus.LOST;
+};
+
 export const parsePolymarketPositions = async ({
   positions,
 }: {
@@ -724,9 +741,10 @@ export const parsePolymarketPositions = async ({
       negRisk: position.negativeRisk,
       amount: position.size,
       price: position.curPrice,
-      status: (position.redeemable
-        ? 'redeemable'
-        : 'open') as PredictPosition['status'],
+      status: getPredictPositionStatus({
+        claimable: position.redeemable,
+        cashPnl: position.cashPnl,
+      }),
       realizedPnl: position.realizedPnl,
       percentPnl: position.percentPnl,
       currentValue: position.currentValue,

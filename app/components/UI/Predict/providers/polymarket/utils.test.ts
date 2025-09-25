@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
-import { PredictCategory, Side } from '../../types';
+import { PredictCategory, PredictPositionStatus, Side } from '../../types';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -53,6 +53,7 @@ import {
   getOrderBook,
   getOrderTypedData,
   getPolymarketEndpoints,
+  getPredictPositionStatus,
   getTickSize,
   parsePolymarketEvents,
   parsePolymarketPositions,
@@ -1240,6 +1241,26 @@ describe('polymarket utils', () => {
         negativeRisk: false,
         endDate: '2024-12-31',
       },
+      {
+        asset: 'position-3',
+        conditionId: 'condition-1',
+        icon: 'https://example.com/icon3.png',
+        title: 'Position 3',
+        slug: 'position-3',
+        size: 75,
+        outcome: 'Maybe',
+        outcomeIndex: 2,
+        cashPnl: 15,
+        curPrice: 0.8,
+        currentValue: 60,
+        percentPnl: 20,
+        realizedPnl: 0,
+        initialValue: 50,
+        avgPrice: 0.67,
+        redeemable: true,
+        negativeRisk: false,
+        endDate: '2024-12-31',
+      },
     ];
 
     const mockMarketResponse: Partial<PolymarketApiMarket>[] = [
@@ -1272,9 +1293,9 @@ describe('polymarket utils', () => {
         positions: mockPositions,
       });
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(3);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/markets?condition_ids=condition-1&condition_ids=condition-1',
+        'https://gamma-api.polymarket.com/markets?condition_ids=condition-1&condition_ids=condition-1&condition_ids=condition-1',
       );
 
       expect(result[0]).toEqual({
@@ -1313,7 +1334,7 @@ describe('polymarket utils', () => {
         negRisk: false,
         amount: 50,
         price: 0.4,
-        status: 'redeemable',
+        status: 'lost',
         realizedPnl: 0,
         percentPnl: -10,
         cashPnl: -5,
@@ -1325,6 +1346,31 @@ describe('polymarket utils', () => {
         size: 50,
         claimable: true,
         currentValue: 20,
+      });
+
+      expect(result[2]).toEqual({
+        id: 'position-3',
+        providerId: 'polymarket',
+        marketId: 'event-1',
+        outcomeId: 'condition-1',
+        outcome: 'Maybe',
+        outcomeTokenId: 'position-3',
+        outcomeIndex: 2,
+        negRisk: false,
+        amount: 75,
+        price: 0.8,
+        status: 'won',
+        realizedPnl: 0,
+        percentPnl: 20,
+        cashPnl: 15,
+        initialValue: 50,
+        avgPrice: 0.67,
+        endDate: '2024-12-31',
+        title: 'Position 3',
+        icon: 'https://example.com/icon3.png',
+        size: 75,
+        claimable: true,
+        currentValue: 60,
       });
     });
 
@@ -1347,6 +1393,22 @@ describe('polymarket utils', () => {
       expect(result[0].marketId).toBe('');
       expect(result[1].marketId).toBe('');
     });
+  });
+
+  describe('getPredictPositionStatus', () => {
+    it.each([
+      { claimable: false, cashPnl: 10, expected: PredictPositionStatus.OPEN },
+      { claimable: false, cashPnl: -5, expected: PredictPositionStatus.OPEN },
+      { claimable: true, cashPnl: 15, expected: PredictPositionStatus.WON },
+      { claimable: true, cashPnl: 0, expected: PredictPositionStatus.LOST },
+      { claimable: true, cashPnl: -5, expected: PredictPositionStatus.LOST },
+    ])(
+      'returns $expected when claimable=$claimable and cashPnl=$cashPnl',
+      ({ claimable, cashPnl, expected }) => {
+        const result = getPredictPositionStatus({ claimable, cashPnl });
+        expect(result).toBe(expected);
+      },
+    );
   });
 
   describe('getMarketsFromPolymarketApi', () => {

@@ -53,6 +53,7 @@ jest.mock('react-redux', () => ({
 
 // Now import the hook after all mocks are set up
 import { usePredictClaim } from './usePredictClaim';
+import { PredictPositionStatus } from '../types';
 
 // Cast the mocked function - use the mock directly instead of accessing through Engine
 const mockClearClaimTransactionsCasted = mockClearClaimTransactions;
@@ -77,7 +78,7 @@ function createMockPosition(overrides = {}) {
     icon: 'btc-icon.png',
     amount: 50,
     price: 1.5,
-    status: 'won' as const,
+    status: PredictPositionStatus.WON,
     size: 50,
     outcomeIndex: 0,
     realizedPnl: 25,
