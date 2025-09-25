@@ -12,6 +12,13 @@ import {
 } from './app/util/test/utils.js';
 import { defaultMockPort } from './e2e/api-mocking/mock-config/mockUrlCollection.json';
 
+import { getPublicKey } from '@metamask/native-utils';
+
+// polyfill getPublicKey with much faster C++ implementation
+// eslint-disable-next-line import/no-commonjs, import/no-extraneous-dependencies
+const secp256k1_1 = require('@noble/curves/secp256k1');
+secp256k1_1.secp256k1.getPublicKey = getPublicKey;
+
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
 
