@@ -29,7 +29,6 @@ interface AccountCellProps {
   avatarAccountType: AvatarAccountType;
   isSelected: boolean;
   hideMenu?: boolean;
-  startAccessory?: React.ReactNode;
 }
 
 const AccountCell = ({
@@ -37,7 +36,6 @@ const AccountCell = ({
   avatarAccountType,
   isSelected,
   hideMenu = false,
-  startAccessory,
 }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
@@ -78,7 +76,6 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      {startAccessory}
       <AvatarAccount
         accountAddress={evmAddress}
         type={avatarAccountType}
