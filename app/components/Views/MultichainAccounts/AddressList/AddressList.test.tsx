@@ -42,7 +42,7 @@ const mockEthEoaAccount = {
   ),
   id: 'mock-eth-account-1',
   scopes: [EthScope.Eoa],
-  groupId: 'mock-group-id',
+  groupId: 'entropy:wallet-id-1/1"',
 };
 const shortenedEthAddress = '0x4FeC2...fdcB5';
 
@@ -211,7 +211,7 @@ describe('AddressList', () => {
           address: mockEthEoaAccount.address,
           networkName: 'Ethereum',
           chainId: 'eip155:1',
-          groupId: mockEthEoaAccount.metadata.name,
+          groupId: ACCOUNT_GROUP_ID,
         },
       },
     );
