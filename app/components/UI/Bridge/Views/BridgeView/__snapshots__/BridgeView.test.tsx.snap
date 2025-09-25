@@ -318,7 +318,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1293,7 +1293,7 @@ exports[`BridgeView renders 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={

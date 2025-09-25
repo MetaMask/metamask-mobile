@@ -267,7 +267,6 @@ describe('NetworkMultiSelector', () => {
       selectNetwork: jest.fn(),
       deselectAll: jest.fn(),
       selectAllPopularNetworks: mockToggleAll,
-      resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
 
@@ -315,7 +314,7 @@ describe('NetworkMultiSelector', () => {
         <NetworkMultiSelector openModal={mockOpenModal} />,
       );
       expect(
-        getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER),
+        getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER),
       ).toBeTruthy();
     });
 
@@ -458,7 +457,7 @@ describe('NetworkMultiSelector', () => {
       );
 
       expect(
-        getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER),
+        getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER),
       ).toBeTruthy();
       expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
     });
@@ -533,7 +532,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: mockToggleAll,
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
     });
@@ -589,7 +587,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -666,7 +663,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -742,7 +738,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -810,7 +805,6 @@ describe('NetworkMultiSelector', () => {
         selectNetwork: jest.fn(),
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -1279,7 +1273,7 @@ describe('NetworkMultiSelector', () => {
         <NetworkMultiSelector openModal={mockOpenModal} />,
       );
       expect(
-        getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER),
+        getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER),
       ).toBeTruthy();
     });
   });

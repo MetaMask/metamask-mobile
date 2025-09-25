@@ -21,7 +21,7 @@ const ScreenView: React.FC<ScreenViewProps> = (props) => {
   const styles = createStyles(colors);
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
       <ScrollView {...props} />
     </SafeAreaView>
   );

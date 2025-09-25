@@ -43,8 +43,8 @@
       "message": "Une transaction précédente est toujours en cours de signature ou de soumission."
     },
     "signed_or_submitted_perps_deposit": {
-      "title": "Deposit in progress",
-      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
+      "title": "Dépôt en cours",
+      "message": "Vous avez déjà un dépôt en cours. Vous devez attendre qu’il soit traité avant d’en effectuer un autre."
     },
     "pending_transaction": {
       "title": "Transaction en attente",
@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Insufficient funds"
+      "title": "Fonds insuffisants"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -72,8 +72,8 @@
       "message": "Cette voie de paiement n’est pas disponible pour le moment. Essayez de modifier le montant, le réseau ou le jeton, et nous trouverons la meilleure option."
     },
     "perps_hardware_account": {
-      "title": "Wallet not supported",
-      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+      "title": "Portefeuille non pris en charge",
+      "message": "Les contrats à terme perpétuels ne prennent pas en charge les portefeuilles matériels.\nChangez de compte pour déposer des fonds."
     }
   },
   "blockaid_banner": {
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Ce mot de passe permettra de déverrouiller votre portefeuille MetaMask uniquement sur cet appareil.",
-    "password": "Créer un nouveau mot de passe",
+    "password": "Create password",
     "confirm_password": "Confirmer le mot de passe",
     "create_button": "Créer un mot de passe",
     "import_with_seed_phrase": "Importer en utilisant la phrase secrète de récupération",
@@ -404,7 +404,7 @@
     "show": "Afficher",
     "hide": "Masquer",
     "seed_phrase": "phrase secrète de récupération",
-    "must_be_at_least": "Le mot de passe doit comporter au moins {{number}} caractères",
+    "must_be_at_least": "Doit comporter au moins {{number}} caractères",
     "remember_me": "Se souvenir de moi",
     "security_alert_title": "Alerte de sécurité",
     "security_alert_message": "Pour continuer, vous devez activer le code secret ou toute méthode d’authentification biométrique prise en charge par votre appareil (FaceID, TouchID ou empreinte digitale).",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Si j’oublie ce mot de passe, je perdrai définitivement l’accès à mon portefeuille. MetaMask ne peut pas le réinitialiser pour moi.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "Réessayez"
   },
   "import_from_seed": {
     "title": "Importer un portefeuille",
     "seed_phrase_placeholder": "Saisissez votre phrase secrète de récupération",
-    "create_new_password": "Créer un nouveau mot de passe",
+    "create_new_password": "Create password",
     "confirm_password": "Confirmer le mot de passe",
     "import_button": "IMPORTER",
     "cancel_button": "Annuler",
@@ -491,7 +491,7 @@
     "srp": "Phrase secrète de récupération",
     "srp_placeholder": "Ajoutez une espace entre chaque mot et assurez-vous que personne ne vous épie.",
     "learn_more_link": "En savoir plus",
-    "create_password_cta": "Créer un mot de passe",
+    "import_create_password_cta": "Create password",
     "pass_flow": "Continuer avec Flow",
     "steps": "Étape {{currentStep}} sur {{totalSteps}}",
     "password_error": "Les mots de passe ne correspondent pas. Veuillez réessayer.",
@@ -507,6 +507,7 @@
     "home": "Accueil",
     "browser": "Navigateur",
     "activity": "Activité",
+    "trade": "Trade",
     "settings": "Paramètres",
     "rewards": "Récompenses"
   },
@@ -848,7 +849,7 @@
     }
   },
   "perps": {
-    "title": "Contrats à terme perpétuels (perps)",
+    "title": "Perps",
     "perps_trading": "Trading de contrats à terme perpétuels (perps)",
     "perp_account_balance": "Solde du compte de trading de contrats à terme perpétuels (perps)",
     "manage_balance": "Gérer le solde",
@@ -856,10 +857,10 @@
     "available_balance": "Solde disponible",
     "margin_used": "Marge utilisée",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
-      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
+      "title": "LES CONTRATS À TERME PERPÉTUELS SONT ENFIN DISPONIBLES",
+      "title_description": "Prenez des positions longues ou courtes sur des jetons avec un effet de levier allant jusqu’à 40x. Approvisionnez votre compte avec n’importe quel jeton EVM en un seul clic.",
       "not_now": "Pas maintenant",
-      "try_now": "Get started"
+      "try_now": "Commencer"
     },
     "unrealized_pnl": "Profits et pertes non réalisés",
     "withdraw": "Retirer",
@@ -935,16 +936,16 @@
         "view_balance": "Consulter le solde",
         "view_transaction": "Voir la transaction"
       },
-      "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
-      "funds_are_ready_to_trade": "Funds are ready to trade",
-      "error_toast": "Transaction failed",
-      "error_generic": "Funds have been returned to you",
-      "in_progress": "Adding funds to Perps",
-      "estimated_processing_time": "Est. {{time}}",
-      "funds_available_momentarily": "Funds will be available momentarily",
-      "your_funds_are_available_to_trade": "Your funds are available to trade",
-      "track": "Track"
+      "success_toast": "Votre compte de trading de contrats à terme perpétuels a été approvisionné",
+      "success_message": "{{amount}} disponibles pour le trading",
+      "funds_are_ready_to_trade": "Les fonds sont prêts à être tradés",
+      "error_toast": "La transaction a échoué",
+      "error_generic": "Les fonds vous ont été restitués",
+      "in_progress": "Ajouter des fonds à votre compte de trading de contrats à terme perpétuels",
+      "estimated_processing_time": "Estimation : {{time}}",
+      "funds_available_momentarily": "Les fonds seront disponibles dans quelques instants",
+      "your_funds_are_available_to_trade": "Vos fonds sont disponibles pour le trading",
+      "track": "Suivre"
     },
     "withdrawal": {
       "title": "Retirer",
@@ -957,7 +958,7 @@
       "amount_too_low": "Le montant doit être supérieur à {{minAmount}} $ pour couvrir les frais",
       "confirm": "Confirmer le retrait",
       "processing_title": "Retrait initié",
-      "eta_will_be_shared_shortly": "ETA will be shared shortly",
+      "eta_will_be_shared_shortly": "L’heure d’arrivée estimée sera communiquée sous peu",
       "success_title": "Retrait effectué",
       "success_description": "Vous avez retiré {{amount}} USDC de votre compte Hyperliquid",
       "network_fee": "Frais de réseau",
@@ -970,8 +971,8 @@
       "wait_time_message": "Vous recevrez vos fonds dans environ 5 minutes",
       "submitting": "En train d’envoyer la demande…",
       "error": "Le retrait a échoué",
-      "success_toast": "Withdrawal confirmed",
-      "success_toast_description": "You'll receive {{amount}} {{symbol}} on {{networkName}} within 5 minutes",
+      "success_toast": "Retrait confirmé",
+      "success_toast_description": "Vous recevrez {{amount}} {{symbol}} sur {{networkName}} dans les 5 prochaines minutes",
       "bridge_info": "Les validateurs HyperLiquid sont en train de traiter votre retrait",
       "error_generic": "Une erreur s’est produite lors du retrait",
       "invalid_amount": "Veuillez saisir un montant valide",
@@ -1002,6 +1003,7 @@
       "trigger_price": "Prix déclencheur",
       "liquidation_price": "Prix de liquidation",
       "fees": "Frais",
+      "estimated_points": "Points estimés",
       "market": "Marché",
       "limit": "Limite",
       "open_orders": "Ordres",
@@ -1020,7 +1022,7 @@
         "failed": "Échec de la validation de l’ordre de bourse",
         "amount_required": "Le montant de l’ordre doit être supérieur à 0",
         "minimum_amount": "Le montant minimum d’un ordre est de {{amount}} $",
-        "insufficient_funds": "Insufficient funds",
+        "insufficient_funds": "Fonds insuffisants",
         "insufficient_balance": "Solde insuffisant. Montant requis : {{required}} $, montant disponible : {{available}} $",
         "invalid_leverage": "L’effet de levier doit être compris entre {{min}}x et {{max}}x",
         "high_leverage_warning": "Un effet de levier élevé augmente le risque de liquidation des positions",
@@ -1028,10 +1030,10 @@
         "invalid_stop_loss": "Le stop loss doit être {{direction}} au prix actuel pour les positions {{positionType}}",
         "liquidation_warning": "La position est proche du prix de liquidation",
         "limit_price_required": "Veuillez fixer un prix limite pour les ordres à cours limités",
-        "please_set_a_limit_price": "Please set a limit price",
-        "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
+        "please_set_a_limit_price": "Veuillez définir un prix limite",
+        "limit_price_must_be_set_before_configuring_tpsl": "Le prix limite doit être défini avant de configurer le TP/SL",
         "only_hyperliquid_usdc": "Seul l’USDC sur Hyperliquid est actuellement pris en charge pour le paiement",
-        "limit_price_far_warning": "Limit price is far from current market price"
+        "limit_price_far_warning": "Le prix limite est bien au-delà ou bien en dessous du prix actuel du marché"
       },
       "error": {
         "placement_failed": "Échec de la passation de l’ordre",
@@ -1071,11 +1073,11 @@
         "ask_price": "Cours vendeur",
         "bid_price": "Cours acheteur",
         "difference_from_market": "Différence par rapport au marché :",
-        "limit_price_above": "Limit price is above current price",
-        "limit_price_below": "Limit price is below current price"
+        "limit_price_above": "Le prix limite est supérieur au prix actuel",
+        "limit_price_below": "Le prix limite est inférieur au prix actuel"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "Effet de levier",
         "confirm": "« Confirmer »,",
         "entry_price": "Prix d’ouverture",
         "current_price": "Prix actuel",
@@ -1106,35 +1108,38 @@
       },
       "submitted": "Ordre envoyé",
       "confirmed": "Ordre confirmé",
-      "cancelling_order": "Cancelling order",
-      "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order": "Annulation de l’ordre",
+      "cancelling_order_subtitle": "{{direction}} à {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "Annulation de l’ordre {{detailedOrderType}}",
       "order_cancelled": "Commande annulée",
-      "failed_to_cancel_order": "Failed to cancel order",
-      "funds_have_been_returned_to_you": "Funds have been returned to you",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "close_order_still_active": "Close order still active",
-      "order_submitted": "Order submitted",
-      "order_filled": "Order filled",
-      "order_placed": "Order placed",
-      "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "failed_to_cancel_order": "Échec de l’annulation de l’ordre",
+      "order_still_active": "Ordre toujours actif",
+      "funds_have_been_returned_to_you": "Les fonds vous ont été restitués",
+      "funds_are_available_to_trade": "Fonds disponibles pour le trading",
+      "close_order_still_active": "Ordre de fermeture toujours actif",
+      "order_submitted": "Ordre envoyé",
+      "order_filled": "Ordre exécuté",
+      "order_placed": "Ordre passé",
+      "order_placement_subtitle": "{{direction}} à {{amount}} {{assetSymbol}}",
       "order_failed": "La commande a échoué",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "Vos fonds vous ont été restitués",
+      "order_cancelled_success": "Ordre {{detailedOrderType}} annulé"
     },
     "close_position": {
       "title": "Fermer la position",
       "button": "Fermer la position",
       "closing": "En train de fermer la position…",
-      "position_close_order_placed": "Placed order to close position",
-      "partially_closing_position": "Partially closing position",
-      "partial_close_submitted": "Partial close submitted",
-      "position_partially_closed": "Position partially closed",
-      "closing_position": "Closing position",
-      "limit_close_order_cancelled": "Limit close order cancelled",
-      "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
-      "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
+      "position_close_order_placed": "Ordre passé pour fermer la position",
+      "partially_closing_position": "Fermeture partielle de la position",
+      "partial_close_submitted": "Ordre de fermeture partielle envoyé",
+      "position_partially_closed": "Position partiellement fermée",
+      "closing_position": "Fermeture de la position",
+      "limit_close_order_cancelled": "Ordre de fermeture à cours limité annulé",
+      "closing_position_subtitle": "{{direction}} à {{amount}} {{assetSymbol}}",
+      "your_funds_will_be_available_momentarily": "Les fonds seront disponibles dans quelques instants",
       "cancel": "Annuler",
       "margin": "Marge",
-      "includes_pnl": "includes P&L",
+      "includes_pnl": "comprend les profits et pertes",
       "pnl": "Profits et pertes",
       "estimated_pnl": "Estimation des profits et pertes",
       "fees": "Frais",
@@ -1143,24 +1148,24 @@
       "select_amount": "Sélectionnez la part de la position que vous souhaitez fermer",
       "error_unknown": "La position n’a pas pu être fermée",
       "success_title": "Position fermée",
-      "position_closed": "Position closed",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "La position n’a pas été fermée",
+      "position_closed": "Position fermée",
+      "funds_are_available_to_trade": "Fonds disponibles pour le trading",
+      "failed_to_close_position": "Échec de la fermeture de la position",
+      "failed_to_partially_close_position": "Échec de la fermeture partielle de la position",
+      "your_position_is_still_active": "Votre position est toujours active",
       "fox_points_earned": "{{points}} points Fox gagnés !",
       "minimum_remaining_warning": "La position restante doit être d’au moins {{minimum}} $. Actuellement : {{remaining}} $",
       "minimum_remaining_error": "Clôture partielle impossible : la position restante ({{remaining}} $) serait inférieure à la taille minimale de l’ordre ({{minimum}} $). Veuillez plutôt clôturer 100 % de la position.",
       "must_close_full_below_minimum": "La valeur de la position est inférieure à 10 $. Vous devez la fermer à 100 %.",
       "negative_receive_amount": "Les frais dépassent la valeur de votre position",
       "no_amount_selected": "Veuillez sélectionner la part de la position que vous souhaitez fermer",
-      "order_type_reverted_to_market_order": "Changed to market order",
-      "you_need_set_price_limit_order": "You need to set a price for a limit order."
+      "order_type_reverted_to_market_order": "Modifié en ordre au cours du marché",
+      "you_need_set_price_limit_order": "Vous devez définir un prix pour un ordre à cours limité."
     },
     "tpsl": {
       "title": "Take profit et stop loss",
       "description": "Choisissez un pourcentage de gain ou de perte, ou entrez un prix déclencheur personnalisé pour fermer automatiquement votre position.",
-      "set": "Définir",
-      "updating": "Mise à jour…",
-      "off": "Désactivé",
+      "off": "Off",
       "current_price": "Prix actuel ",
       "leverage": "Effet de levier",
       "margin": "Marge",
@@ -1175,12 +1180,13 @@
       "profit_roe_placeholder": "% de profit",
       "loss_roe_placeholder": "% de perte",
       "usd_label": "($)",
-      "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
-      "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
-      "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
-      "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
-      "above": "above",
-      "below": "below"
+      "take_profit_invalid_price": "Le take profit doit être {{direction}} au prix {{priceType}}",
+      "stop_loss_invalid_price": "Le stop loss doit être {{direction}} au prix {{priceType}}",
+      "stop_loss_beyond_liquidation_error": "Le stop loss doit être {{direction}} au prix de liquidation",
+      "stop_loss_order_view_warning": "Le stop loss est {{direction}} au prix de liquidation",
+      "above": "supérieur",
+      "below": "inférieur",
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "Aucun jeton disponible"
@@ -1234,7 +1240,7 @@
       "connectionRequired": "usePerpsConnection doit être utilisée dans un PerpsConnectionProvider",
       "assetMappingFailed": "Échec de la création du mappage des actifs",
       "depositFailed": "Le dépôt a échoué",
-      "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "orderLeverageReductionFailed": "Vous ne pouvez pas réduire votre effet de levier",
       "connectionFailed": {
         "title": "Les contrats à terme perpétuels (perps) sont hors ligne",
         "description": "Nous mettons tout en œuvre pour rétablir la connexion.",
@@ -1264,8 +1270,8 @@
         "not_set": "Non défini",
         "edit_tpsl": "Modifier le TP/SL",
         "close_position": "Fermer la position",
-        "tpsl_count_multiple": "{{count}} orders",
-        "tpsl_count_single": "{{count}} order"
+        "tpsl_count_multiple": "{{count}} ordres",
+        "tpsl_count_single": "{{count}} ordre"
       },
       "list": {
         "loading": "Chargement des positions…",
@@ -1294,7 +1300,7 @@
       },
       "tpsl": {
         "update_success": "TP/SL mis à jour avec succès",
-        "update_failed": "Failed to update TP/SL"
+        "update_failed": "Échec de la mise à jour du TP/SL"
       }
     },
     "markets": {
@@ -1305,7 +1311,7 @@
         "title": "Détails du marché",
         "error_message": "Données de marché introuvables. Veuillez revenir en arrière et réessayer."
       },
-      "statistics": "Overview",
+      "statistics": "Aperçu",
       "24hr_high": "Le prix le plus élevé atteint au cours des 24 dernières heures",
       "24hr_low": "Le prix le plus bas atteint au cours des 24 dernières heures",
       "24h_volume": "Volume sur 24 heures",
@@ -1314,7 +1320,7 @@
       "countdown": "Compte à rebours",
       "long": "Position longue",
       "short": "Position courte",
-      "add_funds": "Add funds",
+      "add_funds": "Ajouter des fonds",
       "add_funds_to_start_trading_perps": "Ajoutez des fonds pour commencer à trader sur le marché des contrats à terme perpétuels (perps)",
       "position": "Position",
       "orders": "Ordres"
@@ -1345,7 +1351,8 @@
         "content": "Des frais de trading sont facturés lorsque vous ouvrez ou fermez une position.",
         "metamask_fee": "Commission MetaMask",
         "provider_fee": "Commission du fournisseur",
-        "total": "Montant total des frais"
+        "total": "Montant total des frais",
+        "discount_message": "Vous économisez {{percentage}} % avec les récompenses MetaMask."
       },
       "closing_fees": {
         "title": "Frais de clôture",
@@ -1374,19 +1381,19 @@
       },
       "receive": {
         "title": "Recevoir",
-        "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
+        "content": "Montant en USDC que vous recevrez dans votre portefeuille après le retrait. Vous recevrez les USDC sur le réseau Arbitrum."
       },
       "withdrawal_fees": {
         "title": "Commission du fournisseur",
-        "content": "A flat fee charged by the provider on each withdrawal."
+        "content": "Frais fixes facturés par le fournisseur pour chaque retrait."
       },
       "tp_sl": {
         "title": "Take profit et stop loss",
         "content": "Le Take profit (TP) ferme automatiquement votre position lorsque vous atteignez votre objectif de bénéfice. Le Stop loss (SL) ferme votre position et limite vos pertes lorsque le cours évolue en votre défaveur."
       },
       "close_position_you_receive": {
-        "title": "Receive amount",
-        "content": "Your receive amount is estimated and may change slightly due to slippage."
+        "title": "Montant que vous recevez",
+        "content": "Le montant que vous recevez est estimé et peut varier légèrement en raison de l’effet de glissement."
       },
       "notifications": {
         "title": "Activer les notifications",
@@ -1395,10 +1402,14 @@
       },
       "got_it_button": "J’ai compris",
       "tpsl_count_warning": {
-        "title": "Multiple TP/SL orders are active",
-        "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
-        "view_orders_button": "View orders",
-        "got_it_button": "Got it"
+        "title": "Plusieurs ordres TP/SL sont actifs",
+        "content": "Si vous voulez définir un TP/SL pour l’ensemble de la position, vous devez d’abord annuler vos ordres TP/SL existants.",
+        "view_orders_button": "Afficher les ordres",
+        "got_it_button": "D’accord"
+      },
+      "points": {
+        "title": "Points",
+        "content": "Les points vous permettent de gagner des récompenses MetaMask lorsque vous effectuez des transactions, par exemple lorsque vous échangez, transférez ou tradez des contrats à terme."
       }
     },
     "connection": {
@@ -1407,7 +1418,7 @@
       "retry_connection": "Réessayer d’établir une connexion",
       "retrying_connection": "Connexion en cours…",
       "connecting_to_perps": "Connexion aux contrats à terme perpétuels",
-      "timeout_title": "Connection taking longer than expected"
+      "timeout_title": "La connexion prend plus de temps que prévu"
     },
     "chart": {
       "no_data": "Aucune donnée graphique disponible",
@@ -1434,14 +1445,14 @@
         "trades": "Trades",
         "orders": "Ordres",
         "funding": "Approvisionnement",
-        "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
+        "funding_description": "L’historique des financements est un résumé des frais que vous avez payés ou reçus, déterminés par les taux de financement de vos positions ouvertes."
       },
       "not_found": "Transaction non trouvée",
       "position": {
         "date": "Date",
         "size": "Taille",
         "entry_price": "Prix d’ouverture",
-        "close_price": "Close price",
+        "close_price": "Cours de clôture",
         "points": "Points",
         "fees": "Montant total des frais",
         "pnl": "Résultat net"
@@ -1466,7 +1477,7 @@
         "history_will_appear": "Votre historique de trading apparaîtra ici"
       }
     },
-    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "Le trading de contrats à terme perpétuels est risqué et vous pourriez perdre soudainement et sans préavis la totalité de votre marge. Vous tradez entièrement à vos propres risques. Données de marché fournies par Hyperliquid. Graphique des prix fourni par",
     "tutorial": {
       "continue": "Continuer",
       "skip": "Ignorer",
@@ -1478,7 +1489,7 @@
       },
       "go_long_or_short": {
         "title": "Prenez une position longue ou une position courte sur un jeton",
-        "description": "Pick a token to long or short, then set your order size.",
+        "description": "Choisissez un jeton à acheter ou à vendre, puis définissez la taille de l’ordre.",
         "subtitle": "Prenez une position longue pour réaliser un bénéfice si le cours monte. Prenez une position courte pour réaliser un bénéfice si le cours baisse."
       },
       "choose_leverage": {
@@ -1495,11 +1506,17 @@
       },
       "ready_to_trade": {
         "title": "Prêt à trader ?",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
+        "fund_text_helper": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperEVM sans frais supplémentaires.",
         "description": "Approvisionnez votre compte de trading de contrats à terme perpétuels avec n’importe quel jeton, puis ouvrez votre première position en quelques secondes."
       },
       "got_it": "J’ai compris"
-    }
+    },
+    "points": "Points",
+    "unable_to_load": "Impossible de charger",
+    "points_error": "Nous ne pouvons pas charger les points pour le moment",
+    "points_error_content": "Ne vous inquiétez pas, vous continuez à gagner des points. Ils apparaîtront bientôt sur votre compte, ou vous pouvez consulter l’onglet « Récompenses » plus tard.",
+    "tp_on_chart": "TP sur le graphique",
+    "sl_on_chart": "SL sur le graphique"
   },
   "receive": {
     "title": "Recevoir"
@@ -2428,10 +2445,9 @@
     "disconnect_confirm": "Déconnexion",
     "cancel": "Annuler"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Retourner à l’application",
-    "postNetworkSwitchTitle": "Réseau changé avec succès",
-    "description": "Veuillez retourner à l’application pour continuer à utiliser leurs services."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Retourner à l’application",
+    "networkSwitchMethodLabel": "Réseau changé avec succès"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -3728,7 +3744,7 @@
     "list": {
       "0": "Tout",
       "1": "Portefeuille",
-      "2": "Annonces"
+      "2": "Announcement"
     },
     "copied_to_clipboard": "Copié dans le presse-papiers",
     "address_copied_to_clipboard": "Adresse copiée dans le presse-papiers",
@@ -3936,14 +3952,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "acheter",
     "sell": "vendre",
-    "orders": "Ordres",
+    "orders": "Transfers",
     "All": "Tout",
     "Buy": "Acheter",
     "Sell": "Vendre",
     "token_marketplace": "Marché des jetons",
     "Purchased": "Acheté",
     "Sold": "Vendu",
-    "empty_orders_list": "Vous n’avez aucun ordre",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "Vous n’avez aucun ordre d’achat",
     "empty_sell_orders_list": "Vous n’avez aucun ordre de vente",
     "purchased_currency": "{{currency}} acheté",
@@ -4947,7 +4963,7 @@
     "earn_eth_rewards": "Obtenez des ETH en récompense.",
     "earn_eth_rewards_description": "Commencez à dégager des bénéfices dès que vous stakez. Les récompenses s’accumulent automatiquement.",
     "flexible_unstaking": "Déstaking flexible.",
-    "flexible_unstaking_description": "Déstakez à tout moment. Le traitement des demandes de déstaking prend généralement moins de 3 jours, mais peut prendre jusqu’à 11 jours.",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "Le staking comporte des risques et peut entrainer la perte de fonds. De plus, les récompenses liées au staking ne sont pas garanties.",
     "learn_more": "En savoir plus",
     "got_it": "J’ai compris",
@@ -4983,7 +4999,7 @@
       "geo_blocked": "Vous vous trouvez dans une région où l’unstaking ou le staking n’est pas autorisé.",
       "approximately": "environ"
     },
-    "unstake_input_banner_description": "En moyenne, il faut moins de 3 jours pour que les ETH déstakés puissent être réclamés, mais cela peut prendre parfois jusqu’à 11 jours.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "Max",
     "staking_from": "Staking à partir de",
     "advanced_details": "Détails avancés",
@@ -5007,7 +5023,7 @@
       }
     },
     "use_max": "Utiliser max",
-    "estimated_unstaking_time": "1 à 11 jours",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "Continuer quand même",
     "gas_cost_impact": "Impact du coût du gaz",
     "select_a_token_to_deposit": "Sélectionnez un jeton pour effectuer un dépôt",
@@ -5060,7 +5076,7 @@
       "buttons": {
         "cancel": "Annuler",
         "turn_on": "Activer",
-        "turn_off": "Turn off",
+        "turn_off": "Désactiver",
         "reset": "Réinitialiser"
       }
     },
@@ -5114,7 +5130,7 @@
     },
     "unstaking_time": {
       "title": "Délai de déstaking",
-      "tooltip": "Le traitement des demandes de déstaking prend généralement moins de 3 jours, mais peut prendre jusqu’à 11 jours. La durée exacte dépend du montant que vous déstakez et de l’activité de staking d’ETH"
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5176,7 +5192,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "Nous échangerons vos jetons contre des USDC sur HyperEVM, le réseau utilisé par les contrats à terme perpétuels. Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
       },
       "title": {
         "transaction_fee": "Frais"
@@ -5324,9 +5340,10 @@
     "quote_info_title": "Taux",
     "network_fee_info_title": "Frais de réseau",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Points",
+    "points": "Est. points",
     "points_tooltip": "Points",
-    "points_tooltip_content": "Estimation du nombre de points de récompense MetaMask que vous gagnerez grâce à cette transaction. La confirmation des points dans votre solde de récompenses peut prendre jusqu’à 1 heure",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5338,10 +5355,14 @@
     "select_amount": "Sélectionnez le montant",
     "bridge_to": "Établir une passerelle vers",
     "swap_to": "Passer à",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "Passerelle",
     "submitting_transaction": "En train d’envoyer",
     "fetching_quote": "Récupération de la cotation",
     "fee_disclaimer": "Comprend 0,875 % de frais MM",
+    "no_mm_fee": "No MM fee",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "Les portefeuilles matériels ne sont pas encore pris en charge. Utilisez un portefeuille connecté pour continuer.",
     "hardware_wallet_not_supported_solana": "Les portefeuilles matériels ne sont pas encore pris en charge pour Solana. Utilisez un portefeuille connecté pour continuer.",
     "price_impact_info_title": "Impact sur le prix",
@@ -5485,11 +5506,12 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
       "view_accounts_button": "View accounts",
-      "learn_more_button": "Learn more"
+      "learn_more_button": "Learn more",
+      "setting_up_accounts": "Setting up your accounts"
     },
     "learn_more": {
       "title": "Learn more",
@@ -5499,6 +5521,7 @@
     },
     "add_wallet": "Ajouter un portefeuille",
     "add_hardware_wallet": "Ajouter un portefeuille matériel",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "Détails du compte",
       "account_name": "Nom du compte",
@@ -5717,17 +5740,18 @@
       "not_supported_confirm": "J’ai compris",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
-      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
+      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
       "checking_opt_in": "Checking opt-in for accounts...",
       "redirecting_to_dashboard": "Redirecting to dashboard...",
       "intro_skip": "Pas maintenant",
       "step_confirm": "Suivant",
+      "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
-      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
+      "step1_description": "Chaque échange que vous effectuez et chaque contrat à terme perpétuel que vous tradez dans MetaMask vous rapproche des récompenses. Liez vos comptes et regardez vos points s’accumuler.",
       "step2_title": "Level up for bigger perks",
-      "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
+      "step2_description": "Atteignez des niveaux de points pour obtenir des avantages tels que 50 % de réduction sur les frais de trading de contrats à terme perpétuels, des jetons exclusifs et une carte MetaMask Metal gratuite.",
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
@@ -5735,22 +5759,26 @@
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
+      "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
       "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
-      "step4_legal_disclaimer_learn_more": "En savoir plus."
+      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+      "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
+      "tab_linked_accounts": "Linked ({{count}})",
+      "tab_unlinked_accounts": "Unlinked ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5782,7 +5810,31 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "Contrats à terme perpétuels",
+        "sheet_title": "Tradez des contrats à terme perpétuels",
+        "sheet_description": "Gagnez des points sur chaque transaction, y compris les ouvertures et les fermetures de position, les ordres stop loss et take profit, et les ajustements de marge.",
+        "points": "10 points par tranche de 100 $",
+        "cta_label": "Effectuez un trade"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
+      "referral_code": "Referral code",
+      "referral_link": "Referral link",
       "actions": {
         "share_referral_link": "Parrainer un ami",
         "share_referral_subject": "Rejoignez MetaMask Rewards"
@@ -5791,6 +5843,28 @@
         "title": "Partagez votre code pour gagner plus",
         "description": "Vos amis gagnent des points bonus et vous obtenez 20 % de leurs récompenses."
       }
+    },
+    "active_boosts": {
+      "title": "Active boosts",
+      "error": "Failed to load active boosts"
+    },
+    "season_1": "Season 1",
+    "upcoming_rewards": {
+      "title": "Upcoming rewards",
+      "points_needed": "{{points}} points",
+      "cta_label": "Got it",
+      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
+    },
+    "unlocked_rewards": {
+      "title": "Unlocked rewards",
+      "empty": "No rewards yet. \nEarn points and level up.",
+      "see_ways_to_earn": "See ways to earn",
+      "cta_label": "Claim now",
+      "cta_request_invite": "Request invite",
+      "claim_label": "Claim",
+      "claimed_label": "Claimed",
+      "reward_claimed": "Reward claimed",
+      "expired": "Expired"
     }
   },
   "time": {
@@ -5799,7 +5873,7 @@
   },
   "transaction_details": {
     "title": {
-      "perps_deposit": "Compte de trading de contrats à terme perpétuels approvisionné",
+      "perps_deposit": "Compte/contrat à terme financé",
       "default": "Détails de la transaction"
     },
     "label": {

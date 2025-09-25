@@ -43,8 +43,8 @@
       "message": "之前的交易仍在签署或提交中。"
     },
     "signed_or_submitted_perps_deposit": {
-      "title": "Deposit in progress",
-      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
+      "title": "存款进行中",
+      "message": "您已有一笔存款正在进行中。需等待该笔交易完成后方可再次进行存款。"
     },
     "pending_transaction": {
       "title": "待定交易",
@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Insufficient funds"
+      "title": "资金不足"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -72,8 +72,8 @@
       "message": "目前该支付路径不可用。请调整金额、网络或代币类型，系统将为您匹配最优选项。"
     },
     "perps_hardware_account": {
-      "title": "Wallet not supported",
-      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+      "title": "钱包不获支持",
+      "message": "永续合约不支持硬件钱包。\n请切换账户以继续充值。"
     }
   },
   "blockaid_banner": {
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
-    "password": "创建新密码",
+    "password": "Create password",
     "confirm_password": "确认密码",
     "create_button": "创建密码",
     "import_with_seed_phrase": "使用私钥助记词导入",
@@ -404,7 +404,7 @@
     "show": "显示",
     "hide": "隐藏",
     "seed_phrase": "私钥助记词",
-    "must_be_at_least": "密码必须包含至少 {{number}} 个字符",
+    "must_be_at_least": "必须至少包含 {{number}} 个字符",
     "remember_me": "记住我",
     "security_alert_title": "安全警报",
     "security_alert_message": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "如果我忘记此密码，我将永久失去对该钱包的访问权限。MetaMask 无法为我重设密码。",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Try again"
+    "seedless_change_password_error_modal_confirm": "请重试"
   },
   "import_from_seed": {
     "title": "导入钱包",
     "seed_phrase_placeholder": "在此输入您的助记词",
-    "create_new_password": "创建新密码",
+    "create_new_password": "Create password",
     "confirm_password": "确认密码",
     "import_button": "导入",
     "cancel_button": "取消",
@@ -491,7 +491,7 @@
     "srp": "私钥助记词，",
     "srp_placeholder": "在每个单词之间加空格，并确保无人窥视.",
     "learn_more_link": "了解详情",
-    "create_password_cta": "创建密码",
+    "import_create_password_cta": "Create password",
     "pass_flow": "使用 Flow 继续",
     "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
     "password_error": "密码不匹配。请重试。",
@@ -507,6 +507,7 @@
     "home": "主页",
     "browser": "浏览器",
     "activity": "活动",
+    "trade": "Trade",
     "settings": "设置",
     "rewards": "奖励"
   },
@@ -856,10 +857,10 @@
     "available_balance": "可用余额",
     "margin_used": "已用保证金",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
-      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
+      "title": "永续合约已上线",
+      "title_description": "支持最高40倍杠杆的多空代币交易。一键使用任意 EVM 代币为账户充值。",
       "not_now": "暂时不",
-      "try_now": "Get started"
+      "try_now": "开始"
     },
     "unrealized_pnl": "未实现盈亏",
     "withdraw": "提取",
@@ -935,16 +936,16 @@
         "view_balance": "查看余额",
         "view_transaction": "查看交易"
       },
-      "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
-      "funds_are_ready_to_trade": "Funds are ready to trade",
-      "error_toast": "Transaction failed",
-      "error_generic": "Funds have been returned to you",
-      "in_progress": "Adding funds to Perps",
-      "estimated_processing_time": "Est. {{time}}",
-      "funds_available_momentarily": "Funds will be available momentarily",
-      "your_funds_are_available_to_trade": "Your funds are available to trade",
-      "track": "Track"
+      "success_toast": "您的永续合约账户已充值",
+      "success_message": "{{amount}} 可用交易资金",
+      "funds_are_ready_to_trade": "资金可立即用于交易",
+      "error_toast": "交易失败",
+      "error_generic": "资金已退回给您",
+      "in_progress": "正在为永续合约充值",
+      "estimated_processing_time": "预计时间 {{time}}",
+      "funds_available_momentarily": "资金将即刻到账",
+      "your_funds_are_available_to_trade": "您的资金可用于交易",
+      "track": "追踪"
     },
     "withdrawal": {
       "title": "提取",
@@ -957,7 +958,7 @@
       "amount_too_low": "金额必须高于 {{minAmount}} 美元才能覆盖手续费",
       "confirm": "确认提款",
       "processing_title": "提款已发起",
-      "eta_will_be_shared_shortly": "ETA will be shared shortly",
+      "eta_will_be_shared_shortly": "预计到账时间即将公布",
       "success_title": "提款成功",
       "success_description": "您的 {{amount}} USDC 已从 Hyperliquid 成功取出",
       "network_fee": "网络费",
@@ -970,8 +971,8 @@
       "wait_time_message": "您的资金应该在 5 分钟内到账",
       "submitting": "正在提交......",
       "error": "提款失败",
-      "success_toast": "Withdrawal confirmed",
-      "success_toast_description": "You'll receive {{amount}} {{symbol}} on {{networkName}} within 5 minutes",
+      "success_toast": "提现已确认",
+      "success_toast_description": "您将在 5 分钟内在 {{networkName}} 收到{{amount}} {{symbol}}",
       "bridge_info": "HyperLiquid 验证器正在处理您的提款",
       "error_generic": "提款过程中出错",
       "invalid_amount": "请输入有效金额",
@@ -1002,6 +1003,7 @@
       "trigger_price": "触发价格",
       "liquidation_price": "清算价格",
       "fees": "费用",
+      "estimated_points": "预计积分",
       "market": "市场型",
       "limit": "限制",
       "open_orders": "订单",
@@ -1020,7 +1022,7 @@
         "failed": "订单验证失败",
         "amount_required": "订单金额必须大于 0",
         "minimum_amount": "最小订单金额为 ${{amount}}",
-        "insufficient_funds": "Insufficient funds",
+        "insufficient_funds": "资金不足",
         "insufficient_balance": "余额不足。需要：${{required}}，可用：${{available}}",
         "invalid_leverage": "杠杆必须介于 {{min}} 倍和 {{max}} 倍之间",
         "high_leverage_warning": "高杠杆会增加清算风险",
@@ -1028,10 +1030,10 @@
         "invalid_stop_loss": "对于 {{positionType}} 头寸，止损必须设置为 {{direction}} 的当前价格",
         "liquidation_warning": "头寸接近清算价格",
         "limit_price_required": "请为限价订单设置限价",
-        "please_set_a_limit_price": "Please set a limit price",
-        "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
+        "please_set_a_limit_price": "请设置限价",
+        "limit_price_must_be_set_before_configuring_tpsl": "配置止盈/止损前须设定限价",
         "only_hyperliquid_usdc": "目前仅支持使用 Hyperliquid 上的 USDC 进行支付",
-        "limit_price_far_warning": "Limit price is far from current market price"
+        "limit_price_far_warning": "限价与当前市价相差较多"
       },
       "error": {
         "placement_failed": "下单失败",
@@ -1071,11 +1073,11 @@
         "ask_price": "卖出价",
         "bid_price": "买入价",
         "difference_from_market": "与市场的差额：",
-        "limit_price_above": "Limit price is above current price",
-        "limit_price_below": "Limit price is below current price"
+        "limit_price_above": "限价高于当前价格",
+        "limit_price_below": "限价低于当前价格"
       },
       "leverage_modal": {
-        "title": "Leverage",
+        "title": "杠杆",
         "confirm": "确认",
         "entry_price": "建仓价",
         "current_price": "当前价格",
@@ -1106,35 +1108,38 @@
       },
       "submitted": "订单已提交",
       "confirmed": "订单已确认",
-      "cancelling_order": "Cancelling order",
-      "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order": "正在取消订单",
+      "cancelling_order_subtitle": "{{direction}}{{amount}}{{assetSymbol}}",
+      "cancelling_order_in_progress": "正在取消 {{detailedOrderType}} 订单",
       "order_cancelled": "订单已取消",
-      "failed_to_cancel_order": "Failed to cancel order",
-      "funds_have_been_returned_to_you": "Funds have been returned to you",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "close_order_still_active": "Close order still active",
-      "order_submitted": "Order submitted",
-      "order_filled": "Order filled",
-      "order_placed": "Order placed",
-      "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "failed_to_cancel_order": "取消订单失败",
+      "order_still_active": "订单仍有效",
+      "funds_have_been_returned_to_you": "资金已退回给您",
+      "funds_are_available_to_trade": "资金可用于交易",
+      "close_order_still_active": "平仓订单仍有效",
+      "order_submitted": "订单已提交",
+      "order_filled": "订单已成交",
+      "order_placed": "订单已下达",
+      "order_placement_subtitle": "{{direction}}{{amount}}{{assetSymbol}}",
       "order_failed": "订单下达失败",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "您的资金已退回给您",
+      "order_cancelled_success": "{{detailedOrderType}} 订单已取消"
     },
     "close_position": {
       "title": "平仓",
       "button": "平仓",
       "closing": "正在平仓......",
-      "position_close_order_placed": "Placed order to close position",
-      "partially_closing_position": "Partially closing position",
-      "partial_close_submitted": "Partial close submitted",
-      "position_partially_closed": "Position partially closed",
-      "closing_position": "Closing position",
-      "limit_close_order_cancelled": "Limit close order cancelled",
-      "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
-      "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
+      "position_close_order_placed": "已下达平仓订单",
+      "partially_closing_position": "正在部分平仓",
+      "partial_close_submitted": "部分平仓已提交",
+      "position_partially_closed": "仓位已部分平仓",
+      "closing_position": "平仓中",
+      "limit_close_order_cancelled": "限价平仓订单已取消",
+      "closing_position_subtitle": "{{direction}}{{amount}}{{assetSymbol}}",
+      "your_funds_will_be_available_momentarily": "您的资金可立即用于交易",
       "cancel": "取消",
       "margin": "保证金",
-      "includes_pnl": "includes P&L",
+      "includes_pnl": "含盈亏",
       "pnl": "盈亏",
       "estimated_pnl": "预计盈亏",
       "fees": "费用",
@@ -1143,23 +1148,23 @@
       "select_amount": "选择要平仓的金额",
       "error_unknown": "平仓失败",
       "success_title": "平仓成功",
-      "position_closed": "Position closed",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "平仓失败",
+      "position_closed": "仓位已平仓",
+      "funds_are_available_to_trade": "资金可用于交易",
+      "failed_to_close_position": "平仓失败",
+      "failed_to_partially_close_position": "部分平仓失败",
+      "your_position_is_still_active": "您的仓位仍有效",
       "fox_points_earned": "已获得 {{points}} Fox Points！",
       "minimum_remaining_warning": "仓位余额必须维持至少 {{minimum}} 美元。当前余额：{{remaining}} 美元",
       "minimum_remaining_error": "无法执行部分平仓：剩余仓位（{{remaining}} 美元）将低于最低订单金额要求（{{minimum}} 美元）。请改为全额平仓。",
       "must_close_full_below_minimum": "仓位价值低于 10 美元。您必须全额平仓。",
       "negative_receive_amount": "费用超过您的仓位价值",
       "no_amount_selected": "请选择要平仓的金额",
-      "order_type_reverted_to_market_order": "Changed to market order",
-      "you_need_set_price_limit_order": "You need to set a price for a limit order."
+      "order_type_reverted_to_market_order": "已改为市价订单",
+      "you_need_set_price_limit_order": "限价订单需设置价格。"
     },
     "tpsl": {
       "title": "止盈与止损",
       "description": "选择盈利或亏损百分比，或输入自定义触发价，以自动平仓。",
-      "set": "设置",
-      "updating": "正在更新......",
       "off": "关闭",
       "current_price": "当前价格",
       "leverage": "杠杆",
@@ -1175,12 +1180,13 @@
       "profit_roe_placeholder": "盈利百分比",
       "loss_roe_placeholder": "亏损百分比",
       "usd_label": "（美元）",
-      "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
-      "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
-      "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
-      "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
-      "above": "above",
-      "below": "below"
+      "take_profit_invalid_price": "须以 {{direction}}{{priceType}} 价格止盈",
+      "stop_loss_invalid_price": "须以 {{direction}}{{priceType}} 价格止损",
+      "stop_loss_beyond_liquidation_error": "须以 {{direction}} 清算价格止损",
+      "stop_loss_order_view_warning": "以 {{direction}} 清算价格止损",
+      "above": "高于",
+      "below": "低于",
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "无可用代币"
@@ -1234,7 +1240,7 @@
       "connectionRequired": "usePerpsConnection 必须在 PerpsConnectionProvider 内使用",
       "assetMappingFailed": "构建资产映射失败",
       "depositFailed": "存款失败",
-      "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "orderLeverageReductionFailed": "无法降低杠杆",
       "connectionFailed": {
         "title": "永续合约暂时离线",
         "description": "我们正在努力让它尽快重新上线。",
@@ -1264,8 +1270,8 @@
         "not_set": "未设置",
         "edit_tpsl": "编辑止盈/止损",
         "close_position": "平仓",
-        "tpsl_count_multiple": "{{count}} orders",
-        "tpsl_count_single": "{{count}} order"
+        "tpsl_count_multiple": "{{count}} 个订单",
+        "tpsl_count_single": "{{count}} 个订单"
       },
       "list": {
         "loading": "正在加载头寸……",
@@ -1294,7 +1300,7 @@
       },
       "tpsl": {
         "update_success": "止盈/止损更新成功",
-        "update_failed": "Failed to update TP/SL"
+        "update_failed": "更新止盈/止损失败"
       }
     },
     "markets": {
@@ -1305,7 +1311,7 @@
         "title": "市场详情",
         "error_message": "未找到市场数据。请返回并重试。"
       },
-      "statistics": "Overview",
+      "statistics": "概览",
       "24hr_high": "24 小时最高价",
       "24hr_low": "24 小时最低价",
       "24h_volume": "24 小时成交量",
@@ -1314,7 +1320,7 @@
       "countdown": "倒计时",
       "long": "做多",
       "short": "做空",
-      "add_funds": "Add funds",
+      "add_funds": "充值",
       "add_funds_to_start_trading_perps": "充值以开始交易永续合约",
       "position": "仓位",
       "orders": "订单"
@@ -1345,7 +1351,8 @@
         "content": "开仓或平仓时会收取交易费用。",
         "metamask_fee": "MetaMask 费用",
         "provider_fee": "服务商费用",
-        "total": "总费用"
+        "total": "总费用",
+        "discount_message": "您通过 MetaMask Rewards 节省了 {{percentage}}% 的费用。"
       },
       "closing_fees": {
         "title": "平仓费用",
@@ -1374,19 +1381,19 @@
       },
       "receive": {
         "title": "接收",
-        "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
+        "content": "提现后您将在钱包中收到的 USDC 金额。您将在 Arbitrum 网络上收到 USDC。"
       },
       "withdrawal_fees": {
         "title": "服务商费用",
-        "content": "A flat fee charged by the provider on each withdrawal."
+        "content": "由服务商对每笔提现收取的固定费用。"
       },
       "tp_sl": {
         "title": "止盈与止损",
         "content": "止盈会在达到目标利润时自动平仓。止损则在价格发生不利变动时通过平仓限制亏损。"
       },
       "close_position_you_receive": {
-        "title": "Receive amount",
-        "content": "Your receive amount is estimated and may change slightly due to slippage."
+        "title": "收款金额",
+        "content": "收款金额为预估数值，可能因滑移产生轻微变动。"
       },
       "notifications": {
         "title": "开启通知",
@@ -1395,10 +1402,14 @@
       },
       "got_it_button": "知道了",
       "tpsl_count_warning": {
-        "title": "Multiple TP/SL orders are active",
-        "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
-        "view_orders_button": "View orders",
-        "got_it_button": "Got it"
+        "title": "存在多个生效的止盈/止损订单",
+        "content": "若需为整个仓位设置止盈/止损，请先取消现有止盈/止损订单。",
+        "view_orders_button": "查看订单",
+        "got_it_button": "明白了"
+      },
+      "points": {
+        "title": "积分",
+        "content": "积分是您通过完成交易（如兑换、桥接或永续合约交易）获得 MetaMask Rewards 的方式。"
       }
     },
     "connection": {
@@ -1407,7 +1418,7 @@
       "retry_connection": "重新尝试连接",
       "retrying_connection": "正在连接……",
       "connecting_to_perps": "正在连接到永续合约",
-      "timeout_title": "Connection taking longer than expected"
+      "timeout_title": "连接耗时超出预期"
     },
     "chart": {
       "no_data": "无可用图表数据",
@@ -1434,14 +1445,14 @@
         "trades": "交易",
         "orders": "订单",
         "funding": "资金",
-        "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
+        "funding_description": "资金历史记录是根据您持仓的资金费率计算得出的已支付或已收取费用的汇总。"
       },
       "not_found": "交易未找到",
       "position": {
         "date": "日期",
         "size": "规模",
         "entry_price": "入场价格",
-        "close_price": "Close price",
+        "close_price": "平仓价格",
         "points": "积分",
         "fees": "总费用",
         "pnl": "净盈亏"
@@ -1466,7 +1477,7 @@
         "history_will_appear": "您的交易历史将在此处显示"
       }
     },
-    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "永续合约交易存在风险，您可能会在毫无预警的情况下瞬间损失全部保证金。交易风险完全由您自行承担。市场数据由 Hyperliquid 提供。价格图表技术支持来自",
     "tutorial": {
       "continue": "继续",
       "skip": "跳过",
@@ -1478,7 +1489,7 @@
       },
       "go_long_or_short": {
         "title": "做多或做空代币",
-        "description": "Pick a token to long or short, then set your order size.",
+        "description": "选择要做多或做空的代币，然后设置订单规模。",
         "subtitle": "若价格上涨，做多即可获利；若价格下跌，做空即可获利。"
       },
       "choose_leverage": {
@@ -1495,11 +1506,17 @@
       },
       "ready_to_trade": {
         "title": "准备好交易了吗？",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
+        "fund_text_helper": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperEVM，无需任何额外费用。",
         "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。"
       },
       "got_it": "知道了"
-    }
+    },
+    "points": "积分",
+    "unable_to_load": "无法加载",
+    "points_error": "当前无法加载积分",
+    "points_error_content": "请放心，您的积分仍在累计。稍后将在账户中显示或可在奖励标签页查看。",
+    "tp_on_chart": "图表显示止盈",
+    "sl_on_chart": "图表显示止损"
   },
   "receive": {
     "title": "接收"
@@ -2428,10 +2445,9 @@
     "disconnect_confirm": "断开连接",
     "cancel": "取消"
   },
-  "sdk_return_to_app_modal": {
-    "title": "返回应用程序",
-    "postNetworkSwitchTitle": "网络切换成功",
-    "description": "请返回应用程序继续使用其服务。"
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "返回应用程序",
+    "networkSwitchMethodLabel": "网络切换成功"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -3728,7 +3744,7 @@
     "list": {
       "0": "所有",
       "1": "钱包",
-      "2": "公告"
+      "2": "Announcement"
     },
     "copied_to_clipboard": "已复制到剪贴板",
     "address_copied_to_clipboard": "地址已复制到剪贴板",
@@ -3936,14 +3952,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "买入",
     "sell": "卖出",
-    "orders": "订单",
+    "orders": "Transfers",
     "All": "所有",
     "Buy": "买入",
     "Sell": "卖出",
     "token_marketplace": "代币市场",
     "Purchased": "已购买",
     "Sold": "已卖出",
-    "empty_orders_list": "您没有任何订单",
+    "empty_orders_list": "No bank or card transfers yet.",
     "empty_buy_orders_list": "您没有任何买入订单！",
     "empty_sell_orders_list": "您没有任何卖出订单！",
     "purchased_currency": "已购买 {{currency}}",
@@ -4947,7 +4963,7 @@
     "earn_eth_rewards": "赚取 ETH 奖励.",
     "earn_eth_rewards_description": "质押后，即刻开始赚取奖励。奖励自动计算。",
     "flexible_unstaking": "灵活解除质押.",
-    "flexible_unstaking_description": "随时解除质押。通常需要不到 3 天的时间，但处理过程最多可能需要 11 天。",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "质押并不能保证回报，而且涉及包括资金损失在内的风险。",
     "learn_more": "了解详情",
     "got_it": "知道了",
@@ -4983,7 +4999,7 @@
       "geo_blocked": "您所在的地区不允许解除质押或质押。",
       "approximately": "大约"
     },
-    "unstake_input_banner_description": "平均而言，不到 3 天时间即可领取解除质押的 ETH，但也可能最长需要 11 天的时间.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "最大值",
     "staking_from": "质押提供商",
     "advanced_details": "高级信息",
@@ -5007,7 +5023,7 @@
       }
     },
     "use_max": "使用最大",
-    "estimated_unstaking_time": "1 - 11 天",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "仍然继续",
     "gas_cost_impact": "燃料成本影响",
     "select_a_token_to_deposit": "选择要存入的代币",
@@ -5114,7 +5130,7 @@
     },
     "unstaking_time": {
       "title": "解除质押时间",
-      "tooltip": "通常需要不到 3 天的时间来解除 ETH 质押，但处理过程最多可能需要 11 天。确切的持续时间取决于您解除质押的金额以及 ETH 的质押活动"
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5176,7 +5192,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "我们将在永续合约所用的 HyperEVM 网络上将您的代币兑换为 USDC。兑换服务商可能收取费用，但 MetaMask 不另收费。"
       },
       "title": {
         "transaction_fee": "费用"
@@ -5324,9 +5340,10 @@
     "quote_info_title": "费率",
     "network_fee_info_title": "网络费",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "积分",
+    "points": "Est. points",
     "points_tooltip": "积分",
-    "points_tooltip_content": "预估通过此次交易可获得的 MetaMask 奖励积分。积分最多可能需要 1 小时才能在您的奖励余额中确认",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5338,10 +5355,14 @@
     "select_amount": "选择金额",
     "bridge_to": "桥接至",
     "swap_to": "兑换至",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "桥接",
     "submitting_transaction": "正在提交",
     "fetching_quote": "正在获取报价",
     "fee_disclaimer": "包含0.875%的做市商手续费",
+    "no_mm_fee": "No MM fee",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "目前暂不支持硬件钱包。请改用热钱包继续操作。",
     "hardware_wallet_not_supported_solana": "Solana 目前暂不支持硬件钱包。请改用热钱包继续操作。",
     "price_impact_info_title": "价格影响",
@@ -5485,11 +5506,12 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
       "view_accounts_button": "View accounts",
-      "learn_more_button": "Learn more"
+      "learn_more_button": "Learn more",
+      "setting_up_accounts": "Setting up your accounts"
     },
     "learn_more": {
       "title": "Learn more",
@@ -5499,6 +5521,7 @@
     },
     "add_wallet": "添加钱包",
     "add_hardware_wallet": "添加硬件钱包",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "账户详情",
       "account_name": "账户名称",
@@ -5717,17 +5740,18 @@
       "not_supported_confirm": "知道了",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
-      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
+      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
       "checking_opt_in": "Checking opt-in for accounts...",
       "redirecting_to_dashboard": "Redirecting to dashboard...",
       "intro_skip": "暂时不",
       "step_confirm": "下一步",
+      "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
-      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
+      "step1_description": "您在 MetaMask 的每次兑换和永续合约交易都将加速解锁奖励。关联账户，见证积分不断累积。",
       "step2_title": "Level up for bigger perks",
-      "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
+      "step2_description": "达成积分里程碑可享专属福利：永续合约手续费5折优惠、独家代币及免费 MetaMask Metal Card 等。",
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
@@ -5735,22 +5759,26 @@
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
+      "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
       "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
-      "step4_legal_disclaimer_learn_more": "了解更多。"
+      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+      "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
+      "tab_linked_accounts": "Linked ({{count}})",
+      "tab_unlinked_accounts": "Unlinked ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5782,7 +5810,31 @@
     },
     "link_account": "Link account",
     "linking_account": "Linking...",
+    "ways_to_earn": {
+      "title": "Ways to earn",
+      "supported_networks": "Supported Networks",
+      "swap": {
+        "title": "Swap",
+        "sheet_title": "Swap tokens",
+        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+        "points": "80 points per $100",
+        "cta_label": "Start a swap"
+      },
+      "perps": {
+        "title": "永续合约",
+        "sheet_title": "交易永续合约",
+        "sheet_description": "每笔交易均可赚取积分，包括开仓与平仓、止损与止盈订单设置以及保证金调整等操作。",
+        "points": "每 100 美元 10 积分",
+        "cta_label": "开始交易"
+      },
+      "referrals": {
+        "title": "Referrals",
+        "points": "Get 20% from friends you refer"
+      }
+    },
     "referral": {
+      "referral_code": "Referral code",
+      "referral_link": "Referral link",
       "actions": {
         "share_referral_link": "推荐好友",
         "share_referral_subject": "加入 MetaMask Rewards"
@@ -5791,6 +5843,28 @@
         "title": "分享您的邀请码以赚取更多",
         "description": "您的好友获得奖励积分，您可获得其奖励的 20% 分成。"
       }
+    },
+    "active_boosts": {
+      "title": "Active boosts",
+      "error": "Failed to load active boosts"
+    },
+    "season_1": "Season 1",
+    "upcoming_rewards": {
+      "title": "Upcoming rewards",
+      "points_needed": "{{points}} points",
+      "cta_label": "Got it",
+      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
+    },
+    "unlocked_rewards": {
+      "title": "Unlocked rewards",
+      "empty": "No rewards yet. \nEarn points and level up.",
+      "see_ways_to_earn": "See ways to earn",
+      "cta_label": "Claim now",
+      "cta_request_invite": "Request invite",
+      "claim_label": "Claim",
+      "claimed_label": "Claimed",
+      "reward_claimed": "Reward claimed",
+      "expired": "Expired"
     }
   },
   "time": {
