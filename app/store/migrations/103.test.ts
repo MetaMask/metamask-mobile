@@ -1,4 +1,4 @@
-import migration102 from './102';
+import migration103 from './103';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 
