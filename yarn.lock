@@ -21382,13 +21382,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:1.3.1":
-  version: 1.3.1
-  resolution: "base64-js@npm:1.3.1"
-  checksum: 957b9ced0ea1b39588a117193f801b045a5fb2d6f1b9943dd304bcad46e5681bf837fe092105692b11653658e8443764139d6b11d3c4037093b96e8db4e1dbb2
-  languageName: node
-  linkType: hard
-
 "base64-js@npm:^1.0.2, base64-js@npm:^1.2.3, base64-js@npm:^1.3.0, base64-js@npm:^1.3.1, base64-js@npm:^1.5.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
@@ -34038,7 +34031,7 @@ __metadata:
     react-native-svg-charts: ^5.4.0
     react-native-svg-transformer: ^1.0.0
     react-native-swipe-gestures: 1.0.3
-    react-native-tcp: "aprock/react-native-tcp#98fbc801f0586297f16730b2f4c75eef15dfabcd"
+    react-native-tcp-socket: ^6.3.0
     react-native-url-polyfill: ^1.3.0
     react-native-vector-icons: 10.2.0
     react-native-video: ^6.10.1
@@ -37465,7 +37458,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"process@npm:^0.11.1, process@npm:^0.11.10, process@npm:^0.11.9":
+"process@npm:^0.11.1, process@npm:^0.11.10":
   version: 0.11.10
   resolution: "process@npm:0.11.10"
   checksum: bfcce49814f7d172a6e6a14d5fa3ac92cc3d0c3b9feb1279774708a719e19acd673995226351a082a9ae99978254e320ccda4240ddc474ba31a76c79491ca7c3
@@ -38988,19 +38981,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-tcp@aprock/react-native-tcp#98fbc801f0586297f16730b2f4c75eef15dfabcd":
-  version: 4.0.0
-  resolution: "react-native-tcp@https://github.com/aprock/react-native-tcp.git#98fbc801f0586297f16730b2f4c75eef15dfabcd"
+"react-native-tcp-socket@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "react-native-tcp-socket@npm:6.3.0"
   dependencies:
-    base64-js: 1.3.1
     buffer: ^5.4.3
-    events: ^3.0.0
-    ip-regex: ^4.1.0
-    process: ^0.11.9
-    util: ^0.12.1
+    eventemitter3: ^4.0.7
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: e62913a5cd29d6bf448eca28072e6cf791a49dac4101044bd8f8ed266ae32cc704059d1d3d7484f736f859c96eb9cb3a7fa9a357828f98306521e3118312a077
+  checksum: 0cb8c8910bfcff7074bf3493723998f9f990a434f57e02d6fbaf7ee75965f00cdfdcf49e7b1ce3018ea1feb884506d613b62fa09be9f7716cec424bece164cac
   languageName: node
   linkType: hard
 
@@ -44099,7 +44088,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"util@npm:^0.12.1, util@npm:^0.12.4, util@npm:^0.12.5":
+"util@npm:^0.12.4, util@npm:^0.12.5":
   version: 0.12.5
   resolution: "util@npm:0.12.5"
   dependencies:
