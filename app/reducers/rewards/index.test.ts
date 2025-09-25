@@ -18,6 +18,7 @@ import rewardsReducer, {
   setActiveBoostsError,
   setUnlockedRewards,
   setUnlockedRewardLoading,
+  setUnlockedRewardError,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -39,6 +40,7 @@ describe('rewardsReducer', () => {
     seasonTiers: [],
 
     referralDetailsLoading: false,
+    referralDetailsError: false,
     referralCode: null,
     refereeCount: 0,
 
@@ -53,18 +55,18 @@ describe('rewardsReducer', () => {
     onboardingActiveStep: OnboardingStep.INTRO,
     candidateSubscriptionId: 'pending',
     geoLocation: null,
-    optinAllowedForGeo: false,
+    optinAllowedForGeo: null,
     optinAllowedForGeoLoading: false,
+    optinAllowedForGeoError: false,
     hideUnlinkedAccountsBanner: false,
 
-    // Points Boost state
-    activeBoosts: [],
+    activeBoosts: null,
     activeBoostsLoading: false,
     activeBoostsError: false,
 
-    // Unlocked Rewards state
-    unlockedRewards: [],
+    unlockedRewards: null,
     unlockedRewardLoading: false,
+    unlockedRewardError: false,
   };
 
   it('should return the initial state', () => {
@@ -72,32 +74,7 @@ describe('rewardsReducer', () => {
     const state = rewardsReducer(undefined, { type: 'unknown' } as Action);
 
     // Assert
-    expect(state).toEqual(
-      expect.objectContaining({
-        activeTab: 'overview',
-        seasonStatusLoading: false,
-        seasonId: null,
-        seasonName: null,
-        seasonStartDate: null,
-        seasonEndDate: null,
-        seasonTiers: [],
-        referralDetailsLoading: false,
-        referralCode: null,
-        refereeCount: 0,
-        currentTier: null,
-        nextTier: null,
-        nextTierPointsNeeded: null,
-        balanceTotal: 0,
-        balanceRefereePortion: 0,
-        balanceUpdatedAt: null,
-        onboardingActiveStep: OnboardingStep.INTRO,
-        candidateSubscriptionId: 'pending',
-        geoLocation: null,
-        optinAllowedForGeo: false,
-        optinAllowedForGeoLoading: false,
-        hideUnlinkedAccountsBanner: false,
-      }),
-    );
+    expect(state).toEqual(initialState);
   });
 
   describe('setActiveTab', () => {
@@ -873,7 +850,7 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.geoLocation).toBe(null);
-        expect(state.optinAllowedForGeo).toBe(false);
+        expect(state.optinAllowedForGeo).toBe(null);
         expect(state.optinAllowedForGeoLoading).toBe(false);
       });
 
@@ -1123,6 +1100,9 @@ describe('rewardsReducer', () => {
           activeBoostsError: false,
           unlockedRewards: [],
           unlockedRewardLoading: false,
+          unlockedRewardError: false,
+          referralDetailsError: false,
+          optinAllowedForGeoError: false,
         };
         const action = resetRewardsState();
 
@@ -1130,35 +1110,7 @@ describe('rewardsReducer', () => {
         const state = rewardsReducer(stateWithData, action);
 
         // Assert
-        expect(state).toEqual(
-          expect.objectContaining({
-            activeTab: 'overview',
-            seasonId: null,
-            seasonStatusLoading: false,
-            referralDetailsLoading: false,
-            referralCode: null,
-            refereeCount: 0,
-            currentTier: null,
-            nextTier: null,
-            nextTierPointsNeeded: null,
-            balanceTotal: 0,
-            balanceRefereePortion: 0,
-            balanceUpdatedAt: null,
-            seasonName: null,
-            seasonStartDate: null,
-            seasonEndDate: null,
-            seasonTiers: [],
-            onboardingActiveStep: OnboardingStep.INTRO,
-            candidateSubscriptionId: 'pending',
-            geoLocation: null,
-            optinAllowedForGeo: false,
-            optinAllowedForGeoLoading: false,
-            hideUnlinkedAccountsBanner: false,
-            activeBoosts: [],
-            activeBoostsLoading: false,
-            activeBoostsError: false,
-          }),
-        );
+        expect(state).toEqual(initialState);
       });
     });
 
@@ -1228,6 +1180,9 @@ describe('rewardsReducer', () => {
           activeBoostsError: false,
           unlockedRewards: [],
           unlockedRewardLoading: false,
+          unlockedRewardError: false,
+          referralDetailsError: false,
+          optinAllowedForGeoError: false,
         };
         const rehydrateAction = {
           type: 'persist/REHYDRATE',
@@ -1240,37 +1195,11 @@ describe('rewardsReducer', () => {
         const state = rewardsReducer(initialState, rehydrateAction);
 
         // Assert - All state should be reset to initial except hideUnlinkedAccountsBanner
-        expect(state).toEqual(
-          expect.objectContaining({
-            activeTab: 'overview', // Reset to initial
-            seasonStatusLoading: false, // Reset to initial
-            seasonId: null, // Reset to initial
-            seasonName: null, // Reset to initial
-            seasonStartDate: null, // Reset to initial
-            seasonEndDate: null, // Reset to initial
-            seasonTiers: [], // Reset to initial
-            referralDetailsLoading: false, // Reset to initial
-            referralCode: null, // Reset to initial
-            refereeCount: 0, // Reset to initial
-            currentTier: null, // Reset to initial
-            nextTier: null, // Reset to initial
-            nextTierPointsNeeded: null, // Reset to initial
-            balanceTotal: 0, // Reset to initial
-            balanceRefereePortion: 0, // Reset to initial
-            balanceUpdatedAt: null, // Reset to initial
-            onboardingActiveStep: OnboardingStep.INTRO, // Reset to initial
-            candidateSubscriptionId: 'pending', // Reset to initial
-            geoLocation: null, // Reset to initial
-            optinAllowedForGeo: false, // Reset to initial
-            optinAllowedForGeoLoading: false, // Reset to initial
-            hideUnlinkedAccountsBanner: true, // Only this should be preserved
-            activeBoosts: [],
-            activeBoostsLoading: false,
-            activeBoostsError: false,
-            unlockedRewards: [],
-            unlockedRewardLoading: false,
-          }),
-        );
+        const expectedState = {
+          ...initialState,
+          hideUnlinkedAccountsBanner: true, // Only this should be preserved
+        };
+        expect(state).toEqual(expectedState);
       });
 
       it('should handle rehydration with hideUnlinkedAccountsBanner false', () => {
@@ -1592,7 +1521,7 @@ describe('rewardsReducer', () => {
       expect(state.activeBoostsLoading).toBe(true);
       expect(state.activeTab).toBe('activity');
       expect(state.referralCode).toBe('TEST123');
-      expect(state.activeBoosts).toEqual([]);
+      expect(state.activeBoosts).toBeNull();
     });
   });
 
@@ -1698,8 +1627,8 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.unlockedRewards).toEqual(mockUnlockedRewards);
       expect(state.unlockedRewards).toHaveLength(2);
-      expect(state.unlockedRewards[0].id).toBe('reward-1');
-      expect(state.unlockedRewards[1].claimStatus).toBe(
+      expect(state.unlockedRewards?.[0]?.id).toBe('reward-1');
+      expect(state.unlockedRewards?.[1]?.claimStatus).toBe(
         RewardClaimStatus.UNCLAIMED,
       );
     });
@@ -1737,8 +1666,8 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.unlockedRewards).toEqual(newRewards);
       expect(state.unlockedRewards).toHaveLength(2);
-      expect(state.unlockedRewards[0].id).toBe('new-reward-1');
-      expect(state.unlockedRewards[1].id).toBe('new-reward-2');
+      expect(state.unlockedRewards?.[0]?.id).toBe('new-reward-1');
+      expect(state.unlockedRewards?.[1]?.id).toBe('new-reward-2');
     });
 
     it('should set empty array when no rewards provided', () => {
@@ -1761,6 +1690,29 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.unlockedRewards).toEqual([]);
       expect(state.unlockedRewards).toHaveLength(0);
+    });
+
+    it('should reset unlockedRewardError to false when setting unlocked rewards', () => {
+      // Arrange
+      const stateWithError = {
+        ...initialState,
+        unlockedRewardError: true,
+      };
+      const mockRewards = [
+        {
+          id: 'test-reward',
+          seasonRewardId: 'test-season-reward',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+      ];
+      const action = setUnlockedRewards(mockRewards);
+
+      // Act
+      const state = rewardsReducer(stateWithError, action);
+
+      // Assert
+      expect(state.unlockedRewards).toEqual(mockRewards);
+      expect(state.unlockedRewardError).toBe(false); // Should be reset when successful
     });
 
     it('should not affect other state properties', () => {
@@ -1868,7 +1820,7 @@ describe('rewardsReducer', () => {
       // Arrange - Start with false and no rewards
       let currentState = initialState;
       expect(currentState.unlockedRewardLoading).toBe(false);
-      expect(currentState.unlockedRewards).toHaveLength(0);
+      expect(currentState.unlockedRewards).toBeNull();
 
       // Act - Set to true (should work since no rewards exist)
       currentState = rewardsReducer(
@@ -1902,8 +1854,78 @@ describe('rewardsReducer', () => {
       expect(state.unlockedRewardLoading).toBe(true);
       expect(state.activeTab).toBe('activity');
       expect(state.referralCode).toBe('TEST456');
-      expect(state.unlockedRewards).toHaveLength(0);
+      expect(state.unlockedRewards).toBeNull();
       expect(state.activeBoostsLoading).toBe(false);
+    });
+  });
+
+  describe('setUnlockedRewardError', () => {
+    it('should set unlockedRewardError to true', () => {
+      // Arrange
+      const action = setUnlockedRewardError(true);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.unlockedRewardError).toBe(true);
+    });
+
+    it('should set unlockedRewardError to false', () => {
+      // Arrange
+      const stateWithError = {
+        ...initialState,
+        unlockedRewardError: true,
+      };
+      const action = setUnlockedRewardError(false);
+
+      // Act
+      const state = rewardsReducer(stateWithError, action);
+
+      // Assert
+      expect(state.unlockedRewardError).toBe(false);
+    });
+
+    it('should not affect other state properties', () => {
+      // Arrange
+      const stateWithData = {
+        ...initialState,
+        activeTab: 'levels' as const,
+        referralCode: 'TEST789',
+        balanceTotal: 2000,
+        unlockedRewardLoading: true,
+      };
+      const action = setUnlockedRewardError(true);
+
+      // Act
+      const state = rewardsReducer(stateWithData, action);
+
+      // Assert
+      expect(state.unlockedRewardError).toBe(true);
+      expect(state.activeTab).toBe('levels');
+      expect(state.referralCode).toBe('TEST789');
+      expect(state.balanceTotal).toBe(2000);
+      expect(state.unlockedRewardLoading).toBe(true); // Should remain unchanged
+    });
+
+    it('should handle multiple error state changes', () => {
+      // Arrange
+      let currentState = initialState;
+
+      // Act & Assert - Set error to true
+      let action = setUnlockedRewardError(true);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.unlockedRewardError).toBe(true);
+
+      // Act & Assert - Set error back to false
+      action = setUnlockedRewardError(false);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.unlockedRewardError).toBe(false);
+
+      // Act & Assert - Set error to true again
+      action = setUnlockedRewardError(true);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.unlockedRewardError).toBe(true);
     });
   });
 });
