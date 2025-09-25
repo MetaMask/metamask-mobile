@@ -42,6 +42,11 @@ export enum PerpsMeasurementName {
   DATA_LAKE_API_CALL = 'data_lake_api_call',
   DATA_LAKE_API_RETRY = 'data_lake_api_retry',
 
+  // Rewards API Metrics (milliseconds)
+  REWARDS_FEE_DISCOUNT_API_CALL = 'rewards_fee_discount_api_call',
+  REWARDS_POINTS_ESTIMATION_API_CALL = 'rewards_points_estimation_api_call',
+  REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL = 'rewards_order_execution_fee_discount_api_call',
+
   // WebSocket Performance Metrics (milliseconds)
   WEBSOCKET_CONNECTION_ESTABLISHMENT = 'websocket_connection_establishment',
   WEBSOCKET_CONNECTION_WITH_PRELOAD = 'websocket_connection_with_preload',

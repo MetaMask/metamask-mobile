@@ -624,8 +624,18 @@ export class PerpsController extends BaseController<
         return undefined;
       }
 
+      const orderExecutionFeeDiscountStartTime = performance.now();
       const discountBips = await RewardsController.getPerpsDiscountForAccount(
         caipAccountId,
+      );
+      const orderExecutionFeeDiscountDuration =
+        performance.now() - orderExecutionFeeDiscountStartTime;
+
+      // Measure order execution fee discount API call performance
+      setMeasurement(
+        PerpsMeasurementName.REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL,
+        orderExecutionFeeDiscountDuration,
+        'millisecond',
       );
 
       DevLogger.log('PerpsController: Fee discount calculated', {
@@ -633,6 +643,7 @@ export class PerpsController extends BaseController<
         caipAccountId,
         discountBips,
         discountPercentage: discountBips / 100,
+        duration: `${orderExecutionFeeDiscountDuration.toFixed(0)}ms`,
       });
 
       return discountBips;

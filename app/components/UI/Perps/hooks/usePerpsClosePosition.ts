@@ -8,6 +8,7 @@ import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
+import { usePerpsMeasurement } from './usePerpsMeasurement';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -20,7 +21,16 @@ export const usePerpsClosePosition = (
   const { closePosition } = usePerpsTrading();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [lastResult, setLastResult] = useState<OrderResult>();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+
+  // Track close order submission toast with unified measurement hook
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED,
+    startConditions: [isClosing], // Start when closing begins
+    endConditions: [!!lastResult || !!error], // End when we have result or error
+    resetConditions: [!isClosing], // Reset when not closing
+  });
 
   const handleClosePosition = useCallback(
     async (
@@ -42,7 +52,6 @@ export const usePerpsClosePosition = (
         });
 
         const closeStartTime = performance.now();
-
         const isLong = parseFloat(position.size) >= 0;
         const direction = isLong
           ? strings('perps.market.long')
@@ -105,18 +114,11 @@ export const usePerpsClosePosition = (
           trackingData,
         });
 
-        // Measure close order submission toast
-        const submissionDuration = performance.now() - closeStartTime;
-        setMeasurement(
-          PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED,
-          submissionDuration,
-          'millisecond',
-        );
-
+        setLastResult(result);
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (result.success) {
-          // Measure close order confirmation toast
+          // Measure close order confirmation toast - kept as direct call due to complex async timing
           const confirmationDuration = performance.now() - closeStartTime;
           setMeasurement(
             PerpsMeasurementName.CLOSE_ORDER_CONFIRMATION_TOAST_LOADED,
