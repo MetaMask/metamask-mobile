@@ -36,7 +36,6 @@ import fiatOrderReducer, {
   removeFiatCustomIdData,
   removeFiatOrder,
   resetFiatOrders,
-  selectedAddressSelector,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersGetStartedSell,
   setFiatOrdersGetStartedDeposit,
@@ -76,9 +75,6 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE_1 = createMockAccountsControllerState([
 const MOCK_ACCOUNTS_CONTROLLER_STATE_2 = createMockAccountsControllerState([
   MOCK_ADDRESS_2,
 ]);
-
-const MOCK_ACCOUNTS_CONTROLLER_STATE_FULL_ADDRESS =
-  createMockAccountsControllerState([MOCK_FULL_LOWERCASE_ADDRESS]);
 
 const mockOrder1 = {
   id: 'test-id-1',
@@ -879,19 +875,134 @@ describe('selectors', () => {
     });
   });
 
-  describe('selectedAddressSelector', () => {
-    it('should return the selected address in checksum format', () => {
+  describe('selectSelectedAccountGroupWithInternalAccountsAddresses', () => {
+    it('should return addresses of accounts in the selected account group', () => {
+      const mockAccountId1 = 'mock-account-1';
+      const mockAccountId2 = 'mock-account-2';
+      const mockGroupId = 'keyring:test-wallet/ethereum';
       const state = merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_FULL_ADDRESS,
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    groups: {
+                      [mockGroupId]: {
+                        accounts: [mockAccountId1, mockAccountId2],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: mockAccountId1,
+                accounts: {
+                  [mockAccountId1]: {
+                    id: mockAccountId1,
+                    address: MOCK_FULL_LOWERCASE_ADDRESS,
+                    type: 'eip155:eoa',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    address: MOCK_ADDRESS_2,
+                    type: 'eip155:eoa',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'Account 2',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
           },
         },
       });
 
-      expect(selectedAddressSelector(state)).toBe(
+      const testState = {
+        ...state,
+        fiatOrders: {
+          ...state.fiatOrders,
+          orders: [
+            {
+              ...mockOrder1,
+              account: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+            },
+            {
+              ...mockOrder2,
+              account: MOCK_ADDRESS_2,
+            },
+            {
+              ...mockOrder1,
+              id: 'other-order',
+              account: '0x9999999999999999999999999999999999999999',
+            },
+          ],
+        },
+      };
+
+      const orders = getOrders(testState);
+      expect(orders).toHaveLength(2);
+      expect(orders.map((o: FiatOrder) => o.account)).toEqual([
         '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-      );
+        MOCK_ADDRESS_2,
+      ]);
+    });
+
+    it('should return empty array when no account group is selected', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountTreeController: {
+              accountTree: {
+                wallets: {},
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: null,
+                accounts: {},
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+        fiatOrders: {
+          ...initialState,
+          orders: [mockOrder1],
+        },
+      });
+
+      const orders = getOrders(state);
+      expect(orders).toEqual([]);
     });
   });
 
@@ -1071,7 +1182,18 @@ describe('selectors', () => {
       expect(getOrders(state)).toEqual([]);
     });
 
-    it('should return all orders by address across all chains', () => {
+    it('should return all orders for accounts in the selected account group across all chains', () => {
+      const mockAccountId1 = 'evm-account-1';
+      const mockAccountId2 = 'solana-account-1';
+      const mockAccountId3 = 'evm-account-2'; // Different account group
+      const mockGroupId = 'keyring:test-wallet/multichain';
+
+      // EVM address for the account group
+      const evmAddress = MOCK_ADDRESS_1;
+      // Solana address for the same account group
+      const solanaAddress = '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC';
+      // Address from different account group
+      const otherAddress = MOCK_ADDRESS_2;
       const state1 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
@@ -1100,51 +1222,118 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    groups: {
+                      [mockGroupId]: {
+                        accounts: [mockAccountId1, mockAccountId2], // Both EVM and Solana accounts
+                      },
+                      'keyring:test-wallet/other': {
+                        accounts: [mockAccountId3], // Different group
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: mockAccountId1,
+                accounts: {
+                  [mockAccountId1]: {
+                    id: mockAccountId1,
+                    address: evmAddress,
+                    type: 'eip155:eoa',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'EVM Account 1',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    address: solanaAddress,
+                    type: 'solana:data-account',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'Solana Account 1',
+                      keyring: { type: 'Snap Keyring' },
+                    },
+                  },
+                  [mockAccountId3]: {
+                    id: mockAccountId3,
+                    address: otherAddress,
+                    type: 'eip155:eoa',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'EVM Account 2',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
           },
         },
         fiatOrders: {
+          ...initialState,
           orders: [
             {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: MOCK_ADDRESS_1,
+              account: evmAddress, // Should be included (same account group)
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: MOCK_ADDRESS_2,
+              account: otherAddress, // Should NOT be included (different account group)
             },
             {
               ...mockOrder1,
-              id: 'test-56-order-3',
-              network: '56',
-              account: MOCK_ADDRESS_1,
+              id: 'test-solana-order-1',
+              network: 'solana',
+              account: solanaAddress, // Should be included (same account group)
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: MOCK_ADDRESS_1,
+              account: evmAddress, // Should be included (same account group)
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               network: '1',
-              account: MOCK_ADDRESS_2,
+              account: otherAddress, // Should NOT be included (different account group)
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
-              account: MOCK_ADDRESS_1,
+              account: evmAddress, // Should be included (same account group)
             },
           ],
         },
       });
 
+      // State 2: Different selected account (from the 'other' group)
       const state2 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
@@ -1164,74 +1353,149 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    groups: {
+                      [mockGroupId]: {
+                        accounts: [mockAccountId1, mockAccountId2], // Both EVM and Solana accounts
+                      },
+                      'keyring:test-wallet/other': {
+                        accounts: [mockAccountId3], // Different group
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: mockAccountId3, // Select the account from the 'other' group
+                accounts: {
+                  [mockAccountId1]: {
+                    id: mockAccountId1,
+                    address: evmAddress,
+                    type: 'eip155:eoa',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'EVM Account 1',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    address: solanaAddress,
+                    type: 'solana:data-account',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'Solana Account 1',
+                      keyring: { type: 'Snap Keyring' },
+                    },
+                  },
+                  [mockAccountId3]: {
+                    id: mockAccountId3,
+                    address: otherAddress,
+                    type: 'eip155:eoa',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'EVM Account 2',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
           },
         },
         fiatOrders: {
+          ...initialState,
           orders: [
             {
               ...mockOrder1,
               id: 'test-56-order-1',
               network: '56',
-              account: MOCK_ADDRESS_1,
+              account: evmAddress, // Should NOT be included (different account group)
             },
             {
               ...mockOrder1,
               id: 'test-56-order-2',
               network: '56',
-              account: MOCK_ADDRESS_2,
+              account: otherAddress, // Should be included (same account group)
             },
             {
               ...mockOrder1,
-              id: 'test-56-order-3',
-              network: '56',
-              account: MOCK_ADDRESS_1,
+              id: 'test-solana-order-1',
+              network: 'solana',
+              account: solanaAddress, // Should NOT be included (different account group)
             },
             {
               ...mockOrder1,
               id: 'test-1-order-1',
               network: '1',
-              account: MOCK_ADDRESS_1,
+              account: evmAddress, // Should NOT be included (different account group)
             },
             {
               ...mockOrder1,
               id: 'test-1-order-2',
               network: '1',
-              account: MOCK_ADDRESS_2,
+              account: otherAddress, // Should be included (same account group)
             },
             {
               ...mockOrder1,
               id: 'test-1-order-3',
               network: '1',
               excludeFromPurchases: true,
-              account: MOCK_ADDRESS_2,
+              account: otherAddress, // Should be included (same account group)
             },
             {
               ...mockOrder1,
-              id: 'test-1-order-3',
+              id: 'test-1-order-4',
               network: '1',
-              account: MOCK_ADDRESS_1,
+              account: evmAddress, // Should NOT be included (different account group)
             },
           ],
         },
       });
 
+      // Should return orders for both EVM and Solana addresses in the selected account group
       expect(getOrders(state1)).toHaveLength(4);
-      expect(getOrders(state1).map((o) => o.id)).toEqual([
+      expect(getOrders(state1).map((o: FiatOrder) => o.id)).toEqual([
         'test-56-order-1',
-        'test-56-order-3',
+        'test-solana-order-1', // Solana order from same account group
         'test-1-order-1',
         'test-1-order-3',
       ]);
+
+      // Should return orders only for the other account group
       expect(getOrders(state2)).toHaveLength(2);
-      expect(getOrders(state2).map((o) => o.id)).toEqual([
+      expect(getOrders(state2).map((o: FiatOrder) => o.id)).toEqual([
         'test-56-order-2',
         'test-1-order-2',
       ]);
     });
 
-    it('should return all the orders in a test net', () => {
-      const state1 = merge({}, initialRootState, {
+    it('should return orders when multichain accounts are disabled (fallback to selected internal account)', () => {
+      const mockAccountId1 = 'evm-account-1';
+      const mockAccountId2 = 'solana-account-1';
+      const evmAddress = MOCK_ADDRESS_1;
+      const solanaAddress = '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC';
+      const otherAddress = MOCK_ADDRESS_2;
+
+      const state = merge({}, initialRootState, {
         engine: {
           backgroundState: {
             NetworkController: {
@@ -1250,133 +1514,87 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
-          },
-        },
-        fiatOrders: {
-          orders: [
-            {
-              ...mockOrder1,
-              id: 'test-56-order-1',
-              network: '56',
-              account: MOCK_ADDRESS_1,
+            AccountTreeController: {
+              accountTree: {
+                wallets: {},
+              },
             },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-2',
-              network: '56',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-56-order-3',
-              network: '56',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-1',
-              network: '1',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-2',
-              network: '1',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-3',
-              network: '1',
-              account: MOCK_ADDRESS_1,
-            },
-          ],
-        },
-      });
-
-      const state2 = merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              selectedNetworkClientId: 'sepolia',
-              networksMetadata: {},
-              networkConfigurations: {
-                sepolia: {
-                  id: 'sepolia',
-                  rpcUrl: 'https://sepolia.infura.io/v3',
-                  chainId: '0xaa36a7',
-                  ticker: 'ETH',
-                  nickname: 'Sepolia network',
-                  rpcPrefs: {
-                    blockExplorerUrl: 'https://etherscan.com',
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: mockAccountId1,
+                accounts: {
+                  [mockAccountId1]: {
+                    id: mockAccountId1,
+                    address: evmAddress,
+                    type: 'eip155:eoa',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'EVM Account 1',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    address: solanaAddress,
+                    type: 'solana:data-account',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'Solana Account 1',
+                      keyring: { type: 'Snap Keyring' },
+                    },
                   },
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_2,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: false, // Multichain disabled - should fallback to single account
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
           },
         },
         fiatOrders: {
+          ...initialState,
           orders: [
             {
               ...mockOrder1,
-              id: 'test-56-order-1',
+              id: 'test-evm-order-1',
               network: '56',
-              account: MOCK_ADDRESS_1,
+              account: evmAddress, // Should be included (selected account)
             },
             {
               ...mockOrder1,
-              id: 'test-56-order-2',
-              network: '56',
-              account: MOCK_ADDRESS_2,
+              id: 'test-solana-order-1',
+              network: 'solana',
+              account: solanaAddress, // Should NOT be included (different account)
             },
             {
               ...mockOrder1,
-              id: 'test-56-order-3',
-              network: '56',
-              account: MOCK_ADDRESS_1,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-1',
+              id: 'test-other-order-1',
               network: '1',
-              account: MOCK_ADDRESS_1,
+              account: otherAddress, // Should NOT be included (different account)
             },
             {
               ...mockOrder1,
-              id: 'test-1-order-2',
+              id: 'test-evm-order-2',
               network: '1',
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-3',
-              network: '1',
-              excludeFromPurchases: true,
-              account: MOCK_ADDRESS_2,
-            },
-            {
-              ...mockOrder1,
-              id: 'test-1-order-3',
-              network: '1',
-              account: MOCK_ADDRESS_1,
+              account: evmAddress, // Should be included (selected account)
             },
           ],
         },
       });
 
-      expect(getOrders(state1)).toHaveLength(4);
-      expect(getOrders(state1).map((o) => o.id)).toEqual([
-        'test-56-order-1',
-        'test-56-order-3',
-        'test-1-order-1',
-        'test-1-order-3',
-      ]);
-      expect(getOrders(state2)).toHaveLength(2);
-      expect(getOrders(state2).map((o) => o.id)).toEqual([
-        'test-56-order-2',
-        'test-1-order-2',
+      // When multichain is disabled, should only return orders for the selected account address
+      expect(getOrders(state)).toHaveLength(2);
+      expect(getOrders(state).map((o: FiatOrder) => o.id)).toEqual([
+        'test-evm-order-1',
+        'test-evm-order-2',
       ]);
     });
 
@@ -1491,7 +1709,7 @@ describe('selectors', () => {
   });
 
   describe('getPendingOrders', () => {
-    it('should return pending orders by address across all chains', () => {
+    it('should return pending orders for accounts in the selected account group across all chains', () => {
       const state1 = merge({}, initialRootState, {
         engine: {
           backgroundState: {
@@ -1520,17 +1738,69 @@ describe('selectors', () => {
                 },
               },
             },
-            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'keyring:test-wallet': {
+                    id: 'keyring:test-wallet',
+                    groups: {
+                      'keyring:test-wallet/multichain': {
+                        accounts: ['evm-account-1', 'solana-account-1'],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: 'evm-account-1',
+                accounts: {
+                  'evm-account-1': {
+                    id: 'evm-account-1',
+                    address: MOCK_ADDRESS_1,
+                    type: 'eip155:eoa',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'EVM Account 1',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                  'solana-account-1': {
+                    id: 'solana-account-1',
+                    address: '8A4AptCThfbuknsbteHgGKXczfJpfjuVA9SLTSGaaLGC',
+                    type: 'solana:data-account',
+                    methods: [],
+                    options: {},
+                    metadata: {
+                      name: 'Solana Account 1',
+                      keyring: { type: 'Snap Keyring' },
+                    },
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                enableMultichainAccounts: {
+                  enabled: true,
+                  featureVersion: '1',
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
           },
         },
         fiatOrders: {
+          ...initialState,
           orders: [
             {
               ...mockOrder1,
               state: 'PENDING',
               id: 'test-56-order-1',
               network: '56',
-              account: MOCK_ADDRESS_1,
+              account: MOCK_ADDRESS_1, // Should be included (same account group)
             },
             {
               ...mockOrder1,
