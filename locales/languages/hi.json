@@ -1761,8 +1761,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFi पोजीशंस लोड हो रही है...",
-    "no_visible_positions": "आप जो खोज रहे हैं वह आपको नहीं मिल रहा?",
-    "not_supported": "हम अभी आपके प्रोटोकॉल को सपोर्ट नहीं कर सकते।",
     "error_cannot_load_page": "हम यह पेज लोड नहीं कर सके।",
     "error_visit_again": "बाद में फिर से आने का प्रयास करें।",
     "single_token": "केवल {{symbol}}",
