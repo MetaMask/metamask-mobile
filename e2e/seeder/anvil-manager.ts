@@ -1,6 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
-import { createServer } from 'net';
+import { createServer } from 'react-native-tcp';
 import fs from 'fs';
 import path from 'path';
 import { createAnvilClients } from './anvil-clients';

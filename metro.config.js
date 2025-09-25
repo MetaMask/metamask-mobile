@@ -71,7 +71,6 @@ module.exports = function (baseConfig) {
           https: require.resolve('https-browserify'),
           vm: require.resolve('vm-browserify'),
           os: require.resolve('react-native-os'),
-          net: require.resolve('react-native-tcp'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
           'base64-js': 'react-native-quick-base64',
