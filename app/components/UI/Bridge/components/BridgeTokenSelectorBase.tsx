@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -8,22 +8,18 @@ import Text, {
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Icon, {
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import { IconSize } from '../../../../component-library/components/Icons/Icon/Icon.types';
 import { strings } from '../../../../../locales/i18n';
-import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
+import { FlexDirection, AlignItems } from '../../Box/box.types';
 import { useTokenSearch } from '../hooks/useTokenSearch';
 import TextFieldSearch from '../../../../component-library/components/Form/TextFieldSearch';
 import { BridgeToken } from '../types';
 import { Skeleton } from '../../../../component-library/components/Skeleton';
 import { useAssetMetadata } from '../hooks/useAssetMetadata';
 import { CaipChainId, Hex } from '@metamask/utils';
-// We use ReusableModal instead of BottomSheet to prevent the keyboard from pushing the search input off screen
-import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlatList } from 'react-native-gesture-handler';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../component-library/components/BottomSheets/BottomSheet';
 
 // FlashList on iOS had some issues so we use FlatList for both platforms now
 const ListComponent = FlatList;
@@ -31,17 +27,6 @@ const ListComponent = FlatList;
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
-    headerTitle: {
-      flex: 1,
-      textAlign: 'center',
-    },
-    closeButton: {
-      position: 'absolute',
-      right: 0,
-    },
-    closeIconBox: {
-      padding: 8,
-    },
     emptyList: {
       marginVertical: 10,
       marginHorizontal: 24,
@@ -68,26 +53,9 @@ const createStyles = (params: { theme: Theme }) => {
     skeletonItemRows: {
       flex: 1,
     },
-    // This section is so we can use ReusableModal styled like BottomSheet
-    content: {
-      flex: 1,
-      backgroundColor: theme.colors.background.default,
+    flatList: {
+      maxHeight: 800,
     },
-    screen: { justifyContent: 'flex-end' },
-    sheet: {
-      backgroundColor: theme.colors.background.default,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-    },
-    notch: {
-      width: 48,
-      height: 5,
-      borderRadius: 4,
-      backgroundColor: theme.colors.border.default,
-      marginTop: 8,
-      alignSelf: 'center',
-    },
-    // End section
   });
 };
 
@@ -152,8 +120,7 @@ export const BridgeTokenSelectorBase: React.FC<
   title,
   scrollResetKey,
 }) => {
-  const { styles, theme } = useStyles(createStyles, {});
-  const safeAreaInsets = useSafeAreaInsets();
+  const { styles } = useStyles(createStyles, {});
   const {
     searchString,
     setSearchString,
@@ -210,9 +177,9 @@ export const BridgeTokenSelectorBase: React.FC<
     [debouncedSearchString, styles],
   );
 
-  const modalRef = useRef<ReusableModalRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const dismissModal = (): void => {
-    modalRef.current?.dismissModal();
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   const shouldRenderOverallLoading = useMemo(
@@ -231,55 +198,25 @@ export const BridgeTokenSelectorBase: React.FC<
   }, [pending, tokensToRender]);
 
   return (
-    <ReusableModal
-      ref={modalRef}
-      style={[styles.screen, { marginTop: safeAreaInsets.top }]}
-    >
-      <Box
-        style={[
-          styles.content,
-          styles.sheet,
-          { paddingBottom: safeAreaInsets.bottom },
-        ]}
-      >
-        <Box style={styles.notch} />
-        <Box gap={4}>
-          <BottomSheetHeader>
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              justifyContent={JustifyContent.center}
-            >
-              <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-                {title ?? strings('bridge.select_token')}
-              </Text>
-              <Box style={[styles.closeButton, styles.closeIconBox]}>
-                <TouchableOpacity
-                  onPress={dismissModal}
-                  testID="bridge-token-selector-close-button"
-                >
-                  <Icon
-                    name={IconName.Close}
-                    size={IconSize.Sm}
-                    color={theme.colors.icon.default}
-                  />
-                </TouchableOpacity>
-              </Box>
-            </Box>
-          </BottomSheetHeader>
-        </Box>
+    <BottomSheet ref={sheetRef}>
+      <BottomSheetHeader onClose={dismissModal}>
+        <Text variant={TextVariant.HeadingMD}>
+          {title ?? strings('bridge.select_token')}
+        </Text>
+      </BottomSheetHeader>
 
-        <Box style={styles.buttonContainer} gap={16}>
-          {networksBar}
+      <Box style={styles.buttonContainer} gap={16}>
+        {networksBar}
 
-          <TextFieldSearch
-            value={searchString}
-            onChangeText={handleSearchTextChange}
-            placeholder={strings('swaps.search_token')}
-            testID="bridge-token-search-input"
-          />
-        </Box>
+        <TextFieldSearch
+          value={searchString}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('swaps.search_token')}
+          testID="bridge-token-search-input"
+        />
+      </Box>
 
+      <View style={styles.flatList}>
         <ListComponent
           key={scrollResetKey}
           data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
@@ -295,12 +232,11 @@ export const BridgeTokenSelectorBase: React.FC<
           bounces
           scrollEnabled
           removeClippedSubviews
-          maxToRenderPerBatch={40}
+          maxToRenderPerBatch={20}
           windowSize={10}
-          initialNumToRender={50}
-          updateCellsBatchingPeriod={100}
+          initialNumToRender={20}
         />
-      </Box>
-    </ReusableModal>
+      </View>
+    </BottomSheet>
   );
 };
