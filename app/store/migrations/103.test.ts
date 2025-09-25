@@ -205,7 +205,7 @@ describe('Migration 103', () => {
   it('should handle invalid state gracefully', async () => {
     const invalidState = null;
 
-    const result = await migration103(invalidState);
+    const result = await migrate(invalidState);
 
     expect(result).toBe(invalidState);
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
