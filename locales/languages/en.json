@@ -126,7 +126,7 @@
   },
   "autocomplete": {
     "placeholder": "Search by token, site or address",
-    "recents": "Recents",
+    "recents": "Recent",
     "favorites": "Favorites",
     "sites": "Sites",
     "tokens": "Tokens"
@@ -388,8 +388,8 @@
     "title": "MetaMask password",
     "description": "Unlocks MetaMask on this device only.",
     "description_social_login": "Use this for wallet recovery on all devices.",
-    "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
-    "description_social_login_update_bold": "MetaMask can't reset it.",
+    "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
+    "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
     "password": "Create password",
     "confirm_password": "Confirm password",
@@ -416,8 +416,8 @@
     "create_password_cta": "Create password",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match.",
-    "marketing_opt_in_description": "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
-    "loose_password_description": "If I lose this password, MetaMask can’t reset it."
+    "marketing_opt_in_description" : "Get product updates, tips, and news including by email. We may use your interactions to improve what we share.",
+    "loose_password_description" : "If I lose this password, MetaMask can’t reset it."
   },
   "reset_password": {
     "title": "Change password",
@@ -1147,7 +1147,7 @@
       "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
       "cancel": "Cancel",
       "margin": "Margin",
-      "includes_pnl": "includes P&L",
+      "includes_pnl":"includes P&L",
       "pnl": "PnL",
       "estimated_pnl": "Estimated PnL",
       "fees": "Fees",
@@ -1539,27 +1539,27 @@
       "new_prediction": "New prediction"
     },
     "sell_position": "Sell Position",
-    "cash_out": "Cash Out",
+    "cash_out": "cash-out",
     "buy_yes": "Yes",
     "buy_no": "No",
     "outcomes": "outcomes",
     "volume_abbreviated": "Vol.",
     "recurrence": {
-      "none": "None",
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "monthly": "Monthly",
-      "yearly": "Yearly",
-      "quarterly": "Quarterly"
+        "none": "None",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "quarterly": "Quarterly"
     },
     "outcomes_singular": "more outcome",
     "outcomes_plural": "more outcomes",
     "category": {
-      "trending": "Trending",
-      "new": "New",
-      "sports": "Sports",
-      "crypto": "Crypto",
-      "politics": "Politics"
+        "trending": "Trending",
+        "new": "New",
+        "sports": "Sports",
+        "crypto": "Crypto",
+        "politics": "Politics"
     },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
@@ -1610,7 +1610,7 @@
       "subtitle": "Add or transfer tokens to get started"
     },
     "cashout": {
-      "title": "Cash out with MetaMask",
+      "title": "cash-out with MetaMask",
       "subtitle": "Sell your crypto for cash"
     },
     "aggregated": {
@@ -1960,7 +1960,7 @@
     "remove_snap_account": "Remove snap account",
     "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Remove",
-    "remove_account_alert_cancel_btn": "Never mind",
+    "remove_account_alert_cancel_btn": "Nevermind",
     "accounts_title": "Accounts",
     "connect_account_title": "Connect account",
     "connect_accounts_title": "Connect accounts",
@@ -2823,7 +2823,7 @@
     "cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the cancellation attempt is successful, you will be charged the transaction fee above.",
     "speedup_tx_title": "Attempt to speed up?",
     "speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed-up attempt is successful, you will be charged the transaction fee above.",
-    "nevermind": "Never mind",
+    "nevermind": "Nevermind",
     "edit_network_fee": "Edit gas fee",
     "edit_priority": "Edit priority",
     "gas_cancel_fee": "Gas cancellation Fee",
@@ -2961,7 +2961,7 @@
     "home": "Home",
     "close": "Close",
     "open_in_browser": "Open in browser",
-    "change_url": "Change url",
+    "change_url": "Change URL",
     "switch_network": "Switch network",
     "dapp_browser": "DAPP BROWSER",
     "dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
@@ -4036,7 +4036,7 @@
     "onboarding": {
       "what_to_expect": "What to Expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
-      "quotes_sell": "Now you can cash out directly in MetaMask! Get up-to-the-minute quotes from trusted providers while we guide you every step of the way.",
+      "quotes_sell": "Now you can cash-out directly in MetaMask! Get up-to-the-minute quotes from trusted providers while we guide you every step of the way.",
       "benefits": "Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported",
       "benefits_sell": "Off-ramping from crypto to your local currency is now easier than ever.",
       "get_started": "Get started"
@@ -4152,7 +4152,7 @@
       "successful": "Order Successful!",
       "your": "Your",
       "available_in_account": "is now available in your account",
-      "delayed_bank_transfer": "It may take few days to see the cash in your bank account.",
+      "delayed_bank_transfer": "it may take a few days to see the cash in your bank account.",
       "crypto": "crypto",
       "failed": "Order Failed",
       "cancelled": "Order Canceled",
@@ -4406,7 +4406,7 @@
     "action": "Learn more"
   },
   "deeplink": {
-    "invalid": "Invalid Deeplink",
+    "invalid": "Invalid deeplink",
     "not_supported": "Deeplink not supported"
   },
   "error_screen": {
@@ -4447,10 +4447,10 @@
       "title": "New UI update",
       "introduction": "We've made updates to improve the app experience.",
       "descriptions": {
-        "description_1": "Network dropdown moved to your assets",
-        "description_2": "Swap and Bridge in one simple flow",
-        "description_3": "Streamlined Send experience",
-        "description_4": "A fresh account view"
+      "description_1": "Network dropdown moved to your assets",
+      "description_2": "Swap and Bridge in one simple flow",
+      "description_3": "Streamlined Send experience",
+      "description_4": "A fresh account view"
       },
       "more_information": "Now you can focus on your tokens and activity, not the networks behind them.",
       "got_it": "Got it"
@@ -5484,6 +5484,7 @@
     "user_cancelled_title": "Login cancelled",
     "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
     "user_cancelled_button": "Try again",
+
     "google_login_no_credential_title": "Google login failed",
     "google_login_no_credential_description": "We couldn’t find a Google account associated with this login. Try again with a different login method.",
     "google_login_no_credential_button": "Try again",
@@ -5568,16 +5569,16 @@
       "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
       "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
-      "view_accounts_button": "View accounts",
-      "learn_more_button": "Learn more",
-      "setting_up_accounts": "Setting up your accounts"
-    },
-    "learn_more": {
-      "title": "Learn more",
-      "description": "Multichain accounts are now the default. To opt out, turn off basic functionality.",
-      "checkbox_label": "Turn off basic functionality",
-      "confirm_button": "Confirm"
-    },
+        "view_accounts_button": "View accounts",
+        "learn_more_button": "Learn more",
+        "setting_up_accounts": "Setting up your accounts"
+      },
+      "learn_more": {
+        "title": "Learn more",
+        "description": "Multichain accounts are now the default. To opt out, turn off basic functionality.",
+        "checkbox_label": "Turn off basic functionality",
+        "confirm_button": "Confirm"
+      },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
@@ -5755,18 +5756,21 @@
     "failed_to_authenticate": "Failed to authenticate with rewards program",
     "not_implemented": "Coming soon",
     "not_implemented_season_summary": "Season Summary Coming Soon",
+
     "auth_fail_banner": {
       "title": "Authentication Failed",
       "description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "cta_cancel": "Cancel",
       "cta_retry": "Retry"
     },
+
     "season_status_error": {
       "error_fetching_title": "Failed to fetch season balance",
       "error_fetching_description": "We couldn't load your current season balance. Please check your connection and try again.",
       "retry_button": "Retry",
       "dismiss_button": "Dismiss"
     },
+
     "referral_rewards_title": "Referrals",
     "points": "Points",
     "point": "Point",
@@ -5776,17 +5780,22 @@
     "season_ended": "Season ended",
     "main_title": "Rewards",
     "referral_title": "Referrals",
+
     "tab_overview_title": "Overview",
     "tab_activity_title": "Activity",
     "tab_levels_title": "Levels",
+
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
+
     "loading_activity": "Loading activity...",
     "error_loading_activity": "Error loading activity",
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
+
     "toast_dismiss": "Dismiss",
+
     "events": {
       "to": "to",
       "type": {
@@ -5804,12 +5813,14 @@
         "uncategorized_event": "Uncategorized event"
       }
     },
+
     "onboarding": {
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
       "not_supported_account_needed_title": "Ethereum account needed",
       "not_supported_account_needed_description": "MetaMask Rewards aren't available for Solana accounts yet. Switch to an Ethereum account to claim your points.",
       "not_supported_confirm": "Got it",
+
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
@@ -5818,14 +5829,19 @@
       "checking_opt_in": "Checking accounts...",
       "redirecting_to_dashboard": "Redirecting...",
       "intro_skip": "Not now",
+
       "step_confirm": "Next",
       "step_skip": "Skip",
+
       "step1_title": "Earn points on every trade",
       "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Add your accounts and watch your points add up.",
+
       "step2_title": "Level up for bigger perks",
       "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
+
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
+
       "step4_title": "You'll earn 250 points when you sign up!",
       "step4_title_referral_bonus": "You'll earn 500 points when you sign up with a code!",
       "step4_title_referral_validating": "Validating referral code...",
@@ -5839,9 +5855,11 @@
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
       "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
       "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
-      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
-      "step4_legal_disclaimer_4": "learn more"
+      "step4_legal_disclaimer_3":". We'll track onchain activity to reward you automatically –",
+      "step4_legal_disclaimer_4":"learn more"
+
     },
+
     "settings": {
       "title": "Rewards Settings",
       "subtitle": "Accounts",
@@ -5849,7 +5867,7 @@
       "error_title": "Unable to Load Opted-in Accounts",
       "error_description": "We couldn't detect your opted-in accounts. Please check your connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Added ({{count}})",
+ "tab_linked_accounts": "Added ({{count}})",
       "tab_unlinked_accounts": "Not added ({{count}})",
       "no_linked_accounts": "No accounts opted in",
       "all_accounts_linked_title": "All accounts opted in",
@@ -5859,30 +5877,35 @@
       "link_account_button": "Add",
       "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
     },
+
     "optout": {
-      "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
-      "confirm": "Opt out",
-      "modal": {
-        "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
-        "cancel": "Cancel",
-        "confirm": "Confirm",
-        "error_message": "Failed to opt out of Rewards. Please try again.",
-        "processing": "Processing..."
-      }
+        "title": "Opt out of Rewards",
+        "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
+        "confirm": "Opt out",
+        "modal": {
+          "confirmation_title": "Are you sure?",
+          "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+          "cancel": "Cancel",
+          "confirm": "Confirm",
+          "error_message": "Failed to opt out of Rewards. Please try again.",
+          "processing": "Processing..."
+        }
     },
+
     "unlinked_accounts_info": {
       "title": "Accounts not earning points",
       "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
       "go_to_settings": "Go to settings"
     },
+
     "unlinked_account_info": {
       "title": "Account not earning points",
       "description": "This account's activity is not being tracked for this season."
     },
+
     "link_account": "Add account",
     "linking_account": "Adding...",
+
     "ways_to_earn": {
       "title": "Ways to earn",
       "supported_networks": "Supported Networks",
