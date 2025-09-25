@@ -1816,8 +1816,10 @@
   },
   "defi_positions": {
     "loading_positions": "Loading DeFi positions...",
-    "no_visible_positions": "Can't find what you're looking for?",
-    "not_supported": "We may not support your protocol yet.",
+    "empty_state": {
+      "description": "Lend, borrow, and trade, right in your wallet.",
+      "explore_defi": "Explore DeFi"
+    },
     "error_cannot_load_page": "We could not load this page.",
     "error_visit_again": "Try visiting again later.",
     "single_token": "{{symbol}} only",

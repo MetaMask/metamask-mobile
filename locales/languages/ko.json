@@ -1761,8 +1761,6 @@
   },
   "defi_positions": {
     "loading_positions": "디파이 포지션 로드 중...",
-    "no_visible_positions": "찾으시는 것이 없나요?",
-    "not_supported": "아직 해당 프로토콜을 지원하지 않을 수도 있습니다.",
     "error_cannot_load_page": "페이지를 로드할 수 없습니다.",
     "error_visit_again": "나중에 다시 방문해 주세요.",
     "single_token": "{{symbol}} 전용",

@@ -34,6 +34,9 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
+  EXPLORE_TOKENS: {
+    URL: `${PORTFOLIO_URL}/explore/tokens?MetaMaskEntry=mobile`,
+  },
   CARD: {
     URL: 'https://card.metamask.io',
   },

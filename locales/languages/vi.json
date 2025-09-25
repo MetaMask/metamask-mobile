@@ -1761,8 +1761,6 @@
   },
   "defi_positions": {
     "loading_positions": "Đang tải vị thế DeFi...",
-    "no_visible_positions": "Không tìm thấy thứ bạn đang tìm?",
-    "not_supported": "Có thể chúng tôi chưa hỗ trợ giao thức của bạn.",
     "error_cannot_load_page": "Chúng tôi không thể tải trang này.",
     "error_visit_again": "Hãy thử truy cập lại sau.",
     "single_token": "Chỉ {{symbol}}",

@@ -1761,8 +1761,6 @@
   },
   "defi_positions": {
     "loading_positions": "正在加载去中心化金融持仓......",
-    "no_visible_positions": "找不到您要找的内容？",
-    "not_supported": "我们可能尚未支持您的协议。",
     "error_cannot_load_page": "我们无法加载该页面。",
     "error_visit_again": "请稍后再次尝试访问。",
     "single_token": "仅限 {{symbol}}",
