@@ -1,11 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import React, { useMemo } from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import {
-  useEIP7702Networks,
-  type EIP7702NetworkConfiguration,
-} from '../../../../confirmations/hooks/7702/useEIP7702Networks';
+import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row';
 import { Hex } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -23,7 +18,7 @@ const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
   const loadingRows = useMemo(() => {
     if (!pending) return null;
     return Array.from({ length: 6 }, (_, index) => (
-      <Box key={index} twClassName="mb-2 mx-4">
+      <Box key={index} twClassName="mb-2">
         <Box twClassName="w-full flex-row items-center justify-between">
           <Box twClassName="flex-row items-center flex-1">
             <Box twClassName="flex-1">
@@ -38,33 +33,20 @@ const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
     ));
   }, [pending, styles.skeleton, styles.switchSkeleton]);
 
-  const keyExtractor = useCallback(
-    (item: EIP7702NetworkConfiguration) => item.chainId,
-    [],
-  );
-  const renderItem = useCallback<ListRenderItem<EIP7702NetworkConfiguration>>(
-    ({ item }) => (
-      <Box twClassName="mx-4">
-        <AccountNetworkRow network={item} address={address as Hex} />
-      </Box>
-    ),
-    [address],
-  );
-
   if (pending) {
     return <Box>{loadingRows}</Box>;
   }
 
   return (
-    <View style={styles.networkList}>
-      <FlashList
-        testID="network-flat-list"
-        data={network7702List}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-      />
-    </View>
+    <Box testID="network-flat-list">
+      {network7702List.map((network) => (
+        <AccountNetworkRow
+          key={network.chainId}
+          network={network}
+          address={address as Hex}
+        />
+      ))}
+    </Box>
   );
 };
 

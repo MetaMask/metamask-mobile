@@ -26,22 +26,19 @@ const styleSheet = (params: { theme: Theme }) => {
     contentContainer: {
       paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: 32,
+      flex: 1,
     },
     cardContainer: {
       borderRadius: 8,
-      backgroundColor: colors.background.alternative,
       paddingLeft: 16,
       paddingRight: 16,
       paddingTop: 16,
-      paddingBottom: 16,
+      paddingBottom: 8,
       gap: 8,
+      backgroundColor: colors.background.alternative,
     },
     description: {
       flexWrap: 'wrap',
-    },
-    networkList: {
-      marginBottom: 8,
     },
   });
 };
