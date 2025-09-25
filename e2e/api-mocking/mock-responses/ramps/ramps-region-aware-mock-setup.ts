@@ -100,19 +100,26 @@ export const setupRegionAwareOnRampMocks = async (
 
     {
       urlEndpoint:
-        /^https:\/\/uat-static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/eip155\/1\/erc20\/0x0000000000000000000000000000000000000000\.png$/,
+        /^https:\/\/uat-static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/.*\.png$/,
       responseCode: 200,
       response: '',
     },
   ];
 
-  // Set up all mocks
-  for (const mock of mockEndpoints) {
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: mock.urlEndpoint,
-      response: mock.response,
-      responseCode: mock.responseCode,
-    });
-  }
+  await Promise.all([
+    ...mockEndpoints.map((mock) =>
+      setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: mock.urlEndpoint,
+        response: mock.response,
+        responseCode: mock.responseCode,
+      }),
+    ),
+    setupMockRequest(mockServer, {
+      requestMethod: 'HEAD',
+      url: /^https:\/\/uat-static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/.*\.png$/,
+      response: '',
+      responseCode: 200,
+    }),
+  ]);
 };
