@@ -1196,7 +1196,7 @@ describe('TabsList', () => {
       ];
 
       // Act
-      const { getByText, getAllByText } = render(
+      const { getAllByText } = render(
         <TabsList>
           {tabs.map((tab, index) => (
             <View
