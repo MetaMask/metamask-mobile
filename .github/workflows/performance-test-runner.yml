@@ -79,9 +79,13 @@ jobs:
       
 
       - name: Install dependencies
+        run: yarn --immutable
+        ## This installs dependencies and creates the node_modules state file
+      
+      - name: Setup project
         run: yarn setup:github-ci
-        ## This will ensure that we install the patch for appwright
         working-directory: '.'
+        ## This will apply the patches for appwright
       
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
