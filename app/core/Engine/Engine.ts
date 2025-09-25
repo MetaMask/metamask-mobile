@@ -1629,12 +1629,6 @@ export class Engine {
       },
     );
 
-    const { NftController: nfts } = this.context;
-
-    if (process.env.MM_OPENSEA_KEY) {
-      nfts.setApiKey(process.env.MM_OPENSEA_KEY);
-    }
-
     this.controllerMessenger.subscribe(
       'TransactionController:incomingTransactionsReceived',
       (incomingTransactions: TransactionMeta[]) => {

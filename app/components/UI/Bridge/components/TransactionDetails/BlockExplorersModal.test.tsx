@@ -356,8 +356,8 @@ describe('BlockExplorersModal', () => {
           },
           ipfsGateway: 'https://dweb.link/ipfs/',
           tokenNetworkFilter: {
-            [mockChainId]: 'true',
-            [optimismChainId]: 'true',
+            [mockChainId]: true,
+            [optimismChainId]: true,
           },
         },
         TokenListController: {

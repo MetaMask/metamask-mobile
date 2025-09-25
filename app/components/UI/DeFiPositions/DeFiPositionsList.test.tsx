@@ -237,9 +237,9 @@ describe('DeFiPositionsList', () => {
                 ...mockInitialState.engine.backgroundState
                   .PreferencesController,
                 tokenNetworkFilter: {
-                  [MOCK_CHAIN_ID_1]: 'true',
-                  [MOCK_CHAIN_ID_2]: 'true',
-                  [MOCK_CHAIN_ID_3]: 'true',
+                  [MOCK_CHAIN_ID_1]: true,
+                  [MOCK_CHAIN_ID_2]: true,
+                  [MOCK_CHAIN_ID_3]: true,
                 },
               },
             },
