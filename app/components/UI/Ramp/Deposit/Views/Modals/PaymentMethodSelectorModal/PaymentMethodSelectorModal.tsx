@@ -4,10 +4,6 @@ import { FlatList } from 'react-native-gesture-handler';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconColor,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -16,25 +12,30 @@ import ListItemSelect from '../../../../../../../component-library/components/Li
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../../component-library/components/List/ListItemColumn';
-import { useStyles } from '../../../../../../hooks/useStyles';
-import { useDepositSDK } from '../../../sdk';
-import useAnalytics from '../../../../hooks/useAnalytics';
-import { useTheme } from '../../../../../../../util/theme';
-import { strings } from '../../../../../../../../locales/i18n';
+
+import usePaymentMethods from '../../../hooks/usePaymentMethods';
 import styleSheet from './PaymentMethodSelectorModal.styles';
-import { DepositPaymentMethod } from '@consensys/native-ramps-sdk';
-import Routes from '../../../../../../../constants/navigation/Routes';
+import { useStyles } from '../../../../../../hooks/useStyles';
+
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../../locales/i18n';
+import { DepositPaymentMethod } from '../../../constants';
+import Icon, {
+  IconColor,
+} from '../../../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../../../util/theme';
 
-interface PaymentMethodSelectorModalParams {
-  paymentMethods: DepositPaymentMethod[];
+interface PaymentMethodSelectorModalNavigationDetails {
+  selectedPaymentMethodId?: string;
+  handleSelectPaymentMethodId?: (paymentMethodId: string) => void;
 }
 
 export const createPaymentMethodSelectorModalNavigationDetails =
-  createNavigationDetails<PaymentMethodSelectorModalParams>(
+  createNavigationDetails(
     Routes.DEPOSIT.MODALS.ID,
     Routes.DEPOSIT.MODALS.PAYMENT_METHOD_SELECTOR,
   );
@@ -42,50 +43,31 @@ export const createPaymentMethodSelectorModalNavigationDetails =
 function PaymentMethodSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
+
+  const { selectedPaymentMethodId, handleSelectPaymentMethodId } =
+    useParams<PaymentMethodSelectorModalNavigationDetails>();
   const { height: screenHeight } = useWindowDimensions();
   const { themeAppearance } = useTheme();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
 
-  const { paymentMethods } = useParams<PaymentMethodSelectorModalParams>();
-  const trackEvent = useAnalytics();
-  const {
-    setSelectedPaymentMethod,
-    selectedRegion,
-    isAuthenticated,
-    selectedPaymentMethod,
-  } = useDepositSDK();
+  const paymentMethods = usePaymentMethods();
 
   const handleSelectPaymentMethodIdCallback = useCallback(
     (paymentMethodId: string) => {
-      const foundPaymentMethod = paymentMethods.find(
-        (_paymentMethod) => _paymentMethod.id === paymentMethodId,
-      );
-      if (foundPaymentMethod) {
-        trackEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-          payment_method_id: foundPaymentMethod.id,
-          is_authenticated: isAuthenticated,
-        });
-        setSelectedPaymentMethod(foundPaymentMethod);
+      if (handleSelectPaymentMethodId) {
+        handleSelectPaymentMethodId(paymentMethodId);
       }
       sheetRef.current?.onCloseBottomSheet();
     },
-    [
-      paymentMethods,
-      trackEvent,
-      selectedRegion?.isoCode,
-      isAuthenticated,
-      setSelectedPaymentMethod,
-    ],
+    [handleSelectPaymentMethodId],
   );
 
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: DepositPaymentMethod }) => (
       <ListItemSelect
-        isSelected={selectedPaymentMethod?.id === paymentMethod.id}
+        isSelected={selectedPaymentMethodId === paymentMethod.id}
         onPress={() => handleSelectPaymentMethodIdCallback(paymentMethod.id)}
         accessibilityRole="button"
         accessible
@@ -93,7 +75,7 @@ function PaymentMethodSelectorModal() {
         <ListItemColumn widthType={WidthType.Auto}>
           <View style={styles.iconContainer}>
             <Icon
-              name={paymentMethod.icon as IconName}
+              name={paymentMethod.icon}
               color={
                 typeof paymentMethod.iconColor === 'object'
                   ? paymentMethod.iconColor[themeAppearance]
@@ -114,7 +96,7 @@ function PaymentMethodSelectorModal() {
     ),
     [
       handleSelectPaymentMethodIdCallback,
-      selectedPaymentMethod?.id,
+      selectedPaymentMethodId,
       styles.iconContainer,
       themeAppearance,
     ],
@@ -133,7 +115,7 @@ function PaymentMethodSelectorModal() {
         ref={listRef}
         data={paymentMethods}
         renderItem={renderPaymentMethod}
-        extraData={selectedPaymentMethod?.id}
+        extraData={selectedPaymentMethodId}
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"

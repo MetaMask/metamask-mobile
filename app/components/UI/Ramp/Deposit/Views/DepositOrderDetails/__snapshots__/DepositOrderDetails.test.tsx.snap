@@ -7,7 +7,7 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
       "bottom": "additive",
       "left": "additive",
       "right": "additive",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -43,7 +43,7 @@ exports[`DepositOrderDetails Component renders an error screen if a CREATED orde
             "bottom": "additive",
             "left": "additive",
             "right": "additive",
-            "top": "off",
+            "top": "additive",
           }
         }
         style={
@@ -186,7 +186,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
       "bottom": "additive",
       "left": "additive",
       "right": "additive",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -554,7 +554,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </View>
@@ -605,7 +605,7 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                     }
                   >
                     ..
-                    ak_123
+                    123456
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -726,7 +726,7 @@ exports[`DepositOrderDetails Component renders loading state correctly 1`] = `
       "bottom": "additive",
       "left": "additive",
       "right": "additive",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -781,7 +781,7 @@ exports[`DepositOrderDetails Component renders no order found state 1`] = `
       "bottom": "additive",
       "left": "additive",
       "right": "additive",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -811,7 +811,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
       "bottom": "additive",
       "left": "additive",
       "right": "additive",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -1183,7 +1183,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                       }
                     }
                   >
-                    Ethereum
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </View>
@@ -1234,7 +1234,7 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                     }
                   >
                     ..
-                    ak_123
+                    123456
                   </Text>
                   <SvgMock
                     color="#121314"
@@ -1355,7 +1355,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
       "bottom": "additive",
       "left": "additive",
       "right": "additive",
-      "top": "off",
+      "top": "additive",
     }
   }
   style={
@@ -1723,7 +1723,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                       }
                     }
                   >
-                    Ethereum
+                    Ethereum Mainnet
                   </Text>
                 </View>
               </View>
@@ -1774,7 +1774,7 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                     }
                   >
                     ..
-                    ak_123
+                    123456
                   </Text>
                   <SvgMock
                     color="#121314"

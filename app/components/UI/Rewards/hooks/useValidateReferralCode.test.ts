@@ -84,21 +84,10 @@ describe('useValidateReferralCode', () => {
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
-      result.current.setReferralCode('TEST123');
+      result.current.setReferralCode('TEST');
     });
 
-    expect(result.current.referralCode).toBe('TEST123');
-  });
-
-  it('should not validate when code length is less than 6 but set relevant error', () => {
-    const { result } = renderHook(() => useValidateReferralCode());
-
-    act(() => {
-      result.current.setReferralCode('12345');
-    });
-
-    expect(result.current.referralCode).toBe('12345');
-    expect(result.current.isValid).toBe(false);
+    expect(result.current.referralCode).toBe('TEST');
   });
 
   it('should handle engine call errors gracefully', async () => {

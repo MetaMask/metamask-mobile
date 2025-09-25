@@ -523,7 +523,7 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -1271,7 +1271,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -2077,7 +2077,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -2869,7 +2869,7 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -3617,7 +3617,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -4409,7 +4409,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={

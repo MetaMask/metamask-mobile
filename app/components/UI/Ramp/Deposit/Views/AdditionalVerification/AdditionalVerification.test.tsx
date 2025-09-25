@@ -31,6 +31,7 @@ jest.mock('../../../../../../util/navigation/navUtils.ts', () => ({
   useParams: () => ({
     quote: { id: 'test-quote' },
     kycUrl: 'https://test-kyc-url.com',
+    cryptoCurrencyChainId: '1',
     paymentMethodId: 'pm_123',
   }),
 }));

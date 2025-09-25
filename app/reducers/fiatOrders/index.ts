@@ -1,11 +1,7 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/Aggregator/types';
-import type {
-  DepositRegion,
-  DepositCryptoCurrency,
-  DepositPaymentMethod,
-} from '@consensys/native-ramps-sdk';
+import { DepositRegion } from '../../components/UI/Ramp/Deposit/constants';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import {
@@ -48,18 +44,6 @@ export const setFiatOrdersRegionAGG = (region: Region | null) => ({
 export const setFiatOrdersRegionDeposit = (region: DepositRegion | null) => ({
   type: ACTIONS.FIAT_SET_REGION_DEPOSIT,
   payload: region,
-});
-export const setFiatOrdersCryptoCurrencyDeposit = (
-  cryptoCurrency: DepositCryptoCurrency | null,
-) => ({
-  type: ACTIONS.FIAT_SET_CRYPTO_CURRENCY_DEPOSIT,
-  payload: cryptoCurrency,
-});
-export const setFiatOrdersPaymentMethodDeposit = (
-  paymentMethod: DepositPaymentMethod | null,
-) => ({
-  type: ACTIONS.FIAT_SET_PAYMENT_METHOD_DEPOSIT,
-  payload: paymentMethod,
 });
 export const setFiatOrdersPaymentMethodAGG = (
   paymentMethodId: string | null,
@@ -183,14 +167,6 @@ export const fiatOrdersRegionSelectorDeposit: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionDeposit'] = (state: RootState) =>
   state.fiatOrders.selectedRegionDeposit;
-export const fiatOrdersCryptoCurrencySelectorDeposit: (
-  state: RootState,
-) => FiatOrdersState['selectedCryptoCurrencyDeposit'] = (state: RootState) =>
-  state.fiatOrders.selectedCryptoCurrencyDeposit;
-export const fiatOrdersPaymentMethodSelectorDeposit: (
-  state: RootState,
-) => FiatOrdersState['selectedPaymentMethodDeposit'] = (state: RootState) =>
-  state.fiatOrders.selectedPaymentMethodDeposit;
 export const fiatOrdersPaymentMethodSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedPaymentMethodAgg'] = (state: RootState) =>
@@ -309,8 +285,6 @@ export const initialState: FiatOrdersState = {
   networks: [],
   selectedRegionAgg: null,
   selectedRegionDeposit: null,
-  selectedCryptoCurrencyDeposit: null,
-  selectedPaymentMethodDeposit: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
   getStartedSell: false,
@@ -411,18 +385,6 @@ const fiatOrderReducer: (
       return {
         ...state,
         selectedRegionDeposit: action.payload,
-      };
-    }
-    case ACTIONS.FIAT_SET_CRYPTO_CURRENCY_DEPOSIT: {
-      return {
-        ...state,
-        selectedCryptoCurrencyDeposit: action.payload,
-      };
-    }
-    case ACTIONS.FIAT_SET_PAYMENT_METHOD_DEPOSIT: {
-      return {
-        ...state,
-        selectedPaymentMethodDeposit: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG: {

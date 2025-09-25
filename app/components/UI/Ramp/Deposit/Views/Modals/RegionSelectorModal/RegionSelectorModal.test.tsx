@@ -3,12 +3,6 @@ import { fireEvent } from '@testing-library/react-native';
 import RegionSelectorModal from './RegionSelectorModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import {
-  MOCK_REGIONS_EXTENDED,
-  MOCK_US_REGION,
-  MOCK_EUR_REGION,
-  MOCK_CA_REGION,
-} from '../../../testUtils';
 
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
@@ -30,41 +24,90 @@ jest.mock('../../../sdk', () => ({
   useDepositSDK: jest.fn(),
 }));
 
-jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
-  createNavigationDetails: jest.fn(() => () => ['MockedRoute', {}]),
-}));
-
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
-const mockRegions = MOCK_REGIONS_EXTENDED;
+jest.mock('../../../constants', () => ({
+  DEPOSIT_REGIONS: [
+    {
+      isoCode: 'US',
+      flag: '🇺🇸',
+      name: 'United States',
+      phone: {
+        prefix: '+1',
+        placeholder: '(555) 555-1234',
+        template: '(XXX) XXX-XXXX',
+      },
+      currency: 'USD',
+      recommended: true,
+      supported: true,
+    },
+    {
+      isoCode: 'DE',
+      flag: '🇩🇪',
+      name: 'Germany',
+      phone: {
+        prefix: '+49',
+        placeholder: '123 456 7890',
+        template: 'XXX XXX XXXX',
+      },
+      currency: 'EUR',
+      supported: true,
+    },
+    {
+      isoCode: 'CA',
+      flag: '🇨🇦',
+      name: 'Canada',
+      phone: {
+        prefix: '+1',
+        placeholder: '(555) 555-1234',
+        template: '(XXX) XXX-XXXX',
+      },
+      currency: 'CAD',
+      supported: false,
+    },
+    {
+      isoCode: 'FR',
+      flag: '🇫🇷',
+      name: 'France',
+      phone: {
+        prefix: '+33',
+        placeholder: '1 23 45 67 89',
+        template: 'X XX XX XX XX',
+      },
+      currency: 'EUR',
+      supported: true,
+    },
+  ],
+}));
 
 describe('RegionSelectorModal Component', () => {
   let mockSetSelectedRegion: jest.Mock;
   let mockUseDepositSDK: jest.Mock;
-  let mockUseParams: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockSetSelectedRegion = jest.fn();
     mockUseDepositSDK = jest.requireMock('../../../sdk').useDepositSDK;
-    mockUseParams = jest.requireMock(
-      '../../../../../../../util/navigation/navUtils',
-    ).useParams;
-
     mockUseDepositSDK.mockReturnValue({
-      selectedRegion: { ...MOCK_US_REGION, recommended: true },
+      selectedRegion: {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        phone: {
+          prefix: '+1',
+          placeholder: '(555) 555-1234',
+          template: '(XXX) XXX-XXXX',
+        },
+        currency: 'USD',
+        recommended: true,
+        supported: true,
+      },
       setSelectedRegion: mockSetSelectedRegion,
       isAuthenticated: false,
     });
-
-    mockUseParams.mockReturnValue({
-      regions: mockRegions,
-      error: null,
-    });
-
+    // Ensure trackEvent mock is reset
     mockTrackEvent.mockClear();
   });
 
@@ -120,8 +163,9 @@ describe('RegionSelectorModal Component', () => {
   });
 
   it('sorts recommended regions to the top when no search is active', () => {
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getAllByText } = renderWithProvider(RegionSelectorModal);
+    const firstRegion = getAllByText('United States')[0];
+    expect(firstRegion).toBeTruthy();
   });
 
   it('tracks RAMPS_REGION_SELECTED event when a supported region is selected', () => {
@@ -144,29 +188,5 @@ describe('RegionSelectorModal Component', () => {
     fireEvent.press(canadaRegion);
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
-  });
-
-  it('receives and uses regions from navigation params', () => {
-    const customRegions = [MOCK_EUR_REGION, MOCK_CA_REGION];
-
-    mockUseParams.mockReturnValue({
-      regions: customRegions,
-      error: null,
-    });
-
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('handles empty regions array from navigation params', () => {
-    mockUseParams.mockReturnValue({
-      regions: [],
-      error: null,
-    });
-
-    const { toJSON } = renderWithProvider(RegionSelectorModal);
-
-    expect(toJSON()).toMatchSnapshot();
   });
 });

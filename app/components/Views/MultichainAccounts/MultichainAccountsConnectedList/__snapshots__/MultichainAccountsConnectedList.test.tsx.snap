@@ -126,9 +126,9 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         "borderColor": "#4459ff",
                         "borderRadius": 8,
                         "borderWidth": 2,
-                        "height": 40,
+                        "height": 36,
                         "justifyContent": "center",
-                        "width": 40,
+                        "width": 36,
                       }
                     }
                   >
@@ -136,12 +136,10 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       style={
                         {
                           "backgroundColor": "#3c4d9d0f",
-                          "borderColor": "#FFFFFF",
                           "borderRadius": 6,
-                          "borderWidth": 2,
-                          "height": 36,
+                          "height": 32,
                           "overflow": "hidden",
-                          "width": 36,
+                          "width": 32,
                         }
                       }
                       testID="multichain-account-cell-avatar"
@@ -175,7 +173,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         {
                           "color": "#121314",
                           "flex": 1,
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -219,7 +217,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -328,9 +326,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       style={
                         {
                           "backgroundColor": "#3c4d9d0f",
-                          "borderColor": "transparent",
                           "borderRadius": 6,
-                          "borderWidth": 0,
                           "height": 32,
                           "overflow": "hidden",
                           "width": 32,
@@ -367,7 +363,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         {
                           "color": "#121314",
                           "flex": 1,
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -396,7 +392,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "Geist Medium",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,

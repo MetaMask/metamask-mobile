@@ -34,9 +34,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci
+          command: yarn setup
       - name: Require clean working directory
         shell: bash
         run: |
@@ -60,9 +58,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          command: yarn setup --node
       - name: Deduplicate dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -91,9 +87,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          command: yarn setup --node
       - name: Run @lavamoat/git-safe-dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -126,9 +120,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          command: yarn setup --node
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -156,9 +148,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          command: yarn setup --node
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
@@ -197,9 +187,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          command: yarn setup --node
       - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
@@ -228,7 +216,7 @@ jobs:
     uses: ./.github/workflows/needs-e2e-build.yml
       
   build-android-apks:
-    name: 'Build Android APKs'
+    name: "Build Android APKs"
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
@@ -238,7 +226,7 @@ jobs:
     secrets: inherit
 
   e2e-smoke-tests-android:
-    name: 'Android E2E Smoke Tests'
+    name: "Android E2E Smoke Tests"
     if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
     permissions:
       contents: read
@@ -263,9 +251,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --no-build-android
+          command: yarn setup --no-build-android
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
@@ -497,3 +483,4 @@ jobs:
       GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
       SPREADSHEET_ID: ${{ secrets.GOOGLE_MERGE_QUEUE_SPREADSHEET_ID }}
       SHEET_NAME: ${{ secrets.GOOGLE_MERGE_QUEUE_SHEET_NAME }}
+

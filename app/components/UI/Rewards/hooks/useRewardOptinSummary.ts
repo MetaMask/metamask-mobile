@@ -4,13 +4,11 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
 } from '../../../../selectors/accountsController';
-import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../core/Engine';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Logger from '../../../../util/Logger';
 import { useFocusEffect } from '@react-navigation/native';
-import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 
 interface AccountWithOptInStatus extends InternalAccount {
   hasOptedIn: boolean;
@@ -45,14 +43,9 @@ export const useRewardOptinSummary = (
     boolean | null
   >(null);
   const isLoadingRef = useRef(false);
-  // Check if any account operations are loading
-  const { isAccountSyncingInProgress } = useAccountsOperationsLoadingStates();
 
-  // Debounce accounts for 30 seconds to avoid excessive re-renders (i.e. profile sync)
-  const accounts = useDebouncedValue(
-    internalAccounts,
-    isAccountSyncingInProgress ? 10000 : 0,
-  );
+  // Memoize accounts to avoid unnecessary re-renders
+  const accounts = useMemo(() => internalAccounts || [], [internalAccounts]);
 
   // Fetch opt-in status for all accounts
   const fetchOptInStatus = useCallback(async (): Promise<void> => {

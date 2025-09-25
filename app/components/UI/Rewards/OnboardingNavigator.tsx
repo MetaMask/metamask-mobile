@@ -12,26 +12,24 @@ import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
 import { setOnboardingActiveStep } from '../../../reducers/rewards';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
-import { useNavigation } from '@react-navigation/native';
-import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 const Stack = createStackNavigator();
 
 const OnboardingNavigator: React.FC = () => {
   const activeStep = useSelector(selectOnboardingActiveStep);
-  const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const account = useSelector(selectSelectedInternalAccount);
   const dispatch = useDispatch();
 
   useGeoRewardsMetadata();
 
   // Reset onboarding step when component mounts/account changes to prevent stale state
   useEffect(() => {
-    if (!subscriptionId) {
+    if (account && !subscriptionId) {
       dispatch(setOnboardingActiveStep(OnboardingStep.INTRO));
-      navigation.navigate(Routes.REWARDS_ONBOARDING_INTRO);
     }
-  }, [subscriptionId, dispatch, navigation]);
+  }, [account, subscriptionId, dispatch]);
 
   const getInitialRoute = useCallback(() => {
     switch (activeStep) {
@@ -51,35 +49,33 @@ const OnboardingNavigator: React.FC = () => {
   }, [activeStep]);
 
   return (
-    <UnmountOnBlur>
-      <Stack.Navigator initialRouteName={getInitialRoute()}>
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_INTRO}
-          component={OnboardingIntroStep}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_1}
-          component={OnboardingStep1}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_2}
-          component={OnboardingStep2}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_3}
-          component={OnboardingStep3}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.REWARDS_ONBOARDING_4}
-          component={OnboardingStep4}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </UnmountOnBlur>
+    <Stack.Navigator initialRouteName={getInitialRoute()}>
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_INTRO}
+        component={OnboardingIntroStep}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_1}
+        component={OnboardingStep1}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_2}
+        component={OnboardingStep2}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_3}
+        component={OnboardingStep3}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_ONBOARDING_4}
+        component={OnboardingStep4}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
   );
 };
 

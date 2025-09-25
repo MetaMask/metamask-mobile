@@ -1,10 +1,7 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import useAccountTokenCompatible from './useAccountTokenCompatible';
+import { USDC_SOLANA_TOKEN, USDC_TOKEN } from '../constants';
 import initialRootState from '../../../../../util/test/initial-root-state';
-import {
-  MOCK_USDC_TOKEN,
-  MOCK_USDC_SOLANA_TOKEN,
-} from '../testUtils/constants';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
   MOCK_SOLANA_ACCOUNT,
@@ -41,7 +38,7 @@ describe('useAccountTokenCompatible', () => {
     };
 
     const { result } = renderHookWithProvider(
-      () => useAccountTokenCompatible(MOCK_USDC_SOLANA_TOKEN),
+      () => useAccountTokenCompatible(USDC_SOLANA_TOKEN),
       { state },
     );
 
@@ -72,7 +69,7 @@ describe('useAccountTokenCompatible', () => {
     };
 
     const { result } = renderHookWithProvider(
-      () => useAccountTokenCompatible(MOCK_USDC_TOKEN),
+      () => useAccountTokenCompatible(USDC_TOKEN),
       { state },
     );
 
@@ -85,7 +82,7 @@ describe('useAccountTokenCompatible', () => {
     };
 
     const { result } = renderHookWithProvider(
-      () => useAccountTokenCompatible(MOCK_USDC_TOKEN),
+      () => useAccountTokenCompatible(USDC_TOKEN),
       { state },
     );
 
@@ -116,7 +113,7 @@ describe('useAccountTokenCompatible', () => {
     };
 
     const { result } = renderHookWithProvider(
-      () => useAccountTokenCompatible(MOCK_USDC_SOLANA_TOKEN),
+      () => useAccountTokenCompatible(USDC_SOLANA_TOKEN),
       { state },
     );
 
@@ -142,7 +139,7 @@ describe('useAccountTokenCompatible', () => {
     };
 
     const { result } = renderHookWithProvider(
-      () => useAccountTokenCompatible(MOCK_USDC_TOKEN),
+      () => useAccountTokenCompatible(USDC_TOKEN),
       { state },
     );
 

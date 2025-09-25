@@ -13,7 +13,7 @@ import * as tokenBottomSheetUtils from '../../UI/Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
+jest.mock('react-native-scrollable-tab-view', () => {
   const MockScrollableTabView = (props: {
     children?: unknown;
     [key: string]: unknown;

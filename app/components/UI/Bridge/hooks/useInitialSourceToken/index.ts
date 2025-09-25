@@ -22,7 +22,6 @@ import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../../../selectors/multichainNetworkController';
-import { useEffect } from 'react';
 
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   const nativeAsset = getNativeAssetForChainId(chainId);
@@ -74,56 +73,42 @@ export const useInitialSourceToken = (
     ? selectedEvmChainId
     : selectedNonEvmNetworkChainId;
 
-  useEffect(() => {
-    // Will default to the native token of the current chain if no token is provided
-    if (!initialSourceToken && !sourceToken) {
-      dispatch(setSourceToken(getNativeSourceToken(chainId)));
-      return;
-    }
+  // Will default to the native token of the current chain if no token is provided
+  if (!initialSourceToken && !sourceToken) {
+    dispatch(setSourceToken(getNativeSourceToken(chainId)));
+    return;
+  }
 
-    if (prevInitialSourceToken === initialSourceToken) return;
+  if (prevInitialSourceToken === initialSourceToken) return;
 
-    // Fix for the case where the initial source token is the native token of the current chain
-    if (initialSourceToken?.address === constants.AddressZero) {
-      // Set the source token
-      dispatch(
-        setSourceToken(getNativeSourceToken(initialSourceToken?.chainId)),
-      );
-    } else {
-      // Set the source token
-      dispatch(setSourceToken(initialSourceToken));
-    }
+  // Fix for the case where the initial source token is the native token of the current chain
+  if (initialSourceToken?.address === constants.AddressZero) {
+    // Set the source token
+    dispatch(setSourceToken(getNativeSourceToken(initialSourceToken?.chainId)));
+  } else {
+    // Set the source token
+    dispatch(setSourceToken(initialSourceToken));
+  }
 
-    // Set source amount if provided
-    if (initialSourceAmount) {
-      dispatch(setSourceAmount(initialSourceAmount));
-    }
+  // Set source amount if provided
+  if (initialSourceAmount) {
+    dispatch(setSourceAmount(initialSourceAmount));
+  }
 
-    // Change network if necessary
-    if (initialSourceToken?.chainId) {
-      // Convert both chain IDs to CAIP format for accurate comparison
-      const sourceCaipChainId = formatChainIdToCaip(initialSourceToken.chainId);
-      const currentCaipChainId = formatChainIdToCaip(chainId);
+  // Change network if necessary
+  if (initialSourceToken?.chainId) {
+    // Convert both chain IDs to CAIP format for accurate comparison
+    const sourceCaipChainId = formatChainIdToCaip(initialSourceToken.chainId);
+    const currentCaipChainId = formatChainIdToCaip(chainId);
 
-      if (sourceCaipChainId !== currentCaipChainId) {
-        if (sourceCaipChainId === SolScope.Mainnet) {
-          onNonEvmNetworkChange(SolScope.Mainnet);
-          return;
-        }
-
-        const hexChainId = formatChainIdToHex(sourceCaipChainId);
-        onSetRpcTarget(evmNetworkConfigurations[hexChainId]);
+    if (sourceCaipChainId !== currentCaipChainId) {
+      if (sourceCaipChainId === SolScope.Mainnet) {
+        onNonEvmNetworkChange(SolScope.Mainnet);
+        return;
       }
+
+      const hexChainId = formatChainIdToHex(sourceCaipChainId);
+      onSetRpcTarget(evmNetworkConfigurations[hexChainId]);
     }
-  }, [
-    initialSourceToken,
-    sourceToken,
-    evmNetworkConfigurations,
-    chainId,
-    onSetRpcTarget,
-    onNonEvmNetworkChange,
-    dispatch,
-    initialSourceAmount,
-    prevInitialSourceToken,
-  ]);
+  }
 };

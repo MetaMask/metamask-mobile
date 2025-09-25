@@ -327,7 +327,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -810,7 +810,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -1293,7 +1293,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -1776,7 +1776,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -2244,7 +2244,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -2716,7 +2716,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -3203,7 +3203,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -3686,7 +3686,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -4169,7 +4169,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>
@@ -4652,7 +4652,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
             }
           }
         >
-          Ethereum
+          Ethereum Mainnet
         </Text>
       </View>
     </View>

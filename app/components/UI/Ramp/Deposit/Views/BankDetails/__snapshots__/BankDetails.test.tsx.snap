@@ -523,7 +523,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -1633,7 +1633,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={

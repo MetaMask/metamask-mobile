@@ -107,7 +107,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   };
 });
 
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
+jest.mock('react-native-scrollable-tab-view', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,

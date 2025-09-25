@@ -68,7 +68,7 @@ const SettingsButtonSection = ({
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             onPress={onButtonPress}
-            isDisabled={buttonDisabled || modalVisible}
+            isDisabled={buttonDisabled}
             testID={testID}
             label={sectionButtonText}
           />

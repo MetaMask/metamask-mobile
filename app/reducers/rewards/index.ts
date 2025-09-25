@@ -11,7 +11,6 @@ import { OnboardingStep } from './types';
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels';
   seasonStatusLoading: boolean;
-  seasonStatusError: string | null;
 
   // Season state
   seasonId: string | null;
@@ -39,7 +38,7 @@ export interface RewardsState {
   onboardingActiveStep: OnboardingStep;
 
   // Candidate subscription state
-  candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
+  candidateSubscriptionId: string | 'pending' | 'error' | null;
 
   // Geolocation state
   geoLocation: string | null;
@@ -62,7 +61,6 @@ export interface RewardsState {
 export const initialState: RewardsState = {
   activeTab: 'overview',
   seasonStatusLoading: false,
-  seasonStatusError: null,
 
   seasonId: null,
   seasonName: null,
@@ -118,9 +116,6 @@ const rewardsSlice = createSlice({
       state,
       action: PayloadAction<SeasonStatusState | null>,
     ) => {
-      // Clear error on successful data fetch
-      state.seasonStatusError = null;
-
       // Season state
       state.seasonId = action.payload?.season.id || null;
       state.seasonName = action.payload?.season.name || null;
@@ -184,10 +179,6 @@ const rewardsSlice = createSlice({
       state.seasonStatusLoading = action.payload;
     },
 
-    setSeasonStatusError: (state, action: PayloadAction<string | null>) => {
-      state.seasonStatusError = action.payload;
-    },
-
     resetRewardsState: (state) => {
       Object.assign(state, initialState);
     },
@@ -202,7 +193,7 @@ const rewardsSlice = createSlice({
 
     setCandidateSubscriptionId: (
       state,
-      action: PayloadAction<string | 'pending' | 'error' | 'retry' | null>,
+      action: PayloadAction<string | 'pending' | 'error' | null>,
     ) => {
       state.candidateSubscriptionId = action.payload;
     },
@@ -274,7 +265,6 @@ export const {
   setSeasonStatus,
   setReferralDetails,
   setSeasonStatusLoading,
-  setSeasonStatusError,
   setReferralDetailsLoading,
   resetRewardsState,
   setOnboardingActiveStep,

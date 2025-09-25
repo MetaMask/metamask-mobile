@@ -6,8 +6,6 @@ import Logger from '../../../../util/Logger';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useFocusEffect } from '@react-navigation/native';
-import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
-import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -17,8 +15,6 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
-    subscribe: jest.fn(),
-    unsubscribe: jest.fn(),
   },
 }));
 
@@ -29,19 +25,6 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
-
-// Mock useDebouncedValue hook
-jest.mock('../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: jest.fn(),
-}));
-
-// Mock useAccountsOperationsLoadingStates hook
-jest.mock(
-  '../../../../util/accounts/useAccountsOperationsLoadingStates',
-  () => ({
-    useAccountsOperationsLoadingStates: jest.fn(),
-  }),
-);
 
 describe('useRewardOptinSummary', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -54,13 +37,6 @@ describe('useRewardOptinSummary', () => {
   const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
     typeof useFocusEffect
   >;
-  const mockUseDebouncedValue = useDebouncedValue as jest.MockedFunction<
-    typeof useDebouncedValue
-  >;
-  const mockUseAccountsOperationsLoadingStates =
-    useAccountsOperationsLoadingStates as jest.MockedFunction<
-      typeof useAccountsOperationsLoadingStates
-    >;
 
   const mockAccount1: InternalAccount = {
     id: 'account-1',
@@ -117,16 +93,6 @@ describe('useRewardOptinSummary', () => {
     mockUseSelector
       .mockReturnValueOnce(mockAccounts) // selectInternalAccounts
       .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
-
-    // Mock useDebouncedValue to return accounts by default
-    mockUseDebouncedValue.mockReturnValue(mockAccounts);
-
-    // Mock useAccountsOperationsLoadingStates to return not syncing by default
-    mockUseAccountsOperationsLoadingStates.mockReturnValue({
-      areAnyOperationsLoading: false,
-      isAccountSyncingInProgress: false,
-      loadingMessage: null,
-    });
 
     // Reset the mocked hooks
     mockUseFocusEffect.mockClear();
@@ -428,8 +394,6 @@ describe('useRewardOptinSummary', () => {
         .mockReturnValueOnce([]) // selectInternalAccounts - empty
         .mockReturnValueOnce(null); // selectSelectedInternalAccount
 
-      mockUseDebouncedValue.mockReturnValue([]);
-
       const { result } = renderHook(() => useRewardOptinSummary());
 
       // Verify that the focus effect callback was registered
@@ -445,6 +409,61 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.unlinkedAccounts).toEqual([]);
       expect(result.current.currentAccountOptedIn).toBeNull();
       expect(mockEngineCall).not.toHaveBeenCalled();
+    });
+
+    it('should handle null internal accounts selector', () => {
+      // Arrange
+      mockUseSelector
+        .mockReset()
+        .mockReturnValueOnce(null) // selectInternalAccounts - null
+        .mockReturnValueOnce(null); // selectSelectedInternalAccount
+
+      const { result } = renderHook(() => useRewardOptinSummary());
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Assert
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.linkedAccounts).toEqual([]);
+      expect(result.current.unlinkedAccounts).toEqual([]);
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
+
+    it('should handle single account', async () => {
+      // Arrange
+      const singleAccount = [mockAccount1];
+      mockUseSelector
+        .mockReset()
+        .mockReturnValueOnce(singleAccount) // selectInternalAccounts
+        .mockReturnValueOnce(mockAccount1); // selectSelectedInternalAccount
+
+      const mockResponse: OptInStatusDto = {
+        ois: [true],
+      };
+      mockEngineCall.mockResolvedValueOnce(mockResponse);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Verify that the focus effect callback was registered
+      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      await waitForNextUpdate();
+
+      // Assert
+      expect(result.current.linkedAccounts).toHaveLength(1);
+      expect(result.current.unlinkedAccounts).toHaveLength(0);
+      expect(result.current.currentAccountOptedIn).toBe(true);
     });
 
     it('should handle no selected account', async () => {
@@ -474,179 +493,6 @@ describe('useRewardOptinSummary', () => {
 
       // Assert
       expect(result.current.currentAccountOptedIn).toBe(false); // Should default to false
-    });
-  });
-
-  describe('useDebouncedValue behavior', () => {
-    it('should use debounced value when account syncing is not in progress', () => {
-      // Arrange - not syncing
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: false,
-        isAccountSyncingInProgress: false,
-        loadingMessage: null,
-      });
-
-      // Act
-      renderHook(() => useRewardOptinSummary());
-
-      // Assert - should call useDebouncedValue with 0ms delay when not syncing
-      expect(mockUseDebouncedValue).toHaveBeenCalledWith(mockAccounts, 0);
-    });
-
-    it('should use debounced value with 10s delay when account syncing is in progress', () => {
-      // Arrange - syncing in progress
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: 'Syncing accounts...',
-      });
-
-      // Act
-      renderHook(() => useRewardOptinSummary());
-
-      // Assert - should call useDebouncedValue with 10000ms delay when syncing
-      expect(mockUseDebouncedValue).toHaveBeenCalledWith(mockAccounts, 10000);
-    });
-
-    it('should refetch when debounced accounts change', async () => {
-      // Arrange - initial accounts
-      const initialAccounts = [mockAccount1];
-      const updatedAccounts = [mockAccount1, mockAccount2];
-
-      mockUseDebouncedValue
-        .mockReturnValueOnce(initialAccounts)
-        .mockReturnValueOnce(updatedAccounts);
-
-      const mockResponse: OptInStatusDto = {
-        ois: [true],
-      };
-      mockEngineCall
-        .mockResolvedValueOnce(mockResponse)
-        .mockResolvedValueOnce({ ois: [true, false] });
-
-      // Act - first render
-      const { rerender, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      // Trigger initial fetch
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-      await waitForNextUpdate();
-
-      // Clear previous calls
-      jest.clearAllMocks();
-      mockUseDebouncedValue.mockReturnValue(updatedAccounts);
-      mockEngineCall.mockResolvedValueOnce({ ois: [true, false] });
-
-      // Act - rerender with updated accounts
-      rerender();
-
-      // Trigger fetch again
-      const newFocusCallback = mockUseFocusEffect.mock.calls[0][0];
-      newFocusCallback();
-      await waitForNextUpdate();
-
-      // Assert - should call with updated accounts
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:getOptInStatus',
-        {
-          addresses: [mockAccount1.address, mockAccount2.address],
-        },
-      );
-    });
-
-    it('should not fetch when debounced accounts is empty', () => {
-      // Arrange - empty debounced accounts
-      mockUseDebouncedValue.mockReturnValue([]);
-
-      // Act
-      const { result } = renderHook(() => useRewardOptinSummary());
-
-      // Trigger fetch
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
-      // Assert
-      expect(result.current.isLoading).toBe(false);
-      expect(mockEngineCall).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('refresh functionality', () => {
-    it('should prevent duplicate refresh calls when already loading', async () => {
-      // Arrange - setup to never resolve to simulate loading
-      mockEngineCall.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves
-          }),
-      );
-
-      const { result } = renderHook(() => useRewardOptinSummary());
-
-      // Act - call refresh multiple times quickly
-      result.current.refresh();
-      result.current.refresh();
-      result.current.refresh();
-
-      // Assert - should only call once due to loading ref protection
-      expect(mockEngineCall).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('focus effect registration', () => {
-    it('should register focus effect callback', () => {
-      renderHook(() => useRewardOptinSummary());
-
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-    });
-
-    it('should register focus effect callback even when disabled', () => {
-      renderHook(() => useRewardOptinSummary({ enabled: false }));
-
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-    });
-  });
-
-  describe('loading state management', () => {
-    it('should show loading false when accounts are already populated', async () => {
-      // Arrange - accounts already exist
-      const mockResponse: OptInStatusDto = {
-        ois: [true, false, true],
-      };
-      mockEngineCall.mockResolvedValueOnce(mockResponse);
-
-      const { result, waitForNextUpdate } = renderHook(() =>
-        useRewardOptinSummary(),
-      );
-
-      // Trigger fetch
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-      await waitForNextUpdate();
-
-      // Assert - loading should be false because optedInAccounts has data
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it('should show loading true when no accounts are populated yet', () => {
-      // Arrange - loading state with no resolved accounts
-      mockEngineCall.mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves
-          }),
-      );
-
-      const { result } = renderHook(() => useRewardOptinSummary());
-
-      // Trigger fetch
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
-      // Assert - should show loading when no accounts populated
-      expect(result.current.isLoading).toBe(true);
     });
   });
 });

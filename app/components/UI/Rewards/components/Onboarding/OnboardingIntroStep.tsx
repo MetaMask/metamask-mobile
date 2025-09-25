@@ -17,12 +17,8 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
-import {
-  setOnboardingActiveStep,
-  setCandidateSubscriptionId,
-} from '../../../../../actions/rewards';
+import { setOnboardingActiveStep } from '../../../../../actions/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
 import introBg from '../../../../../images/rewards/rewards-onboarding-intro-bg.png';
 import intro from '../../../../../images/rewards/rewards-onboarding-intro.png';
@@ -35,7 +31,6 @@ import {
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 
 /**
  * OnboardingIntroStep Component
@@ -60,7 +55,6 @@ const OnboardingIntroStep: React.FC = () => {
   // Computed state
   const candidateSubscriptionIdLoading =
     !subscriptionId && candidateSubscriptionId === 'pending';
-  const candidateSubscriptionIdError = candidateSubscriptionId === 'error';
 
   /**
    * Shows error modal for unsupported scenarios
@@ -80,21 +74,6 @@ const OnboardingIntroStep: React.FC = () => {
     },
     [navigation],
   );
-
-  /**
-   * Handle retry action for candidateSubscriptionId errors
-   */
-  const handleRetry = useCallback(() => {
-    dispatch(setCandidateSubscriptionId('retry'));
-  }, [dispatch]);
-
-  /**
-   * Handle cancel action for candidateSubscriptionId errors
-   */
-  const handleCancel = useCallback(() => {
-    // Navigate back to wallet view
-    navigation.navigate(Routes.WALLET_VIEW);
-  }, [navigation]);
 
   /**
    * Handles the confirm/continue button press
@@ -216,37 +195,6 @@ const OnboardingIntroStep: React.FC = () => {
 
   if (candidateSubscriptionIdLoading || !!subscriptionId) {
     return <Skeleton width="100%" height="100%" />;
-  }
-
-  // Show error banner in center of skeleton when in error state
-  if (candidateSubscriptionIdError) {
-    return (
-      <Box twClassName="p-4 min-h-full justify-center items-center px-4">
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
-          title={strings('rewards.auth_fail_banner.title')}
-          description={strings('rewards.auth_fail_banner.description')}
-          style={tw.style('w-full')}
-        >
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="mt-4 gap-2">
-            <Button
-              variant={ButtonVariant.Tertiary}
-              size={ButtonSize.Lg}
-              onPress={handleCancel}
-            >
-              <Text>{strings('rewards.auth_fail_banner.cta_cancel')}</Text>
-            </Button>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleRetry}
-            >
-              <Text>{strings('rewards.auth_fail_banner.cta_retry')}</Text>
-            </Button>
-          </Box>
-        </BannerAlert>
-      </Box>
-    );
   }
 
   return (

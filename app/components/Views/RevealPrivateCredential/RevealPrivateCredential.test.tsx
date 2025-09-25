@@ -103,10 +103,7 @@ jest.mock('../../../store/storage-wrapper', () => ({
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
 // Simplified ScrollableTabView mock - just needs to render children
-jest.mock(
-  '@tommasini/react-native-scrollable-tab-view',
-  () => 'ScrollableTabView',
-);
+jest.mock('react-native-scrollable-tab-view', () => 'ScrollableTabView');
 
 // Device mock - necessary since component uses Device.isIos(), Device.isAndroid(), Device.getDeviceAPILevel()
 jest.mock('../../../util/device', () => ({

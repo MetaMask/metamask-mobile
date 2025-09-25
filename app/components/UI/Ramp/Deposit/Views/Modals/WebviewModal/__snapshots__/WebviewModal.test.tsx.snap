@@ -517,7 +517,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                 "bottom": "additive",
                                 "left": "additive",
                                 "right": "additive",
-                                "top": "off",
+                                "top": "additive",
                               }
                             }
                             style={
@@ -1081,7 +1081,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                 "bottom": "additive",
                                 "left": "additive",
                                 "right": "additive",
-                                "top": "off",
+                                "top": "additive",
                               }
                             }
                             style={
@@ -1117,7 +1117,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                       "bottom": "additive",
                                       "left": "additive",
                                       "right": "additive",
-                                      "top": "off",
+                                      "top": "additive",
                                     }
                                   }
                                   style={

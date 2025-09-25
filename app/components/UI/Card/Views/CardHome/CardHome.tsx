@@ -60,7 +60,8 @@ import {
   SkeletonProps,
 } from '../../../../../component-library/components/Skeleton';
 import { isE2E } from '../../../../../util/test/utils';
-import { DEPOSIT_SUPPORTED_TOKENS } from '../../constants';
+import useSupportedTokens from '../../../Ramp/Deposit/hooks/useSupportedTokens';
+import { LINEA_MAINNET } from '../../../Ramp/Deposit/constants/networks';
 
 const SkeletonLoading = (props: SkeletonProps) => {
   if (isE2E) return null;
@@ -105,6 +106,7 @@ const CardHome = () => {
   const { openSwaps } = useOpenSwaps({
     priorityToken: priorityToken ?? undefined,
   });
+  const depositSupportedTokens = useSupportedTokens();
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -128,11 +130,14 @@ const CardHome = () => {
 
   const isPriorityTokenSupportedDeposit = useMemo(() => {
     if (priorityToken?.symbol) {
-      return DEPOSIT_SUPPORTED_TOKENS.find(
-        (t) => t.toLowerCase() === priorityToken.symbol?.toLowerCase(),
+      return depositSupportedTokens.find(
+        (token) =>
+          token.symbol.toLowerCase() === priorityToken.symbol?.toLowerCase() &&
+          // Card feature only supports Linea for now
+          token.chainId === LINEA_MAINNET.chainId,
       );
     }
-  }, [priorityToken]);
+  }, [priorityToken, depositSupportedTokens]);
 
   const renderAddFundsBottomSheet = useCallback(
     () => (

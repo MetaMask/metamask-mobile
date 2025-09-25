@@ -72,7 +72,7 @@ const ScreenLayout = ({ style, scrollable, ...props }: ScreenLayoutProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <SafeAreaView edges={['right', 'bottom', 'left']} style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper}>
       <Component style={[styles.container, style]} {...props} />
     </SafeAreaView>
   );

@@ -51,8 +51,6 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.optout.description':
         'Remove all accounts from the rewards program',
       'rewards.optout.confirm': 'Opt Out',
-      'rewards.settings.accounts_syncing':
-        'Your accounts are syncing. Please wait.',
     };
     return translations[key] || key;
   }),
@@ -97,28 +95,15 @@ jest.mock('../hooks/useOptout', () => ({
   useOptout: jest.fn(),
 }));
 
-// Mock useAccountsOperationsLoadingStates hook
-jest.mock(
-  '../../../../util/accounts/useAccountsOperationsLoadingStates',
-  () => ({
-    useAccountsOperationsLoadingStates: jest.fn(),
-  }),
-);
-
 // Import mocked selectors for setup
 import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 import { useOptout } from '../hooks/useOptout';
-import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 
 const mockSelectRewardsActiveAccountHasOptedIn =
   selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
     typeof selectRewardsActiveAccountHasOptedIn
   >;
 const mockUseOptout = useOptout as jest.MockedFunction<typeof useOptout>;
-const mockUseAccountsOperationsLoadingStates =
-  useAccountsOperationsLoadingStates as jest.MockedFunction<
-    typeof useAccountsOperationsLoadingStates
-  >;
 
 describe('RewardsSettingsView', () => {
   let store: ReturnType<typeof configureStore>;
@@ -167,11 +152,6 @@ describe('RewardsSettingsView', () => {
       optout: jest.fn(),
       isLoading: false,
       showOptoutBottomSheet: jest.fn(),
-    });
-    mockUseAccountsOperationsLoadingStates.mockReturnValue({
-      areAnyOperationsLoading: false,
-      isAccountSyncingInProgress: false,
-      loadingMessage: null,
     });
     mockUseRoute.mockReturnValue({
       params: {},
@@ -331,6 +311,24 @@ describe('RewardsSettingsView', () => {
     });
   });
 
+  describe('Hook integration', () => {
+    it('calls useOptout hook', () => {
+      // Act
+      renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(mockUseOptout).toHaveBeenCalled();
+    });
+
+    it('uses selectRewardsActiveAccountHasOptedIn selector', () => {
+      // Act
+      renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
+    });
+  });
+
   describe('Component structure', () => {
     it('renders all main sections', () => {
       // Act
@@ -350,132 +348,6 @@ describe('RewardsSettingsView', () => {
 
       // Assert - Component should render without errors
       expect(component).toBeTruthy();
-    });
-  });
-
-  describe('Account syncing banner', () => {
-    it('shows syncing banner when isAccountSyncingInProgress is true', () => {
-      // Arrange
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: 'Syncing accounts...',
-      });
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
-      expect(getByText('Syncing accounts...')).toBeOnTheScreen();
-      expect(
-        getByText('Your accounts are syncing. Please wait.'),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not show syncing banner when isAccountSyncingInProgress is false', () => {
-      // Arrange
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: false,
-        isAccountSyncingInProgress: false,
-        loadingMessage: null,
-      });
-
-      // Act
-      const { queryByTestId } = renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(queryByTestId('account-syncing-banner')).toBeNull();
-    });
-
-    it('shows syncing banner with custom loading message', () => {
-      // Arrange
-      const customMessage = 'Importing accounts from backup...';
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: customMessage,
-      });
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
-      expect(getByText(customMessage)).toBeOnTheScreen();
-      expect(
-        getByText('Your accounts are syncing. Please wait.'),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows syncing banner even when account is opted in', () => {
-      // Arrange - both syncing and opted in
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: 'Profile sync in progress...',
-      });
-
-      // Act
-      const { getByTestId, queryByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
-      // Should not show the unlinked account banner when opted in
-      expect(queryByText('Account Not Connected')).toBeNull();
-    });
-
-    it('shows both syncing and unlinked account banners when account is not opted in', () => {
-      // Arrange - both syncing and not opted in
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: 'Syncing profile data...',
-      });
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
-      expect(getByText('Syncing profile data...')).toBeOnTheScreen();
-      expect(getByText('Account Not Connected')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Hook integration', () => {
-    it('calls useAccountsOperationsLoadingStates hook', () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(mockUseAccountsOperationsLoadingStates).toHaveBeenCalled();
-    });
-
-    it('calls useOptout hook', () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(mockUseOptout).toHaveBeenCalled();
-    });
-
-    it('uses selectRewardsActiveAccountHasOptedIn selector', () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
     });
   });
 
@@ -510,21 +382,6 @@ describe('RewardsSettingsView', () => {
         isLoading: false,
         showOptoutBottomSheet: jest.fn(),
       });
-    });
-
-    it('handles null loading message gracefully', () => {
-      // Arrange
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        areAnyOperationsLoading: true,
-        isAccountSyncingInProgress: true,
-        loadingMessage: null,
-      });
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert - Should still render banner even with null message
-      expect(getByTestId('account-syncing-banner')).toBeOnTheScreen();
     });
   });
 });

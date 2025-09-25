@@ -236,7 +236,7 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: (props: { children: React.ReactNode; onClose?: () => void }) => (
+      default: (props: { children: React.ReactNode }) => (
         <View {...props}>{props.children}</View>
       ),
     };
@@ -256,10 +256,7 @@ jest.mock(
         buttonPropsArray?: {
           label: string;
           onPress: () => void;
-          isDisabled?: boolean;
-          loading?: boolean;
-          variant?: string;
-          size?: string;
+          disabled?: boolean;
         }[];
       }) => (
         <View>
@@ -267,12 +264,10 @@ jest.mock(
             <TouchableOpacity
               key={index}
               onPress={buttonProps.onPress}
-              disabled={buttonProps.isDisabled || buttonProps.loading}
-              accessibilityState={{ disabled: buttonProps.isDisabled === true }}
+              disabled={buttonProps.disabled}
+              accessibilityState={{ disabled: buttonProps.disabled === true }}
             >
-              <Text>
-                {buttonProps.loading ? 'Loading...' : buttonProps.label}
-              </Text>
+              <Text>{buttonProps.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -419,11 +414,12 @@ jest.mock('../../../../../components/Base/Keypad', () => {
   };
 });
 
-// Mock Platform - moved to top level to avoid conflicts
-const mockPlatform = { OS: 'ios' };
-jest.doMock('react-native', () => ({
+// Mock Platform
+jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
-  Platform: mockPlatform,
+  Platform: {
+    OS: 'ios',
+  },
 }));
 
 // Mock styles
@@ -546,9 +542,8 @@ describe('PerpsTPSLBottomSheet', () => {
       );
 
       // Assert
-      expect(screen.getByText('perps.tpsl.entry_price')).toBeOnTheScreen();
       expect(screen.getByText('perps.tpsl.current_price')).toBeOnTheScreen();
-      expect(screen.getAllByText('$2800.00')).toHaveLength(2);
+      expect(screen.getByText('$2800.00')).toBeOnTheScreen();
     });
 
     it('renders percentage buttons with correct RoE values', () => {
@@ -706,15 +701,6 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('prevents multiple decimal points in take profit price input', () => {
       // Arrange
-      const mockHandler = jest.fn();
-      mockUsePerpsTPSLForm.mockReturnValue({
-        ...defaultMockReturn,
-        handlers: {
-          ...defaultMockReturn.handlers,
-          handleTakeProfitPriceChange: mockHandler,
-        },
-      });
-
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -723,9 +709,8 @@ describe('PerpsTPSLBottomSheet', () => {
       // Act
       fireEvent.changeText(takeProfitPriceInput, '123.45.67');
 
-      // Assert - Handler should not be called for invalid input with multiple decimal points
-      // The component has logic to prevent more than 9 digits, but decimal validation is handled by the hook
-      expect(mockHandler).toHaveBeenCalledWith('123.45.67');
+      // Assert - Should not update if multiple decimal points
+      expect(takeProfitPriceInput.props.value).toBe('');
     });
 
     it('calls percentage change handler when take profit RoE percentage input changes', () => {
@@ -841,7 +826,7 @@ describe('PerpsTPSLBottomSheet', () => {
       fireEvent.press(fivePercentButton);
 
       // Assert - Button handler should be called with percentage
-      expect(mockButtonHandler).toHaveBeenCalledWith(-5);
+      expect(mockButtonHandler).toHaveBeenCalledWith(5);
     });
   });
 
@@ -1105,7 +1090,7 @@ describe('PerpsTPSLBottomSheet', () => {
     it('calls blur handler when input loses focus', () => {
       // Arrange
       const mockBlurHandler = jest.fn();
-      mockUsePerpsTPSLForm.mockReturnValue({
+      mockUsePerpsTPSLForm.mockReturnValueOnce({
         ...defaultMockReturn,
         handlers: {
           ...defaultMockReturn.handlers,
@@ -1124,6 +1109,29 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Assert - Blur handler should be called
       expect(mockBlurHandler).toHaveBeenCalled();
+    });
+
+    it('does not format price on blur when invalid', () => {
+      // Arrange
+      const { formatPrice: mockFormatPrice } = jest.requireMock(
+        '../../utils/formatUtils',
+      );
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+
+      // Clear any calls made during render
+      mockFormatPrice.mockClear();
+
+      // Act
+      fireEvent.changeText(takeProfitPriceInput, 'invalid');
+      fireEvent(takeProfitPriceInput, 'blur');
+
+      // Assert
+      expect(mockFormatPrice).not.toHaveBeenCalled();
     });
   });
 
@@ -1271,26 +1279,26 @@ describe('PerpsTPSLBottomSheet', () => {
       render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
 
       // Assert - Should display position entry price as fallback
-      expect(screen.getAllByText('$2800.00')).toHaveLength(2);
-      expect(screen.getByText('perps.tpsl.entry_price')).toBeOnTheScreen();
+      expect(screen.getByText('$2800.00')).toBeOnTheScreen();
       expect(screen.getByText('perps.tpsl.current_price')).toBeOnTheScreen();
     });
   });
 
   describe('Component Memoization', () => {
-    it('renders correctly with different props', () => {
+    it('does not re-render when unrelated props change', () => {
       // Arrange
       const { rerender } = render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      const initialCallCount = mockUseTheme.mock.calls.length;
 
-      // Act - Change a prop
+      // Act - Change a prop that should not trigger re-render
       const newProps = {
         ...defaultProps,
-        onClose: jest.fn(), // Different function reference
+        onClose: jest.fn(), // Different function reference but component should be memoized
       };
       rerender(<PerpsTPSLBottomSheet {...newProps} />);
 
-      // Assert - Component should still render correctly
-      expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
+      // Assert - Component should not have re-rendered (theme hook not called again)
+      expect(mockUseTheme.mock.calls.length).toBe(initialCallCount);
     });
 
     it('re-renders when visibility changes', () => {
@@ -1307,8 +1315,13 @@ describe('PerpsTPSLBottomSheet', () => {
 
   describe('Keypad Functionality', () => {
     beforeEach(() => {
-      // Platform is already mocked at the top level
-      mockPlatform.OS = 'ios';
+      // Reset Platform.OS to default for each test
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'ios',
+        },
+      }));
     });
 
     it('shows keypad when take profit price input is focused', () => {
@@ -1657,23 +1670,35 @@ describe('PerpsTPSLBottomSheet', () => {
   });
 
   describe('Platform-specific Styling', () => {
-    it('renders correctly on iOS', () => {
+    it('applies correct close button padding for iOS', () => {
       // Arrange
-      mockPlatform.OS = 'ios';
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'ios',
+        },
+      }));
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      // Assert - Component should render without issues on iOS
+      // Assert - For iOS, paddingRight should be 0
+      // The BottomSheetHeader should receive closeButtonProps with paddingRight: 0
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
     });
 
-    it('renders correctly on Android', () => {
+    it('applies correct close button padding for Android', () => {
       // Arrange
-      mockPlatform.OS = 'android';
+      jest.doMock('react-native', () => ({
+        ...jest.requireActual('react-native'),
+        Platform: {
+          OS: 'android',
+        },
+      }));
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      // Assert - Component should render without issues on Android
+      // Assert - For Android, paddingRight should be 24
+      // The BottomSheetHeader should receive closeButtonProps with paddingRight: 24
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
     });
   });

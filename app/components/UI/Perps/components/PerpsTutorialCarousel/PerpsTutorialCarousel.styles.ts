@@ -3,12 +3,7 @@ import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = (params: {
   theme: Theme;
-  vars: {
-    shouldShowSkipButton: boolean;
-    titleFontSize?: number | null;
-    descriptionFontSize?: number | null;
-    subtitleFontSize?: number | null;
-  };
+  vars: { shouldShowSkipButton: boolean };
 }) =>
   StyleSheet.create({
     container: {
@@ -29,7 +24,6 @@ const createStyles = (params: {
     },
     headerSection: {
       height: 160,
-      paddingHorizontal: 8,
       justifyContent: 'flex-start',
       alignItems: 'stretch',
     },
@@ -37,32 +31,23 @@ const createStyles = (params: {
       flex: 1,
     },
     animation: {
-      bottom: 60,
+      bottom: 50,
       flex: 1,
-      minHeight: 350,
     },
     title: {
       textAlign: 'left',
       marginBottom: 6,
-      fontSize: params.vars.titleFontSize || 24,
-      lineHeight: params.vars.titleFontSize
-        ? params.vars.titleFontSize + 6
-        : 30,
+      fontSize: 26,
+      lineHeight: 30,
     },
     description: {
       textAlign: 'left',
-      fontSize: params.vars.descriptionFontSize || 16,
-      lineHeight: params.vars.descriptionFontSize
-        ? params.vars.descriptionFontSize + 6
-        : 22,
+      lineHeight: 22,
       marginBottom: 16,
     },
     subtitle: {
       textAlign: 'left',
-      fontSize: params.vars.subtitleFontSize || 16,
-      lineHeight: params.vars.subtitleFontSize
-        ? params.vars.subtitleFontSize + 6
-        : 22,
+      lineHeight: 22,
     },
     progressContainer: {
       flexDirection: 'row',
@@ -85,13 +70,7 @@ const createStyles = (params: {
     },
     footer: {
       paddingHorizontal: 16,
-      marginTop: 16,
-    },
-    footerTextContainer: {
-      paddingHorizontal: 16,
-    },
-    footerText: {
-      textAlign: 'center',
+      marginVertical: 8,
     },
     fundsInfoText: {
       textAlign: 'center',

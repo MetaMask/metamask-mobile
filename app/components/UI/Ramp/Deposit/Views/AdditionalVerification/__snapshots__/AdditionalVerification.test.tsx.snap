@@ -523,7 +523,7 @@ exports[`AdditionalVerification Component render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={

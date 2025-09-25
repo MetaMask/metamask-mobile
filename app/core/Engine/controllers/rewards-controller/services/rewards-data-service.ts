@@ -26,7 +26,6 @@ import type {
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
 import { successfulFetch } from '@metamask/controller-utils';
-import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from '../utils/rewards-api-url';
 
 const SERVICE_NAME = 'RewardsDataService';
 
@@ -164,8 +163,6 @@ export class RewardsDataService {
 
   readonly #locale: string;
 
-  readonly #rewardsApiUrl: string;
-
   constructor({
     messenger,
     fetch: fetchFunction,
@@ -181,7 +178,6 @@ export class RewardsDataService {
     this.#fetch = fetchFunction;
     this.#appType = appType;
     this.#locale = locale;
-    this.#rewardsApiUrl = this.getRewardsApiBaseUrl();
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -253,15 +249,6 @@ export class RewardsDataService {
     );
   }
 
-  private getRewardsApiBaseUrl() {
-    // always using url from env var if set
-    if (process.env.REWARDS_API_URL) return process.env.REWARDS_API_URL;
-    // otherwise using default per-env url
-    return getDefaultRewardsApiBaseUrlForMetaMaskEnv(
-      process.env.METAMASK_ENVIRONMENT,
-    );
-  }
-
   /**
    * Make a request to the rewards API
    * @param endpoint - The endpoint to request
@@ -307,7 +294,7 @@ export class RewardsDataService {
       headers['Accept-Language'] = this.#locale;
     }
 
-    const url = `${this.#rewardsApiUrl}${endpoint}`;
+    const url = `${AppConstants.REWARDS_API_URL}${endpoint}`;
 
     // Create AbortController for timeout handling
     const controller = new AbortController();

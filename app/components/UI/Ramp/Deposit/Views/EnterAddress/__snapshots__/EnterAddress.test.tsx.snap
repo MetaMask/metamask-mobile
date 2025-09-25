@@ -523,7 +523,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -2192,7 +2192,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -3793,7 +3793,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={
@@ -5402,7 +5402,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "off",
+                          "top": "additive",
                         }
                       }
                       style={

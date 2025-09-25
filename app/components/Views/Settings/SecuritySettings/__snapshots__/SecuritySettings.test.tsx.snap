@@ -2240,7 +2240,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="button"
             accessible={true}
             activeOpacity={1}
-            disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}

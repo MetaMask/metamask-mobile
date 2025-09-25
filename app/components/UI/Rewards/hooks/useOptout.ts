@@ -6,10 +6,13 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { resetRewardsState } from '../../../../reducers/rewards';
 import { strings } from '../../../../../locales/i18n';
+import {
+  ToastRef,
+  ToastVariants,
+} from '../../../../component-library/components/Toast/Toast.types';
 import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import useRewardsToast from './useRewardsToast';
 
 interface UseOptoutResult {
   optout: () => Promise<void>;
@@ -17,12 +20,13 @@ interface UseOptoutResult {
   showOptoutBottomSheet: (dismissRoute?: string) => void;
 }
 
-export const useOptout = (): UseOptoutResult => {
+export const useOptout = (
+  toastRef?: React.RefObject<ToastRef>,
+): UseOptoutResult => {
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const { showToast, RewardsToastOptions } = useRewardsToast();
 
   const optout = useCallback(async () => {
     if (isLoading || !subscriptionId) return;
@@ -51,32 +55,35 @@ export const useOptout = (): UseOptoutResult => {
         Logger.log('useOptout: Opt-out failed - controller returned false');
 
         // Show error toast
-        showToast(
-          RewardsToastOptions.error(
-            strings('rewards.optout.modal.error_message'),
-          ),
-        );
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings('rewards.optout.modal.error_message'),
+              isBold: true,
+            },
+          ],
+          hasNoTimeout: false,
+        });
       }
     } catch (error) {
       Logger.log('useOptout: Opt-out failed with exception:', error);
 
       // Show error toast
-      showToast(
-        RewardsToastOptions.error(
-          strings('rewards.optout.modal.error_message'),
-        ),
-      );
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: strings('rewards.optout.error_message'),
+            isBold: true,
+          },
+        ],
+        hasNoTimeout: false,
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [
-    isLoading,
-    subscriptionId,
-    dispatch,
-    navigation,
-    showToast,
-    RewardsToastOptions,
-  ]);
+  }, [isLoading, dispatch, navigation, toastRef, subscriptionId]);
 
   const showOptoutBottomSheet = useCallback(
     (dismissRoute?: string) => {

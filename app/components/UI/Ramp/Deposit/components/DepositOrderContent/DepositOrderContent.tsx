@@ -13,7 +13,11 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../locales/i18n';
-import { formatCurrency, hasDepositOrderField } from '../../utils';
+import {
+  formatCurrency,
+  getCryptoCurrencyFromTransakId,
+  hasDepositOrderField,
+} from '../../utils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountGroupName } from '../../../../../hooks/multichainAccounts/useAccountGroupName';
@@ -48,10 +52,13 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getCryptoToken = () => {
-    if (!order?.data || !hasDepositOrderField(order.data, 'cryptoCurrency')) {
+    if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
-    return order.data.cryptoCurrency;
+    return getCryptoCurrencyFromTransakId(
+      order.data.cryptoCurrency,
+      order.data.network,
+    );
   };
 
   const cryptoToken = getCryptoToken();
@@ -59,20 +66,11 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const allNetworkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-
-  const depositOrder = order.data as DepositOrder;
-  const depositNetwork = depositOrder?.network;
-  const chainId = depositNetwork?.chainId;
   const networkName =
-    depositNetwork.name ||
-    allNetworkConfigurations[chainId as `${string}:${string}`]?.name ||
-    'Unknown Network';
-
-  const networkImageSource = chainId
-    ? getNetworkImageSource({
-        chainId,
-      })
-    : null;
+    allNetworkConfigurations[order.network as `${string}:${string}`]?.name;
+  const networkImageSource = getNetworkImageSource({
+    chainId: cryptoToken?.chainId ?? '',
+  });
 
   const getIconContainerStyle = () => {
     if (order.state === FIAT_ORDER_STATES.COMPLETED) {
@@ -128,16 +126,16 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
               badgeElement={
-                networkImageSource ? (
-                  <BadgeNetwork
-                    name={networkName}
-                    imageSource={networkImageSource}
-                  />
-                ) : null
+                <BadgeNetwork
+                  name={networkName}
+                  imageSource={getNetworkImageSource({
+                    chainId: cryptoToken.chainId,
+                  })}
+                />
               }
             >
               <AvatarToken
-                name={cryptoToken.symbol}
+                name={cryptoToken.name}
                 imageSource={{ uri: cryptoToken.iconUrl }}
                 size={AvatarSize.Lg}
               />
@@ -149,8 +147,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           {order.cryptoAmount} {order.cryptocurrency}
         </Text>
 
-        {order?.data &&
-        hasDepositOrderField(order.data, 'statusDescription') &&
+        {hasDepositOrderField(order.data, 'statusDescription') &&
         order.data.statusDescription ? (
           <Text
             variant={TextVariant.BodySM}

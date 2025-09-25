@@ -1,51 +1,34 @@
-import { useEffect } from 'react';
+import Device from '../../../../../util/device';
+import {
+  APPLE_PAY_PAYMENT_METHOD,
+  SUPPORTED_PAYMENT_METHODS,
+  REGIONS_BY_PAYMENT_METHODS,
+} from '../constants';
 import { useDepositSDK } from '../sdk';
-import { useDepositSdkMethod } from './useDepositSdkMethod';
-import type { DepositPaymentMethod } from '@consensys/native-ramps-sdk';
 
-export function usePaymentMethods() {
-  const {
-    selectedRegion,
-    selectedCryptoCurrency,
-    setSelectedPaymentMethod,
-    selectedPaymentMethod,
-  } = useDepositSDK();
+function usePaymentMethods() {
+  const { selectedRegion } = useDepositSDK();
 
-  const [
-    { data: paymentMethods, error, isFetching },
-    retryFetchPaymentMethods,
-  ] = useDepositSdkMethod(
-    'getPaymentMethods',
-    selectedRegion?.isoCode,
-    selectedCryptoCurrency?.assetId,
-    selectedRegion?.currency,
-  );
+  let paymentMethods = SUPPORTED_PAYMENT_METHODS;
 
-  useEffect(() => {
-    if (paymentMethods && paymentMethods.length > 0) {
-      let newSelectedPaymentMethod: DepositPaymentMethod | null = null;
+  if (!Device.isIos()) {
+    paymentMethods = paymentMethods.filter(
+      (paymentMethod) => paymentMethod.id !== APPLE_PAY_PAYMENT_METHOD.id,
+    );
+  }
 
-      if (selectedPaymentMethod) {
-        newSelectedPaymentMethod =
-          paymentMethods.find(
-            (method) => method.id === selectedPaymentMethod.id,
-          ) || null;
+  if (selectedRegion) {
+    paymentMethods = paymentMethods.filter((paymentMethod) => {
+      if (REGIONS_BY_PAYMENT_METHODS[paymentMethod.id]) {
+        return REGIONS_BY_PAYMENT_METHODS[paymentMethod.id].includes(
+          selectedRegion?.isoCode,
+        );
       }
+      return true;
+    });
+  }
 
-      if (!newSelectedPaymentMethod) {
-        newSelectedPaymentMethod = paymentMethods[0];
-      }
-
-      if (newSelectedPaymentMethod) {
-        setSelectedPaymentMethod(newSelectedPaymentMethod);
-      }
-    }
-  }, [paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod]);
-
-  return {
-    paymentMethods,
-    error,
-    isFetching,
-    retryFetchPaymentMethods,
-  };
+  return paymentMethods;
 }
+
+export default usePaymentMethods;

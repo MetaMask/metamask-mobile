@@ -11,6 +11,12 @@ declare module 'react-native-fast-crypto';
 declare module 'react-native-minimizer';
 
 declare module 'xhr2';
+declare module 'react-native-scrollable-tab-view/DefaultTabBar' {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const content: React.FC<any>;
+  export default content;
+}
 
 declare module '*.svg' {
   import { SvgProps } from 'react-native-svg';
@@ -415,5 +421,3 @@ declare module '@sentry/react-native' {
     hint?: ExclusiveEventHintOrCaptureContext,
   ): string;
 }
-declare module '@tommasini/react-native-scrollable-tab-view';
-declare module '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';

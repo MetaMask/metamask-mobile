@@ -107,7 +107,7 @@ const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
   ) {
     displayContent = (
       <View style={styles.contentContainer}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
           {formattedEstimatedPoints}
         </Text>
         {bonusBips && bonusBips > 0 && typeof bonusBips === 'number' ? (

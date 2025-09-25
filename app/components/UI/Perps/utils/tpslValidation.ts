@@ -304,14 +304,14 @@ export const calculatePriceForRoE = (
   } else if (isLong) {
     // For stop loss (negative RoE)
     // Long SL: price needs to go down
-    calculatedPrice = basePrice * (1 - -priceChangeRatio);
+    calculatedPrice = basePrice * (1 - Math.abs(priceChangeRatio));
     // Ensure price never goes negative
     if (calculatedPrice <= 0) {
       calculatedPrice = basePrice * 0.01; // Minimum 1% of base price
     }
   } else {
     // Short SL: price needs to go up
-    calculatedPrice = basePrice * (1 + -priceChangeRatio);
+    calculatedPrice = basePrice * (1 + Math.abs(priceChangeRatio));
   }
 
   // Determine appropriate precision based on the price magnitude
@@ -353,14 +353,12 @@ export const calculatePriceForRoE = (
  *
  * @param price The trigger price (as string, may include formatting)
  * @param isProfit Whether this is for take profit (true) or stop loss (false)
- * @param isForPositionBoundTpsl Whether this is for position bound TP/SL roe calculation
  * @param params Current/entry price, direction, and leverage
  * @returns The RoE percentage as a string
  */
 export const calculateRoEForPrice = (
   price: string,
   isProfit: boolean,
-  isForPositionBoundTpsl: boolean,
   { currentPrice, direction, leverage = 1, entryPrice }: ValidationParams,
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
@@ -378,17 +376,21 @@ export const calculateRoEForPrice = (
   const priceChangeRatio = (priceNum - basePrice) / basePrice;
 
   // RoE% = priceChangeRatio * leverage * 100
-  let roePercentage = priceChangeRatio * leverage * 100;
-  if (!isLong) {
-    roePercentage = -roePercentage;
+  let roePercentage = Math.abs(priceChangeRatio * leverage * 100);
+
+  // Determine sign based on direction and whether it's profit or loss
+  if (isProfit) {
+    // For take profit, check if price moved in the right direction
+    const isValidProfit = isLong ? priceNum > basePrice : priceNum < basePrice;
+    if (!isValidProfit) roePercentage = -roePercentage;
+  } else {
+    // For stop loss, check if price moved in the wrong direction (loss)
+    const isValidLoss = isLong ? priceNum < basePrice : priceNum > basePrice;
+    if (!isValidLoss) roePercentage = -roePercentage;
   }
 
-  if (!isForPositionBoundTpsl) {
-    if (isProfit && roePercentage < 0) {
-      roePercentage = 0;
-    } else if (!isProfit && roePercentage > 0) {
-      roePercentage = 0;
-    }
+  if (roePercentage < 0) {
+    roePercentage = 0;
   }
 
   return roePercentage.toFixed(2);
@@ -409,8 +411,9 @@ export const safeParseRoEPercentage = (roePercent: string): string => {
     return ''; // Return empty string for NaN
   }
 
+  const absValue = Math.abs(parsed);
   // Show clean integers when possible (10% instead of 10.00%)
-  return parsed % 1 === 0 ? parsed.toFixed(0) : parsed.toFixed(2);
+  return absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
 };
 
 /**
@@ -427,15 +430,10 @@ export const formatRoEPercentageDisplay = (
     return '';
   }
 
-  // When focused, preserve the exact user input including signs and decimal points
+  // When focused, preserve the exact user input including decimal points
   if (isFocused) {
-    // Allow valid numeric patterns with optional sign and space
-    if (
-      value === '.' ||
-      value === '+' ||
-      value === '-' ||
-      /^[+-]?\s?\d*\.?\d*$/.test(value)
-    ) {
+    // Only allow valid numeric patterns
+    if (value === '.' || /^\d*\.?\d*$/.test(value)) {
       return value;
     }
   }
@@ -445,21 +443,15 @@ export const formatRoEPercentageDisplay = (
     return '';
   }
 
+  const absValue = Math.abs(parsed);
+
   if (isFocused) {
     // This branch shouldn't be reached now, but keep as fallback
-    return value;
+    return absValue.toString();
   }
 
-  // When not focused, show clean display format with appropriate sign
-  const absValue = Math.abs(parsed);
-  const formattedValue =
-    absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
-
-  // Always show sign for display
-  if (parsed >= 0) {
-    return `+ ${formattedValue}`;
-  }
-  return `- ${formattedValue}`;
+  // When not focused, show clean display format
+  return absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
 };
 
 /**
@@ -485,61 +477,4 @@ export const isValidStopLossPercentage = (
   if (percentage <= 0) return false;
   const maxAllowed = getMaxStopLossPercentage(leverage);
   return percentage <= maxAllowed;
-};
-
-/**
- * Sanitizes input text for percentage fields by handling signs and decimal points
- * @param text - Raw input text
- * @param currentValue - Current field value for length comparison (optional)
- * @param maxDecimalPlaces - Maximum allowed decimal places (default: 5)
- * @returns Sanitized text with proper sign and decimal handling, or null if validation fails
- */
-export const sanitizePercentageInput = (
-  text: string,
-  currentValue?: string,
-  maxDecimalPlaces: number = 5,
-): string | null => {
-  // Allow numbers, decimal point, and plus/minus signs
-  // Also handle en-dash (–) and em-dash (—) which might come from typing --
-  const sanitized = text.replace(/[–—]/g, '-').replace(/[^0-9.+-]/g, '');
-
-  // Handle sign placement - only allow at the beginning
-  let finalValue = sanitized;
-  if (sanitized.includes('+') || sanitized.includes('-')) {
-    // Remove duplicate consecutive signs but keep the first one
-    // e.g., "++" becomes "+", "--" becomes "-"
-    finalValue = sanitized.replace(/([+-])\1+/g, '$1');
-
-    // Only do mixed sign cleanup if there are actually mixed signs
-    // Check if there are different types of signs in the string
-    const hasPlus = finalValue.includes('+');
-    const hasMinus = finalValue.includes('-');
-    if (hasPlus && hasMinus) {
-      // Mixed signs - keep only the first sign
-      const firstSignMatch = finalValue.match(/[+-]/);
-      if (firstSignMatch) {
-        const sign = firstSignMatch[0];
-        const restOfString = finalValue.substring(1);
-        const numberPart = restOfString.replace(/[+-]/g, '');
-        finalValue = numberPart ? sign + numberPart : sign;
-      }
-    }
-  }
-
-  // Prevent multiple decimal points
-  const parts = finalValue.replace(/[+-]/g, '').split('.');
-  if (parts.length > 2) return null; // Return null for invalid input
-
-  // Allow erasing but prevent adding when there are more than maxDecimalPlaces decimal places
-  if (currentValue !== undefined) {
-    const decimalPart = parts[1];
-    if (
-      decimalPart?.length > maxDecimalPlaces &&
-      finalValue.length >= currentValue.length
-    ) {
-      return null; // Return null to prevent the update
-    }
-  }
-
-  return finalValue;
 };

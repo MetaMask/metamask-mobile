@@ -1,12 +1,12 @@
 import { useFetchTokenRatesMulti } from './useTokenRates';
+import { DepositCryptoCurrency, DepositFiatCurrency } from '../constants';
 import Logger from '../../../../../util/Logger';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
 
 interface UseTokenExchangeParams {
-  fiatCurrency: string | null;
+  fiatCurrency: DepositFiatCurrency;
   fiatAmount: string;
-  token: DepositCryptoCurrency | null;
-  tokens: DepositCryptoCurrency[] | null;
+  token: DepositCryptoCurrency;
+  tokens: DepositCryptoCurrency[];
 }
 
 interface UseTokenExchangeResult {
@@ -27,16 +27,7 @@ const useDepositTokenExchange = ({
     fiatCurrency,
   });
 
-  if (!tokens || !token) {
-    return {
-      tokenAmount: '0',
-      rate: null,
-      isLoading,
-      error,
-    };
-  }
-
-  const currentToken = tokens.find(({ assetId }) => assetId === token?.assetId);
+  const currentToken = tokens.find(({ assetId }) => assetId === token.assetId);
 
   const rate = currentToken ? rates[currentToken.assetId] ?? null : null;
 

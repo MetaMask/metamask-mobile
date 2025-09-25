@@ -1,16 +1,14 @@
-import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
-import { parseCaipChainId } from '@metamask/utils';
+import { DepositCryptoCurrency } from '../constants';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { parseCaipChainId } from '@metamask/utils';
+import { useMemo } from 'react';
 
-function useAccountTokenCompatible(
-  cryptoCurrency: DepositCryptoCurrency | null,
-) {
+function useAccountTokenCompatible(cryptoCurrency: DepositCryptoCurrency) {
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isCompatible = useMemo(() => {
-    if (!selectedInternalAccount || !cryptoCurrency) {
+    if (!selectedInternalAccount) {
       return false;
     }
     const cryptoCurrencyChainIdNamespace = parseCaipChainId(
@@ -23,9 +21,8 @@ function useAccountTokenCompatible(
     );
 
     return accountScopesNamespaces.has(cryptoCurrencyChainIdNamespace);
-  }, [cryptoCurrency, selectedInternalAccount]);
+  }, [cryptoCurrency.chainId, selectedInternalAccount]);
 
   return isCompatible;
 }
-
 export default useAccountTokenCompatible;

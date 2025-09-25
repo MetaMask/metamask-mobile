@@ -10,7 +10,6 @@ import { BridgeViewMode, BridgeToken } from '../../types';
 import { getNativeSourceToken } from '../useInitialSourceToken';
 import { SolScope } from '@metamask/keyring-api';
 import usePrevious from '../../../../hooks/usePrevious';
-import { useEffect } from 'react';
 
 // Need to pass in the initial source token to avoid a race condition with useInitialSourceToken
 // Can't just use selectSourceToken because of race condition
@@ -29,48 +28,36 @@ export const useInitialDestToken = (
 
   const prevInitialDestToken = usePrevious(initialDestToken);
 
-  useEffect(() => {
-    if (initialDestToken && prevInitialDestToken !== initialDestToken) {
-      dispatch(setDestToken(initialDestToken));
-      return;
-    }
+  if (initialDestToken && prevInitialDestToken !== initialDestToken) {
+    dispatch(setDestToken(initialDestToken));
+    return;
+  }
 
-    const destTokenTargetChainId =
-      initialSourceToken?.chainId ?? selectedChainId;
-    let defaultDestToken = getDefaultDestToken(destTokenTargetChainId);
+  const destTokenTargetChainId = initialSourceToken?.chainId ?? selectedChainId;
+  let defaultDestToken = getDefaultDestToken(destTokenTargetChainId);
 
-    // If the initial source token is the same as the default dest token, set the default dest token to the native token
-    if (
-      destTokenTargetChainId === SolScope.Mainnet &&
-      initialSourceToken?.address === defaultDestToken?.address
-    ) {
-      // Solana addresses are case sensitive
-      defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
-    } else if (
-      destTokenTargetChainId !== SolScope.Mainnet &&
-      initialSourceToken?.address?.toLowerCase() ===
-        defaultDestToken?.address?.toLowerCase()
-    ) {
-      // EVM addresses are NOT case sensitive
-      defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
-    }
+  // If the initial source token is the same as the default dest token, set the default dest token to the native token
+  if (
+    destTokenTargetChainId === SolScope.Mainnet &&
+    initialSourceToken?.address === defaultDestToken?.address
+  ) {
+    // Solana addresses are case sensitive
+    defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
+  } else if (
+    destTokenTargetChainId !== SolScope.Mainnet &&
+    initialSourceToken?.address?.toLowerCase() ===
+      defaultDestToken?.address?.toLowerCase()
+  ) {
+    // EVM addresses are NOT case sensitive
+    defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
+  }
 
-    if (
-      isSwap &&
-      !destToken &&
-      defaultDestToken &&
-      initialSourceToken?.address !== defaultDestToken.address
-    ) {
-      dispatch(setDestToken(defaultDestToken));
-    }
-  }, [
-    initialDestToken,
-    prevInitialDestToken,
-    dispatch,
-    initialSourceToken,
-    selectedChainId,
-    destToken,
-    isSwap,
-    initialSourceToken?.address,
-  ]);
+  if (
+    isSwap &&
+    !destToken &&
+    defaultDestToken &&
+    initialSourceToken?.address !== defaultDestToken.address
+  ) {
+    dispatch(setDestToken(defaultDestToken));
+  }
 };

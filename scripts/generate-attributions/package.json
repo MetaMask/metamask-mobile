@@ -5,6 +5,7 @@
   "scripts": {
     "setup": "yarn && yarn allow-scripts"
   },
+  "dependencies": {},
   "devDependencies": {
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/preinstall-always-fail": "^2.0.0",
@@ -12,7 +13,7 @@
   },
   "engines": {
     "node": "^20.17.0",
-    "yarn": "3.8.7"
+    "yarn": "^1.22.0"
   },
   "lavamoat": {
     "allowScripts": {

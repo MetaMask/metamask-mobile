@@ -53,6 +53,7 @@ permissions:
   contents: read
   id-token: write
 
+
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
   BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -73,7 +74,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Read device matrix
         id: read-matrix
         run: |
@@ -82,21 +83,21 @@ jobs:
           ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
           # Extract iOS devices
           IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-
+          
           {
             echo "android_matrix=$ANDROID_MATRIX"
             echo "ios_matrix=$IOS_MATRIX"
           } >> "$GITHUB_OUTPUT"
-
+          
           echo "Android matrix: $ANDROID_MATRIX"
           echo "iOS matrix: $IOS_MATRIX"
-
+          
           # Validate that we have devices
           ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
           IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
-
+          
           echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices"
-
+          
           if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
             echo "Error: No devices found in device-matrix.json"
             exit 1
@@ -130,10 +131,11 @@ jobs:
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     secrets: inherit
 
+
   # =============================================================================
   # PHASE 1: ONBOARDING TESTS (Run First)
   # =============================================================================
-
+  
   run-android-onboarding-tests:
     name: Run Android Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
@@ -167,7 +169,7 @@ jobs:
   # =============================================================================
   # PHASE 2: IMPORTED WALLET TESTS (Run After Onboarding Complete)
   # =============================================================================
-
+  
   wait-for-onboarding-completion:
     name: Wait for Onboarding Completion
     runs-on: ubuntu-latest
@@ -178,17 +180,11 @@ jobs:
         run: |
           echo "Onboarding tests have completed (success or failure)"
           echo "Proceeding with imported wallet tests..."
-
+  
   run-android-imported-wallet-tests:
     name: Run Android Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      [
-        read-device-matrix,
-        trigger-android-dual-versions,
-        wait-for-onboarding-completion,
-        set-build-names,
-      ]
+    needs: [read-device-matrix, trigger-android-dual-versions, wait-for-onboarding-completion, set-build-names]
     if: always() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.result == 'success')
     with:
       platform: android
@@ -203,13 +199,7 @@ jobs:
   run-ios-imported-wallet-tests:
     name: Run iOS Imported Wallet Tests
     uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      [
-        read-device-matrix,
-        trigger-ios-dual-versions,
-        wait-for-onboarding-completion,
-        set-build-names,
-      ]
+    needs: [read-device-matrix, trigger-ios-dual-versions, wait-for-onboarding-completion, set-build-names]
     if: always() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet || needs.trigger-ios-dual-versions.result == 'success')
     with:
       platform: ios
@@ -224,33 +214,26 @@ jobs:
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
-    needs:
-      [
-        run-android-imported-wallet-tests,
-        run-android-onboarding-tests,
-        run-ios-imported-wallet-tests,
-        run-ios-onboarding-tests,
-        wait-for-onboarding-completion,
-      ]
+    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, wait-for-onboarding-completion]
     if: always()
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Download All Test Results
         uses: actions/download-artifact@v4
         with:
-          pattern: '*-test-results-*'
+          pattern: "*-test-results-*"
           path: ./test-results
           merge-multiple: true
-
+      
       - name: Run aggregation script
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
           node scripts/aggregate-performance-reports.mjs
           echo "Aggregation completed"
-
+      
       - name: Upload Final Combined Results
         uses: actions/upload-artifact@v4
         with:
@@ -263,25 +246,18 @@ jobs:
   slack-notification:
     name: Send Slack Notification
     runs-on: ubuntu-latest
-    needs:
-      [
-        run-android-imported-wallet-tests,
-        run-android-onboarding-tests,
-        run-ios-imported-wallet-tests,
-        run-ios-onboarding-tests,
-        aggregate-results,
-      ]
+    needs: [run-android-imported-wallet-tests, run-android-onboarding-tests, run-ios-imported-wallet-tests, run-ios-onboarding-tests, aggregate-results]
     if: always()
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Download Aggregated Results
         uses: actions/download-artifact@v4
         with:
           name: aggregated-reports
           path: ./aggregated-reports
-
+      
       - name: Generate Test Summary
         id: summary
         env:
@@ -292,7 +268,7 @@ jobs:
             ./scripts/generate-slack-summary.sh aggregated-reports/summary.json
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
-
+      
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:

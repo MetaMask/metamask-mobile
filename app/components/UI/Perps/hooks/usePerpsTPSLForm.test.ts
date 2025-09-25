@@ -17,18 +17,6 @@ jest.mock('../utils/formatUtils', () => ({
   PRICE_RANGES_POSITION_VIEW: {}, // Mock the constant
 }));
 
-// Mock i18n strings
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: Record<string, string>) => {
-    const strings: Record<string, string> = {
-      'perps.tpsl.take_profit_invalid_price': `Take profit must be ${params?.direction} ${params?.priceType} price`,
-      'perps.tpsl.stop_loss_invalid_price': `Stop loss must be ${params?.direction} ${params?.priceType} price`,
-      'perps.tpsl.stop_loss_beyond_liquidation_error': `Stop loss must be ${params?.direction} liquidation price`,
-    };
-    return strings[key] || key;
-  },
-}));
-
 describe('usePerpsTPSLForm', () => {
   const mockPosition: Position = {
     coin: 'BTC',
@@ -199,9 +187,7 @@ describe('usePerpsTPSLForm', () => {
           result.current.handlers.handleTakeProfitPriceChange('55000');
         });
 
-        // Should calculate RoE percentage based on the price change and leverage
-        // Price change: 55000 - 50000 = 5000 (10% price change)
-        // With 10x leverage: 10% * 10 = 100% RoE
+        // Should calculate RoE percentage (10% for 5000 difference with 10x leverage)
         expect(result.current.formState.takeProfitPercentage).toBe('100');
       });
     });
@@ -247,7 +233,6 @@ describe('usePerpsTPSLForm', () => {
         });
 
         // Should calculate price based on 10% RoE with 10x leverage
-        // 10% RoE with 10x leverage = 1% price change = 50000 * 1.01 = 50500
         expect(result.current.formState.takeProfitPrice).not.toBe('');
         expect(result.current.formState.selectedTpPercentage).toBe(10);
       });
@@ -640,8 +625,8 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleTakeProfitPercentageChange('10.00');
       });
 
-      // When not focused, should show clean format with sign (10.00 -> + 10)
-      expect(result.current.display.formattedTakeProfitPercentage).toBe('+ 10');
+      // When not focused, should show clean format (10.00 -> 10)
+      expect(result.current.display.formattedTakeProfitPercentage).toBe('10');
 
       // When focused, should preserve user input
       act(() => {
@@ -790,7 +775,6 @@ describe('usePerpsTPSLForm', () => {
       });
 
       // Should not show liquidation error with invalid liquidation price
-      // The validation function should handle invalid liquidation price gracefully
       expect(result.current.validation.stopLossLiquidationError).toBe('');
     });
 
@@ -949,7 +933,9 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleTakeProfitPriceChange('45000'); // Below current
       });
 
-      expect(result.current.validation.takeProfitError).toContain('above');
+      expect(result.current.validation.takeProfitError).toContain(
+        'current price',
+      );
     });
 
     it('should validate against position entry price when position exists and orderType is limit', () => {
@@ -1237,107 +1223,6 @@ describe('usePerpsTPSLForm', () => {
       expect(result.current.formState.takeProfitPercentage).not.toBe(
         initialPercentage,
       );
-    });
-  });
-
-  describe('Signed Input Handling', () => {
-    it('handles positive sign input correctly', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
-
-      // Act
-      act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('+15');
-      });
-
-      // Assert
-      expect(result.current.formState.takeProfitPercentage).toBe('+15');
-    });
-
-    it('handles negative sign input correctly', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
-
-      // Act
-      act(() => {
-        result.current.handlers.handleStopLossPercentageChange('-8');
-      });
-
-      // Assert
-      expect(result.current.formState.stopLossPercentage).toBe('-8');
-    });
-
-    it('handles duplicate signs correctly', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
-
-      // Act - Test double negative signs
-      act(() => {
-        result.current.handlers.handleStopLossPercentageChange('--5');
-      });
-
-      // Assert
-      expect(result.current.formState.stopLossPercentage).toBe('-5');
-    });
-
-    it('handles en-dash and em-dash characters', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
-
-      // Act - Test en-dash (–) conversion
-      act(() => {
-        result.current.handlers.handleStopLossPercentageChange('–10');
-      });
-
-      // Assert - En-dash should be converted to regular minus sign without space
-      expect(result.current.formState.stopLossPercentage).toBe('-10');
-    });
-
-    it('handles mixed signs by keeping only the first sign', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
-
-      // Act - Test mixed signs (+-) should keep first sign
-      act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('+-15');
-      });
-
-      // Assert - Should keep only the first sign (+)
-      expect(result.current.formState.takeProfitPercentage).toBe('+15');
-
-      // Act - Test mixed signs (-+) should keep first sign
-      act(() => {
-        result.current.handlers.handleStopLossPercentageChange('-+8');
-      });
-
-      // Assert - Should keep only the first sign (-)
-      expect(result.current.formState.stopLossPercentage).toBe('-8');
-    });
-
-    it('allows backspacing through signs', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams));
-
-      // Set initial value
-      act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('-8');
-      });
-
-      // Act - Backspace to just the sign
-      act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('-');
-      });
-
-      // Assert
-      expect(result.current.formState.takeProfitPercentage).toBe('-');
-
-      // Act - Backspace to empty
-      act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('');
-      });
-
-      // Assert
-      expect(result.current.formState.takeProfitPercentage).toBe('');
     });
   });
 });

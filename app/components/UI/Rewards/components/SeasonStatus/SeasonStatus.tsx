@@ -13,11 +13,7 @@ import { useTheme } from '../../../../../util/theme';
 import MetamaskRewardsPointsImage from '../../../../../images/rewards/metamask-rewards-points.svg';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { capitalize } from 'lodash';
-import { useSelector, useDispatch } from 'react-redux';
-import Banner, {
-  BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { useSelector } from 'react-redux';
 import {
   selectSeasonStatusLoading,
   selectSeasonTiers,
@@ -26,10 +22,7 @@ import {
   selectNextTierPointsNeeded,
   selectCurrentTier,
   selectNextTier,
-  selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
-import { selectSeasonStatusError } from '../../../../../selectors/rewards';
-import { setSeasonStatusError } from '../../../../../actions/rewards';
 import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardsThemeImageComponent from '../ThemeImageComponent';
@@ -44,11 +37,8 @@ const SeasonStatus: React.FC = () => {
   const tiers = useSelector(selectSeasonTiers);
   const balanceTotal = useSelector(selectBalanceTotal);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
-  const seasonStatusError = useSelector(selectSeasonStatusError);
-  const seasonStartDate = useSelector(selectSeasonStartDate);
   const seasonEndDate = useSelector(selectSeasonEndDate);
   const theme = useTheme();
-  const dispatch = useDispatch();
 
   const progress = React.useMemo(() => {
     if (!currentTier || !balanceTotal) {
@@ -89,20 +79,6 @@ const SeasonStatus: React.FC = () => {
 
   if (seasonStatusLoading || !currentTier) {
     return <Skeleton height={115} width="100%" />;
-  }
-
-  if (seasonStatusError && !seasonStartDate) {
-    return (
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Error}
-        title={strings('rewards.season_status_error.error_fetching_title')}
-        description={strings(
-          'rewards.season_status_error.error_fetching_description',
-        )}
-        onClose={() => dispatch(setSeasonStatusError(null))}
-      />
-    );
   }
 
   return (

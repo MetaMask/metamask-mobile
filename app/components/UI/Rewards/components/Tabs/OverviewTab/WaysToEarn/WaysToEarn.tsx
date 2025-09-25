@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Image, ImageSourcePropType } from 'react-native';
 import {
   Box,
   Text,
@@ -13,12 +13,16 @@ import {
   IconSize,
   IconColor,
   ButtonVariant,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { SwapSupportedNetworksSection } from './SwapSupportedNetworksSection';
 import MetamaskRewardsPointsImage from '../../../../../../../images/rewards/metamask-rewards-points.svg';
+import swapIllustration from '../../../../../../../images/rewards/rewards-swap.png';
+import perpIllustration from '../../../../../../../images/rewards/rewards-trade.png';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ModalType } from '../../../../components/RewardsBottomSheetModal';
 import {
   SwapBridgeNavigationLocation,
@@ -31,7 +35,6 @@ export enum WayToEarnType {
   SWAPS = 'swaps',
   PERPS = 'perps',
   REFERRALS = 'referrals',
-  LOYALTY = 'loyalty',
 }
 
 interface WayToEarn {
@@ -45,26 +48,20 @@ const waysToEarn: WayToEarn[] = [
   {
     type: WayToEarnType.SWAPS,
     title: strings('rewards.ways_to_earn.swap.title'),
-    description: strings('rewards.ways_to_earn.swap.description'),
+    description: strings('rewards.ways_to_earn.swap.points'),
     icon: IconName.SwapVertical,
   },
   {
     type: WayToEarnType.PERPS,
     title: strings('rewards.ways_to_earn.perps.title'),
-    description: strings('rewards.ways_to_earn.perps.description'),
+    description: strings('rewards.ways_to_earn.perps.points'),
     icon: IconName.Candlestick,
   },
   {
     type: WayToEarnType.REFERRALS,
     title: strings('rewards.ways_to_earn.referrals.title'),
-    description: strings('rewards.ways_to_earn.referrals.description'),
+    description: strings('rewards.ways_to_earn.referrals.points'),
     icon: IconName.UserCircleAdd,
-  },
-  {
-    type: WayToEarnType.LOYALTY,
-    title: strings('rewards.ways_to_earn.loyalty.title'),
-    description: strings('rewards.ways_to_earn.loyalty.description'),
-    icon: IconName.Gift,
   },
 ];
 
@@ -73,26 +70,43 @@ const Separator = () => <Box twClassName="border-b border-muted" />;
 const WaysToEarnSheetTitle = ({
   title,
   points,
+  illustration,
 }: {
   title: string;
   points: string;
-}) => (
-  <>
-    <Text variant={TextVariant.HeadingLg}>{title}</Text>
+  illustration: ImageSourcePropType;
+}) => {
+  const tw = useTailwind();
+  return (
     <Box
-      flexDirection={BoxFlexDirection.Row}
-      twClassName="bg-muted px-2 mt-2 py-1 rounded-md gap-1"
-      alignItems={BoxAlignItems.Center}
+      twClassName="w-full flex-row"
+      justifyContent={BoxJustifyContent.Between}
     >
-      <MetamaskRewardsPointsImage
-        width={16}
-        height={16}
-        name="MetamaskRewardsPoints"
+      {/* Title and points */}
+      <Box twClassName="gap-4">
+        <Text variant={TextVariant.HeadingLg}>{title}</Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="bg-muted px-2 py-1 rounded-md gap-1"
+          alignItems={BoxAlignItems.Center}
+        >
+          <MetamaskRewardsPointsImage
+            width={16}
+            height={16}
+            name="MetamaskRewardsPoints"
+          />
+          <Text variant={TextVariant.BodySm}>{points}</Text>
+        </Box>
+      </Box>
+      {/* Illustration */}
+      <Image
+        source={illustration}
+        resizeMode="contain"
+        style={tw.style('h-16 w-16')}
       />
-      <Text variant={TextVariant.BodySm}>{points}</Text>
     </Box>
-  </>
-);
+  );
+};
 
 const getBottomSheetData = (type: WayToEarnType) => {
   switch (type) {
@@ -100,49 +114,34 @@ const getBottomSheetData = (type: WayToEarnType) => {
       return {
         title: (
           <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.swap.sheet.title')}
-            points={strings('rewards.ways_to_earn.swap.sheet.points')}
+            title={strings('rewards.ways_to_earn.swap.title')}
+            points={strings('rewards.ways_to_earn.swap.points')}
+            illustration={swapIllustration}
           />
         ),
         description: (
-          <Box twClassName="flex flex-col gap-8">
+          <Box twClassName="flex flex-col gap-6 mt-4">
             <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {strings('rewards.ways_to_earn.swap.sheet.description')}
+              {strings('rewards.ways_to_earn.swap.sheet_description')}
             </Text>
             <SwapSupportedNetworksSection />
           </Box>
         ),
-        ctaLabel: strings('rewards.ways_to_earn.swap.sheet.cta_label'),
       };
     case WayToEarnType.PERPS:
       return {
         title: (
           <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.perps.sheet.title')}
-            points={strings('rewards.ways_to_earn.perps.sheet.points')}
+            title={strings('rewards.ways_to_earn.perps.sheet_title')}
+            points={strings('rewards.ways_to_earn.perps.points')}
+            illustration={perpIllustration}
           />
         ),
         description: (
           <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.perps.sheet.description')}
+            {strings('rewards.ways_to_earn.perps.sheet_description')}
           </Text>
         ),
-        ctaLabel: strings('rewards.ways_to_earn.perps.sheet.cta_label'),
-      };
-    case WayToEarnType.LOYALTY:
-      return {
-        title: (
-          <WaysToEarnSheetTitle
-            title={strings('rewards.ways_to_earn.loyalty.sheet.title')}
-            points={strings('rewards.ways_to_earn.loyalty.sheet.points')}
-          />
-        ),
-        description: (
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.ways_to_earn.loyalty.sheet.description')}
-          </Text>
-        ),
-        ctaLabel: strings('rewards.ways_to_earn.loyalty.sheet.cta_label'),
       };
     default:
       throw new Error(`Unknown earning way type: ${type}`);
@@ -176,34 +175,28 @@ export const WaysToEarn = () => {
 
   const handleCTAPress = async (type: WayToEarnType) => {
     navigation.goBack(); // Close the modal first
-    switch (type) {
-      case WayToEarnType.SWAPS:
-        goToSwaps();
-        break;
-      case WayToEarnType.PERPS:
-        goToPerps();
-        break;
-      case WayToEarnType.LOYALTY:
-        navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
-        break;
+    if (type === WayToEarnType.SWAPS) {
+      goToSwaps();
+    } else if (type === WayToEarnType.PERPS) {
+      goToPerps();
     }
   };
 
   const handleEarningWayPress = (wayToEarn: WayToEarn) => {
     switch (wayToEarn.type) {
       case WayToEarnType.SWAPS:
-      case WayToEarnType.LOYALTY:
       case WayToEarnType.PERPS: {
-        const { title, description, ctaLabel } = getBottomSheetData(
-          wayToEarn.type,
-        );
+        const modalData = getBottomSheetData(wayToEarn.type);
         navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
-          title,
-          description,
+          title: modalData.title,
+          description: modalData.description,
           showIcon: false,
           type: ModalType.Confirmation,
           confirmAction: {
-            label: ctaLabel,
+            label:
+              wayToEarn.type === WayToEarnType.SWAPS
+                ? strings('rewards.ways_to_earn.swap.cta_label')
+                : strings('rewards.ways_to_earn.perps.cta_label'),
             onPress: () => {
               handleCTAPress(wayToEarn.type);
             },

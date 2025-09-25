@@ -4,7 +4,6 @@ import type { AxiosError } from 'axios';
 import BankDetails from './BankDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
-import { MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD } from '../../testUtils';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { StackActions } from '@react-navigation/native';
@@ -28,11 +27,11 @@ const mockOrderData = {
     fiatAmount: 100,
     fiatCurrency: 'USD',
     cryptoCurrency: 'USDC',
-    network: { chainId: 'eip155:1', name: 'Ethereum' },
+    network: 'ethereum',
     status: 'created',
     orderType: 'buy',
     walletAddress: '0x123...',
-    paymentMethod: MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
+    paymentMethod: 'sepa_bank_transfer',
     paymentDetails: [
       {
         fiatCurrency: 'USD',
@@ -115,7 +114,6 @@ jest.mock('../../sdk', () => ({
       sdkMethod: jest.fn(),
     },
     logoutFromProvider: mockLogoutFromProvider,
-    selectedPaymentMethod: MOCK_SEPA_BANK_TRANSFER_PAYMENT_METHOD,
   })),
 }));
 

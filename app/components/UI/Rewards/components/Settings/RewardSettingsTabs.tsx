@@ -1,20 +1,17 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import {
-  FlatList,
-  ListRenderItem,
-  View,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native';
+import { FlatList, ListRenderItem, View, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextVariant,
   FontWeight,
+  Icon,
+  IconName,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../locales/i18n';
@@ -133,23 +130,19 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
             >
-              {linkingAccount === account ? (
-                <ActivityIndicator size="small" color={tw.color('primary')} />
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  twClassName="text-primary"
-                >
-                  {strings('rewards.settings.link_account_button')}
-                </Text>
-              )}
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-primary"
+              >
+                {strings('rewards.settings.link_account_button')}
+              </Text>
             </Box>
           </Pressable>
         )}
       </Box>
     ),
-    [isLinkingAccount, linkingAccount, tw, handleLinkAccountPress],
+    [isLinkingAccount, handleLinkAccountPress, tw],
   );
 
   // Render individual account item for linked accounts
@@ -261,6 +254,30 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
               showsVerticalScrollIndicator={false}
               contentContainerStyle={tw.style('gap-3 pt-4')}
             />
+
+            {/* Linking Account Overlay */}
+            {linkingAccount && (
+              <Box
+                twClassName="absolute inset-0 w-full h-full bg-pressed opacity-80 justify-center items-center"
+                style={tw.style('z-50')}
+              >
+                <Box
+                  twClassName="items-center gap-4"
+                  alignItems={BoxAlignItems.Center}
+                >
+                  <Icon name={IconName.Loading} size={IconSize.Md} />
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    twClassName="text-primary text-center"
+                  >
+                    {strings('rewards.linking_account', {
+                      accountName: linkingAccount.address,
+                    })}
+                  </Text>
+                </Box>
+              </Box>
+            )}
           </Box>
         ) : (
           <Box twClassName="py-8">
