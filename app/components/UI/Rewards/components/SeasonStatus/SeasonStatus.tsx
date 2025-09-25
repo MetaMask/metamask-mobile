@@ -108,7 +108,9 @@ const SeasonStatus: React.FC = () => {
         actionButtonProps={{
           size: ButtonSize.Md,
           style: tw.style('mt-2'),
-          onPress: () => fetchSeasonStatus(),
+          onPress: () => {
+            fetchSeasonStatus();
+          },
           label: strings('rewards.unlocked_rewards_error.retry_button'),
           variant: ButtonVariants.Primary,
         }}
