@@ -4131,7 +4131,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        zkSync
+                                        zkSync Era
                                       </Text>
                                     </View>
                                     <View
