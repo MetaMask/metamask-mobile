@@ -20,7 +20,7 @@ const FromToRow = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const transferRecipient = useTransferRecipient();
 
-  // Don't go more than 13 characters to avoid breaking the UI for small screens
+  // Do not set than 13 characters, it breaks the UI for small screens
   const MAX_CHAR_LENGTH = 13;
 
   if (!transactionMetadata) {
