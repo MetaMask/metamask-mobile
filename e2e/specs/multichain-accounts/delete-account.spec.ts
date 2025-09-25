@@ -11,7 +11,6 @@ import Matchers from '../../utils/Matchers';
 import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import { AccountCellIds } from '../../selectors/MultichainAccounts/AccountCell.selectors';
 
 const deleteAccount = async () => {
   await AccountDetails.tapDeleteAccountLink();
@@ -37,10 +36,9 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
       await WalletView.tapIdenticon();
       await AccountListBottomSheet.scrollToBottomOfAccountList();
 
-      const importedAccountsSection = Matchers.getElementByText('Imported Accounts');
+      const importedAccountsSection =
+        Matchers.getElementByText('Imported Accounts');
       await Assertions.expectElementToNotBeVisible(importedAccountsSection);
-
-
     });
   });
 });
