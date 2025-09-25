@@ -1562,7 +1562,8 @@ describe('Onboarding', () => {
         moveLogoUp: jest.fn(),
         startRiveAnimation() {
           if (this.logoRef.current && this.mounted) {
-            const isDarkMode = true; // Always use dark mode
+            const { themeAppearance } = this.context;
+            const isDarkMode = themeAppearance === 'dark';
             this.logoRef.current.setInputState(
               'WordmarkBuildUp',
               'Dark',
@@ -1583,7 +1584,7 @@ describe('Onboarding', () => {
       expect(mockComponent.logoRef.current.setInputState).toHaveBeenCalledWith(
         'WordmarkBuildUp',
         'Dark',
-        true,
+        true, // Should be true because themeAppearance is 'dark'
       );
       expect(mockComponent.logoRef.current.fireState).toHaveBeenCalledWith(
         'WordmarkBuildUp',
@@ -1591,7 +1592,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should call setInputState with dark mode regardless of themeAppearance', async () => {
+    it('should call setInputState with correct theme-based dark mode value', async () => {
       const mockComponent = {
         mounted: true,
         context: { themeAppearance: 'light' },
@@ -1604,7 +1605,8 @@ describe('Onboarding', () => {
         moveLogoUp: jest.fn(),
         startRiveAnimation() {
           if (this.logoRef.current && this.mounted) {
-            const isDarkMode = true; // Always use dark mode
+            const { themeAppearance } = this.context;
+            const isDarkMode = themeAppearance === 'dark';
             this.logoRef.current.setInputState(
               'WordmarkBuildUp',
               'Dark',
@@ -1625,7 +1627,7 @@ describe('Onboarding', () => {
       expect(mockComponent.logoRef.current.setInputState).toHaveBeenCalledWith(
         'WordmarkBuildUp',
         'Dark',
-        true,
+        false, // Should be false because themeAppearance is 'light'
       );
     });
 
@@ -1644,7 +1646,8 @@ describe('Onboarding', () => {
         startRiveAnimation() {
           try {
             if (this.logoRef.current && this.mounted) {
-              const isDarkMode = true; // Always use dark mode
+              const { themeAppearance } = this.context;
+              const isDarkMode = themeAppearance === 'dark';
               this.logoRef.current.setInputState(
                 'WordmarkBuildUp',
                 'Dark',
@@ -1928,6 +1931,10 @@ describe('Onboarding', () => {
     it('should cover error handling in startRiveAnimation', () => {
       const MockOnboarding = () => {
         const mounted = React.useState(true)[0];
+        const themeContext = React.useMemo(
+          () => ({ themeAppearance: 'dark' }),
+          [],
+        );
         const logoRef = React.useRef({
           setInputState: jest.fn(
             (_stateMachine: string, _input: string, _value: boolean) => {
@@ -1940,7 +1947,8 @@ describe('Onboarding', () => {
         const startRiveAnimation = React.useCallback(() => {
           try {
             if (logoRef.current && mounted) {
-              const isDarkMode = true; // Always use dark mode
+              const { themeAppearance } = themeContext;
+              const isDarkMode = themeAppearance === 'dark';
               logoRef.current.setInputState(
                 'WordmarkBuildUp',
                 'Dark',
@@ -1951,7 +1959,7 @@ describe('Onboarding', () => {
           } catch (error) {
             Logger.error(error as Error, 'Error triggering Rive animation');
           }
-        }, [mounted]);
+        }, [mounted, themeContext]);
 
         React.useEffect(() => {
           startRiveAnimation();
