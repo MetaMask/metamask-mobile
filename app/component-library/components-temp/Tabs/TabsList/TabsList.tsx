@@ -382,7 +382,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       ],
     );
 
-
     const tabBarProps = useMemo(
       () => ({
         tabs,

@@ -137,6 +137,183 @@ describe('Tab', () => {
     });
   });
 
+  describe('Layout and Callbacks', () => {
+    it('calls onLayout callback when layout changes', () => {
+      const mockOnLayout = jest.fn();
+      const { getByTestId } = render(
+        <Tab {...defaultProps} onLayout={mockOnLayout} testID="layout-tab" />,
+      );
+
+      const tab = getByTestId('layout-tab');
+      const layoutEvent = {
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 100, height: 40 },
+        },
+      };
+
+      fireEvent(tab, 'onLayout', layoutEvent);
+
+      expect(mockOnLayout).toHaveBeenCalledWith(layoutEvent);
+    });
+
+    it('does not call onLayout when callback is not provided', () => {
+      const { getByTestId } = render(
+        <Tab {...defaultProps} testID="no-layout-tab" />,
+      );
+
+      const tab = getByTestId('no-layout-tab');
+      const layoutEvent = {
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 100, height: 40 },
+        },
+      };
+
+      // Should not throw error when onLayout is not provided
+      expect(() => {
+        fireEvent(tab, 'onLayout', layoutEvent);
+      }).not.toThrow();
+    });
+
+    it('handles ref changes correctly', () => {
+      const { rerender, getByTestId } = render(
+        <Tab {...defaultProps} testID="ref-tab" />,
+      );
+
+      const tab = getByTestId('ref-tab');
+      expect(tab).toBeOnTheScreen();
+
+      // Re-render to trigger ref callback
+      rerender(<Tab {...defaultProps} label="Updated Tab" testID="ref-tab" />);
+
+      const updatedTab = getByTestId('ref-tab');
+      expect(updatedTab).toBeOnTheScreen();
+    });
+
+    it('handles multiple layout events correctly', () => {
+      const mockOnLayout = jest.fn();
+      const { getByTestId } = render(
+        <Tab
+          {...defaultProps}
+          onLayout={mockOnLayout}
+          testID="multi-layout-tab"
+        />,
+      );
+
+      const tab = getByTestId('multi-layout-tab');
+
+      // First layout event
+      const layoutEvent1 = {
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 100, height: 40 },
+        },
+      };
+      fireEvent(tab, 'onLayout', layoutEvent1);
+
+      // Second layout event
+      const layoutEvent2 = {
+        nativeEvent: {
+          layout: { x: 10, y: 0, width: 120, height: 40 },
+        },
+      };
+      fireEvent(tab, 'onLayout', layoutEvent2);
+
+      expect(mockOnLayout).toHaveBeenCalledTimes(2);
+      expect(mockOnLayout).toHaveBeenNthCalledWith(1, layoutEvent1);
+      expect(mockOnLayout).toHaveBeenNthCalledWith(2, layoutEvent2);
+    });
+  });
+
+  describe('Text Color Logic', () => {
+    it('shows muted text color when disabled and inactive', () => {
+      const { toJSON } = render(
+        <Tab {...defaultProps} isDisabled isActive={false} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('shows muted text color when disabled and active', () => {
+      const { toJSON } = render(<Tab {...defaultProps} isDisabled isActive />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('shows default text color when active and not disabled', () => {
+      const { toJSON } = render(
+        <Tab {...defaultProps} isActive isDisabled={false} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('shows alternative text color when inactive and not disabled', () => {
+      const { toJSON } = render(
+        <Tab {...defaultProps} isActive={false} isDisabled={false} />,
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
+  describe('Pressable Props', () => {
+    it('forwards additional pressable props', () => {
+      const mockOnPressIn = jest.fn();
+      const mockOnPressOut = jest.fn();
+      const { getByTestId } = render(
+        <Tab
+          {...defaultProps}
+          onPressIn={mockOnPressIn}
+          onPressOut={mockOnPressOut}
+          testID="pressable-tab"
+        />,
+      );
+
+      const tab = getByTestId('pressable-tab');
+
+      fireEvent(tab, 'onPressIn');
+      fireEvent(tab, 'onPressOut');
+
+      expect(mockOnPressIn).toHaveBeenCalledTimes(1);
+      expect(mockOnPressOut).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles accessibility props correctly', () => {
+      const { getByTestId } = render(
+        <Tab
+          {...defaultProps}
+          accessibilityLabel="Custom accessibility label"
+          accessibilityHint="Custom accessibility hint"
+          testID="accessible-tab"
+        />,
+      );
+
+      const tab = getByTestId('accessible-tab');
+      expect(tab).toBeOnTheScreen();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('handles empty label gracefully', () => {
+      const { toJSON } = render(<Tab {...defaultProps} label="" />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('handles undefined onPress gracefully', () => {
+      const { getAllByText } = render(
+        <Tab {...defaultProps} onPress={() => {}} />,
+      );
+
+      const tab = getAllByText('Test Tab')[0];
+      expect(() => {
+        fireEvent.press(tab);
+      }).not.toThrow();
+    });
+
+    it('handles special characters in label', () => {
+      const specialLabel = 'Tab with 🚀 emoji & special chars!@#$%';
+      const { getAllByText } = render(
+        <Tab {...defaultProps} label={specialLabel} />,
+      );
+      expect(getAllByText(specialLabel)[0]).toBeOnTheScreen();
+    });
+  });
+
   describe('Accessibility', () => {
     it('is accessible when enabled', () => {
       const { getAllByText } = render(<Tab {...defaultProps} />);

@@ -1131,7 +1131,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -1235,7 +1235,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -1339,7 +1339,7 @@ exports[`TabsBar Individual Tab Disabling hides underline when no tab is active 
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -1578,7 +1578,7 @@ exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct sty
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": 400,

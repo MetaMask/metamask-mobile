@@ -76,7 +76,13 @@ const Tab: React.FC<TabProps> = ({
           fontWeight={
             isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
           }
-          twClassName={isActive ? 'text-default' : 'text-alternative'}
+          twClassName={
+            isDisabled
+              ? 'text-muted'
+              : isActive
+              ? 'text-default'
+              : 'text-alternative'
+          }
           numberOfLines={1}
           style={tw.style('absolute inset-0 flex items-center justify-center')}
         >

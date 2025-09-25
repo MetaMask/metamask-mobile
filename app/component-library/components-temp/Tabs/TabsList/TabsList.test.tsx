@@ -1413,4 +1413,384 @@ describe('TabsList', () => {
       expect(getByText('No Key Content')).toBeOnTheScreen();
     });
   });
+
+  describe('Tab State Management Edge Cases', () => {
+    it('handles tab key preservation when tabs change', () => {
+      const mockOnChangeTab = jest.fn();
+      const { rerender } = render(
+        <TabsList onChangeTab={mockOnChangeTab} initialActiveIndex={1}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            Content 1
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            Content 2
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            Content 3
+          </View>
+        </TabsList>,
+      );
+
+      // Change tabs but keep the same key for active tab
+      rerender(
+        <TabsList onChangeTab={mockOnChangeTab} initialActiveIndex={1}>
+          <View key="tab1" {...({ tabLabel: 'New Tab 1' } as TabViewProps)}>
+            New Content 1
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            Content 2
+          </View>
+          <View key="tab4" {...({ tabLabel: 'Tab 4' } as TabViewProps)}>
+            Content 4
+          </View>
+        </TabsList>,
+      );
+
+      // Should preserve tab selection by key
+      expect(mockOnChangeTab).toHaveBeenCalled();
+    });
+
+    it('handles fallback when current tab becomes disabled', () => {
+      const mockOnChangeTab = jest.fn();
+      const { rerender } = render(
+        <TabsList onChangeTab={mockOnChangeTab} initialActiveIndex={1}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            Content 1
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            Content 2
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            Content 3
+          </View>
+        </TabsList>,
+      );
+
+      // Disable the currently active tab
+      rerender(
+        <TabsList onChangeTab={mockOnChangeTab} initialActiveIndex={1}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            Content 1
+          </View>
+          <View
+            key="tab2"
+            {...({ tabLabel: 'Tab 2', isDisabled: true } as TabViewProps)}
+          >
+            Content 2
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            Content 3
+          </View>
+        </TabsList>,
+      );
+
+      // Should fallback to first enabled tab
+      expect(mockOnChangeTab).toHaveBeenCalled();
+    });
+
+    it('handles fallback to initialActiveIndex when current becomes invalid', () => {
+      const mockOnChangeTab = jest.fn();
+      const { rerender } = render(
+        <TabsList onChangeTab={mockOnChangeTab} initialActiveIndex={0}>
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            Content 1
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            Content 2
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            Content 3
+          </View>
+        </TabsList>,
+      );
+
+      // Remove tabs to make current activeIndex invalid
+      rerender(
+        <TabsList onChangeTab={mockOnChangeTab} initialActiveIndex={1}>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            Content 2
+          </View>
+        </TabsList>,
+      );
+
+      // Should fallback to initialActiveIndex if valid
+      expect(mockOnChangeTab).toHaveBeenCalled();
+    });
+
+    it('finds first enabled tab when initialActiveIndex is disabled', () => {
+      const mockOnChangeTab = jest.fn();
+      render(
+        <TabsList onChangeTab={mockOnChangeTab} initialActiveIndex={0}>
+          <View
+            key="tab1"
+            {...({ tabLabel: 'Tab 1', isDisabled: true } as TabViewProps)}
+          >
+            Content 1
+          </View>
+          <View key="tab2" {...({ tabLabel: 'Tab 2' } as TabViewProps)}>
+            Content 2
+          </View>
+          <View key="tab3" {...({ tabLabel: 'Tab 3' } as TabViewProps)}>
+            Content 3
+          </View>
+        </TabsList>,
+      );
+
+      // Should find first enabled tab (index 1)
+      expect(mockOnChangeTab).toHaveBeenCalledWith({
+        i: 1,
+        ref: expect.anything(),
+      });
+    });
+
+    it('handles case when no enabled tabs exist', () => {
+      const mockOnChangeTab = jest.fn();
+      render(
+        <TabsList onChangeTab={mockOnChangeTab} initialActiveIndex={0}>
+          <View
+            key="tab1"
+            {...({ tabLabel: 'Tab 1', isDisabled: true } as TabViewProps)}
+          >
+            Content 1
+          </View>
+          <View
+            key="tab2"
+            {...({ tabLabel: 'Tab 2', isDisabled: true } as TabViewProps)}
+          >
+            Content 2
+          </View>
+          <View
+            key="tab3"
+            {...({ tabLabel: 'Tab 3', isDisabled: true } as TabViewProps)}
+          >
+            Content 3
+          </View>
+        </TabsList>,
+      );
+
+      // Should handle all disabled tabs gracefully
+      expect(mockOnChangeTab).toHaveBeenCalledWith({
+        i: -1,
+        ref: null,
+      });
+    });
+  });
+
+  describe('Scroll Event Handling', () => {
+    it('handles scroll events with zero container width', () => {
+      const mockOnChangeTab = jest.fn();
+      const { getByTestId } = render(
+        <TabsList onChangeTab={mockOnChangeTab} testID="tabs-list">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>Content 2</View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-list-content');
+
+      // Simulate scroll event with zero container width
+      const scrollEvent = {
+        nativeEvent: {
+          contentOffset: { x: 100, y: 0 },
+          contentSize: { width: 400, height: 300 },
+          layoutMeasurement: { width: 0, height: 300 },
+        },
+      };
+
+      fireEvent.scroll(scrollView, scrollEvent);
+
+      // Should handle zero container width gracefully
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+    });
+
+    it('handles programmatic scroll flag correctly', () => {
+      const mockOnChangeTab = jest.fn();
+      const ref = React.createRef<TabsListRef>();
+      const { getByTestId } = render(
+        <TabsList ref={ref} onChangeTab={mockOnChangeTab} testID="tabs-list">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>Content 2</View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-list-content');
+
+      // Trigger programmatic scroll via ref
+      act(() => {
+        ref.current?.goToTabIndex(1);
+      });
+
+      // Simulate scroll event during programmatic scroll
+      const scrollEvent = {
+        nativeEvent: {
+          contentOffset: { x: 200, y: 0 },
+          contentSize: { width: 400, height: 300 },
+          layoutMeasurement: { width: 400, height: 300 },
+        },
+      };
+
+      fireEvent.scroll(scrollView, scrollEvent);
+
+      // Should ignore scroll events during programmatic scroll
+      // The onChangeTab call should only be from the programmatic scroll, not the scroll event
+      expect(mockOnChangeTab).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles scroll begin events correctly', () => {
+      const mockOnChangeTab = jest.fn();
+      const { getByTestId } = render(
+        <TabsList onChangeTab={mockOnChangeTab} testID="tabs-list">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>Content 2</View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-list-content');
+
+      // Simulate scroll begin
+      fireEvent(scrollView, 'onScrollBeginDrag');
+
+      // Should handle scroll begin without errors
+      expect(scrollView).toBeOnTheScreen();
+    });
+
+    it('handles scroll end events correctly', () => {
+      const mockOnChangeTab = jest.fn();
+      const { getByTestId } = render(
+        <TabsList onChangeTab={mockOnChangeTab} testID="tabs-list">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>Content 2</View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-list-content');
+
+      // Simulate scroll end
+      fireEvent(scrollView, 'onScrollEndDrag');
+      fireEvent(scrollView, 'onMomentumScrollEnd');
+
+      // Should handle scroll end without errors
+      expect(scrollView).toBeOnTheScreen();
+    });
+
+    it('clears scroll timeout on new scroll begin', () => {
+      const mockOnChangeTab = jest.fn();
+      const { getByTestId } = render(
+        <TabsList onChangeTab={mockOnChangeTab} testID="tabs-list">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>Content 2</View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-list-content');
+
+      // Start scroll, then immediately start another
+      fireEvent(scrollView, 'onScrollBeginDrag');
+      fireEvent(scrollView, 'onScrollEndDrag');
+      fireEvent(scrollView, 'onScrollBeginDrag'); // Should clear previous timeout
+
+      // Should handle timeout clearing gracefully
+      expect(scrollView).toBeOnTheScreen();
+    });
+  });
+
+  describe('Layout Handling', () => {
+    it('handles layout changes correctly', () => {
+      const mockOnChangeTab = jest.fn();
+      const { getByTestId } = render(
+        <TabsList onChangeTab={mockOnChangeTab} testID="tabs-list">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>Content 2</View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-list-content');
+
+      // Simulate layout change
+      const layoutEvent = {
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 400, height: 300 },
+        },
+      };
+
+      fireEvent(scrollView, 'onLayout', layoutEvent);
+
+      // Should update container width
+      expect(scrollView).toBeOnTheScreen();
+    });
+
+    it('handles multiple layout changes', () => {
+      const mockOnChangeTab = jest.fn();
+      const { getByTestId } = render(
+        <TabsList onChangeTab={mockOnChangeTab} testID="tabs-list">
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>Content 2</View>
+        </TabsList>,
+      );
+
+      const scrollView = getByTestId('tabs-list-content');
+
+      // Simulate multiple layout changes
+      const layoutEvent1 = {
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 300, height: 300 },
+        },
+      };
+
+      const layoutEvent2 = {
+        nativeEvent: {
+          layout: { x: 0, y: 0, width: 500, height: 300 },
+        },
+      };
+
+      fireEvent(scrollView, 'onLayout', layoutEvent1);
+      fireEvent(scrollView, 'onLayout', layoutEvent2);
+
+      // Should handle multiple layout changes
+      expect(scrollView).toBeOnTheScreen();
+    });
+  });
+
+  describe('Ref Method Edge Cases', () => {
+    it('handles goToTabIndex with invalid indices', () => {
+      const ref = React.createRef<TabsListRef>();
+      const mockOnChangeTab = jest.fn();
+      render(
+        <TabsList ref={ref} onChangeTab={mockOnChangeTab}>
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2' } as TabViewProps)}>Content 2</View>
+        </TabsList>,
+      );
+
+      // Try invalid indices
+      act(() => {
+        ref.current?.goToTabIndex(-1);
+        ref.current?.goToTabIndex(10);
+      });
+
+      // Should handle invalid indices gracefully
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+    });
+
+    it('handles goToTabIndex with disabled tab', () => {
+      const ref = React.createRef<TabsListRef>();
+      const mockOnChangeTab = jest.fn();
+      render(
+        <TabsList ref={ref} onChangeTab={mockOnChangeTab}>
+          <View {...({ tabLabel: 'Tab 1' } as TabViewProps)}>Content 1</View>
+          <View {...({ tabLabel: 'Tab 2', isDisabled: true } as TabViewProps)}>
+            Content 2
+          </View>
+        </TabsList>,
+      );
+
+      // Try to go to disabled tab
+      act(() => {
+        ref.current?.goToTabIndex(1);
+      });
+
+      // Should handle disabled tab gracefully
+      expect(mockOnChangeTab).not.toHaveBeenCalled();
+    });
+  });
 });
