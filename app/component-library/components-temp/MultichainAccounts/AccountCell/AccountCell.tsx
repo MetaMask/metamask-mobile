@@ -65,7 +65,7 @@ const BalanceEndContainer = (
   return (
     <>
       <Text
-        variant={TextVariant.BodyMDBold}
+        variant={TextVariant.BodyMDMedium}
         color={TextColor.Default}
         testID={AccountCellIds.BALANCE}
       >
@@ -124,7 +124,7 @@ const AccountCell = ({
       </View>
       <View style={styles.accountName}>
         <Text
-          variant={TextVariant.BodyMDBold}
+          variant={TextVariant.BodyMDMedium}
           color={TextColor.Default}
           numberOfLines={1}
           style={styles.accountNameText}
@@ -146,8 +146,8 @@ const AccountCell = ({
         {endContainer || (
           <BalanceEndContainer
             accountGroup={accountGroup}
-            hideMenu={hideMenu}
             isSelected={isSelected}
+            hideMenu={hideMenu}
           />
         )}
       </View>

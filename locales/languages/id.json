@@ -1761,8 +1761,6 @@
   },
   "defi_positions": {
     "loading_positions": "Memuat posisi DeFi...",
-    "no_visible_positions": "Tidak dapat menemukan yang Anda cari?",
-    "not_supported": "Kami mungkin belum mendukung protokol Anda.",
     "error_cannot_load_page": "Kami tidak dapat memuat halaman ini.",
     "error_visit_again": "Coba kunjungi lagi nanti.",
     "single_token": "Hanya {{symbol}}",
@@ -2445,10 +2443,9 @@
     "disconnect_confirm": "Memutus koneksi",
     "cancel": "Batal"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Kembali ke aplikasi",
-    "postNetworkSwitchTitle": "Jaringan berhasil dialihkan",
-    "description": "Kembali ke aplikasi untuk terus menggunakan layanannya."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Kembali ke aplikasi",
+    "networkSwitchMethodLabel": "Jaringan berhasil dialihkan"
   },
   "sdk_feedback_modal": {
     "ok": "Oke",
