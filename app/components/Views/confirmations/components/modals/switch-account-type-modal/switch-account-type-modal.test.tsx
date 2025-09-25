@@ -13,6 +13,8 @@ import * as Networks7702 from '../../../hooks/7702/useEIP7702Networks';
 import { EIP7702NetworkConfiguration } from '../../../hooks/7702/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';
 
+jest.mock('../../../hooks/tokens/useTokenWithBalance');
+
 const MOCK_NETWORK = {
   chainId: '0xaa36a7',
   delegationAddress: '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b',

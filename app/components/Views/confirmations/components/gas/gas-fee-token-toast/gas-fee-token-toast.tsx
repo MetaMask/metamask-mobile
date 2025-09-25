@@ -28,11 +28,11 @@ export function GasFeeTokenToast() {
   const prevRef = useRef(NATIVE_TOKEN_ADDRESS);
 
   const tokenSelected = useTokenWithBalance(
-    gasFeeToken.tokenAddress,
+    gasFeeToken?.tokenAddress,
     chainId as Hex,
   );
   const networkImageSource = getNetworkImageSource({
-    chainId,
+    chainId: chainId as Hex,
   });
 
   useEffect(() => {
@@ -61,10 +61,10 @@ export function GasFeeTokenToast() {
           toast?.closeToast();
         },
         style: {
-          backgroundColor: 'unset',
+          backgroundColor: 'transparent',
           paddingHorizontal: 4,
           paddingVertical: 4,
-          height: 'auto',
+          height: 0,
         },
       },
     });

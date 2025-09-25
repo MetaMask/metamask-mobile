@@ -54,6 +54,7 @@ jest.mock(
 );
 
 jest.mock('../../hooks/gas/useGasFeeToken');
+jest.mock('../../hooks/tokens/useTokenWithBalance');
 
 const mockSetOptions = jest.fn();
 const mockNavigation = {
