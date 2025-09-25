@@ -1761,8 +1761,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFi-Positionen werden geladen ...",
-    "no_visible_positions": "Sie finden nicht, wonach Sie suchen?",
-    "not_supported": "Vielleicht unterstützen wir Ihr Protokoll noch nicht.",
     "error_cannot_load_page": "Wir konnten diese Seite nicht laden.",
     "error_visit_again": "Versuchen Sie es später erneut.",
     "single_token": "Nur {{symbol}}",
@@ -2445,10 +2443,9 @@
     "disconnect_confirm": "Verbindung trennen",
     "cancel": "Stornieren"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Zur App zurückkehren",
-    "postNetworkSwitchTitle": "Netzwerk erfolgreich gewechselt",
-    "description": "Bitte kehren Sie zur App zurück, um ihre Dienste weiter zu nutzen."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Zur App zurückkehren",
+    "networkSwitchMethodLabel": "Netzwerk erfolgreich gewechselt"
   },
   "sdk_feedback_modal": {
     "ok": "OK",

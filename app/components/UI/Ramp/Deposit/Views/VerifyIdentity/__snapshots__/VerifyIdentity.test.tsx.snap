@@ -318,7 +318,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
