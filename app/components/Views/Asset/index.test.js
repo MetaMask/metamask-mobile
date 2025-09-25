@@ -284,7 +284,7 @@ jest.mock('../../../selectors/earnController', () => ({
 }));
 
 jest.mock(
-  '../../../selectors/featureFlagController//multichainAccounts/enabledMultichainAccounts',
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
   () => ({
     selectMultichainAccountsState2Enabled: () => false,
   }),
