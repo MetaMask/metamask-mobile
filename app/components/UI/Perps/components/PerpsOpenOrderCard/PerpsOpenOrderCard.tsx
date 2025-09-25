@@ -337,13 +337,16 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
       )}
 
       {isEligibilityModalVisible && (
-        <Modal visible transparent animationType="fade">
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={() => setIsEligibilityModalVisible(false)}
-            contentKey={'geo_block'}
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="fade">
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+            />
+          </Modal>
+        </View>
       )}
     </TouchableOpacity>
   );

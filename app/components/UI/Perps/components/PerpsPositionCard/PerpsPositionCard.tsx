@@ -519,44 +519,50 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         </Modal>
       )}
       {isTPSLCountWarningVisible && (
-        <Modal visible transparent animationType="fade">
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={() => setIsTPSLCountWarningVisible(false)}
-            contentKey={'tpsl_count_warning'}
-            buttonConfig={[
-              {
-                label: strings(
-                  'perps.tooltips.tpsl_count_warning.got_it_button',
-                ),
-                onPress: () => setIsTPSLCountWarningVisible(false),
-                variant: ButtonVariants.Secondary,
-                size: ButtonSize.Lg,
-                testID:
-                  PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON,
-              },
-              {
-                label: strings(
-                  'perps.tooltips.tpsl_count_warning.view_orders_button',
-                ),
-                onPress: () => handleTpslCountPress(),
-                variant: ButtonVariants.Primary,
-                size: ButtonSize.Lg,
-                testID:
-                  PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON,
-              },
-            ]}
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="fade">
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsTPSLCountWarningVisible(false)}
+              contentKey={'tpsl_count_warning'}
+              buttonConfig={[
+                {
+                  label: strings(
+                    'perps.tooltips.tpsl_count_warning.got_it_button',
+                  ),
+                  onPress: () => setIsTPSLCountWarningVisible(false),
+                  variant: ButtonVariants.Secondary,
+                  size: ButtonSize.Lg,
+                  testID:
+                    PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON,
+                },
+                {
+                  label: strings(
+                    'perps.tooltips.tpsl_count_warning.view_orders_button',
+                  ),
+                  onPress: () => handleTpslCountPress(),
+                  variant: ButtonVariants.Primary,
+                  size: ButtonSize.Lg,
+                  testID:
+                    PerpsPositionCardSelectorsIDs.TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON,
+                },
+              ]}
+            />
+          </Modal>
+        </View>
       )}
       {isEligibilityModalVisible && (
-        <Modal visible transparent animationType="fade">
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={() => setIsEligibilityModalVisible(false)}
-            contentKey={'geo_block'}
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="fade">
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+            />
+          </Modal>
+        </View>
       )}
     </>
   );
