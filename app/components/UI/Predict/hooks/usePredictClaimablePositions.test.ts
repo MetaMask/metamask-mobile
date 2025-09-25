@@ -287,6 +287,29 @@ describe('usePredictClaimablePositions', () => {
       expect(mockGetPositions).toHaveBeenCalledTimes(4); // initial + 3 retries
       expect(mockClearClaimTransactions).not.toHaveBeenCalled();
     });
+
+    it('should handle null response from getPositions during retry', async () => {
+      completedClaimPositionIds.add(MOCK_CLAIMED_POSITION.id);
+
+      mockGetPositions
+        .mockResolvedValueOnce([MOCK_CLAIMED_POSITION]) // Initial
+        .mockResolvedValueOnce(null); // Retry returns null
+
+      const { result } = renderHook(() =>
+        usePredictClaimablePositions({ providerId: MOCK_PROVIDER_ID }),
+      );
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(3000);
+      });
+
+      await waitFor(() => {
+        expect(result.current.claimablePositions).toEqual([]);
+      });
+
+      expect(mockGetPositions).toHaveBeenCalledTimes(2);
+      expect(mockClearClaimTransactions).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('should filter out completed positions', async () => {
@@ -324,5 +347,113 @@ describe('usePredictClaimablePositions', () => {
       MOCK_POSITION_2,
     ]);
     expect(result.current.claimablePositions.length).toBe(2);
+  });
+
+  it('should work with default options parameter', async () => {
+    mockGetPositions.mockResolvedValue([MOCK_POSITION_1]);
+
+    const { result, waitForNextUpdate } = renderHook(
+      () => usePredictClaimablePositions(), // No options parameter
+    );
+
+    await act(async () => {
+      await waitForNextUpdate();
+    });
+
+    expect(result.current.claimablePositions).toEqual([MOCK_POSITION_1]);
+    expect(mockGetPositions).toHaveBeenCalledWith({
+      address: MOCK_ADDRESS,
+      providerId: undefined,
+      claimable: true,
+    });
+  });
+
+  it('should handle when getPositions returns null', async () => {
+    mockGetPositions.mockResolvedValue(null);
+
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictClaimablePositions({ providerId: MOCK_PROVIDER_ID }),
+    );
+
+    await act(async () => {
+      await waitForNextUpdate();
+    });
+
+    expect(result.current.claimablePositions).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('should handle non-Error exceptions', async () => {
+    const nonErrorException = 'String error';
+    mockGetPositions.mockRejectedValue(nonErrorException);
+
+    const { result, waitForNextUpdate } = renderHook(() =>
+      usePredictClaimablePositions({ providerId: MOCK_PROVIDER_ID }),
+    );
+
+    await act(async () => {
+      await waitForNextUpdate();
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe('Failed to load claimable positions');
+    expect(result.current.claimablePositions).toEqual([]);
+  });
+
+  it('should not refresh on focus when refreshOnFocus is false', async () => {
+    mockGetPositions.mockResolvedValue([MOCK_POSITION_1]);
+
+    const { waitForNextUpdate } = renderHook(() =>
+      usePredictClaimablePositions({
+        providerId: MOCK_PROVIDER_ID,
+        refreshOnFocus: false,
+      }),
+    );
+
+    await act(async () => {
+      await waitForNextUpdate();
+    });
+
+    expect(mockGetPositions).toHaveBeenCalledTimes(1);
+
+    // Simulate focus by calling the effect callback
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    await act(async () => {
+      focusCallback();
+    });
+
+    // Should still be 1 call (no refresh on focus)
+    expect(mockGetPositions).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle null selectedInternalAccountAddress in retry logic', async () => {
+    // Set address to null
+    mockUseSelector.mockReturnValue(null);
+    completedClaimPositionIds.add(MOCK_CLAIMED_POSITION.id);
+
+    mockGetPositions
+      .mockResolvedValueOnce([MOCK_CLAIMED_POSITION])
+      .mockResolvedValueOnce([MOCK_POSITION_1]);
+
+    const { result } = renderHook(() =>
+      usePredictClaimablePositions({ providerId: MOCK_PROVIDER_ID }),
+    );
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(3000);
+    });
+
+    await waitFor(() => {
+      expect(result.current.claimablePositions).toEqual([MOCK_POSITION_1]);
+    });
+
+    expect(mockGetPositions).toHaveBeenCalledTimes(2);
+    // Should be called with empty string when address is null
+    expect(mockGetPositions).toHaveBeenLastCalledWith({
+      address: '',
+      providerId: MOCK_PROVIDER_ID,
+      claimable: true,
+    });
   });
 });

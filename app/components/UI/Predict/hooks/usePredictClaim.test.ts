@@ -1,5 +1,29 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { usePredictClaim } from './usePredictClaim';
+
+// Mock Engine first - needs to be before the hook import
+jest.mock('../../../../core/Engine', () => {
+  const mockClearClaimTransactions = jest.fn();
+  return {
+    context: {
+      PredictController: {
+        clearClaimTransactions: mockClearClaimTransactions,
+        claimTransactions: {},
+      },
+    },
+  };
+});
+
+// eslint-disable-next-line
+const mockClearClaimTransactions = require('../../../../core/Engine').context
+  .PredictController.clearClaimTransactions;
+
+// Mock usePredictTrading hook
+const mockClaim = jest.fn();
+jest.mock('./usePredictTrading', () => ({
+  usePredictTrading: () => ({
+    claim: mockClaim,
+  }),
+}));
 
 // Factory function to create mock state
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,22 +51,11 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: any) => selector(mockState)),
 }));
 
-// Mock usePredictTrading hook
-const mockClaim = jest.fn();
-jest.mock('./usePredictTrading', () => ({
-  usePredictTrading: () => ({
-    claim: mockClaim,
-  }),
-}));
+// Now import the hook after all mocks are set up
+import { usePredictClaim } from './usePredictClaim';
 
-// Mock Engine
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      clearClaimTransactions: jest.fn(),
-    },
-  },
-}));
+// Cast the mocked function - use the mock directly instead of accessing through Engine
+const mockClearClaimTransactionsCasted = mockClearClaimTransactions;
 
 // Helper function to setup test with mock state
 function setupUsePredictClaimTest(stateOverrides = {}, hookOptions = {}) {
@@ -108,6 +121,8 @@ describe('usePredictClaim', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockState = createMockState();
+    // Ensure the mock function is reset
+    mockClearClaimTransactionsCasted.mockReset();
   });
 
   describe('initial state', () => {
@@ -431,6 +446,129 @@ describe('usePredictClaim', () => {
       rerender(mockState);
 
       expect(result.current.loading).toBe(true);
+    });
+  });
+
+  describe('useEffect side effects', () => {
+    it('calls onComplete callback when completed becomes true while claiming', async () => {
+      const onComplete = jest.fn();
+
+      // Start with no transactions
+      mockState = createMockState({
+        PredictController: {
+          claimTransactions: {},
+        },
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePredictClaim({ onComplete }),
+      );
+
+      // Mock successful claim to set claiming to true
+      mockClaim.mockResolvedValueOnce({ success: true });
+
+      await act(async () => {
+        await result.current.claim({ positions: [createMockPosition()] });
+      });
+
+      // Verify claiming is true
+      expect(result.current.loading).toBe(true);
+
+      // Now simulate completion by updating state with confirmed transactions
+      mockState = createMockState({
+        PredictController: {
+          claimTransactions: {
+            'tx-1': [createMockClaimTransaction({ status: 'confirmed' })],
+          },
+        },
+      });
+
+      // Re-render to trigger useEffect with new state
+      await act(async () => {
+        rerender({ onComplete });
+      });
+
+      expect(onComplete).toHaveBeenCalled();
+    });
+
+    it('calls onError when error status is detected while claiming', async () => {
+      const onError = jest.fn();
+
+      // Start with no transactions, then simulate error
+      mockState = createMockState({
+        PredictController: {
+          claimTransactions: {},
+        },
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePredictClaim({ onError }),
+      );
+
+      // Mock successful claim to set claiming to true
+      mockClaim.mockResolvedValueOnce({ success: true });
+
+      await act(async () => {
+        await result.current.claim({ positions: [createMockPosition()] });
+      });
+
+      // Now simulate error by updating state with error transactions
+      mockState = createMockState({
+        PredictController: {
+          claimTransactions: {
+            'tx-1': [createMockClaimTransaction({ status: 'error' })],
+          },
+        },
+      });
+
+      // Re-render to trigger useEffect with error state
+      await act(async () => {
+        rerender({ onError });
+      });
+
+      expect(onError).toHaveBeenCalledWith(
+        new Error('Error claiming winnings'),
+      );
+      expect(mockClearClaimTransactionsCasted).toHaveBeenCalled();
+    });
+
+    it('calls onError when cancelled status is detected while claiming', async () => {
+      const onError = jest.fn();
+
+      // Start with no transactions, then simulate cancellation
+      mockState = createMockState({
+        PredictController: {
+          claimTransactions: {},
+        },
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePredictClaim({ onError }),
+      );
+
+      // Mock successful claim to set claiming to true
+      mockClaim.mockResolvedValueOnce({ success: true });
+
+      await act(async () => {
+        await result.current.claim({ positions: [createMockPosition()] });
+      });
+
+      // Now simulate cancellation by updating state with cancelled transactions
+      mockState = createMockState({
+        PredictController: {
+          claimTransactions: {
+            'tx-1': [createMockClaimTransaction({ status: 'cancelled' })],
+          },
+        },
+      });
+
+      // Re-render to trigger useEffect with cancelled state
+      await act(async () => {
+        rerender({ onError });
+      });
+
+      expect(onError).toHaveBeenCalledWith(new Error('Claim cancelled'));
+      expect(mockClearClaimTransactionsCasted).toHaveBeenCalled();
     });
   });
 });

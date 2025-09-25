@@ -104,10 +104,10 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-// Mock Image component
+// Mock Image component and ActivityIndicator
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
-  const { Image: RNImage } = RN;
+  const { Image: RNImage, View } = RN;
   return {
     ...RN,
     Image: ({
@@ -119,6 +119,13 @@ jest.mock('react-native', () => {
       testID?: string;
       [key: string]: unknown;
     }) => <RNImage testID={testID} source={source} {...props} />,
+    ActivityIndicator: ({
+      testID,
+      ...props
+    }: {
+      testID?: string;
+      [key: string]: unknown;
+    }) => <View testID={testID || 'activity-indicator'} {...props} />,
   };
 });
 
@@ -283,6 +290,22 @@ describe('MarketsWonCard', () => {
       renderWithProvider(<MarketsWonCard {...propsWithoutCallback} />);
 
       expect(screen.queryByText('Claim $45.20')).not.toBeOnTheScreen();
+    });
+
+    it('renders claim button correctly with loading states', () => {
+      // Test loading state
+      renderWithProvider(
+        <MarketsWonCard {...createDefaultProps()} isLoading />,
+      );
+
+      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
+
+      // Test non-loading state
+      renderWithProvider(
+        <MarketsWonCard {...createDefaultProps()} isLoading={false} />,
+      );
+
+      expect(screen.getByText('Claim $45.20')).toBeOnTheScreen();
     });
   });
 

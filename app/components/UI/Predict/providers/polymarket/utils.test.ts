@@ -1324,6 +1324,7 @@ describe('polymarket utils', () => {
         icon: 'https://example.com/icon2.png',
         size: 50,
         claimable: true,
+        currentValue: 20,
       });
     });
 
