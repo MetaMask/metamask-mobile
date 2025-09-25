@@ -79,6 +79,33 @@ const UnlockedRewards: React.FC = () => {
   const tw = useTailwind();
 
   const { fetchUnlockedRewards } = useUnlockedRewards();
+
+  const renderRewardsContent = () => {
+    const shouldShowSkeleton =
+      (isLoading || unlockedRewards === null) &&
+      !unlockedRewards?.length &&
+      !hasError;
+
+    if (shouldShowSkeleton) {
+      return <Skeleton style={tw.style('h-32 bg-rounded')} />;
+    }
+
+    if (unlockedRewards?.length) {
+      return (
+        <Box twClassName="rounded-xl overflow-hidden bg-background-default">
+          {unlockedRewards.map((reward, index) => (
+            <UnlockedRewardItem
+              key={reward.id}
+              reward={reward}
+              isLast={index === unlockedRewards.length - 1}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    return <></>;
+  };
   if (unlockedRewards && !unlockedRewards?.length) {
     // Not pending and empty, for unlocked rewards we don't show anything
     return null;
@@ -116,23 +143,7 @@ const UnlockedRewards: React.FC = () => {
         />
       )}
 
-      {(isLoading || unlockedRewards === null) &&
-      !unlockedRewards?.length &&
-      !hasError ? (
-        <Skeleton style={tw.style('h-32 bg-rounded')} />
-      ) : unlockedRewards?.length ? (
-        <Box twClassName="rounded-xl overflow-hidden bg-background-default">
-          {unlockedRewards.map((reward, index) => (
-            <UnlockedRewardItem
-              key={reward.id}
-              reward={reward}
-              isLast={index === unlockedRewards.length - 1}
-            />
-          ))}
-        </Box>
-      ) : (
-        <></>
-      )}
+      {renderRewardsContent()}
     </Box>
   );
 };

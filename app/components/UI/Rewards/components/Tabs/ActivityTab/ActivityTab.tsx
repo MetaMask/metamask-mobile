@@ -155,26 +155,34 @@ export const ActivityTab: React.FC = () => {
     );
   }
 
-  return (isLoading || pointsEvents === null) &&
-    !pointsEvents?.length &&
-    !error ? (
-    <Skeleton style={tw.style('h-32 bg-rounded')} />
-  ) : pointsEvents?.length ? ( // Show nothing if there's an error (just the banner)
-    <FlatList
-      testID="flatlist"
-      data={pointsEvents}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      showsVerticalScrollIndicator={false}
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={renderFooter}
-      ItemSeparatorComponent={ItemSeparator}
-      onRefresh={refresh}
-      refreshing={isRefreshing}
-      horizontal={false}
-    />
-  ) : (
-    <EmptyState />
-  );
+  // Determine what to render based on loading state and data
+  const shouldShowLoadingSkeleton =
+    (isLoading || pointsEvents === null) && !pointsEvents?.length && !error;
+
+  const hasPointsEvents = pointsEvents?.length;
+
+  if (shouldShowLoadingSkeleton) {
+    return <Skeleton style={tw.style('h-32 bg-rounded')} />;
+  }
+
+  if (hasPointsEvents) {
+    return (
+      <FlatList
+        testID="flatlist"
+        data={pointsEvents}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+        ItemSeparatorComponent={ItemSeparator}
+        onRefresh={refresh}
+        refreshing={isRefreshing}
+        horizontal={false}
+      />
+    );
+  }
+
+  return <EmptyState />;
 };

@@ -808,7 +808,6 @@ export class RewardsController extends BaseController<
         params.addresses.length,
       ).fill(null);
       const addressesNeedingFresh: string[] = [];
-      const freshIndexMap: Map<string, number> = new Map();
 
       // Check storage state for each address
       for (let i = 0; i < params.addresses.length; i++) {
@@ -830,7 +829,6 @@ export class RewardsController extends BaseController<
 
         // No cached data found, need fresh API call
         addressesNeedingFresh.push(address);
-        freshIndexMap.set(address, i);
       }
 
       // Make fresh API call only for addresses without cached data

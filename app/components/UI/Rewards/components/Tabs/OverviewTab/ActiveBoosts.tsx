@@ -74,6 +74,36 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
     goToSwaps();
   };
 
+  const renderBoostBadge = () => {
+    if (boost.seasonLong) {
+      return (
+        <Box twClassName="flex-row items-center gap-2">
+          <Icon
+            name={IconName.Clock}
+            size={IconSize.Sm}
+            twClassName="text-white"
+          />
+          <Text variant={TextVariant.BodySm} twClassName="text-white">
+            {strings('rewards.season_1')}
+          </Text>
+        </Box>
+      );
+    }
+
+    if (boost.endDate) {
+      return (
+        <Box twClassName="flex-row items-center gap-2">
+          <Icon name={IconName.Clock} size={IconSize.Sm} />
+          <Text variant={TextVariant.BodySm} twClassName="text-white">
+            {timeRemaining}
+          </Text>
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <TouchableOpacity onPress={handleBoostTap} activeOpacity={0.8}>
       <Box
@@ -101,29 +131,7 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
             twClassName="mt-auto"
             testID={REWARDS_VIEW_SELECTORS.ACTIVE_BOOST_CARD_TIME_REMAINING}
           >
-            {/* Season Long Badge */}
-            {boost.seasonLong ? (
-              <Box twClassName="flex-row items-center gap-2">
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Sm}
-                  twClassName="text-white"
-                />
-                <Text variant={TextVariant.BodySm} twClassName="text-white">
-                  {strings('rewards.season_1')}
-                </Text>
-              </Box>
-            ) : boost.endDate ? (
-              <>
-                {/* Time-limited Badge */}
-                <Box twClassName="flex-row items-center gap-2">
-                  <Icon name={IconName.Clock} size={IconSize.Sm} />
-                  <Text variant={TextVariant.BodySm} twClassName="text-white">
-                    {timeRemaining}
-                  </Text>
-                </Box>
-              </>
-            ) : null}
+            {renderBoostBadge()}
           </Box>
         </Box>
         {/* Boost Icon */}
@@ -196,6 +204,41 @@ const ActiveBoosts: React.FC<{
     [scrollNativeGesture, panSink],
   );
 
+  const renderBoostContent = () => {
+    // Show loading state
+    if (
+      (isLoading || activeBoosts === null) &&
+      !activeBoosts?.length &&
+      !hasError
+    ) {
+      return (
+        <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
+      );
+    }
+
+    // Show boost cards if we have data
+    if (activeBoosts?.length) {
+      return (
+        <GestureDetector gesture={combinedGesture}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={CARD_WIDTH + CARD_SPACING}
+            snapToAlignment="start"
+          >
+            {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
+              <BoostCard key={boost.id} boost={boost} index={index} />
+            ))}
+          </ScrollView>
+        </GestureDetector>
+      );
+    }
+
+    // Show nothing if there's an error (just the banner will be shown)
+    return <></>;
+  };
+
   if (!isLoading && !hasError && activeBoosts && numBoosts === 0) {
     return null;
   }
@@ -228,28 +271,8 @@ const ActiveBoosts: React.FC<{
         />
       )}
 
-      {/* Show loading state */}
-      {(isLoading || activeBoosts === null) &&
-      !activeBoosts?.length &&
-      !hasError ? (
-        <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
-      ) : activeBoosts?.length ? ( // Show nothing if there's an error (just the banner)
-        <GestureDetector gesture={combinedGesture}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            decelerationRate="fast"
-            snapToInterval={CARD_WIDTH + CARD_SPACING}
-            snapToAlignment="start"
-          >
-            {activeBoosts?.map((boost: PointsBoostDto, index: number) => (
-              <BoostCard key={boost.id} boost={boost} index={index} />
-            ))}
-          </ScrollView>
-        </GestureDetector>
-      ) : (
-        <></>
-      )}
+      {/* Render boost content based on current state */}
+      {renderBoostContent()}
     </Box>
   );
 };

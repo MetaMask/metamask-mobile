@@ -244,6 +244,34 @@ const UpcomingRewards: React.FC = () => {
     return null;
   }
 
+  const renderMainContent = () => {
+    const shouldShowSkeleton =
+      (isLoading || seasonStartDate === null) &&
+      !upcomingTiers?.length &&
+      !hasError;
+
+    if (shouldShowSkeleton) {
+      return <Skeleton style={tw.style('h-32 bg-rounded')} />;
+    }
+
+    if (upcomingTiers?.length) {
+      return (
+        <Box twClassName="rounded-xl overflow-hidden">
+          {upcomingTiers.map((tier) => (
+            <TierAccordion
+              key={tier.id}
+              tier={tier}
+              isExpanded={expandedTiers.has(tier.id)}
+              onToggle={() => handleTierToggle(tier.id)}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    return <></>;
+  };
+
   return (
     <Box twClassName="py-4 gap-4">
       {/* Always show section header */}
@@ -263,24 +291,7 @@ const UpcomingRewards: React.FC = () => {
         />
       )}
 
-      {(isLoading || seasonStartDate === null) &&
-      !upcomingTiers?.length &&
-      !hasError ? (
-        <Skeleton style={tw.style('h-32 bg-rounded')} />
-      ) : upcomingTiers?.length ? (
-        <Box twClassName="rounded-xl overflow-hidden">
-          {upcomingTiers.map((tier) => (
-            <TierAccordion
-              key={tier.id}
-              tier={tier}
-              isExpanded={expandedTiers.has(tier.id)}
-              onToggle={() => handleTierToggle(tier.id)}
-            />
-          ))}
-        </Box>
-      ) : (
-        <></>
-      )}
+      {renderMainContent()}
     </Box>
   );
 };
