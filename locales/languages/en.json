@@ -31,7 +31,7 @@
     },
     "domain_mismatch": {
       "title": "Suspicious sign-in request",
-      "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
+"message": "The site making the request is not the site you’re signing in to. This could be an attempt to steal your login credentials."
     },
     "insufficient_balance": {
       "title": "Insufficient funds",
@@ -62,7 +62,7 @@
       "message": "Insufficient funds"
     },
     "insufficient_pay_token_balance_fees": {
-      "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
+"message": "Insufficient {{symbol}} to cover fees. Add fewer funds or select a different token to continue.",
       "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
@@ -1163,7 +1163,7 @@
       "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
-      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+"minimum_remaining_error": "Cannot partially close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
       "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
       "no_amount_selected": "Please select an amount to close",
@@ -1906,8 +1906,8 @@
     "total_volume": "Total Volume (24h)",
     "volume_to_marketcap": "Volume / Market Cap",
     "circulating_supply": "Circulating supply",
-    "all_time_high": "All time high",
-    "all_time_low": "All time low",
+"all_time_high": "All-time high",
+"all_time_low": "All-time low",
     "fully_diluted": "Fully diluted",
     "unknown": "Unknown"
   },
@@ -1960,7 +1960,7 @@
     "remove_snap_account": "Remove snap account",
     "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Remove",
-    "remove_account_alert_cancel_btn": "Nevermind",
+"remove_account_alert_cancel_btn": "Never mind",
     "accounts_title": "Accounts",
     "connect_account_title": "Connect account",
     "connect_accounts_title": "Connect accounts",
@@ -2822,8 +2822,8 @@
     "cancel_tx_title": "Attempt to cancel?",
     "cancel_tx_message": "Submitting this attempt does not guarantee your original transaction will be cancelled. If the cancellation attempt is successful, you will be charged the transaction fee above.",
     "speedup_tx_title": "Attempt to speed up?",
-    "speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
-    "nevermind": "Nevermind",
+"speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed-up attempt is successful, you will be charged the transaction fee above.",
+"nevermind": "Never mind",
     "edit_network_fee": "Edit gas fee",
     "edit_priority": "Edit priority",
     "gas_cancel_fee": "Gas cancellation Fee",
@@ -3005,7 +3005,7 @@
   "add_favorite": {
     "title": "Add Favorite",
     "title_label": "Name",
-    "url_label": "Url",
+"url_label": "URL",
     "add_button": "Add",
     "cancel_button": "Cancel"
   },
@@ -3014,7 +3014,7 @@
   },
   "approve": {
     "title": "Approve",
-    "deeplink": "Deeplink",
+"deeplink": "Deep link",
     "qr_code": "QR Code"
   },
   "transactions": {
@@ -3405,7 +3405,7 @@
     "error_message": "We couldn't import that secret recovery phrase. Please make sure you entered it correctly.",
     "error_empty_message": "You need to enter your secret recovery phrase.",
     "error_number_of_words_error_message": "Secret Recovery Phrases contain 12, or 24 words",
-    "error_srp_is_case_sensitive": "Invalid input! Secret Recovery Phrase is case sensitive.",
+"error_srp_is_case_sensitive": "Invalid input! Secret Recovery Phrase is case-sensitive.",
     "error_srp_word_error_1": "Word ",
     "error_srp_word_error_2": " is incorrect or misspelled.",
     "error_multiple_srp_word_error_1": "Word ",
@@ -3661,7 +3661,7 @@
       "title_sent": "Sent {{symbol}}",
       "title_received": "Received {{symbol}}",
       "title_unstake_requested": "Unstaking requested",
-      "title_untake_ready": "Withdrawl ready",
+"title_untake_ready": "Withdrawal ready",
       "title_stake": "Staked {{symbol}}",
       "title_unstake_completed": "Unstaking completed",
       "title_swapped": "Swapped {{symbolIn}} to {{symbolOut}}",
@@ -3672,7 +3672,7 @@
       "label_asset": "Asset",
       "label_account": "Account",
       "label_unstaking_requested": "Unstaking Requested",
-      "label_unstake_ready": "Withdrawl ready",
+"label_unstake_ready": "Withdrawal ready",
       "label_staked": "Staked",
       "label_received": "Received",
       "label_unstaking_confirmed": "Unstaking Confirmed",
@@ -4118,7 +4118,7 @@
     "report_this_issue": "Report this issue",
     "no_providers_available": "No providers available",
     "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
-    "try_different_amount_to_sell_input": "Try choosing a different cash out destination or try to increase or reduce the amount you want to sell!",
+"try_different_amount_to_sell_input": "Try choosing a different cash-out destination or try to increase or reduce the amount you want to sell!",
     "webview_received_error": "WebView received error status code: {{code}}",
     "no_tokens_available_title": "No Tokens Available",
     "no_tokens_available": "There are currently no tokens available to purchase on {{network}} with the selected payment method.",
@@ -4152,7 +4152,7 @@
       "successful": "Order Successful!",
       "your": "Your",
       "available_in_account": "is now available in your account",
-      "delayed_bank_transfer": "It make take a few days to see the cash in your bank account.",
+"delayed_bank_transfer": "It makes take a few days to see the cash in your bank account.",
       "crypto": "crypto",
       "failed": "Order Failed",
       "cancelled": "Order Canceled",
@@ -4204,9 +4204,9 @@
       "purchase_pending_title": "Processing your purchase of {{currency}}",
       "purchase_pending_description": "This should only take a few minutes...",
       "sale_failed_title": "Order failed",
-      "sale_failed_description": "Your order couldn´t be completed.",
+"sale_failed_description": "Your order couldn't be completed.",
       "sale_cancelled_title": "Order cancelled",
-      "sale_cancelled_description": "Your order couldn´t be completed.",
+"sale_cancelled_description": "Your order couldn't be completed.",
       "sale_completed_title": "Order completed",
       "sale_completed_description": "Your order was successful!.",
       "sale_pending_title": "{{currency}} sale processing",
@@ -4379,8 +4379,8 @@
       "approve_pending": "Approving {{sourceToken}} for swaps",
       "approve_confirmed": "{{sourceToken}} approved for swaps"
     },
-    "medium_selected_warning": "Swaps are time sensitive. “Medium” is not recommended.",
-    "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
+"medium_selected_warning": "Swaps are time-sensitive. “Medium” is not recommended.",
+"high_recommendation": "Swaps are typically time-sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
     "recommended_gas": "Recommended gas fee",
     "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
@@ -4406,8 +4406,8 @@
     "action": "Learn more"
   },
   "deeplink": {
-    "invalid": "Invalid deeplink",
-    "not_supported": "Deeplink not supported"
+"invalid": "Invalid deep link",
+"not_supported": "Deep link not supported"
   },
   "error_screen": {
     "title": "An error occurred",
@@ -4513,7 +4513,7 @@
     "max_fee": "Max fee",
     "estimate": "Estimate",
     "recommended_gas_fee": "Recommended gas fee",
-    "swaps_warning": "Swaps are very time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
+"swaps_warning": "Swaps are very time-sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "priority_fee_at_least_0_error": "Priority fee must be at least 1 GWEI",
     "learn_more": {
       "title": "How should I choose?",
@@ -4791,7 +4791,7 @@
     "ledger_reminder_message_step_two": "2. Install and open the Ethereum app",
     "ledger_reminder_message_step_three": "3. Enable Bluetooth",
     "ledger_reminder_message_step_four": "4. Location is enabled with use precise location on",
-    "ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices is enabled",
+"ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices are enabled",
     "ledger_reminder_message_step_five": "5. Do not disturb must be turned off",
     "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
     "available_devices": "Available devices",
@@ -4875,7 +4875,7 @@
   },
   "show_display_nft_media": {
     "show_display_nft_media_title": "Display NFT media",
-    "show_display_nft_media_content_1": "To see an NFT, you need turn on",
+"show_display_nft_media_content_1": "To see an NFT, you need to turn on",
     "show_display_nft_media_content_2": "Display NFT media.",
     "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
@@ -5102,11 +5102,11 @@
       }
     },
     "today": "Today",
-    "one_week_average": "1 week average",
-    "one_month_average": "1 month average",
-    "three_month_average": "3 month average",
-    "six_month_average": "6 month average",
-    "one_year_average": "1 year average"
+"one_week_average": "1-week average",
+"one_month_average": "1-month average",
+"three_month_average": "3-month average",
+"six_month_average": "6-month average",
+"one_year_average": "1-year average"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -5247,7 +5247,7 @@
       "switch_to_smart_account": "You're switching to a smart account.",
       "switch_to_standard_account": "You're switching back to a standard account (EOA).",
       "contract_deployment": "This site wants you to deploy a contract",
-      "decrease_allowance": "This site wants decrease the spending cap for your tokens."
+"decrease_allowance": "This site wants to decrease the spending cap for your tokens."
     },
     "tooltip": {
       "perps_deposit": {
@@ -5301,7 +5301,7 @@
       "label_change_type_revoke": "Revoke",
       "label_change_type_transfer": "You send",
       "label_change_type_approve": "You approve",
-      "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
+"personal_sign_info": "You're signing in to a site and there are no predicted changes to your account.",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
