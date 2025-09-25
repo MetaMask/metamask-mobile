@@ -42,7 +42,6 @@ jest.mock('../../../../../locales/i18n', () => ({
     const mockStrings: Record<string, string> = {
       'rewards.settings.link_account_success_title': `${params?.accountName} linked successfully`,
       'rewards.settings.link_account_error_title': 'Failed to link account',
-      'rewards.toast_dismiss': 'Dismiss',
     };
     return mockStrings[key] || key;
   }),

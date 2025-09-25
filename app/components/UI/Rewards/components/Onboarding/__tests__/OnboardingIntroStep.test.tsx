@@ -82,6 +82,13 @@ jest.mock('../../../../../../core/Multichain/utils', () => ({
   isSolanaAccount: jest.fn(() => false),
 }));
 
+// Mock useGeoRewardsMetadata hook
+jest.mock('../../../hooks/useGeoRewardsMetadata', () => ({
+  useGeoRewardsMetadata: jest.fn(() => ({
+    fetchGeoRewardsMetadata: jest.fn(),
+  })),
+}));
+
 // Tailwind mock is handled in test-utils.ts
 
 // Mock strings
@@ -586,6 +593,194 @@ describe('OnboardingIntroStep', () => {
     });
   });
 
+  describe('auto-redirect functionality', () => {
+    it('should navigate to rewards dashboard when user already has subscription', () => {
+      const mockSelectorWithSubscription = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: 'test-subscription-id',
+                account: 'test-account',
+                hasOptedIn: true,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: 'test-subscription-id',
+                  account: 'test-account',
+                  hasOptedIn: true,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorWithSubscription = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorWithSubscription.mockImplementation(
+        mockSelectorWithSubscription,
+      );
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Should navigate to rewards dashboard
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+    });
+  });
+
+  describe('geo error banner functionality', () => {
+    it('should show geo error banner when geo rewards metadata fails to load', () => {
+      const mockSelectorWithGeoError = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: false,
+            optinAllowedForGeoLoading: false,
+            optinAllowedForGeoError: true,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorWithGeoError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorWithGeoError.mockImplementation(mockSelectorWithGeoError);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Should show geo error banner
+      expect(
+        screen.getByText(
+          'mocked_rewards.geo_rewards_metadata_error.error_fetching_title',
+        ),
+      ).toBeDefined();
+      expect(
+        screen.getByText(
+          'mocked_rewards.geo_rewards_metadata_error.error_fetching_description',
+        ),
+      ).toBeDefined();
+      expect(
+        screen.getByText(
+          'mocked_rewards.geo_rewards_metadata_error.retry_button',
+        ),
+      ).toBeDefined();
+    });
+
+    it('should call fetchGeoRewardsMetadata when retry button is pressed in geo error banner', () => {
+      const mockFetchGeoRewardsMetadata = jest.fn();
+      const mockUseGeoRewardsMetadata = jest.requireMock(
+        '../../../hooks/useGeoRewardsMetadata',
+      ).useGeoRewardsMetadata as jest.Mock;
+      mockUseGeoRewardsMetadata.mockReturnValue({
+        fetchGeoRewardsMetadata: mockFetchGeoRewardsMetadata,
+      });
+
+      const mockSelectorWithGeoError = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: false,
+            optinAllowedForGeoLoading: false,
+            optinAllowedForGeoError: true,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorWithGeoError = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorWithGeoError.mockImplementation(mockSelectorWithGeoError);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      const retryButton = screen.getByText(
+        'mocked_rewards.geo_rewards_metadata_error.retry_button',
+      );
+      fireEvent.press(retryButton);
+
+      // Should call the fetch function
+      expect(mockFetchGeoRewardsMetadata).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle missing account gracefully', () => {
       const mockSelectorWithNoAccount = jest.fn((selector) => {
@@ -629,6 +824,59 @@ describe('OnboardingIntroStep', () => {
 
       // Should still proceed with onboarding when no account
       expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('should render skeleton when candidateSubscriptionId is pending and no subscription exists', () => {
+      const mockSelectorWithSubscriptionId = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: 'existing-subscription',
+                account: 'test-account',
+                hasOptedIn: true,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-account',
+                  accounts: {
+                    'test-account': {
+                      type: 'eip155:eoa',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: 'existing-subscription',
+                  account: 'test-account',
+                  hasOptedIn: true,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorWithSubscriptionId = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorWithSubscriptionId.mockImplementation(
+        mockSelectorWithSubscriptionId,
+      );
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      // Should render skeleton when subscription exists
+      expect(screen.queryByTestId('onboarding-intro-container')).toBeNull();
     });
   });
 });

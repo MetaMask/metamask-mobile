@@ -10,7 +10,7 @@ export interface UsePointsEventsOptions {
 }
 
 export interface UsePointsEventsResult {
-  pointsEvents: PointsEventDto[];
+  pointsEvents: PointsEventDto[] | null;
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
@@ -25,7 +25,9 @@ export const usePointsEvents = (
 ): UsePointsEventsResult => {
   const { seasonId, subscriptionId } = options;
 
-  const [pointsEvents, setPointsEvents] = useState<PointsEventDto[]>([]);
+  const [pointsEvents, setPointsEvents] = useState<PointsEventDto[] | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(!!seasonId && !!subscriptionId);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -64,7 +66,11 @@ export const usePointsEvents = (
         if (isInitial) {
           setPointsEvents(pointsEventsData.results);
         } else {
-          setPointsEvents((prev) => [...prev, ...pointsEventsData.results]);
+          setPointsEvents((prev) =>
+            prev
+              ? [...prev, ...pointsEventsData.results]
+              : pointsEventsData.results,
+          );
         }
 
         setCursor(pointsEventsData.cursor);

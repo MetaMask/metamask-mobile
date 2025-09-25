@@ -50,6 +50,12 @@ jest.mock('../../hooks/useSeasonStatus', () => ({
 
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
 
+// Mock fallback tier image
+jest.mock(
+  '../../../../../images/rewards/tiers/rewards-s1-tier-1.png',
+  () => 'fallback-tier-image',
+);
+
 const mockSelectSeasonStatusLoading =
   selectSeasonStatusLoading as jest.MockedFunction<
     typeof selectSeasonStatusLoading
@@ -84,20 +90,36 @@ const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
   typeof useSeasonStatus
 >;
 
-// Mock date utility
-jest.mock('../../../../../util/date', () => ({
-  getTimeDifferenceFromNow: jest.fn(() => ({
-    days: 15,
-    hours: 10,
-    minutes: 30,
-  })),
+// Mock useTailwind hook
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const mockTw = jest.fn(() => ({}));
+    // Add the style method to the mock function
+    Object.assign(mockTw, {
+      style: jest.fn((styles) => {
+        if (Array.isArray(styles)) {
+          return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
+        }
+        return styles || {};
+      }),
+    });
+    return mockTw;
+  },
 }));
 
-import { getTimeDifferenceFromNow } from '../../../../../util/date';
-const mockGetTimeDifferenceFromNow =
-  getTimeDifferenceFromNow as jest.MockedFunction<
-    typeof getTimeDifferenceFromNow
-  >;
+// Mock format utilities
+jest.mock('../../utils/formatUtils', () => ({
+  formatNumber: jest.fn((value) => value?.toLocaleString() || '0'),
+  formatTimeRemaining: jest.fn(() => '15d 10h'),
+}));
+
+import { formatNumber, formatTimeRemaining } from '../../utils/formatUtils';
+const mockFormatNumber = formatNumber as jest.MockedFunction<
+  typeof formatNumber
+>;
+const mockFormatTimeRemaining = formatTimeRemaining as jest.MockedFunction<
+  typeof formatTimeRemaining
+>;
 
 // Import types
 import { SeasonTierDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
@@ -111,21 +133,17 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.points': 'Points',
       'rewards.point': 'Point',
       'rewards.to_level_up': 'to level up',
+      'rewards.season_status_error.error_fetching_title':
+        'Error fetching season status',
+      'rewards.season_status_error.error_fetching_description':
+        'Unable to load season information. Please try again.',
+      'rewards.unlocked_rewards_error.retry_button': 'Retry',
     };
     return translations[key] || key;
   }),
   default: {
     locale: 'en',
   },
-}));
-
-// Mock intl utility
-const mockIntlFormatter = {
-  format: jest.fn((value) => value.toLocaleString()),
-};
-
-jest.mock('../../../../../util/intl', () => ({
-  getIntlNumberFormatter: jest.fn(() => mockIntlFormatter),
 }));
 
 // Mock theme
@@ -334,16 +352,17 @@ describe('SeasonStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Reset intl formatter to default behavior
-    mockIntlFormatter.format.mockImplementation((value) =>
-      value.toLocaleString(),
+    // Reset format utilities to default behavior
+    mockFormatNumber.mockImplementation(
+      (value) => value?.toLocaleString() || '0',
     );
+    mockFormatTimeRemaining.mockImplementation(() => '15d 10h');
 
     // Setup default mock returns
     mockUseDispatch.mockReturnValue(mockDispatch);
-    mockUseSeasonStatus.mockImplementation(() => {
-      // Mock implementation
-    });
+    mockUseSeasonStatus.mockImplementation(() => ({
+      fetchSeasonStatus: jest.fn(),
+    }));
     mockSelectSeasonStatusLoading.mockReturnValue(
       defaultMockValues.seasonStatusLoading,
     );
@@ -366,13 +385,6 @@ describe('SeasonStatus', () => {
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => selector({} as unknown),
     );
-
-    // Setup date mock
-    mockGetTimeDifferenceFromNow.mockReturnValue({
-      days: 15,
-      hours: 10,
-      minutes: 30,
-    });
   });
 
   describe('Loading State', () => {
@@ -471,11 +483,7 @@ describe('SeasonStatus', () => {
 
   describe('Time Remaining Formatting', () => {
     it('should display time remaining in days and hours format', () => {
-      mockGetTimeDifferenceFromNow.mockReturnValue({
-        days: 15,
-        hours: 10,
-        minutes: 30,
-      });
+      mockFormatTimeRemaining.mockReturnValue('15d 10h');
 
       const { getByText } = render(<SeasonStatus />);
 
@@ -483,23 +491,15 @@ describe('SeasonStatus', () => {
     });
 
     it('should display only minutes when hours is 0 but minutes > 0', () => {
-      mockGetTimeDifferenceFromNow.mockReturnValue({
-        days: 0,
-        hours: 0,
-        minutes: 45,
-      });
+      mockFormatTimeRemaining.mockReturnValue('45m');
 
       const { getByText } = render(<SeasonStatus />);
 
       expect(getByText('45m')).toBeTruthy();
     });
 
-    it('should not display time remaining when both hours and minutes are 0', () => {
-      mockGetTimeDifferenceFromNow.mockReturnValue({
-        days: 0,
-        hours: 0,
-        minutes: 0,
-      });
+    it('should not display time remaining when formatTimeRemaining returns empty string', () => {
+      mockFormatTimeRemaining.mockReturnValue('');
 
       const { queryByText } = render(<SeasonStatus />);
 
@@ -513,11 +513,21 @@ describe('SeasonStatus', () => {
 
       expect(queryByText('Season ends')).toBeNull();
     });
+
+    it('should call formatTimeRemaining with correct date when seasonEndDate is available', () => {
+      const endDate = new Date('2024-12-31T23:59:59Z');
+      mockSelectSeasonEndDate.mockReturnValue(endDate);
+
+      render(<SeasonStatus />);
+
+      expect(mockFormatTimeRemaining).toHaveBeenCalledWith(endDate);
+    });
   });
 
   describe('Points Formatting and Pluralization', () => {
     it('should display formatted points with proper pluralization for multiple points', () => {
       mockSelectBalanceTotal.mockReturnValue(1500);
+      mockFormatNumber.mockReturnValue('1,500');
 
       const { getByText } = render(<SeasonStatus />);
 
@@ -527,6 +537,7 @@ describe('SeasonStatus', () => {
 
     it('should display singular "point" for single point', () => {
       mockSelectBalanceTotal.mockReturnValue(1);
+      mockFormatNumber.mockReturnValue('1');
 
       const { getByText } = render(<SeasonStatus />);
 
@@ -536,6 +547,7 @@ describe('SeasonStatus', () => {
 
     it('should display "0 points" when balance is null', () => {
       mockSelectBalanceTotal.mockReturnValue(null);
+      mockFormatNumber.mockReturnValue('0');
 
       const { getByText } = render(<SeasonStatus />);
 
@@ -545,6 +557,7 @@ describe('SeasonStatus', () => {
 
     it('should display "0 points" when balance is undefined', () => {
       mockSelectBalanceTotal.mockReturnValue(null);
+      mockFormatNumber.mockReturnValue('0');
 
       const { getByText } = render(<SeasonStatus />);
 
@@ -552,30 +565,19 @@ describe('SeasonStatus', () => {
       expect(getByText('points')).toBeTruthy();
     });
 
-    it('should handle formatting errors gracefully', () => {
-      // Given: intl formatter throws an error
-      mockIntlFormatter.format.mockImplementation(() => {
-        throw new Error('Formatting error');
-      });
+    it('should call formatNumber with correct balance value', () => {
       mockSelectBalanceTotal.mockReturnValue(1500);
 
-      // When: component renders
-      const { getByText } = render(<SeasonStatus />);
+      render(<SeasonStatus />);
 
-      // Then: fallback to string conversion is used
-      expect(getByText('1500')).toBeTruthy();
-      expect(getByText('points')).toBeTruthy();
-
-      // Cleanup: restore normal formatter behavior
-      mockIntlFormatter.format.mockImplementation((value) =>
-        value.toLocaleString(),
-      );
+      expect(mockFormatNumber).toHaveBeenCalledWith(1500);
     });
   });
 
   describe('Next Tier Points Display', () => {
     it('should display next tier points needed when available', () => {
       mockSelectNextTierPointsNeeded.mockReturnValue(500);
+      mockFormatNumber.mockReturnValue('500');
 
       const { getByText } = render(<SeasonStatus />);
 
@@ -686,12 +688,14 @@ describe('SeasonStatus', () => {
   describe('Memoized Values', () => {
     it('should update displayed points when balance changes', () => {
       // Given: initial balance of 1500
+      mockFormatNumber.mockReturnValue('1,500');
       const { getByText, rerender } = render(<SeasonStatus />);
       expect(getByText('1,500')).toBeTruthy();
       expect(getByText('points')).toBeTruthy();
 
       // When: balance changes to 1000
       mockSelectBalanceTotal.mockReturnValue(1000);
+      mockFormatNumber.mockReturnValue('1,000');
       rerender(<SeasonStatus />);
 
       // Then: new balance is displayed
@@ -704,13 +708,9 @@ describe('SeasonStatus', () => {
       const { getByText, rerender } = render(<SeasonStatus />);
       expect(getByText('15d 10h')).toBeTruthy();
 
-      // When: end date changes and time difference is recalculated
+      // When: end date changes and formatTimeRemaining returns different value
       mockSelectSeasonEndDate.mockReturnValue(new Date('2025-01-01T00:00:00Z'));
-      mockGetTimeDifferenceFromNow.mockReturnValue({
-        days: 30,
-        hours: 5,
-        minutes: 15,
-      });
+      mockFormatTimeRemaining.mockReturnValue('30d 5h');
       rerender(<SeasonStatus />);
 
       // Then: new time remaining is displayed
@@ -756,6 +756,23 @@ describe('SeasonStatus', () => {
         queryByText('rewards.season_status_error.error_fetching_title'),
       ).toBeNull();
       expect(getByText('Bronze')).toBeTruthy();
+    });
+
+    it('should show normal content when seasonStatusError exists but seasonStartDate is available', () => {
+      // Given: error state but season start date is available
+      mockSelectSeasonStatusError.mockReturnValue('Network error');
+      mockSelectSeasonStartDate.mockReturnValue(
+        new Date('2024-01-01T00:00:00Z'),
+      );
+
+      // When: component renders
+      const { getByText, queryByText } = render(<SeasonStatus />);
+
+      // Then: normal content should be displayed, not error banner
+      expect(getByText('Bronze')).toBeTruthy();
+      expect(
+        queryByText('rewards.season_status_error.error_fetching_title'),
+      ).toBeNull();
     });
   });
 });

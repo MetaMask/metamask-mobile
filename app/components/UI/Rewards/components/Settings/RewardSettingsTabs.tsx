@@ -24,7 +24,10 @@ import Banner, {
   BannerVariant,
   BannerAlertSeverity,
 } from '../../../../../component-library/components/Banners/Banner';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import { TabViewProps } from '../../../Perps/components/PerpsMarketTabs/PerpsMarketTabs.types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
@@ -185,7 +188,11 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     );
   }
 
-  if (hasErrorOptInSummary) {
+  if (
+    hasErrorOptInSummary &&
+    !linkedAccounts.length &&
+    !unlinkedAccounts.length
+  ) {
     return (
       <Box twClassName="py-8">
         <Banner
@@ -194,7 +201,9 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
           title={strings('rewards.settings.error_title')}
           description={strings('rewards.settings.error_description')}
           actionButtonProps={{
-            variant: ButtonVariants.Link,
+            variant: ButtonVariants.Primary,
+            style: tw.style('mt-2'),
+            size: ButtonSize.Md,
             label: strings('rewards.settings.error_retry'),
             onPress: () => {
               fetchOptInStatus();

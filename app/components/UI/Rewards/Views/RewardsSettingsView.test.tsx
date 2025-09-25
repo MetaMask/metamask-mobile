@@ -105,10 +105,16 @@ jest.mock(
   }),
 );
 
+// Mock useSeasonStatus hook
+jest.mock('../hooks/useSeasonStatus', () => ({
+  useSeasonStatus: jest.fn(),
+}));
+
 // Import mocked selectors for setup
 import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 import { useOptout } from '../hooks/useOptout';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
 const mockSelectRewardsActiveAccountHasOptedIn =
   selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
@@ -119,6 +125,9 @@ const mockUseAccountsOperationsLoadingStates =
   useAccountsOperationsLoadingStates as jest.MockedFunction<
     typeof useAccountsOperationsLoadingStates
   >;
+const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
+  typeof useSeasonStatus
+>;
 
 describe('RewardsSettingsView', () => {
   let store: ReturnType<typeof configureStore>;
@@ -175,6 +184,9 @@ describe('RewardsSettingsView', () => {
     });
     mockUseRoute.mockReturnValue({
       params: {},
+    });
+    mockUseSeasonStatus.mockReturnValue({
+      fetchSeasonStatus: jest.fn(),
     });
   });
 
@@ -468,6 +480,25 @@ describe('RewardsSettingsView', () => {
 
       // Assert
       expect(mockUseOptout).toHaveBeenCalled();
+    });
+
+    it('calls useSeasonStatus hook', () => {
+      // Act
+      renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalled();
+    });
+
+    it('calls useSeasonStatus hook for season data availability', () => {
+      // Given that this view doesn't have seasonstatus component
+      // When the component renders
+
+      // Act
+      renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
     });
 
     it('uses selectRewardsActiveAccountHasOptedIn selector', () => {

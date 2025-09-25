@@ -6007,14 +6007,11 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(mockError);
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
 
-      // Act
-      const result = await controller.getActivePointsBoosts(
-        seasonId,
-        subscriptionId,
-      );
+      // Act & Assert
+      await expect(
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
+      ).rejects.toThrow('Data service error');
 
-      // Assert
-      expect(result).toEqual([]);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         seasonId,
@@ -6031,14 +6028,10 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(timeoutError);
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
 
-      // Act
-      const result = await controller.getActivePointsBoosts(
-        seasonId,
-        subscriptionId,
-      );
-
-      // Assert
-      expect(result).toEqual([]);
+      // Act & Assert
+      await expect(
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
+      ).rejects.toThrow('Request timeout after 10000ms');
     });
 
     it('should handle authentication errors', async () => {
@@ -6050,14 +6043,10 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(authError);
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
 
-      // Act
-      const result = await controller.getActivePointsBoosts(
-        seasonId,
-        subscriptionId,
-      );
-
-      // Assert
-      expect(result).toEqual([]);
+      // Act & Assert
+      await expect(
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
+      ).rejects.toThrow('Authentication failed');
     });
 
     it('should pass through different season and subscription IDs correctly', async () => {
@@ -6576,7 +6565,7 @@ describe('RewardsController', () => {
     });
 
     it('should return cached unlocked rewards when cache is fresh', async () => {
-      const recentTime = Date.now() - 5000; // 5 seconds ago (within 5 minute threshold)
+      const recentTime = Date.now() - 5000; // 5 seconds ago (within 1 minute threshold)
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
 
       const mockCachedRewards = [
@@ -6630,7 +6619,7 @@ describe('RewardsController', () => {
     });
 
     it('should fetch fresh unlocked rewards when cache is stale', async () => {
-      const staleTime = Date.now() - 600000; // 10 minutes ago (beyond 5 minute threshold)
+      const staleTime = Date.now() - 120000; // 2 minutes ago (beyond 1 minute threshold)
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
 
       const mockStaleRewards = [
@@ -6747,7 +6736,7 @@ describe('RewardsController', () => {
       expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
-    it('should return empty array on API error', async () => {
+    it('should throw error when API fails', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
@@ -6755,17 +6744,15 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockRejectedValue(new Error('API error'));
 
-      const result = await controller.getUnlockedRewards(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
+      await expect(
+        controller.getUnlockedRewards(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('API error');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         mockSeasonId,
         mockSubscriptionId,
       );
-      expect(result).toEqual([]);
     });
 
     it('should handle null API response', async () => {

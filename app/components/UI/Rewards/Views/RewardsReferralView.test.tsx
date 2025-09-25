@@ -60,6 +60,12 @@ const mockGetNavigationOptionsTitle =
     typeof getNavigationOptionsTitle
   >;
 
+// Import hook mocks
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
+const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
+  typeof useSeasonStatus
+>;
+
 // Mock ErrorBoundary
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
@@ -79,6 +85,11 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
       children,
     );
   },
+}));
+
+// Mock hooks
+jest.mock('../hooks/useSeasonStatus', () => ({
+  useSeasonStatus: jest.fn(),
 }));
 
 // Mock ReferralDetails component
@@ -118,6 +129,11 @@ describe('RewardsReferralView', () => {
         return 'test-subscription-id';
       }
       return undefined;
+    });
+
+    // Setup default hook mock return values
+    mockUseSeasonStatus.mockReturnValue({
+      fetchSeasonStatus: jest.fn(),
     });
   });
 
@@ -254,6 +270,27 @@ describe('RewardsReferralView', () => {
 
       // Assert
       expect(getByTestId('referral-details')).toBeTruthy();
+    });
+  });
+
+  describe('hook integration', () => {
+    it('should call useSeasonStatus hook on mount', () => {
+      // Act
+      render(<RewardsReferralView />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalled();
+    });
+
+    it('should call useSeasonStatus hook for season data availability', () => {
+      // Given that this view doesn't have seasonstatus component
+      // When the component renders
+
+      // Act
+      render(<RewardsReferralView />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
     });
   });
 });

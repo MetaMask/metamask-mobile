@@ -5773,6 +5773,43 @@
       "dismiss_button": "Dismiss"
     },
 
+    "active_boosts_error": {
+      "error_fetching_title": "Failed to fetch active boosts",
+      "error_fetching_description": "We couldn't load your current active boosts. Please check your connection and try again.",
+      "retry_button": "Retry",
+      "dismiss_button": "Dismiss"
+    },
+
+    "unlocked_rewards_error": {
+      "error_fetching_title": "Failed to fetch unlocked rewards",
+      "error_fetching_description": "We couldn't load your unlocked rewards. Please check your connection and try again.",
+      "retry_button": "Retry"
+    },
+
+    "upcoming_rewards_error": {
+      "error_fetching_title": "Failed to fetch upcoming rewards",
+      "error_fetching_description": "We couldn't load your upcoming rewards. Please check your connection and try again.",
+      "retry_button": "Retry"
+    },
+
+    "referral_details_error": {
+      "error_fetching_title": "Failed to fetch referral details",
+      "error_fetching_description": "We couldn't load your referral details. Please check your connection and try again.",
+      "retry_button": "Retry"
+    },
+
+    "active_activity_error": {
+      "error_fetching_title": "Failed to fetch activity",
+      "error_fetching_description": "We couldn't load your activity data. Please check your connection and try again.",
+      "retry_button": "Retry"
+    },
+
+    "geo_rewards_metadata_error": {
+      "error_fetching_title": "Cannot determine opt-in eligibility",
+      "error_fetching_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
+      "retry_button": "Retry"
+    },
+
     "referral_rewards_title": "Referrals",
     "points": "Points",
     "point": "Point",
@@ -5795,8 +5832,6 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
-
-    "toast_dismiss": "Dismiss",
 
     "events": {
       "to": "to",
@@ -5958,10 +5993,7 @@
         "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
-    "active_boosts": {
-      "title": "Active boosts",
-      "error": "Failed to load active boosts"
-    },
+    "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
       "title": "Upcoming rewards",
@@ -5971,8 +6003,6 @@
     },
     "unlocked_rewards": {
       "title": "Unlocked rewards",
-      "empty": "No rewards yet. \nEarn points and level up.",
-      "see_ways_to_earn": "See ways to earn",
       "cta_label": "Claim now",
       "cta_request_invite": "Request invite",
       "claim_label": "Claim",

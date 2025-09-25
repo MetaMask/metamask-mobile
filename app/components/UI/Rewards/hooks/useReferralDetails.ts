@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
   setReferralDetails,
+  setReferralDetailsError,
   setReferralDetailsLoading,
 } from '../../../../reducers/rewards';
 import Engine from '../../../../core/Engine';
@@ -10,13 +11,17 @@ import type { SubscriptionReferralDetailsState } from '../../../../core/Engine/c
 import { useFocusEffect } from '@react-navigation/native';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
-export const useReferralDetails = (): null => {
+export const useReferralDetails = (): {
+  fetchReferralDetails: () => Promise<void>;
+} => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isLoadingRef = useRef(false);
 
   const fetchReferralDetails = useCallback(async (): Promise<void> => {
     if (!subscriptionId) {
+      dispatch(setReferralDetailsError(false));
+      dispatch(setReferralDetailsLoading(false));
       return;
     }
     if (isLoadingRef.current) {
@@ -26,6 +31,7 @@ export const useReferralDetails = (): null => {
 
     try {
       dispatch(setReferralDetailsLoading(true));
+      dispatch(setReferralDetailsError(false));
 
       const referralDetails: SubscriptionReferralDetailsState | null =
         await Engine.controllerMessenger.call(
@@ -40,8 +46,7 @@ export const useReferralDetails = (): null => {
         }),
       );
     } catch (error) {
-      // Silently handle errors - the loading state will be reset in finally
-      console.error('Failed to fetch referral details:', error);
+      dispatch(setReferralDetailsError(true));
     } finally {
       isLoadingRef.current = false;
       dispatch(setReferralDetailsLoading(false));
@@ -64,5 +69,5 @@ export const useReferralDetails = (): null => {
     fetchReferralDetails,
   );
 
-  return null;
+  return { fetchReferralDetails };
 };

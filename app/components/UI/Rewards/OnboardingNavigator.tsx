@@ -10,7 +10,6 @@ import OnboardingStep2 from './components/Onboarding/OnboardingStep2';
 import OnboardingStep3 from './components/Onboarding/OnboardingStep3';
 import OnboardingStep4 from './components/Onboarding/OnboardingStep4';
 import { setOnboardingActiveStep } from '../../../reducers/rewards';
-import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useNavigation } from '@react-navigation/native';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
@@ -22,8 +21,6 @@ const OnboardingNavigator: React.FC = () => {
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const dispatch = useDispatch();
-
-  useGeoRewardsMetadata();
 
   // Reset onboarding step when component mounts/account changes to prevent stale state
   useEffect(() => {

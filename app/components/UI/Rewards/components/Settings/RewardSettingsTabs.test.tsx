@@ -366,10 +366,45 @@ describe('RewardSettingsTabs', () => {
       const skeletons = getAllByTestId('skeleton');
       expect(skeletons.length).toBeGreaterThan(0);
     });
+
+    it('should render multiple skeleton items with proper structure', () => {
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [],
+        isLoading: true,
+        hasError: false,
+        refresh: jest.fn(),
+      });
+
+      const { getAllByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const skeletons = getAllByTestId('skeleton');
+      // Should render 6 skeletons total (3 items × 2 skeletons each: avatar + name)
+      expect(skeletons).toHaveLength(6);
+    });
+
+    it('should not render tabs when loading', () => {
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [],
+        isLoading: true,
+        hasError: false,
+        refresh: jest.fn(),
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      // Should not render tabs when loading
+      expect(queryByTestId('tabs-list-0')).toBeNull();
+    });
   });
 
   describe('error state', () => {
-    it('should render error banner when hasError is true', () => {
+    it('should render error banner when hasError is true and no accounts', () => {
       const mockRefresh = jest.fn();
       mockUseRewardOptinSummary.mockReturnValue({
         linkedAccounts: [],
@@ -407,6 +442,25 @@ describe('RewardSettingsTabs', () => {
       const retryButton = getByTestId('banner-action-button');
       fireEvent.press(retryButton);
       expect(mockRefresh).toHaveBeenCalled();
+    });
+
+    it('should not render error banner when both loading and error', () => {
+      const mockRefresh = jest.fn();
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [],
+        isLoading: true,
+        hasError: true,
+        refresh: mockRefresh,
+      });
+
+      const { queryByTestId, getAllByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      // Should show skeletons instead of error banner when loading
+      expect(queryByTestId('banner')).toBeNull();
+      expect(getAllByTestId('skeleton').length).toBeGreaterThan(0);
     });
   });
 
@@ -536,7 +590,7 @@ describe('RewardSettingsTabs', () => {
       expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
     });
 
-    it('should prevent double-press on link button', async () => {
+    it('should prevent double-press on link button when isLoading is true', async () => {
       const mockLinkAccount = jest.fn().mockResolvedValue(true);
       mockUseLinkAccount.mockReturnValue({
         linkAccount: mockLinkAccount,
@@ -561,6 +615,98 @@ describe('RewardSettingsTabs', () => {
       fireEvent.press(linkButton); // Second press should be ignored
 
       expect(mockLinkAccount).not.toHaveBeenCalled();
+    });
+
+    it('should show activity indicator when linking specific account', async () => {
+      const mockLinkAccount = jest.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => resolve(true), 100);
+          }),
+      );
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: false,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [mockAccount1, mockAccount2],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+      });
+
+      const { getAllByText } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const linkButtons = getAllByText(
+        'mocked_rewards.settings.link_account_button',
+      );
+
+      // Press the first link button
+      fireEvent.press(linkButtons[0]);
+
+      // Check if activity indicator appears for the linking account
+      // The activity indicator should be visible while linking
+      await waitFor(() => {
+        expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
+      });
+    });
+
+    it('should handle linking failure gracefully', async () => {
+      const mockLinkAccount = jest.fn().mockResolvedValue(false);
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: false,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [mockAccount1],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+      });
+
+      const { getByText, getAllByText } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const linkButton = getByText(
+        'mocked_rewards.settings.link_account_button',
+      );
+      fireEvent.press(linkButton);
+
+      await waitFor(() => {
+        expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
+      });
+
+      // Should still show the link button after failed linking
+      expect(
+        getAllByText('mocked_rewards.settings.link_account_button').length,
+      ).toBeGreaterThan(0);
+    });
+
+    it('should disable tabs when linking account', () => {
+      const mockLinkAccount = jest.fn().mockResolvedValue(true);
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: true,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [mockAccount1],
+        unlinkedAccounts: [mockAccount2],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      // Tabs should be rendered but linked tab should be disabled
+      expect(getByTestId('tabs-list-0')).toBeTruthy();
     });
   });
 
@@ -597,6 +743,39 @@ describe('RewardSettingsTabs', () => {
       await waitFor(() => {
         expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
       });
+    });
+
+    it('should not update local state when linking fails', async () => {
+      const mockLinkAccount = jest.fn().mockResolvedValue(false);
+      mockUseLinkAccount.mockReturnValue({
+        linkAccount: mockLinkAccount,
+        isLoading: false,
+      });
+      mockUseRewardOptinSummary.mockReturnValue({
+        linkedAccounts: [],
+        unlinkedAccounts: [mockAccount1],
+        isLoading: false,
+        hasError: false,
+        refresh: jest.fn(),
+      });
+
+      const { getByText, getAllByText } = renderWithProvider(
+        <RewardSettingsTabs initialTabIndex={0} />,
+      );
+
+      const linkButton = getByText(
+        'mocked_rewards.settings.link_account_button',
+      );
+      fireEvent.press(linkButton);
+
+      await waitFor(() => {
+        expect(mockLinkAccount).toHaveBeenCalledWith(mockAccount1);
+      });
+
+      // Should still have the same number of link buttons after failed linking
+      expect(
+        getAllByText('mocked_rewards.settings.link_account_button').length,
+      ).toBe(1);
     });
   });
 

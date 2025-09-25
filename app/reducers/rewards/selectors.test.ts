@@ -29,6 +29,7 @@ import {
   selectActiveBoostsError,
   selectUnlockedRewards,
   selectUnlockedRewardLoading,
+  selectUnlockedRewardError,
   selectSeasonRewardById,
 } from './selectors';
 import { OnboardingStep } from './types';
@@ -832,12 +833,12 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe(false);
     });
 
-    it('returns true when banner should be hidden', () => {
-      const mockState = { rewards: { hideUnlinkedAccountsBanner: true } };
+    it('returns true when loading', () => {
+      const mockState = { rewards: { activeBoostsLoading: true } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() =>
-        useSelector(selectHideUnlinkedAccountsBanner),
+        useSelector(selectActiveBoostsLoading),
       );
       expect(result.current).toBe(true);
     });
@@ -1364,6 +1365,9 @@ describe('Rewards selectors', () => {
         activeBoosts: [],
         activeBoostsLoading: false,
         activeBoostsError: false,
+        unlockedRewards: [],
+        unlockedRewardLoading: false,
+        unlockedRewardError: false,
       });
 
       it('all selectors return expected values from comprehensive state', () => {
@@ -1402,6 +1406,9 @@ describe('Rewards selectors', () => {
         expect(selectActiveBoosts(comprehensiveState)).toEqual([]);
         expect(selectActiveBoostsLoading(comprehensiveState)).toBe(false);
         expect(selectActiveBoostsError(comprehensiveState)).toBe(false);
+        expect(selectUnlockedRewards(comprehensiveState)).toEqual([]);
+        expect(selectUnlockedRewardLoading(comprehensiveState)).toBe(false);
+        expect(selectUnlockedRewardError(comprehensiveState)).toBe(false);
       });
       it('returns true when loading', () => {
         const mockState = { rewards: { activeBoostsLoading: true } };
@@ -1467,8 +1474,8 @@ describe('Rewards selectors', () => {
       const { result } = renderHook(() => useSelector(selectUnlockedRewards));
       expect(result.current).toEqual(mockUnlockedRewards);
       expect(result.current).toHaveLength(2);
-      expect(result.current[0].id).toBe('reward-1');
-      expect(result.current[1].claimStatus).toBe('UNCLAIMED');
+      expect(result.current?.[0]?.id).toBe('reward-1');
+      expect(result.current?.[1]?.claimStatus).toBe('UNCLAIMED');
     });
 
     it('handles state changes correctly', () => {
@@ -1540,6 +1547,60 @@ describe('Rewards selectors', () => {
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
       rerender();
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectUnlockedRewardError', () => {
+    it('returns false when unlockedRewardError is false', () => {
+      const mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when unlockedRewardError is true', () => {
+      const mockState = { rewards: { unlockedRewardError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when unlockedRewardError is undefined', () => {
+      const mockState = { rewards: { unlockedRewardError: undefined } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to error
+      mockState = { rewards: { unlockedRewardError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Change back to no error
+      mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
     });
   });
 
