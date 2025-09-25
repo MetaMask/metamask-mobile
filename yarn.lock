@@ -7986,15 +7986,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/preferences-controller@npm:^20.0.0":
-  version: 20.0.0
-  resolution: "@metamask/preferences-controller@npm:20.0.0"
+"@metamask/preferences-controller@npm:latest":
+  version: 20.0.1
+  resolution: "@metamask/preferences-controller@npm:20.0.1"
   dependencies:
     "@metamask/base-controller": ^8.4.0
     "@metamask/controller-utils": ^11.14.0
   peerDependencies:
     "@metamask/keyring-controller": ^23.0.0
-  checksum: 04ec03d78005c34a24b910f585c9373ac9fd97ae4a3af58370ee95957aa5a99b35a0d97a935350a2504e20374869084cba2bd26b5802dff6ac5a3f0a51af03f1
+  checksum: c3e6ee8fe2143240c40cd4f382a1cae51cd46ed277d7b75ebd8986b79a54e43a44bbb6acdce2b28d0e33e4e8c80dc78f9b123d2823b8a543dfdddd1b2e267df6
   languageName: node
   linkType: hard
 
@@ -33739,7 +33739,7 @@ __metadata:
     "@metamask/phishing-controller": ^13.1.0
     "@metamask/post-message-stream": ^10.0.0
     "@metamask/ppom-validator": ^0.38.0
-    "@metamask/preferences-controller": ^20.0.0
+    "@metamask/preferences-controller": latest
     "@metamask/preinstalled-example-snap": ^0.7.1
     "@metamask/profile-sync-controller": ^25.0.0
     "@metamask/providers": ^18.3.1
