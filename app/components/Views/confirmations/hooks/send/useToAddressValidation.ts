@@ -27,6 +27,7 @@ export const useToAddressValidation = () => {
   const validateToAddress = useCallback(async () => {
     if (
       !to ||
+      !chainId ||
       shouldSkipValidation({
         toAddress: to,
         chainId,
@@ -49,7 +50,7 @@ export const useToAddressValidation = () => {
     }
 
     if (isENS(to)) {
-      return await validateName();
+      return await validateName(chainId, to);
     }
 
     return {
@@ -72,7 +73,7 @@ export const useToAddressValidation = () => {
     warning?: string;
     loading?: boolean;
     resolvedAddress?: string;
-  }>(async () => validateToAddress(), [validateToAddress]);
+  }>(async () => validateToAddress(), [validateToAddress, chainId, to]);
 
   const {
     toAddressValidated,
