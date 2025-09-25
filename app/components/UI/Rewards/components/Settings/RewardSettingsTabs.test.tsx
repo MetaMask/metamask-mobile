@@ -61,6 +61,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
       }
       return styles || {};
     }),
+    color: jest.fn(
+      () =>
+        // Return a default color value for testing
+        '#037DD6',
+    ),
   })),
 }));
 
