@@ -512,7 +512,6 @@ export class RewardsController extends BaseController<
     const accountState = this.#getAccountState(account);
     if (
       accountState &&
-      accountState.hasOptedIn &&
       now - accountState.lastCheckedAuth < AUTH_GRACE_PERIOD_MS
     ) {
       return true;
@@ -656,6 +655,7 @@ export class RewardsController extends BaseController<
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('401')) {
         // Not opted in
+        Logger.log('RewardsController: Account not opt-in', account);
       } else {
         // Unknown error
         subscription = null;
