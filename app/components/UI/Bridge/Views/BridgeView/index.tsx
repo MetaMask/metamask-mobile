@@ -369,10 +369,11 @@ const BridgeView = () => {
 
     // TODO: remove this once controller types are updated
     // @ts-expect-error: controller types are not up to date yet
-    const quoteBpsFee = activeQuote?.quote.feeData.metabridge.quoteBpsFee;
-    const feePercentage = !isNullOrUndefined(quoteBpsFee)
-      ? quoteBpsFee / 100
-      : BRIDGE_MM_FEE_RATE;
+    const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
+    const feePercentage =
+      !isNullOrUndefined(quoteBpsFee) && typeof quoteBpsFee === 'number'
+        ? quoteBpsFee / 100
+        : BRIDGE_MM_FEE_RATE;
 
     const hasFee = activeQuote && feePercentage > 0;
 
