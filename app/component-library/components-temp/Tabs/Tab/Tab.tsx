@@ -25,16 +25,6 @@ const Tab: React.FC<TabProps> = ({
   const tw = useTailwind();
   const viewRef = useRef<View>(null);
 
-  // Use callback ref and memoized layout handler to minimize unnecessary re-renders and improve tab performance.
-
-  // Simple callback ref to store the view reference
-  const handleViewRef = useCallback((view: View | null) => {
-    // Store ref for other uses
-    if (viewRef.current !== view) {
-      (viewRef as React.MutableRefObject<View | null>).current = view;
-    }
-  }, []);
-
   const handleOnLayout = useCallback(
     (layoutEvent: Parameters<NonNullable<typeof onLayout>>[0]) => {
       if (onLayout) {
@@ -46,7 +36,7 @@ const Tab: React.FC<TabProps> = ({
 
   return (
     <View
-      ref={handleViewRef}
+      ref={viewRef}
       onLayout={handleOnLayout}
       style={tw.style('flex-shrink-0')}
     >

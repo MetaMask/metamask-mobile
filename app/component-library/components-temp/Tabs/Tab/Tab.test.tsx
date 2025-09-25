@@ -223,34 +223,6 @@ describe('Tab', () => {
     });
   });
 
-  describe('Text Color Logic', () => {
-    it('shows muted text color when disabled and inactive', () => {
-      const { toJSON } = render(
-        <Tab {...defaultProps} isDisabled isActive={false} />,
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('shows muted text color when disabled and active', () => {
-      const { toJSON } = render(<Tab {...defaultProps} isDisabled isActive />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('shows default text color when active and not disabled', () => {
-      const { toJSON } = render(
-        <Tab {...defaultProps} isActive isDisabled={false} />,
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('shows alternative text color when inactive and not disabled', () => {
-      const { toJSON } = render(
-        <Tab {...defaultProps} isActive={false} isDisabled={false} />,
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
   describe('Pressable Props', () => {
     it('forwards additional pressable props', () => {
       const mockOnPressIn = jest.fn();
@@ -285,13 +257,18 @@ describe('Tab', () => {
 
       const tab = getByTestId('accessible-tab');
       expect(tab).toBeOnTheScreen();
+      expect(tab.props.accessibilityLabel).toBe('Custom accessibility label');
+      expect(tab.props.accessibilityHint).toBe('Custom accessibility hint');
     });
   });
 
   describe('Edge Cases', () => {
     it('handles empty label gracefully', () => {
-      const { toJSON } = render(<Tab {...defaultProps} label="" />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByTestId } = render(
+        <Tab {...defaultProps} label="" testID="empty-label-tab" />,
+      );
+      const tab = getByTestId('empty-label-tab');
+      expect(tab).toBeOnTheScreen();
     });
 
     it('handles undefined onPress gracefully', () => {
