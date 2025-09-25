@@ -186,9 +186,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         { state: initialState },
       );
 
-      const showAllButton = getByText(strings('import_from_seed.show_all'));
-      expect(showAllButton).toBeOnTheScreen();
-
       const pasteButton = getByText(strings('import_from_seed.paste'));
       expect(pasteButton).toBeOnTheScreen();
     });
@@ -220,7 +217,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         expect(getInput(i)).toBeOnTheScreen();
       }
 
-      expect(getInput(0).props.value).toBe('••••');
+      expect(getInput(0).props.value).toBe('say');
       await act(() => {
         fireEvent(getInput(0), 'onFocus');
       });
@@ -429,7 +426,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(secondInput).toBeOnTheScreen();
-        expect(secondInput.props.value).toBe('••••');
+        expect(secondInput.props.value).toBe('word');
       });
     });
 
@@ -586,7 +583,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
 
       // Verify initial state
-      expect(inputFields[0].props.value).toBe('••••');
+      expect(inputFields[0].props.value).toBe('say');
       await act(() => {
         fireEvent(inputFields[0], 'onFocus');
       });
@@ -1075,9 +1072,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
             `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`,
           );
 
-          expect(firstInput.props.value).toBe('••••');
-          expect(secondInput.props.value).toBe('••••');
-          expect(thirdInput.props.value).toBe('••••');
+          expect(firstInput.props.value).toBe('abandon');
+          expect(secondInput.props.value).toBe('ability');
+          expect(thirdInput.props.value).toBe('able');
         });
       });
 
@@ -1108,54 +1105,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         );
 
         mockAlert.mockRestore();
-      });
-    });
-
-    it('toggles show all seed phrase when button is pressed', async () => {
-      const { getByText, getByPlaceholderText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      // Enter a seed phrase to enable the show all button
-      await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
-      });
-
-      const showAllButton = getByText(strings('import_from_seed.show_all'));
-      expect(showAllButton).toBeOnTheScreen();
-
-      // Press the button to show all seed phrases
-      await act(async () => {
-        fireEvent.press(showAllButton);
-      });
-
-      // Now should show "Hide all" button
-      await waitFor(() => {
-        const hideAllButton = getByText(strings('import_from_seed.hide_all'));
-        expect(hideAllButton).toBeOnTheScreen();
-      });
-
-      // Press again to hide all
-      const hideAllButton = getByText(strings('import_from_seed.hide_all'));
-      await act(async () => {
-        fireEvent.press(hideAllButton);
-      });
-
-      // Should show "Show all" button again
-      await waitFor(() => {
-        const showAllButtonAgain = getByText(
-          strings('import_from_seed.show_all'),
-        );
-        expect(showAllButtonAgain).toBeOnTheScreen();
       });
     });
 
