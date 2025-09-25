@@ -22,6 +22,7 @@ import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
 import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 import { useOptout } from '../hooks/useOptout';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
 interface RewardsSettingsViewRouteParams {
   focusUnlinkedTab?: boolean;
@@ -38,6 +39,8 @@ const RewardsSettingsView: React.FC = () => {
   const hasAccountOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const toastRef = useRef<ToastRef>(null);
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
+
+  useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
 
   // Check if any account operations are loading
   const {
