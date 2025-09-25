@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View, TouchableOpacity } from 'react-native';
+import { ScrollView, View, TouchableOpacity, Animated } from 'react-native';
 import { RpcEndpointType } from '@metamask/network-controller';
 import Button, {
   ButtonSize,
@@ -62,8 +62,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 }) => {
   const navigation = useNavigation();
 
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, themeAppearance } = useTheme();
+  const isDarkMode = themeAppearance === 'dark';
+  const styles = createStyles(colors, isDarkMode);
 
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
 
@@ -71,7 +72,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     authConnection === AuthConnection.Google ||
     authConnection === AuthConnection.Apple;
 
-  // Rive animation refs and state
   const riveRef = useRef<RiveRef>(null);
   const [animationStep, setAnimationStep] = useState(1);
   const [dotsCount, setDotsCount] = useState(1);
@@ -80,6 +80,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
   const finalTimeoutId = useRef<NodeJS.Timeout | null>(null);
   const socialLoginTimeoutId = useRef<NodeJS.Timeout | null>(null);
+
+  const fadeOutOpacity = useRef(new Animated.Value(1)).current;
+  const fadeInOpacity = useRef(new Animated.Value(0)).current;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -93,6 +96,21 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     });
   };
 
+  const startFadeTransition = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(fadeOutOpacity, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeInOpacity, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeOutOpacity, fadeInOpacity]);
+
   const startRiveAnimation = useCallback(() => {
     try {
       if (
@@ -105,16 +123,18 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
       hasAnimationStarted.current = true;
 
-      // Set dark mode state
-      // Commenting out as per user request
-      // const isDarkMode = themeAppearance === 'dark';
-      // riveRef.current.setInputState('OnboardingLoader', 'Dark', isDarkMode);
+      const isDarkMode = themeAppearance === 'dark';
+      riveRef.current.setInputState(
+        'OnboardingLoader',
+        'Dark mode',
+        isDarkMode,
+      );
 
       riveRef.current.fireState('OnboardingLoader', 'Start');
 
       dotsIntervalId.current = setInterval(() => {
         setDotsCount((prev) => (prev >= 3 ? 1 : prev + 1));
-      }, 300);
+      }, 500);
 
       animationId.current = setTimeout(() => {
         if (dotsIntervalId.current) {
@@ -122,10 +142,16 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           dotsIntervalId.current = null;
         }
         setAnimationStep(2);
-      }, 1200);
+      }, 2000);
 
       finalTimeoutId.current = setTimeout(() => {
         setAnimationStep(3);
+
+        if (riveRef.current) {
+          riveRef.current.fireState('OnboardingLoader', 'End');
+          startFadeTransition();
+        }
+
         finalTimeoutId.current = null;
 
         const currentIsSocialLogin =
@@ -134,7 +160,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         if (currentIsSocialLogin) {
           socialLoginTimeoutId.current = setTimeout(() => onDone(), 1000);
         }
-      }, 3000);
+      }, 3500);
     } catch (error) {
       Logger.error(
         error as Error,
@@ -142,7 +168,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [startFadeTransition]);
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
@@ -185,7 +211,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   }, [startRiveAnimation]);
 
   const renderAnimatedDots = () => {
-    const dots = '.'.repeat(dotsCount);
+    const count = Math.max(1, Math.min(3, dotsCount));
+    const dots = '.'.repeat(count);
     return dots;
   };
 
@@ -203,108 +230,113 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 
   const renderContent = () => {
-    // For social login flows and new onboarding, show dynamic text
     if (
       isSocialLogin ||
       !successFlow ||
-      successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE
+      successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE ||
+      successFlow === ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP ||
+      successFlow === ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP ||
+      successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP ||
+      successFlow === ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP
     ) {
       return (
         <View style={styles.animationContainer}>
           {RiveAnimationComponent}
           <View style={styles.textOverlay}>
-            <Text
-              variant={TextVariant.DisplayMD}
-              style={styles.textTitle}
-              color={TextColor.Default}
-            >
-              {animationStep === 3
-                ? strings('onboarding_success.wallet_ready')
-                : animationStep === 1
-                ? `Setting up your wallet${renderAnimatedDots()}`
-                : 'Setting up your wallet...'}
-            </Text>
+            {animationStep === 3 ? (
+              <>
+                {/* Fade out: Setup text */}
+                <Animated.View
+                  style={[styles.fadeOutContainer, { opacity: fadeOutOpacity }]}
+                >
+                  <Text
+                    variant={TextVariant.HeadingLG}
+                    style={styles.textTitle}
+                    color={TextColor.Default}
+                  >
+                    {strings('onboarding_success.setting_up_wallet')}
+                  </Text>
+                </Animated.View>
+                {/* Fade in: Ready text */}
+                <Animated.View
+                  style={[styles.fadeInContainer, { opacity: fadeInOpacity }]}
+                >
+                  <Text
+                    variant={TextVariant.DisplayMD}
+                    style={styles.textTitle}
+                    color={TextColor.Default}
+                  >
+                    {strings('onboarding_success.wallet_ready')}
+                  </Text>
+                </Animated.View>
+              </>
+            ) : (
+              <Text
+                variant={TextVariant.HeadingLG}
+                style={styles.textTitle}
+                color={TextColor.Default}
+              >
+                {animationStep === 1
+                  ? `${strings(
+                      'onboarding_success.setting_up_wallet_base',
+                    )}${renderAnimatedDots()}`
+                  : strings('onboarding_success.setting_up_wallet')}
+              </Text>
+            )}
           </View>
         </View>
       );
     }
 
-    // For backup flows, show Rive animation with static content based on flow
     switch (successFlow) {
-      case ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP:
-        return (
-          <View style={styles.animationContainer}>
-            {RiveAnimationComponent}
-            <View style={styles.textOverlay}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.textTitle}
-                color={TextColor.Default}
-              >
-                {strings('onboarding_success.title')}
-              </Text>
-              <Text style={styles.subtitle}>
-                {strings('onboarding_success.subtitle')}
-              </Text>
-            </View>
-          </View>
-        );
-
-      case ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP:
-        return (
-          <View style={styles.animationContainer}>
-            {RiveAnimationComponent}
-            <View style={styles.textOverlay}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.textTitle}
-                color={TextColor.Default}
-              >
-                {strings('onboarding_success.title_no_backup')}
-              </Text>
-              <Text style={styles.subtitle}>
-                {strings('onboarding_success.subtitle_no_backup')}
-              </Text>
-            </View>
-          </View>
-        );
-
-      case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
-      case ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
-        return (
-          <View style={styles.animationContainer}>
-            {RiveAnimationComponent}
-            <View style={styles.textOverlay}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.textTitle}
-                color={TextColor.Default}
-              >
-                {strings('onboarding_success.backup_complete')}
-              </Text>
-              <Text style={styles.subtitle}>
-                {strings('onboarding_success.backup_subtitle')}
-              </Text>
-            </View>
-          </View>
-        );
-
       default:
         return (
           <View style={styles.animationContainer}>
             {RiveAnimationComponent}
             <View style={styles.textOverlay}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.textTitle}
-                color={TextColor.Default}
-              >
-                {animationStep === 3
-                  ? strings('onboarding_success.wallet_ready')
-                  : animationStep === 1
-                  ? `Setting up your wallet${renderAnimatedDots()}`
-                  : 'Setting up your wallet...'}
-              </Text>
+              {animationStep === 3 ? (
+                <>
+                  {/* Fade out: Setup text */}
+                  <Animated.View
+                    style={[
+                      styles.fadeOutContainer,
+                      { opacity: fadeOutOpacity },
+                    ]}
+                  >
+                    <Text
+                      variant={TextVariant.HeadingLG}
+                      style={styles.textTitle}
+                      color={TextColor.Default}
+                    >
+                      {strings('onboarding_success.setting_up_wallet')}
+                    </Text>
+                  </Animated.View>
+                  {/* Fade in: Ready text */}
+                  <Animated.View
+                    style={[styles.fadeInContainer, { opacity: fadeInOpacity }]}
+                  >
+                    <Text
+                      variant={TextVariant.DisplayMD}
+                      style={styles.textTitle}
+                      color={TextColor.Default}
+                    >
+                      {strings('onboarding_success.wallet_ready')}
+                    </Text>
+                  </Animated.View>
+                </>
+              ) : (
+                <Text
+                  variant={TextVariant.HeadingLG}
+                  style={styles.textTitle}
+                  color={TextColor.Default}
+                >
+                  {animationStep === 1
+                    ? `${strings(
+                        'onboarding_success.setting_up_wallet_base',
+                      )}${renderAnimatedDots()}`
+                    : strings('onboarding_success.setting_up_wallet')}
+                </Text>
+              )}
             </View>
           </View>
         );

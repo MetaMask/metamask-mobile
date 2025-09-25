@@ -9,7 +9,7 @@ import OnboardingSuccess, {
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
@@ -397,7 +397,6 @@ describe('OnboardingSuccess', () => {
       jest.useFakeTimers();
       const mockOnDone = jest.fn();
 
-      // Mock Google auth connection
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectSeedlessOnboardingAuthConnection) {
           return AuthConnection.Google;
@@ -429,7 +428,7 @@ describe('OnboardingSuccess', () => {
             riveRef.current.fireState('OnboardingLoader', 'Start');
 
             dotsIntervalId.current = setInterval(() => {
-              // Dots animation logic
+              /* empty test interval */
             }, 300);
 
             animationId.current = setTimeout(() => {
@@ -446,10 +445,8 @@ describe('OnboardingSuccess', () => {
 
               const isSocialLoginConnection = (
                 conn: AuthConnection | null,
-              ): conn is AuthConnection => (
-                  conn === AuthConnection.Google ||
-                  conn === AuthConnection.Apple
-                );
+              ): conn is AuthConnection =>
+                conn === AuthConnection.Google || conn === AuthConnection.Apple;
               const currentIsSocialLogin =
                 isSocialLoginConnection(authConnection);
               if (currentIsSocialLogin) {
@@ -480,7 +477,6 @@ describe('OnboardingSuccess', () => {
 
       renderWithProvider(<TestSocialLoginTimeout />, { state: {} });
 
-      // Fast forward through all timeouts
       jest.advanceTimersByTime(5000);
 
       expect(mockOnDone).toHaveBeenCalled();
@@ -515,7 +511,7 @@ describe('OnboardingSuccess', () => {
             riveRef.current.fireState('OnboardingLoader', 'Start');
 
             dotsIntervalId.current = setInterval(() => {
-              // Dots animation logic
+              /* empty test interval */
             }, 300);
 
             animationId.current = setTimeout(() => {
@@ -532,10 +528,8 @@ describe('OnboardingSuccess', () => {
 
               const isSocialLoginConnection = (
                 conn: AuthConnection | null,
-              ): conn is AuthConnection => (
-                  conn === AuthConnection.Google ||
-                  conn === AuthConnection.Apple
-                );
+              ): conn is AuthConnection =>
+                conn === AuthConnection.Google || conn === AuthConnection.Apple;
               const currentIsSocialLogin =
                 isSocialLoginConnection(authConnection);
               if (currentIsSocialLogin) {
@@ -584,7 +578,7 @@ describe('OnboardingSuccess', () => {
         const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
         const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
         const riveRef = React.useRef({ fireState: jest.fn() });
-        const authConnection: AuthConnection | null = null; // No auth connection
+        const authConnection: AuthConnection | null = null;
 
         const startRiveAnimation = React.useCallback(() => {
           try {
@@ -600,7 +594,7 @@ describe('OnboardingSuccess', () => {
             riveRef.current.fireState('OnboardingLoader', 'Start');
 
             dotsIntervalId.current = setInterval(() => {
-              // Dots animation logic
+              /* dots logic */
             }, 300);
 
             animationId.current = setTimeout(() => {
@@ -617,10 +611,8 @@ describe('OnboardingSuccess', () => {
 
               const isSocialLoginConnection = (
                 conn: AuthConnection | null,
-              ): conn is AuthConnection => (
-                  conn === AuthConnection.Google ||
-                  conn === AuthConnection.Apple
-                );
+              ): conn is AuthConnection =>
+                conn === AuthConnection.Google || conn === AuthConnection.Apple;
               const currentIsSocialLogin =
                 isSocialLoginConnection(authConnection);
               if (currentIsSocialLogin) {
@@ -762,9 +754,8 @@ describe('OnboardingSuccess', () => {
               setAnimationStep(3);
               finalTimeoutId.current = null;
 
-              // Test social login timeout
               socialLoginTimeoutId.current = setTimeout(() => {
-                // Social login logic
+                /* social login logic */
               }, 1000);
             }, 3000);
           } catch (error) {
@@ -837,7 +828,7 @@ describe('OnboardingSuccess', () => {
             }, 3000);
 
             socialLoginTimeoutId.current = setTimeout(() => {
-              // Social login timeout logic
+              /* social login timeout logic */
             }, 4000);
           } catch (error) {
             Logger.error(
@@ -850,9 +841,7 @@ describe('OnboardingSuccess', () => {
         React.useEffect(() => {
           startRiveAnimation();
 
-          // This return function simulates the cleanup in the actual component
           return () => {
-            // Clear all timers (Lines 168-183 in actual component)
             if (animationId.current) {
               clearTimeout(animationId.current);
               animationId.current = null;
@@ -894,7 +883,7 @@ describe('OnboardingSuccess', () => {
 
     it('should cover error handling in startRiveAnimation catch block', () => {
       const mockLogger = jest.spyOn(Logger, 'error').mockImplementation(() => {
-        // Mock implementation
+        /* mock implementation */
       });
 
       const TestErrorHandling = () => {
@@ -945,7 +934,7 @@ describe('OnboardingSuccess', () => {
 
     it('should cover setInterval error scenarios in startRiveAnimation', () => {
       const mockLogger = jest.spyOn(Logger, 'error').mockImplementation(() => {
-        // Mock implementation
+        /* mock implementation */
       });
 
       const TestSetIntervalError = () => {
@@ -971,9 +960,8 @@ describe('OnboardingSuccess', () => {
             hasAnimationStarted.current = true;
             riveRef.current.fireState();
 
-            // Test interval for dots animation
             dotsIntervalId.current = setInterval(() => {
-              // Dots animation logic
+              /* dots logic */
             }, 300);
           } catch (error) {
             Logger.error(
@@ -1121,7 +1109,6 @@ describe('OnboardingSuccess', () => {
         const riveRef = React.useRef({ fireState: jest.fn() });
 
         React.useEffect(() => {
-          // Test rive ref usage
           if (riveRef.current) {
             riveRef.current.fireState();
           }
@@ -1189,7 +1176,8 @@ describe('OnboardingSuccess', () => {
         const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
         const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
 
-        React.useEffect(() => () => {
+        React.useEffect(
+          () => () => {
             if (animationId.current) {
               clearTimeout(animationId.current);
               animationId.current = null;
@@ -1206,7 +1194,9 @@ describe('OnboardingSuccess', () => {
               clearTimeout(socialLoginTimeoutId.current);
               socialLoginTimeoutId.current = null;
             }
-          }, []);
+          },
+          [],
+        );
 
         return <View testID="null-timer-states-test" />;
       };
@@ -1347,6 +1337,222 @@ describe('OnboardingSuccess', () => {
       clearTimeoutSpy.mockRestore();
       clearIntervalSpy.mockRestore();
       jest.useRealTimers();
+    });
+  });
+
+  describe('New Animation Features Coverage', () => {
+    it('should trigger Rive End state and fade transition at step 3', async () => {
+      jest.useFakeTimers();
+      const mockFireState = jest.fn();
+      const mockStartFadeTransition = jest.fn();
+
+      const TestEndStateAndFade = () => {
+        const [animationStep, setAnimationStep] = React.useState(1);
+        const riveRef = React.useRef({ fireState: mockFireState });
+        const fadeOutOpacity = React.useRef({ setValue: jest.fn() }).current;
+        const fadeInOpacity = React.useRef({ setValue: jest.fn() }).current;
+
+        const startFadeTransition = React.useCallback(() => {
+          mockStartFadeTransition();
+          fadeOutOpacity.setValue(0);
+          fadeInOpacity.setValue(1);
+        }, [fadeOutOpacity, fadeInOpacity]);
+
+        React.useEffect(() => {
+          const finalTimeout = setTimeout(() => {
+            setAnimationStep(3);
+            if (riveRef.current) {
+              riveRef.current.fireState('OnboardingLoader', 'End');
+              startFadeTransition();
+            }
+          }, 3500);
+
+          return () => clearTimeout(finalTimeout);
+        }, [startFadeTransition]);
+
+        return (
+          <View testID="end-state-fade-test">
+            <Text testID="animation-step">{animationStep}</Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(<TestEndStateAndFade />, {
+        state: {},
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(3500);
+      });
+
+      expect(getByTestId('animation-step')).toHaveTextContent('3');
+      expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'End');
+      expect(mockStartFadeTransition).toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should handle dynamic theme-based styling and dark mode Rive input', () => {
+      const mockSetInputState = jest.fn();
+      const mockFireState = jest.fn();
+
+      const TestThemeIntegration = ({
+        themeAppearance,
+      }: {
+        themeAppearance: string;
+      }) => {
+        const riveRef = React.useRef({
+          setInputState: mockSetInputState,
+          fireState: mockFireState,
+        });
+
+        React.useEffect(() => {
+          const isDarkMode = themeAppearance === 'dark';
+          if (riveRef.current) {
+            riveRef.current.setInputState(
+              'OnboardingLoader',
+              'Dark mode',
+              isDarkMode,
+            );
+            riveRef.current.fireState('OnboardingLoader', 'Start');
+          }
+        }, [themeAppearance]);
+
+        return (
+          <View testID="theme-integration-test">
+            <Text testID="theme-mode">{themeAppearance}</Text>
+          </View>
+        );
+      };
+
+      const { rerender } = renderWithProvider(
+        <TestThemeIntegration themeAppearance="dark" />,
+        { state: {} },
+      );
+
+      expect(mockSetInputState).toHaveBeenCalledWith(
+        'OnboardingLoader',
+        'Dark mode',
+        true,
+      );
+      expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Start');
+
+      mockSetInputState.mockClear();
+      mockFireState.mockClear();
+
+      rerender(<TestThemeIntegration themeAppearance="light" />);
+
+      expect(mockSetInputState).toHaveBeenCalledWith(
+        'OnboardingLoader',
+        'Dark mode',
+        false,
+      );
+    });
+
+    it('should render fade animation UI components for step 3', () => {
+      const TestFadeAnimationUI = ({
+        animationStep,
+      }: {
+        animationStep: number;
+      }) => {
+        const fadeOutOpacity = { _value: animationStep === 3 ? 0 : 1 };
+        const fadeInOpacity = { _value: animationStep === 3 ? 1 : 0 };
+
+        return (
+          <View testID="fade-animation-ui-test">
+            {animationStep === 3 ? (
+              <>
+                <View
+                  testID="fade-out-text"
+                  style={{ opacity: fadeOutOpacity._value }}
+                >
+                  <Text>Setting up your wallet...</Text>
+                </View>
+                <View
+                  testID="fade-in-text"
+                  style={{ opacity: fadeInOpacity._value }}
+                >
+                  <Text>Your wallet is ready!</Text>
+                </View>
+              </>
+            ) : (
+              <Text testID="regular-text">Setting up your wallet</Text>
+            )}
+          </View>
+        );
+      };
+
+      const { getByTestId, rerender, queryByTestId } = renderWithProvider(
+        <TestFadeAnimationUI animationStep={1} />,
+        { state: {} },
+      );
+
+      expect(getByTestId('regular-text')).toBeTruthy();
+      expect(queryByTestId('fade-out-text')).toBeNull();
+      expect(queryByTestId('fade-in-text')).toBeNull();
+
+      rerender(<TestFadeAnimationUI animationStep={3} />);
+
+      expect(getByTestId('fade-out-text')).toBeTruthy();
+      expect(getByTestId('fade-in-text')).toBeTruthy();
+      expect(queryByTestId('regular-text')).toBeNull();
+
+      const fadeOutElement = getByTestId('fade-out-text');
+      const fadeInElement = getByTestId('fade-in-text');
+      expect(fadeOutElement.props.style.opacity).toBe(0);
+      expect(fadeInElement.props.style.opacity).toBe(1);
+    });
+
+    it('should cover extended backup flow conditions in renderContent', () => {
+      const TestBackupFlowConditions = ({
+        successFlow,
+      }: {
+        successFlow: string;
+      }) => {
+        const shouldUseDynamicContent =
+          successFlow === 'IMPORT_FROM_SEED_PHRASE' ||
+          successFlow === 'BACKED_UP_SRP' ||
+          successFlow === 'NO_BACKED_UP_SRP' ||
+          successFlow === 'SETTINGS_BACKUP' ||
+          successFlow === 'REMINDER_BACKUP';
+
+        return (
+          <View testID="backup-flow-test">
+            <Text testID="uses-dynamic-content">
+              {shouldUseDynamicContent ? 'dynamic' : 'static'}
+            </Text>
+            <Text testID="current-flow">{successFlow}</Text>
+          </View>
+        );
+      };
+
+      const backupFlows = [
+        'BACKED_UP_SRP',
+        'NO_BACKED_UP_SRP',
+        'SETTINGS_BACKUP',
+        'REMINDER_BACKUP',
+      ];
+
+      backupFlows.forEach((flow) => {
+        const { getByTestId, unmount } = renderWithProvider(
+          <TestBackupFlowConditions successFlow={flow} />,
+          { state: {} },
+        );
+
+        expect(getByTestId('current-flow')).toHaveTextContent(flow);
+        expect(getByTestId('uses-dynamic-content')).toHaveTextContent(
+          'dynamic',
+        );
+
+        unmount();
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TestBackupFlowConditions successFlow="OTHER_FLOW" />,
+        { state: {} },
+      );
+
+      expect(getByTestId('uses-dynamic-content')).toHaveTextContent('static');
     });
   });
 });

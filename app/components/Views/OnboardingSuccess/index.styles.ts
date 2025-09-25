@@ -2,12 +2,14 @@ import { StyleSheet } from 'react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../../styles/common';
 
-const createStyles = (colors: ThemeColors) =>
+const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
   StyleSheet.create({
     root: {
       flexGrow: 1,
       paddingBottom: 16,
-      backgroundColor: importedColors.gettingStartedTextColor,
+      backgroundColor: isDarkMode
+        ? colors.background.default
+        : importedColors.gettingStartedTextColor,
     },
     contentContainer: {
       flexDirection: 'column',
@@ -122,17 +124,17 @@ const createStyles = (colors: ThemeColors) =>
       rowGap: 0,
       justifyContent: 'flex-start',
     },
-    // New Rive animation styles
     animationContainer: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 32,
+      marginHorizontal: -16,
     },
     riveAnimation: {
-      width: 300,
+      width: '100%', // Full width to screen edges
       height: 300,
-      alignSelf: 'center',
+      alignSelf: 'stretch',
     },
     textOverlay: {
       alignItems: 'center',
@@ -150,6 +152,12 @@ const createStyles = (colors: ThemeColors) =>
       marginTop: 16,
       lineHeight: 22,
       color: colors.text.alternative,
+    },
+    fadeOutContainer: {
+      position: 'absolute',
+    },
+    fadeInContainer: {
+      opacity: 1,
     },
   });
 

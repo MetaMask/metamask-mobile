@@ -38,6 +38,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
+              "marginHorizontal": -16,
               "paddingVertical": 32,
             }
           }
@@ -61,9 +62,9 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "fontSize": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 32,
                   "marginBottom": 24,
                   "textAlign": "center",
                 }
@@ -200,6 +201,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
+              "marginHorizontal": -16,
               "paddingVertical": 32,
             }
           }
@@ -223,9 +225,9 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "fontSize": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 32,
                   "marginBottom": 24,
                   "textAlign": "center",
                 }
@@ -362,6 +364,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
+              "marginHorizontal": -16,
               "paddingVertical": 32,
             }
           }
@@ -385,9 +388,9 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "fontSize": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 32,
                   "marginBottom": 24,
                   "textAlign": "center",
                 }
@@ -524,6 +527,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
+              "marginHorizontal": -16,
               "paddingVertical": 32,
             }
           }
@@ -547,9 +551,9 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "fontSize": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 32,
                   "marginBottom": 24,
                   "textAlign": "center",
                 }
@@ -686,6 +690,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
+              "marginHorizontal": -16,
               "paddingVertical": 32,
             }
           }
@@ -709,9 +714,9 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "fontSize": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 32,
                   "marginBottom": 24,
                   "textAlign": "center",
                 }
@@ -848,6 +853,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
+              "marginHorizontal": -16,
               "paddingVertical": 32,
             }
           }
@@ -871,31 +877,15 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "fontSize": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 32,
                   "marginBottom": 24,
                   "textAlign": "center",
                 }
               }
             >
-              Keep your Secret Recovery Phrase safe!
-            </Text>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                  "marginTop": 16,
-                  "textAlign": "center",
-                }
-              }
-            >
-              [missing "en.onboarding_success.subtitle" translation]
+              Setting up your wallet.
             </Text>
           </View>
         </View>
@@ -1026,6 +1016,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
+              "marginHorizontal": -16,
               "paddingVertical": 32,
             }
           }
@@ -1049,9 +1040,9 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "fontSize": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 32,
                   "marginBottom": 24,
                   "textAlign": "center",
                 }
@@ -1188,6 +1179,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "alignItems": "center",
               "flex": 1,
               "justifyContent": "center",
+              "marginHorizontal": -16,
               "paddingVertical": 32,
             }
           }
@@ -1211,31 +1203,15 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
                 {
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
-                  "fontSize": 32,
+                  "fontSize": 24,
                   "letterSpacing": 0,
-                  "lineHeight": 40,
+                  "lineHeight": 32,
                   "marginBottom": 24,
                   "textAlign": "center",
                 }
               }
             >
-              Reminder set!
-            </Text>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#686e7d",
-                  "fontFamily": "Geist Regular",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                  "marginTop": 16,
-                  "textAlign": "center",
-                }
-              }
-            >
-              Remember to back up your Secret Recovery Phrase to keep your wallet secure.
+              Setting up your wallet.
             </Text>
           </View>
         </View>
