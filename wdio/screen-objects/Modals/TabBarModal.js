@@ -44,6 +44,14 @@ class TabBarModal extends AppwrightGestures {
     }
   }
 
+  get tradeButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.TRADE);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.TRADE);
+    }
+  }
+
   get settingsButton() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.SETTING);
@@ -101,6 +109,15 @@ class TabBarModal extends AppwrightGestures {
       const actionButton = await this.actionButton;
       await appwrightExpect(actionButton).toBeVisible();
       await this.tap(actionButton); // Use inherited tap method with retry logic
+    }
+  }
+
+  async tapTradeButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.tradeButton);
+    } else {
+      const tradeButton = await this.tradeButton;
+      await tradeButton.tap();
     }
   }
 

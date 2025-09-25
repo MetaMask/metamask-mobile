@@ -52,8 +52,6 @@ const createStyles = (colors: any) =>
       justifyContent: 'space-between',
       width: '100%',
       marginTop: 'auto',
-      borderTopWidth: 1,
-      borderTopColor: colors.background.default,
     },
     seedPhraseDefaultInput: {
       borderWidth: 0,
@@ -107,8 +105,13 @@ const createStyles = (colors: any) =>
     pasteButton: {
       paddingHorizontal: 16,
       paddingVertical: 16,
-      flex: 1,
       textAlign: 'center',
+    },
+    pasteText: {
+      textAlign: 'right',
+      paddingTop: 12,
+      paddingBottom: 16,
+      alignSelf: 'flex-end',
     },
     seedPhraseInputFocused: {
       borderColor: colors.primary.default,
@@ -129,18 +132,6 @@ const createStyles = (colors: any) =>
       fontSize: scale(10),
       color: colors.text.default,
       ...fontStyles.normal,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_weak: {
-      color: colors.error.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_good: {
-      color: colors.primary.default,
-    },
-    // eslint-disable-next-line react-native/no-unused-styles
-    strength_strong: {
-      color: colors.success.default,
     },
     input: {
       paddingVertical: Platform.select({

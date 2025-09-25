@@ -159,17 +159,8 @@ class WalletMainScreen extends AppwrightGestures {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      const isAndroid = AppwrightSelectors.isAndroid(this._device);
-      
-      let tokenName;
-      if (isAndroid) {
-        // For Android: use asset-{token} approach
-        tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
-      } else {
-        // For iOS: use catch-all selector
-        tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
-      }
-      
+      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
+
       await tokenName.tap();
     }
   }

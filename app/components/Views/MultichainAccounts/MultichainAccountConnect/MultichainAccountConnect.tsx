@@ -170,7 +170,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const {
     connectedAccountGroups,
     supportedAccountGroups,
-    existingConnectedCaipAccountIds,
+    connectedAccountGroupWithRequested,
+    caipAccountIdsOfConnectedAccountGroupWithRequested,
+    selectedAndRequestedAccountGroups,
   } = useAccountGroupsForPermissions(
     existingPermissionsCaip25CaveatValue,
     requestedCaipAccountIds,
@@ -201,8 +203,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { suggestedAccountGroups, suggestedCaipAccountIds } = useMemo(() => {
     if (connectedAccountGroups.length > 0) {
       return {
-        suggestedAccountGroups: connectedAccountGroups,
-        suggestedCaipAccountIds: existingConnectedCaipAccountIds,
+        suggestedAccountGroups: connectedAccountGroupWithRequested,
+        suggestedCaipAccountIds:
+          caipAccountIdsOfConnectedAccountGroupWithRequested,
       };
     }
 
@@ -213,21 +216,33 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       };
     }
 
-    // if there are no connected account groups, show the first supported account group
-    const [firstSupportedAccountGroup] = supportedAccountGroups;
+    if (requestedCaipAccountIds.length === 0) {
+      const [defaultSelectedAccountGroup] = supportedAccountGroups;
+
+      return {
+        suggestedAccountGroups: [defaultSelectedAccountGroup],
+        suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
+          [defaultSelectedAccountGroup],
+          requestedCaipChainIdsWithDefaultSelectedChainIds,
+        ),
+      };
+    }
 
     return {
-      suggestedAccountGroups: [firstSupportedAccountGroup],
+      suggestedAccountGroups: selectedAndRequestedAccountGroups,
       suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
-        [firstSupportedAccountGroup],
+        selectedAndRequestedAccountGroups,
         requestedCaipChainIdsWithDefaultSelectedChainIds,
       ),
     };
   }, [
-    connectedAccountGroups,
+    connectedAccountGroups.length,
     supportedAccountGroups,
+    requestedCaipAccountIds.length,
+    selectedAndRequestedAccountGroups,
     requestedCaipChainIdsWithDefaultSelectedChainIds,
-    existingConnectedCaipAccountIds,
+    connectedAccountGroupWithRequested,
+    caipAccountIdsOfConnectedAccountGroupWithRequested,
   ]);
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
@@ -310,9 +325,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     };
   }, [dappUrl, channelIdOrHostname]);
 
-  const faviconSource = useFavicon(
-    channelIdOrHostname || (!isChannelId ? channelIdOrHostname : ''),
-  );
+  const { faviconURI: faviconSource } = useFavicon(dappUrl);
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
 

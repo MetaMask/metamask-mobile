@@ -25,7 +25,7 @@ class AccountListComponent extends AppwrightGestures {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+      return AppwrightSelectors.getElementByText(this._device, 'Accounts');
     }
   }
 
@@ -33,11 +33,11 @@ class AccountListComponent extends AppwrightGestures {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT);
     }
   }
 
-  async tapAddAccountButton() {
+  async tapCreateAccountButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.addAccountButton);
     } else {
@@ -57,6 +57,11 @@ class AccountListComponent extends AppwrightGestures {
   async isComponentNotDisplayed() {
     const element = await this.accountListContainer;
     await element.waitForExist({ reverse: true });
+  }
+
+  async isAccountDisplayed(name) {
+    const element = await AppwrightSelectors.getElementByCatchAll(this.device, name);
+    await expect(element).toBeVisible({ timeout: 10000 });
   }
 
   async tapOnAccountByName(name) {
