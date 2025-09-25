@@ -147,6 +147,7 @@ jobs:
           echo "Platform: ${{ inputs.platform }}"
           echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
           echo "QA App Version: ${{ inputs.app_version }}"
+          echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
           
           # Run the appropriate test command based on build_type flag
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
