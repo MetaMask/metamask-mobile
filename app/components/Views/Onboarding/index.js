@@ -411,7 +411,13 @@ class Onboarding extends PureComponent {
 
     try {
       if (this.logoRef.current && this.mounted) {
-        this.logoRef.current.setInputState('WordmarkBuildUp', 'Dark', true);
+        const { themeAppearance } = this.context;
+        const isDarkMode = themeAppearance === 'dark';
+        this.logoRef.current.setInputState(
+          'WordmarkBuildUp',
+          'Dark',
+          isDarkMode,
+        );
         this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
         setTimeout(() => {
           if (this.mounted) {
@@ -869,7 +875,7 @@ class Onboarding extends PureComponent {
               fit={Fit.Contain}
               alignment={Alignment.Center}
               autoplay={false}
-              stateMachine="WordmarkBuildUp"
+              stateMachineName="WordmarkBuildUp"
               testID="metamask-wordmark-animation"
             />
           </Animated.View>
@@ -1026,7 +1032,7 @@ class Onboarding extends PureComponent {
               fit={Fit.Contain}
               alignment={Alignment.Center}
               autoplay={false}
-              stateMachine="FoxRaiseUp"
+              stateMachineName="FoxRaiseUp"
               testID="fox-animation"
             />
           </Animated.View>
