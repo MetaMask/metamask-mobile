@@ -101,7 +101,6 @@ export const usePredictClaim = (options: UsePredictClaimOptions = {}) => {
     if (completed && claiming) {
       setClaiming(false);
       onComplete?.();
-      //Engine.context.PredictController.clearClaimTransactions();
     }
   }, [completed, claiming, onComplete]);
 
