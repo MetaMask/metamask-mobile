@@ -14,6 +14,7 @@ import { EIP7702NetworkConfiguration } from '../../../hooks/7702/useEIP7702Netwo
 import SwitchAccountTypeModal from './switch-account-type-modal';
 
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../hooks/gas/useGasFeeToken');
 
 const MOCK_NETWORK = {
   chainId: '0xaa36a7',

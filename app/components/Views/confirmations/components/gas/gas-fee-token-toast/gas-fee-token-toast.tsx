@@ -63,8 +63,8 @@ export function GasFeeTokenToast() {
         style: {
           backgroundColor: 'transparent',
           paddingHorizontal: 4,
-          paddingVertical: 4,
-          height: 0,
+          paddingVertical: 10,
+          height: 20,
         },
       },
     });
