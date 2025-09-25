@@ -156,10 +156,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       finalTimeoutId.current = setTimeout(() => {
         setAnimationStep(3);
 
-        if (riveRef.current) {
-          riveRef.current.fireState('OnboardingLoader', 'End');
-          startFadeTransition();
-        }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (riveRef.current) {
+              riveRef.current.fireState('OnboardingLoader', 'End');
+              startFadeTransition();
+            }
+          });
+        });
 
         finalTimeoutId.current = null;
 
