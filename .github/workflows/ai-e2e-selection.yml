@@ -42,7 +42,7 @@ jobs:
   analyze-and-plan:
     name: 'AI Analysis & Test Planning'
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ai-e2e') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-ios')
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ai-e2e') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-ios') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-analysis')
     outputs:
       selected-tags: ${{ steps.ai-analysis.outputs.tags }}
       selected-tags-display: ${{ steps.ai-analysis.outputs.tags_display }}
@@ -53,6 +53,7 @@ jobs:
       reasoning: ${{ steps.ai-analysis.outputs.reasoning }}
       confidence: ${{ steps.ai-analysis.outputs.confidence }}
       breakdown: ${{ steps.ai-analysis.outputs.breakdown }}
+      analysis-only: ${{ steps.ai-analysis.outputs.analysis_only }}
     steps:
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -175,6 +176,15 @@ jobs:
 
           echo "🔢 Generated test matrix: $TEST_MATRIX"
 
+          # Determine if this is analysis-only mode
+          ANALYSIS_ONLY="false"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-analysis') }}" == "true" ]]; then
+              ANALYSIS_ONLY="true"
+              echo "🔍 Analysis-only mode detected - skipping builds and tests"
+            fi
+          fi
+
           # Set outputs
           {
             echo "tags=$TAGS"
@@ -186,6 +196,7 @@ jobs:
             echo "$REASONING"
             echo "EOF"
             echo "confidence=$CONFIDENCE"
+            echo "analysis_only=$ANALYSIS_ONLY"
           } >> "$GITHUB_OUTPUT"
 
           # Handle multi-line breakdown content carefully
@@ -299,6 +310,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Check if analysis-only mode
+          ANALYSIS_ONLY="${{ needs.analyze-and-plan.outputs.analysis-only }}"
+
           # Generate the PR comment content
           cat > pr_comment.md << EOF
           ## 🤖 AI E2E Test Analysis
@@ -308,13 +322,25 @@ jobs:
           **AI Analysis:**
           > ${{ needs.analyze-and-plan.outputs.reasoning }}
 
+          EOF
+
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            cat >> pr_comment.md << EOF
+          **Analysis-Only Mode:** ✅ Analysis complete - no builds or tests will run.
+          - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
+
+          _🔍 [View analysis workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Analysis-only mode enabled_
+          EOF
+          else
+            cat >> pr_comment.md << EOF
           **Test Plan:**
           - **Test Jobs:** ${{ needs.platform-conditions.outputs.actual-total-jobs }} total (dynamically generated based on test files)
           - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
           - **Platform Jobs:** iOS: ${{ needs.platform-conditions.outputs.actual-ios-jobs }}, Android: ${{ needs.platform-conditions.outputs.actual-android-jobs }}
 
-
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
+          EOF
+          fi
 
           <!-- ai-e2e-analysis -->
           EOF
@@ -345,6 +371,9 @@ jobs:
           TESTS_NEEDED="${{ needs.analyze-and-plan.outputs.should-run-tests }}"
           TEST_MATRIX='${{ needs.analyze-and-plan.outputs.test-matrix }}'
           MATRIX_LENGTH=$(echo "$TEST_MATRIX" | jq 'length')
+          ANALYSIS_ONLY="${{ needs.analyze-and-plan.outputs.analysis-only }}"
+
+          echo "🔍 Analysis-only mode: $ANALYSIS_ONLY"
 
           # Platform enablement logic
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
@@ -355,8 +384,12 @@ jobs:
             ANDROID_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e') }}"
           fi
 
-          # Calculate final conditions
-          if [[ "$TESTS_NEEDED" == "true" && "$MATRIX_LENGTH" -gt 0 ]]; then
+          # Calculate final conditions - skip builds/tests if analysis-only mode
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            echo "🔍 Analysis-only mode: skipping all builds and tests"
+            SHOULD_BUILD_IOS="false"
+            SHOULD_BUILD_ANDROID="false"
+          elif [[ "$TESTS_NEEDED" == "true" && "$MATRIX_LENGTH" -gt 0 ]]; then
             SHOULD_BUILD_IOS=$([[ "$IOS_ENABLED" == "true" ]] && echo "true" || echo "false")
             SHOULD_BUILD_ANDROID=$([[ "$ANDROID_ENABLED" == "true" ]] && echo "true" || echo "false")
           else
