@@ -61,7 +61,7 @@ const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Season status cache threshold
-const SEASON_STATUS_CACHE_THRESHOLD_MS = 0; // no caching for now
+const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Referral details cache threshold
 const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
@@ -808,7 +808,6 @@ export class RewardsController extends BaseController<
         params.addresses.length,
       ).fill(null);
       const addressesNeedingFresh: string[] = [];
-      const freshIndexMap: Map<string, number> = new Map();
 
       // Check storage state for each address
       for (let i = 0; i < params.addresses.length; i++) {
@@ -830,7 +829,6 @@ export class RewardsController extends BaseController<
 
         // No cached data found, need fresh API call
         addressesNeedingFresh.push(address);
-        freshIndexMap.set(address, i);
       }
 
       // Make fresh API call only for addresses without cached data
@@ -1808,7 +1806,7 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get active points boosts:',
         error instanceof Error ? error.message : String(error),
       );
-      return [];
+      throw error;
     }
   }
 
@@ -1883,7 +1881,7 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to get unlocked rewards:',
         error instanceof Error ? error.message : String(error),
       );
-      return [];
+      throw error;
     }
   }
 
