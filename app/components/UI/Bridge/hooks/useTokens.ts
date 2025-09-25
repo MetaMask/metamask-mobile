@@ -71,7 +71,12 @@ export function useTokens({
       return !excludedTokensSet.has(tokenKey);
     });
 
-  const tokensToRender = tokensWithBalance.concat(topTokens ?? []);
+  const tokensToRender = tokensWithBalance
+    .concat(topTokens ?? [])
+    .filter((token) => {
+      const tokenKey = getTokenKey(token);
+      return !excludedTokensSet.has(tokenKey);
+    });
 
   return { allTokens, tokensToRender, pending };
 }
