@@ -7,7 +7,11 @@ import type {
   DepositPaymentMethod,
 } from '@consensys/native-ramps-sdk';
 import { selectChainId } from '../../selectors/networkController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../selectors/accountsController';
+import { selectSelectedAccountGroup } from '../../selectors/multichainAccounts/accountTreeController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -21,6 +25,7 @@ import {
 } from './types';
 import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
+import { getFormattedAddressFromInternalAccount } from '../../core/Multichain/utils';
 
 export type { FiatOrder } from './types';
 
@@ -220,13 +225,38 @@ export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   return Array.from(new Set(providers));
 });
 
+/**
+ * Returns an array with the formatted addresses of the internal accounts
+ * of the selected account group.
+ */
+const selectSelectedAccountGroupWithInternalAccountsAddresses = createSelector(
+  selectSelectedAccountGroup,
+  selectInternalAccounts,
+  (selectedAccountGroup, internalAccounts) => {
+    if (!selectedAccountGroup) return [];
+
+    return selectedAccountGroup.accounts
+      .map((accountId: string) => {
+        const accountGroupInternalAccount = internalAccounts.find(
+          (internalAccount) => internalAccount.id === accountId,
+        );
+        if (accountGroupInternalAccount?.address) {
+          return getFormattedAddressFromInternalAccount(
+            accountGroupInternalAccount,
+          );
+        }
+        return null;
+      })
+      .filter(Boolean);
+  },
+);
+
 export const getOrders = createSelector(
   ordersSelector,
-  selectedAddressSelector,
-  (orders, selectedAddress) =>
-    orders.filter(
-      (order) =>
-        !order.excludeFromPurchases && order.account === selectedAddress,
+  selectSelectedAccountGroupWithInternalAccountsAddresses,
+  (orders, selectedAccountGroupWithInternalAccountsAddresses) =>
+    orders.filter((order) =>
+      selectedAccountGroupWithInternalAccountsAddresses.includes(order.account),
     ),
 );
 
@@ -234,15 +264,8 @@ export const getAllDepositOrders = createSelector(ordersSelector, (orders) =>
   orders.filter((order) => order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT),
 );
 
-export const getPendingOrders = createSelector(
-  ordersSelector,
-  selectedAddressSelector,
-  (orders, selectedAddress) =>
-    orders.filter(
-      (order) =>
-        order.account === selectedAddress &&
-        order.state === FIAT_ORDER_STATES.PENDING,
-    ),
+export const getPendingOrders = createSelector(getOrders, (orders) =>
+  orders.filter((order) => order.state === FIAT_ORDER_STATES.PENDING),
 );
 
 export const getForceUpdateOrders = createSelector(ordersSelector, (orders) =>
@@ -256,10 +279,12 @@ const customOrdersSelector: (
 
 export const getCustomOrderIds = createSelector(
   customOrdersSelector,
-  selectedAddressSelector,
-  (customOrderIds, selectedAddress) =>
-    customOrderIds.filter(
-      (customOrderId) => customOrderId.account === selectedAddress,
+  selectSelectedAccountGroupWithInternalAccountsAddresses,
+  (customOrderIds, selectedAccountGroupWithInternalAccountsAddresses) =>
+    customOrderIds.filter((customOrderId) =>
+      selectedAccountGroupWithInternalAccountsAddresses.includes(
+        customOrderId.account,
+      ),
     ),
 );
 
