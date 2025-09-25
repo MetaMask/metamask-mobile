@@ -14,7 +14,6 @@ export default function useCryptoCurrencies() {
     selectedFiatCurrencyId,
     selectedAsset,
     setSelectedAsset,
-    selectedChainId,
     isBuy,
     intent,
     setIntent,
@@ -90,26 +89,16 @@ export default function useCryptoCurrencies() {
             token.network?.chainId === selectedAsset.network?.chainId,
         )
       ) {
-        const nativeAssetForCurrentChain = cryptoCurrencies.find(
-          (a) =>
-            a.address === NATIVE_ADDRESS &&
-            a.network?.chainId === selectedChainId,
-        );
-        const fallbackNativeAsset = cryptoCurrencies.find(
+        const nativeAsset = cryptoCurrencies.find(
           (a) => a.address === NATIVE_ADDRESS,
         );
-        setSelectedAsset(
-          nativeAssetForCurrentChain ||
-            fallbackNativeAsset ||
-            cryptoCurrencies?.[0],
-        );
+        setSelectedAsset(nativeAsset || cryptoCurrencies?.[0]);
       }
     }
   }, [
     cryptoCurrencies,
     intent?.address,
     selectedAsset,
-    selectedChainId,
     setSelectedAsset,
     setIntent,
   ]);
