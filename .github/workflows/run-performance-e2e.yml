@@ -112,13 +112,11 @@ jobs:
       - name: Set unified build names
         id: set-builds
         run: |
-          # Use github.head_ref for workflow_dispatch, github.ref_name for other triggers
-          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-          echo "android_build_name=Android-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
-          echo "ios_build_name=iOS-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
+          echo "android_build_name=Android-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
+          echo "ios_build_name=iOS-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_OUTPUT"
           echo "Set unified build names:"
-          echo "  Android: Android-Performance-$BRANCH_NAME-Branch"
-          echo "  iOS: iOS-Performance-$BRANCH_NAME-Branch"
+          echo "  Android: Android-Performance-${{ github.ref_name }}-Branch"
+          echo "  iOS: iOS-Performance-${{ github.ref_name }}-Branch"
 
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
