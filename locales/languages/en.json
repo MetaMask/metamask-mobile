@@ -62,7 +62,7 @@
       "message": "Insufficient funds"
     },
     "insufficient_pay_token_balance_fees": {
-      "message": "Insufficient {{symbol}} to cover fees. Add fewer funds or select a different token to continue.",
+      "message": "Insufficient {{symbol}} to cover fees. Add more funds or select a different token to continue.",
       "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
@@ -3014,7 +3014,7 @@
   },
   "approve": {
     "title": "Approve",
-    "deeplink": "Deep link",
+    "deeplink": "Deeplink",
     "qr_code": "QR Code"
   },
   "transactions": {
@@ -4406,8 +4406,8 @@
     "action": "Learn more"
   },
   "deeplink": {
-    "invalid": "Invalid deep link",
-    "not_supported": "Deep link not supported"
+    "invalid": "Invalid Deeplink",
+    "not_supported": "Deeplink not supported"
   },
   "error_screen": {
     "title": "An error occurred",
