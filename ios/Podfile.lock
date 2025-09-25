@@ -5,7 +5,6 @@ PODS:
   - Branch (1.43.2)
   - BVLinearGradient (2.8.3):
     - React-Core
-  - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
   - EXApplication (6.0.2):
     - ExpoModulesCore
@@ -2790,7 +2789,6 @@ PODS:
   - sovran-react-native (1.0.4):
     - React-Core
   - TcpSockets (4.0.0):
-    - CocoaAsyncSocket
     - React
   - VisionCamera (4.6.4):
     - VisionCamera/Core (= 4.6.4)
@@ -2961,7 +2959,6 @@ SPEC REPOS:
     - Base64
     - BEMCheckBox
     - Branch
-    - CocoaAsyncSocket
     - Firebase
     - FirebaseCore
     - FirebaseCoreExtension
@@ -3292,7 +3289,6 @@ SPEC CHECKSUMS:
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
-  CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXApplication: 4c72f6017a14a65e338c5e74fca418f35141e819
   EXConstants: fcfc75800824ac2d5c592b5bc74130bad17b146b
@@ -3460,7 +3456,7 @@ SPEC CHECKSUMS:
   Sentry: 1ca8405451040482877dcd344dfa3ef80b646631
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
-  TcpSockets: 48866ffcb39d7114741919d21069fc90189e474a
+  TcpSockets: c5f030d4dbc758c4c7acb00496dc92c412b02cd2
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
 
