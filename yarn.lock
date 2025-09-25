@@ -6835,8 +6835,8 @@ __metadata:
   linkType: hard
 
 "@metamask/bridge-controller@npm:^43.2.0":
-  version: 43.2.0
-  resolution: "@metamask/bridge-controller@npm:43.2.0"
+  version: 43.2.1
+  resolution: "@metamask/bridge-controller@npm:43.2.1"
   dependencies:
     "@ethersproject/address": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
@@ -6861,7 +6861,7 @@ __metadata:
     "@metamask/remote-feature-flag-controller": ^1.6.0
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
-  checksum: 47cc0a8b1274703ae3e1c20785228bfb36a2904a8531a7dc2fa50f857515012e1bb5a4cffbabc78bd9a2b90e443eab9b21f1481bc0379650cf79c802b4c74b00
+  checksum: 1221a2c4725b0401628dd92034868bca2d722a8e1d91c84e1ed3158b79b5909106964c14f17d8bea507bab3415bd6c6fdaa401aeb9e8ea304266839629313f0a
   languageName: node
   linkType: hard
 
@@ -8428,10 +8428,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.3.11":
-  version: 2.3.11
-  resolution: "@metamask/solana-wallet-snap@npm:2.3.11"
-  checksum: 803c0150a619cc089507bdf8e9436d1dc55d286d476478bd0fcc69215ad99946feebaf9a725616b044a79f469b82ee25d55705643313d8e11ca4329f02f19dd8
+"@metamask/solana-wallet-snap@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "@metamask/solana-wallet-snap@npm:2.4.0"
+  checksum: 7da03973c8d2d210df8dcdcba771edbe31f7284969f29f5b785d9ecd89ab2ab8e188e8f546a70dcd4cd6b2d643a1fa6dd1749d7aa27ad7aed5ed78e950916589
   languageName: node
   linkType: hard
 
@@ -33764,7 +33764,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": ^13.5.0
     "@metamask/snaps-sdk": ^9.3.0
     "@metamask/snaps-utils": ^11.5.0
-    "@metamask/solana-wallet-snap": ^2.3.11
+    "@metamask/solana-wallet-snap": ^2.4.0
     "@metamask/solana-wallet-standard": ^0.6.0
     "@metamask/stake-sdk": ^3.2.0
     "@metamask/swappable-obj-proxy": ^2.1.0
