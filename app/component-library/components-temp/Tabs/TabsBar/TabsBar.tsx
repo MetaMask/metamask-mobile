@@ -29,7 +29,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 }) => {
   const tw = useTailwind();
 
-  // TabsBar optimized
+  // Enhanced TabsBar with animated underline and smart layout detection
 
   const scrollViewRef = useRef<ScrollView>(null);
 

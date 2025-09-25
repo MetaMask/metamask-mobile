@@ -382,10 +382,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       ],
     );
 
-    // Debug: Log activeIndex changes
-    useEffect(() => {
-      // TabsList activeIndex changed
-    }, [activeIndex]);
 
     const tabBarProps = useMemo(
       () => ({
