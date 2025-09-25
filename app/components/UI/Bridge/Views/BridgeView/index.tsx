@@ -75,6 +75,7 @@ import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { isNullOrUndefined } from '@metamask/utils';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -369,7 +370,9 @@ const BridgeView = () => {
     // TODO: remove this once controller types are updated
     // @ts-expect-error: controller types are not up to date yet
     const quoteBpsFee = activeQuote?.quote.feeData.metabridge.quoteBpsFee;
-    const feePercentage = quoteBpsFee ? quoteBpsFee / 100 : BRIDGE_MM_FEE_RATE;
+    const feePercentage = !isNullOrUndefined(quoteBpsFee)
+      ? quoteBpsFee / 100
+      : BRIDGE_MM_FEE_RATE;
 
     const hasFee = activeQuote && feePercentage > 0;
 
