@@ -21,7 +21,6 @@ import { DEFAULT_BRIDGE_API_MOCKS } from './bridge-api';
 import { DEFAULT_IPFS_GATEWAY_MOCKS } from './ipfs-api';
 import { DEFAULT_RPC_ENDPOINT_MOCKS } from './rpc-endpoints';
 import { POLYMARKET_API_MOCKS } from './polymarket-apis';
-import { BASE_DISPLAY_NAME } from '../../../../app/core/Engine/constants';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -232,7 +231,7 @@ export const DEFAULT_MOCKS = {
           sendBundle: false,
         },
         '8453': {
-          name: BASE_DISPLAY_NAME,
+          name: 'Base Mainnet',
           group: 'base',
           chainID: 8453,
           nativeCurrency: {
