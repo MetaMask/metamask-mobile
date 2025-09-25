@@ -7123,20 +7123,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-hd-keyring@npm:^12.1.0":
-  version: 12.1.0
-  resolution: "@metamask/eth-hd-keyring@npm:12.1.0"
-  dependencies:
-    "@ethereumjs/util": ^9.1.0
-    "@metamask/eth-sig-util": ^8.2.0
-    "@metamask/key-tree": ^10.0.2
-    "@metamask/scure-bip39": ^2.1.1
-    "@metamask/utils": ^11.1.0
-    ethereum-cryptography: ^2.1.2
-  checksum: d94b09b7e3782c5a37347a402322e62c9ace49d15dc67ab5bada8299e5262611e0ab33e17e77c87609f37c15b6fd7568fc6bbcd4ff7ec649ce5cd340842ebf26
-  languageName: node
-  linkType: hard
-
 "@metamask/eth-hd-keyring@npm:^13.0.0":
   version: 13.0.0
   resolution: "@metamask/eth-hd-keyring@npm:13.0.0"
@@ -33699,7 +33685,7 @@ __metadata:
     "@metamask/error-reporting-service": ^2.0.0
     "@metamask/eslint-config-typescript": ^9.0.0
     "@metamask/eslint-plugin-design-tokens": ^1.0.0
-    "@metamask/eth-hd-keyring": ^12.1.0
+    "@metamask/eth-hd-keyring": ^13.0.0
     "@metamask/eth-json-rpc-filters": ^9.0.0
     "@metamask/eth-json-rpc-middleware": ^18.0.0
     "@metamask/eth-ledger-bridge-keyring": 11.1.0
