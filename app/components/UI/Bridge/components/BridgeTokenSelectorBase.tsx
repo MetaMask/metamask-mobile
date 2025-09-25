@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -52,9 +52,6 @@ const createStyles = (params: { theme: Theme }) => {
     // Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used
     skeletonItemRows: {
       flex: 1,
-    },
-    flatList: {
-      maxHeight: 800,
     },
   });
 };
@@ -198,7 +195,7 @@ export const BridgeTokenSelectorBase: React.FC<
   }, [pending, tokensToRender]);
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} isFullscreen>
       <BottomSheetHeader onClose={dismissModal}>
         <Text variant={TextVariant.HeadingMD}>
           {title ?? strings('bridge.select_token')}
@@ -216,27 +213,25 @@ export const BridgeTokenSelectorBase: React.FC<
         />
       </Box>
 
-      <View style={styles.flatList}>
-        <ListComponent
-          key={scrollResetKey}
-          data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
-          renderItem={renderTokenItem}
-          keyExtractor={keyExtractor}
-          ListEmptyComponent={
-            debouncedSearchString && !shouldRenderOverallLoading
-              ? renderEmptyList
-              : LoadingSkeleton
-          }
-          showsVerticalScrollIndicator
-          showsHorizontalScrollIndicator={false}
-          bounces
-          scrollEnabled
-          removeClippedSubviews
-          maxToRenderPerBatch={20}
-          windowSize={10}
-          initialNumToRender={20}
-        />
-      </View>
+      <ListComponent
+        key={scrollResetKey}
+        data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
+        renderItem={renderTokenItem}
+        keyExtractor={keyExtractor}
+        ListEmptyComponent={
+          debouncedSearchString && !shouldRenderOverallLoading
+            ? renderEmptyList
+            : LoadingSkeleton
+        }
+        showsVerticalScrollIndicator
+        showsHorizontalScrollIndicator={false}
+        bounces
+        scrollEnabled
+        removeClippedSubviews
+        maxToRenderPerBatch={20}
+        windowSize={10}
+        initialNumToRender={20}
+      />
     </BottomSheet>
   );
 };
