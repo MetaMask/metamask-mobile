@@ -21,6 +21,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
 import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 import { useOptout } from '../hooks/useOptout';
+import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 
 interface RewardsSettingsViewRouteParams {
   focusUnlinkedTab?: boolean;
@@ -36,7 +37,13 @@ const RewardsSettingsView: React.FC = () => {
   const { colors } = useTheme();
   const hasAccountOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
   const toastRef = useRef<ToastRef>(null);
-  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout(toastRef);
+  const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
+
+  // Check if any account operations are loading
+  const {
+    isAccountSyncingInProgress,
+    loadingMessage: accountSyncingLoadingMessage,
+  } = useAccountsOperationsLoadingStates();
 
   // Set navigation title with back button
   useEffect(() => {
@@ -85,6 +92,18 @@ const RewardsSettingsView: React.FC = () => {
               </Text>
             </Box>
           </Box>
+
+          {isAccountSyncingInProgress && (
+            <Box twClassName="-mx-4">
+              <Banner
+                variant={BannerVariant.Alert}
+                severity={BannerAlertSeverity.Info}
+                title={accountSyncingLoadingMessage}
+                description={strings('rewards.settings.accounts_syncing')}
+                testID="account-syncing-banner"
+              />
+            </Box>
+          )}
 
           {/* Current Account Not Opted In Banner */}
           {hasAccountOptedIn === false && (

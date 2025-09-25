@@ -1,4 +1,4 @@
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { RegressionConfirmationsRedesigned } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
@@ -23,7 +23,7 @@ import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-r
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
-describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
+describe(RegressionConfirmationsRedesigned('Send Max Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
