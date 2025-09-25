@@ -451,6 +451,12 @@ global.crypto = {
   },
 };
 
+// Mock Sentry to prevent initialization issues in tests
+jest.mock('@sentry/react-native', () => ({
+  ...jest.requireActual('@sentry/react-native'),
+  captureException: jest.fn(),
+}));
+
 jest.mock('@react-native-firebase/messaging', () => {
   const module = () => {
     return {
