@@ -21,6 +21,12 @@ class MetaMetricsOptIn {
     );
   }
 
+  get metricsCheckbox(): DetoxElement {
+    return Matchers.getElementByID(
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX,
+    );
+  }
+
   async swipeContentUp(): Promise<void> {
     await Gestures.swipe(this.optInMetricsContent, 'up', {
       speed: 'fast',
@@ -33,6 +39,12 @@ class MetaMetricsOptIn {
     await this.swipeContentUp();
     await Gestures.waitAndTap(this.iAgreeButton, {
       elemDescription: 'Opt-in Metrics I Agree Button',
+    });
+  }
+
+  async tapMetricsCheckbox(): Promise<void> {
+    await Gestures.waitAndTap(this.metricsCheckbox, {
+      elemDescription: 'Opt-in Metrics Metrics Checkbox',
     });
   }
 }

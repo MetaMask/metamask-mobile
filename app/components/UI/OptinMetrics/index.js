@@ -460,6 +460,9 @@ class OptinMetrics extends PureComponent {
                     isChecked={this.state.isBasicUsageChecked}
                     accessibilityRole={'checkbox'}
                     accessible
+                    testID={
+                      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
+                    }
                   />
                   <View style={styles.flexContainer}>
                     <Text

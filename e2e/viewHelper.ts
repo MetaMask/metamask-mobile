@@ -130,16 +130,19 @@ export const dismissProtectYourWalletModal: () => Promise<void> = async () => {
  * @param {Object} [options={}] - Options for importing the wallet.
  * @param {string} [options.seedPhrase] - The secret recovery phrase to import the wallet. Defaults to a valid account's seed phrase.
  * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
+ * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
  * @param {boolean} [options.fromResetWallet=false] - Whether the import is from a reset wallet flow. Defaults to false.
  * @returns {Promise<void>} Resolves when the wallet import process is complete.
  */
 export const importWalletWithRecoveryPhrase = async ({
   seedPhrase,
   password,
+  optInToMetrics = true,
   fromResetWallet = false,
 }: {
   seedPhrase?: string;
   password?: string;
+  optInToMetrics?: boolean;
   fromResetWallet?: boolean;
 }) => {
   // tap on import seed phrase button
@@ -175,6 +178,10 @@ export const importWalletWithRecoveryPhrase = async ({
     await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
       description: 'MetaMetrics Opt-In should be visible',
     });
+    if (!optInToMetrics) {
+      await MetaMetricsOptIn.tapMetricsCheckbox();
+    }
+
     await MetaMetricsOptIn.tapAgreeButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
@@ -203,9 +210,11 @@ export const importWalletWithRecoveryPhrase = async ({
  * 12. Closes any remaining onboarding modals.
  *
  * @async
+ * @param {Object} [options={}] - Configuration options for wallet creation.
+ * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics analytics.
  * @returns {Promise<void>} Resolves when the wallet creation flow is complete.
  */
-export const CreateNewWallet = async () => {
+export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'should create new wallet'
   await OnboardingView.tapCreateWallet();
 
@@ -241,8 +250,11 @@ export const CreateNewWallet = async () => {
   await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
     description: 'MetaMetrics Opt-In should be visible',
   });
-  await MetaMetricsOptIn.tapAgreeButton();
+  if (!optInToMetrics) {
+    await MetaMetricsOptIn.tapMetricsCheckbox();
+  }
 
+  await MetaMetricsOptIn.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
