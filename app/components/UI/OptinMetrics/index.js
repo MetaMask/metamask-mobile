@@ -130,6 +130,12 @@ const createStyles = ({ colors }) =>
       marginTop: 4,
       marginLeft: 0,
     },
+    disabledContainer: {
+      opacity: 0.5,
+    },
+    disabledText: {
+      color: colors.text.muted,
+    },
   });
 
 /**
@@ -318,6 +324,38 @@ class OptinMetrics extends PureComponent {
       title: 'How to manage your MetaMetrics settings',
     });
 
+  /**
+   * Handler for basic usage checkbox toggle with interdependency logic
+   */
+  handleBasicUsageToggle = () => {
+    this.setState((prevState) => ({
+      isBasicUsageChecked: !prevState.isBasicUsageChecked,
+      // If unchecking basic usage (prevState was true), also uncheck marketing
+      isCheckboxChecked: prevState.isBasicUsageChecked
+        ? false
+        : prevState.isCheckboxChecked,
+    }));
+  };
+
+  /**
+   * Handler for marketing checkbox toggle with dependency check
+   */
+  handleMarketingToggle = () => {
+    // Only allow toggle if basic usage is checked
+    if (this.state.isBasicUsageChecked) {
+      this.setState((prevState) => ({
+        isCheckboxChecked: !prevState.isCheckboxChecked,
+      }));
+    }
+  };
+
+  /**
+   * Computed property to determine if marketing checkbox should be disabled
+   */
+  get isMarketingDisabled() {
+    return !this.state.isBasicUsageChecked;
+  }
+
   renderActionButtons = () => {
     const styles = this.getStyles();
 
@@ -425,11 +463,7 @@ class OptinMetrics extends PureComponent {
               <View style={styles.sectionContainer}>
                 <TouchableOpacity
                   style={styles.checkbox}
-                  onPress={() =>
-                    this.setState((prevState) => ({
-                      isBasicUsageChecked: !prevState.isBasicUsageChecked,
-                    }))
-                  }
+                  onPress={this.handleBasicUsageToggle}
                   activeOpacity={1}
                 >
                   <Checkbox
@@ -462,25 +496,32 @@ class OptinMetrics extends PureComponent {
                   </Text>
                 </Text>
               </View>
-              <View style={styles.sectionContainer}>
+              <View
+                style={[
+                  styles.sectionContainer,
+                  this.isMarketingDisabled && styles.disabledContainer,
+                ]}
+              >
                 <TouchableOpacity
                   style={styles.checkbox}
-                  onPress={() =>
-                    this.setState((prevState) => ({
-                      isCheckboxChecked: !prevState.isCheckboxChecked,
-                    }))
-                  }
-                  activeOpacity={1}
+                  onPress={this.handleMarketingToggle}
+                  activeOpacity={this.isMarketingDisabled ? 1 : 0.7}
+                  disabled={this.isMarketingDisabled}
                 >
                   <Checkbox
                     isChecked={this.state.isCheckboxChecked}
                     accessibilityRole={'checkbox'}
                     accessible
+                    disabled={this.isMarketingDisabled}
                   />
                   <View style={styles.flexContainer}>
                     <Text
                       variant={TextVariant.BodySMMedium}
-                      color={TextColor.Default}
+                      color={
+                        this.isMarketingDisabled
+                          ? TextColor.Muted
+                          : TextColor.Default
+                      }
                     >
                       {strings('privacy_policy.checkbox_marketing')}
                     </Text>
@@ -488,7 +529,11 @@ class OptinMetrics extends PureComponent {
                 </TouchableOpacity>
                 <Text
                   variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  color={
+                    this.isMarketingDisabled
+                      ? TextColor.Muted
+                      : TextColor.Alternative
+                  }
                   style={styles.descriptionText}
                 >
                   {strings('privacy_policy.checkbox')}

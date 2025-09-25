@@ -415,16 +415,20 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               </View>
                               <View
                                 style={
-                                  {
-                                    "backgroundColor": "#f3f5f9",
-                                    "borderRadius": 12,
-                                    "marginBottom": 16,
-                                    "padding": 16,
-                                  }
+                                  [
+                                    {
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderRadius": 12,
+                                      "marginBottom": 16,
+                                      "padding": 16,
+                                    },
+                                    false,
+                                  ]
                                 }
                               >
                                 <TouchableOpacity
-                                  activeOpacity={1}
+                                  activeOpacity={0.7}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={
                                     {
@@ -1090,16 +1094,20 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               </View>
                               <View
                                 style={
-                                  {
-                                    "backgroundColor": "#f3f5f9",
-                                    "borderRadius": 12,
-                                    "marginBottom": 16,
-                                    "padding": 16,
-                                  }
+                                  [
+                                    {
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderRadius": 12,
+                                      "marginBottom": 16,
+                                      "padding": 16,
+                                    },
+                                    false,
+                                  ]
                                 }
                               >
                                 <TouchableOpacity
-                                  activeOpacity={1}
+                                  activeOpacity={0.7}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={
                                     {
@@ -1877,16 +1885,20 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  {
-                                    "backgroundColor": "#f3f5f9",
-                                    "borderRadius": 12,
-                                    "marginBottom": 16,
-                                    "padding": 16,
-                                  }
+                                  [
+                                    {
+                                      "backgroundColor": "#f3f5f9",
+                                      "borderRadius": 12,
+                                      "marginBottom": 16,
+                                      "padding": 16,
+                                    },
+                                    false,
+                                  ]
                                 }
                               >
                                 <TouchableOpacity
-                                  activeOpacity={1}
+                                  activeOpacity={0.7}
+                                  disabled={false}
                                   onPress={[Function]}
                                   style={
                                     {
