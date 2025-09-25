@@ -53,7 +53,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
-  const customOffset = toastOptions?.customBottomOffset || 0;
+  const customOffset = toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateY: translateYProgress.value - TAB_BAR_HEIGHT - customOffset },
