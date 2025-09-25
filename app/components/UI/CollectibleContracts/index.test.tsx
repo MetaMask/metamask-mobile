@@ -1360,7 +1360,7 @@ describe('CollectibleContracts', () => {
             isIpfsGatewayEnabled: false,
             tokenNetworkFilter: {
               '0x1': true,
-              '0x89': 'true', // Polygon network enabled
+              '0x89': true, // Polygon network enabled
             },
           } as unknown as PreferencesState,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
