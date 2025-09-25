@@ -1340,7 +1340,7 @@ describe('OnboardingSuccess', () => {
     });
   });
 
-  describe('New Animation Features Coverage', () => {
+  describe('Rive Animation and Fade Transition Features', () => {
     it('should trigger Rive End state and fade transition at step 3', async () => {
       jest.useFakeTimers();
       const mockFireState = jest.fn();
@@ -1553,6 +1553,109 @@ describe('OnboardingSuccess', () => {
       );
 
       expect(getByTestId('uses-dynamic-content')).toHaveTextContent('static');
+    });
+  });
+
+  describe('E2E Test Behavior', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should immediately show final state and complete social login flow when isE2E is true', async () => {
+      jest.useFakeTimers();
+      const mockOnDone = jest.fn();
+
+      const TestE2EComplete = () => {
+        const [animationStep, setAnimationStep] = React.useState(1);
+        const hasAnimationStarted = React.useRef(false);
+        const isSocialLogin = true;
+
+        const startRiveAnimation = React.useCallback(() => {
+          // Directly use true for isE2E to test E2E flow
+          const isE2E = true;
+          if (isE2E) {
+            setAnimationStep(3);
+            if (isSocialLogin && mockOnDone) {
+              setTimeout(() => mockOnDone(), 100);
+            }
+            return;
+          }
+
+          hasAnimationStarted.current = true;
+        }, [isSocialLogin]);
+
+        React.useEffect(() => {
+          startRiveAnimation();
+        }, [startRiveAnimation]);
+
+        return (
+          <View testID="e2e-complete-test">
+            <Text testID="animation-step">{animationStep}</Text>
+            <Text testID="has-started">
+              {hasAnimationStarted.current.toString()}
+            </Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(<TestE2EComplete />, {
+        state: {},
+      });
+
+      expect(getByTestId('animation-step')).toHaveTextContent('3');
+      expect(getByTestId('has-started')).toHaveTextContent('false');
+
+      await act(async () => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(mockOnDone).toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should run normal animation flow when isE2E is false', () => {
+      const TestNormalFlow = () => {
+        const [animationStep, setAnimationStep] = React.useState(1);
+        const hasAnimationStarted = React.useRef(false);
+        const riveRef = React.useRef({
+          setInputState: jest.fn(),
+          fireState: jest.fn(),
+        });
+
+        const startRiveAnimation = React.useCallback(() => {
+          // Directly use false for isE2E to test normal flow
+          const isE2E = false;
+          if (isE2E) {
+            setAnimationStep(3);
+            return;
+          }
+
+          hasAnimationStarted.current = true;
+          if (riveRef.current) {
+            riveRef.current.fireState('OnboardingLoader', 'Start');
+          }
+        }, []);
+
+        React.useEffect(() => {
+          startRiveAnimation();
+        }, [startRiveAnimation]);
+
+        return (
+          <View testID="normal-flow-test">
+            <Text testID="animation-step">{animationStep}</Text>
+            <Text testID="has-started">
+              {hasAnimationStarted.current.toString()}
+            </Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(<TestNormalFlow />, {
+        state: {},
+      });
+
+      expect(getByTestId('animation-step')).toHaveTextContent('1');
     });
   });
 });

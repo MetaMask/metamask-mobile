@@ -35,6 +35,7 @@ import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 const OnboardingLoaderAnimation = require('../../../animations/onboarding_loader.riv');
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Logger from '../../../util/Logger';
+import { isE2E } from '../../../util/test/utils';
 
 import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -112,6 +113,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   }, [fadeOutOpacity, fadeInOpacity]);
 
   const startRiveAnimation = useCallback(() => {
+    if (isE2E) {
+      setAnimationStep(3);
+      if (isSocialLogin && onDone) {
+        setTimeout(() => onDone(), 100);
+      }
+      return;
+    }
+
     try {
       if (
         hasAnimationStarted.current ||
@@ -168,7 +177,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startFadeTransition]);
+  }, [startFadeTransition, isSocialLogin, onDone]);
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
