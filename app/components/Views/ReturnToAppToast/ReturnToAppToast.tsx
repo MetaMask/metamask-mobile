@@ -39,9 +39,9 @@ const diplayToast = (
   const isFavicon = !!faviconURI.uri;
 
   toastRef?.showToast({
-    variant: isFavicon ? ToastVariants.Network : ToastVariants.Plain,
+    variant: isFavicon ? ToastVariants.App : ToastVariants.Plain,
     labelOptions: [{ label }],
-    networkImageSource: faviconURI,
+    appIconSource: faviconURI,
     hasNoTimeout: false,
   });
 };
