@@ -4,7 +4,6 @@ import React, {
   useMemo,
   useState,
   useRef,
-  useContext,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -52,16 +51,15 @@ import RewardsLevels from '../components/Tabs/RewardsLevels';
 import RewardsActivity from '../components/Tabs/RewardsActivity';
 import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
-import Toast, {
-  ToastContext,
-} from '../../../../component-library/components/Toast';
+import Toast from '../../../../component-library/components/Toast';
+import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const theme = useTheme();
   const { colors } = theme;
-  const { toastRef } = useContext(ToastContext);
+  const toastRef = useRef<ToastRef>(null);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
   const dispatch = useDispatch();
