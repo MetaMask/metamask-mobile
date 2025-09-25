@@ -1,0 +1,645 @@
+name: AI E2E Selection
+
+on:
+  pull_request:
+    types: [labeled, synchronize, reopened]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      enable_ios:
+        description: 'Enable iOS builds and tests'
+        required: false
+        default: false
+        type: boolean
+      enable_android:
+        description: 'Enable Android builds and tests'
+        required: false
+        default: true
+        type: boolean
+      include_main_changes:
+        description: 'Include recent changes from main branch'
+        required: false
+        default: false
+        type: boolean
+      base_branch:
+        description: 'Base branch to compare against'
+        required: false
+        default: 'origin/main'
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Step 1: AI Analysis & Test Planning
+  analyze-and-plan:
+    name: 'AI Analysis & Test Planning'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ai-e2e') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-ios') || contains(github.event.pull_request.labels.*.name, 'ai-e2e-analysis')
+    outputs:
+      selected-tags: ${{ steps.ai-analysis.outputs.tags }}
+      selected-tags-display: ${{ steps.ai-analysis.outputs.tags_display }}
+      test-strategy: ${{ steps.ai-analysis.outputs.strategy }}
+      test-matrix: ${{ steps.ai-analysis.outputs.test_matrix }}
+      should-run-tests: ${{ steps.ai-analysis.outputs.run_tests }}
+      risk-level: ${{ steps.ai-analysis.outputs.risk_level }}
+      reasoning: ${{ steps.ai-analysis.outputs.reasoning }}
+      confidence: ${{ steps.ai-analysis.outputs.confidence }}
+      breakdown: ${{ steps.ai-analysis.outputs.breakdown }}
+      analysis-only: ${{ steps.ai-analysis.outputs.analysis_only }}
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install minimal dependencies for AI analysis
+        run: |
+          echo "📦 Installing only required packages for AI analysis..."
+          # Install to a separate location that won't be overwritten
+          mkdir -p /tmp/ai-deps
+          cd /tmp/ai-deps
+          npm init -y
+          npm install @anthropic-ai/sdk@latest esbuild-register@latest --no-audit --no-fund
+          echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Ensure we get the full branch history for proper diff analysis
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Setup git for comprehensive analysis
+        run: |
+          echo "🔧 Ensuring complete git history..."
+          git fetch --unshallow --all || echo "Already unshallow"
+          git fetch origin main:main 2>/dev/null || echo "Main already available"
+          echo "✅ Git setup complete"
+
+      - name: Copy AI dependencies to workspace
+        run: |
+          echo "📋 Copying AI dependencies to workspace..."
+          # Create node_modules if it doesn't exist
+          mkdir -p node_modules
+          # Copy our pre-installed dependencies
+          cp -r /tmp/ai-deps/node_modules/* node_modules/
+          echo "✅ AI dependencies available in workspace"
+
+      - name: Test Selection AI Analysis
+        id: ai-analysis
+        env:
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+        run: |
+          echo "🤖 Running AI analysis..."
+
+          # Build command with dynamic arguments based on trigger type
+          BASE_CMD="node -r esbuild-register scripts/e2e/ai-e2e-tags-selector.ts --output json"
+
+          # Add base branch if specified (manual trigger)
+          if [ "${{ github.event.inputs.base_branch }}" != "" ] && [ "${{ github.event.inputs.base_branch }}" != "origin/main" ]; then
+            BASE_CMD="$BASE_CMD --base-branch '${{ github.event.inputs.base_branch }}'"
+          fi
+
+          # Add include-main-changes flag
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.include_main_changes }}" == "true" ]; then
+              BASE_CMD="$BASE_CMD --include-main-changes"
+            fi
+          else
+            # For PR triggers, always include main changes for comprehensive analysis
+            BASE_CMD="$BASE_CMD --include-main-changes"
+          fi
+
+          echo "🤖 Running AI analysis with command: $BASE_CMD"
+          echo "📋 Event name: ${{ github.event_name }}"
+          echo "📋 Include main changes input: ${{ github.event.inputs.include_main_changes }}"
+
+          # Debug git state
+          echo "🔍 Git debug info:"
+          FILES_WITH_MAIN=$(git diff --name-only origin/main..HEAD 2>/dev/null | wc -l || echo 'ERROR')
+          FILES_WITHOUT_MAIN=$(git diff --name-only origin/main...HEAD 2>/dev/null | wc -l || echo 'ERROR')
+          echo "- Files with include-main: $FILES_WITH_MAIN"
+          echo "- Files without include-main: $FILES_WITHOUT_MAIN"
+
+          RESULT=$(eval "$BASE_CMD")
+
+          # Validate JSON output
+          if ! echo "$RESULT" | jq . > /dev/null 2>&1; then
+            echo "❌ Invalid JSON output from AI analysis"
+            echo "Raw output: $RESULT"
+            exit 1
+          fi
+
+          echo "📊 AI analysis completed successfully (builds running in parallel)"
+
+          # Parse results
+          TAGS=$(echo "$RESULT" | jq -r '.selectedTags | join("|")')  # Use pipe separator for grep regex
+          TAG_COUNT=$(echo "$RESULT" | jq -r '.selectedTags | length')
+          RISK_LEVEL=$(echo "$RESULT" | jq -r '.riskLevel')
+          TAG_DISPLAY=$(echo "$RESULT" | jq -r '.selectedTags | join(", ")')  # Human-readable format
+          REASONING=$(echo "$RESULT" | jq -r '.reasoning // "AI analysis completed"')
+          CONFIDENCE=$(echo "$RESULT" | jq -r '.confidence // 75')
+
+          echo "✅ Selected tags: $TAG_DISPLAY"
+          echo "📈 Risk level: $RISK_LEVEL"
+          echo "🔢 Tag count: $TAG_COUNT"
+
+          # Generate test matrix for GitHub Actions based on testFileBreakdown
+          TEST_MATRIX="[]"
+          if [ "$TAG_COUNT" -gt 0 ]; then
+            TEST_MATRIX=$(echo "$RESULT" | jq -c '[
+              .testFileBreakdown[] |
+              select(.recommendedSplits > 0) |
+              {
+                tag: .tag,
+                fileCount: .fileCount,
+                recommendedSplits: .recommendedSplits,
+                splits: [range(1; .recommendedSplits + 1)]
+              } |
+              .splits[] as $split |
+              {
+                tag: .tag,
+                fileCount: .fileCount,
+                split: $split,
+                totalSplits: .recommendedSplits
+              }
+            ]')
+          fi
+
+          echo "🔢 Generated test matrix: $TEST_MATRIX"
+
+          # Determine if this is analysis-only mode
+          ANALYSIS_ONLY="false"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-analysis') }}" == "true" ]]; then
+              ANALYSIS_ONLY="true"
+              echo "🔍 Analysis-only mode detected - skipping builds and tests"
+            fi
+          fi
+
+          # Set outputs
+          {
+            echo "tags=$TAGS"
+            echo "tags_display=$TAG_DISPLAY"
+            echo "strategy=dynamic-$TAG_COUNT-tags"
+            echo "test_matrix=$TEST_MATRIX"
+            echo "risk_level=$RISK_LEVEL"
+            echo "reasoning<<EOF"
+            echo "$REASONING"
+            echo "EOF"
+            echo "confidence=$CONFIDENCE"
+            echo "analysis_only=$ANALYSIS_ONLY"
+          } >> "$GITHUB_OUTPUT"
+
+          # Handle multi-line breakdown content carefully
+          {
+            echo "breakdown<<EOF"
+            echo "$BREAKDOWN"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          # Only run tests if we have test jobs in the matrix and not in analysis-only mode
+          MATRIX_LENGTH=$(echo "$TEST_MATRIX" | jq 'length')
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
+            echo "🔍 Analysis-only mode - skipping all builds and tests"
+          elif [ "$TAG_COUNT" -eq 0 ]; then
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ No E2E tests needed - AI determined changes are very low risk"
+          elif [ "$MATRIX_LENGTH" -gt 0 ]; then
+            echo "run_tests=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Will run $((MATRIX_LENGTH * 2)) CI jobs ($MATRIX_LENGTH per platform × 2 platforms)"
+          else
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ No E2E tests needed - selected tags have no test files"
+          fi
+
+          # Create readable test plan with file breakdown
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            echo "## 🔍 AI Analysis Report (Analysis-Only Mode)" >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo "- **Selected Tags**: $TAG_DISPLAY"
+              echo "- **Risk Level**: $RISK_LEVEL"
+              echo "- **AI Confidence**: ${CONFIDENCE}%"
+              echo "- **Mode**: Analysis-Only (no builds or tests)"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## 🎯 AI E2E Test Plan" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$TAG_COUNT" -eq 0 ]; then
+              {
+                echo "- **Selected Tags**: None (no tests needed)"
+                echo "- **Risk Level**: $RISK_LEVEL"
+                echo "- **AI Confidence**: ${CONFIDENCE}%"
+                echo "- **Total CI Jobs**: 0 (AI determined changes are very low risk)"
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              {
+                echo "- **Selected Tags**: $TAG_DISPLAY"
+                echo "- **Risk Level**: $RISK_LEVEL"
+                echo "- **AI Confidence**: ${CONFIDENCE}%"
+                echo "- **Test Jobs**: $MATRIX_LENGTH (dynamically generated based on test files)"
+              } >> "$GITHUB_STEP_SUMMARY"
+
+              if [ "$MATRIX_LENGTH" -gt 0 ]; then
+                echo "- **Total CI Jobs**: $((MATRIX_LENGTH * 2)) ($MATRIX_LENGTH per platform × 2 platforms)" >> "$GITHUB_STEP_SUMMARY"
+              else
+                echo "- **Total CI Jobs**: 0 (selected tags have no test files)" >> "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
+          fi
+
+          # Add AI reasoning
+          {
+            echo ""
+            echo "### 🤖 AI Analysis Reasoning"
+            echo "$REASONING"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Add test file breakdown if available
+          BREAKDOWN=$(echo "$RESULT" | jq -r '.testFileBreakdown[]? | "  - " + .tag + ": " + (.fileCount | tostring) + " files → " + (.recommendedSplits | tostring) + " splits"' | tr '\n' '\n')
+          if [ -n "$BREAKDOWN" ]; then
+            {
+              echo ""
+              echo "### 📊 Test File Breakdown"
+              echo "$BREAKDOWN"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # Step 2: Delete all existing AI E2E comments
+  delete-existing-comments:
+    name: 'Delete Existing AI E2E Comments'
+    needs: [analyze-and-plan]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Delete all existing Smart E2E comments
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🗑️ Deleting all existing AI E2E comments..."
+
+          # Get all AI E2E comment IDs (both analysis-only and test mode comments)
+          ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis|🔍 AI E2E Analysis Report")) | .id')
+
+          COMMENT_COUNT=$(echo "$ALL_COMMENT_IDS" | wc -l | tr -d ' ')
+          echo "📊 Found $COMMENT_COUNT existing AI E2E comments"
+
+          if [ -n "$ALL_COMMENT_IDS" ] && [ "$COMMENT_COUNT" -gt 0 ]; then
+            echo "🗑️ Deleting all $COMMENT_COUNT AI E2E comments..."
+
+            echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
+              if [ -n "$COMMENT_ID" ]; then
+                echo "   Deleting comment: $COMMENT_ID"
+                gh api "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" \
+                  --method DELETE > /dev/null 2>&1 || echo "   ⚠️ Failed to delete comment $COMMENT_ID"
+              fi
+            done
+            echo "✨ Cleanup completed - deleted all $COMMENT_COUNT comments"
+          else
+            echo "📝 No existing AI E2E comments found"
+          fi
+
+  # Step 3: Post AI analysis to PR
+  post-pr-comment:
+    name: 'Post AI Analysis to PR'
+    needs: [analyze-and-plan, platform-conditions, delete-existing-comments]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create new PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Check if analysis-only mode
+          ANALYSIS_ONLY="${{ needs.analyze-and-plan.outputs.analysis-only }}"
+
+          # Generate the PR comment content
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            cat > pr_comment.md << EOF
+          ## 🔍 AI E2E Analysis Report
+
+          **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
+
+          **🤖 AI Analysis:**
+          > ${{ needs.analyze-and-plan.outputs.reasoning }}
+
+          **📊 Analysis Results:**
+          - **Mode:** Analysis-Only ✅ (no builds or tests)
+          - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
+
+          _🔍 [View complete analysis](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Analysis completed successfully_
+
+          <!-- ai-e2e-analysis -->
+          EOF
+          else
+            cat > pr_comment.md << EOF
+          ## 🤖 AI E2E Test Analysis
+
+          **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
+
+          **🤖 AI Analysis:**
+          > ${{ needs.analyze-and-plan.outputs.reasoning }}
+
+          **🧪 Test Plan:**
+          - **Test Jobs:** ${{ needs.platform-conditions.outputs.actual-total-jobs }} total (dynamically generated based on test files)
+          - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
+          - **Platform Jobs:** iOS: ${{ needs.platform-conditions.outputs.actual-ios-jobs }}, Android: ${{ needs.platform-conditions.outputs.actual-android-jobs }}
+
+          _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
+
+          <!-- ai-e2e-analysis -->
+          EOF
+          fi
+
+          # Create new comment (all existing comments were deleted in previous job)
+          echo "📝 Creating new AI E2E comment..."
+          gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment.md
+          echo "✅ Successfully created new comment"
+
+  # Step 3: Determine platform conditions
+  platform-conditions:
+    name: 'Platform Conditions'
+    needs: [analyze-and-plan]
+    runs-on: ubuntu-latest
+    outputs:
+      should-build-ios: ${{ steps.conditions.outputs.should-build-ios }}
+      should-build-android: ${{ steps.conditions.outputs.should-build-android }}
+      should-test-ios: ${{ steps.conditions.outputs.should-test-ios }}
+      should-test-android: ${{ steps.conditions.outputs.should-test-android }}
+      actual-ios-jobs: ${{ steps.conditions.outputs.actual-ios-jobs }}
+      actual-android-jobs: ${{ steps.conditions.outputs.actual-android-jobs }}
+      actual-total-jobs: ${{ steps.conditions.outputs.actual-total-jobs }}
+    steps:
+      - name: Calculate platform conditions
+        id: conditions
+        run: |
+          # Base conditions
+          TESTS_NEEDED="${{ needs.analyze-and-plan.outputs.should-run-tests }}"
+          TEST_MATRIX='${{ needs.analyze-and-plan.outputs.test-matrix }}'
+          MATRIX_LENGTH=$(echo "$TEST_MATRIX" | jq 'length')
+          ANALYSIS_ONLY="${{ needs.analyze-and-plan.outputs.analysis-only }}"
+
+          echo "🔍 Analysis-only mode: $ANALYSIS_ONLY"
+
+          # Platform enablement logic
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            IOS_ENABLED="${{ github.event.inputs.enable_ios }}"
+            ANDROID_ENABLED="${{ github.event.inputs.enable_android }}"
+          else
+            IOS_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-ios') || contains(github.event.pull_request.labels.*.name, 'ai-e2e') }}"
+            ANDROID_ENABLED="${{ contains(github.event.pull_request.labels.*.name, 'ai-e2e-android') || contains(github.event.pull_request.labels.*.name, 'ai-e2e') }}"
+          fi
+
+          # Calculate final conditions - skip builds/tests if analysis-only mode
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            echo "🔍 Analysis-only mode: skipping all builds and tests"
+            SHOULD_BUILD_IOS="false"
+            SHOULD_BUILD_ANDROID="false"
+          elif [[ "$TESTS_NEEDED" == "true" && "$MATRIX_LENGTH" -gt 0 ]]; then
+            SHOULD_BUILD_IOS=$([[ "$IOS_ENABLED" == "true" ]] && echo "true" || echo "false")
+            SHOULD_BUILD_ANDROID=$([[ "$ANDROID_ENABLED" == "true" ]] && echo "true" || echo "false")
+          else
+            SHOULD_BUILD_IOS="false"
+            SHOULD_BUILD_ANDROID="false"
+          fi
+
+          {
+            echo "should-build-ios=$SHOULD_BUILD_IOS"
+            echo "should-build-android=$SHOULD_BUILD_ANDROID"
+            echo "should-test-ios=$SHOULD_BUILD_IOS"
+            echo "should-test-android=$SHOULD_BUILD_ANDROID"
+          } >> "$GITHUB_OUTPUT"
+
+          # Calculate actual job counts
+          IOS_JOBS=0
+          ANDROID_JOBS=0
+
+          if [ "$SHOULD_BUILD_IOS" = "true" ] && [ "$MATRIX_LENGTH" -gt 0 ]; then
+            IOS_JOBS="$MATRIX_LENGTH"
+          fi
+
+          if [ "$SHOULD_BUILD_ANDROID" = "true" ] && [ "$MATRIX_LENGTH" -gt 0 ]; then
+            ANDROID_JOBS="$MATRIX_LENGTH"
+          fi
+
+          TOTAL_JOBS=$((IOS_JOBS + ANDROID_JOBS))
+
+          {
+            echo "actual-ios-jobs=$IOS_JOBS"
+            echo "actual-android-jobs=$ANDROID_JOBS"
+            echo "actual-total-jobs=$TOTAL_JOBS"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "🎯 Platform Conditions:"
+          echo "- iOS Build/Test: $SHOULD_BUILD_IOS ($IOS_JOBS jobs)"
+          echo "- Android Build/Test: $SHOULD_BUILD_ANDROID ($ANDROID_JOBS jobs)"
+          echo "- Total CI Jobs: $TOTAL_JOBS"
+
+  # Step 3: Build iOS app for testing
+  build-ios:
+    name: 'Build iOS App'
+    needs: [platform-conditions]
+    if: needs.platform-conditions.outputs.should-build-ios == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  # Step 4: Build Android app for testing
+  build-android:
+    name: 'Build Android App'
+    needs: [platform-conditions]
+    if: needs.platform-conditions.outputs.should-build-android == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-android-e2e.yml
+    secrets: inherit
+
+  # Step 5: Dynamic iOS E2E Tests using reusable workflow
+  ios-ai-tests:
+    needs: [analyze-and-plan, platform-conditions, build-ios]
+    if: needs.platform-conditions.outputs.should-test-ios == 'true' && needs.build-ios.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.analyze-and-plan.outputs.test-matrix) }}
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: 'iOS-${{ matrix.tag }}-Split-${{ matrix.split }}-of-${{ matrix.totalSplits }}'
+      platform: 'ios'
+      test_suite_tag: '${{ matrix.tag }}'
+      split_number: ${{ matrix.split }}
+      total_splits: ${{ matrix.totalSplits }}
+    secrets: inherit
+
+  # Step 6: Dynamic Android E2E Tests using reusable workflow
+  android-ai-tests:
+    needs: [analyze-and-plan, platform-conditions, build-android]
+    if: needs.platform-conditions.outputs.should-test-android == 'true' && needs.build-android.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.analyze-and-plan.outputs.test-matrix) }}
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: 'Android-${{ matrix.tag }}-Split-${{ matrix.split }}-of-${{ matrix.totalSplits }}'
+      platform: 'android'
+      test_suite_tag: '${{ matrix.tag }}'
+      split_number: ${{ matrix.split }}
+      total_splits: ${{ matrix.totalSplits }}
+    secrets: inherit
+
+  # Step 7: Report iOS Test Results
+  report-ios-ai-tests:
+    name: '📊 iOS AI E2E Test Report'
+    needs: [platform-conditions, ios-ai-tests]
+    if: needs.platform-conditions.outputs.should-test-ios == 'true' && (success() || failure())
+    uses: ./.github/workflows/report-e2e-tests.yml
+    with:
+      platform: 'ios'
+      test-type: 'ai-e2e'
+      artifact-pattern: 'iOS-*-test-results'
+      report-name: 'iOS AI E2E Test Results'
+
+  # Step 8: Report Android Test Results
+  report-android-ai-tests:
+    name: '📊 Android AI E2E Test Report'
+    needs: [platform-conditions, android-ai-tests]
+    if: needs.platform-conditions.outputs.should-test-android == 'true' && (success() || failure())
+    uses: ./.github/workflows/report-e2e-tests.yml
+    with:
+      platform: 'android'
+      test-type: 'ai-e2e'
+      artifact-pattern: 'Android-*-test-results'
+      report-name: 'Android AI E2E Test Results'
+
+  # Step 9: Final Summary Report
+  report-results:
+    name: '📊 AI E2E Test Results Summary'
+    runs-on: ubuntu-latest
+    needs:
+      [
+        analyze-and-plan,
+        platform-conditions,
+        ios-ai-tests,
+        android-ai-tests,
+        report-ios-ai-tests,
+        report-android-ai-tests,
+      ]
+    if: always() && needs.analyze-and-plan.result == 'success'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate test report
+        run: |
+          {
+            echo "## 🎯 AI E2E Test Execution Report"
+            echo "- **Trigger**: ${{ github.event_name }}"
+            echo "- **Strategy**: ${{ needs.analyze-and-plan.outputs.test-strategy }}"
+            echo "- **Selected Tags**: ${{ needs.analyze-and-plan.outputs.selected-tags-display }}"
+            echo ""
+            echo "- **iOS Jobs**: ${{ needs.platform-conditions.outputs.actual-ios-jobs }} (enabled: ${{ needs.platform-conditions.outputs.should-build-ios }})"
+            echo "- **Android Jobs**: ${{ needs.platform-conditions.outputs.actual-android-jobs }} (enabled: ${{ needs.platform-conditions.outputs.should-build-android }})"
+            echo "- **Total CI Jobs**: ${{ needs.platform-conditions.outputs.actual-total-jobs }}"
+            echo ""
+            echo "- **iOS Result**: ${{ needs.ios-ai-tests.result || 'skipped' }}"
+            echo "- **Android Result**: ${{ needs.android-ai-tests.result || 'skipped' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Delete existing comment and create final results comment
+        if: github.event_name == 'pull_request' && needs.analyze-and-plan.outputs.analysis-only != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Delete existing AI E2E comment first
+          echo "🗑️ Deleting existing AI E2E comment before creating final results..."
+
+          COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis|🔍 AI E2E Analysis Report")) | .id' \
+            | tail -1)
+
+          if [ -n "$COMMENT_ID" ] && [ "$COMMENT_ID" != "null" ] && [ "$COMMENT_ID" != "" ]; then
+            echo "   Deleting existing comment: $COMMENT_ID"
+            gh api "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" \
+              --method DELETE > /dev/null 2>&1 || echo "   ⚠️ Failed to delete comment $COMMENT_ID"
+            echo "✅ Deleted existing comment"
+          else
+            echo "📝 No existing AI E2E comment found to delete"
+          fi
+
+          # Generate status icon based on test results
+          IOS_RESULT="${{ needs.ios-ai-tests.result || 'skipped' }}"
+          ANDROID_RESULT="${{ needs.android-ai-tests.result || 'skipped' }}"
+
+          # Determine overall status
+          if [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
+            STATUS_ICON="❌"
+            STATUS_TEXT="Failed"
+          elif [[ "$IOS_RESULT" == "cancelled" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
+            STATUS_ICON="⏸️"
+            STATUS_TEXT="Cancelled"
+          elif [[ "$IOS_RESULT" == "success" ]] || [[ "$ANDROID_RESULT" == "success" ]]; then
+            STATUS_ICON="✅"
+            STATUS_TEXT="Completed"
+          else
+            STATUS_ICON="🔄"
+            STATUS_TEXT="Completed"
+          fi
+
+          # Generate test results final comment content
+          cat > pr_comment_final.md << EOF
+          ## 🤖 AI E2E Test Analysis $STATUS_ICON
+
+          **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
+
+          **🧪 Final Results:**
+          - **iOS Jobs:** ${{ needs.platform-conditions.outputs.actual-ios-jobs }} (Result: $IOS_RESULT)
+          - **Android Jobs:** ${{ needs.platform-conditions.outputs.actual-android-jobs }} (Result: $ANDROID_RESULT)
+          - **Total CI Jobs:** ${{ needs.platform-conditions.outputs.actual-total-jobs }}
+          - **Overall Status:** $STATUS_TEXT
+
+          **Platform Configuration:**
+          - iOS enabled: ${{ needs.platform-conditions.outputs.should-build-ios }}
+          - Android enabled: ${{ needs.platform-conditions.outputs.should-build-android }}
+
+          _$STATUS_ICON [View complete workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • AI E2E Selection_
+
+          <!-- ai-e2e-analysis -->
+          EOF
+
+          # Create new final comment
+          echo "📝 Creating new AI E2E final results comment..."
+          gh pr comment ${{ github.event.pull_request.number }} --body-file pr_comment_final.md
+          echo "✅ Successfully created final results comment"
+
+      - name: Check test results
+        run: |
+          IOS_RESULT="${{ needs.ios-ai-tests.result }}"
+          ANDROID_RESULT="${{ needs.android-ai-tests.result }}"
+          SHOULD_RUN_TESTS="${{ needs.analyze-and-plan.outputs.should-run-tests }}"
+          TOTAL_JOBS="${{ needs.platform-conditions.outputs.actual-total-jobs }}"
+
+          if [[ "$SHOULD_RUN_TESTS" == "false" ]] || [[ "$TOTAL_JOBS" == "0" ]]; then
+            echo "ℹ️ No E2E tests were needed based on AI analysis"
+            echo "✅ AI E2E analysis completed - no testing required"
+          elif [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
+            echo "❌ Some E2E tests failed"
+            exit 1
+          else
+            echo "✅ All E2E tests completed successfully"
+          fi
