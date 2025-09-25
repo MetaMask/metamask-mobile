@@ -259,7 +259,7 @@ class CustomReporter {
     const hasCredentials =
       process.env.BROWSERSTACK_USERNAME && process.env.BROWSERSTACK_ACCESS_KEY;
 
-    if (this.sessions.length > 0 && hasCredentials) {
+    if (this.sessions.length > 0 && hasCredentials && isBrowserStackRun) {
       console.log(
         `🎥 Fetching video URLs and profiling data for ${this.sessions.length} sessions`,
       );

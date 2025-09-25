@@ -74,7 +74,7 @@ class BridgeScreen {
   async selectNetworkAndTokenTo(network, token) {
       const destinationToken = await this.destinationTokenArea;
       await destinationToken.tap();
-      const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, network);
+      const networkButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@content-desc="${network}"]`);;
       await networkButton.tap();
       const tokenField = await AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
       await tokenField.fill(token);

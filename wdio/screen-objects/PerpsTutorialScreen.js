@@ -1,3 +1,4 @@
+import { expect } from 'appwright';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
 
 class PerpsTutorialScreen {
@@ -41,7 +42,7 @@ class PerpsTutorialScreen {
 
   async expectFirstScreenVisible() {
     const title = await this.title;
-    await title.isVisible({ timeout: 10000 });
+    expect(await title).toBeVisible({ timeout: 10000 });
   }
 
   async flowTapContinueTutorial(times = 1) {

@@ -44,10 +44,69 @@ export default class AppwrightSelectors {
     return device.webDriverClient.capabilities.platformName === 'android' || device.webDriverClient.capabilities.platformName === 'Android';
   }
 
+  static async terminateApp(device) {
+    let retries = 3;
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask'; 
+    while (retries > 0) {
+      try {
+        await device.terminateApp(packageId);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        retries--;
+      } catch (error) {
+        console.log('Error terminating app', packageId);
+        console.log('Error terminating app, retrying...', error);
+        retries--;
+        
+        if (retries > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          try {
+            await device.terminateApp(packageId);
+          } catch (retryError) {
+            console.log('Retry also failed:', retryError.message);
+          }
+        }
+      }
+    }
+      // Timeout to ensure the app is terminated
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
+  static async activateApp(device) {
+    const packageId = this.isIOS(device) ? 'io.metamask.MetaMask' : 'io.metamask';
+    let retries = 3;
+    
+    while (retries > 0) {
+      try {
+        const result = await device.activateApp(packageId);
+        console.log(`Successfully activated app: ${packageId}`);
+        // Esperar un momento para que la app se inicialice completamente
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return result;
+      } catch (error) {
+        console.log(`Error activating app ${packageId}, attempt ${4 - retries}`);
+        console.log('Error details:', error.message);
+        retries--;
+        
+        if (retries > 0) {
+          console.log(`Retrying activation... ${retries} attempts left`);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        } else {
+          console.log('All activation attempts failed');
+          throw error; // Re-lanzar el último error
+        }
+      }
+    }
+  }
+
   static async hideKeyboard(device) {
     if (AppwrightSelectors.isAndroid(device)) await device.webDriverClient.hideKeyboard(); // only needed for Android
   }
 
+
+  static async backgroundApp(device, time) {
+    const driver = device.webDriverClient;
+    await driver.background(time);
+  }
 
   static async dismissAlert(device) {
     // Simple wrapper that uses appropriate timeout for platform

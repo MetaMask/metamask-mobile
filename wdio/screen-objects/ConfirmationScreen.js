@@ -24,7 +24,7 @@ class ConfirmationScreen {
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByID(this._device, ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    return AppwrightSelectors.getElementByID(this._device, 'confirm-button');
   }
 
   async isAccountSendToVisible() {
@@ -51,6 +51,11 @@ class ConfirmationScreen {
     const confirmButton = await this.confirmButton;
     console.log('confirmButton', confirmButton);
     //await confirmButton.tap();
+  }
+
+  async isVisible(network, timeout = 10000) {
+    const titleElement = await AppwrightSelectors.getElementByCatchAll(this._device, network === 'Solana' ? 'Transaction request' : 'Review');
+    await appwrightExpect(titleElement).toBeVisible({ timeout });
   }
 }
 
