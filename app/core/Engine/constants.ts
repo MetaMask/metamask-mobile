@@ -79,6 +79,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'DeFiPositionsController:stateChange',
   'SeedlessOnboardingController:stateChange',
   'NetworkEnablementController:stateChange',
+  'PredictController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [

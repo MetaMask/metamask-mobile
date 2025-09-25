@@ -4,6 +4,7 @@ import rewardsReducer, {
   setSeasonStatus,
   setReferralDetails,
   setSeasonStatusLoading,
+  setSeasonStatusError,
   setReferralDetailsLoading,
   resetRewardsState,
   setOnboardingActiveStep,
@@ -24,12 +25,12 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
 } from '../../core/Engine/controllers/rewards-controller/types';
-import Logger from '../../util/Logger';
 
 describe('rewardsReducer', () => {
   const initialState: RewardsState = {
     activeTab: 'overview',
     seasonStatusLoading: false,
+    seasonStatusError: null,
 
     seasonId: null,
     seasonName: null,
@@ -521,7 +522,7 @@ describe('rewardsReducer', () => {
     });
 
     describe('setSeasonStatusLoading', () => {
-      it('should set season status loading to true', () => {
+      it('should set season status loading to true when no season data exists', () => {
         // Arrange
         const action = setSeasonStatusLoading(true);
 
@@ -530,6 +531,22 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.seasonStatusLoading).toBe(true);
+      });
+
+      it('should not set season status loading to true when season data already exists', () => {
+        // Arrange
+        const stateWithSeasonData = {
+          ...initialState,
+          seasonStartDate: new Date('2024-01-01'),
+          seasonStatusLoading: false,
+        };
+        const action = setSeasonStatusLoading(true);
+
+        // Act
+        const state = rewardsReducer(stateWithSeasonData, action);
+
+        // Assert
+        expect(state.seasonStatusLoading).toBe(false); // Should remain false due to guard clause
       });
 
       it('should set season status loading to false', () => {
@@ -543,10 +560,118 @@ describe('rewardsReducer', () => {
         // Assert
         expect(state.seasonStatusLoading).toBe(false);
       });
+
+      it('should set season status loading to false even when season data exists', () => {
+        // Arrange
+        const stateWithSeasonDataAndLoading = {
+          ...initialState,
+          seasonStartDate: new Date('2024-01-01'),
+          seasonStatusLoading: true,
+        };
+        const action = setSeasonStatusLoading(false);
+
+        // Act
+        const state = rewardsReducer(stateWithSeasonDataAndLoading, action);
+
+        // Assert
+        expect(state.seasonStatusLoading).toBe(false);
+      });
+    });
+
+    describe('setSeasonStatusError', () => {
+      it('should set season status error to a string message', () => {
+        // Arrange
+        const errorMessage = 'Failed to fetch season status';
+        const action = setSeasonStatusError(errorMessage);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(errorMessage);
+      });
+
+      it('should clear season status error when set to null', () => {
+        // Arrange
+        const stateWithError = {
+          ...initialState,
+          seasonStatusError: 'Previous error message',
+        };
+        const action = setSeasonStatusError(null);
+
+        // Act
+        const state = rewardsReducer(stateWithError, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(null);
+      });
+
+      it('should replace existing error with new error message', () => {
+        // Arrange
+        const stateWithError = {
+          ...initialState,
+          seasonStatusError: 'Old error message',
+        };
+        const newErrorMessage = 'New error message';
+        const action = setSeasonStatusError(newErrorMessage);
+
+        // Act
+        const state = rewardsReducer(stateWithError, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(newErrorMessage);
+      });
+
+      it('should handle network timeout error message', () => {
+        // Arrange
+        const timeoutError = 'Request timed out while fetching season status';
+        const action = setSeasonStatusError(timeoutError);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(timeoutError);
+      });
+
+      it('should handle API error response message', () => {
+        // Arrange
+        const apiError = 'API returned 500: Internal server error';
+        const action = setSeasonStatusError(apiError);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(apiError);
+      });
+
+      it('should not affect other state properties when setting error', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          seasonName: 'Test Season',
+          seasonId: 'season-123',
+          balanceTotal: 1000,
+          seasonStatusLoading: false,
+        };
+        const errorMessage = 'Something went wrong';
+        const action = setSeasonStatusError(errorMessage);
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(errorMessage);
+        expect(state.seasonName).toBe('Test Season');
+        expect(state.seasonId).toBe('season-123');
+        expect(state.balanceTotal).toBe(1000);
+        expect(state.seasonStatusLoading).toBe(false);
+      });
     });
 
     describe('setReferralDetailsLoading', () => {
-      it('should set referral details loading to true', () => {
+      it('should set referral details loading to true when no referral code exists', () => {
         // Arrange
         const action = setReferralDetailsLoading(true);
 
@@ -555,6 +680,22 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.referralDetailsLoading).toBe(true);
+      });
+
+      it('should not set referral details loading to true when referral code already exists', () => {
+        // Arrange
+        const stateWithReferralCode = {
+          ...initialState,
+          referralCode: 'EXISTING123',
+          referralDetailsLoading: false,
+        };
+        const action = setReferralDetailsLoading(true);
+
+        // Act
+        const state = rewardsReducer(stateWithReferralCode, action);
+
+        // Assert
+        expect(state.referralDetailsLoading).toBe(false); // Should remain false due to guard clause
       });
 
       it('should set referral details loading to false', () => {
@@ -567,6 +708,22 @@ describe('rewardsReducer', () => {
 
         // Act
         const state = rewardsReducer(stateWithLoading, action);
+
+        // Assert
+        expect(state.referralDetailsLoading).toBe(false);
+      });
+
+      it('should set referral details loading to false even when referral code exists', () => {
+        // Arrange
+        const stateWithReferralCodeAndLoading = {
+          ...initialState,
+          referralCode: 'EXISTING123',
+          referralDetailsLoading: true,
+        };
+        const action = setReferralDetailsLoading(false);
+
+        // Act
+        const state = rewardsReducer(stateWithReferralCodeAndLoading, action);
 
         // Assert
         expect(state.referralDetailsLoading).toBe(false);
@@ -590,7 +747,6 @@ describe('rewardsReducer', () => {
         OnboardingStep.STEP_4,
       ])('should set onboarding active step to %s', (step) => {
         // Arrange
-        const loggerSpy = jest.spyOn(Logger, 'log');
         const action = setOnboardingActiveStep(step);
 
         // Act
@@ -598,12 +754,10 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.onboardingActiveStep).toBe(step);
-        expect(loggerSpy).toHaveBeenCalledWith('setOnboardingActiveStep', step);
       });
 
       it('should update from different onboarding step', () => {
         // Arrange
-        const loggerSpy = jest.spyOn(Logger, 'log');
         const stateWithStep = {
           ...initialState,
           onboardingActiveStep: OnboardingStep.STEP_2,
@@ -615,15 +769,10 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_4);
-        expect(loggerSpy).toHaveBeenCalledWith(
-          'setOnboardingActiveStep',
-          OnboardingStep.STEP_4,
-        );
       });
 
       it('should call logger even when step is the same', () => {
         // Arrange
-        const loggerSpy = jest.spyOn(Logger, 'log');
         const stateWithStep = {
           ...initialState,
           onboardingActiveStep: OnboardingStep.STEP_1,
@@ -635,10 +784,6 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_1);
-        expect(loggerSpy).toHaveBeenCalledWith(
-          'setOnboardingActiveStep',
-          OnboardingStep.STEP_1,
-        );
       });
     });
 
@@ -923,6 +1068,7 @@ describe('rewardsReducer', () => {
             levelNumber: 'Level 10',
             rewards: [],
           },
+          seasonStatusError: null,
           nextTier: {
             id: 'tier-diamond',
             name: 'Diamond',
@@ -1077,6 +1223,7 @@ describe('rewardsReducer', () => {
               backgroundColor: '#FF0000',
             },
           ],
+          seasonStatusError: null,
           activeBoostsLoading: false,
           activeBoostsError: false,
           unlockedRewards: [],
@@ -1353,7 +1500,7 @@ describe('rewardsReducer', () => {
   });
 
   describe('setActiveBoostsLoading', () => {
-    it('should set activeBoostsLoading to true', () => {
+    it('should set activeBoostsLoading to true when no active boosts exist', () => {
       // Arrange
       const action = setActiveBoostsLoading(true);
 
@@ -1362,6 +1509,31 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.activeBoostsLoading).toBe(true);
+    });
+
+    it('should not set activeBoostsLoading to true when active boosts already exist', () => {
+      // Arrange
+      const stateWithBoosts = {
+        ...initialState,
+        activeBoosts: [
+          {
+            id: 'existing-boost',
+            name: 'Existing Boost',
+            icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
+            boostBips: 1000,
+            seasonLong: true,
+            backgroundColor: '#FF0000',
+          },
+        ],
+        activeBoostsLoading: false,
+      };
+      const action = setActiveBoostsLoading(true);
+
+      // Act
+      const state = rewardsReducer(stateWithBoosts, action);
+
+      // Assert
+      expect(state.activeBoostsLoading).toBe(false); // Should remain false due to guard clause
     });
 
     it('should set activeBoostsLoading to false', () => {
@@ -1379,22 +1551,37 @@ describe('rewardsReducer', () => {
       expect(state.activeBoostsLoading).toBe(false);
     });
 
-    it('should not affect other state properties', () => {
+    it('should set activeBoostsLoading to false even when active boosts exist', () => {
       // Arrange
-      const stateWithData = {
+      const stateWithBoostsAndLoading = {
         ...initialState,
-        activeTab: 'activity' as const,
-        referralCode: 'TEST123',
         activeBoosts: [
           {
-            id: 'test-boost',
-            name: 'Test',
+            id: 'existing-boost',
+            name: 'Existing Boost',
             icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
             boostBips: 1000,
             seasonLong: true,
             backgroundColor: '#FF0000',
           },
         ],
+        activeBoostsLoading: true,
+      };
+      const action = setActiveBoostsLoading(false);
+
+      // Act
+      const state = rewardsReducer(stateWithBoostsAndLoading, action);
+
+      // Assert
+      expect(state.activeBoostsLoading).toBe(false);
+    });
+
+    it('should not affect other state properties', () => {
+      // Arrange
+      const stateWithData = {
+        ...initialState,
+        activeTab: 'activity' as const,
+        referralCode: 'TEST123',
       };
       const action = setActiveBoostsLoading(true);
 
@@ -1405,7 +1592,7 @@ describe('rewardsReducer', () => {
       expect(state.activeBoostsLoading).toBe(true);
       expect(state.activeTab).toBe('activity');
       expect(state.referralCode).toBe('TEST123');
-      expect(state.activeBoosts).toEqual(stateWithData.activeBoosts);
+      expect(state.activeBoosts).toEqual([]);
     });
   });
 
@@ -1485,167 +1672,6 @@ describe('rewardsReducer', () => {
       action = setActiveBoostsError(true);
       currentState = rewardsReducer(currentState, action);
       expect(currentState.activeBoostsError).toBe(true);
-    });
-  });
-
-  describe('setActiveBoosts', () => {
-    it('should set active boosts array', () => {
-      // Arrange
-      const mockBoosts = [
-        {
-          id: 'boost-1',
-          name: 'Test Boost 1',
-          icon: {
-            lightModeUrl: 'light1.png',
-            darkModeUrl: 'dark1.png',
-          },
-          boostBips: 1000,
-          seasonLong: true,
-          backgroundColor: '#FF0000',
-        },
-        {
-          id: 'boost-2',
-          name: 'Test Boost 2',
-          icon: {
-            lightModeUrl: 'light2.png',
-            darkModeUrl: 'dark2.png',
-          },
-          boostBips: 500,
-          seasonLong: false,
-          startDate: '2024-01-01',
-          endDate: '2024-01-31',
-          backgroundColor: '#00FF00',
-        },
-      ];
-      const action = setActiveBoosts(mockBoosts);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.activeBoosts).toEqual(mockBoosts);
-      expect(state.activeBoosts).toHaveLength(2);
-      expect(state.activeBoosts[0].id).toBe('boost-1');
-      expect(state.activeBoosts[1].seasonLong).toBe(false);
-    });
-
-    it('should replace existing active boosts', () => {
-      // Arrange
-      const existingBoosts = [
-        {
-          id: 'old-boost',
-          name: 'Old Boost',
-          icon: { lightModeUrl: 'old.png', darkModeUrl: 'old.png' },
-          boostBips: 100,
-          seasonLong: true,
-          backgroundColor: '#000000',
-        },
-      ];
-      const stateWithBoosts = {
-        ...initialState,
-        activeBoosts: existingBoosts,
-      };
-      const newBoosts = [
-        {
-          id: 'new-boost',
-          name: 'New Boost',
-          icon: { lightModeUrl: 'new.png', darkModeUrl: 'new.png' },
-          boostBips: 2000,
-          seasonLong: false,
-          backgroundColor: '#FFFFFF',
-        },
-      ];
-      const action = setActiveBoosts(newBoosts);
-
-      // Act
-      const state = rewardsReducer(stateWithBoosts, action);
-
-      // Assert
-      expect(state.activeBoosts).toEqual(newBoosts);
-      expect(state.activeBoosts).toHaveLength(1);
-      expect(state.activeBoosts[0].id).toBe('new-boost');
-    });
-
-    it('should set empty array when no boosts provided', () => {
-      // Arrange
-      const stateWithBoosts = {
-        ...initialState,
-        activeBoosts: [
-          {
-            id: 'existing-boost',
-            name: 'Existing',
-            icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
-            boostBips: 500,
-            seasonLong: true,
-            backgroundColor: '#123456',
-          },
-        ],
-      };
-      const action = setActiveBoosts([]);
-
-      // Act
-      const state = rewardsReducer(stateWithBoosts, action);
-
-      // Assert
-      expect(state.activeBoosts).toEqual([]);
-      expect(state.activeBoosts).toHaveLength(0);
-    });
-  });
-
-  describe('setActiveBoostsLoading', () => {
-    it('should set activeBoostsLoading to true', () => {
-      // Arrange
-      const action = setActiveBoostsLoading(true);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.activeBoostsLoading).toBe(true);
-    });
-
-    it('should set activeBoostsLoading to false', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        activeBoostsLoading: true,
-      };
-      const action = setActiveBoostsLoading(false);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.activeBoostsLoading).toBe(false);
-    });
-
-    it('should not affect other state properties', () => {
-      // Arrange
-      const stateWithData = {
-        ...initialState,
-        activeTab: 'activity' as const,
-        referralCode: 'TEST123',
-        activeBoosts: [
-          {
-            id: 'test-boost',
-            name: 'Test',
-            icon: { lightModeUrl: 'test.png', darkModeUrl: 'test.png' },
-            boostBips: 1000,
-            seasonLong: true,
-            backgroundColor: '#FF0000',
-          },
-        ],
-      };
-      const action = setActiveBoostsLoading(true);
-
-      // Act
-      const state = rewardsReducer(stateWithData, action);
-
-      // Assert
-      expect(state.activeBoostsLoading).toBe(true);
-      expect(state.activeTab).toBe('activity');
-      expect(state.referralCode).toBe('TEST123');
-      expect(state.activeBoosts).toEqual(stateWithData.activeBoosts);
     });
   });
 
@@ -1768,7 +1794,7 @@ describe('rewardsReducer', () => {
   });
 
   describe('setUnlockedRewardLoading', () => {
-    it('should set unlocked reward loading to true', () => {
+    it('should set unlocked reward loading to true when no unlocked rewards exist', () => {
       // Arrange
       const action = setUnlockedRewardLoading(true);
 
@@ -1777,6 +1803,28 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.unlockedRewardLoading).toBe(true);
+    });
+
+    it('should not set unlocked reward loading to true when unlocked rewards already exist', () => {
+      // Arrange
+      const stateWithRewards = {
+        ...initialState,
+        unlockedRewards: [
+          {
+            id: 'existing-reward',
+            seasonRewardId: 'existing-season-reward',
+            claimStatus: RewardClaimStatus.CLAIMED,
+          },
+        ],
+        unlockedRewardLoading: false,
+      };
+      const action = setUnlockedRewardLoading(true);
+
+      // Act
+      const state = rewardsReducer(stateWithRewards, action);
+
+      // Assert
+      expect(state.unlockedRewardLoading).toBe(false); // Should remain false due to guard clause
     });
 
     it('should set unlocked reward loading to false', () => {
@@ -1794,12 +1842,35 @@ describe('rewardsReducer', () => {
       expect(state.unlockedRewardLoading).toBe(false);
     });
 
-    it('should toggle loading state correctly', () => {
-      // Arrange - Start with false
+    it('should set unlocked reward loading to false even when unlocked rewards exist', () => {
+      // Arrange
+      const stateWithRewardsAndLoading = {
+        ...initialState,
+        unlockedRewards: [
+          {
+            id: 'existing-reward',
+            seasonRewardId: 'existing-season-reward',
+            claimStatus: RewardClaimStatus.CLAIMED,
+          },
+        ],
+        unlockedRewardLoading: true,
+      };
+      const action = setUnlockedRewardLoading(false);
+
+      // Act
+      const state = rewardsReducer(stateWithRewardsAndLoading, action);
+
+      // Assert
+      expect(state.unlockedRewardLoading).toBe(false);
+    });
+
+    it('should toggle loading state correctly when no rewards exist', () => {
+      // Arrange - Start with false and no rewards
       let currentState = initialState;
       expect(currentState.unlockedRewardLoading).toBe(false);
+      expect(currentState.unlockedRewards).toHaveLength(0);
 
-      // Act - Set to true
+      // Act - Set to true (should work since no rewards exist)
       currentState = rewardsReducer(
         currentState,
         setUnlockedRewardLoading(true),
@@ -1820,13 +1891,6 @@ describe('rewardsReducer', () => {
         ...initialState,
         activeTab: 'activity' as const,
         referralCode: 'TEST456',
-        unlockedRewards: [
-          {
-            id: 'existing-reward',
-            seasonRewardId: 'existing-season-reward',
-            claimStatus: RewardClaimStatus.UNCLAIMED,
-          },
-        ],
         activeBoostsLoading: false,
       };
       const action = setUnlockedRewardLoading(true);
@@ -1838,7 +1902,7 @@ describe('rewardsReducer', () => {
       expect(state.unlockedRewardLoading).toBe(true);
       expect(state.activeTab).toBe('activity');
       expect(state.referralCode).toBe('TEST456');
-      expect(state.unlockedRewards).toHaveLength(1);
+      expect(state.unlockedRewards).toHaveLength(0);
       expect(state.activeBoostsLoading).toBe(false);
     });
   });

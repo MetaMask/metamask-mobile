@@ -97,6 +97,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectNonEvmNetworkConfigurationsByChainId,
   ///: END:ONLY_INCLUDE_IF
+  selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
@@ -161,6 +162,7 @@ const NetworkSelector = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
@@ -360,7 +362,11 @@ const NetworkSelector = () => {
       return chainId === browserChainId;
     }
 
-    return !isEvmSelected ? false : chainId === selectedChainId;
+    if (!isEvmSelected) {
+      return chainId === selectedNonEvmChainId;
+    }
+
+    return chainId === selectedChainId;
   };
 
   const {
@@ -711,9 +717,7 @@ const NetworkSelector = () => {
     }
 
     return networks.map((network) => {
-      const isSelected =
-        network.chainId === browserChainId ||
-        (!isEvmSelected && !browserChainId);
+      const isSelected = isNetworkSelected(network.chainId);
       return (
         <Cell
           key={network.chainId}
