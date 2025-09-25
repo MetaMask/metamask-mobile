@@ -1,4 +1,4 @@
-import migration103 from './103';
+import migrate from './103';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 
@@ -37,7 +37,7 @@ describe('Migration 103', () => {
       },
     };
 
-    const result = await migration103(mockState);
+    const result = await migrate(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(3);
 
@@ -92,7 +92,7 @@ describe('Migration 103', () => {
     // All migrations succeed
     mockFilesystemStorage.setItem.mockResolvedValue();
 
-    const result = await migration103(mockState);
+    const result = await migrate(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
@@ -111,7 +111,7 @@ describe('Migration 103', () => {
       },
     };
 
-    const result = await migration103(mockState);
+    const result = await migrate(mockState);
 
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
 
@@ -123,7 +123,7 @@ describe('Migration 103', () => {
       engine: {},
     };
 
-    const result = await migration103(mockState);
+    const result = await migrate(mockState);
 
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
     // Should return state unchanged
@@ -144,7 +144,7 @@ describe('Migration 103', () => {
       },
     };
 
-    const result = await migration103(mockState);
+    const result = await migrate(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
@@ -185,7 +185,7 @@ describe('Migration 103', () => {
       .mockRejectedValueOnce(new Error('Storage error'))
       .mockResolvedValueOnce();
 
-    const result = await migration103(mockState);
+    const result = await migrate(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
