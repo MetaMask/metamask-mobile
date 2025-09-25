@@ -139,6 +139,7 @@ jobs:
         env:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+          BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
         run: |
           echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
