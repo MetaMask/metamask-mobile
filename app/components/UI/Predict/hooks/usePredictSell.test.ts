@@ -2,6 +2,7 @@ import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { usePredictSell } from './usePredictSell';
+import { PredictPositionStatus } from '..';
 
 // Mock redux state container that tests can mutate between runs
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,7 +77,7 @@ describe('usePredictSell', () => {
     icon: 'test-icon.png',
     amount: 100,
     price: 0.5,
-    status: 'open' as const,
+    status: PredictPositionStatus.OPEN,
     size: 50,
     outcomeIndex: 0,
     realizedPnl: 10,

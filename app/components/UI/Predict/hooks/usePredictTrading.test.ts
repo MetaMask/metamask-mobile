@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePredictTrading } from './usePredictTrading';
-import { Recurrence, PredictCategory } from '../types';
+import { Recurrence, PredictCategory, PredictPositionStatus } from '../types';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -144,7 +144,7 @@ describe('usePredictTrading', () => {
       icon: 'btc-icon.png',
       amount: 50,
       price: 1.5,
-      status: 'open' as const,
+      status: PredictPositionStatus.OPEN,
       size: 50,
       outcomeIndex: 0,
       realizedPnl: 0,
@@ -211,7 +211,7 @@ describe('usePredictTrading', () => {
         icon: 'btc-icon.png',
         amount: 100,
         price: 1.0,
-        status: 'redeemable' as const,
+        status: PredictPositionStatus.REDEEMABLE,
         size: 100,
         outcomeIndex: 0,
         realizedPnl: 50,
@@ -237,7 +237,7 @@ describe('usePredictTrading', () => {
         icon: 'eth-icon.png',
         amount: 75,
         price: 1.2,
-        status: 'redeemable' as const,
+        status: PredictPositionStatus.REDEEMABLE,
         size: 75,
         outcomeIndex: 1,
         realizedPnl: 25,

@@ -1,5 +1,10 @@
 import Engine from '../../../../../core/Engine';
-import { OffchainTradeParams, Side, Recurrence } from '../../types';
+import {
+  OffchainTradeParams,
+  Side,
+  Recurrence,
+  PredictPositionStatus,
+} from '../../types';
 import {
   buildMarketOrderCreationArgs,
   calculateMarketPrice,
@@ -379,7 +384,7 @@ describe('PolymarketProvider', () => {
       icon: 'test-icon.png',
       amount: 1,
       price: 0.5,
-      status: 'open' as const,
+      status: PredictPositionStatus.OPEN,
       size: 1,
       outcomeIndex: 0,
       realizedPnl: 0,
@@ -743,7 +748,7 @@ describe('PolymarketProvider', () => {
         size: 1.5,
         negRisk: false,
         redeemable: true,
-        status: 'open' as const,
+        status: PredictPositionStatus.OPEN,
         realizedPnl: 0,
         curPrice: 0.5,
         conditionId: 'outcome-456',
@@ -792,7 +797,7 @@ describe('PolymarketProvider', () => {
         size: 2.0,
         negRisk: true,
         redeemable: true,
-        status: 'open' as const,
+        status: PredictPositionStatus.OPEN,
         realizedPnl: 0,
         curPrice: 0.3,
         conditionId: 'outcome-789',
@@ -841,7 +846,7 @@ describe('PolymarketProvider', () => {
         size: 0.75,
         negRisk: false,
         redeemable: true,
-        status: 'open' as const,
+        status: PredictPositionStatus.OPEN,
         realizedPnl: 0,
         curPrice: 0.4,
         conditionId: 'outcome-123',

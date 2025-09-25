@@ -17,7 +17,10 @@ import PredictPosition from '../../components/PredictPosition';
 import PredictPositionEmpty from '../../components/PredictPositionEmpty';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictNotifications } from '../../hooks/usePredictNotifications';
-import { PredictPosition as PredictPositionType } from '../../types';
+import {
+  PredictPositionStatus,
+  PredictPosition as PredictPositionType,
+} from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
@@ -61,7 +64,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     if (claimablePositions.length === 0) return null;
 
     const numberOfMarketsWon = claimablePositions.filter(
-      (position) => position.cashPnl > 0,
+      (position) => position.status === PredictPositionStatus.WON,
     );
 
     const totalClaimableAmount = numberOfMarketsWon.reduce(

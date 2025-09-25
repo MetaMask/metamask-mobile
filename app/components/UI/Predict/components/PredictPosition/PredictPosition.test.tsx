@@ -1,7 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import PredictPosition from './PredictPosition';
-import type { PredictPosition as PredictPositionType } from '../../types';
+import {
+  PredictPositionStatus,
+  type PredictPosition as PredictPositionType,
+} from '../../types';
 
 const basePosition: PredictPositionType = {
   id: 'pos-1',
@@ -15,7 +18,7 @@ const basePosition: PredictPositionType = {
   outcomeIndex: 0,
   amount: 10,
   price: 0.67,
-  status: 'open',
+  status: PredictPositionStatus.OPEN,
   size: 10,
   cashPnl: 100,
   percentPnl: 5.25,
