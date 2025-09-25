@@ -3,6 +3,7 @@ import {
   MultichainWalletSnapClient,
   MultichainWalletSnapFactory,
   SolanaWalletSnapClient,
+  TronWalletSnapClient,
   WalletClientType,
 } from './MultichainWalletSnapClient';
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
@@ -243,6 +244,13 @@ describe('MultichainWalletSnapFactory', () => {
     expect(solanaClient).toBeInstanceOf(SolanaWalletSnapClient);
   });
 
+  it('creates a TronWalletSnapClient', () => {
+    const tronClient = MultichainWalletSnapFactory.createClient(
+      WalletClientType.Tron,
+    );
+    expect(tronClient).toBeInstanceOf(TronWalletSnapClient);
+  });
+
   it('throws if an invalid wallet type is provided', () => {
     expect(() =>
       MultichainWalletSnapFactory.createClient('invalid' as WalletClientType),
@@ -287,6 +295,24 @@ describe('Wallet Client Implementations', () => {
     it('should create a SolanaWalletSnapClient', () => {
       const solanaClient = new SolanaWalletSnapClient(mockSnapKeyringOptions);
       expect(solanaClient).toBeDefined();
+    });
+  });
+
+  describe('TronWalletSnapClient', () => {
+    it('should create a TronWalletSnapClient', () => {
+      const tronClient = new TronWalletSnapClient(mockSnapKeyringOptions);
+      expect(tronClient).toBeDefined();
+    });
+
+    it('should return Tron client type', () => {
+      const tronClient = new TronWalletSnapClient(mockSnapKeyringOptions);
+      expect(tronClient.getClientType()).toBe(WalletClientType.Tron);
+    });
+
+    it('should return the correct snap ID and name', () => {
+      const tronClient = new TronWalletSnapClient(mockSnapKeyringOptions);
+      expect(tronClient.getSnapId()).toBeDefined();
+      expect(tronClient.getSnapName()).toBeDefined();
     });
   });
 });
