@@ -137,9 +137,9 @@ export function usePredictClaimablePositions(
           count: validPositions.length,
           positions: validPositions.map((p) => ({
             size: p.size,
-            conditionId: p.conditionId,
+            conditionId: p.outcomeId,
             outcomeIndex: p.outcomeIndex,
-            price: p.curPrice,
+            price: p.price,
           })),
         });
       } catch (err) {

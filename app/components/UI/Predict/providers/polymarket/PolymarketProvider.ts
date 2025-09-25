@@ -108,12 +108,12 @@ export class PolymarketProvider implements PredictProvider {
     const [tickSizeResponse, price, marketData] = await Promise.all([
       getTickSize({ tokenId }),
       calculateMarketPrice(tokenId, side, size, OrderType.FOK),
-      getMarketFromPolymarketApi({ conditionId }),
+      getMarketFromPolymarketApi({ conditionIds: [conditionId] }),
     ]);
 
     const tickSize = tickSizeResponse.minimum_tick_size;
 
-    const negRisk = marketData.negRisk;
+    const negRisk = marketData[0].negRisk;
 
     const order = await buildMarketOrderCreationArgs({
       signer: address,

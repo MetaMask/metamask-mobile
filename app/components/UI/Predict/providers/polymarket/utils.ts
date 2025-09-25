@@ -628,29 +628,6 @@ export const parsePolymarketEvents = (
   return parsedMarkets;
 };
 
-export const parsePolymarketPositions = ({
-  positions,
-}: {
-  positions: PolymarketPosition[];
-}) => {
-  const parsedPositions = positions.map((position: PolymarketPosition) => ({
-    ...position,
-    id: position.asset,
-    providerId: 'polymarket',
-    // TODO: This is not correct, we need to use the correct market id from the event
-    marketId: position.conditionId,
-    outcomeId: position.conditionId,
-    outcomeTokenId: position.asset,
-    negRisk: position.negativeRisk,
-    amount: position.size,
-    price: position.curPrice,
-    status: (position.redeemable
-      ? 'redeemable'
-      : 'open') as PredictPosition['status'],
-  }));
-  return parsedPositions;
-};
-
 export const getMarketsFromPolymarketApi = async (
   params?: GetMarketsParams,
 ): Promise<PredictMarket[]> => {
@@ -715,20 +692,80 @@ export const getMarketsFromPolymarketApi = async (
 };
 
 export const getMarketFromPolymarketApi = async ({
-  conditionId,
+  conditionIds,
 }: {
-  conditionId: string;
+  conditionIds: string[];
 }) => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(
-    `${GAMMA_API_ENDPOINT}/markets?condition_ids=${conditionId}`,
-  );
+  const queryParams = conditionIds.map((id) => `condition_ids=${id}`).join('&');
+  const response = await fetch(`${GAMMA_API_ENDPOINT}/markets?${queryParams}`);
   if (!response.ok) {
     throw new Error('Failed to get market');
   }
   const responseData = await response.json();
-  const market = responseData[0];
-  return market as PolymarketApiMarket;
+  const market = responseData;
+  return market as PolymarketApiMarket[];
+};
+
+export const parsePolymarketPositions = async ({
+  positions,
+}: {
+  positions: PolymarketPosition[];
+}) => {
+  const parsedPositions: PredictPosition[] = positions.map(
+    (position: PolymarketPosition) => ({
+      id: position.asset,
+      providerId: 'polymarket',
+      marketId: '',
+      outcomeId: position.conditionId,
+      outcome: position.outcome,
+      outcomeTokenId: position.asset,
+      outcomeIndex: position.outcomeIndex,
+      negRisk: position.negativeRisk,
+      amount: position.size,
+      price: position.curPrice,
+      status: (position.redeemable
+        ? 'redeemable'
+        : 'open') as PredictPosition['status'],
+      realizedPnl: position.realizedPnl,
+      percentPnl: position.percentPnl,
+      currentValue: position.currentValue,
+      cashPnl: position.cashPnl,
+      initialValue: position.initialValue,
+      avgPrice: position.avgPrice,
+      endDate: position.endDate,
+      title: position.title,
+      icon: position.icon,
+      size: position.size,
+      claimable: position.redeemable,
+    }),
+  );
+
+  if (parsedPositions.length === 0) {
+    return [];
+  }
+
+  // TODO: Check with polymarket team if is there a way to return the position with the event id
+  const conditionIds = parsedPositions.map((position) => position.outcomeId);
+
+  const markets = await getMarketFromPolymarketApi({
+    conditionIds,
+  });
+
+  parsedPositions.forEach((position: PredictPosition) => {
+    const market = markets.find(
+      (marketFromApi: PolymarketApiMarket) =>
+        marketFromApi.conditionId === position.outcomeId,
+    );
+    const marketId = market?.events?.[0]?.id;
+    if (!marketId) {
+      DevLogger.log('Market ID not found for position', position.outcomeId);
+      return;
+    }
+    position.marketId = marketId;
+  });
+
+  return parsedPositions;
 };
 
 export const encodeRedeemPositions = ({

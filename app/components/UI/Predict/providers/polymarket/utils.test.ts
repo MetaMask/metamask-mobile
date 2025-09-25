@@ -1213,6 +1213,7 @@ describe('polymarket utils', () => {
         curPrice: 0.6,
         currentValue: 60,
         percentPnl: 5,
+        realizedPnl: 0,
         initialValue: 50,
         avgPrice: 0.5,
         redeemable: false,
@@ -1232,6 +1233,7 @@ describe('polymarket utils', () => {
         curPrice: 0.4,
         currentValue: 20,
         percentPnl: -10,
+        realizedPnl: 0,
         initialValue: 25,
         avgPrice: 0.5,
         redeemable: true,
@@ -1240,41 +1242,108 @@ describe('polymarket utils', () => {
       },
     ];
 
-    it('parse positions correctly', () => {
-      const result = parsePolymarketPositions({ positions: mockPositions });
+    const mockMarketResponse: Partial<PolymarketApiMarket>[] = [
+      {
+        conditionId: 'condition-1',
+        events: [
+          {
+            id: 'event-1',
+            slug: 'slug-1',
+            title: 'Mock Event',
+            description: 'Mock Description',
+            icon: 'mock-icon.png',
+            closed: false,
+            series: [],
+            markets: [],
+          },
+        ],
+      },
+    ];
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockMarketResponse),
+      });
+    });
+
+    it('parse positions correctly and enrich with market data', async () => {
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
 
       expect(result).toHaveLength(2);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/markets?condition_ids=condition-1&condition_ids=condition-1',
+      );
+
       expect(result[0]).toEqual({
-        ...mockPositions[0],
         id: 'position-1',
         providerId: 'polymarket',
-        marketId: 'condition-1',
+        marketId: 'event-1',
         outcomeId: 'condition-1',
+        outcome: 'Yes',
         outcomeTokenId: 'position-1',
+        outcomeIndex: 0,
         negRisk: false,
         amount: 100,
         price: 0.6,
         status: 'open',
+        realizedPnl: 0,
+        percentPnl: 5,
+        cashPnl: 10,
+        initialValue: 50,
+        avgPrice: 0.5,
+        endDate: '2024-12-31',
+        title: 'Position 1',
+        icon: 'https://example.com/icon1.png',
+        size: 100,
+        claimable: false,
       });
 
       expect(result[1]).toEqual({
-        ...mockPositions[1],
         id: 'position-2',
         providerId: 'polymarket',
-        marketId: 'condition-1',
+        marketId: 'event-1',
         outcomeId: 'condition-1',
+        outcome: 'No',
         outcomeTokenId: 'position-2',
+        outcomeIndex: 1,
         negRisk: false,
         amount: 50,
         price: 0.4,
         status: 'redeemable',
+        realizedPnl: 0,
+        percentPnl: -10,
+        cashPnl: -5,
+        initialValue: 25,
+        avgPrice: 0.5,
+        endDate: '2024-12-31',
+        title: 'Position 2',
+        icon: 'https://example.com/icon2.png',
+        size: 50,
+        claimable: true,
       });
     });
 
-    it('handle empty positions array', () => {
-      const result = parsePolymarketPositions({ positions: [] });
-
+    it('handle empty positions array', async () => {
+      const result = await parsePolymarketPositions({ positions: [] });
       expect(result).toEqual([]);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('handle positions without a matching market', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]), // No markets found
+      });
+
+      const result = await parsePolymarketPositions({
+        positions: mockPositions,
+      });
+
+      expect(result[0].marketId).toBe('');
+      expect(result[1].marketId).toBe('');
     });
   });
 
@@ -1423,10 +1492,10 @@ describe('polymarket utils', () => {
       });
 
       const result = await getMarketFromPolymarketApi({
-        conditionId: 'market-1',
+        conditionIds: ['market-1'],
       });
 
-      expect(result).toEqual(mockMarket);
+      expect(result).toEqual(mockResponse);
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/markets?condition_ids=market-1',
       );
@@ -1437,7 +1506,7 @@ describe('polymarket utils', () => {
       mockFetch.mockRejectedValue(error);
 
       await expect(
-        getMarketFromPolymarketApi({ conditionId: 'market-1' }),
+        getMarketFromPolymarketApi({ conditionIds: ['market-1'] }),
       ).rejects.toThrow('Network error');
     });
   });

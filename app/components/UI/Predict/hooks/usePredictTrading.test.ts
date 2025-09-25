@@ -157,6 +157,7 @@ describe('usePredictTrading', () => {
       avgPrice: 1.5,
       currentValue: 90,
       endDate: '2025-12-31',
+      claimable: false,
     };
 
     it('calls PredictController.sell and returns result', async () => {
@@ -223,6 +224,7 @@ describe('usePredictTrading', () => {
         avgPrice: 1.0,
         currentValue: 150,
         endDate: '2025-01-01',
+        claimable: false,
       },
       {
         id: 'position-456',
@@ -248,6 +250,7 @@ describe('usePredictTrading', () => {
         avgPrice: 1.2,
         currentValue: 112.5,
         endDate: '2025-02-01',
+        claimable: false,
       },
     ];
 

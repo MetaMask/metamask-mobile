@@ -166,7 +166,7 @@ describe('PolymarketProvider', () => {
         json: jest.fn().mockResolvedValue([]),
       });
 
-    mockParsePolymarketPositions.mockReturnValue([]);
+    mockParsePolymarketPositions.mockResolvedValue([]);
 
     const result = await provider.getPositions({
       address: '0x0000000000000000000000000000000000000000',
@@ -239,7 +239,7 @@ describe('PolymarketProvider', () => {
         json: jest.fn().mockResolvedValue(mockApiResponse),
       });
 
-    mockParsePolymarketPositions.mockReturnValue(mockParsedPositions);
+    mockParsePolymarketPositions.mockResolvedValue(mockParsedPositions);
 
     const result = await provider.getPositions({
       address: '0x0000000000000000000000000000000000000000',
@@ -392,6 +392,7 @@ describe('PolymarketProvider', () => {
       avgPrice: 0.5,
       currentValue: 0.5,
       endDate: '2025-01-01T00:00:00Z',
+      claimable: false,
     };
 
     // Setup default mocks
@@ -410,14 +411,16 @@ describe('PolymarketProvider', () => {
     mockPriceValid.mockReturnValue(true);
 
     // Mock market data with valid JSON strings for fields that get parsed
-    mockGetMarketFromPolymarketApi.mockResolvedValue({
-      id: 'outcome-456',
-      conditionId: 'outcome-456',
-      negRisk: false,
-      clobTokenIds: '["token1", "token2"]', // Valid JSON string
-      outcomes: '["YES", "NO"]', // Valid JSON string
-      outcomePrices: '["0.5", "0.5"]', // Valid JSON string
-    });
+    mockGetMarketFromPolymarketApi.mockResolvedValue([
+      {
+        id: 'outcome-456',
+        conditionId: 'outcome-456',
+        negRisk: false,
+        clobTokenIds: '["token1", "token2"]', // Valid JSON string
+        outcomes: '["YES", "NO"]', // Valid JSON string
+        outcomePrices: '["0.5", "0.5"]', // Valid JSON string
+      },
+    ]);
 
     mockBuildMarketOrderCreationArgs.mockReturnValue({
       makerAmount: '1000000',
@@ -750,6 +753,7 @@ describe('PolymarketProvider', () => {
         avgPrice: 0.5,
         currentValue: 0.5,
         endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
       };
 
       const result = provider.prepareClaim({ position });
@@ -798,6 +802,7 @@ describe('PolymarketProvider', () => {
         avgPrice: 0.3,
         currentValue: 0.3,
         endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
       };
 
       const result = provider.prepareClaim({ position });
@@ -846,6 +851,7 @@ describe('PolymarketProvider', () => {
         avgPrice: 0.4,
         currentValue: 0.4,
         endDate: '2025-01-01T00:00:00Z',
+        claimable: false,
       };
 
       provider.prepareClaim({ position });

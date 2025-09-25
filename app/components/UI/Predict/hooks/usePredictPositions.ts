@@ -84,7 +84,7 @@ export function usePredictPositions(
         const validPositions = positionsData ?? [];
         // Filter out positions that have been completed (claimed)
         const filteredPositions = validPositions.filter(
-          (position) => !position.redeemable,
+          (position) => !position.claimable,
         );
         setPositions(filteredPositions);
 
@@ -93,9 +93,9 @@ export function usePredictPositions(
           filteredCount: filteredPositions.length,
           positions: filteredPositions.map((p) => ({
             size: p.size,
-            conditionId: p.conditionId,
+            outcomeId: p.outcomeId,
             outcomeIndex: p.outcomeIndex,
-            price: p.curPrice,
+            price: p.price,
           })),
         });
       } catch (err) {

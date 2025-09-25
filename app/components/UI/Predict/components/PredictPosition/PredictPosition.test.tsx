@@ -9,7 +9,6 @@ const basePosition: PredictPositionType = {
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
-  conditionId: 'cond-1',
   icon: 'https://example.com/icon.png',
   title: 'Will ETF be approved?',
   outcome: 'Yes',
@@ -18,13 +17,12 @@ const basePosition: PredictPositionType = {
   price: 0.67,
   status: 'open',
   size: 10,
-  curPrice: 0.67,
   cashPnl: 100,
   percentPnl: 5.25,
   initialValue: 123.45,
-  avgPrice: 0.34,
   currentValue: 2345.67,
-  redeemable: false,
+  avgPrice: 0.34,
+  claimable: false,
   endDate: '2025-12-31T00:00:00Z',
 };
 

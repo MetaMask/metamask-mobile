@@ -178,6 +178,7 @@ export type PredictPosition = {
   outcomeId: string;
   outcome: string;
   outcomeTokenId: string;
+  currentValue: number;
   title: string;
   icon: string;
   amount: number;
@@ -186,14 +187,11 @@ export type PredictPosition = {
   size: number;
   outcomeIndex: number;
   realizedPnl?: number;
-  curPrice: number;
-  conditionId: string;
   percentPnl: number;
   cashPnl: number;
-  redeemable: boolean;
+  claimable: boolean;
   initialValue: number;
   avgPrice: number;
-  currentValue: number;
   endDate: string;
   negRisk?: boolean;
 };

@@ -163,7 +163,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
         ref={listRef}
         data={positions}
         renderItem={renderItem}
-        keyExtractor={(item) => `${item.conditionId}:${item.outcomeIndex}`}
+        keyExtractor={(item) => `${item.outcomeId}:${item.outcomeIndex}`}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}

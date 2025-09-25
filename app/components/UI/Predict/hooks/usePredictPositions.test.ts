@@ -252,7 +252,7 @@ describe('usePredictPositions', () => {
         percentPnl: 3,
         initialValue: 10.5,
         avgPrice: 1.05,
-        redeemable: true, // This should be filtered out
+        claimable: true, // This should be filtered out
       },
       {
         providerId: 'p2',
@@ -269,7 +269,7 @@ describe('usePredictPositions', () => {
         percentPnl: 5,
         initialValue: 11.5,
         avgPrice: 1.15,
-        redeemable: false, // This should remain
+        claimable: false, // This should remain
       },
     ]);
 
