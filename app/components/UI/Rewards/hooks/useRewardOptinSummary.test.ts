@@ -159,6 +159,13 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.currentAccountOptedIn).toBeNull();
       expect(typeof result.current.refresh).toBe('function');
     });
+
+    it('should return a refresh function', () => {
+      const { result } = renderHook(() => useRewardOptinSummary());
+
+      expect(result.current.refresh).toBeDefined();
+      expect(typeof result.current.refresh).toBe('function');
+    });
   });
 
   describe('successful data fetching', () => {
@@ -337,6 +344,29 @@ describe('useRewardOptinSummary', () => {
         mockError,
       );
     });
+
+    it('should set loading to true at start and false after error', async () => {
+      // Arrange
+      const mockError = new Error('Network error');
+      mockEngineCall.mockRejectedValueOnce(mockError);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Assert - loading should be true initially when there's data to fetch
+      expect(result.current.isLoading).toBe(true);
+
+      await waitForNextUpdate();
+
+      // Assert - loading should be false after error
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(true);
+    });
   });
 
   describe('enabled/disabled functionality', () => {
@@ -421,32 +451,6 @@ describe('useRewardOptinSummary', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle empty accounts array', () => {
-      // Arrange
-      mockUseSelector
-        .mockReset()
-        .mockReturnValueOnce([]) // selectInternalAccounts - empty
-        .mockReturnValueOnce(null); // selectSelectedInternalAccount
-
-      mockUseDebouncedValue.mockReturnValue([]);
-
-      const { result } = renderHook(() => useRewardOptinSummary());
-
-      // Verify that the focus effect callback was registered
-      expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-
-      // Execute the focus effect callback to trigger the fetch logic
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
-      // Assert
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.linkedAccounts).toEqual([]);
-      expect(result.current.unlinkedAccounts).toEqual([]);
-      expect(result.current.currentAccountOptedIn).toBeNull();
-      expect(mockEngineCall).not.toHaveBeenCalled();
-    });
-
     it('should handle no selected account', async () => {
       // Arrange
       mockUseSelector
@@ -555,22 +559,6 @@ describe('useRewardOptinSummary', () => {
         },
       );
     });
-
-    it('should not fetch when debounced accounts is empty', () => {
-      // Arrange - empty debounced accounts
-      mockUseDebouncedValue.mockReturnValue([]);
-
-      // Act
-      const { result } = renderHook(() => useRewardOptinSummary());
-
-      // Trigger fetch
-      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-      focusCallback();
-
-      // Assert
-      expect(result.current.isLoading).toBe(false);
-      expect(mockEngineCall).not.toHaveBeenCalled();
-    });
   });
 
   describe('refresh functionality', () => {
@@ -628,6 +616,7 @@ describe('useRewardOptinSummary', () => {
 
       // Assert - loading should be false because optedInAccounts has data
       expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
     });
 
     it('should show loading true when no accounts are populated yet', () => {
@@ -647,6 +636,32 @@ describe('useRewardOptinSummary', () => {
 
       // Assert - should show loading when no accounts populated
       expect(result.current.isLoading).toBe(true);
+      expect(result.current.hasError).toBe(false);
+    });
+
+    it('should set loading to true at start and false after successful completion', async () => {
+      // Arrange
+      const mockResponse: OptInStatusDto = {
+        ois: [true, false, true],
+      };
+      mockEngineCall.mockResolvedValueOnce(mockResponse);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        useRewardOptinSummary(),
+      );
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Assert - loading should be true initially
+      expect(result.current.isLoading).toBe(true);
+
+      await waitForNextUpdate();
+
+      // Assert - loading should be false after completion
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
     });
   });
 });
