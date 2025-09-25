@@ -23,7 +23,11 @@ export function useTokens({
   topTokensChainId,
   balanceChainIds,
   tokensToExclude,
-}: UseTokensProps): { tokens: BridgeToken[]; pending: boolean } {
+}: UseTokensProps): {
+  allTokens: BridgeToken[];
+  tokensToRender: BridgeToken[];
+  pending: boolean;
+} {
   const tokensWithBalance = useTokensWithBalance({
     chainIds: balanceChainIds,
   });
@@ -60,12 +64,14 @@ export function useTokens({
     });
 
   // Combine tokens with balance and filtered tokens and filter out excluded tokens
-  const tokens = tokensWithBalance
+  const allTokens = tokensWithBalance
     .concat(tokensWithoutBalance)
     .filter((token) => {
       const tokenKey = getTokenKey(token);
       return !excludedTokensSet.has(tokenKey);
     });
 
-  return { tokens, pending };
+  const tokensToRender = tokensWithBalance.concat(topTokens ?? []);
+
+  return { allTokens, tokensToRender, pending };
 }
