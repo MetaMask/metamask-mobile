@@ -1761,8 +1761,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFiポジションを読み込んでいます...",
-    "no_visible_positions": "お探しのものが見つかりませんか？",
-    "not_supported": "ご希望のプロトコルがまだサポートされていない可能性があります。",
     "error_cannot_load_page": "このページを読み込めませんでした。",
     "error_visit_again": "後でまたアクセスしてみてください。",
     "single_token": "{{symbol}}のみ",
@@ -2445,10 +2443,9 @@
     "disconnect_confirm": "接続解除",
     "cancel": "キャンセル"
   },
-  "sdk_return_to_app_modal": {
-    "title": "アプリに戻る",
-    "postNetworkSwitchTitle": "ネットワークの切り替え完了",
-    "description": "サービスの使用を続けるには、アプリに戻ってください。"
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "アプリに戻る",
+    "networkSwitchMethodLabel": "ネットワークの切り替え完了"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
