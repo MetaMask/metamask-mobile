@@ -58,7 +58,7 @@ interface OnboardingSuccessProps {
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
-  successFlow,
+  successFlow: _successFlow,
 }) => {
   const navigation = useNavigation();
 
@@ -73,12 +73,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   // Rive animation refs and state
   const riveRef = useRef<RiveRef>(null);
-  const [animationStep, setAnimationStep] = useState(1);
-  const [dotsCount, setDotsCount] = useState(1);
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const hasAnimationStarted = useRef(false);
-  const animationId = useRef<NodeJS.Timeout | null>(null);
-  const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
   const finalTimeoutId = useRef<NodeJS.Timeout | null>(null);
+  const endAnimationTimeoutId = useRef<NodeJS.Timeout | null>(null);
   const socialLoginTimeoutId = useRef<NodeJS.Timeout | null>(null);
 
   useLayoutEffect(() => {
@@ -95,45 +93,30 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const startRiveAnimation = useCallback(() => {
     try {
-      if (
-        hasAnimationStarted.current ||
-        !riveRef.current ||
-        animationId.current
-      ) {
+      if (hasAnimationStarted.current || !riveRef.current) {
         return;
       }
 
       hasAnimationStarted.current = true;
 
-      // Set dark mode state
-      // Commenting out as per user request
-      // const isDarkMode = themeAppearance === 'dark';
-      // riveRef.current.setInputState('OnboardingLoader', 'Dark', isDarkMode);
-
       riveRef.current.fireState('OnboardingLoader', 'Start');
 
-      dotsIntervalId.current = setInterval(() => {
-        setDotsCount((prev) => (prev >= 3 ? 1 : prev + 1));
-      }, 300);
-
-      animationId.current = setTimeout(() => {
-        if (dotsIntervalId.current) {
-          clearInterval(dotsIntervalId.current);
-          dotsIntervalId.current = null;
-        }
-        setAnimationStep(2);
-      }, 1200);
-
       finalTimeoutId.current = setTimeout(() => {
-        setAnimationStep(3);
-        finalTimeoutId.current = null;
-
-        const currentIsSocialLogin =
-          authConnection === AuthConnection.Google ||
-          authConnection === AuthConnection.Apple;
-        if (currentIsSocialLogin) {
-          socialLoginTimeoutId.current = setTimeout(() => onDone(), 1000);
+        if (riveRef.current) {
+          riveRef.current.fireState('OnboardingLoader', 'End');
         }
+
+        endAnimationTimeoutId.current = setTimeout(() => {
+          setIsAnimationComplete(true);
+
+          // Auto-navigate for social login only
+          if (isSocialLogin) {
+            socialLoginTimeoutId.current = setTimeout(() => onDone(), 1000);
+          }
+          endAnimationTimeoutId.current = null;
+        }, 2000); // Time for end animation to complete
+
+        finalTimeoutId.current = null;
       }, 3000);
     } catch (error) {
       Logger.error(
@@ -142,7 +125,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isSocialLogin, onDone]);
 
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
@@ -164,18 +147,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     startRiveAnimation();
 
     return () => {
-      // Clear all timers
-      if (animationId.current) {
-        clearTimeout(animationId.current);
-        animationId.current = null;
-      }
-      if (dotsIntervalId.current) {
-        clearInterval(dotsIntervalId.current);
-        dotsIntervalId.current = null;
-      }
+      // Clear timers
       if (finalTimeoutId.current) {
         clearTimeout(finalTimeoutId.current);
         finalTimeoutId.current = null;
+      }
+      if (endAnimationTimeoutId.current) {
+        clearTimeout(endAnimationTimeoutId.current);
+        endAnimationTimeoutId.current = null;
       }
       if (socialLoginTimeoutId.current) {
         clearTimeout(socialLoginTimeoutId.current);
@@ -183,11 +162,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       }
     };
   }, [startRiveAnimation]);
-
-  const renderAnimatedDots = () => {
-    const dots = '.'.repeat(dotsCount);
-    return dots;
-  };
 
   const RiveAnimationComponent = useMemo(
     () => (
@@ -202,117 +176,27 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     [styles.riveAnimation],
   );
 
-  const renderContent = () => {
-    // For social login flows and new onboarding, show dynamic text
-    if (
-      isSocialLogin ||
-      !successFlow ||
-      successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE
-    ) {
-      return (
-        <View style={styles.animationContainer}>
-          {RiveAnimationComponent}
+  const renderContent = () => (
+      <View style={styles.animationContainer}>
+        {RiveAnimationComponent}
+        {/* Show final text only after animation completes */}
+        {isAnimationComplete && (
           <View style={styles.textOverlay}>
             <Text
               variant={TextVariant.DisplayMD}
               style={styles.textTitle}
               color={TextColor.Default}
             >
-              {animationStep === 3
-                ? strings('onboarding_success.wallet_ready')
-                : animationStep === 1
-                ? `Setting up your wallet${renderAnimatedDots()}`
-                : 'Setting up your wallet...'}
+              {strings('onboarding_success.wallet_ready')}
             </Text>
           </View>
-        </View>
-      );
-    }
-
-    // For backup flows, show Rive animation with static content based on flow
-    switch (successFlow) {
-      case ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP:
-        return (
-          <View style={styles.animationContainer}>
-            {RiveAnimationComponent}
-            <View style={styles.textOverlay}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.textTitle}
-                color={TextColor.Default}
-              >
-                {strings('onboarding_success.title')}
-              </Text>
-              <Text style={styles.subtitle}>
-                {strings('onboarding_success.subtitle')}
-              </Text>
-            </View>
-          </View>
-        );
-
-      case ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP:
-        return (
-          <View style={styles.animationContainer}>
-            {RiveAnimationComponent}
-            <View style={styles.textOverlay}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.textTitle}
-                color={TextColor.Default}
-              >
-                {strings('onboarding_success.title_no_backup')}
-              </Text>
-              <Text style={styles.subtitle}>
-                {strings('onboarding_success.subtitle_no_backup')}
-              </Text>
-            </View>
-          </View>
-        );
-
-      case ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP:
-      case ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP:
-        return (
-          <View style={styles.animationContainer}>
-            {RiveAnimationComponent}
-            <View style={styles.textOverlay}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.textTitle}
-                color={TextColor.Default}
-              >
-                {strings('onboarding_success.backup_complete')}
-              </Text>
-              <Text style={styles.subtitle}>
-                {strings('onboarding_success.backup_subtitle')}
-              </Text>
-            </View>
-          </View>
-        );
-
-      default:
-        return (
-          <View style={styles.animationContainer}>
-            {RiveAnimationComponent}
-            <View style={styles.textOverlay}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.textTitle}
-                color={TextColor.Default}
-              >
-                {animationStep === 3
-                  ? strings('onboarding_success.wallet_ready')
-                  : animationStep === 1
-                  ? `Setting up your wallet${renderAnimatedDots()}`
-                  : 'Setting up your wallet...'}
-              </Text>
-            </View>
-          </View>
-        );
-    }
-  };
+        )}
+      </View>
+    );
 
   const renderFooter = () => {
-    if (isSocialLogin) return null;
+    // Show footer only after animation completes AND not social login
+    if (!isAnimationComplete || isSocialLogin) return null;
 
     return (
       <View style={styles.footerWrapper}>
@@ -337,7 +221,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       <View style={styles.contentContainer}>
         <View style={styles.contentWrapper}>
           {renderContent()}
-          {!isSocialLogin && (
+          {/* Show Done button only after animation completes AND not social login */}
+          {isAnimationComplete && !isSocialLogin && (
             <View style={styles.buttonWrapper}>
               <Button
                 testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}

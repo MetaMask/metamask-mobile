@@ -9,7 +9,7 @@ import OnboardingSuccess, {
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
@@ -181,22 +181,35 @@ describe('OnboardingSuccessComponent', () => {
   });
 
   it('imports additional accounts when onDone is called', async () => {
+    jest.useFakeTimers();
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
+
+    // Advance timers to complete animation and show buttons
+    await act(async () => {
+      jest.advanceTimersByTime(3000); // finalTimeoutId
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(2000); // endAnimationTimeoutId
+    });
+
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
 
     await waitFor(() => {
       expect(mockImportAdditionalAccounts).toHaveBeenCalled();
     });
+
+    jest.useRealTimers();
   });
 
-  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', () => {
+  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', async () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+    jest.useFakeTimers();
 
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
@@ -204,20 +217,41 @@ describe('OnboardingSuccessComponent', () => {
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
+
+    // Advance timers to complete animation and show buttons
+    await act(async () => {
+      jest.advanceTimersByTime(3000); // finalTimeoutId
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(2000); // endAnimationTimeoutId
+    });
+
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
 
     expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).toHaveBeenCalled();
+
+    jest.useRealTimers();
   });
 
-  it('navigate to the default settings screen when the manage default settings button is pressed', () => {
+  it('navigate to the default settings screen when the manage default settings button is pressed', async () => {
+    jest.useFakeTimers();
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
+
+    // Advance timers to complete animation and show buttons
+    await act(async () => {
+      jest.advanceTimersByTime(3000); // finalTimeoutId
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(2000); // endAnimationTimeoutId
+    });
+
     const button = getByTestId(
       OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
     );
@@ -225,6 +259,8 @@ describe('OnboardingSuccessComponent', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.SUCCESS_FLOW, {
       screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
     });
+
+    jest.useRealTimers();
   });
 });
 
@@ -298,7 +334,17 @@ describe('OnboardingSuccess', () => {
     });
 
     it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
+      jest.useFakeTimers();
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+
+      // Advance timers to complete animation and show buttons
+      await act(async () => {
+        jest.advanceTimersByTime(3000); // finalTimeoutId
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(2000); // endAnimationTimeoutId
+      });
+
       const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
       fireEvent.press(button);
       expect(mockImportAdditionalAccounts).toHaveBeenCalled();
@@ -306,6 +352,8 @@ describe('OnboardingSuccess', () => {
       expect(mockNavigationDispatch).toHaveBeenCalledWith(
         ResetNavigationToHome,
       );
+
+      jest.useRealTimers();
     });
   });
 
@@ -368,7 +416,9 @@ describe('OnboardingSuccess', () => {
         state: initialState,
       });
 
-      jest.advanceTimersByTime(5000);
+      // Advance timers to complete animation and show wallet ready text
+      jest.advanceTimersByTime(3000); // finalTimeoutId
+      jest.advanceTimersByTime(2000); // endAnimationTimeoutId
 
       await waitFor(
         () => {
@@ -392,72 +442,81 @@ describe('OnboardingSuccess', () => {
     jest.useRealTimers();
   });
 
-  describe('Rive Animation Logic and Error Handling', () => {
-    it('should cover social login timeout logic in startRiveAnimation', () => {
+  describe('startRiveAnimation Method Coverage', () => {
+    it('should start animation with Start state and prevent multiple starts', () => {
       jest.useFakeTimers();
-      const mockOnDone = jest.fn();
+      const mockFireState = jest.fn();
 
-      // Mock Google auth connection
-      (useSelector as jest.Mock).mockImplementation((selector) => {
-        if (selector === selectSeedlessOnboardingAuthConnection) {
-          return AuthConnection.Google;
-        }
-        return undefined;
-      });
-
-      const TestSocialLoginTimeout = () => {
-        const [animationStep, setAnimationStep] = React.useState(1);
+      const TestAnimationStart = () => {
         const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-        const authConnection: AuthConnection | null = AuthConnection.Google;
+        const riveRef = React.useRef({ fireState: mockFireState });
 
         const startRiveAnimation = React.useCallback(() => {
           try {
-            if (
-              hasAnimationStarted.current ||
-              !riveRef.current ||
-              animationId.current
-            ) {
+            if (hasAnimationStarted.current || !riveRef.current) {
               return;
             }
+            hasAnimationStarted.current = true;
+            riveRef.current.fireState('OnboardingLoader', 'Start');
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'Error triggering Rive onboarding animation',
+            );
+          }
+        }, []);
+
+        React.useEffect(() => {
+          startRiveAnimation();
+          startRiveAnimation(); // Second call should be blocked
+        }, [startRiveAnimation]);
+
+        return <View testID="animation-start-test" />;
+      };
+
+      renderWithProvider(<TestAnimationStart />, { state: {} });
+
+      expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Start');
+      expect(mockFireState).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+
+    it('should trigger End animation after 3000ms and social login after 2000ms more', () => {
+      jest.useFakeTimers();
+      const mockFireState = jest.fn();
+      const mockOnDone = jest.fn();
+
+      const TestCompleteFlow = () => {
+        const hasAnimationStarted = React.useRef(false);
+        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const endAnimationTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const riveRef = React.useRef({ fireState: mockFireState });
+        const isSocialLogin = true;
+
+        const startRiveAnimation = React.useCallback(() => {
+          try {
+            if (hasAnimationStarted.current || !riveRef.current) return;
 
             hasAnimationStarted.current = true;
             riveRef.current.fireState('OnboardingLoader', 'Start');
 
-            dotsIntervalId.current = setInterval(() => {
-              // Dots animation logic
-            }, 300);
-
-            animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
-              setAnimationStep(2);
-            }, 1200);
-
             finalTimeoutId.current = setTimeout(() => {
-              setAnimationStep(3);
-              finalTimeoutId.current = null;
-
-              const isSocialLoginConnection = (
-                conn: AuthConnection | null,
-              ): conn is AuthConnection => (
-                  conn === AuthConnection.Google ||
-                  conn === AuthConnection.Apple
-                );
-              const currentIsSocialLogin =
-                isSocialLoginConnection(authConnection);
-              if (currentIsSocialLogin) {
-                socialLoginTimeoutId.current = setTimeout(
-                  () => mockOnDone(),
-                  1000,
-                );
+              if (riveRef.current) {
+                riveRef.current.fireState('OnboardingLoader', 'End');
               }
+
+              endAnimationTimeoutId.current = setTimeout(() => {
+                if (isSocialLogin) {
+                  socialLoginTimeoutId.current = setTimeout(
+                    () => mockOnDone(),
+                    1000,
+                  );
+                }
+                endAnimationTimeoutId.current = null;
+              }, 2000);
+
+              finalTimeoutId.current = null;
             }, 3000);
           } catch (error) {
             Logger.error(
@@ -465,170 +524,64 @@ describe('OnboardingSuccess', () => {
               'Error triggering Rive onboarding animation',
             );
           }
-        }, [authConnection]);
+        }, [isSocialLogin]);
 
         React.useEffect(() => {
           startRiveAnimation();
         }, [startRiveAnimation]);
 
-        return (
-          <View testID="social-login-timeout-test">
-            <Text testID="animation-step">{animationStep}</Text>
-          </View>
-        );
+        return <View testID="complete-flow-test" />;
       };
 
-      renderWithProvider(<TestSocialLoginTimeout />, { state: {} });
+      renderWithProvider(<TestCompleteFlow />, { state: {} });
 
-      // Fast forward through all timeouts
-      jest.advanceTimersByTime(5000);
+      expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Start');
 
+      jest.advanceTimersByTime(3000);
+      expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'End');
+
+      jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(1000);
       expect(mockOnDone).toHaveBeenCalled();
+
       jest.useRealTimers();
     });
 
-    it('should cover Apple auth connection in social login logic', () => {
-      jest.useFakeTimers();
-      const mockOnDone = jest.fn();
-
-      const TestAppleAuthConnection = () => {
-        const [animationStep, setAnimationStep] = React.useState(1);
-        const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-        const authConnection: AuthConnection | null = AuthConnection.Apple;
-
-        const startRiveAnimation = React.useCallback(() => {
-          try {
-            if (
-              hasAnimationStarted.current ||
-              !riveRef.current ||
-              animationId.current
-            ) {
-              return;
-            }
-
-            hasAnimationStarted.current = true;
-            riveRef.current.fireState('OnboardingLoader', 'Start');
-
-            dotsIntervalId.current = setInterval(() => {
-              // Dots animation logic
-            }, 300);
-
-            animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
-              setAnimationStep(2);
-            }, 1200);
-
-            finalTimeoutId.current = setTimeout(() => {
-              setAnimationStep(3);
-              finalTimeoutId.current = null;
-
-              const isSocialLoginConnection = (
-                conn: AuthConnection | null,
-              ): conn is AuthConnection => (
-                  conn === AuthConnection.Google ||
-                  conn === AuthConnection.Apple
-                );
-              const currentIsSocialLogin =
-                isSocialLoginConnection(authConnection);
-              if (currentIsSocialLogin) {
-                socialLoginTimeoutId.current = setTimeout(
-                  () => mockOnDone(),
-                  1000,
-                );
-              }
-            }, 3000);
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              'Error triggering Rive onboarding animation',
-            );
-          }
-        }, [authConnection]);
-
-        React.useEffect(() => {
-          startRiveAnimation();
-        }, [startRiveAnimation]);
-
-        return (
-          <View testID="apple-auth-test">
-            <Text testID="animation-step">{animationStep}</Text>
-          </View>
-        );
-      };
-
-      renderWithProvider(<TestAppleAuthConnection />, { state: {} });
-
-      jest.advanceTimersByTime(5000);
-
-      expect(mockOnDone).toHaveBeenCalled();
-      jest.useRealTimers();
-    });
-
-    it('should cover non-social login flow without auto-navigation', () => {
+    it('should NOT auto-navigate for non-social login users', () => {
       jest.useFakeTimers();
       const mockOnDone = jest.fn();
 
       const TestNonSocialLogin = () => {
-        const [animationStep, setAnimationStep] = React.useState(1);
         const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
         const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const endAnimationTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
         const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
         const riveRef = React.useRef({ fireState: jest.fn() });
-        const authConnection: AuthConnection | null = null; // No auth connection
+        const isSocialLogin = false;
 
         const startRiveAnimation = React.useCallback(() => {
           try {
-            if (
-              hasAnimationStarted.current ||
-              !riveRef.current ||
-              animationId.current
-            ) {
-              return;
-            }
+            if (hasAnimationStarted.current || !riveRef.current) return;
 
             hasAnimationStarted.current = true;
             riveRef.current.fireState('OnboardingLoader', 'Start');
 
-            dotsIntervalId.current = setInterval(() => {
-              // Dots animation logic
-            }, 300);
-
-            animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
-              setAnimationStep(2);
-            }, 1200);
-
             finalTimeoutId.current = setTimeout(() => {
-              setAnimationStep(3);
-              finalTimeoutId.current = null;
-
-              const isSocialLoginConnection = (
-                conn: AuthConnection | null,
-              ): conn is AuthConnection => (
-                  conn === AuthConnection.Google ||
-                  conn === AuthConnection.Apple
-                );
-              const currentIsSocialLogin =
-                isSocialLoginConnection(authConnection);
-              if (currentIsSocialLogin) {
-                socialLoginTimeoutId.current = setTimeout(
-                  () => mockOnDone(),
-                  1000,
-                );
+              if (riveRef.current) {
+                riveRef.current.fireState('OnboardingLoader', 'End');
               }
+
+              endAnimationTimeoutId.current = setTimeout(() => {
+                if (isSocialLogin) {
+                  socialLoginTimeoutId.current = setTimeout(
+                    () => mockOnDone(),
+                    1000,
+                  );
+                }
+                endAnimationTimeoutId.current = null;
+              }, 2000);
+
+              finalTimeoutId.current = null;
             }, 3000);
           } catch (error) {
             Logger.error(
@@ -636,270 +589,32 @@ describe('OnboardingSuccess', () => {
               'Error triggering Rive onboarding animation',
             );
           }
-        }, [authConnection]);
+        }, [isSocialLogin]);
 
         React.useEffect(() => {
           startRiveAnimation();
         }, [startRiveAnimation]);
 
-        return (
-          <View testID="non-social-login-test">
-            <Text testID="animation-step">{animationStep}</Text>
-          </View>
-        );
+        return <View testID="non-social-test" />;
       };
 
       renderWithProvider(<TestNonSocialLogin />, { state: {} });
 
-      jest.advanceTimersByTime(5000);
-
-      // Should NOT call mockOnDone since it's not a social login
+      jest.advanceTimersByTime(3000);
+      jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(1000);
       expect(mockOnDone).not.toHaveBeenCalled();
-      jest.useRealTimers();
-    });
-
-    it('should cover setInterval logic for dots animation', () => {
-      jest.useFakeTimers();
-      let dotsCallCount = 0;
-
-      const TestDotsAnimation = () => {
-        const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-        const [dotsCount, setDotsCount] = React.useState(1);
-
-        const startRiveAnimation = React.useCallback(() => {
-          try {
-            if (
-              hasAnimationStarted.current ||
-              !riveRef.current ||
-              animationId.current
-            ) {
-              return;
-            }
-
-            hasAnimationStarted.current = true;
-            riveRef.current.fireState('OnboardingLoader', 'Start');
-
-            dotsIntervalId.current = setInterval(() => {
-              dotsCallCount++;
-              setDotsCount((prev) => (prev >= 3 ? 1 : prev + 1));
-            }, 300);
-
-            animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
-            }, 1200);
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              'Error triggering Rive onboarding animation',
-            );
-          }
-        }, []);
-
-        React.useEffect(() => {
-          startRiveAnimation();
-        }, [startRiveAnimation]);
-
-        return (
-          <View testID="dots-animation-test">
-            <Text testID="dots-count">{dotsCount}</Text>
-          </View>
-        );
-      };
-
-      renderWithProvider(<TestDotsAnimation />, { state: {} });
-
-      // Fast forward to trigger setInterval calls
-      jest.advanceTimersByTime(900); // 3 intervals at 300ms each
-
-      expect(dotsCallCount).toBeGreaterThan(0);
-      jest.useRealTimers();
-    });
-
-    it('should cover all timeout clearing logic in startRiveAnimation', () => {
-      jest.useFakeTimers();
-
-      const TestTimeoutClearing = () => {
-        const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-        const [animationStep, setAnimationStep] = React.useState(1);
-
-        const startRiveAnimation = React.useCallback(() => {
-          try {
-            if (
-              hasAnimationStarted.current ||
-              !riveRef.current ||
-              animationId.current
-            ) {
-              return;
-            }
-
-            hasAnimationStarted.current = true;
-            riveRef.current.fireState('OnboardingLoader', 'Start');
-
-            dotsIntervalId.current = setInterval(() => {
-              setAnimationStep((prev) => prev + 1);
-            }, 300);
-
-            animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
-              setAnimationStep(2);
-            }, 1200);
-
-            finalTimeoutId.current = setTimeout(() => {
-              setAnimationStep(3);
-              finalTimeoutId.current = null;
-
-              // Test social login timeout
-              socialLoginTimeoutId.current = setTimeout(() => {
-                // Social login logic
-              }, 1000);
-            }, 3000);
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              'Error triggering Rive onboarding animation',
-            );
-          }
-        }, []);
-
-        React.useEffect(() => {
-          startRiveAnimation();
-        }, [startRiveAnimation]);
-
-        return (
-          <View testID="timeout-clearing-test">
-            <Text testID="animation-step">{animationStep}</Text>
-          </View>
-        );
-      };
-
-      renderWithProvider(<TestTimeoutClearing />, { state: {} });
-
-      // Advance timers to trigger all timeout logic
-      jest.advanceTimersByTime(5000);
 
       jest.useRealTimers();
     });
 
-    it('should cover useEffect cleanup function for timer clearing', () => {
-      jest.useFakeTimers();
-
-      const TestCleanupFunction = () => {
-        const [animationStep, setAnimationStep] = React.useState(1);
-        const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-
-        const startRiveAnimation = React.useCallback(() => {
-          try {
-            if (
-              hasAnimationStarted.current ||
-              !riveRef.current ||
-              animationId.current
-            ) {
-              return;
-            }
-
-            hasAnimationStarted.current = true;
-            riveRef.current.fireState('OnboardingLoader', 'Start');
-
-            dotsIntervalId.current = setInterval(() => {
-              setAnimationStep((prev) => prev + 1);
-            }, 300);
-
-            animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
-              setAnimationStep(2);
-            }, 1200);
-
-            finalTimeoutId.current = setTimeout(() => {
-              setAnimationStep(3);
-              finalTimeoutId.current = null;
-            }, 3000);
-
-            socialLoginTimeoutId.current = setTimeout(() => {
-              // Social login timeout logic
-            }, 4000);
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              'Error triggering Rive onboarding animation',
-            );
-          }
-        }, []);
-
-        React.useEffect(() => {
-          startRiveAnimation();
-
-          // This return function simulates the cleanup in the actual component
-          return () => {
-            // Clear all timers (Lines 168-183 in actual component)
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-            if (dotsIntervalId.current) {
-              clearInterval(dotsIntervalId.current);
-              dotsIntervalId.current = null;
-            }
-            if (finalTimeoutId.current) {
-              clearTimeout(finalTimeoutId.current);
-              finalTimeoutId.current = null;
-            }
-            if (socialLoginTimeoutId.current) {
-              clearTimeout(socialLoginTimeoutId.current);
-              socialLoginTimeoutId.current = null;
-            }
-          };
-        }, [startRiveAnimation]);
-
-        return (
-          <View testID="cleanup-test">
-            <Text testID="animation-step">{animationStep}</Text>
-          </View>
-        );
-      };
-
-      const { unmount } = renderWithProvider(<TestCleanupFunction />, {
-        state: {},
-      });
-
-      // Start some timers
-      jest.advanceTimersByTime(100);
-
-      // Unmount component to trigger cleanup
-      unmount();
-
-      jest.useRealTimers();
-    });
-
-    it('should cover error handling in startRiveAnimation catch block', () => {
+    it('should handle error cases and log appropriately', () => {
       const mockLogger = jest.spyOn(Logger, 'error').mockImplementation(() => {
         // Mock implementation
       });
 
       const TestErrorHandling = () => {
         const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
         const riveRef = React.useRef({
           fireState: jest.fn(() => {
             throw new Error('Rive animation error');
@@ -908,16 +623,9 @@ describe('OnboardingSuccess', () => {
 
         const startRiveAnimation = React.useCallback(() => {
           try {
-            if (
-              hasAnimationStarted.current ||
-              !riveRef.current ||
-              animationId.current
-            ) {
-              return;
-            }
-
+            if (hasAnimationStarted.current || !riveRef.current) return;
             hasAnimationStarted.current = true;
-            riveRef.current.fireState();
+            riveRef.current.fireState('OnboardingLoader', 'Start');
           } catch (error) {
             Logger.error(
               error as Error,
@@ -943,38 +651,20 @@ describe('OnboardingSuccess', () => {
       mockLogger.mockRestore();
     });
 
-    it('should cover setInterval error scenarios in startRiveAnimation', () => {
-      const mockLogger = jest.spyOn(Logger, 'error').mockImplementation(() => {
-        // Mock implementation
-      });
+    it('should call startRiveAnimation on useEffect mount', () => {
+      jest.useFakeTimers();
+      const startRiveAnimationSpy = jest.fn();
 
-      const TestSetIntervalError = () => {
+      const TestUseEffectMount = () => {
         const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({
-          fireState: jest.fn(() => {
-            throw new Error('Rive setInterval test error');
-          }),
-        });
+        const riveRef = React.useRef({ fireState: jest.fn() });
 
         const startRiveAnimation = React.useCallback(() => {
+          startRiveAnimationSpy();
           try {
-            if (
-              hasAnimationStarted.current ||
-              !riveRef.current ||
-              animationId.current
-            ) {
-              return;
-            }
-
+            if (hasAnimationStarted.current || !riveRef.current) return;
             hasAnimationStarted.current = true;
-            riveRef.current.fireState();
-
-            // Test interval for dots animation
-            dotsIntervalId.current = setInterval(() => {
-              // Dots animation logic
-            }, 300);
+            riveRef.current.fireState('OnboardingLoader', 'Start');
           } catch (error) {
             Logger.error(
               error as Error,
@@ -987,17 +677,137 @@ describe('OnboardingSuccess', () => {
           startRiveAnimation();
         }, [startRiveAnimation]);
 
-        return <View testID="interval-error-test" />;
+        return <View testID="useeffect-mount-test" />;
       };
 
-      renderWithProvider(<TestSetIntervalError />, { state: {} });
+      renderWithProvider(<TestUseEffectMount />, { state: {} });
 
-      expect(mockLogger).toHaveBeenCalledWith(
-        expect.any(Error),
-        'Error triggering Rive onboarding animation',
+      expect(startRiveAnimationSpy).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+
+    it('should execute useEffect cleanup and clear all timers on unmount', () => {
+      jest.useFakeTimers();
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      const TestUseEffectCleanup = () => {
+        const hasAnimationStarted = React.useRef(false);
+        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const endAnimationTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const riveRef = React.useRef({ fireState: jest.fn() });
+
+        const startRiveAnimation = React.useCallback(() => {
+          try {
+            if (hasAnimationStarted.current || !riveRef.current) return;
+            hasAnimationStarted.current = true;
+            riveRef.current.fireState('OnboardingLoader', 'Start');
+
+            finalTimeoutId.current = setTimeout(() => {
+              if (riveRef.current) {
+                riveRef.current.fireState('OnboardingLoader', 'End');
+              }
+              endAnimationTimeoutId.current = setTimeout(() => {
+                // Timer test
+              }, 2000);
+              finalTimeoutId.current = null;
+            }, 3000);
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'Error triggering Rive onboarding animation',
+            );
+          }
+        }, []);
+
+        React.useEffect(() => {
+          startRiveAnimation();
+
+          return () => {
+            if (finalTimeoutId.current) {
+              clearTimeout(finalTimeoutId.current);
+              finalTimeoutId.current = null;
+            }
+            if (endAnimationTimeoutId.current) {
+              clearTimeout(endAnimationTimeoutId.current);
+              endAnimationTimeoutId.current = null;
+            }
+            if (socialLoginTimeoutId.current) {
+              clearTimeout(socialLoginTimeoutId.current);
+              socialLoginTimeoutId.current = null;
+            }
+          };
+        }, [startRiveAnimation]);
+
+        return <View testID="useeffect-cleanup-test" />;
+      };
+
+      const { unmount } = renderWithProvider(<TestUseEffectCleanup />, {
+        state: {},
+      });
+
+      jest.advanceTimersByTime(1000);
+
+      unmount();
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      clearTimeoutSpy.mockRestore();
+      jest.useRealTimers();
+    });
+
+    it('should re-run useEffect when startRiveAnimation dependency changes', () => {
+      jest.useFakeTimers();
+      const startRiveAnimationSpy = jest.fn();
+
+      const TestUseEffectDependency = ({
+        isSocialLogin,
+      }: {
+        isSocialLogin: boolean;
+      }) => {
+        const hasAnimationStarted = React.useRef(false);
+        const riveRef = React.useRef({ fireState: jest.fn() });
+
+        const startRiveAnimation = React.useCallback(() => {
+          startRiveAnimationSpy();
+          try {
+            if (hasAnimationStarted.current || !riveRef.current) return;
+            hasAnimationStarted.current = true;
+            riveRef.current.fireState('OnboardingLoader', 'Start');
+
+            // Use isSocialLogin so dependency is necessary
+            if (isSocialLogin) {
+              // Different behavior for social login testing
+            }
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'Error triggering Rive onboarding animation',
+            );
+          }
+        }, [isSocialLogin]);
+
+        React.useEffect(() => {
+          startRiveAnimation();
+
+          return () => {
+            // Cleanup logic
+          };
+        }, [startRiveAnimation]);
+
+        return <View testID="useeffect-dependency-test" />;
+      };
+
+      const { rerender } = renderWithProvider(
+        <TestUseEffectDependency isSocialLogin={false} />,
+        { state: {} },
       );
 
-      mockLogger.mockRestore();
+      expect(startRiveAnimationSpy).toHaveBeenCalledTimes(1);
+
+      rerender(<TestUseEffectDependency isSocialLogin />);
+
+      expect(startRiveAnimationSpy).toHaveBeenCalledTimes(2);
+      jest.useRealTimers();
     });
   });
 
@@ -1046,306 +856,27 @@ describe('OnboardingSuccess', () => {
       });
 
       const TestNullAuthConnection = () => {
-        const authConnection: AuthConnection | null = null;
+        const authConnection = null;
+        const isSocialLoginConnection = (
+          conn: AuthConnection | null,
+        ): conn is AuthConnection => (
+            conn === AuthConnection.Google || conn === AuthConnection.Apple
+          );
 
-        const testSocialLoginBranch = () => {
-          const currentIsSocialLogin =
-            authConnection === AuthConnection.Google ||
-            authConnection === AuthConnection.Apple;
-          expect(currentIsSocialLogin).toBe(false);
-        };
+        const isSocialLogin = isSocialLoginConnection(authConnection);
 
-        React.useEffect(() => {
-          testSocialLoginBranch();
-        }, []);
-
-        return <View testID="null-auth-test" />;
+        return (
+          <View testID="null-auth-test">
+            <Text testID="is-social-login">{isSocialLogin.toString()}</Text>
+          </View>
+        );
       };
 
-      renderWithProvider(<TestNullAuthConnection />, { state: {} });
-      jest.useRealTimers();
-    });
-  });
-
-  describe('useEffect Hook Tests', () => {
-    it('should cover useEffect startRiveAnimation call on component mount', () => {
-      const mockStartRiveAnimation = jest.fn();
-
-      const TestUseEffectMount = () => {
-        const hasAnimationStarted = React.useRef(false);
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-
-        const startRiveAnimation = React.useCallback(() => {
-          mockStartRiveAnimation();
-          if (
-            hasAnimationStarted.current ||
-            !riveRef.current ||
-            animationId.current
-          ) {
-            return;
-          }
-          hasAnimationStarted.current = true;
-          riveRef.current.fireState();
-        }, []);
-
-        React.useEffect(() => {
-          startRiveAnimation();
-
-          return () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-          };
-        }, [startRiveAnimation]);
-
-        return <View testID="useeffect-mount-test" />;
-      };
-
-      renderWithProvider(<TestUseEffectMount />, { state: {} });
-
-      expect(mockStartRiveAnimation).toHaveBeenCalledTimes(1);
-    });
-
-    it('should cover useEffect cleanup with different timer states', () => {
-      jest.useFakeTimers();
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
-
-      const TestTimerStates = () => {
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-
-        React.useEffect(() => {
-          // Test rive ref usage
-          if (riveRef.current) {
-            riveRef.current.fireState();
-          }
-
-          animationId.current = setTimeout(() => {
-            /* timer test */
-          }, 1000);
-          dotsIntervalId.current = setInterval(() => {
-            /* timer test */
-          }, 300);
-          finalTimeoutId.current = setTimeout(() => {
-            /* timer test */
-          }, 3000);
-          socialLoginTimeoutId.current = setTimeout(() => {
-            /* timer test */
-          }, 4000);
-
-          return () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-            if (dotsIntervalId.current) {
-              clearInterval(dotsIntervalId.current);
-              dotsIntervalId.current = null;
-            }
-            if (finalTimeoutId.current) {
-              clearTimeout(finalTimeoutId.current);
-              finalTimeoutId.current = null;
-            }
-            if (socialLoginTimeoutId.current) {
-              clearTimeout(socialLoginTimeoutId.current);
-              socialLoginTimeoutId.current = null;
-            }
-          };
-        }, []);
-
-        return <View testID="timer-states-test" />;
-      };
-
-      const { unmount } = renderWithProvider(<TestTimerStates />, {
+      const { getByTestId } = renderWithProvider(<TestNullAuthConnection />, {
         state: {},
       });
 
-      expect(clearTimeoutSpy).not.toHaveBeenCalled();
-      expect(clearIntervalSpy).not.toHaveBeenCalled();
-
-      unmount();
-
-      expect(clearTimeoutSpy).toHaveBeenCalledTimes(3);
-      expect(clearIntervalSpy).toHaveBeenCalledTimes(1);
-
-      clearTimeoutSpy.mockRestore();
-      clearIntervalSpy.mockRestore();
-      jest.useRealTimers();
-    });
-
-    it('should cover useEffect cleanup with null timer states', () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
-
-      const TestNullTimerStates = () => {
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-
-        React.useEffect(() => () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-            if (dotsIntervalId.current) {
-              clearInterval(dotsIntervalId.current);
-              dotsIntervalId.current = null;
-            }
-            if (finalTimeoutId.current) {
-              clearTimeout(finalTimeoutId.current);
-              finalTimeoutId.current = null;
-            }
-            if (socialLoginTimeoutId.current) {
-              clearTimeout(socialLoginTimeoutId.current);
-              socialLoginTimeoutId.current = null;
-            }
-          }, []);
-
-        return <View testID="null-timer-states-test" />;
-      };
-
-      const { unmount } = renderWithProvider(<TestNullTimerStates />, {
-        state: {},
-      });
-
-      unmount();
-
-      expect(clearTimeoutSpy).not.toHaveBeenCalled();
-      expect(clearIntervalSpy).not.toHaveBeenCalled();
-
-      clearTimeoutSpy.mockRestore();
-      clearIntervalSpy.mockRestore();
-    });
-
-    it('should cover useEffect dependency changes triggering cleanup', () => {
-      jest.useFakeTimers();
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      let cleanupCallCount = 0;
-
-      const TestDependencyChanges = ({
-        triggerChange,
-      }: {
-        triggerChange: boolean;
-      }) => {
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-
-        const startRiveAnimation = React.useCallback(() => {
-          if (!riveRef.current) return;
-          riveRef.current.fireState();
-          animationId.current = setTimeout(() => {
-            /* test timer */
-          }, 1000);
-          // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [triggerChange]);
-
-        React.useEffect(() => {
-          startRiveAnimation();
-
-          return () => {
-            cleanupCallCount++;
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-          };
-        }, [startRiveAnimation]);
-
-        return <View testID="dependency-changes-test" />;
-      };
-
-      const { rerender, unmount } = renderWithProvider(
-        <TestDependencyChanges triggerChange={false} />,
-        { state: {} },
-      );
-
-      rerender(<TestDependencyChanges triggerChange />);
-
-      unmount();
-
-      expect(cleanupCallCount).toBeGreaterThan(1);
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-
-      clearTimeoutSpy.mockRestore();
-      jest.useRealTimers();
-    });
-
-    it('should cover useEffect with component cleanup integration', () => {
-      jest.useFakeTimers();
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
-
-      const TestComponentCleanup = () => {
-        const animationId = React.useRef<NodeJS.Timeout | null>(null);
-        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
-        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
-        const riveRef = React.useRef({ fireState: jest.fn() });
-
-        const startRiveAnimation = React.useCallback(() => {
-          if (!riveRef.current) return;
-          riveRef.current.fireState();
-
-          dotsIntervalId.current = setInterval(() => {
-            /* timer test */
-          }, 300);
-          animationId.current = setTimeout(() => {
-            /* timer test */
-          }, 1200);
-          finalTimeoutId.current = setTimeout(() => {
-            /* timer test */
-          }, 3000);
-          socialLoginTimeoutId.current = setTimeout(() => {
-            /* timer test */
-          }, 4000);
-        }, []);
-
-        React.useEffect(() => {
-          startRiveAnimation();
-
-          return () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-            if (dotsIntervalId.current) {
-              clearInterval(dotsIntervalId.current);
-              dotsIntervalId.current = null;
-            }
-            if (finalTimeoutId.current) {
-              clearTimeout(finalTimeoutId.current);
-              finalTimeoutId.current = null;
-            }
-            if (socialLoginTimeoutId.current) {
-              clearTimeout(socialLoginTimeoutId.current);
-              socialLoginTimeoutId.current = null;
-            }
-          };
-        }, [startRiveAnimation]);
-
-        return <View testID="component-cleanup-test" />;
-      };
-
-      const { unmount } = renderWithProvider(<TestComponentCleanup />, {
-        state: {},
-      });
-
-      jest.advanceTimersByTime(100);
-
-      unmount();
-
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-      expect(clearIntervalSpy).toHaveBeenCalled();
-
-      clearTimeoutSpy.mockRestore();
-      clearIntervalSpy.mockRestore();
+      expect(getByTestId('is-social-login')).toHaveTextContent('false');
       jest.useRealTimers();
     });
   });
