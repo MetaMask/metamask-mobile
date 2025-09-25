@@ -24,7 +24,6 @@ import {
 } from '../../../component-library/components-temp/Tabs';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
-  isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
@@ -631,9 +630,6 @@ const Wallet = ({
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
-  );
   /**
    * Is basic functionality enabled
    */
@@ -658,10 +654,6 @@ const Wallet = ({
     }
     return isEvmSelected;
   }, [isMultichainAccountsState2Enabled, isEvmSelected, allEnabledNetworks]);
-
-  const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
-
-  const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
 
@@ -718,22 +710,6 @@ const Wallet = ({
   const { selectNetwork } = useNetworkSelection({
     networks: allNetworks,
   });
-
-  useEffect(() => {
-    if (
-      isDataCollectionForMarketingEnabled === null &&
-      isParticipatingInMetaMetrics &&
-      isPastPrivacyPolicyDate
-    ) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.EXPERIENCE_ENHANCER,
-      });
-    }
-  }, [
-    isDataCollectionForMarketingEnabled,
-    isParticipatingInMetaMetrics,
-    navigate,
-  ]);
 
   const checkAndNavigateToPerpsGTM = useCallback(async () => {
     const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
