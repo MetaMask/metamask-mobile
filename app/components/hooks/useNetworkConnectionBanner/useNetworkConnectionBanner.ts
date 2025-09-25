@@ -57,8 +57,8 @@ const useNetworkConnectionBanner = (): {
     trackEvent(
       createEventBuilder(
         status === 'slow'
-          ? MetaMetricsEvents.SLOW_RPC_UPDATE_RPC_CLICKED
-          : MetaMetricsEvents.UNAVAILABLE_RPC_UPDATE_RPC_CLICKED,
+          ? MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED
+          : MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_UPDATE_RPC_CLICKED,
       )
         .addProperties({
           chain_id_caip: `eip155:${hexToNumber(chainId)}`,

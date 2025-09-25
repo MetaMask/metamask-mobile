@@ -230,7 +230,7 @@ describe('useNetworkConnectionBanner', () => {
       });
 
       expect(stableCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.SLOW_RPC_UPDATE_RPC_CLICKED,
+        MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
     });
@@ -252,7 +252,7 @@ describe('useNetworkConnectionBanner', () => {
       });
 
       expect(stableCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.UNAVAILABLE_RPC_UPDATE_RPC_CLICKED,
+        MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_UPDATE_RPC_CLICKED,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
     });
