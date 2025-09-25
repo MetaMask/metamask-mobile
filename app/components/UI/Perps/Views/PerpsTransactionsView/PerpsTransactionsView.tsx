@@ -197,8 +197,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Initial loading is handled by the hooks themselves
 
   const renderFilterTab = useCallback(
-    (tab: FilterTab) => {
+    (tab: FilterTab, index: number) => {
       const isActive = activeFilter === tab;
+
+      // Convert index to i18n key
+      const i18nKeys = ['trades', 'orders', 'funding'];
+      const i18nKey = i18nKeys[index];
 
       const handleTabPress = () => {
         // Immediately scroll to top and switch tabs
@@ -231,7 +235,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
             variant={TextVariant.BodySMBold}
             style={isActive ? null : styles.filterTabText}
           >
-            {strings(`perps.transactions.tabs.${tab.toLowerCase()}`)}
+            {strings(`perps.transactions.tabs.${i18nKey}`)}
           </Text>
         </TouchableOpacity>
       );

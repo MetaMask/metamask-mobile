@@ -1,5 +1,6 @@
 import React from 'react';
 import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
+import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
@@ -181,11 +182,14 @@ jest.mock('../../hooks/useRampNetworksDetail', () =>
 );
 
 const mockuseRampSDKInitialValues: Partial<RampSDK> = {
-  selectedChainId: '56',
   isBuy: true,
   isSell: false,
   rampType: RampType.BUY,
   setIntent: jest.fn(),
+  selectedAsset: {
+    id: 'mock-asset-id',
+    network: { chainId: '56' },
+  } as CryptoCurrency,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
