@@ -1279,7 +1279,6 @@
         "empty_title": "无未平仓头寸",
         "empty_description": "您目前没有任何未平仓头寸。\n开始交易后，即可在此处将查看您的头寸。",
         "first_time_title": "永续合约",
-        "first_time_description": "预测价格走势，使用最高 40 倍杠杆。",
         "start_trading": "开始交易",
         "start_new_trade": "开始新交易",
         "open_positions": "未平仓头寸",
