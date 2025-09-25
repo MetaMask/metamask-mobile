@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import { TouchableOpacity, Animated } from 'react-native';
+import { TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -14,6 +14,9 @@ import { useTheme } from '../../../../../../util/theme';
 import {
   selectSeasonTiers,
   selectCurrentTier,
+  selectSeasonStatusLoading,
+  selectSeasonStatusError,
+  selectSeasonStartDate,
 } from '../../../../../../reducers/rewards/selectors';
 import {
   SeasonTierDto,
@@ -25,6 +28,9 @@ import { formatNumber } from '../../../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import RewardItem from './RewardItem';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
+import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
+import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 interface TierAccordionProps {
   tier: SeasonTierDto;
@@ -161,9 +167,34 @@ const TierAccordion: React.FC<TierAccordionProps> = ({
   );
 };
 
+const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
+  count,
+  isLoading,
+}) => (
+  <Box>
+    <Box twClassName="flex-row items-center gap-2 items-center">
+      <Text variant={TextVariant.HeadingMd} twClassName="text-default">
+        {strings('rewards.upcoming_rewards.title')}
+      </Text>
+      {isLoading && <ActivityIndicator size="small" />}
+      {count !== null && !isLoading && (
+        <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
+          <Text variant={TextVariant.BodySm} twClassName="text-default">
+            {count}
+          </Text>
+        </Box>
+      )}
+    </Box>
+  </Box>
+);
+
 const UpcomingRewards: React.FC = () => {
+  const tw = useTailwind();
   const seasonTiers = useSelector(selectSeasonTiers) as SeasonTierDto[];
   const currentTier = useSelector(selectCurrentTier);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
+  const isLoading = useSelector(selectSeasonStatusLoading);
+  const hasError = useSelector(selectSeasonStatusError);
 
   // Filter tiers to show only those above current tier
   const upcomingTiers = useMemo(() => {
@@ -195,30 +226,61 @@ const UpcomingRewards: React.FC = () => {
     });
   };
 
-  if (!upcomingTiers.length) {
+  const totalUpcomingRewardsCount = useMemo(
+    () =>
+      seasonStartDate != null
+        ? upcomingTiers.reduce((acc, tier) => acc + tier.rewards.length, 0)
+        : null,
+    [upcomingTiers, seasonStartDate],
+  );
+
+  if (
+    seasonStartDate != null &&
+    !upcomingTiers?.length &&
+    !hasError &&
+    !isLoading
+  ) {
+    // Not pending and empty, shouldn't happen but in this case nothing is returned.
     return null;
   }
 
   return (
-    <Box twClassName="py-4">
-      {/* Section Title */}
-      <Box twClassName="mb-4">
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.upcoming_rewards.title')}
-        </Text>
-      </Box>
+    <Box twClassName="py-4 gap-4">
+      {/* Always show section header */}
+      <SectionHeader
+        count={totalUpcomingRewardsCount}
+        isLoading={isLoading && !hasError}
+      />
 
-      {/* Tier Accordions */}
-      <Box twClassName="rounded-xl overflow-hidden">
-        {upcomingTiers.map((tier) => (
-          <TierAccordion
-            key={tier.id}
-            tier={tier}
-            isExpanded={expandedTiers.has(tier.id)}
-            onToggle={() => handleTierToggle(tier.id)}
-          />
-        ))}
-      </Box>
+      {/* Show error banner if there's an error */}
+      {hasError && !seasonStartDate && !isLoading && (
+        <BannerAlert
+          severity={BannerAlertSeverity.Error}
+          title={strings('rewards.upcoming_rewards_error.error_fetching_title')}
+          description={strings(
+            'rewards.upcoming_rewards_error.error_fetching_description',
+          )}
+        />
+      )}
+
+      {(isLoading || seasonStartDate === null) &&
+      !upcomingTiers?.length &&
+      !hasError ? (
+        <Skeleton style={tw.style('h-32 bg-rounded')} />
+      ) : upcomingTiers?.length ? (
+        <Box twClassName="rounded-xl overflow-hidden">
+          {upcomingTiers.map((tier) => (
+            <TierAccordion
+              key={tier.id}
+              tier={tier}
+              isExpanded={expandedTiers.has(tier.id)}
+              onToggle={() => handleTierToggle(tier.id)}
+            />
+          ))}
+        </Box>
+      ) : (
+        <></>
+      )}
     </Box>
   );
 };

@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react';
-import { Dimensions, TouchableOpacity, Platform } from 'react-native';
+import {
+  Dimensions,
+  TouchableOpacity,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -19,6 +24,7 @@ import {
   selectActiveBoosts,
   selectActiveBoostsLoading,
   selectActiveBoostsError,
+  selectSeasonStartDate,
 } from '../../../../../../reducers/rewards/selectors';
 import { PointsBoostDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../../locales/i18n';
@@ -30,6 +36,12 @@ import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { formatTimeRemaining } from '../../../utils/formatUtils';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
+import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.7; // 70% of screen width
@@ -131,13 +143,17 @@ const BoostCard: React.FC<BoostCardProps> = ({ boost }) => {
   );
 };
 
-const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
-  <Box twClassName="mb-4">
-    <Box twClassName="flex-row items-center gap-2 mb-1">
+const SectionHeader: React.FC<{ count: number | null; isLoading: boolean }> = ({
+  count,
+  isLoading,
+}) => (
+  <Box>
+    <Box twClassName="flex-row items-center gap-2 items-center">
       <Text variant={TextVariant.HeadingMd} twClassName="text-default">
-        {strings('rewards.active_boosts.title')}
+        {strings('rewards.active_boosts_title')}
       </Text>
-      {count !== null && (
+      {isLoading && <ActivityIndicator size="small" />}
+      {count !== null && !isLoading && (
         <Box twClassName="bg-text-muted rounded-lg w-6 h-6 items-center justify-center">
           <Text variant={TextVariant.BodySm} twClassName="text-default">
             {count}
@@ -148,28 +164,16 @@ const SectionHeader: React.FC<{ count: number | null }> = ({ count }) => (
   </Box>
 );
 
-const ErrorBanner: React.FC = () => (
-  <Box twClassName="bg-error-muted rounded-lg p-4 mb-4">
-    <Box twClassName="flex-row items-center gap-2">
-      <Icon
-        name={IconName.Danger}
-        size={IconSize.Sm}
-        twClassName="text-error-default"
-      />
-      <Text variant={TextVariant.BodyMd} twClassName="text-error-default">
-        {strings('rewards.active_boosts.error')}
-      </Text>
-    </Box>
-  </Box>
-);
-
-const ActiveBoosts: React.FC = () => {
+const ActiveBoosts: React.FC<{
+  fetchActivePointsBoosts: () => Promise<void>;
+}> = ({ fetchActivePointsBoosts }) => {
   const tw = useTailwind();
   const activeBoosts = useSelector(selectActiveBoosts) as
     | PointsBoostDto[]
     | null;
   const isLoading = useSelector(selectActiveBoostsLoading);
   const hasError = useSelector(selectActiveBoostsError);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
 
   const numBoosts = useMemo(() => activeBoosts?.length || 0, [activeBoosts]);
 
@@ -192,22 +196,44 @@ const ActiveBoosts: React.FC = () => {
     [scrollNativeGesture, panSink],
   );
 
-  if (!isLoading && !hasError && numBoosts === 0) {
+  if (!isLoading && !hasError && activeBoosts && numBoosts === 0) {
     return null;
   }
 
   return (
-    <Box twClassName="py-4">
+    <Box twClassName="py-4 gap-4">
       {/* Always show section header */}
-      <SectionHeader count={isLoading ? 0 : numBoosts} />
+      <SectionHeader
+        count={activeBoosts?.length || null}
+        isLoading={
+          isLoading || (activeBoosts === null && !hasError && !!seasonStartDate)
+        }
+      />
 
       {/* Show error banner if there's an error */}
-      {hasError && <ErrorBanner />}
+      {hasError && !activeBoosts?.length && !isLoading && (
+        <BannerAlert
+          severity={BannerAlertSeverity.Error}
+          title={strings('rewards.active_boosts_error.error_fetching_title')}
+          description={strings(
+            'rewards.active_boosts_error.error_fetching_description',
+          )}
+          actionButtonProps={{
+            size: ButtonSize.Md,
+            style: tw.style('mt-2'),
+            onPress: fetchActivePointsBoosts,
+            label: strings('rewards.active_boosts_error.retry_button'),
+            variant: ButtonVariants.Primary,
+          }}
+        />
+      )}
 
       {/* Show loading state */}
-      {isLoading || !activeBoosts ? (
+      {(isLoading || activeBoosts === null) &&
+      !activeBoosts?.length &&
+      !hasError ? (
         <Skeleton style={tw.style('h-32 bg-rounded')} width={CARD_WIDTH} />
-      ) : hasError ? null /* Show active boosts */ : activeBoosts?.length ? ( // Show nothing if there's an error (just the banner)
+      ) : activeBoosts?.length ? ( // Show nothing if there's an error (just the banner)
         <GestureDetector gesture={combinedGesture}>
           <ScrollView
             horizontal
