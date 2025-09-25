@@ -134,7 +134,7 @@ describe('networkSelectors', () => {
             },
             PreferencesController: {
               ...mockState.engine.backgroundState.PreferencesController,
-              tokenNetworkFilter: { '0x1': 'true' },
+              tokenNetworkFilter: { '0x1': true },
             },
           },
         },
