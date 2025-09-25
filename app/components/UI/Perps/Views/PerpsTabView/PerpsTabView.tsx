@@ -296,14 +296,22 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           </View>
         </View>
         {isEligibilityModalVisible && (
-          <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={() => setIsEligibilityModalVisible(false)}
-              contentKey={'geo_block'}
-              testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
-            />
-          </Modal>
+          // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+          <View>
+            <Modal
+              visible
+              transparent
+              animationType="none"
+              statusBarTranslucent
+            >
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={() => setIsEligibilityModalVisible(false)}
+                contentKey={'geo_block'}
+                testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
+              />
+            </Modal>
+          </View>
         )}
       </>
     </SafeAreaView>
