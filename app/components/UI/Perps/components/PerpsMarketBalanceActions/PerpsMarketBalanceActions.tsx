@@ -267,6 +267,7 @@ const PerpsMarketBalanceActions: React.FC<
 
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
             <PerpsBottomSheetTooltip
