@@ -295,14 +295,16 @@ describe('Tab', () => {
     });
 
     it('handles undefined onPress gracefully', () => {
+      const mockOnPress = jest.fn();
       const { getAllByText } = render(
-        <Tab {...defaultProps} onPress={() => {}} />,
+        <Tab {...defaultProps} onPress={mockOnPress} />,
       );
 
       const tab = getAllByText('Test Tab')[0];
       expect(() => {
         fireEvent.press(tab);
       }).not.toThrow();
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
 
     it('handles special characters in label', () => {

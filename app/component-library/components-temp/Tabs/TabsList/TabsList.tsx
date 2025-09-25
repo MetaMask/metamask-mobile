@@ -413,6 +413,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           onLayout={handleLayout}
           style={tw.style('flex-1 mt-2')}
           decelerationRate="fast"
+          testID={testID ? `${testID}-content` : undefined}
         >
           {enabledTabs.map((enabledTab) => (
             <Box
