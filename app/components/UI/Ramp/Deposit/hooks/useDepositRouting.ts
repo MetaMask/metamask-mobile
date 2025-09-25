@@ -7,16 +7,10 @@ import { useTheme } from '../../../../../util/theme';
 import { endTrace, TraceName } from '../../../../../util/trace';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
-import {
-  MANUAL_BANK_TRANSFER_PAYMENT_METHODS,
-  REDIRECTION_URL,
-} from '../constants';
+import { REDIRECTION_URL } from '../constants';
 import { depositOrderToFiatOrder } from '../orderProcessor';
 import useHandleNewOrder from './useHandleNewOrder';
-import {
-  generateThemeParameters,
-  getCryptoCurrencyFromTransakId,
-} from '../utils';
+import { generateThemeParameters } from '../utils';
 
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
 import {
@@ -36,19 +30,15 @@ import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 
-export interface UseDepositRoutingParams {
-  cryptoCurrencyChainId: string;
-  paymentMethodId: string;
-}
-
-export const useDepositRouting = ({
-  cryptoCurrencyChainId,
-  paymentMethodId,
-}: UseDepositRoutingParams) => {
+export const useDepositRouting = () => {
   const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
-  const { selectedRegion, logoutFromProvider, selectedWalletAddress } =
-    useDepositSDK();
+  const {
+    selectedRegion,
+    selectedPaymentMethod,
+    logoutFromProvider,
+    selectedWalletAddress,
+  } = useDepositSDK();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
 
@@ -124,12 +114,10 @@ export const useDepositRouting = ({
       navigation.navigate(
         ...createVerifyIdentityNavDetails({
           quote,
-          cryptoCurrencyChainId,
-          paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const navigateToBasicInfoCallback = useCallback(
@@ -196,12 +184,10 @@ export const useDepositRouting = ({
           quote,
           kycUrl,
           workFlowRunId,
-          cryptoCurrencyChainId,
-          paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -229,15 +215,9 @@ export const useDepositRouting = ({
                 throw new Error('Missing order');
               }
 
-              const cryptoCurrency = getCryptoCurrencyFromTransakId(
-                order.cryptoCurrency,
-                order.network,
-              );
-
               const processedOrder = {
                 ...depositOrderToFiatOrder(order),
                 account: selectedWalletAddress || order.walletAddress,
-                network: cryptoCurrency?.chainId || order.network,
               };
 
               await handleNewOrder(processedOrder);
@@ -252,10 +232,10 @@ export const useDepositRouting = ({
                   ? Number(order.partnerFees)
                   : 0,
                 total_fee: Number(order.totalFeesFiat),
-                payment_method_id: order.paymentMethod,
+                payment_method_id: order.paymentMethod.id,
                 country: selectedRegion?.isoCode || '',
-                chain_id: cryptoCurrency?.chainId || '',
-                currency_destination: cryptoCurrency?.assetId || '',
+                chain_id: order.network.chainId,
+                currency_destination: order.cryptoCurrency.assetId || '',
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -333,12 +313,10 @@ export const useDepositRouting = ({
           quote,
           sourceUrl: kycUrl,
           workFlowRunId,
-          cryptoCurrencyChainId,
-          paymentMethodId,
         }),
       );
     },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
+    [navigation, popToBuildQuote],
   );
 
   const routeAfterAuthentication = useCallback(
@@ -371,17 +349,8 @@ export const useDepositRouting = ({
                 throw new Error('Missing user details');
               }
 
-              const isManualBankTransfer =
-                MANUAL_BANK_TRANSFER_PAYMENT_METHODS.some(
-                  (method) => method.id === paymentMethodId,
-                );
-
-              if (isManualBankTransfer) {
-                const order = await createOrder(
-                  quote,
-                  selectedWalletAddress,
-                  paymentMethodId,
-                );
+              if (selectedPaymentMethod?.isManualBankTransfer) {
+                const order = await createOrder(quote, selectedWalletAddress);
 
                 if (!order) {
                   throw new Error('Missing order');
@@ -390,7 +359,6 @@ export const useDepositRouting = ({
                 const processedOrder = {
                   ...depositOrderToFiatOrder(order),
                   account: selectedWalletAddress || order.walletAddress,
-                  network: cryptoCurrencyChainId,
                 };
 
                 await handleNewOrder(processedOrder);
@@ -503,6 +471,7 @@ export const useDepositRouting = ({
       getAdditionalRequirements,
       fetchUserDetails,
       selectedRegion?.isoCode,
+      selectedPaymentMethod?.isManualBankTransfer,
       handleNewOrder,
       navigateToBankDetailsCallback,
       navigateToWebviewModalCallback,
@@ -512,13 +481,10 @@ export const useDepositRouting = ({
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
-
       createOrder,
       requestOtt,
       generatePaymentUrl,
       selectedWalletAddress,
-      cryptoCurrencyChainId,
-      paymentMethodId,
       themeAppearance,
       colors,
     ],
