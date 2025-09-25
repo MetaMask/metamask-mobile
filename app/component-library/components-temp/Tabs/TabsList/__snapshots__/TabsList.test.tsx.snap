@@ -350,27 +350,82 @@ exports[`TabsList passes BoxProps to underlying Box component 1`] = `
     }
   >
     <View
-      tabLabel="Tab 1"
+      style={
+        [
+          {
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          {
+            "display": "flex",
+          },
+        ]
+      }
     >
-      <Text
-        accessibilityRole="text"
-        style={
-          [
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "fontWeight": 400,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            },
-            undefined,
-          ]
-        }
+      <View
+        tabLabel="Tab 1"
       >
-        Tab 1
-         Content
-      </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Tab 1
+           Content
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          {
+            "display": "none",
+          },
+        ]
+      }
+    >
+      <View
+        tabLabel="Tab 2"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Tab 2
+           Content
+        </Text>
+      </View>
     </View>
   </View>
 </View>
@@ -770,27 +825,121 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
     }
   >
     <View
-      tabLabel="Tab 1"
+      style={
+        [
+          {
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          {
+            "display": "flex",
+          },
+        ]
+      }
     >
-      <Text
-        accessibilityRole="text"
-        style={
-          [
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "fontWeight": 400,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            },
-            undefined,
-          ]
-        }
+      <View
+        tabLabel="Tab 1"
       >
-        Tab 1
-         Content
-      </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Tab 1
+           Content
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          {
+            "display": "none",
+          },
+        ]
+      }
+    >
+      <View
+        tabLabel="Tab 2"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Tab 2
+           Content
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+          },
+          {
+            "display": "none",
+          },
+        ]
+      }
+    >
+      <View
+        tabLabel="Tab 3"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Tab 3
+           Content
+        </Text>
+      </View>
     </View>
   </View>
 </View>

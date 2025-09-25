@@ -218,8 +218,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [activeIndex, tabs, onChangeTab],
     );
 
-    const currentContent = tabs[activeIndex]?.content || null;
-
     const tabBarProps = {
       tabs,
       activeIndex,
@@ -234,7 +232,20 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
         {/* Tab content with dynamic height and swipe gesture support */}
         <GestureDetector gesture={panGesture}>
-          <Box twClassName="flex-1 mt-2">{currentContent}</Box>
+          <Box twClassName="flex-1 mt-2">
+            {tabs.map((tab, index) => (
+              <Box
+                key={tab.key}
+                twClassName="flex-1"
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{
+                  display: index === activeIndex ? 'flex' : 'none',
+                }}
+              >
+                {tab.content}
+              </Box>
+            ))}
+          </Box>
         </GestureDetector>
       </Box>
     );
