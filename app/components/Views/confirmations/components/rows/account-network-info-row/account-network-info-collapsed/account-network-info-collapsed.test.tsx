@@ -32,7 +32,7 @@ describe('AccountNetworkInfoCollapsed', () => {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('0x935E7...05477')).toBeOnTheScreen();
-    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
   });
 
   it('displays networkName when walletName is not available', () => {
@@ -46,7 +46,7 @@ describe('AccountNetworkInfoCollapsed', () => {
       state: personalSignatureConfirmationState,
     });
 
-    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
   });
 
   it('displays accountGroupName when available instead of accountName', () => {
