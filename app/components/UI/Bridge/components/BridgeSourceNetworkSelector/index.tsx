@@ -119,6 +119,10 @@ export const BridgeSourceNetworkSelector: React.FC<
       return;
     }
 
+    // Return to previous screen with selected networks
+    // All the network switching will happen in the background
+    navigation.goBack();
+
     // Update the Redux state with the candidate selections
     dispatch(
       setSelectedSourceChainIds(
@@ -145,9 +149,6 @@ export const BridgeSourceNetworkSelector: React.FC<
       // Reset the source token, if undefined will be the native token of the selected chain
       dispatch(setSourceToken(undefined));
     }
-
-    // Return to previous screen with selected networks
-    navigation.goBack();
   }, [
     navigation,
     dispatch,
