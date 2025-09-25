@@ -505,6 +505,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "width": 24,
                                     }
                                   }
+                                  testID="bridge-token-selector-close-button"
                                 >
                                   <SvgMock
                                     color="#121314"

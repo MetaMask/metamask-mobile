@@ -196,7 +196,10 @@ export const BridgeTokenSelectorBase: React.FC<
 
   return (
     <BottomSheet ref={sheetRef} isFullscreen>
-      <BottomSheetHeader onClose={dismissModal}>
+      <BottomSheetHeader
+        onClose={dismissModal}
+        closeButtonProps={{ testID: 'bridge-token-selector-close-button' }}
+      >
         <Text variant={TextVariant.HeadingMD}>
           {title ?? strings('bridge.select_token')}
         </Text>
