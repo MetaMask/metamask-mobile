@@ -43,7 +43,7 @@ export function useTokens({
     // Use the shared utility for Solana normalization to ensure consistent deduplication
     const normalizedAddress = isSolanaChainId(token.chainId)
       ? normalizeToCaipAssetType(token.address, token.chainId)
-      : token.address;
+      : token.address.toLowerCase();
     return `${normalizedAddress}-${token.chainId}`;
   };
 
@@ -71,12 +71,17 @@ export function useTokens({
       return !excludedTokensSet.has(tokenKey);
     });
 
-  const tokensToRender = tokensWithBalance
-    .concat(topTokens ?? [])
-    .filter((token) => {
-      const tokenKey = getTokenKey(token);
-      return !excludedTokensSet.has(tokenKey);
-    });
+  const tokensToRender = tokensWithBalance.concat(
+    topTokens
+      ?.filter((token) => {
+        const tokenKey = getTokenKey(token);
+        return !excludedTokensSet.has(tokenKey);
+      })
+      .filter((token) => {
+        const tokenKey = getTokenKey(token);
+        return !tokensWithBalanceSet.has(tokenKey);
+      }) ?? [],
+  );
 
   return { allTokens, tokensToRender, pending };
 }
