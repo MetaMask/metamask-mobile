@@ -324,24 +324,17 @@ class OptinMetrics extends PureComponent {
       title: 'How to manage your MetaMetrics settings',
     });
 
-  /**
-   * Handler for basic usage checkbox toggle with interdependency logic
-   */
   handleBasicUsageToggle = () => {
     this.setState((prevState) => ({
       isBasicUsageChecked: !prevState.isBasicUsageChecked,
-      // If unchecking basic usage (prevState was true), also uncheck marketing
+
       isCheckboxChecked: prevState.isBasicUsageChecked
         ? false
         : prevState.isCheckboxChecked,
     }));
   };
 
-  /**
-   * Handler for marketing checkbox toggle with dependency check
-   */
   handleMarketingToggle = () => {
-    // Only allow toggle if basic usage is checked
     if (this.state.isBasicUsageChecked) {
       this.setState((prevState) => ({
         isCheckboxChecked: !prevState.isCheckboxChecked,
@@ -349,9 +342,6 @@ class OptinMetrics extends PureComponent {
     }
   };
 
-  /**
-   * Computed property to determine if marketing checkbox should be disabled
-   */
   get isMarketingDisabled() {
     return !this.state.isBasicUsageChecked;
   }
