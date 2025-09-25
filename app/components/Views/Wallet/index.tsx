@@ -671,9 +671,12 @@ const Wallet = ({
   const { selectNetwork } = useNetworkSelection({
     networks: allNetworks,
   });
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
+    // do not prompt for social login flow
     if (
+      !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
       isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
@@ -683,6 +686,7 @@ const Wallet = ({
       });
     }
   }, [
+    isSocialLogin,
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
@@ -711,7 +715,6 @@ const Wallet = ({
   }, [addTraitsToUser, hdKeyrings.length]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
     if (isConnectionRemoved && isSocialLogin) {
