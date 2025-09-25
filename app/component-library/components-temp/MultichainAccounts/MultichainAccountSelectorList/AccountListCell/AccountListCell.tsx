@@ -1,12 +1,11 @@
 import React, { memo, useCallback } from 'react';
-import { View } from 'react-native';
 
 import { useStyles } from '../../../../hooks';
 import AccountCell from '../../AccountCell';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
-import Checkbox from '../../../../components/Checkbox';
 import ListItemSelect from '../../../../components/List/ListItemSelect';
+import ListItemMultiSelect from '../../../../components/List/ListItemMultiSelect';
 
 const AccountListCell = memo(
   ({
@@ -22,30 +21,27 @@ const AccountListCell = memo(
       onSelectAccount(accountGroup);
     }, [accountGroup, onSelectAccount]);
 
+    const WrapperComponent = showCheckbox
+      ? ListItemMultiSelect
+      : ListItemSelect;
+
     return (
-      <ListItemSelect
+      <WrapperComponent
         isSelected={isSelected}
         style={styles.accountItem}
         onPress={handlePress}
         activeOpacity={0.7}
       >
         <AccountCell
-          startAccessory={
-            showCheckbox ? (
-              <View testID={`account-list-cell-checkbox-${accountGroup.id}`}>
-                <Checkbox isChecked={isSelected} onPress={handlePress} />
-              </View>
-            ) : undefined
-          }
           accountGroup={accountGroup}
           avatarAccountType={avatarAccountType}
           isSelected={isSelected}
         />
-      </ListItemSelect>
+      </WrapperComponent>
     );
   },
 );
 
 AccountListCell.displayName = 'AccountListCell';
 
-export default AccountListCell;
+export default React.memo(AccountListCell);
