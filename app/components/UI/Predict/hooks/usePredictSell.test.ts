@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { usePredictSell } from './usePredictSell';
-import { PredictPositionStatus } from '..';
+import { PredictPositionStatus } from '../types';
 
 // Mock redux state container that tests can mutate between runs
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,6 +20,8 @@ let mockState: any = {
 jest.mock('react-redux', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: jest.fn((selector: any) => selector(mockState)),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  connect: () => (component: any) => component,
 }));
 
 // Mock usePredictTrading hook
@@ -55,6 +57,23 @@ jest.mock('../../../../component-library/components/Toast', () => {
 jest.mock('../../../../component-library/components/Icons/Icon', () => ({
   IconName: {
     Loading: 'loading',
+  },
+  IconSize: {
+    Xss: '10',
+    Xs: '12',
+    Sm: '16',
+    Md: '20',
+    Lg: '24',
+    Xl: '32',
+  },
+  IconColor: {
+    Default: 'Default',
+    Alternative: 'Alternative',
+    Primary: 'Primary',
+    Success: 'Success',
+    Error: 'Error',
+    Warning: 'Warning',
+    Info: 'Info',
   },
 }));
 

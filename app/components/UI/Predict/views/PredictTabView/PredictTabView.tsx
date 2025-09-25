@@ -63,11 +63,12 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const renderMarketsWonCard = useCallback(() => {
     if (claimablePositions.length === 0) return null;
 
-    const numberOfMarketsWon = claimablePositions.filter(
-      (position) => position.status === PredictPositionStatus.WON,
+    const wonPositions = claimablePositions.filter(
+      (position) =>
+        position.status === PredictPositionStatus.WON && position.cashPnl > 0,
     );
 
-    const totalClaimableAmount = numberOfMarketsWon.reduce(
+    const totalClaimableAmount = wonPositions.reduce(
       (sum: number, position: PredictPositionType) => sum + position.cashPnl,
       0,
     );
@@ -78,7 +79,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
 
     return (
       <MarketsWonCard
-        numberOfMarketsWon={numberOfMarketsWon.length}
+        numberOfMarketsWon={wonPositions.length}
         totalClaimableAmount={totalClaimableAmount}
         unrealizedAmount={unrealizedAmount}
         unrealizedPercent={unrealizedPercent}

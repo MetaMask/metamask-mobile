@@ -182,9 +182,9 @@ jest.mock('@shopify/flash-list', () => {
       renderItem,
       refreshControl,
     }: {
-      ListEmptyComponent?: () => React.ReactNode;
-      ListHeaderComponent?: () => React.ReactNode;
-      ListFooterComponent?: () => React.ReactNode;
+      ListEmptyComponent?: React.ReactNode | (() => React.ReactNode);
+      ListHeaderComponent?: React.ReactNode | (() => React.ReactNode);
+      ListFooterComponent?: React.ReactNode | (() => React.ReactNode);
       data?: unknown[];
       renderItem?: (info: { item: unknown }) => React.ReactNode;
       refreshControl?: React.ReactNode;
@@ -194,10 +194,18 @@ jest.mock('@shopify/flash-list', () => {
       return (
         <ScrollView testID="flash-list" refreshControl={refreshControl}>
           {ListHeaderComponent && (
-            <View testID="list-header">{ListHeaderComponent()}</View>
+            <View testID="list-header">
+              {typeof ListHeaderComponent === 'function'
+                ? ListHeaderComponent()
+                : ListHeaderComponent}
+            </View>
           )}
           {isEmpty && ListEmptyComponent && (
-            <View testID="empty-state">{ListEmptyComponent}</View>
+            <View testID="empty-state">
+              {typeof ListEmptyComponent === 'function'
+                ? ListEmptyComponent()
+                : ListEmptyComponent}
+            </View>
           )}
           {!isEmpty &&
             data.map((item: unknown, index: number) => (
@@ -206,7 +214,11 @@ jest.mock('@shopify/flash-list', () => {
               </View>
             ))}
           {ListFooterComponent && (
-            <View testID="list-footer">{ListFooterComponent}</View>
+            <View testID="list-footer">
+              {typeof ListFooterComponent === 'function'
+                ? ListFooterComponent()
+                : ListFooterComponent}
+            </View>
           )}
         </ScrollView>
       );
@@ -215,6 +227,7 @@ jest.mock('@shopify/flash-list', () => {
 });
 
 import PredictTabView from './PredictTabView';
+import { PredictPositionStatus } from '../../types';
 
 describe('PredictTabView', () => {
   const mockNavigate = jest.fn();
@@ -236,6 +249,7 @@ describe('PredictTabView', () => {
     outcomeIndex: 0,
     title: 'Claimable Position',
     cashPnl: 15,
+    status: PredictPositionStatus.WON,
   };
 
   beforeEach(() => {
