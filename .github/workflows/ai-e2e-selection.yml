@@ -206,9 +206,12 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          # Only run tests if we have test jobs in the matrix
+          # Only run tests if we have test jobs in the matrix and not in analysis-only mode
           MATRIX_LENGTH=$(echo "$TEST_MATRIX" | jq 'length')
-          if [ "$TAG_COUNT" -eq 0 ]; then
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            echo "run_tests=false" >> "$GITHUB_OUTPUT"
+            echo "🔍 Analysis-only mode - skipping all builds and tests"
+          elif [ "$TAG_COUNT" -eq 0 ]; then
             echo "run_tests=false" >> "$GITHUB_OUTPUT"
             echo "ℹ️ No E2E tests needed - AI determined changes are very low risk"
           elif [ "$MATRIX_LENGTH" -gt 0 ]; then
@@ -220,27 +223,36 @@ jobs:
           fi
 
           # Create readable test plan with file breakdown
-          echo "## 🎯 AI E2E Test Plan" >> "$GITHUB_STEP_SUMMARY"
-
-          if [ "$TAG_COUNT" -eq 0 ]; then
-            {
-              echo "- **Selected Tags**: None (no tests needed)"
-              echo "- **Risk Level**: $RISK_LEVEL"
-              echo "- **AI Confidence**: ${CONFIDENCE}%"
-              echo "- **Total CI Jobs**: 0 (AI determined changes are very low risk)"
-            } >> "$GITHUB_STEP_SUMMARY"
-          else
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            echo "## 🔍 AI Analysis Report (Analysis-Only Mode)" >> "$GITHUB_STEP_SUMMARY"
             {
               echo "- **Selected Tags**: $TAG_DISPLAY"
               echo "- **Risk Level**: $RISK_LEVEL"
               echo "- **AI Confidence**: ${CONFIDENCE}%"
-              echo "- **Test Jobs**: $MATRIX_LENGTH (dynamically generated based on test files)"
+              echo "- **Mode**: Analysis-Only (no builds or tests)"
             } >> "$GITHUB_STEP_SUMMARY"
-
-            if [ "$MATRIX_LENGTH" -gt 0 ]; then
-              echo "- **Total CI Jobs**: $((MATRIX_LENGTH * 2)) ($MATRIX_LENGTH per platform × 2 platforms)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## 🎯 AI E2E Test Plan" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$TAG_COUNT" -eq 0 ]; then
+              {
+                echo "- **Selected Tags**: None (no tests needed)"
+                echo "- **Risk Level**: $RISK_LEVEL"
+                echo "- **AI Confidence**: ${CONFIDENCE}%"
+                echo "- **Total CI Jobs**: 0 (AI determined changes are very low risk)"
+              } >> "$GITHUB_STEP_SUMMARY"
             else
-              echo "- **Total CI Jobs**: 0 (selected tags have no test files)" >> "$GITHUB_STEP_SUMMARY"
+              {
+                echo "- **Selected Tags**: $TAG_DISPLAY"
+                echo "- **Risk Level**: $RISK_LEVEL"
+                echo "- **AI Confidence**: ${CONFIDENCE}%"
+                echo "- **Test Jobs**: $MATRIX_LENGTH (dynamically generated based on test files)"
+              } >> "$GITHUB_STEP_SUMMARY"
+
+              if [ "$MATRIX_LENGTH" -gt 0 ]; then
+                echo "- **Total CI Jobs**: $((MATRIX_LENGTH * 2)) ($MATRIX_LENGTH per platform × 2 platforms)" >> "$GITHUB_STEP_SUMMARY"
+              else
+                echo "- **Total CI Jobs**: 0 (selected tags have no test files)" >> "$GITHUB_STEP_SUMMARY"
+              fi
             fi
           fi
 
@@ -314,36 +326,42 @@ jobs:
           ANALYSIS_ONLY="${{ needs.analyze-and-plan.outputs.analysis-only }}"
 
           # Generate the PR comment content
-          cat > pr_comment.md << EOF
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+            cat > pr_comment.md << EOF
+          ## 🔍 AI E2E Analysis Report
+
+          **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
+
+          **🤖 AI Analysis:**
+          > ${{ needs.analyze-and-plan.outputs.reasoning }}
+
+          **📊 Analysis Results:**
+          - **Mode:** Analysis-Only ✅ (no builds or tests)
+          - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
+
+          _🔍 [View complete analysis](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Analysis completed successfully_
+
+          <!-- ai-e2e-analysis -->
+          EOF
+          else
+            cat > pr_comment.md << EOF
           ## 🤖 AI E2E Test Analysis
 
           **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
 
-          **AI Analysis:**
+          **🤖 AI Analysis:**
           > ${{ needs.analyze-and-plan.outputs.reasoning }}
 
-          EOF
-
-          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
-            cat >> pr_comment.md << EOF
-          **Analysis-Only Mode:** ✅ Analysis complete - no builds or tests will run.
-          - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
-
-          _🔍 [View analysis workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Analysis-only mode enabled_
-          EOF
-          else
-            cat >> pr_comment.md << EOF
-          **Test Plan:**
+          **🧪 Test Plan:**
           - **Test Jobs:** ${{ needs.platform-conditions.outputs.actual-total-jobs }} total (dynamically generated based on test files)
           - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
           - **Platform Jobs:** iOS: ${{ needs.platform-conditions.outputs.actual-ios-jobs }}, Android: ${{ needs.platform-conditions.outputs.actual-android-jobs }}
 
           _⏳ Tests are starting... [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})_
-          EOF
-          fi
 
           <!-- ai-e2e-analysis -->
           EOF
+          fi
 
           # Create new comment (all existing comments were deleted in previous job)
           echo "📝 Creating new AI E2E comment..."
@@ -564,32 +582,57 @@ jobs:
             echo "📝 No existing AI E2E comment found to delete"
           fi
 
-          # Generate status icon based on results
-          IOS_RESULT="${{ needs.ios-ai-tests.result || 'skipped' }}"
-          ANDROID_RESULT="${{ needs.android-ai-tests.result || 'skipped' }}"
+          # Check if analysis-only mode
+          ANALYSIS_ONLY="${{ needs.analyze-and-plan.outputs.analysis-only }}"
 
-          # Determine overall status
-          if [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
-            STATUS_ICON="❌"
-            STATUS_TEXT="Failed"
-          elif [[ "$IOS_RESULT" == "cancelled" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
-            STATUS_ICON="⏸️"
-            STATUS_TEXT="Cancelled"
-          elif [[ "$IOS_RESULT" == "success" ]] || [[ "$ANDROID_RESULT" == "success" ]]; then
+          # Generate status icon and final comment based on mode
+          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
             STATUS_ICON="✅"
-            STATUS_TEXT="Completed"
-          else
-            STATUS_ICON="🔄"
-            STATUS_TEXT="Completed"
-          fi
+            STATUS_TEXT="Analysis Complete"
 
-          # Generate final comment content
-          cat > pr_comment_final.md << EOF
+            # Generate analysis-only final comment content
+            cat > pr_comment_final.md << EOF
+          ## 🔍 AI E2E Analysis Report ✅
+
+          **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
+
+          **🤖 AI Analysis:**
+          > ${{ needs.analyze-and-plan.outputs.reasoning }}
+
+          **📊 Final Results:**
+          - **Mode:** Analysis-Only (no builds or tests executed)
+          - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
+          - **Status:** Analysis Complete ✅
+
+          _🔍 [View complete analysis workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Analysis-only mode_
+          EOF
+          else
+            # Generate status icon based on test results
+            IOS_RESULT="${{ needs.ios-ai-tests.result || 'skipped' }}"
+            ANDROID_RESULT="${{ needs.android-ai-tests.result || 'skipped' }}"
+
+            # Determine overall status
+            if [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
+              STATUS_ICON="❌"
+              STATUS_TEXT="Failed"
+            elif [[ "$IOS_RESULT" == "cancelled" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
+              STATUS_ICON="⏸️"
+              STATUS_TEXT="Cancelled"
+            elif [[ "$IOS_RESULT" == "success" ]] || [[ "$ANDROID_RESULT" == "success" ]]; then
+              STATUS_ICON="✅"
+              STATUS_TEXT="Completed"
+            else
+              STATUS_ICON="🔄"
+              STATUS_TEXT="Completed"
+            fi
+
+            # Generate test results final comment content
+            cat > pr_comment_final.md << EOF
           ## 🤖 AI E2E Test Analysis $STATUS_ICON
 
           **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
 
-          **Final Results:**
+          **🧪 Final Results:**
           - **iOS Jobs:** ${{ needs.platform-conditions.outputs.actual-ios-jobs }} (Result: $IOS_RESULT)
           - **Android Jobs:** ${{ needs.platform-conditions.outputs.actual-android-jobs }} (Result: $ANDROID_RESULT)
           - **Total CI Jobs:** ${{ needs.platform-conditions.outputs.actual-total-jobs }}
@@ -603,6 +646,7 @@ jobs:
 
           <!-- ai-e2e-analysis -->
           EOF
+          fi
 
           # Create new final comment
           echo "📝 Creating new AI E2E final results comment..."
