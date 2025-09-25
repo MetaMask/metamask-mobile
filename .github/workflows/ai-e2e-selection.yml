@@ -286,9 +286,9 @@ jobs:
         run: |
           echo "🗑️ Deleting all existing AI E2E comments..."
 
-          # Get all AI E2E comment IDs
+          # Get all AI E2E comment IDs (both analysis-only and test mode comments)
           ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
-            --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis")) | .id')
+            --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis|🔍 AI E2E Analysis Report")) | .id')
 
           COMMENT_COUNT=$(echo "$ALL_COMMENT_IDS" | wc -l | tr -d ' ')
           echo "📊 Found $COMMENT_COUNT existing AI E2E comments"
@@ -562,7 +562,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Delete existing comment and create final results comment
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && needs.analyze-and-plan.outputs.analysis-only != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -570,7 +570,7 @@ jobs:
           echo "🗑️ Deleting existing AI E2E comment before creating final results..."
 
           COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
-            --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis")) | .id' \
+            --jq '.[] | select(.body | test("🤖 AI E2E Test Analysis|🔍 AI E2E Analysis Report")) | .id' \
             | tail -1)
 
           if [ -n "$COMMENT_ID" ] && [ "$COMMENT_ID" != "null" ] && [ "$COMMENT_ID" != "" ]; then
@@ -582,52 +582,27 @@ jobs:
             echo "📝 No existing AI E2E comment found to delete"
           fi
 
-          # Check if analysis-only mode
-          ANALYSIS_ONLY="${{ needs.analyze-and-plan.outputs.analysis-only }}"
+          # Generate status icon based on test results
+          IOS_RESULT="${{ needs.ios-ai-tests.result || 'skipped' }}"
+          ANDROID_RESULT="${{ needs.android-ai-tests.result || 'skipped' }}"
 
-          # Generate status icon and final comment based on mode
-          if [[ "$ANALYSIS_ONLY" == "true" ]]; then
+          # Determine overall status
+          if [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
+            STATUS_ICON="❌"
+            STATUS_TEXT="Failed"
+          elif [[ "$IOS_RESULT" == "cancelled" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
+            STATUS_ICON="⏸️"
+            STATUS_TEXT="Cancelled"
+          elif [[ "$IOS_RESULT" == "success" ]] || [[ "$ANDROID_RESULT" == "success" ]]; then
             STATUS_ICON="✅"
-            STATUS_TEXT="Analysis Complete"
-
-            # Generate analysis-only final comment content
-            cat > pr_comment_final.md << EOF
-          ## 🔍 AI E2E Analysis Report ✅
-
-          **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
-
-          **🤖 AI Analysis:**
-          > ${{ needs.analyze-and-plan.outputs.reasoning }}
-
-          **📊 Final Results:**
-          - **Mode:** Analysis-Only (no builds or tests executed)
-          - **Confidence:** ${{ needs.analyze-and-plan.outputs.confidence }}%
-          - **Status:** Analysis Complete ✅
-
-          _🔍 [View complete analysis workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) • Analysis-only mode_
-          EOF
+            STATUS_TEXT="Completed"
           else
-            # Generate status icon based on test results
-            IOS_RESULT="${{ needs.ios-ai-tests.result || 'skipped' }}"
-            ANDROID_RESULT="${{ needs.android-ai-tests.result || 'skipped' }}"
+            STATUS_ICON="🔄"
+            STATUS_TEXT="Completed"
+          fi
 
-            # Determine overall status
-            if [[ "$IOS_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "failure" ]]; then
-              STATUS_ICON="❌"
-              STATUS_TEXT="Failed"
-            elif [[ "$IOS_RESULT" == "cancelled" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
-              STATUS_ICON="⏸️"
-              STATUS_TEXT="Cancelled"
-            elif [[ "$IOS_RESULT" == "success" ]] || [[ "$ANDROID_RESULT" == "success" ]]; then
-              STATUS_ICON="✅"
-              STATUS_TEXT="Completed"
-            else
-              STATUS_ICON="🔄"
-              STATUS_TEXT="Completed"
-            fi
-
-            # Generate test results final comment content
-            cat > pr_comment_final.md << EOF
+          # Generate test results final comment content
+          cat > pr_comment_final.md << EOF
           ## 🤖 AI E2E Test Analysis $STATUS_ICON
 
           **Risk Level:** ${{ needs.analyze-and-plan.outputs.risk-level }} | **Selected Tags:** ${{ needs.analyze-and-plan.outputs.selected-tags-display }}
@@ -646,7 +621,6 @@ jobs:
 
           <!-- ai-e2e-analysis -->
           EOF
-          fi
 
           # Create new final comment
           echo "📝 Creating new AI E2E final results comment..."
