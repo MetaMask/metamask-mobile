@@ -4,6 +4,7 @@ import { personalSignatureConfirmationState } from '../../../../../../../util/te
 import AccountNetworkInfoExpanded from './account-network-info-expanded';
 import { isPortfolioViewEnabled } from '../../../../../../../util/networks';
 import { useSelectedAccountMultichainBalances } from '../../../../../../../components/hooks/useMultichainBalances';
+import { MAINNET_DISPLAY_NAME } from '../../../../../../../core/Engine/constants';
 
 jest.mock('../../../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../../../util/networks'),
@@ -68,6 +69,6 @@ describe('AccountNetworkInfoExpanded', () => {
     expect(getByText('Balance')).toBeDefined();
     expect(getByText('$0.00')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
-    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByText(MAINNET_DISPLAY_NAME)).toBeDefined();
   });
 });
