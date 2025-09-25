@@ -90,6 +90,7 @@ export function usePredictClaimablePositions(
           completedClaimPositionIds.has(position.id),
         );
 
+        // TODO: Remove this once we have a better way to handle claimed positions in the backend
         // If positions still contain claimed ones, retry up to 3 times with 3-second intervals
         if (hasCompletedPositions && completedClaimPositionIds.size > 0) {
           for (let attempt = 0; attempt < 3; attempt++) {

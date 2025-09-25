@@ -67,7 +67,11 @@ jest.mock('../../components/MarketsWonCard', () => {
       onClaimPress,
       numberOfMarketsWon,
       totalClaimableAmount,
-    }: any) {
+    }: {
+      onClaimPress: () => void;
+      numberOfMarketsWon: number;
+      totalClaimableAmount: number;
+    }) {
       return (
         <TouchableOpacity testID="markets-won-card" onPress={onClaimPress}>
           <Text testID="markets-won-count">{numberOfMarketsWon}</Text>
@@ -82,7 +86,13 @@ jest.mock('../../components/PredictPosition', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: function MockPredictPosition({ position, onPress }: any) {
+    default: function MockPredictPosition({
+      position,
+      onPress,
+    }: {
+      position: { id: string; title: string };
+      onPress: () => void;
+    }) {
       return (
         <TouchableOpacity testID={`position-${position.id}`} onPress={onPress}>
           <Text>{position.title}</Text>
@@ -131,7 +141,7 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: function MockSkeleton({ testID }: any) {
+      default: function MockSkeleton({ testID }: { testID?: string }) {
         return <View testID={testID} />;
       },
     };
@@ -171,7 +181,14 @@ jest.mock('@shopify/flash-list', () => {
       data,
       renderItem,
       refreshControl,
-    }: any) => {
+    }: {
+      ListEmptyComponent?: () => React.ReactNode;
+      ListHeaderComponent?: () => React.ReactNode;
+      ListFooterComponent?: () => React.ReactNode;
+      data?: unknown[];
+      renderItem?: (info: { item: unknown }) => React.ReactNode;
+      refreshControl?: React.ReactNode;
+    }) => {
       const isEmpty = !data || data.length === 0;
 
       return (
@@ -183,9 +200,9 @@ jest.mock('@shopify/flash-list', () => {
             <View testID="empty-state">{ListEmptyComponent}</View>
           )}
           {!isEmpty &&
-            data.map((item: any, index: number) => (
+            data.map((item: unknown, index: number) => (
               <View key={index} testID={`list-item-${index}`}>
-                {renderItem({ item })}
+                {renderItem?.({ item })}
               </View>
             ))}
           {ListFooterComponent && (
