@@ -21,6 +21,11 @@ interface UsePredictPositionsOptions {
    * @default true
    */
   refreshOnFocus?: boolean;
+
+  /**
+   * The parameters to load positions for
+   */
+  claimable?: boolean;
 }
 
 interface UsePredictPositionsReturn {
@@ -39,7 +44,12 @@ interface UsePredictPositionsReturn {
 export function usePredictPositions(
   options: UsePredictPositionsOptions = {},
 ): UsePredictPositionsReturn {
-  const { providerId, loadOnMount = true, refreshOnFocus = true } = options;
+  const {
+    providerId,
+    loadOnMount = true,
+    refreshOnFocus = true,
+    claimable = false,
+  } = options;
 
   const { getPositions } = usePredictTrading();
 
@@ -69,13 +79,19 @@ export function usePredictPositions(
         const positionsData = await getPositions({
           address: selectedInternalAccountAddress ?? '',
           providerId,
+          claimable,
         });
         const validPositions = positionsData ?? [];
-        setPositions(validPositions);
+        // Filter out positions that have been completed (claimed)
+        const filteredPositions = validPositions.filter(
+          (position) => !position.redeemable,
+        );
+        setPositions(filteredPositions);
 
         DevLogger.log('usePredictPositions: Loaded positions', {
-          count: validPositions.length,
-          positions: validPositions.map((p) => ({
+          originalCount: validPositions.length,
+          filteredCount: filteredPositions.length,
+          positions: filteredPositions.map((p) => ({
             size: p.size,
             conditionId: p.conditionId,
             outcomeIndex: p.outcomeIndex,
@@ -92,7 +108,7 @@ export function usePredictPositions(
         setIsRefreshing(false);
       }
     },
-    [getPositions, selectedInternalAccountAddress, providerId],
+    [getPositions, selectedInternalAccountAddress, providerId, claimable],
   );
 
   // Load positions on mount if enabled

@@ -14,6 +14,7 @@ import { getRecurrence } from '../../utils/format';
 import {
   ClobAuthDomain,
   EIP712Domain,
+  HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
@@ -640,6 +641,7 @@ export const parsePolymarketPositions = ({
     marketId: position.conditionId,
     outcomeId: position.conditionId,
     outcomeTokenId: position.asset,
+    negRisk: position.negativeRisk,
     amount: position.size,
     price: position.curPrice,
     status: (position.redeemable
@@ -728,3 +730,62 @@ export const getMarketFromPolymarketApi = async ({
   const market = responseData[0];
   return market as PolymarketApiMarket;
 };
+
+export const encodeRedeemPositions = ({
+  collateralToken,
+  parentCollectionId,
+  conditionId,
+  indexSets,
+}: {
+  collateralToken: string;
+  parentCollectionId: string;
+  conditionId: string;
+  indexSets: (bigint | string | number)[];
+}): Hex =>
+  new Interface([
+    'function redeemPositions(address collateralToken, bytes32 parentCollectionId, bytes32 conditionId, uint256[] indexSets)',
+  ]).encodeFunctionData('redeemPositions', [
+    collateralToken,
+    parentCollectionId,
+    conditionId,
+    indexSets,
+  ]) as Hex;
+
+export const encodeRedeemNegRiskPositions = ({
+  conditionId,
+  amounts,
+}: {
+  conditionId: string;
+  // amounts should always have length 2, with the first element being the amount of yes tokens to redeem and the
+  // second element being the amount of no tokens to redeem
+  amounts: (bigint | string | number)[];
+}): Hex =>
+  new Interface([
+    'function redeemPositions(bytes32 _conditionId, uint256[] calldata _amounts)',
+  ]).encodeFunctionData('redeemPositions', [conditionId, amounts]) as Hex;
+
+export function encodeClaim(
+  conditionId: string,
+  negRisk: boolean,
+  amounts?: (bigint | string | number)[],
+): Hex {
+  const contractConfig = getContractConfig(POLYGON_MAINNET_CHAIN_ID);
+  if (!negRisk) {
+    return encodeRedeemPositions({
+      collateralToken: contractConfig.collateral,
+      parentCollectionId: HASH_ZERO_BYTES32,
+      conditionId,
+      indexSets: [1, 2],
+    });
+  }
+
+  // When negRisk is true, amounts must be provided
+  if (!amounts) {
+    throw new Error('amounts parameter is required when negRisk is true');
+  }
+
+  return encodeRedeemNegRiskPositions({
+    conditionId,
+    amounts,
+  });
+}

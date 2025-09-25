@@ -10,6 +10,7 @@ jest.mock('../../../../core/Engine', () => ({
       getPositions: jest.fn(),
       buy: jest.fn(),
       sell: jest.fn(),
+      claim: jest.fn(),
     },
   },
 }));
@@ -196,6 +197,146 @@ describe('usePredictTrading', () => {
     });
   });
 
+  describe('claim', () => {
+    const mockClaimablePositions = [
+      {
+        id: 'position-123',
+        providerId: 'provider-456',
+        marketId: 'market-789',
+        outcomeId: 'outcome-101',
+        outcome: 'UP',
+        outcomeTokenId: 'outcome-token-202',
+        title: 'BTC UP',
+        icon: 'btc-icon.png',
+        amount: 100,
+        price: 1.0,
+        status: 'redeemable' as const,
+        size: 100,
+        outcomeIndex: 0,
+        realizedPnl: 50,
+        curPrice: 1.5,
+        conditionId: 'condition-303',
+        percentPnl: 50,
+        cashPnl: 50,
+        redeemable: true,
+        initialValue: 100,
+        avgPrice: 1.0,
+        currentValue: 150,
+        endDate: '2025-01-01',
+      },
+      {
+        id: 'position-456',
+        providerId: 'provider-789',
+        marketId: 'market-101',
+        outcomeId: 'outcome-202',
+        outcome: 'DOWN',
+        outcomeTokenId: 'outcome-token-303',
+        title: 'ETH DOWN',
+        icon: 'eth-icon.png',
+        amount: 75,
+        price: 1.2,
+        status: 'redeemable' as const,
+        size: 75,
+        outcomeIndex: 1,
+        realizedPnl: 25,
+        curPrice: 1.5,
+        conditionId: 'condition-404',
+        percentPnl: 33.33,
+        cashPnl: 25,
+        redeemable: true,
+        initialValue: 75,
+        avgPrice: 1.2,
+        currentValue: 112.5,
+        endDate: '2025-02-01',
+      },
+    ];
+
+    it('calls PredictController.claim and returns result', async () => {
+      const mockClaimResult = {
+        txMeta: { id: 'tx-789', hash: '0xghi789' },
+        success: true,
+        claimedAmount: 175,
+      };
+
+      (Engine.context.PredictController.claim as jest.Mock).mockResolvedValue(
+        mockClaimResult,
+      );
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const response = await result.current.claim({
+        positions: mockClaimablePositions,
+      });
+
+      expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
+        positions: mockClaimablePositions,
+      });
+      expect(response).toEqual(mockClaimResult);
+    });
+
+    it('handles errors from PredictController.claim', async () => {
+      const mockError = new Error('Failed to claim winnings');
+      (Engine.context.PredictController.claim as jest.Mock).mockRejectedValue(
+        mockError,
+      );
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      await expect(
+        result.current.claim({
+          positions: mockClaimablePositions,
+        }),
+      ).rejects.toThrow('Failed to claim winnings');
+    });
+
+    it('handles empty positions array', async () => {
+      const mockClaimResult = {
+        txMeta: { id: 'tx-empty', hash: '0xempty' },
+        success: true,
+        claimedAmount: 0,
+      };
+
+      (Engine.context.PredictController.claim as jest.Mock).mockResolvedValue(
+        mockClaimResult,
+      );
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const response = await result.current.claim({
+        positions: [],
+      });
+
+      expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
+        positions: [],
+      });
+      expect(response).toEqual(mockClaimResult);
+    });
+
+    it('handles single position claim', async () => {
+      const singlePosition = [mockClaimablePositions[0]];
+      const mockClaimResult = {
+        txMeta: { id: 'tx-single', hash: '0xsingle' },
+        success: true,
+        claimedAmount: 150,
+      };
+
+      (Engine.context.PredictController.claim as jest.Mock).mockResolvedValue(
+        mockClaimResult,
+      );
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const response = await result.current.claim({
+        positions: singlePosition,
+      });
+
+      expect(Engine.context.PredictController.claim).toHaveBeenCalledWith({
+        positions: singlePosition,
+      });
+      expect(response).toEqual(mockClaimResult);
+    });
+  });
+
   describe('hook stability', () => {
     it('returns stable function references', () => {
       const { result, rerender } = renderHook(() => usePredictTrading());
@@ -203,12 +344,14 @@ describe('usePredictTrading', () => {
       const initialGetPositions = result.current.getPositions;
       const initialBuy = result.current.buy;
       const initialSell = result.current.sell;
+      const initialClaim = result.current.claim;
 
       rerender({});
 
       expect(result.current.getPositions).toBe(initialGetPositions);
       expect(result.current.buy).toBe(initialBuy);
       expect(result.current.sell).toBe(initialSell);
+      expect(result.current.claim).toBe(initialClaim);
     });
   });
 });

@@ -1,6 +1,22 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Provider } from 'react-redux';
+import configureStore from 'redux-mock-store';
+
+const mockStore = configureStore([]);
+const store = mockStore({
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        selectedAddress: '0x123',
+      },
+    },
+  },
+});
+
+const renderWithProviders = (component: React.ReactElement) =>
+  render(<Provider store={store}>{component}</Provider>);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
@@ -20,6 +36,20 @@ jest.mock('../../hooks/usePredictPositions', () => ({
 
 jest.mock('../../hooks/usePredictNotifications', () => ({
   usePredictNotifications: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/usePredictClaimablePositions', () => ({
+  usePredictClaimablePositions: jest.fn(() => ({
+    claimablePositions: [],
+    loadPositions: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePredictClaim', () => ({
+  usePredictClaim: jest.fn(() => ({
+    claim: jest.fn(),
+    loading: false,
+  })),
 }));
 
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -143,13 +173,13 @@ import PredictTabView from './PredictTabView';
 
 describe('PredictTabView', () => {
   it('renders empty state when positions array is empty', () => {
-    render(<PredictTabView />);
+    renderWithProviders(<PredictTabView />);
 
     expect(screen.getByTestId('empty-state')).toBeOnTheScreen();
   });
 
   it('displays correct empty state content', () => {
-    render(<PredictTabView />);
+    renderWithProviders(<PredictTabView />);
 
     expect(screen.getByTestId('mock-icon')).toBeOnTheScreen();
     expect(screen.getByText('predict.tab.no_predictions')).toBeOnTheScreen();
@@ -168,7 +198,7 @@ describe('PredictTabView', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    render(<PredictTabView />);
+    renderWithProviders(<PredictTabView />);
 
     // since the mock component doesn't actually call nav,
     // this tests that the button is rendered and can be pressed

@@ -6,6 +6,7 @@ import { PredictCategory, Side } from '../../types';
 import {
   ClobAuthDomain,
   EIP712Domain,
+  HASH_ZERO_BYTES32,
   MATIC_CONTRACTS,
   MSG_TO_SIGN,
   POLYGON_MAINNET_CHAIN_ID,
@@ -39,6 +40,9 @@ import {
   decimalPlaces,
   deriveApiKey,
   encodeApprove,
+  encodeClaim,
+  encodeRedeemNegRiskPositions,
+  encodeRedeemPositions,
   generateSalt,
   getContractConfig,
   getL1Headers,
@@ -1247,6 +1251,7 @@ describe('polymarket utils', () => {
         marketId: 'condition-1',
         outcomeId: 'condition-1',
         outcomeTokenId: 'position-1',
+        negRisk: false,
         amount: 100,
         price: 0.6,
         status: 'open',
@@ -1259,6 +1264,7 @@ describe('polymarket utils', () => {
         marketId: 'condition-1',
         outcomeId: 'condition-1',
         outcomeTokenId: 'position-2',
+        negRisk: false,
         amount: 50,
         price: 0.4,
         status: 'redeemable',
@@ -1433,6 +1439,171 @@ describe('polymarket utils', () => {
       await expect(
         getMarketFromPolymarketApi({ conditionId: 'market-1' }),
       ).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('encodeRedeemPositions', () => {
+    it('encode redeem positions function call correctly', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [1, 2];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('handle different index sets', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [1, 2, 3, 4];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle bigint amounts', () => {
+      const collateralToken = '0x1234567890123456789012345678901234567890';
+      const parentCollectionId = HASH_ZERO_BYTES32;
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const indexSets = [BigInt(1), BigInt(2)];
+
+      const result = encodeRedeemPositions({
+        collateralToken,
+        parentCollectionId,
+        conditionId,
+        indexSets,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('encodeRedeemNegRiskPositions', () => {
+    it('encode redeem neg risk positions function call correctly', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = [100, 200];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('handle bigint amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = [BigInt(100), BigInt(200)];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle string amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const amounts = ['100', '200'];
+
+      const result = encodeRedeemNegRiskPositions({
+        conditionId,
+        amounts,
+      });
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('encodeClaim', () => {
+    it('encode claim for non-negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = false;
+
+      const result = encodeClaim(conditionId, negRisk);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+      // Should be a valid hex string
+      expect(() => parseInt(result.slice(2), 16)).not.toThrow();
+    });
+
+    it('encode claim for negRisk positions with amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = [100, 200];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('throw error for negRisk positions without amounts', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+
+      expect(() => encodeClaim(conditionId, negRisk)).toThrow(
+        'amounts parameter is required when negRisk is true',
+      );
+    });
+
+    it('handle bigint amounts for negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = [BigInt(100), BigInt(200)];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
+    });
+
+    it('handle string amounts for negRisk positions', () => {
+      const conditionId =
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890';
+      const negRisk = true;
+      const amounts = ['100', '200'];
+
+      const result = encodeClaim(conditionId, negRisk, amounts);
+
+      expect(typeof result).toBe('string');
+      expect(result.startsWith('0x')).toBe(true);
     });
   });
 });

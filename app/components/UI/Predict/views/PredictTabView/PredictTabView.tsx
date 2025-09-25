@@ -8,7 +8,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { default as React, useCallback, useRef } from 'react';
-import { RefreshControl, View } from 'react-native';
+import { Alert, RefreshControl, View } from 'react-native';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import Routes from '../../../../../constants/navigation/Routes';
 import MarketsWonCard from '../../components/MarketsWonCard';
@@ -19,6 +19,8 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictNotifications } from '../../hooks/usePredictNotifications';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
+import { usePredictClaimablePositions } from '../../hooks/usePredictClaimablePositions';
+import { usePredictClaim } from '../../hooks/usePredictClaim';
 
 interface PredictTabViewProps {}
 
@@ -28,6 +30,20 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
     usePredictPositions({
       loadOnMount: true,
     });
+  const { claimablePositions, loadPositions: loadClaimablePositions } =
+    usePredictClaimablePositions({
+      loadOnMount: true,
+    });
+  const { claim, loading: isClaiming } = usePredictClaim({
+    onComplete: () => {
+      loadPositions({ isRefresh: true });
+      loadClaimablePositions({ isRefresh: true });
+      Alert.alert('Claimed');
+    },
+    onError: (claimError) => {
+      Alert.alert('Error claiming winnings', claimError.message);
+    },
+  });
   const listRef = useRef<FlashListRef<PredictPositionType>>(null);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -35,18 +51,17 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   // TODO: remove this once we have a better way to trigger notifications globally
   usePredictNotifications();
 
-  const renderMarketsWonCard = useCallback(() => {
-    const claimablePositions = positions.filter(
-      (position) =>
-        position.redeemable &&
-        position.cashPnl > 0 &&
-        position.realizedPnl === 0,
-    );
+  const handleClaimPress = useCallback(() => {
+    claim({
+      positions: claimablePositions,
+    });
+  }, [claim, claimablePositions]);
 
+  const renderMarketsWonCard = useCallback(() => {
     if (claimablePositions.length === 0) return null;
 
     const totalClaimableAmount = claimablePositions.reduce(
-      (sum, position) => sum + position.cashPnl,
+      (sum: number, position: PredictPositionType) => sum + position.cashPnl,
       0,
     );
 
@@ -60,12 +75,11 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
         totalClaimableAmount={totalClaimableAmount}
         unrealizedAmount={unrealizedAmount}
         unrealizedPercent={unrealizedPercent}
-        onClaimPress={() => {
-          // TODO: Implement claim winnings functionality
-        }}
+        onClaimPress={handleClaimPress}
+        isLoading={isClaiming}
       />
     );
-  }, [positions]);
+  }, [claimablePositions, handleClaimPress, isClaiming]);
 
   const renderItem = useCallback(
     ({ item }: { item: PredictPositionType }) => (
