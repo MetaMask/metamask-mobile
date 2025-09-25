@@ -454,15 +454,15 @@ class OptinMetrics extends PureComponent {
                 <TouchableOpacity
                   style={styles.checkbox}
                   onPress={this.handleBasicUsageToggle}
+                  testID={
+                    MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
+                  }
                   activeOpacity={1}
                 >
                   <Checkbox
                     isChecked={this.state.isBasicUsageChecked}
                     accessibilityRole={'checkbox'}
                     accessible
-                    testID={
-                      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX
-                    }
                   />
                   <View style={styles.flexContainer}>
                     <Text

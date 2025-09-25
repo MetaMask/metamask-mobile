@@ -311,6 +311,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "marginRight": 25,
                                     }
                                   }
+                                  testID="optin-metrics-metrics-checkbox"
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
@@ -324,7 +325,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                         "opacity": 1,
                                       }
                                     }
-                                    testID="optin-metrics-metrics-checkbox"
                                   >
                                     <View
                                       accessibilityRole="checkbox"
@@ -354,7 +354,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                             "width": 20,
                                           }
                                         }
-                                        testID="optin-metrics-metrics-checkbox"
+                                        testID="checkbox-icon-component"
                                         width={20}
                                       />
                                     </View>
@@ -991,6 +991,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "marginRight": 25,
                                     }
                                   }
+                                  testID="optin-metrics-metrics-checkbox"
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
@@ -1004,7 +1005,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                         "opacity": 1,
                                       }
                                     }
-                                    testID="optin-metrics-metrics-checkbox"
                                   >
                                     <View
                                       accessibilityRole="checkbox"
@@ -1034,7 +1034,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                             "width": 20,
                                           }
                                         }
-                                        testID="optin-metrics-metrics-checkbox"
+                                        testID="checkbox-icon-component"
                                         width={20}
                                       />
                                     </View>
@@ -1783,6 +1783,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                       "marginRight": 25,
                                     }
                                   }
+                                  testID="optin-metrics-metrics-checkbox"
                                 >
                                   <TouchableOpacity
                                     accessibilityRole="checkbox"
@@ -1796,7 +1797,6 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                         "opacity": 1,
                                       }
                                     }
-                                    testID="optin-metrics-metrics-checkbox"
                                   >
                                     <View
                                       accessibilityRole="checkbox"
@@ -1826,7 +1826,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                             "width": 20,
                                           }
                                         }
-                                        testID="optin-metrics-metrics-checkbox"
+                                        testID="checkbox-icon-component"
                                         width={20}
                                       />
                                     </View>
