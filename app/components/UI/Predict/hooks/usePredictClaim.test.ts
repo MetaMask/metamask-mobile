@@ -72,11 +72,11 @@ function createMockPosition(overrides = {}) {
     conditionId: 'condition-303',
     percentPnl: 50,
     cashPnl: 25,
-    redeemable: true,
     initialValue: 50,
     avgPrice: 1.5,
     currentValue: 90,
     endDate: '2025-12-31',
+    claimable: true,
     ...overrides,
   };
 }

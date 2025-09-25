@@ -84,11 +84,11 @@ describe('usePredictSell', () => {
     conditionId: 'condition-123',
     percentPnl: 20,
     cashPnl: 5,
-    redeemable: true,
     initialValue: 50,
     avgPrice: 0.5,
     currentValue: 60,
     endDate: '2024-12-31',
+    claimable: true,
   };
 
   beforeEach(() => {

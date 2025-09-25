@@ -1299,6 +1299,7 @@ describe('polymarket utils', () => {
         icon: 'https://example.com/icon1.png',
         size: 100,
         claimable: false,
+        currentValue: 60,
       });
 
       expect(result[1]).toEqual({
