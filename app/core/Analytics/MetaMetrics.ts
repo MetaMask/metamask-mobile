@@ -1,31 +1,26 @@
 import {
-  CountFlushPolicy,
   createClient,
   GroupTraits,
   JsonMap,
-  TimerFlushPolicy,
   UserTraits,
+  CountFlushPolicy,
+  TimerFlushPolicy,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
+import StorageWrapper from '../../store/storage-wrapper';
+import Logger from '../../util/Logger';
 import {
   AGREED,
   ANALYTICS_DATA_DELETION_DATE,
   ANALYTICS_DATA_RECORDED,
   DENIED,
-  METAMETRICS_DELETION_REGULATION_ID,
   METAMETRICS_ID,
+  METAMETRICS_DELETION_REGULATION_ID,
   METRICS_OPT_IN,
   METRICS_OPT_IN_SOCIAL_LOGIN,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
-import StorageWrapper from '../../store/storage-wrapper';
-import Logger from '../../util/Logger';
 
-import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
-import { v4 as uuidv4 } from 'uuid';
-import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
-import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import { isE2E } from '../../util/test/utils';
 import {
   DataDeleteDate,
   DataDeleteRegulationId,
@@ -38,6 +33,11 @@ import {
   ISegmentClient,
   ITrackingEvent,
 } from './MetaMetrics.types';
+import { v4 as uuidv4 } from 'uuid';
+import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
+import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 import { segmentPersistor } from './SegmentPersistor';
