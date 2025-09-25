@@ -684,11 +684,17 @@ class AuthenticationService {
     locked = false,
     navigateToLogin = true,
   } = {}): Promise<void> => {
-    const { KeyringController } = Engine.context;
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
+
+    if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // SeedlessOnboardingController.setLocked() will not throw, it swallow the error in the function
+      await SeedlessOnboardingController.setLocked();
+    }
+
     // async check seedless password outdated skip cache when app lock
     // the function swallowed the error
     this.checkIsSeedlessPasswordOutdated(true);

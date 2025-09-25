@@ -14,6 +14,7 @@ import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
 import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
 import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
+import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../app/components/Views/MultichainAccounts/IntroModal/testIds.js';
 
 /**
  * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
@@ -76,10 +77,11 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  await OnboardingSheet.tapNotNow();
+  await tapPerpsBottomSheetGotItButton(device);
+  await dismissMultichainAccountsIntroModal(device);
+  await dismissSystemDialogs(device);
 
   await WalletMainScreen.isMainWalletViewVisible();
-  await dismissSystemDialogs(device);
 }
 
 export async function importSRPFlow(device, srp) {
@@ -108,7 +110,7 @@ export async function importSRPFlow(device, srp) {
   timer.stop();
 
   timer2.start();
-  await AccountListComponent.tapAddAccountButton();
+  await AccountListComponent.tapCreateAccountButton();
   await AddAccountModal.isVisible();
   timer2.stop();
 
@@ -128,25 +130,26 @@ export async function importSRPFlow(device, srp) {
   return timers;
 }
 
-export async function login(device, scenarioType) {
+export async function login(device, options = {}) {
   LoginScreen.device = device;
+  const { skipIntro = false, scenarioType = 'login' } = options;
 
   const password = getPasswordForScenario(scenarioType);
 
   // Type password and unlock
   await LoginScreen.typePassword(password);
   await LoginScreen.tapUnlockButton();
-  await tapPerpsBottomSheetGotItButton(device);
   // Wait for app to settle after unlock
   await dismissSystemDialogs(device);
+
+  // Only tap intro screens on first login
+  if (!skipIntro) {
+    await dismissMultichainAccountsIntroModal(device);
+    await tapPerpsBottomSheetGotItButton(device);
+    await dismissSystemDialogs(device);
+  }
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
-  // Only skip perps onboarding on Android devices
-  if (!AppwrightSelectors.isAndroid(device)) {
-    console.log('Skipping perps onboarding skip - not an Android device');
-    return; // this behavior is a bit strange, using builds from main i do not see perps on android, but on other branches i do on iOS
-  }
-
   console.log('Looking for perps onboarding button...');
   const button = await AppwrightSelectors.getElementByID(
     device,
@@ -154,4 +157,17 @@ export async function tapPerpsBottomSheetGotItButton(device) {
   );
   await button.tap();
   console.log('Perps onboarding dismissed');
+}
+
+export async function dismissMultichainAccountsIntroModal(
+  device,
+  timeout = 5000,
+) {
+  const closeButton = await AppwrightSelectors.getElementByID(
+    device,
+    MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
+  );
+  if (await closeButton.isVisible({ timeout })) {
+    await closeButton.tap();
+  }
 }

@@ -1,18 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionApproval renders QR signing modal if signing QR object is exists 1`] = `
-<QRSigningModal
-  QRState={
-    {
-      "test": "value",
-    }
-  }
-  isVisible={true}
-  onCancel={[Function]}
-  onFailure={[Function]}
-  onSuccess={[Function]}
-/>
-`;
+exports[`TransactionApproval renders QR signing modal if signing QR object is exists 1`] = `""`;
 
 exports[`TransactionApproval renders approval component if transaction type is dapp 1`] = `
 <Component

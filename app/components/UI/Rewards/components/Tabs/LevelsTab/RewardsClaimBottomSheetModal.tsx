@@ -144,6 +144,7 @@ const RewardsClaimBottomSheetModal = ({
           label: strings('rewards.unlocked_rewards.cta_label'),
           onPress: handleClaimReward,
           variant: ButtonVariant.Primary,
+          loading: isClaimingReward,
           disabled: isClaimingReward,
         };
       case SeasonRewardType.ALPHA_FOX_INVITE:
@@ -152,6 +153,7 @@ const RewardsClaimBottomSheetModal = ({
           onPress: handleClaimReward,
           variant: ButtonVariant.Primary,
           disabled: isClaimingReward,
+          loading: isClaimingReward,
         };
       default:
         return {
@@ -181,6 +183,7 @@ const RewardsClaimBottomSheetModal = ({
         size={ButtonSize.Lg}
         onPress={confirmAction.onPress}
         disabled={buttonDisabled}
+        isLoading={confirmAction.loading}
         twClassName="w-full"
         testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON}
       >
@@ -251,6 +254,8 @@ const RewardsClaimBottomSheetModal = ({
     if (showInput) {
       return (
         <TextField
+          textAlignVertical="center"
+          textAlign="left"
           placeholder={inputPlaceholder}
           onChangeText={setInputValue}
           value={inputValue}

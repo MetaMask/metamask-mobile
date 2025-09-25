@@ -523,13 +523,14 @@ enum EVENT_NAME {
   PERPS_TUTORIAL_VIEWED = 'Perp Tutorial Viewed',
   PERPS_TUTORIAL_STARTED = 'Perp Tutorial Started',
   PERPS_TUTORIAL_COMPLETED = 'Perp Tutorial Completed',
+  PERPS_TUTORIAL_CAROUSEL_NAVIGATED = 'Perp Tutorial Carousel Navigated',
 
   // Account Funding Flow
   PERPS_FUNDING_INPUT_VIEWED = 'Perp Funding Input Viewed',
   PERPS_FUNDING_REVIEW_VIEWED = 'Perp Funding Review Viewed',
-  PERPS_FUNDING_INITIATED = 'Perp Funding Initiated',
-  PERPS_FUNDING_COMPLETED = 'Perp Funding Completed',
-  PERPS_FUNDING_FAILED = 'Perp Funding Failed',
+
+  // Balance Management Flow
+  PERPS_BALANCE_MODAL_VIEWED = 'Perp Balance Modal Viewed',
 
   // Account Withdrawal Flow
   PERPS_WITHDRAWAL_INPUT_VIEWED = 'Perp Withdrawal Input Viewed',
@@ -541,6 +542,7 @@ enum EVENT_NAME {
   PERPS_MARKETS_VIEWED = 'Perp Markets Viewed',
   PERPS_ASSET_SEARCH_BAR_CLICKED = 'Perp Asset Search Bar Clicked',
   PERPS_ASSET_SCREEN_VIEWED = 'Perp Asset Screen Viewed',
+  PERPS_CHART_CANDLE_PERIODS_VIEWED = 'Perp Chart Candle Periods Viewed',
   PERPS_CHART_INTERACTION = 'Perp Chart Interaction',
   PERPS_CHART_TIME_SERIE_CHANGED = 'Perp Chart time serie changed',
 
@@ -577,9 +579,14 @@ enum EVENT_NAME {
   PERPS_WARNING_DISPLAYED = 'Warning displayed',
   PERPS_ERROR_ENCOUNTERED = 'Error Encountered',
 
+  // Full Page Modal Events
+  PERPS_FULL_PAGE_MODAL_VIEWED = 'Perp Full page modal viewed',
+  PERPS_FULL_PAGE_MODAL_TAPPED = 'Perp Full page modal tapped',
+
   // Card
   CARD_VIEWED = 'Card Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',
+  CARD_HOME_VIEWED = 'Card Home Viewed',
   CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
@@ -1363,22 +1370,27 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
-  // Perps Events - Mapped to dashboard requirements (47 events total)
-  // Tutorial Flow (3 events)
+  // Perps Events - Mapped to dashboard requirements (49 events total)
+  // Tutorial Flow (4 events)
   PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
   PERPS_TUTORIAL_STARTED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_STARTED),
   PERPS_TUTORIAL_COMPLETED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_COMPLETED),
+  PERPS_TUTORIAL_CAROUSEL_NAVIGATED: generateOpt(
+    EVENT_NAME.PERPS_TUTORIAL_CAROUSEL_NAVIGATED,
+  ),
 
-  // Account Funding Flow (5 events)
+  // Account Funding Flow (2 events)
   PERPS_FUNDING_INPUT_VIEWED: generateOpt(
     EVENT_NAME.PERPS_FUNDING_INPUT_VIEWED,
   ),
   PERPS_FUNDING_REVIEW_VIEWED: generateOpt(
     EVENT_NAME.PERPS_FUNDING_REVIEW_VIEWED,
   ),
-  PERPS_FUNDING_INITIATED: generateOpt(EVENT_NAME.PERPS_FUNDING_INITIATED),
-  PERPS_FUNDING_COMPLETED: generateOpt(EVENT_NAME.PERPS_FUNDING_COMPLETED),
-  PERPS_FUNDING_FAILED: generateOpt(EVENT_NAME.PERPS_FUNDING_FAILED),
+
+  // Balance Management Flow (1 event)
+  PERPS_BALANCE_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_BALANCE_MODAL_VIEWED,
+  ),
 
   // Account Withdrawal Flow (4 events)
   PERPS_WITHDRAWAL_INPUT_VIEWED: generateOpt(
@@ -1398,6 +1410,9 @@ const events = {
     EVENT_NAME.PERPS_ASSET_SEARCH_BAR_CLICKED,
   ),
   PERPS_ASSET_SCREEN_VIEWED: generateOpt(EVENT_NAME.PERPS_ASSET_SCREEN_VIEWED),
+  PERPS_CHART_CANDLE_PERIODS_VIEWED: generateOpt(
+    EVENT_NAME.PERPS_CHART_CANDLE_PERIODS_VIEWED,
+  ),
   PERPS_CHART_INTERACTION: generateOpt(EVENT_NAME.PERPS_CHART_INTERACTION),
   PERPS_CHART_TIME_SERIE_CHANGED: generateOpt(
     EVENT_NAME.PERPS_CHART_TIME_SERIE_CHANGED,
@@ -1429,7 +1444,7 @@ const events = {
     EVENT_NAME.PERPS_TRADE_TRANSACTION_FAILED,
   ),
 
-  // Close Position Flow (9 events)
+  // Close Position Flow (8 events)
   PERPS_HOMESCREEN_TAB_VIEWED: generateOpt(
     EVENT_NAME.PERPS_HOMESCREEN_TAB_VIEWED,
   ),
@@ -1476,6 +1491,7 @@ const events = {
   // Card
   CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
+  CARD_HOME_VIEWED: generateOpt(EVENT_NAME.CARD_HOME_VIEWED),
   CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
   CARD_ADD_FUNDS_SWAPS_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADD_FUNDS_SWAPS_CLICKED,

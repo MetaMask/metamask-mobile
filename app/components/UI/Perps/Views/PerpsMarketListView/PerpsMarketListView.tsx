@@ -13,6 +13,7 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
+import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
@@ -478,6 +479,10 @@ const PerpsMarketListView = ({
           </View>
         </View>
       )}
+
+      {/* Balance Actions Component */}
+      <PerpsMarketBalanceActions />
+
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
 
       <View style={styles.tabBarContainer}>{renderBottomTabBar()}</View>

@@ -4,23 +4,29 @@ import RewardsOverview from './RewardsOverview';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 
 // Mock ActiveBoosts component
+const mockActiveBoosts = jest.fn();
 jest.mock('./OverviewTab/ActiveBoosts', () => ({
   __esModule: true,
-  default: function MockActiveBoosts() {
-    const React = jest.requireActual('react');
+  default: function MockActiveBoosts(props: {
+    fetchActivePointsBoosts: jest.Mock;
+  }) {
+    mockActiveBoosts(props);
+    const ReactActual = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
-    return React.createElement(
+    return ReactActual.createElement(
       View,
       { testID: 'active-boosts' },
-      React.createElement(Text, null, 'Active Boosts'),
+      ReactActual.createElement(Text, null, 'Active Boosts'),
     );
   },
 }));
 
 // Mock useActivePointsBoosts hook
-const mockUseActivePointsBoosts = jest.fn();
+const mockFetchActivePointsBoosts = jest.fn();
 jest.mock('../../hooks/useActivePointsBoosts', () => ({
-  useActivePointsBoosts: () => mockUseActivePointsBoosts(),
+  useActivePointsBoosts: jest.fn(() => ({
+    fetchActivePointsBoosts: mockFetchActivePointsBoosts,
+  })),
 }));
 
 // Mock navigation
@@ -52,12 +58,12 @@ jest.mock('@react-navigation/native', () => ({
 // Mock WaysToEarn component to avoid navigation dependencies
 jest.mock('./OverviewTab/WaysToEarn/WaysToEarn', () => ({
   WaysToEarn: () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
-    return React.createElement(
+    return ReactActual.createElement(
       View,
       { testID: 'ways-to-earn-mock' },
-      React.createElement(Text, null, 'WaysToEarn Mock'),
+      ReactActual.createElement(Text, null, 'WaysToEarn Mock'),
     );
   },
 }));
@@ -72,6 +78,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 describe('RewardsOverview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockActiveBoosts.mockClear();
+    mockFetchActivePointsBoosts.mockClear();
     // Reset navigation mock calls
     Object.values(mockNavigation).forEach((mockFn) => {
       if (jest.isMockFunction(mockFn)) {
@@ -88,14 +96,6 @@ describe('RewardsOverview', () => {
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTENT_OVERVIEW),
     ).toBeOnTheScreen();
-  });
-
-  it('should call useActivePointsBoosts hook on mount', () => {
-    // Arrange & Act
-    render(<RewardsOverview />);
-
-    // Assert
-    expect(mockUseActivePointsBoosts).toHaveBeenCalledTimes(1);
   });
 
   it('should apply correct flex styling to container', () => {
@@ -149,5 +149,30 @@ describe('RewardsOverview', () => {
 
     // Assert
     expect(container.props.showsVerticalScrollIndicator).toBe(false);
+  });
+
+  it('should pass fetchActivePointsBoosts to ActiveBoosts component', () => {
+    // Arrange & Act
+    render(<RewardsOverview />);
+
+    // Assert
+    expect(mockActiveBoosts).toHaveBeenCalledTimes(1);
+    expect(mockActiveBoosts).toHaveBeenCalledWith({
+      fetchActivePointsBoosts: mockFetchActivePointsBoosts,
+    });
+  });
+
+  it('should call useActivePointsBoosts hook and destructure fetchActivePointsBoosts', () => {
+    // Arrange
+    const { useActivePointsBoosts } = jest.requireMock(
+      '../../hooks/useActivePointsBoosts',
+    );
+
+    // Act
+    render(<RewardsOverview />);
+
+    // Assert
+    expect(useActivePointsBoosts).toHaveBeenCalledTimes(1);
+    expect(useActivePointsBoosts).toHaveBeenCalledWith();
   });
 });
