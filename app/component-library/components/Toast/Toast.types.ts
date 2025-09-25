@@ -42,6 +42,7 @@ interface BaseToastVariants {
   linkButtonOptions?: ToastLinkButtonOptions;
   closeButtonOptions?: ButtonProps;
   startAccessory?: ReactElement;
+  customBottomOffset?: number;
 }
 
 /**
