@@ -1,3 +1,6 @@
+// TODO: Replace existing deep link modal event tracking with consolidated DEEP_LINK_USED event
+// TODO: Implement "skipped" interstitial state for "Don't remind me again" functionality
+// TODO: Update component tests and snapshots for consolidated analytics
 import React, {
   useCallback,
   useRef,

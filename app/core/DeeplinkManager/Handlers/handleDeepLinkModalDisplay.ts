@@ -1,3 +1,5 @@
+// TODO: Add "skipped" interstitial state tracking when modal is bypassed
+// TODO: Integrate with consolidated DEEP_LINK_USED analytics event
 import {
   createDeepLinkModalNavDetails,
   DeepLinkModalParams,
