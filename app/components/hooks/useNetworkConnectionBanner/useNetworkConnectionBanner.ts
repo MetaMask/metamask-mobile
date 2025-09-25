@@ -14,9 +14,20 @@ import {
 import { NetworkConnectionBannerStatus } from '../../UI/NetworkConnectionBanner/types';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
+import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
+import onlyKeepHost from '../../../util/onlyKeepHost';
+import { INFURA_PROJECT_ID } from '../../../constants/network';
+
+const infuraProjectId = INFURA_PROJECT_ID ?? '';
 
 const SLOW_BANNER_TIMEOUT = 5 * 1000; // 5 seconds
 const UNAVAILABLE_BANNER_TIMEOUT = 30 * 1000; // 30 seconds
+
+function sanitizeRpcUrl(rpcUrl: string) {
+  return isPublicEndpointUrl(rpcUrl, infuraProjectId)
+    ? onlyKeepHost(rpcUrl)
+    : 'custom';
+}
 
 const useNetworkConnectionBanner = (): {
   networkConnectionBannerState: NetworkConnectionBannerState;
@@ -62,6 +73,7 @@ const useNetworkConnectionBanner = (): {
       )
         .addProperties({
           chain_id_caip: `eip155:${hexToNumber(chainId)}`,
+          rpc_endpoint_url: sanitizeRpcUrl(rpcUrl),
         })
         .build(),
     );
@@ -187,6 +199,9 @@ const useNetworkConnectionBanner = (): {
             chain_id_caip: `eip155:${hexToNumber(
               networkConnectionBannerState.chainId,
             )}`,
+            rpc_endpoint_url: sanitizeRpcUrl(
+              networkConnectionBannerState.rpcUrl,
+            ),
           })
           .build(),
       );

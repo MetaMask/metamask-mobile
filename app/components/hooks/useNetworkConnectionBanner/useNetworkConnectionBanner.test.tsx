@@ -16,6 +16,7 @@ import { MetaMetricsEvents, useMetrics } from '../useMetrics';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import Routes from '../../../constants/navigation/Routes';
+import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
@@ -23,6 +24,11 @@ jest.mock('../../../core/Engine');
 jest.mock('../../../selectors/networkEnablementController');
 jest.mock('../useMetrics');
 jest.mock('../../../selectors/networkConnectionBanner');
+jest.mock('../../../core/Engine/controllers/network-controller/utils');
+jest.mock('../../../constants/network', () => ({
+  ...jest.requireActual('../../../constants/network'),
+  INFURA_PROJECT_ID: 'test-infura-project-id',
+}));
 
 const mockStore = configureMockStore();
 const mockNavigation = {
@@ -106,6 +112,8 @@ describe('useNetworkConnectionBanner', () => {
   let store: ReturnType<typeof mockStore>;
   let stableTrackEvent: jest.Mock;
   let stableCreateEventBuilder: jest.Mock;
+  let mockAddProperties: jest.Mock;
+  let mockBuild: jest.Mock;
 
   const setupMocks = () => {
     jest.clearAllMocks();
@@ -125,15 +133,19 @@ describe('useNetworkConnectionBanner', () => {
 
     // Mock the useMetrics hook to return stable functions
     stableTrackEvent = jest.fn();
+    mockAddProperties = jest.fn().mockReturnThis();
+    mockBuild = jest.fn(() => ({ event: 'test-event', properties: {} }));
     stableCreateEventBuilder = jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(() => ({ event: 'test-event', properties: {} })),
+      addProperties: mockAddProperties,
+      build: mockBuild,
     }));
 
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: stableTrackEvent,
       createEventBuilder: stableCreateEventBuilder,
     });
+
+    jest.mocked(isPublicEndpointUrl).mockReturnValue(true);
 
     store = mockStore({
       networkConnectionBanner: {
@@ -233,6 +245,14 @@ describe('useNetworkConnectionBanner', () => {
         MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
+      expect(isPublicEndpointUrl).toHaveBeenCalledWith(
+        rpcUrl,
+        'test-infura-project-id',
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        chain_id_caip: 'eip155:1',
+        rpc_endpoint_url: 'mainnet.infura.io',
+      });
     });
 
     it('should track unavailable RPC update event', () => {
@@ -255,6 +275,74 @@ describe('useNetworkConnectionBanner', () => {
         MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_UPDATE_RPC_CLICKED,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
+      expect(isPublicEndpointUrl).toHaveBeenCalledWith(
+        rpcUrl,
+        'test-infura-project-id',
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        chain_id_caip: 'eip155:1',
+        rpc_endpoint_url: 'mainnet.infura.io',
+      });
+    });
+
+    it('should track RPC update event with custom endpoint for non-public URLs', () => {
+      const status = 'slow';
+      const rpcUrl = 'https://custom-rpc.example.com';
+      const chainId = '0x1';
+
+      jest.mocked(isPublicEndpointUrl).mockReturnValue(false);
+
+      (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
+        visible: true,
+        chainId,
+        status,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      act(() => {
+        result.current.updateRpc(rpcUrl, status, chainId);
+      });
+
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED,
+      );
+      expect(stableTrackEvent).toHaveBeenCalled();
+      expect(isPublicEndpointUrl).toHaveBeenCalledWith(
+        rpcUrl,
+        'test-infura-project-id',
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        chain_id_caip: 'eip155:1',
+        rpc_endpoint_url: 'custom',
+      });
+    });
+
+    it('should use mocked Infura project ID from constants', () => {
+      const status = 'slow';
+      const rpcUrl = 'https://mainnet.infura.io/v3/test';
+      const chainId = '0x1';
+
+      (selectNetworkConnectionBannerState as jest.Mock).mockReturnValue({
+        visible: true,
+        chainId,
+        status,
+      });
+
+      const { result } = renderHookWithProvider();
+
+      act(() => {
+        result.current.updateRpc(rpcUrl, status, chainId);
+      });
+
+      expect(stableCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SLOW_RPC_BANNER_UPDATE_RPC_CLICKED,
+      );
+      expect(stableTrackEvent).toHaveBeenCalled();
+      expect(isPublicEndpointUrl).toHaveBeenCalledWith(
+        rpcUrl,
+        'test-infura-project-id',
+      );
     });
 
     it('should dispatch hideNetworkConnectionBanner', () => {
@@ -490,12 +578,13 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     it('should track correct events for slow banner', () => {
+      const rpcUrl = 'https://polygon-rpc.com';
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
         chainId: '0x89',
         status: 'slow',
         networkName: 'Polygon Mainnet',
-        rpcUrl: 'https://polygon-rpc.com',
+        rpcUrl,
       });
 
       renderHookWithProvider();
@@ -504,15 +593,24 @@ describe('useNetworkConnectionBanner', () => {
         MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
+      expect(isPublicEndpointUrl).toHaveBeenCalledWith(
+        rpcUrl,
+        'test-infura-project-id',
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        chain_id_caip: 'eip155:137',
+        rpc_endpoint_url: 'polygon-rpc.com',
+      });
     });
 
     it('should track correct events for unavailable banner', () => {
+      const rpcUrl = 'https://polygon-rpc.com';
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
         chainId: '0x89',
         status: 'unavailable',
         networkName: 'Polygon Mainnet',
-        rpcUrl: 'https://polygon-rpc.com',
+        rpcUrl,
       });
 
       renderHookWithProvider();
@@ -521,6 +619,14 @@ describe('useNetworkConnectionBanner', () => {
         MetaMetricsEvents.UNAVAILABLE_RPC_BANNER_SHOWN,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
+      expect(isPublicEndpointUrl).toHaveBeenCalledWith(
+        rpcUrl,
+        'test-infura-project-id',
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        chain_id_caip: 'eip155:137',
+        rpc_endpoint_url: 'polygon-rpc.com',
+      });
     });
 
     it('should not track events when banner is not visible', () => {
@@ -644,13 +750,13 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     it('should track banner shown event when showing banner', () => {
-      // Mock the selector to return visible state directly
+      const rpcUrl = 'https://polygon-rpc.com';
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
         chainId: '0x89',
         status: 'slow',
         networkName: 'Polygon Mainnet',
-        rpcUrl: 'https://polygon-rpc.com',
+        rpcUrl,
       });
 
       renderHookWithProvider();
@@ -659,6 +765,14 @@ describe('useNetworkConnectionBanner', () => {
         MetaMetricsEvents.SLOW_RPC_BANNER_SHOWN,
       );
       expect(stableTrackEvent).toHaveBeenCalled();
+      expect(isPublicEndpointUrl).toHaveBeenCalledWith(
+        rpcUrl,
+        'test-infura-project-id',
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        chain_id_caip: 'eip155:137',
+        rpc_endpoint_url: 'polygon-rpc.com',
+      });
     });
 
     it('should not show banner for available networks', () => {
