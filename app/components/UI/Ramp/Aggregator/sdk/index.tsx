@@ -15,12 +15,11 @@ import {
   CryptoCurrency,
   Payment,
 } from '@consensys/on-ramp-sdk';
+import { getCaipChainIdFromCryptoCurrency } from '../utils';
 
 import Logger from '../../../../../util/Logger';
 
 import {
-  selectedAddressSelector,
-  chainIdSelector,
   fiatOrdersGetStartedAgg,
   setFiatOrdersGetStartedAGG,
   setFiatOrdersRegionAGG,
@@ -36,6 +35,7 @@ import { RampIntent, RampType, Region } from '../types';
 import I18n, { I18nEvents } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import useActivationKeys from '../hooks/useActivationKeys';
+import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { selectNickname } from '../../../../../selectors/networkController';
 
 const isDevelopment =
@@ -106,8 +106,7 @@ export interface RampSDK {
   getStarted: boolean;
   setGetStarted: (getStartedFlag: boolean) => void;
 
-  selectedAddress: string;
-  selectedChainId: string;
+  selectedAddress: string | null;
   selectedNetworkName?: string;
 
   isBuy: boolean;
@@ -171,8 +170,6 @@ export const RampSDKProvider = ({
   );
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
   const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
-  const selectedAddress = useSelector(selectedAddressSelector);
-  const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkNickname = useSelector(selectNickname);
   const selectedAggregatorNetworkName = useSelector(networkShortNameSelector);
   const selectedNetworkName =
@@ -193,6 +190,10 @@ export const RampSDKProvider = ({
   const [selectedAsset, setSelectedAsset] = useState<CryptoCurrency | null>(
     INITIAL_SELECTED_ASSET,
   );
+
+  const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
+  const selectedAddress = useRampAccountAddress(caipChainId);
+
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
     INITIAL_PAYMENT_METHOD_ID,
   );
@@ -280,10 +281,8 @@ export const RampSDKProvider = ({
 
       getStarted,
       setGetStarted: setGetStartedCallback,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error - Ramps team ownership"
+
       selectedAddress,
-      selectedChainId,
       selectedNetworkName,
 
       isBuy,
@@ -304,7 +303,6 @@ export const RampSDKProvider = ({
       sdkError,
       selectedAddress,
       selectedAsset,
-      selectedChainId,
       selectedFiatCurrencyId,
       selectedNetworkName,
       selectedPaymentMethodId,

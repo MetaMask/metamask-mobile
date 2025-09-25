@@ -14,6 +14,10 @@ import Animated, {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BN4 from 'bnjs4';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -23,16 +27,15 @@ import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
-
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
+
 import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
 import StyledButton from '../../../../StyledButton';
 
 import ScreenLayout from '../../components/ScreenLayout';
-import Box from '../../components/Box';
 import Row from '../../components/Row';
 import AssetSelectorButton from '../../components/AssetSelectorButton';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
@@ -40,7 +43,6 @@ import AmountInput from '../../components/AmountInput';
 import Keypad from '../../../../../Base/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
-import TokenIcon from '../../../../Swaps/components/TokenIcon';
 
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
@@ -49,6 +51,10 @@ import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import RegionModal from '../../components/RegionModal';
 import SkeletonText from '../../components/SkeletonText';
 import ErrorView from '../../components/ErrorView';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
@@ -58,12 +64,22 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { formatAmount } from '../../utils';
+import {
+  formatAmount,
+  getCaipChainIdFromCryptoCurrency,
+  getHexChainIdFromCryptoCurrency,
+} from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
+import { createIncompatibleAccountTokenModalNavigationDetails } from '../../components/IncompatibleAccountTokenModal';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { selectTicker } from '../../../../../../selectors/networkController';
+
+import {
+  selectTicker,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../../../../../../selectors/networkController';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -74,20 +90,17 @@ import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
 import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
-import ListItem from '../../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 import { FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,6 +145,9 @@ const BuildQuote = () => {
     useModalHandler(false);
 
   const nativeSymbol = useSelector(selectTicker);
+  const networkConfigurationsByCaipChainId = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   /**
    * Grab the current state of the SDK via the context.
@@ -145,7 +161,6 @@ const BuildQuote = () => {
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     selectedAddress,
-    selectedChainId,
     selectedNetworkName,
     sdkError,
     rampType,
@@ -217,7 +232,7 @@ const BuildQuote = () => {
   const gasLimitEstimation = useERC20GasLimitEstimation({
     tokenAddress: selectedAsset?.address,
     fromAddress: selectedAddress,
-    chainId: selectedChainId,
+    chainId: selectedAsset?.network?.chainId || CHAIN_IDS.MAINNET,
     amount,
     decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
     isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
@@ -244,18 +259,29 @@ const BuildQuote = () => {
   );
 
   const addressForBalance = useMemo(
-    () => (isNonEvmAddress(selectedAddress) ? undefined : selectedAddress),
+    () =>
+      selectedAddress && isNonEvmAddress(selectedAddress)
+        ? undefined
+        : selectedAddress,
     [selectedAddress],
   );
 
+  const hexChainIdForBalance = useMemo(() => {
+    if (!addressForBalance) {
+      return;
+    }
+    return getHexChainIdFromCryptoCurrency(selectedAsset);
+  }, [selectedAsset, addressForBalance]);
+
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
-    addressForBalance,
+    addressForBalance ?? undefined,
     true,
+    hexChainIdForBalance,
   );
 
-  const { balanceFiat, balanceBN, balance } = useBalance(
-    selectedAsset
+  const { balanceFiat, balanceBN } = useBalance(
+    selectedAsset && selectedAddress && selectedAsset.network
       ? {
           chainId: selectedAsset.network.chainId,
           assetId: selectedAsset.assetId,
@@ -332,6 +358,15 @@ const BuildQuote = () => {
     return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
   }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
 
+  const caipChainId = getCaipChainIdFromCryptoCurrency(selectedAsset);
+
+  const networkName = caipChainId
+    ? networkConfigurationsByCaipChainId[caipChainId]?.name
+    : undefined;
+  const networkImageSource = caipChainId
+    ? getNetworkImageSource({ chainId: caipChainId })
+    : undefined;
+
   const isFetching =
     isFetchingCryptoCurrencies ||
     isFetchingPaymentMethods ||
@@ -339,18 +374,22 @@ const BuildQuote = () => {
     isFetchingRegions;
 
   const handleCancelPress = useCallback(() => {
+    if (!selectedAsset?.network?.chainId) {
+      return;
+    }
+
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_destination: selectedChainId,
+        chain_id_destination: selectedAsset.network.chainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: screenLocation,
-        chain_id_source: selectedChainId,
+        chain_id_source: selectedAsset.network.chainId,
       });
     }
-  }, [screenLocation, isBuy, selectedChainId, trackEvent]);
+  }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -361,6 +400,7 @@ const BuildQuote = () => {
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
           showBack: params.showBack,
+          showNetwork: false,
         },
         colors,
         handleCancelPress,
@@ -551,6 +591,13 @@ const BuildQuote = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
+    if (!selectedAddress) {
+      navigation.navigate(
+        ...createIncompatibleAccountTokenModalNavigationDetails(),
+      );
+      return;
+    }
+
     if (selectedAsset && currentFiatCurrency) {
       navigation.navigate(
         ...createQuotesNavDetails({
@@ -577,19 +624,20 @@ const BuildQuote = () => {
           ...analyticsPayload,
           currency_source: currentFiatCurrency.symbol,
           currency_destination: selectedAsset.symbol,
-          chain_id_destination: selectedChainId,
+          chain_id_destination: selectedAsset.network?.chainId,
         });
       } else {
         trackEvent('OFFRAMP_QUOTES_REQUESTED', {
           ...analyticsPayload,
           currency_destination: currentFiatCurrency.symbol,
           currency_source: selectedAsset.symbol,
-          chain_id_source: selectedChainId,
+          chain_id_source: selectedAsset.network?.chainId,
         });
       }
     }
   }, [
     rampType,
+    selectedAddress,
     screenLocation,
     amount,
     amountNumber,
@@ -597,7 +645,6 @@ const BuildQuote = () => {
     isBuy,
     navigation,
     selectedAsset,
-    selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
   ]);
@@ -681,47 +728,6 @@ const BuildQuote = () => {
             ctaOnPress={retryMethod}
             location={screenLocation}
           />
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
-  if (isFetching) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content>
-            <View style={styles.flexRow}>
-              <SkeletonText large thick />
-              <SkeletonText thick smaller spacingHorizontal />
-            </View>
-            <SkeletonText thin small spacingTop spacingVertical />
-            <Box compact>
-              <ListItem>
-                <ListItemColumn>
-                  <SkeletonText />
-                </ListItemColumn>
-                <ListItemColumnEnd widthType={WidthType.Fill}>
-                  <SkeletonText thin smaller />
-                </ListItemColumnEnd>
-              </ListItem>
-            </Box>
-            <SkeletonText spacingTopSmall spacingVertical thin medium />
-            <SkeletonText thin smaller spacingVertical />
-            <Box compact>
-              <ListItem>
-                <ListItemColumn>
-                  <View style={styles.flexRow}>
-                    <SkeletonText medium />
-                  </View>
-                </ListItemColumn>
-                <ListItemColumnEnd widthType={WidthType.Fill}>
-                  <SkeletonText thin small />
-                </ListItemColumnEnd>
-              </ListItem>
-            </Box>
-            <SkeletonText spacingTopSmall spacingVertical thin medium />
-          </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -842,14 +848,18 @@ const BuildQuote = () => {
             <Row style={styles.selectors}>
               <AccountSelector isEvmOnly={isSell} />
               <View style={styles.spacer} />
-              <SelectorButton
-                accessibilityRole="button"
-                accessible
-                onPress={handleChangeRegion}
-                testID={BuildQuoteSelectors.REGION_DROPDOWN}
-              >
-                <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
-              </SelectorButton>
+              {isFetchingRegions ? (
+                <SkeletonText thick />
+              ) : (
+                <SelectorButton
+                  accessibilityRole="button"
+                  accessible
+                  onPress={handleChangeRegion}
+                  testID={BuildQuoteSelectors.REGION_DROPDOWN}
+                >
+                  <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
+                </SelectorButton>
+              )}
               {isSell ? (
                 <>
                   <View style={styles.spacer} />
@@ -866,34 +876,56 @@ const BuildQuote = () => {
               ) : null}
             </Row>
             <AssetSelectorButton
+              loading={isFetchingRegions || isFetchingCryptoCurrencies}
               label={
                 isBuy
                   ? strings('fiat_on_ramp_aggregator.want_to_buy')
                   : strings('fiat_on_ramp_aggregator.want_to_sell')
               }
               icon={
-                <TokenIcon
-                  medium
-                  icon={selectedAsset?.logo}
-                  symbol={selectedAsset?.symbol}
-                />
+                <BadgeWrapper
+                  badgePosition={BadgePosition.BottomRight}
+                  badgeElement={
+                    networkName && networkImageSource ? (
+                      <BadgeNetwork
+                        name={networkName}
+                        imageSource={networkImageSource}
+                      />
+                    ) : null
+                  }
+                >
+                  <AvatarToken
+                    name={selectedAsset?.symbol}
+                    src={{ uri: selectedAsset?.logo }}
+                    size={AvatarTokenSize.Lg}
+                    key={selectedAsset?.logo}
+                  />
+                </BadgeWrapper>
               }
               assetSymbol={selectedAsset?.symbol ?? ''}
               assetName={selectedAsset?.name ?? ''}
               onPress={handleAssetSelectorPress}
             />
-            {addressBalance ? (
-              <Row>
+            <Row>
+              {isFetchingRegions || isFetchingCryptoCurrencies ? (
+                <SkeletonText thin medium />
+              ) : (
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                  {selectedAsset?.assetId && balance ? balance : addressBalance}
-                  {balanceFiat ? ` ≈ ${balanceFiat}` : null}
+                  {addressBalance !== undefined && selectedAddress !== null ? (
+                    <>
+                      {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
+                      {addressBalance}
+                      {balanceFiat ? ` ≈ ${balanceFiat}` : null}
+                    </>
+                  ) : (
+                    ''
+                  )}
                 </Text>
-              </Row>
-            ) : null}
+              )}
+            </Row>
 
             <AmountInput
               highlighted={amountFocused}
@@ -907,6 +939,7 @@ const BuildQuote = () => {
               }
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
               onPress={onAmountInputPress}
+              loading={isFetchingRegions || isFetchingFiatCurrency}
               onCurrencyPress={isBuy ? handleFiatSelectorPress : undefined}
             />
             {amountNumber > 0 &&
@@ -980,6 +1013,12 @@ const BuildQuote = () => {
             )}
             <Row>
               <PaymentMethodSelector
+                loading={
+                  isFetchingRegions ||
+                  // isFetchingCryptoCurrencies ||
+                  // isFetchingFiatCurrency ||
+                  isFetchingPaymentMethods
+                }
                 label={
                   isBuy
                     ? strings('fiat_on_ramp_aggregator.update_payment_method')
@@ -1009,7 +1048,7 @@ const BuildQuote = () => {
               onPress={handleGetQuotePress}
               accessibilityRole="button"
               accessible
-              disabled={amountNumber <= 0}
+              disabled={amountNumber <= 0 || isFetching}
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </StyledButton>
@@ -1073,21 +1112,23 @@ const BuildQuote = () => {
         location={screenLocation}
         rampType={rampType}
       />
-      <RegionModal
-        isVisible={isRegionModalVisible}
-        title={strings('fiat_on_ramp_aggregator.region.title')}
-        description={strings(
-          isBuy
-            ? 'fiat_on_ramp_aggregator.region.description'
-            : 'fiat_on_ramp_aggregator.region.sell_description',
-        )}
-        data={regions}
-        dismiss={hideRegionModal as () => void}
-        onRegionPress={handleRegionPress}
-        location={screenLocation}
-        selectedRegion={selectedRegion}
-        rampType={rampType}
-      />
+      {regions && (
+        <RegionModal
+          isVisible={isRegionModalVisible}
+          title={strings('fiat_on_ramp_aggregator.region.title')}
+          description={strings(
+            isBuy
+              ? 'fiat_on_ramp_aggregator.region.description'
+              : 'fiat_on_ramp_aggregator.region.sell_description',
+          )}
+          data={regions}
+          dismiss={hideRegionModal as () => void}
+          onRegionPress={handleRegionPress}
+          location={screenLocation}
+          selectedRegion={selectedRegion}
+          rampType={rampType}
+        />
+      )}
     </ScreenLayout>
   );
 };

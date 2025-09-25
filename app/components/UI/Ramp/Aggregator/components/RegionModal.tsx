@@ -79,7 +79,7 @@ interface Props {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dismiss?: () => any;
-  data?: Region[] | null;
+  data: Region[];
   selectedRegion?: Region | null;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,7 +107,7 @@ const RegionModal: React.FC<Props> = ({
   const searchInput = useRef<TextInput>(null);
   const list = useRef<SectionList<Region>>(null);
   const [searchString, setSearchString] = useState('');
-  const [currentData, setCurrentData] = useState(data || []);
+  const [currentData, setCurrentData] = useState(data);
 
   // local state variable to set the active view (countries vs. regions)
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);

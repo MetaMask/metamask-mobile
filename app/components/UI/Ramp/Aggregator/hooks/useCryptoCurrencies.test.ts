@@ -15,7 +15,6 @@ const mockuseRampSDKInitialValues: DeepPartial<RampSDK> = {
   selectedAsset: null,
   setSelectedAsset: jest.fn(),
   setIntent: jest.fn(),
-  selectedChainId: '1',
   isBuy: true,
 };
 
