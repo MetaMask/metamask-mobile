@@ -44,7 +44,6 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       color: theme.colors.text.alternative,
     },
     accountItem: {
-      paddingHorizontal: 16,
       width: '100%',
     },
     emptyState: {

@@ -1,11 +1,12 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useStyles } from '../../../../hooks';
 import AccountCell from '../../AccountCell';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
 import Checkbox from '../../../../components/Checkbox';
+import ListItemSelect from '../../../../components/List/ListItemSelect';
 
 const AccountListCell = memo(
   ({
@@ -22,7 +23,8 @@ const AccountListCell = memo(
     }, [accountGroup, onSelectAccount]);
 
     return (
-      <TouchableOpacity
+      <ListItemSelect
+        isSelected={isSelected}
         style={styles.accountItem}
         onPress={handlePress}
         activeOpacity={0.7}
@@ -39,7 +41,7 @@ const AccountListCell = memo(
           avatarAccountType={avatarAccountType}
           isSelected={isSelected}
         />
-      </TouchableOpacity>
+      </ListItemSelect>
     );
   },
 );
