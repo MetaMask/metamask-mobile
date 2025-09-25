@@ -324,6 +324,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                         "opacity": 1,
                                       }
                                     }
+                                    testID="optin-metrics-metrics-checkbox"
                                   >
                                     <View
                                       accessibilityRole="checkbox"
@@ -353,7 +354,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                             "width": 20,
                                           }
                                         }
-                                        testID="checkbox-icon-component"
+                                        testID="optin-metrics-metrics-checkbox"
                                         width={20}
                                       />
                                     </View>
@@ -1003,6 +1004,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                         "opacity": 1,
                                       }
                                     }
+                                    testID="optin-metrics-metrics-checkbox"
                                   >
                                     <View
                                       accessibilityRole="checkbox"
@@ -1032,7 +1034,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                             "width": 20,
                                           }
                                         }
-                                        testID="checkbox-icon-component"
+                                        testID="optin-metrics-metrics-checkbox"
                                         width={20}
                                       />
                                     </View>
@@ -1794,6 +1796,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                         "opacity": 1,
                                       }
                                     }
+                                    testID="optin-metrics-metrics-checkbox"
                                   >
                                     <View
                                       accessibilityRole="checkbox"
@@ -1823,7 +1826,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                             "width": 20,
                                           }
                                         }
-                                        testID="checkbox-icon-component"
+                                        testID="optin-metrics-metrics-checkbox"
                                         width={20}
                                       />
                                     </View>
