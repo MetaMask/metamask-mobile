@@ -211,9 +211,8 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 24,
-                            "fontWeight": "400",
                             "textAlign": "center",
                             "textTransform": "uppercase",
                           },
@@ -981,9 +980,8 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
@@ -1042,9 +1040,8 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
@@ -1280,9 +1277,8 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 24,
-                            "fontWeight": "400",
                             "textAlign": "center",
                             "textTransform": "uppercase",
                           },
@@ -2050,9 +2046,8 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
@@ -2111,9 +2106,8 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
@@ -2349,9 +2343,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 24,
-                            "fontWeight": "400",
                             "textAlign": "center",
                             "textTransform": "uppercase",
                           },
@@ -3119,9 +3112,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
@@ -3180,9 +3172,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
@@ -3418,9 +3409,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "CentraNo1-Book",
+                            "fontFamily": "Geist Regular",
                             "fontSize": 24,
-                            "fontWeight": "400",
                             "textAlign": "center",
                             "textTransform": "uppercase",
                           },
@@ -4188,9 +4178,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
@@ -4249,9 +4238,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                       null,
                       [
                         {
-                          "fontFamily": "CentraNo1-Bold",
+                          "fontFamily": "Geist Bold",
                           "fontSize": 14,
-                          "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {

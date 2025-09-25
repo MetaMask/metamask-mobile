@@ -81,7 +81,7 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock(
-  'react-native-scrollable-tab-view',
+  '@tommasini/react-native-scrollable-tab-view',
   () =>
     ({ children }: { children: React.ReactNode }) =>
       <>{children}</>,
@@ -142,7 +142,6 @@ describe('AddAsset component', () => {
       selectNetwork: mockSelectNetwork,
       deselectAll: jest.fn(),
       selectAllPopularNetworks: jest.fn(),
-      resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
     mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
@@ -358,7 +357,6 @@ describe('AddAsset component', () => {
         selectNetwork: mockSelectNetworkFn,
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -591,7 +589,6 @@ describe('AddAsset component', () => {
         selectNetwork: mockSelectNetworkFn,
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -612,7 +609,6 @@ describe('AddAsset component', () => {
         selectNetwork: mockSelectNetworkFn,
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 

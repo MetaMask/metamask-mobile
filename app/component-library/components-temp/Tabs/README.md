@@ -1,6 +1,6 @@
 # Tabs Component
 
-A custom implementation to replace `react-native-scrollable-tab-view` with improved functionality and better design system integration.
+A custom implementation to replace `@tommasini/react-native-scrollable-tab-view` with improved functionality and better design system integration.
 
 ## Features
 
@@ -90,12 +90,12 @@ const MyComponent = () => {
 };
 ```
 
-### Migration from react-native-scrollable-tab-view
+### Migration from @tommasini/react-native-scrollable-tab-view
 
 **Before:**
 
 ```tsx
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import TabBar from '../TabBar';
 
 <ScrollableTabView

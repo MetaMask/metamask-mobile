@@ -83,7 +83,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       },
       [SolScope.Devnet]: {
         decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[SolScope.Devnet],
-        imageSource: imageIcons.SOLANA,
+        imageSource: imageIcons.SOLANA_DEVNET as ImageSourcePropType,
         ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Devnet],
         isTestnet: true,
         name: 'Solana Devnet',
@@ -138,7 +138,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         ticker: MULTICHAIN_NETWORK_TICKER[TrxScope.Shasta],
         isTestnet: true,
       },
-      ///: END:ONLY_INCLUDE_IF(tron)
+      ///: END:ONLY_INCLUDE_IF
     };
 
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =

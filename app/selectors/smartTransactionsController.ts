@@ -8,6 +8,7 @@ import {
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
+import { selectSelectedAccountGroupInternalAccounts } from './multichainAccounts/accountTreeController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { createDeepEqualSelector } from './util';
 import { Hex } from '@metamask/utils';
@@ -153,3 +154,61 @@ export const selectSmartTransactionsForCurrentChain = (state: RootState) => {
       ?.smartTransactionsState?.smartTransactions?.[chainId] || []
   );
 };
+
+// porting the old `selectPendingSmartTransactionsBySender` to work with account groups
+export const selectPendingSmartTransactionsForSelectedAccountGroup =
+  createDeepEqualSelector(
+    [
+      selectSelectedAccountGroupInternalAccounts,
+      selectEvmChainId,
+      (state: RootState) =>
+        state.engine.backgroundState.SmartTransactionsController
+          ?.smartTransactionsState?.smartTransactions || {},
+    ],
+    (
+      selectedGroupAccounts,
+      chainId,
+      smartTransactionsByChainId,
+    ): SmartTransaction[] => {
+      if (!selectedGroupAccounts || selectedGroupAccounts.length === 0) {
+        return [];
+      }
+
+      const groupAddresses = selectedGroupAccounts
+        .map((account) => account.address)
+        .filter(Boolean) as string[];
+
+      const smartTransactions: SmartTransaction[] =
+        smartTransactionsByChainId[chainId] || [];
+
+      return smartTransactions
+        .filter((stx) => {
+          const { txParams } = stx;
+          const fromAddress = txParams?.from;
+          if (!fromAddress) {
+            return false;
+          }
+
+          const isFromSelectedGroup = groupAddresses.some((address) =>
+            areAddressesEqual(fromAddress, address),
+          );
+
+          return (
+            isFromSelectedGroup &&
+            ![
+              SmartTransactionStatuses.SUCCESS,
+              SmartTransactionStatuses.CANCELLED,
+            ].includes(stx.status as SmartTransactionStatuses)
+          );
+        })
+        .map((stx) => ({
+          ...stx,
+          // Use stx.uuid as the id since tx.id is generated client-side.
+          id: stx.uuid,
+          status: stx.status?.startsWith(SmartTransactionStatuses.CANCELLED)
+            ? SmartTransactionStatuses.CANCELLED
+            : stx.status,
+          isSmartTransaction: true,
+        }));
+    },
+  );

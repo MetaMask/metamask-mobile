@@ -12,6 +12,7 @@ import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
 import SOLANA from './solana-logo.png';
+import SOLANA_DEVNET from './solana-devnet.jpg';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
@@ -40,10 +41,12 @@ import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
 import FRAX from './frax.png';
 import XDC from './xdc.png';
+import MEGAETH_MAINNET from './megaeth-mainnet-logo.png';
 import AAVE from './aave-token-round.png';
+import HEMI from './hemi.png';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
-///: END:ONLY_INCLUDE_IF(tron)
+///: END:ONLY_INCLUDE_IF
 
 export default {
   PALM,
@@ -65,6 +68,7 @@ export default {
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
   SOLANA,
+  SOLANA_DEVNET,
   FOX_LOGO,
   BTC,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -96,4 +100,6 @@ export default {
   HL,
   FRAX,
   XDC,
+  'MEGAETH-MAINNET': MEGAETH_MAINNET,
+  HEMI,
 };

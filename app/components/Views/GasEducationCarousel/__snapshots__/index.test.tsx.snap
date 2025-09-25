@@ -143,16 +143,14 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             [
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
+                                "fontFamily": "Geist Regular",
                                 "fontSize": 30,
-                                "fontWeight": "400",
                                 "marginVertical": 2,
                               },
                               undefined,
                               undefined,
                               {
-                                "fontFamily": "CentraNo1-Bold",
-                                "fontWeight": "600",
+                                "fontFamily": "Geist Bold",
                               },
                               undefined,
                               {
@@ -196,9 +194,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             [
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
+                                "fontFamily": "Geist Regular",
                                 "fontSize": 30,
-                                "fontWeight": "400",
                                 "marginVertical": 2,
                               },
                               undefined,
@@ -245,9 +242,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             [
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
+                                "fontFamily": "Geist Regular",
                                 "fontSize": 30,
-                                "fontWeight": "400",
                                 "marginVertical": 2,
                               },
                               undefined,
@@ -294,16 +290,14 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "CentraNo1-Bold",
-                                  "fontWeight": "600",
+                                  "fontFamily": "Geist Bold",
                                 },
                                 undefined,
                                 undefined,
