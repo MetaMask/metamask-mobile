@@ -78,13 +78,9 @@ jobs:
           cache: 'yarn'
       
 
-      - name: Install dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn setup:github-ci
+      - name: Install dependencies
+        run: yarn setup:github-ci
+        ## This will ensure that we install the patch for appwright
       
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
