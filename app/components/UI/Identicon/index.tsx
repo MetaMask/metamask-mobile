@@ -10,6 +10,10 @@ import { selectAvatarAccountType } from '../../../selectors/settings';
 
 interface IdenticonProps {
   /**
+   * Optional size of the avatar
+   */
+  avatarSize?: AvatarSize;
+  /**
    * Diameter that represents the size of the identicon
    */
   diameter?: number;
@@ -38,6 +42,7 @@ interface IdenticonProps {
  * but we could add more types in the future
  */
 const Identicon: React.FC<IdenticonProps> = ({
+  avatarSize = AvatarSize.Md,
   diameter = 46,
   address,
   customStyle,
@@ -76,7 +81,7 @@ const Identicon: React.FC<IdenticonProps> = ({
     <AvatarAccount
       type={avatarAccountType}
       accountAddress={address}
-      size={AvatarSize.Md}
+      size={avatarSize}
     />
   );
 
