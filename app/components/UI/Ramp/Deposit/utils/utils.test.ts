@@ -1,14 +1,9 @@
 import {
-  getTransakCryptoCurrencyId,
-  getTransakFiatCurrencyId,
-  getTransakChainId,
-  getTransakPaymentMethodId,
   getNotificationDetails,
   formatCurrency,
   hasDepositOrderField,
   generateThemeParameters,
   timestampToTransakFormat,
-  getCryptoCurrencyFromTransakId,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -17,18 +12,9 @@ import {
 } from '../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  DepositPaymentMethod,
-  USDC_BASE_TOKEN,
-  USDC_LINEA_TOKEN,
-  USDC_TOKEN,
-  USDT_BASE_TOKEN,
-  USDT_LINEA_TOKEN,
-  USDT_TOKEN,
-} from '../constants';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { MOCK_ETH_TOKEN } from '../testUtils/constants';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
@@ -53,161 +39,6 @@ describe('formatCurrency', () => {
   });
 });
 
-describe('Transak Utils', () => {
-  describe('getTransakCryptoCurrencyId', () => {
-    it('should return correct Transak crypto currency ID for USDC', () => {
-      expect(
-        getTransakCryptoCurrencyId({
-          assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          iconUrl: 'usdc-icon',
-          name: 'USD Coin',
-          chainId: 'eip155:1',
-          symbol: 'USDC',
-          decimals: 6,
-        }),
-      ).toBe('USDC');
-    });
-
-    it('should return correct Transak crypto currency ID for USDT', () => {
-      expect(
-        getTransakCryptoCurrencyId({
-          assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-          iconUrl: 'usdt-icon',
-          name: 'Tether USD',
-          chainId: 'eip155:1',
-          symbol: 'USDT',
-          decimals: 6,
-        }),
-      ).toBe('USDT');
-    });
-
-    it('should throw error for unsupported crypto currency', () => {
-      expect(() =>
-        getTransakCryptoCurrencyId({
-          assetId: 'unsupported',
-          iconUrl: 'unsupported-icon',
-          name: 'Unsupported',
-          chainId: 'eip155:1',
-          symbol: 'UNS',
-          decimals: 18,
-        }),
-      ).toThrow('Unsupported crypto currency: unsupported');
-    });
-  });
-
-  describe('getTransakFiatCurrencyId', () => {
-    it('should return correct Transak fiat currency ID for USD', () => {
-      expect(
-        getTransakFiatCurrencyId({
-          id: 'USD',
-          name: 'US Dollar',
-          symbol: 'USD',
-          emoji: '💵',
-        }),
-      ).toBe('USD');
-    });
-
-    it('should return correct Transak fiat currency ID for EUR', () => {
-      expect(
-        getTransakFiatCurrencyId({
-          id: 'EUR',
-          name: 'Euro',
-          symbol: 'EUR',
-          emoji: '💶',
-        }),
-      ).toBe('EUR');
-    });
-
-    it('should throw error for unsupported fiat currency', () => {
-      expect(() =>
-        getTransakFiatCurrencyId({
-          id: 'unsupported',
-          name: 'Unsupported',
-          symbol: 'UNS',
-          emoji: '❓',
-        }),
-      ).toThrow('Unsupported fiat currency: unsupported');
-    });
-  });
-
-  describe('getTransakChainId', () => {
-    it('should return correct Transak chain ID for Ethereum mainnet', () => {
-      expect(getTransakChainId('eip155:1')).toBe('ethereum');
-    });
-
-    it('should throw error for unsupported chain', () => {
-      expect(() =>
-        getTransakChainId('unsupported' as unknown as `${string}:${string}`),
-      ).toThrow('Unsupported chain: unsupported');
-    });
-  });
-
-  describe('getTransakPaymentMethodId', () => {
-    it('should return correct Transak payment method ID for credit/debit card', () => {
-      expect(
-        getTransakPaymentMethodId({
-          id: 'credit_debit_card',
-          name: 'Credit/Debit Card',
-          duration: 'instant',
-          icon: IconName.Card,
-        }),
-      ).toBe('credit_debit_card');
-    });
-
-    it('should throw error for unsupported payment method', () => {
-      expect(() =>
-        getTransakPaymentMethodId({
-          id: 'unsupported',
-          name: 'Unsupported',
-          duration: 'unknown',
-        } as unknown as DepositPaymentMethod),
-      ).toThrow('Unsupported payment method: unsupported');
-    });
-  });
-
-  describe('getCryptoCurrencyFromTransakId', () => {
-    it('should return the correct crypto currency for Ethereum USDC', () => {
-      const result = getCryptoCurrencyFromTransakId('USDC', 'ethereum');
-      expect(result?.assetId).toBe(USDC_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Linea USDC', () => {
-      const result = getCryptoCurrencyFromTransakId('USDC', 'linea');
-      expect(result?.assetId).toBe(USDC_LINEA_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Base USDC', () => {
-      const result = getCryptoCurrencyFromTransakId('USDC', 'base');
-      expect(result?.assetId).toBe(USDC_BASE_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Ethereum USDT', () => {
-      const result = getCryptoCurrencyFromTransakId('USDT', 'ethereum');
-      expect(result?.assetId).toBe(USDT_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Linea USDT', () => {
-      const result = getCryptoCurrencyFromTransakId('USDT', 'linea');
-      expect(result?.assetId).toBe(USDT_LINEA_TOKEN.assetId);
-    });
-
-    it('should return the correct crypto currency for Base USDT', () => {
-      const result = getCryptoCurrencyFromTransakId('USDT', 'base');
-      expect(result?.assetId).toBe(USDT_BASE_TOKEN.assetId);
-    });
-
-    it('should return null for unsupported crypto currency', () => {
-      const result = getCryptoCurrencyFromTransakId('UNSUPPORTED', 'ethereum');
-      expect(result).toBeNull();
-    });
-
-    it('should return null for unsupported network', () => {
-      const result = getCryptoCurrencyFromTransakId('USDC', 'unsupported');
-      expect(result).toBeNull();
-    });
-  });
-});
-
 describe('getNotificationDetails', () => {
   const createMockFiatOrder = (state: FIAT_ORDER_STATES): FiatOrder => ({
     id: 'test-order-id',
@@ -222,7 +53,7 @@ describe('getNotificationDetails', () => {
     currencySymbol: '$',
     state,
     account: '0x123456789',
-    network: 'ethereum',
+    network: 'eip155:1',
     txHash: '0xabcdef',
     excludeFromPurchases: false,
     orderType: 'BUY' as DepositOrderType,
@@ -323,19 +154,19 @@ describe('getNotificationDetails', () => {
 
 describe('hasDepositOrderField', () => {
   it('should return true when object has the specified field', () => {
-    const validDepositOrder: DepositOrder = {
+    const validDepositOrder: Partial<DepositOrder> = {
       id: 'test-id',
       provider: 'test-provider',
       createdAt: 1673886669608,
       fiatAmount: 123,
       fiatCurrency: 'USD',
-      cryptoCurrency: 'ETH',
-      network: 'ethereum',
+      cryptoCurrency: MOCK_ETH_TOKEN,
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       status: 'COMPLETED',
-      orderType: 'DEPOSIT',
+      orderType: DepositOrderType.Deposit,
       walletAddress: '0x1234',
       txHash: '0x987654321',
-    } as DepositOrder;
+    };
 
     const result = hasDepositOrderField(validDepositOrder, 'cryptoCurrency');
 
@@ -380,18 +211,18 @@ describe('hasDepositOrderField', () => {
   });
 
   it('should return true for different valid fields', () => {
-    const validDepositOrder: DepositOrder = {
+    const validDepositOrder: Partial<DepositOrder> = {
       id: 'test-id',
       provider: 'test-provider',
       createdAt: 1673886669608,
       fiatAmount: 123,
       fiatCurrency: 'USD',
-      cryptoCurrency: 'ETH',
-      network: 'ethereum',
+      cryptoCurrency: MOCK_ETH_TOKEN,
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
       status: 'COMPLETED',
-      orderType: 'DEPOSIT',
+      orderType: DepositOrderType.Deposit,
       walletAddress: '0x1234',
-    } as DepositOrder;
+    };
 
     expect(hasDepositOrderField(validDepositOrder, 'id')).toBe(true);
     expect(hasDepositOrderField(validDepositOrder, 'fiatAmount')).toBe(true);
