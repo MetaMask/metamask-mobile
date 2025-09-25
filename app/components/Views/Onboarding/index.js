@@ -101,7 +101,6 @@ const createStyles = (colors) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: importedColors.gettingStartedTextColor,
       zIndex: 1000,
       alignItems: 'center',
       justifyContent: 'center',
@@ -983,7 +982,10 @@ class Onboarding extends PureComponent {
           style={[
             baseStyles.flexGrow,
             {
-              backgroundColor: importedColors.gettingStartedTextColor,
+              backgroundColor:
+                this.context.themeAppearance === 'dark'
+                  ? importedColors.gettingStartedTextColor
+                  : importedColors.gettingStartedPageBackgroundColorLightMode,
             },
           ]}
           testID={OnboardingSelectorIDs.CONTAINER_ID}
@@ -996,7 +998,17 @@ class Onboarding extends PureComponent {
               {this.renderContent()}
 
               {loading && (
-                <View style={[styles.loaderOverlay]}>
+                <View
+                  style={[
+                    styles.loaderOverlay,
+                    {
+                      backgroundColor:
+                        this.context.themeAppearance === 'dark'
+                          ? importedColors.gettingStartedTextColor
+                          : importedColors.gettingStartedPageBackgroundColorLightMode,
+                    },
+                  ]}
+                >
                   {this.renderLoader()}
                 </View>
               )}

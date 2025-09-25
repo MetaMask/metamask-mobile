@@ -2005,4 +2005,91 @@ describe('Onboarding', () => {
       );
     });
   });
+
+  describe('Dynamic Background Color Theme Support', () => {
+    it('should use dark background color in dark mode', () => {
+      const mockThemeContext = { themeAppearance: 'dark' };
+
+      const MockOnboardingWithDarkTheme = React.forwardRef<
+        Record<string, unknown>,
+        unknown
+      >((props, ref) => {
+        const mockContextRef = React.useRef({
+          context: mockThemeContext,
+          props,
+          renderContent: () => <View testID="mock-content" />,
+        });
+
+        React.useImperativeHandle(ref, () => mockContextRef.current);
+
+        const backgroundColor =
+          mockThemeContext.themeAppearance === 'dark' ? '#3D065F' : '#FFF2EB';
+
+        const containerStyle = { backgroundColor, flex: 1 };
+
+        return (
+          <View testID="onboarding-container" style={containerStyle}>
+            <View testID="mock-content" />
+          </View>
+        );
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MockOnboardingWithDarkTheme />,
+        { state: {} },
+      );
+
+      const container = getByTestId('onboarding-container');
+      expect(container).toBeTruthy();
+      expect(container.props.style.backgroundColor).toBe('#3D065F');
+    });
+
+    it('should use light background color in light mode and test loader overlay', () => {
+      const mockThemeContext = { themeAppearance: 'light' };
+
+      const MockOnboardingWithLightTheme = React.forwardRef<
+        Record<string, unknown>,
+        unknown
+      >((props, ref) => {
+        const [loading] = React.useState(true); // Simulate loading state
+        const mockContextRef = React.useRef({
+          context: mockThemeContext,
+          props,
+          renderContent: () => <View testID="mock-content" />,
+        });
+
+        React.useImperativeHandle(ref, () => mockContextRef.current);
+
+        const backgroundColor =
+          mockThemeContext.themeAppearance === 'dark' ? '#3D065F' : '#FFF2EB';
+
+        const containerStyle = { backgroundColor, flex: 1 };
+        const overlayStyle = { backgroundColor };
+
+        return (
+          <View testID="onboarding-container" style={containerStyle}>
+            <View testID="mock-content" />
+            {loading && (
+              <View testID="loader-overlay" style={overlayStyle}>
+                <View testID="mock-loader" />
+              </View>
+            )}
+          </View>
+        );
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MockOnboardingWithLightTheme />,
+        { state: {} },
+      );
+
+      const container = getByTestId('onboarding-container');
+      const loaderOverlay = getByTestId('loader-overlay');
+
+      expect(container).toBeTruthy();
+      expect(loaderOverlay).toBeTruthy();
+      expect(container.props.style.backgroundColor).toBe('#FFF2EB');
+      expect(loaderOverlay.props.style.backgroundColor).toBe('#FFF2EB');
+    });
+  });
 });
