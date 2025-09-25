@@ -7,6 +7,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import { MultichainAccountPermissions } from './MultichainAccountPermissions';
 import Engine from '../../../../core/Engine';
+import { MAINNET_DISPLAY_NAME } from '../../../../core/Engine/constants';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -312,7 +313,7 @@ describe('MultichainAccountPermissions', () => {
       fireEvent.press(editNetworksButton);
 
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
-      expect(getByTestId('Ethereum Mainnet-not-selected')).toBeDefined();
+      expect(getByTestId(`${MAINNET_DISPLAY_NAME}-not-selected`)).toBeDefined();
     });
   });
 
@@ -389,7 +390,7 @@ describe('MultichainAccountPermissions', () => {
       // Check that we're in the network selection screen
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
 
-      expect(getByTestId('Ethereum Mainnet-not-selected')).toBeDefined();
+      expect(getByTestId(`${MAINNET_DISPLAY_NAME}-not-selected`)).toBeDefined();
       expect(getByTestId('Sepolia-not-selected')).toBeDefined();
     });
   });

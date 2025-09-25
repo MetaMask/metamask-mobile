@@ -7,6 +7,7 @@ import {
   siweSignatureConfirmationState,
 } from '../../../../../../util/test/confirm-data-helpers';
 import PersonalSign from './personal-sign';
+import { MAINNET_DISPLAY_NAME } from '../../../../../../core/Engine/constants';
 
 jest.mock('../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -72,7 +73,7 @@ describe('PersonalSign', () => {
     expect(getAllByText('metamask.github.io')).toBeDefined();
     expect(getAllByText('https://metamask.github.io')).toBeDefined();
     expect(getAllByText('Network')).toHaveLength(2);
-    expect(getAllByText('Ethereum Mainnet')).toHaveLength(3);
+    expect(getAllByText(MAINNET_DISPLAY_NAME)).toHaveLength(3);
     expect(getByText('Account')).toBeDefined();
     expect(getAllByText('0x8Eeee...73D12')).toBeDefined();
     expect(getByText('Version')).toBeDefined();

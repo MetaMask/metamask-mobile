@@ -16,6 +16,13 @@ import Engine from '../../../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { Hex } from '@metamask/utils';
+import {
+  ARBITRUM_DISPLAY_NAME,
+  AVALANCHE_DISPLAY_NAME,
+  BASE_DISPLAY_NAME,
+  BNB_DISPLAY_NAME,
+  OPTIMISM_DISPLAY_NAME,
+} from '../../../../../core/Engine/constants';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -113,17 +120,17 @@ describe('getNetworkName', () => {
   });
 
   it('returns nickname from PopularList when network not in configurations', () => {
-    const chainId = toHex('43114') as Hex; // Avalanche C-Chain
+    const chainId = toHex('43114') as Hex; // Avalanche
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Avalanche C-Chain');
+    expect(result).toBe(AVALANCHE_DISPLAY_NAME);
   });
 
-  it('returns nickname from PopularList for Arbitrum One', () => {
+  it('returns nickname from PopularList for Arbitrum', () => {
     const chainId = toHex('42161') as Hex;
     const networkConfigurations: Record<
       string,
@@ -131,7 +138,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Arbitrum One');
+    expect(result).toBe(ARBITRUM_DISPLAY_NAME);
   });
 
   it('returns nickname from PopularList for BNB Smart Chain', () => {
@@ -142,7 +149,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('BNB Smart Chain Mainnet');
+    expect(result).toBe(BNB_DISPLAY_NAME);
   });
 
   it('returns nickname from PopularList for Base', () => {
@@ -153,10 +160,10 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('Base');
+    expect(result).toBe(BASE_DISPLAY_NAME);
   });
 
-  it('returns nickname from PopularList for OP Mainnet', () => {
+  it('returns nickname from PopularList for OP', () => {
     const chainId = toHex('10') as Hex;
     const networkConfigurations: Record<
       string,
@@ -164,7 +171,7 @@ describe('getNetworkName', () => {
     > = {};
 
     const result = getNetworkName(chainId, networkConfigurations);
-    expect(result).toBe('OP Mainnet');
+    expect(result).toBe(OPTIMISM_DISPLAY_NAME);
   });
 
   it('returns "Unknown Network" when network not found anywhere', () => {
@@ -179,7 +186,7 @@ describe('getNetworkName', () => {
   });
 
   it('prioritizes network configurations over PopularList', () => {
-    const chainId = toHex('43114') as Hex; // Avalanche C-Chain
+    const chainId = toHex('43114') as Hex; // Avalanche
     const networkConfigurations: Record<
       string,
       MultichainNetworkConfiguration

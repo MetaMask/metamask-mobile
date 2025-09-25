@@ -38,11 +38,11 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
             NetworkListModal.popularNetworksContainer,
           );
 
-          await NetworkListModal.tapNetworkMenuButton('Arbitrum One');
+          await NetworkListModal.tapNetworkMenuButton('Arbitrum');
           await NetworkApprovalBottomSheet.tapApproveButton();
           await NetworkListModal.tapOnCustomTab();
           await NetworkListModal.swipeToDismissNetworkMultiSelectorModal();
-          await WalletView.verifyTokenNetworkFilterText('Arbitrum One');
+          await WalletView.verifyTokenNetworkFilterText('Arbitrum');
         },
       );
     },
