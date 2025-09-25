@@ -303,7 +303,7 @@ describe('OnboardingStep', () => {
       fireEvent.press(closeButton);
 
       expect(mockDispatch).toHaveBeenCalledWith(expect.any(Object));
-      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
+      expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
     });
 
     it('should disable next button when onNextDisabled is true', () => {

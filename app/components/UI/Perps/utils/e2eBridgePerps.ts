@@ -186,7 +186,10 @@ export function getE2EMockStreamManager(): unknown {
  * Apply controller mocks if available
  */
 export function applyE2EControllerMocks(controller: unknown): void {
-  if (isE2E) {
+  if (
+    process.env.IS_TEST === 'true' &&
+    process.env.METAMASK_ENVIRONMENT === 'e2e'
+  ) {
     autoConfigureE2EBridge();
     if (e2eBridgePerps.applyControllerMocks) {
       e2eBridgePerps.applyControllerMocks(controller);

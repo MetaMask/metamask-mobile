@@ -14,6 +14,7 @@ export type RewardsToastOptions = ToastOptions & {
 
 export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
+  error: (title: string, subtitle?: string) => RewardsToastOptions;
 }
 
 const getRewardsToastLabels = (title: string, subtitle?: string) => {
@@ -65,13 +66,26 @@ const useRewardsToast = (): {
         ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: theme.colors.primary.default,
-        backgroundColor: theme.colors.primary.muted,
+        iconColor: theme.colors.background.muted,
+        backgroundColor: theme.colors.primary.default,
         hapticsType: NotificationFeedbackType.Success,
         labelOptions: getRewardsToastLabels(title, subtitle),
       }),
+      error: (title: string, subtitle?: string) => ({
+        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Error,
+        iconColor: theme.colors.background.muted,
+        backgroundColor: theme.colors.error.default,
+        hapticsType: NotificationFeedbackType.Error,
+        labelOptions: getRewardsToastLabels(title, subtitle),
+      }),
     }),
-    [theme],
+    [
+      theme.colors.background.muted,
+      theme.colors.error.default,
+      theme.colors.primary.default,
+    ],
   );
 
   return {

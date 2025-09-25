@@ -71,7 +71,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
-import ReturnToAppModal from '../../Views/ReturnToAppModal';
+import ReturnToAppToast from '../../Views/ReturnToAppToast';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
@@ -462,11 +462,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={ResetNotificationsModal}
     />
     <Stack.Screen
-      name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-      component={ReturnToAppModal}
-      initialParams={{ ...props.route.params }}
-    />
-    <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
       component={AmbiguousAddressSheet}
     />
@@ -553,6 +548,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       options={{
         gestureEnabled: true,
       }}
+    />
+    <Stack.Screen
+      name={Routes.SDK.RETURN_TO_DAPP_TOAST}
+      component={ReturnToAppToast}
+      initialParams={{ ...props.route.params }}
     />
   </Stack.Navigator>
 );
@@ -775,8 +775,9 @@ const MultichainAddressList = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animationEnabled: false,
+        animationEnabled: true,
       }}
+      mode={'modal'}
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
@@ -946,6 +947,7 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
           component={MultichainAddressList}
+          options={{ animationEnabled: true }}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}

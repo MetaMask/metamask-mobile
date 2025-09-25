@@ -24,7 +24,7 @@ import TextField, {
 } from '../../../../../component-library/components/Form/TextField';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStepComponent from './OnboardingStep';
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../../selectors/rewards';
+import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import {
   REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
   REWARDS_ONBOARD_TERMS_URL,
@@ -32,7 +32,7 @@ import {
 
 const OnboardingStep4: React.FC = () => {
   const tw = useTailwind();
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const { optin, optinError, optinLoading } = useOptin();
   const {
     referralCode,
@@ -45,30 +45,60 @@ const OnboardingStep4: React.FC = () => {
     optin({ referralCode });
   }, [optin, referralCode]);
 
+  const renderIcon = () => {
+    if (isValidatingReferralCode) {
+      return <ActivityIndicator />;
+    }
+
+    if (referralCodeIsValid) {
+      return (
+        <Icon
+          name={IconName.Confirmation}
+          size={IconSize.Lg}
+          color={IconColor.SuccessDefault}
+        />
+      );
+    }
+
+    if (referralCode.length >= 6) {
+      return (
+        <Icon
+          name={IconName.Error}
+          size={IconSize.Lg}
+          color={IconColor.ErrorDefault}
+        />
+      );
+    }
+
+    return null;
+  };
+
   const renderStepInfo = () => (
-    <Box twClassName="flex-1" alignItems={BoxAlignItems.Center}>
+    <Box alignItems={BoxAlignItems.Center} twClassName="min-h-[70%]">
       {/* Opt in error message */}
-      <Box alignItems={BoxAlignItems.Center} twClassName="min-h-20">
-        {optinError && (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            description={optinError}
-          />
-        )}
-      </Box>
+
+      {optinError && (
+        <BannerAlert
+          severity={BannerAlertSeverity.Error}
+          description={optinError}
+        />
+      )}
 
       {/* Placeholder Image */}
-      <Box twClassName="w-30 h-30 my-4">
+      <Box twClassName="my-4">
         <Image
           source={step4Img}
           testID="step-4-image"
-          style={tw.style('w-full h-full')}
+          style={tw.style('w-30 h-30')}
         />
       </Box>
 
       {/* Referral Code Input Section */}
-      <Box twClassName="w-full min-h-32 gap-20 mb-2">
-        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+      <Box twClassName="w-full gap-4">
+        <Text
+          variant={TextVariant.HeadingLg}
+          twClassName="text-center mb-[20%]"
+        >
           {referralCodeIsValid
             ? strings('rewards.onboarding.step4_title_referral_bonus')
             : strings('rewards.onboarding.step4_title')}
@@ -89,39 +119,22 @@ const OnboardingStep4: React.FC = () => {
                 'rewards.onboarding.step4_referral_input_placeholder',
               )}
               value={referralCode}
+              autoCapitalize="characters"
               onChangeText={handleReferralCodeChange}
               isDisabled={optinLoading}
               size={TextFieldSize.Lg}
               style={tw.style(
                 'bg-background-pressed',
-                !!referralCode &&
+                referralCode.length >= 6 &&
                   !referralCodeIsValid &&
                   !isValidatingReferralCode
                   ? 'border-error-default'
                   : 'border-muted',
               )}
-              endAccessory={
-                isValidatingReferralCode ? (
-                  <ActivityIndicator />
-                ) : referralCodeIsValid ? (
-                  <Icon
-                    name={IconName.Confirmation}
-                    size={IconSize.Lg}
-                    color={IconColor.SuccessDefault}
-                  />
-                ) : referralCode ? (
-                  <Icon
-                    name={IconName.Error}
-                    size={IconSize.Lg}
-                    color={IconColor.ErrorDefault}
-                  />
-                ) : (
-                  <></>
-                )
-              }
+              endAccessory={renderIcon()}
               isError={!referralCodeIsValid}
             />
-            {!!referralCode &&
+            {referralCode.length >= 6 &&
               !referralCodeIsValid &&
               !isValidatingReferralCode && (
                 <Text twClassName="text-error-default">
@@ -144,7 +157,7 @@ const OnboardingStep4: React.FC = () => {
     };
 
     return (
-      <Box twClassName="w-full flex-row px-4 mt-4">
+      <Box twClassName="w-full flex-row mt-4">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -177,21 +190,25 @@ const OnboardingStep4: React.FC = () => {
     );
   };
 
+  let onNextLoadingText = '';
+  if (optinLoading) {
+    onNextLoadingText = strings('rewards.onboarding.step4_confirm_loading');
+  } else if (isValidatingReferralCode) {
+    onNextLoadingText = strings(
+      'rewards.onboarding.step4_title_referral_validating',
+    );
+  }
+
+  const onNextDisabled =
+    (!referralCodeIsValid && !!referralCode) || !!subscriptionId;
+
   return (
     <OnboardingStepComponent
       currentStep={4}
       onNext={handleNext}
       onNextLoading={optinLoading || isValidatingReferralCode}
-      onNextLoadingText={
-        optinLoading
-          ? strings('rewards.onboarding.step4_confirm_loading')
-          : isValidatingReferralCode
-          ? strings('rewards.onboarding.step4_title_referral_validating')
-          : ''
-      }
-      onNextDisabled={
-        (!referralCodeIsValid && !!referralCode) || hasAccountedOptedIn === true
-      }
+      onNextLoadingText={onNextLoadingText}
+      onNextDisabled={onNextDisabled}
       nextButtonText={strings('rewards.onboarding.step4_confirm')}
       renderStepInfo={renderStepInfo}
       nextButtonAlternative={renderLegalDisclaimer}

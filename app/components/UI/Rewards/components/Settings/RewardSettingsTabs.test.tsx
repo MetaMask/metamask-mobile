@@ -61,6 +61,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
       }
       return styles || {};
     }),
+    color: jest.fn(
+      () =>
+        // Return a default color value for testing
+        '#037DD6',
+    ),
   })),
 }));
 
@@ -454,8 +459,8 @@ describe('RewardSettingsTabs', () => {
         <RewardSettingsTabs initialTabIndex={0} />,
       );
 
-      expect(getByText('Account 1 (current)')).toBeTruthy();
-      expect(getByText('Account 2 ')).toBeTruthy();
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Account 2')).toBeTruthy();
     });
   });
 
