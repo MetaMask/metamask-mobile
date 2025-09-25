@@ -323,7 +323,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {position.coin} {position.leverage.value}x{' '}
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {direction}
+                  {direction === 'long'
+                    ? strings('perps.market.long_lowercase')
+                    : strings('perps.market.short_lowercase')}
                 </Text>
               </Text>
             </View>

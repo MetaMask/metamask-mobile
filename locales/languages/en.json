@@ -870,6 +870,8 @@
       "not_now": "Not now",
       "try_now": "Get started"
     },
+    "today": "Today",
+    "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
@@ -1059,6 +1061,8 @@
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
       "tp_sl": "TP/SL",
+      "tp": "TP",
+      "sl": "SL",
       "button": {
         "long": "Long {{asset}}",
         "short": "Short {{asset}}"
@@ -1090,7 +1094,11 @@
         "entry_price": "Entry Price",
         "current_price": "Current price",
         "liquidation_price": "Liquidation Price",
-        "liquidation_distance": "Liquidation Distance"
+        "liquidation_distance": "Liquidation Distance",
+        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
+        "drops": "drops",
+        "rises": "rises",
+        "set_leverage": "Set {{leverage}}x"
       },
       "type": {
         "title": "Order Type",
@@ -1329,6 +1337,8 @@
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short",
+      "long_lowercase": "long",
+      "short_lowercase": "short",
       "add_funds": "Add funds",
       "add_funds_to_start_trading_perps": "Add funds to start trading perps",
       "position": "Position",
@@ -1434,6 +1444,11 @@
       "candle_intervals": "Candle intervals",
       "candle_period_selector": {
         "show_more": "More"
+      },
+      "time_periods": {
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days"
       }
     },
     "perps_markets": "Perps markets",
