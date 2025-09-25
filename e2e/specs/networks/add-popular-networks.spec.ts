@@ -10,7 +10,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import Assertions from '../../framework/Assertions';
-import { ARBITRUM_DISPLAY_NAME } from '../../../app/core/Engine/constants';
 
 // Shared configuration
 const isRemoveGlobalNetworkSelectorEnabled =
@@ -39,11 +38,11 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
             NetworkListModal.popularNetworksContainer,
           );
 
-          await NetworkListModal.tapNetworkMenuButton(ARBITRUM_DISPLAY_NAME);
+          await NetworkListModal.tapNetworkMenuButton('Arbitrum');
           await NetworkApprovalBottomSheet.tapApproveButton();
           await NetworkListModal.tapOnCustomTab();
           await NetworkListModal.swipeToDismissNetworkMultiSelectorModal();
-          await WalletView.verifyTokenNetworkFilterText(ARBITRUM_DISPLAY_NAME);
+          await WalletView.verifyTokenNetworkFilterText('Arbitrum');
         },
       );
     },
