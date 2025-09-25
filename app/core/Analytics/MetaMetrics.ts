@@ -15,6 +15,7 @@ import {
   METAMETRICS_ID,
   METAMETRICS_DELETION_REGULATION_ID,
   METRICS_OPT_IN,
+  METRICS_OPT_IN_SOCIAL_LOGIN,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
@@ -155,6 +156,13 @@ class MetaMetrics implements IMetaMetrics {
   private enabled = false;
 
   /**
+   * Indicate if MetaMetrics is enabled for social login
+   *
+   * @private
+   */
+  private isSocialLoginEnabled = false;
+
+  /**
    * Indicate if data has been recorded since the last deletion request
    * @private
    */
@@ -190,6 +198,19 @@ class MetaMetrics implements IMetaMetrics {
     if (__DEV__)
       Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
     return this.enabled;
+  };
+
+  /**
+   * Retrieve the social login analytics preference from the preference
+   * @private
+   * @returns Promise containing the social login enabled state
+   */
+  #isSocialLoginEnabled = async (): Promise<boolean> => {
+    const enabledPref = await StorageWrapper.getItem(
+      METRICS_OPT_IN_SOCIAL_LOGIN,
+    );
+    this.isSocialLoginEnabled = AGREED === enabledPref;
+    return this.isSocialLoginEnabled;
   };
 
   /**
@@ -383,6 +404,28 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * Update the social login analytics preference and
+   * store in StorageWrapper
+   *
+   * @param isSocialLoginEnabled - Boolean indicating if Social Login Metrics should be enabled or disabled
+   */
+  #storeMetricsOptInSocialLoginPreference = async (
+    isSocialLoginEnabled: boolean,
+  ) => {
+    try {
+      await StorageWrapper.setItem(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        isSocialLoginEnabled ? AGREED : DENIED,
+      );
+    } catch (error: unknown) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Error storing Social Login MetaMetrics enable state',
+      );
+    }
+  };
+
+  /**
    * Get the Segment API HTTP headers
    * @private
    */
@@ -555,6 +598,7 @@ class MetaMetrics implements IMetaMetrics {
     if (this.#isConfigured) return true;
     try {
       this.enabled = await this.#isMetaMetricsEnabled();
+      this.isSocialLoginEnabled = await this.#isSocialLoginEnabled();
       // get the user unique id when initializing
       this.metametricsId = await this.#getMetaMetricsId();
       this.deleteRegulationId = await this.#getDeleteRegulationIdFromPrefs();
@@ -597,11 +641,23 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * Enable or disable Social Login Metrics
+   *
+   * @param isSocialLoginEnabled - Boolean indicating if Social Login Metrics should be enabled or disabled
+   */
+  enableSocialLogin = async (isSocialLoginEnabled = true): Promise<void> => {
+    this.isSocialLoginEnabled = isSocialLoginEnabled;
+    await this.#storeMetricsOptInSocialLoginPreference(
+      this.isSocialLoginEnabled,
+    );
+  };
+
+  /**
    * Check if MetaMetrics is enabled
    *
    * @returns Boolean indicating if MetaMetrics is enabled or disabled
    */
-  isEnabled = () => this.enabled;
+  isEnabled = () => this.isSocialLoginEnabled || this.enabled;
 
   /**
    * Add traits to the user and identify them

@@ -26,138 +26,22 @@ exports[`AccountInfoCard should match snapshot 1`] = `
       onLoadEnd={[Function]}
       style={
         {
-          "marginRight": 8,
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "height": 32,
+          "overflow": "hidden",
+          "width": 32,
         }
       }
     >
       <View
         style={
-          [
-            {
-              "overflow": "hidden",
-            },
-            {
-              "backgroundColor": "#C7144F",
-              "borderRadius": 20,
-              "height": 40,
-              "width": 40,
-            },
-            undefined,
-          ]
-        }
-      >
-        <RNSVGSvgView
-          bbHeight={40}
-          bbWidth={40}
-          focusable={false}
-          height={40}
-          style={
-            [
-              {
-                "backgroundColor": "transparent",
-                "borderWidth": 0,
-              },
-              {
-                "flex": 0,
-                "height": 40,
-                "width": 40,
-              },
-            ]
+          {
+            "height": 32,
+            "width": 32,
           }
-          width={40}
-        >
-          <RNSVGGroup
-            fill={
-              {
-                "payload": 4278190080,
-                "type": 0,
-              }
-            }
-          >
-            <RNSVGRect
-              fill={
-                {
-                  "payload": 4294711651,
-                  "type": 0,
-                }
-              }
-              height={40}
-              matrix={
-                [
-                  0.46329603511986217,
-                  0.8862035792312145,
-                  -0.8862035792312145,
-                  0.46329603511986217,
-                  36.33459561762168,
-                  -10.363254168319774,
-                ]
-              }
-              propList={
-                [
-                  "fill",
-                ]
-              }
-              width={40}
-              x={0}
-              y={0}
-            />
-            <RNSVGRect
-              fill={
-                {
-                  "payload": 4280576225,
-                  "type": 0,
-                }
-              }
-              height={40}
-              matrix={
-                [
-                  -0.5778576243835052,
-                  0.8161375900801603,
-                  -0.8161375900801603,
-                  -0.5778576243835052,
-                  64.52520893292649,
-                  21.54875386801511,
-                ]
-              }
-              propList={
-                [
-                  "fill",
-                ]
-              }
-              width={40}
-              x={0}
-              y={0}
-            />
-            <RNSVGRect
-              fill={
-                {
-                  "payload": 4278407261,
-                  "type": 0,
-                }
-              }
-              height={40}
-              matrix={
-                [
-                  0.7046342099635947,
-                  -0.7095707365365209,
-                  0.7095707365365209,
-                  0.7046342099635947,
-                  -31.532148358473446,
-                  -5.763782884854738,
-                ]
-              }
-              propList={
-                [
-                  "fill",
-                ]
-              }
-              width={40}
-              x={0}
-              y={0}
-            />
-          </RNSVGGroup>
-        </RNSVGSvgView>
-      </View>
+        }
+      />
     </View>
     <View
       collapsable={false}
@@ -175,9 +59,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
       <View
         style={
           [
-            {
-              "marginRight": 8,
-            },
+            {},
             {
               "backgroundColor": "#eee",
             },

@@ -215,4 +215,35 @@ describe('useTransactionTotalFiat', () => {
 
     expect(result.current.totalBridgeFeeFormatted).toBe('$30');
   });
+
+  it('returns total transaction fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalNetworkFee: {
+            valueInCurrency: '1',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalNetworkFee: {
+            valueInCurrency: '2',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.totalTransactionFeeFormatted).toBe('$40.89');
+  });
 });

@@ -8,8 +8,15 @@ import RewardsNavigator from './RewardsNavigator';
 import Routes from '../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../actions/rewards';
 
+// Mock Engine
+jest.mock('../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+}));
+
 // Mock dependencies
-jest.mock('./hooks/useRewardsAuth');
+jest.mock('./hooks/useOptIn');
 jest.mock('./OnboardingNavigator', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -151,6 +158,11 @@ jest.mock('../../../selectors/accountsController', () => ({
   }),
 }));
 
+jest.mock('../../../selectors/rewards', () => ({
+  selectRewardsActiveAccountHasOptedIn: jest.fn(),
+  selectRewardsSubscriptionId: jest.fn(),
+}));
+
 // Mock react-navigation/native hooks
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -168,39 +180,46 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock useRewardsAuth hook
-import type { UseRewardsAuthResult } from './hooks/useRewardsAuth';
-const mockUseRewardsAuthResult = jest.fn<UseRewardsAuthResult, []>();
-
-jest.mock('./hooks/useRewardsAuth', () => ({
-  useRewardsAuth: () => mockUseRewardsAuthResult(),
+// Mock useCandidateSubscriptionId hook
+jest.mock('./hooks/useCandidateSubscriptionId', () => ({
+  useCandidateSubscriptionId: jest.fn(),
 }));
+
+// Import mocked selectors for setup
+import {
+  selectRewardsActiveAccountHasOptedIn,
+  selectRewardsSubscriptionId,
+} from '../../../selectors/rewards';
+
+const mockSelectRewardsActiveAccountHasOptedIn =
+  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
+    typeof selectRewardsActiveAccountHasOptedIn
+  >;
+const mockSelectRewardsSubscriptionId =
+  selectRewardsSubscriptionId as jest.MockedFunction<
+    typeof selectRewardsSubscriptionId
+  >;
 
 describe('RewardsNavigator', () => {
   let store: ReturnType<typeof configureStore>;
   const Stack = createStackNavigator();
 
-  // Helper function to create complete mock UseRewardsAuthResult
-  const createMockAuthResult = (
-    overrides: Partial<UseRewardsAuthResult> = {},
-  ): UseRewardsAuthResult => ({
-    hasAccountedOptedIn: false,
-    optin: jest.fn(),
-    subscriptionId: null,
-    optinLoading: false,
-    optinError: null,
-    clearOptinError: jest.fn(),
-    ...overrides,
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Set default mock return values
+    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(null);
+    mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
     // Create a mock store
     store = configureStore({
       reducer: {
-        rewards: (state = { onboardingActiveStep: OnboardingStep.INTRO }) =>
-          state,
+        rewards: (
+          state = {
+            onboardingActiveStep: OnboardingStep.INTRO,
+            candidateSubscriptionId: null,
+          },
+        ) => state,
         engine: (
           state = {
             backgroundState: {
@@ -214,6 +233,9 @@ describe('RewardsNavigator', () => {
                     },
                   },
                 },
+              },
+              RewardsController: {
+                activeAccount: null,
               },
             },
           },
@@ -240,12 +262,6 @@ describe('RewardsNavigator', () => {
     it('renders empty component when not focused', () => {
       // Arrange
       mockIsFocused.mockReturnValue(false);
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: true,
-          subscriptionId: 'test-subscription-id',
-        }),
-      );
 
       // Act
       const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
@@ -260,18 +276,14 @@ describe('RewardsNavigator', () => {
     it('renders content when focused', () => {
       // Arrange
       mockIsFocused.mockReturnValue(true);
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: true,
-          subscriptionId: 'test-subscription-id',
-        }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
       // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       // Assert
-      expect(getByTestId('rewards-dashboard')).toBeOnTheScreen();
+      expect(getByTestId('onboarding-navigator')).toBeOnTheScreen();
     });
   });
 
@@ -280,29 +292,10 @@ describe('RewardsNavigator', () => {
       mockIsFocused.mockReturnValue(true);
     });
 
-    it('renders loading view when auth state is pending', async () => {
+    it('renders error view when subscription state is error', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: 'pending' }),
-      );
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('skeleton-loader')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders error view when auth state is error', async () => {
-      // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: 'error',
-          optinError: 'Authentication failed',
-        }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue('error');
 
       // Act
       const { getByTestId, getByText } = renderWithNavigation(
@@ -319,12 +312,8 @@ describe('RewardsNavigator', () => {
 
     it('renders dashboard when user has opted in', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: true,
-          subscriptionId: 'test-subscription-id',
-        }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
@@ -337,9 +326,42 @@ describe('RewardsNavigator', () => {
 
     it('renders onboarding when user has not opted in', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: false }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('onboarding-navigator')).toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('Navigation routing logic', () => {
+    beforeEach(() => {
+      mockIsFocused.mockReturnValue(true);
+    });
+
+    it('routes to dashboard when user has opted in with subscription ID', async () => {
+      // Arrange
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard')).toBeOnTheScreen();
+      });
+    });
+
+    it('routes to onboarding when user has not opted in and no candidate ID', async () => {
+      // Arrange
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
       // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
@@ -358,12 +380,8 @@ describe('RewardsNavigator', () => {
 
     it('sets up correct routes when user has opted in', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: true,
-          subscriptionId: 'test-subscription-id',
-        }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
@@ -376,9 +394,8 @@ describe('RewardsNavigator', () => {
 
     it('sets up onboarding route when user has not opted in', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: false }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
       // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
@@ -391,75 +408,36 @@ describe('RewardsNavigator', () => {
 
     it('determines initial route correctly for opted-in users', () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: true,
-          subscriptionId: 'test-subscription-id',
-        }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Act
       renderWithNavigation(<RewardsNavigator />);
 
-      // Assert - Component should render dashboard (tested indirectly through rendered content)
-      expect(mockUseRewardsAuthResult).toHaveBeenCalled();
+      // Assert - Component should use selectors (tested indirectly through rendered content)
+      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
+      expect(mockSelectRewardsSubscriptionId).toHaveBeenCalled();
     });
 
     it('determines initial route correctly for non-opted-in users', () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: false }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
       // Act
       renderWithNavigation(<RewardsNavigator />);
 
-      // Assert - Component should render onboarding (tested indirectly through rendered content)
-      expect(mockUseRewardsAuthResult).toHaveBeenCalled();
-    });
-  });
-
-  describe('LoadingView sub-component', () => {
-    it('sets navigation title in loading view', async () => {
-      // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: 'pending' }),
-      );
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
-    });
-
-    it('renders skeleton loader in loading view', async () => {
-      // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({ hasAccountedOptedIn: 'pending' }),
-      );
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('skeleton-loader')).toBeOnTheScreen();
-      });
+      // Assert - Component should use selectors (tested indirectly through rendered content)
+      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
+      expect(mockSelectRewardsSubscriptionId).toHaveBeenCalled();
     });
   });
 
   describe('AuthErrorView sub-component', () => {
     it('renders error banner with correct content', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: 'error',
-          optinError: 'Authentication failed',
-        }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue('error');
 
       // Act
       const { getByTestId, getByText } = renderWithNavigation(
@@ -477,12 +455,8 @@ describe('RewardsNavigator', () => {
 
     it('navigates to wallet home when back button is pressed', async () => {
       // Arrange
-      mockUseRewardsAuthResult.mockReturnValue(
-        createMockAuthResult({
-          hasAccountedOptedIn: 'error',
-          optinError: 'Authentication failed',
-        }),
-      );
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue('error');
 
       // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);

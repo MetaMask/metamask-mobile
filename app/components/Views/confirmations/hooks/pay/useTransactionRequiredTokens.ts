@@ -16,6 +16,7 @@ const log = createProjectLogger('transaction-pay');
 
 export interface TransactionToken {
   address: Hex;
+  allowUnderMinimum: boolean;
   amountRaw: string;
   amountHuman: string;
   balanceRaw: string;
@@ -78,6 +79,7 @@ function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
     return {
       ...calculateAmountProperties(transferAmount, balanceProperties.decimals),
       ...balanceProperties,
+      allowUnderMinimum: false,
       skipIfBalance: false,
     };
   }, [balanceProperties, to, transferAmount]);
@@ -119,6 +121,7 @@ function useGasToken(chainId: Hex): TransactionToken | undefined {
     return {
       ...calculateAmountProperties(amountRawHex, balanceProperties.decimals),
       ...balanceProperties,
+      allowUnderMinimum: true,
       skipIfBalance: true,
     };
   }, [amountRawHex, balanceProperties]);

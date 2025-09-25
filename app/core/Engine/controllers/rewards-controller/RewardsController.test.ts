@@ -163,6 +163,10 @@ describe('RewardsController', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsController:getPointsEvents',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsController:estimatePoints',
         expect.any(Function),
       );
@@ -547,6 +551,142 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(new Error('API error'));
 
       await expect(controller.estimatePoints(mockRequest)).rejects.toThrow(
+        'API error',
+      );
+    });
+  });
+
+  describe('getPointsEvents', () => {
+    beforeEach(() => {
+      // Mock feature flag to be enabled by default for existing tests
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return empty response when feature flag is disabled', async () => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        cursor: null,
+      };
+
+      const result = await controller.getPointsEvents(mockRequest);
+
+      expect(result).toEqual({
+        has_more: false,
+        cursor: null,
+        total_results: 0,
+        results: [],
+      });
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEvents',
+        expect.anything(),
+      );
+    });
+
+    it('should successfully get points events', async () => {
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        cursor: null,
+      };
+
+      const mockResponse = {
+        has_more: true,
+        cursor: 'next-cursor',
+        total_results: 50,
+        results: [
+          {
+            id: 'event-123',
+            timestamp: new Date('2024-01-01T10:00:00Z'),
+            value: 100,
+            bonus: { bips: 200, bonuses: ['loyalty'] },
+            accountAddress: '0x123456789',
+            type: 'SWAP' as const,
+            payload: {
+              srcAsset: {
+                amount: '1000000000000000000',
+                type: 'eip155:1/slip44:60',
+                decimals: 18,
+                name: 'Ethereum',
+                symbol: 'ETH',
+              },
+              destAsset: {
+                amount: '4500000000',
+                type: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                decimals: 6,
+                name: 'USD Coin',
+                symbol: 'USDC',
+              },
+              txHash: '0xabcdef123456',
+            },
+          },
+        ],
+      };
+
+      mockMessenger.call.mockResolvedValue(mockResponse);
+
+      const result = await controller.getPointsEvents(mockRequest);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEvents',
+        mockRequest,
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should successfully get points events with cursor', async () => {
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        cursor: 'cursor-abc',
+      };
+
+      const mockResponse = {
+        has_more: false,
+        cursor: null,
+        total_results: 25,
+        results: [
+          {
+            id: 'event-456',
+            timestamp: new Date('2024-01-01T11:00:00Z'),
+            value: 50,
+            bonus: null,
+            accountAddress: '0x987654321',
+            type: 'REFERRAL' as const,
+            payload: null,
+          },
+        ],
+      };
+
+      mockMessenger.call.mockResolvedValue(mockResponse);
+
+      const result = await controller.getPointsEvents(mockRequest);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPointsEvents',
+        mockRequest,
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should handle getPointsEvents errors and rethrow them', async () => {
+      const mockRequest = {
+        seasonId: 'current',
+        subscriptionId: 'sub-123',
+        cursor: null,
+      };
+
+      const apiError = new Error('API error');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      await expect(controller.getPointsEvents(mockRequest)).rejects.toThrow(
+        'API error',
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get points events:',
         'API error',
       );
     });
@@ -2258,6 +2398,627 @@ describe('RewardsController', () => {
         expect(updatedAccountState.hasOptedIn).toBeUndefined(); // Should be undefined due to error
         expect(updatedAccountState.subscriptionId).toBeNull();
       }
+    });
+  });
+
+  describe('optOut', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return false when no active account exists', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No active account or subscription ID found for opt-out',
+      );
+    });
+
+    it('should return false when active account has no subscription ID', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: null,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No active account or subscription ID found for opt-out',
+      );
+    });
+
+    it('should successfully opt out and reset state', async () => {
+      // Arrange
+      const mockOptOutResponse = { success: true };
+      mockMessenger.call.mockResolvedValue(mockOptOutResponse);
+      mockRemoveSubscriptionToken.mockResolvedValue({ success: true });
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'sub123',
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {
+            sub123: {
+              id: 'sub123',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:optOut',
+        'sub123',
+      );
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith('sub123');
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Successfully opted out of rewards program',
+        'sub123',
+      );
+
+      // Verify state was reset and active account updated
+      const newState = testController.state;
+      expect(newState.activeAccount).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        lastCheckedAuth: expect.any(Number),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
+      expect(newState.subscriptions).toEqual({});
+      expect(newState.accounts).toEqual({});
+    });
+
+    it('should return false when opt-out service returns false', async () => {
+      // Arrange
+      const mockOptOutResponse = { success: false };
+      mockMessenger.call.mockResolvedValue(mockOptOutResponse);
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'sub123',
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {
+            sub123: {
+              id: 'sub123',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Opt-out request returned false',
+        'sub123',
+      );
+      expect(mockRemoveSubscriptionToken).not.toHaveBeenCalled();
+    });
+
+    it('should return false when subscription not found in map', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'sub123',
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {}, // No subscription
+        },
+      });
+
+      // Act
+      const result = await testController.optOut();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No active account or subscription ID found for opt-out',
+      );
+    });
+  });
+
+  describe('getCandidateSubscriptionId', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return null when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should fallback to first subscription ID from subscriptions map', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: {
+            account: CAIP_ACCOUNT_1,
+            subscriptionId: null, // No active subscription
+            hasOptedIn: false,
+            lastCheckedAuth: Date.now(),
+            lastCheckedAuthError: false,
+            perpsFeeDiscount: null,
+            lastPerpsDiscountRateFetched: null,
+          },
+          subscriptions: {
+            'fallback-sub-123': {
+              id: 'fallback-sub-123',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+            'other-sub-456': {
+              id: 'other-sub-456',
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBe('fallback-sub-123');
+    });
+
+    it('should return null when no subscriptions found and no accounts opted in', async () => {
+      // Arrange
+      const mockInternalAccounts = [
+        {
+          address: '0x123',
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456',
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Account 2',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+      const mockOptInResponse = { ois: [false, false] }; // No accounts opted in
+
+      mockMessenger.call
+        .mockReturnValueOnce(mockInternalAccounts) // getInternalAccounts
+        .mockResolvedValueOnce(mockOptInResponse); // getOptInStatus
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('linkAccountToSubscriptionCandidate', () => {
+    const mockInternalAccount = {
+      address: '0x123',
+      type: 'eip155:eoa' as const,
+      id: 'account1',
+      options: {},
+      metadata: {
+        name: 'Test Account',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+      },
+      scopes: ['eip155:1' as const],
+      methods: [],
+    } as InternalAccount;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsSolanaAddress.mockReturnValue(false); // Default to non-Solana
+    });
+
+    it('should return false when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Rewards feature is disabled',
+      );
+    });
+
+    it('should return false for Solana accounts', async () => {
+      // Arrange
+      const solanaAccount = {
+        ...mockInternalAccount,
+        address: 'solana-address',
+      };
+      mockIsSolanaAddress.mockReturnValue(true);
+
+      // Act
+      const result = await controller.linkAccountToSubscriptionCandidate(
+        solanaAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Linking Non-EVM accounts to active subscription is not supported',
+      );
+    });
+
+    it('should return true if account already has subscription', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          accounts: {
+            [CAIP_ACCOUNT_1]: {
+              account: CAIP_ACCOUNT_1,
+              subscriptionId: 'existing-sub',
+              hasOptedIn: true,
+              lastCheckedAuth: Date.now(),
+              lastCheckedAuthError: false,
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            },
+          },
+          subscriptions: {
+            'existing-sub': {
+              id: 'existing-sub',
+              referralCode: 'REF123',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Account to link already has subscription',
+        {
+          account: CAIP_ACCOUNT_1,
+          subscriptionId: 'existing-sub',
+        },
+      );
+    });
+
+    it('should throw error when no candidate subscription found', async () => {
+      // Arrange
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Setup getCandidateSubscriptionId to return null by mocking getInternalAccounts to return empty
+      mockMessenger.call.mockReturnValueOnce([]); // getInternalAccounts - empty
+
+      // Act & Assert
+      await expect(
+        testController.linkAccountToSubscriptionCandidate(mockInternalAccount),
+      ).rejects.toThrow('No valid subscription found to link account to');
+    });
+
+    it('should successfully link account to subscription', async () => {
+      // Arrange
+      const mockUpdatedSubscription = {
+        id: 'candidate-sub-123',
+        referralCode: 'REF456',
+        accounts: [{ address: '0x123', chainId: 1 }],
+      };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            'candidate-sub-123': {
+              id: 'candidate-sub-123',
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      mockToHex.mockReturnValue('0xsignature');
+      mockMessenger.call
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockResolvedValueOnce(mockUpdatedSubscription); // mobileJoin
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:mobileJoin',
+        {
+          account: '0x123',
+          timestamp: expect.any(Number),
+          signature: '0xsignature',
+        },
+        'candidate-sub-123',
+      );
+
+      // Verify account state was updated
+      const accountState = testController.state.accounts[CAIP_ACCOUNT_1];
+      expect(accountState).toEqual({
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: 'candidate-sub-123',
+        lastCheckedAuth: expect.any(Number),
+        lastCheckedAuthError: false,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Successfully linked account to subscription',
+        {
+          account: CAIP_ACCOUNT_1,
+          subscriptionId: 'candidate-sub-123',
+        },
+      );
+    });
+
+    it('should handle mobile join errors gracefully', async () => {
+      // Arrange
+      const mockError = new Error('Mobile join failed');
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            'candidate-sub-123': {
+              id: 'candidate-sub-123',
+              referralCode: 'REF456',
+              accounts: [],
+            },
+          },
+        },
+      });
+
+      // Ensure the account is not detected as Solana
+      mockIsSolanaAddress.mockReturnValue(false);
+      mockToHex.mockReturnValue('0xsignature');
+      mockMessenger.call
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockRejectedValueOnce(mockError); // mobileJoin
+
+      // Act
+      const result = await testController.linkAccountToSubscriptionCandidate(
+        mockInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to link account to subscription',
+        CAIP_ACCOUNT_1,
+        'candidate-sub-123',
+        mockError,
+      );
+    });
+  });
+
+  describe('getOptInStatus', () => {
+    const mockParams = { addresses: ['0x123', '0x456'] };
+    const mockResponse = { ois: [true, false] };
+
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return false array when feature flag is disabled', async () => {
+      // Arrange
+      jest.clearAllMocks(); // Clear any calls from initialization
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual({ ois: [false, false] });
+    });
+
+    it('should successfully get opt-in status from service', async () => {
+      // Arrange
+      mockMessenger.call.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await controller.getOptInStatus(mockParams);
+
+      // Assert
+      expect(result).toEqual(mockResponse);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        mockParams,
+      );
+    });
+
+    it('should handle service errors and rethrow them', async () => {
+      // Arrange
+      const mockError = new Error('Service error');
+      mockMessenger.call.mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(controller.getOptInStatus(mockParams)).rejects.toThrow(
+        'Service error',
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get opt-in status:',
+        'Service error',
+      );
+    });
+
+    it('should handle non-Error objects in catch block', async () => {
+      // Arrange
+      const mockError = 'String error';
+      mockMessenger.call.mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(controller.getOptInStatus(mockParams)).rejects.toBe(
+        'String error',
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get opt-in status:',
+        'String error',
+      );
+    });
+
+    it('should handle empty addresses array', async () => {
+      // Arrange
+      const emptyParams = { addresses: [] };
+      const emptyResponse = { ois: [] };
+      mockMessenger.call.mockResolvedValue(emptyResponse);
+
+      // Act
+      const result = await controller.getOptInStatus(emptyParams);
+
+      // Assert
+      expect(result).toEqual(emptyResponse);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        emptyParams,
+      );
+    });
+
+    it('should handle large arrays of addresses', async () => {
+      // Arrange
+      const largeAddressArray = Array.from(
+        { length: 100 },
+        (_, i) => `0x${i.toString(16).padStart(40, '0')}`,
+      );
+      const largeParams = { addresses: largeAddressArray };
+      const largeResponse = { ois: Array(100).fill(true) };
+      mockMessenger.call.mockResolvedValue(largeResponse);
+
+      // Act
+      const result = await controller.getOptInStatus(largeParams);
+
+      // Assert
+      expect(result).toEqual(largeResponse);
+      expect(result.ois).toHaveLength(100);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOptInStatus',
+        largeParams,
+      );
     });
   });
 });

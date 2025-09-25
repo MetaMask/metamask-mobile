@@ -71,3 +71,10 @@ export const selectTransactionsByIds = createSelector(
       .map((id) => transactions.find((tx) => tx.id === id))
       .filter(Boolean) as TransactionMeta[],
 );
+
+export const selectTransactionsByBatchId = createSelector(
+  selectTransactionsStrict,
+  (_: RootState, batchId: string) => batchId,
+  (transactions, batchId) =>
+    transactions.filter((tx) => tx.batchId === batchId),
+);

@@ -89,8 +89,8 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.currentPrice).toBe(45000);
     expect(result.current.high24h).toBe('$46,000.00');
     expect(result.current.low24h).toBe('$43,500.00');
-    expect(result.current.volume24h).toBe('$1B');
-    expect(result.current.openInterest).toBe('$990M');
+    expect(result.current.volume24h).toBe('$1.23B');
+    expect(result.current.openInterest).toBe('$990.00M');
     expect(result.current.fundingRate).toBe('1.0000%');
     expect(result.current.isLoading).toBe(false);
   });
@@ -160,8 +160,8 @@ describe('usePerpsMarketStats', () => {
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    expect(result.current.volume24h).toBe('$12T'); // No decimals in formatVolume
-    expect(result.current.openInterest).toBe('$99T'); // No decimals in formatLargeNumber
+    expect(result.current.volume24h).toBe('$12.35T'); // Decimals in formatVolume for detailed view
+    expect(result.current.openInterest).toBe('$99.00T'); // Decimals in formatLargeNumber for detailed view
   });
 
   it('formats negative funding rates with proper sign and decimals', () => {

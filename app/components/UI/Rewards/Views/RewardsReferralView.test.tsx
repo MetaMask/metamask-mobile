@@ -1,6 +1,21 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import RewardsReferralView from './RewardsReferralView';
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+// Mock selectors
+jest.mock('../../../../selectors/rewards', () => ({
+  selectRewardsSubscriptionId: jest.fn(),
+}));
+
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -102,6 +117,14 @@ jest.mock('react-native-safe-area-context', () => ({
 describe('RewardsReferralView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Setup default useSelector mock return values
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return 'test-subscription-id';
+      }
+      return undefined;
+    });
   });
 
   describe('rendering', () => {

@@ -50,6 +50,10 @@ export const PerpsPositionCardSelectorsIDs = {
   PNL: 'position-card-pnl',
   CLOSE_BUTTON: 'position-card-close',
   EDIT_BUTTON: 'position-card-edit',
+  TPSL_COUNT_WARNING_TOOLTIP_VIEW_ORDERS_BUTTON:
+    'position-card-tpsl-count-warning-tooltip-view-orders',
+  TPSL_COUNT_WARNING_TOOLTIP_GOT_IT_BUTTON:
+    'position-card-tpsl-count-warning-tooltip-got-it',
 };
 
 // ========================================
@@ -132,6 +136,7 @@ export const getPerpsMarketRowItemSelector = {
 export const PerpsOrderHeaderSelectorsIDs = {
   HEADER: 'perps-order-header',
   ASSET_TITLE: 'perps-order-header-asset-title',
+  ORDER_TYPE_BUTTON: 'perps-order-header-order-type-button',
 };
 
 // ========================================
@@ -394,6 +399,7 @@ export const PerpsOrderViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-order-view-bottom-sheet-tooltip',
   NOTIFICATION_TOOLTIP: 'perps-order-view-notification-tooltip',
   LEVERAGE_INFO_ICON: 'perps-order-view-leverage-info-icon',
+  LIMIT_PRICE_INFO_ICON: 'perps-order-view-limit-price-info-icon',
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
@@ -420,10 +426,11 @@ export const PerpsOpenOrderCardSelectorsIDs = {
 // ========================================
 
 export const PerpsClosePositionViewSelectorsIDs = {
-  ORDER_TYPE_BUTTON: 'order-type-button',
   DISPLAY_TOGGLE_BUTTON: 'display-toggle-button',
   CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
   CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
+  FEES_TOOLTIP_BUTTON: 'close-position-fees-tooltip-button',
+  YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
 };
 
 // ========================================

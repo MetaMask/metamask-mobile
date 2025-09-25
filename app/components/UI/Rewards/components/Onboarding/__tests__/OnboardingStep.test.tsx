@@ -51,15 +51,14 @@ jest.mock('../../../../../../util/theme', () => ({
 
 // Mock rewards auth hook
 const mockOptin = jest.fn();
-const mockUseRewardsAuth = {
+const mockUseOptin = {
   optin: mockOptin,
   optinError: null as string | null,
   optinLoading: false,
-  hasAccountedOptedIn: false as boolean | null,
 };
 
-jest.mock('../../../hooks/useRewardsAuth', () => ({
-  useRewardsAuth: () => mockUseRewardsAuth,
+jest.mock('../../../hooks/useOptIn', () => ({
+  useOptin: () => mockUseOptin,
 }));
 
 // Mock validate referral code hook
@@ -559,20 +558,6 @@ describe('OnboardingStep1', () => {
       );
       expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboarding2');
     });
-
-    it('should navigate to intro when previous button is pressed', () => {
-      renderWithProviders(<OnboardingStep1 />);
-
-      const previousButton = screen.getByTestId('previous-button');
-      fireEvent.press(previousButton);
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: expect.any(String),
-        }),
-      );
-      expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboardingIntro');
-    });
   });
 
   describe('content verification', () => {
@@ -634,20 +619,6 @@ describe('OnboardingStep2', () => {
         }),
       );
       expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboarding3');
-    });
-
-    it('should navigate to step 1 when previous button is pressed', () => {
-      renderWithProviders(<OnboardingStep2 />);
-
-      const previousButton = screen.getByTestId('previous-button');
-      fireEvent.press(previousButton);
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: expect.any(String),
-        }),
-      );
-      expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboarding1');
     });
   });
 
@@ -712,20 +683,6 @@ describe('OnboardingStep3', () => {
         expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboarding4');
       });
     });
-
-    it('should navigate to step 2 when previous button is pressed', () => {
-      renderWithProviders(<OnboardingStep3 />);
-
-      const previousButton = screen.getByTestId('previous-button');
-      fireEvent.press(previousButton);
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: expect.any(String),
-        }),
-      );
-      expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboarding2');
-    });
   });
 
   describe('content verification', () => {
@@ -743,9 +700,8 @@ describe('OnboardingStep4', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset mock state
-    mockUseRewardsAuth.optinError = null;
-    mockUseRewardsAuth.optinLoading = false;
-    mockUseRewardsAuth.hasAccountedOptedIn = false;
+    mockUseOptin.optinError = null;
+    mockUseOptin.optinLoading = false;
     mockUseValidateReferralCode.referralCode = '';
     mockUseValidateReferralCode.isValidating = false;
     mockUseValidateReferralCode.isValid = false;
@@ -867,7 +823,7 @@ describe('OnboardingStep4', () => {
     });
 
     it('should show loading state during opt-in', () => {
-      mockUseRewardsAuth.optinLoading = true;
+      mockUseOptin.optinLoading = true;
 
       renderWithProviders(<OnboardingStep4 />);
 
@@ -888,54 +844,19 @@ describe('OnboardingStep4', () => {
       // Button should be disabled - in real implementation this would be tested via accessibility states
       expect(nextButton).toBeDefined();
     });
-
-    it('should disable next button when account has already opted in', () => {
-      mockUseRewardsAuth.hasAccountedOptedIn = true;
-
-      renderWithProviders(<OnboardingStep4 />);
-
-      const nextButton = screen.getByText(
-        'mocked_rewards.onboarding.step4_confirm',
-      );
-      expect(nextButton).toBeDefined();
-    });
   });
 
   describe('error handling', () => {
     it('should display opt-in error when present', () => {
-      mockUseRewardsAuth.optinError = 'Something went wrong';
+      mockUseOptin.optinError = 'Something went wrong';
 
       renderWithProviders(<OnboardingStep4 />);
 
       expect(screen.getByText('Something went wrong')).toBeDefined();
     });
-
-    it('should display success message when account has opted in', () => {
-      mockUseRewardsAuth.hasAccountedOptedIn = true;
-
-      renderWithProviders(<OnboardingStep4 />);
-
-      expect(
-        screen.getByText('mocked_rewards.onboarding.step4_success_description'),
-      ).toBeDefined();
-    });
   });
 
   describe('navigation', () => {
-    it('should navigate to step 3 when previous button is pressed', () => {
-      renderWithProviders(<OnboardingStep4 />);
-
-      const previousButton = screen.getByTestId('previous-button');
-      fireEvent.press(previousButton);
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: expect.any(String),
-        }),
-      );
-      expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboarding3');
-    });
-
     it('should have swipe gestures disabled', () => {
       renderWithProviders(<OnboardingStep4 />);
 
@@ -970,7 +891,7 @@ describe('OnboardingStep4', () => {
 
   describe('state combinations', () => {
     it('should handle loading and validating states simultaneously', () => {
-      mockUseRewardsAuth.optinLoading = true;
+      mockUseOptin.optinLoading = true;
       mockUseValidateReferralCode.isValidating = true;
 
       renderWithProviders(<OnboardingStep4 />);
@@ -982,7 +903,7 @@ describe('OnboardingStep4', () => {
     });
 
     it('should disable input when opt-in is loading', () => {
-      mockUseRewardsAuth.optinLoading = true;
+      mockUseOptin.optinLoading = true;
 
       renderWithProviders(<OnboardingStep4 />);
 
@@ -1014,20 +935,6 @@ describe('OnboardingStep Integration', () => {
       // Simulate navigation to step 2
       rerender(<OnboardingStep2 />);
       expect(screen.getByTestId('step-2-image')).toBeDefined();
-    });
-
-    it('should handle backward navigation correctly', () => {
-      // Start at step 2
-      const { rerender } = renderWithProviders(<OnboardingStep2 />);
-
-      const previousButton = screen.getByTestId('previous-button');
-      fireEvent.press(previousButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('RewardsOnboarding1');
-
-      // Simulate navigation to step 1
-      rerender(<OnboardingStep1 />);
-      expect(screen.getByTestId('step-1-image')).toBeDefined();
     });
   });
 

@@ -99,8 +99,11 @@ describe(
           await Assertions.expectElementToBeVisible(
             SuccessImportAccountView.container,
           );
+
           await SuccessImportAccountView.tapCloseButton();
+
           await AccountListBottomSheet.swipeToDismissAccountsModal();
+
           await Assertions.expectElementToBeVisible(WalletView.container);
           await WalletView.tapIdenticon();
 

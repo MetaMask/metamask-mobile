@@ -29,6 +29,9 @@ import { useNavigation } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
+import OAuthService from '../../../../../../core/OAuthService/OAuthService';
+import Logger from '../../../../../../util/Logger';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 
 const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
@@ -50,6 +53,10 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
 
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
+
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
       enable(false);
@@ -59,6 +66,18 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     }
 
     autoSignIn();
+    const fetchMarketingStatus = async () => {
+      try {
+        const data = await OAuthService.getMarketingOptInStatus();
+        dispatch(setDataCollectionForMarketing(data.is_opt_in));
+      } catch (err) {
+        Logger.error(err as Error);
+      }
+    };
+
+    if (isSeedlessOnboardingLoginFlow) {
+      fetchMarketingStatus();
+    }
     setAnalyticsEnabled(isEnabled());
   }, [
     setAnalyticsEnabled,
@@ -67,6 +86,7 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
     autoSignIn,
     isBasicFunctionalityEnabled,
     dispatch,
+    isSeedlessOnboardingLoginFlow,
   ]);
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
@@ -137,7 +157,21 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         addMarketingConsentToTraits(value);
       }
     }
+
+    // Store the previous state to revert if API fails
+    const previousMarketingState = !value;
+
+    // Update client state optimistically
     dispatch(setDataCollectionForMarketing(value));
+
+    // Sync with server, revert client state if API fails
+    if (isSeedlessOnboardingLoginFlow) {
+      OAuthService.updateMarketingOptInStatus(value).catch((error) => {
+        Logger.error(error as Error);
+        // Revert client state back to previous value if API fails
+        dispatch(setDataCollectionForMarketing(previousMarketingState));
+      });
+    }
   };
 
   const renderMetaMetricsSection = () => (

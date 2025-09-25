@@ -972,6 +972,9 @@ export function getWalletNavbarOptions(
       left: 12,
       right: 12,
     },
+    accountPickerStyle: {
+      marginRight: 16,
+    },
   });
 
   const onScanSuccess = (data, content) => {
@@ -1081,11 +1084,7 @@ export function getWalletNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
-        variant={
-          isFeatureFlagEnabled
-            ? HeaderBaseVariant.Display
-            : HeaderBaseVariant.Compact
-        }
+        variant={HeaderBaseVariant.Display}
         style={innerStyles.headerContainer}
         startAccessory={
           !isFeatureFlagEnabled && (
@@ -1175,6 +1174,7 @@ export function getWalletNavbarOptions(
           }}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
           hitSlop={innerStyles.touchAreaSlop}
+          style={innerStyles.accountPickerStyle}
         />
       </HeaderBase>
     ),
@@ -2171,12 +2171,20 @@ export const getEditAccountNameNavBarOptions = (goBack, themeColors) => {
   };
 };
 
-export const getSettingsNavigationOptions = (title, themeColors) => {
+export const getSettingsNavigationOptions = (
+  title,
+  themeColors,
+  navigation,
+  isRewardsEnabled = false,
+) => {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
+    },
+    accessories: {
+      marginHorizontal: 8,
     },
   });
   return {
@@ -2189,6 +2197,16 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
         {title}
       </MorphText>
     ),
+    headerRight: () =>
+      isRewardsEnabled ? (
+        <ButtonIcon
+          size={ButtonIconSize.Lg}
+          iconName={IconName.Close}
+          onPress={() => navigation && navigation.goBack()}
+          style={innerStyles.accessories}
+          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
+        />
+      ) : null,
     ...innerStyles,
   };
 };

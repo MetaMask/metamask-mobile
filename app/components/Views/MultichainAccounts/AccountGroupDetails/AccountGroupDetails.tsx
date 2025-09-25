@@ -19,7 +19,6 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
@@ -42,6 +41,7 @@ import { selectInternalAccountsById } from '../../../../selectors/accountsContro
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import {
   endTrace,
   trace,
@@ -50,6 +50,7 @@ import {
 } from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
 import { createMultichainAccountDetailActionsModalNavigationDetails } from '../sheets/MultichainAccountActions/MultichainAccountActions';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const createEditAccountNameNavigationDetails = (
   accountGroup: AccountGroupObject,
@@ -82,15 +83,18 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const selectWallet = useSelector(selectWalletById);
   const wallet = selectWallet?.(walletId);
   const internalAccountsById = useSelector(selectInternalAccountsById);
+
+  /**
+   * Seedless onboarding flow does not support removing private key accounts
+   */
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -109,11 +113,14 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   );
 
   const navigateToAddressList = useCallback(() => {
-    // Start the trace before navigating to the address list so that the
-    // navigation and render time are included in the trace.
+    // Start the trace before navigating to the address list to include the
+    // navigation and render times in the trace.
     trace({
       name: TraceName.ShowAccountAddressList,
       op: TraceOperation.AccountUi,
+      tags: {
+        screen: 'account.details',
+      },
     });
 
     navigation.navigate(
@@ -275,7 +282,8 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         </TouchableOpacity>
         <Wallet wallet={wallet} />
         {canExportMnemonic && <SecretRecoveryPhrase account={account} />}
-        {type === AccountGroupType.SingleAccount ? (
+        {type === AccountGroupType.SingleAccount &&
+        !isSeedlessOnboardingLoginFlow ? (
           <RemoveAccount account={account} />
         ) : null}
       </ScrollView>

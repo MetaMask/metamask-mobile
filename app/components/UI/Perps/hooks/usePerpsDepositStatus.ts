@@ -1,30 +1,38 @@
-import { useContext, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
 import type { RootState } from '../../../../reducers';
 import { usePerpsTrading } from './usePerpsTrading';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import usePerpsToasts from './usePerpsToasts';
+import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
+import {
+  TransactionMeta,
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import Engine from '../../../../core/Engine';
+import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
  *
- * This hook watches for changes in deposit state and shows:
- * - In-progress toast when deposit starts
- * - Success toast when deposit completes successfully
- * - Error toast when deposit fails (but not for user cancellation)
- * - Automatically clears the result after showing the toast
+ * This hook:
+ * 1. Shows in-progress toast when deposit transaction is approved
+ * 2. Watches live account balance for increases after deposit confirmation
+ * 3. Shows success toast when balance increases (indicating HyperLiquid processed the deposit)
+ * 4. Shows error toast if deposit fails
+ *
+ * This ensures the success toast only shows when HyperLiquid has actually
+ * credited the funds, matching what the user sees in the UI.
  */
 export const usePerpsDepositStatus = () => {
-  const { toastRef } = useContext(ToastContext);
   const { clearDepositResult } = usePerpsTrading();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
+  // Get live account data with fast updates
+  const { account: liveAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
 
-  // Track which results we've already shown toasts for
-  const hasProcessedResultRef = useRef<string | null>(null);
+  // Track if we're expecting a deposit
+  const expectingDepositRef = useRef(false);
+  const prevAvailableBalanceRef = useRef<string>('0');
 
   // Get deposit state from controller
   const depositInProgress = useSelector(
@@ -37,110 +45,103 @@ export const usePerpsDepositStatus = () => {
       state.engine.backgroundState.PerpsController?.lastDepositResult ?? null,
   );
 
-  // Clear stale results on mount
+  // Get the internal transaction ID from the controller. Needed to get bridge quotes.
+  const lastDepositTransactionId = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.lastDepositTransactionId ??
+      null,
+  );
+
+  // For Perps deposits this array typically contains only one element.
+  const bridgeQuotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, lastDepositTransactionId ?? ''),
+  );
+
+  // Listen for PerpsDeposit approval - Used to display deposit in progress toast
   useEffect(() => {
-    // If there's a result on mount, it's stale from a previous session
-    if (lastDepositResult) {
-      DevLogger.log(
-        'usePerpsDepositStatus: Clearing stale deposit result on mount',
-      );
-      clearDepositResult();
-    }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount - intentionally omitting dependencies
+    const handleTransactionApproved = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => {
+      if (
+        transactionMeta.type === TransactionType.perpsDeposit &&
+        transactionMeta.status === TransactionStatus.approved
+      ) {
+        expectingDepositRef.current = true;
+        prevAvailableBalanceRef.current = liveAccount?.availableBalance || '0';
 
-  // Log state changes for debugging
-  useEffect(() => {
-    DevLogger.log('usePerpsDepositStatus: State changed', {
-      depositInProgress,
-      lastDepositResult,
-      hasToastContext: !!toastRef?.current,
-    });
-  }, [depositInProgress, lastDepositResult, toastRef]);
+        const processingTimeSeconds =
+          bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
 
-  // Update toast when deposit state changes
-  useEffect(() => {
-    // Create a unique identifier for this result to prevent duplicate toasts
-    const resultId = lastDepositResult
-      ? `${lastDepositResult.success}-${
-          lastDepositResult.txHash || lastDepositResult.error
-        }`
-      : null;
-
-    // Show/update toast if we have a NEW result that hasn't been processed
-    if (lastDepositResult && resultId !== hasProcessedResultRef.current) {
-      hasProcessedResultRef.current = resultId;
-
-      DevLogger.log('usePerpsDepositStatus: Attempting to show deposit toast', {
-        success: lastDepositResult.success,
-        txHash: lastDepositResult.txHash,
-        error: lastDepositResult.error,
-        hasToastContext: !!toastRef?.current,
-        toastRefPresent: !!toastRef,
-        showToastPresent: !!toastRef?.current?.showToast,
-      });
-
-      let timeoutId: NodeJS.Timeout | null = null;
-
-      if (lastDepositResult.success) {
-        // Show success toast
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Confirmation,
-          hasNoTimeout: false,
-          labelOptions: [
-            {
-              label: strings('perps.deposit.success_toast'),
-              isBold: true,
-            },
-            {
-              label: strings('perps.deposit.success_message'),
-              isBold: false,
-            },
-          ],
-        });
-
-        // Clear the result after showing toast
-        timeoutId = setTimeout(() => {
-          clearDepositResult();
-          hasProcessedResultRef.current = null;
-        }, 500);
-      } else {
-        // Show error toast (but not for 'pending')
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          hasNoTimeout: false,
-          labelOptions: [
-            {
-              label: strings('perps.deposit.error_toast'),
-              isBold: true,
-            },
-            {
-              label:
-                lastDepositResult.error ||
-                strings('perps.deposit.error_generic'),
-              isBold: false,
-            },
-          ],
-        });
-
-        // Clear the result after showing toast
-        timeoutId = setTimeout(() => {
-          clearDepositResult();
-          hasProcessedResultRef.current = null;
-        }, 500);
+        showToast(
+          PerpsToastOptions.accountManagement.deposit.inProgress(
+            processingTimeSeconds,
+            transactionMeta.id,
+          ),
+        );
       }
+    };
 
-      // Cleanup function to clear timeout if component unmounts
-      return () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-      };
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionStatusUpdated',
+      handleTransactionApproved,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionStatusUpdated',
+        handleTransactionApproved,
+      );
+    };
+  }, [
+    PerpsToastOptions.accountManagement.deposit,
+    bridgeQuotes,
+    liveAccount?.availableBalance,
+    showToast,
+  ]);
+
+  // Watch for balance increases when expecting a deposit
+  useEffect(() => {
+    if (!expectingDepositRef.current || !liveAccount) {
+      return;
     }
-  }, [lastDepositResult, toastRef, clearDepositResult]);
+
+    const currentBalance = parseFloat(liveAccount.availableBalance || '0');
+    const previousBalance = parseFloat(prevAvailableBalanceRef.current);
+    // Check if balance increased
+    if (currentBalance > previousBalance) {
+      // Show success toast
+      showToast(
+        PerpsToastOptions.accountManagement.deposit.success(
+          liveAccount?.availableBalance,
+        ),
+      );
+
+      // Reset state
+      expectingDepositRef.current = false;
+      prevAvailableBalanceRef.current = liveAccount.availableBalance;
+    }
+  }, [liveAccount, showToast, PerpsToastOptions.accountManagement.deposit]);
+
+  // Handle deposit errors from controller state
+  useEffect(() => {
+    if (lastDepositResult && !lastDepositResult.success) {
+      showToast(PerpsToastOptions.accountManagement.deposit.error);
+
+      expectingDepositRef.current = false;
+
+      // Clear the error after showing toast
+      setTimeout(() => {
+        clearDepositResult();
+      }, 500);
+    }
+  }, [
+    lastDepositResult,
+    clearDepositResult,
+    showToast,
+    PerpsToastOptions.accountManagement.deposit.error,
+  ]);
 
   return { depositInProgress };
 };

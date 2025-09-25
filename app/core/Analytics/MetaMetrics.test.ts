@@ -7,6 +7,7 @@ import {
   METAMETRICS_DELETION_REGULATION_ID,
   METAMETRICS_ID,
   METRICS_OPT_IN,
+  METRICS_OPT_IN_SOCIAL_LOGIN,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 import axios, { AxiosError, AxiosResponse } from 'axios';
@@ -182,6 +183,140 @@ describe('MetaMetrics', () => {
 
       // check that the tracking was called
       expect(segmentMockClient.track).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('enableSocialLogin', () => {
+    beforeEach(() => {
+      TestMetaMetrics.resetInstance();
+      jest.clearAllMocks();
+    });
+
+    it('enables social login metrics', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.enableSocialLogin(true);
+
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+    });
+
+    it('disables social login metrics', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.enableSocialLogin(false);
+
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        DENIED,
+      );
+      expect(metaMetrics.isEnabled()).toBeFalsy();
+    });
+
+    it('enables social login metrics by default when no parameter provided', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+      await metaMetrics.enableSocialLogin();
+
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+    });
+
+    it('handles storage error gracefully when enabling social login metrics', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Storage error'),
+      );
+
+      await metaMetrics.enableSocialLogin(true);
+
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+      // The method should not throw, but handle the error gracefully
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('handles storage error gracefully when disabling social login metrics', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      (StorageWrapper.setItem as jest.Mock).mockRejectedValueOnce(
+        new Error('Storage error'),
+      );
+
+      await metaMetrics.enableSocialLogin(false);
+
+      expect(StorageWrapper.setItem).toHaveBeenCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        DENIED,
+      );
+      // The method should not throw, but handle the error gracefully
+      expect(metaMetrics.isEnabled()).toBeFalsy();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('maintains social login state across multiple calls', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      jest.clearAllMocks();
+
+      // Enable social login
+      await metaMetrics.enableSocialLogin(true);
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+
+      // Disable social login
+      await metaMetrics.enableSocialLogin(false);
+      expect(metaMetrics.isEnabled()).toBeFalsy();
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        DENIED,
+      );
+
+      // Re-enable social login
+      await metaMetrics.enableSocialLogin(true);
+      expect(metaMetrics.isEnabled()).toBeTruthy();
+      expect(StorageWrapper.setItem).toHaveBeenLastCalledWith(
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+
+      // Verify all enableSocialLogin calls were made
+      expect(StorageWrapper.setItem).toHaveBeenCalledTimes(3);
+      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+        1,
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
+      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+        2,
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        DENIED,
+      );
+      expect(StorageWrapper.setItem).toHaveBeenNthCalledWith(
+        3,
+        METRICS_OPT_IN_SOCIAL_LOGIN,
+        AGREED,
+      );
     });
   });
 
@@ -459,7 +594,7 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        2,
+        3,
         MIXPANEL_METAMETRICS_ID,
       );
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
@@ -479,10 +614,10 @@ describe('MetaMetrics', () => {
       expect(await metaMetrics.configure()).toBeTruthy();
 
       expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(
-        2,
+        3,
         MIXPANEL_METAMETRICS_ID,
       );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
       expect(StorageWrapper.setItem).not.toHaveBeenCalled();
       expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
     });
@@ -500,7 +635,7 @@ describe('MetaMetrics', () => {
         METAMETRICS_ID,
         '',
       );
-      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(StorageWrapper.getItem).toHaveBeenNthCalledWith(4, METAMETRICS_ID);
       expect(await metaMetrics.getMetaMetricsId()).toEqual(metricsId);
     });
 

@@ -9,6 +9,7 @@ import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
+import { isHardwareAccount } from '../../../../../../util/address';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -18,6 +19,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionBridgeQuotes');
 jest.mock('../../../hooks/pay/useTransactionRequiredFiat');
+jest.mock('../../../../../../util/address');
 
 jest.mock('../../token-icon/', () => ({
   TokenIcon: (props: TokenIconProps) => (
@@ -47,6 +49,7 @@ function render() {
 
 describe('PayWithRow', () => {
   const navigateMock = jest.fn();
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
   const useTransactionRequiredFiatMock = jest.mocked(
     useTransactionRequiredFiat,
@@ -76,6 +79,8 @@ describe('PayWithRow', () => {
     useTransactionRequiredFiatMock.mockReturnValue({
       totalFiat: TOTAL_FIAT_MOCK,
     } as ReturnType<typeof useTransactionRequiredFiat>);
+
+    isHardwareAccountMock.mockReturnValue(false);
   });
 
   it('renders selected pay token', async () => {
@@ -117,5 +122,17 @@ describe('PayWithRow', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('pay-with-spinner')).toBeDefined();
+  });
+
+  it('disables edit if hardware wallet', async () => {
+    isHardwareAccountMock.mockReturnValue(true);
+
+    const { getByText } = render();
+
+    await act(() => {
+      fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
+    });
+
+    expect(navigateMock).not.toHaveBeenCalled();
   });
 });

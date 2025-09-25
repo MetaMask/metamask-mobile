@@ -15,7 +15,6 @@ export function getAccountTreeControllerMessenger(
       'AccountsController:accountAdded',
       'AccountsController:accountRemoved',
       'AccountsController:selectedAccountChange',
-      'AccountsController:accountRenamed',
     ],
     allowedActions: [
       'AccountsController:listMultichainAccounts',

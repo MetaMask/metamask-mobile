@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
+  ScrollView,
   TextInput,
   TouchableOpacity,
   View,
@@ -38,7 +39,10 @@ import {
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
-import { formatPrice } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_POSITION_VIEW,
+} from '../../utils/formatUtils';
 
 // Quick percentage buttons constants - RoE percentages
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
@@ -58,6 +62,8 @@ interface PerpsTPSLBottomSheetProps {
   isUpdating?: boolean;
   leverage?: number; // For new orders
   marginRequired?: string; // For new orders
+  orderType?: 'market' | 'limit'; // Order type for new orders
+  limitPrice?: string; // Limit price for limit orders
 }
 
 const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
@@ -72,6 +78,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   initialStopLossPrice,
   isUpdating = false,
   leverage: propLeverage,
+  orderType,
+  limitPrice,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -93,10 +101,51 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   // Use the current market price if available, otherwise use entry price
   // For new orders, use initialCurrentPrice
   // For existing positions, prefer live price over initial price over entry price
-  const currentPrice =
+  const spotPrice =
     livePrice ||
     initialCurrentPrice ||
     (position?.entryPrice ? parseFloat(position.entryPrice) : 0);
+
+  // For display purposes, use limit price for limit orders, otherwise use spot price
+  const currentPrice =
+    orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+      ? parseFloat(limitPrice)
+      : spotPrice;
+
+  // Determine the entry price based on order type
+  // For limit orders, use the limit price as entry price if available
+  // For market orders or when limit price is not set, use spot price
+  // Ensure we always have a valid price > 0 for calculations
+  const effectiveEntryPrice = position?.entryPrice
+    ? parseFloat(position.entryPrice)
+    : orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+    ? parseFloat(limitPrice)
+    : spotPrice > 0
+    ? spotPrice
+    : livePrice || initialCurrentPrice || 0;
+
+  // Determine direction for tracking events
+  const actualDirection = position
+    ? parseFloat(position.size) > 0
+      ? 'long'
+      : 'short'
+    : direction;
+
+  // Calculate liquidation price for new orders (when there's no existing position)
+  const shouldCalculateLiquidation =
+    !position && currentPrice > 0 && propLeverage && actualDirection && asset;
+  const { liquidationPrice: calculatedLiquidationPrice } =
+    usePerpsLiquidationPrice({
+      entryPrice: shouldCalculateLiquidation ? currentPrice : 0,
+      leverage: shouldCalculateLiquidation ? propLeverage : 0,
+      direction: shouldCalculateLiquidation ? actualDirection : 'long',
+      asset: shouldCalculateLiquidation ? asset : '',
+    });
+
+  // Use position's liquidation price if available, otherwise use calculated price
+  const displayLiquidationPrice =
+    position?.liquidationPrice ||
+    (shouldCalculateLiquidation ? calculatedLiquidationPrice : undefined);
 
   // Use the TPSL form hook for all state management and business logic
   const tpslForm = usePerpsTPSLForm({
@@ -107,10 +156,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     initialTakeProfitPrice,
     initialStopLossPrice,
     leverage: propLeverage,
-    entryPrice: position?.entryPrice
-      ? parseFloat(position.entryPrice)
-      : currentPrice,
+    entryPrice: effectiveEntryPrice,
     isVisible,
+    liquidationPrice: displayLiquidationPrice,
   });
 
   // Extract form state and handlers for easier access
@@ -145,33 +193,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     handleStopLossOff,
   } = tpslForm.buttons;
 
-  const { isValid, hasChanges, takeProfitError, stopLossError } =
-    tpslForm.validation;
+  const {
+    isValid,
+    hasChanges,
+    takeProfitError,
+    stopLossError,
+    stopLossLiquidationError,
+  } = tpslForm.validation;
   const { formattedTakeProfitPercentage, formattedStopLossPercentage } =
     tpslForm.display;
-
-  // Determine direction for tracking events
-  const actualDirection = position
-    ? parseFloat(position.size) > 0
-      ? 'long'
-      : 'short'
-    : direction;
-
-  // Calculate liquidation price for new orders (when there's no existing position)
-  const shouldCalculateLiquidation =
-    !position && currentPrice > 0 && propLeverage && actualDirection && asset;
-  const { liquidationPrice: calculatedLiquidationPrice } =
-    usePerpsLiquidationPrice({
-      entryPrice: shouldCalculateLiquidation ? currentPrice : 0,
-      leverage: shouldCalculateLiquidation ? propLeverage : 0,
-      direction: shouldCalculateLiquidation ? actualDirection : 'long',
-      asset: shouldCalculateLiquidation ? asset : '',
-    });
-
-  // Use position's liquidation price if available, otherwise use calculated price
-  const displayLiquidationPrice =
-    position?.liquidationPrice ||
-    (shouldCalculateLiquidation ? calculatedLiquidationPrice : null);
 
   useEffect(() => {
     if (isVisible) {
@@ -185,10 +215,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   const handleConfirm = useCallback(() => {
     // Parse the formatted prices back to plain numbers for storage
-    const parseTakeProfitPrice = takeProfitPrice
+    // Check for non-empty strings (empty strings should be treated as undefined)
+    const parseTakeProfitPrice = takeProfitPrice?.trim()
       ? takeProfitPrice.replace(/[$,]/g, '')
       : undefined;
-    const parseStopLossPrice = stopLossPrice
+    const parseStopLossPrice = stopLossPrice?.trim()
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
@@ -260,7 +291,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         {showOverlay && (
           <View style={styles.overlay}>
             <ActivityIndicator size="large" color={colors.primary.default} />
@@ -280,10 +311,16 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         <View style={styles.priceInfoContainer}>
           <View style={styles.priceInfoRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('perps.tpsl.current_price')}
+              {orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
+                ? strings('perps.order.limit_price')
+                : strings('perps.tpsl.current_price')}
             </Text>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {currentPrice ? formatPrice(currentPrice) : '--'}
+              {currentPrice
+                ? formatPerpsFiat(currentPrice, {
+                    ranges: PRICE_RANGES_POSITION_VIEW,
+                  })
+                : '--'}
             </Text>
           </View>
           <View style={styles.priceInfoRow}>
@@ -294,7 +331,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               {displayLiquidationPrice &&
               displayLiquidationPrice !== 'null' &&
               displayLiquidationPrice !== '0.00'
-                ? formatPrice(parseFloat(displayLiquidationPrice))
+                ? formatPerpsFiat(displayLiquidationPrice, {
+                    ranges: PRICE_RANGES_POSITION_VIEW,
+                  })
                 : '--'}
             </Text>
           </View>
@@ -342,6 +381,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Default}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
                   +{percentage}%
                 </Text>
@@ -361,12 +401,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={takeProfitPrice}
-                onChangeText={handleTakeProfitPriceChange}
+                onChangeText={(text) => {
+                  const digitCount = (text.match(/\d/g) || []).length;
+                  if (digitCount > 9) return; // Block input beyond 9 digits
+                  handleTakeProfitPriceChange(text);
+                }}
                 placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={handleTakeProfitPriceFocus}
                 onBlur={handleTakeProfitPriceBlur}
+                selectionColor={colors.primary.default}
+                cursorColor={colors.primary.default}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.tpsl.usd_label')}
@@ -383,12 +429,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={formattedTakeProfitPercentage}
-                onChangeText={handleTakeProfitPercentageChange}
+                onChangeText={(text) => {
+                  const digitCount = (text.match(/\d/g) || []).length;
+                  if (digitCount > 9) return; // Block input beyond 9 digits
+                  handleTakeProfitPercentageChange(text);
+                }}
                 placeholder={strings('perps.tpsl.profit_roe_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={handleTakeProfitPercentageFocus}
                 onBlur={handleTakeProfitPercentageBlur}
+                selectionColor={colors.primary.default}
+                cursorColor={colors.primary.default}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 %
@@ -446,6 +498,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Default}
                   numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
                   -{percentage}%
                 </Text>
@@ -465,12 +518,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={stopLossPrice}
-                onChangeText={handleStopLossPriceChange}
+                onChangeText={(text) => {
+                  const digitCount = (text.match(/\d/g) || []).length;
+                  if (digitCount > 9) return; // Block input beyond 9 digits
+                  handleStopLossPriceChange(text);
+                }}
                 placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={handleStopLossPriceFocus}
                 onBlur={handleStopLossPriceBlur}
+                selectionColor={colors.primary.default}
+                cursorColor={colors.primary.default}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.tpsl.usd_label')}
@@ -487,12 +546,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               <TextInput
                 style={styles.input}
                 value={formattedStopLossPercentage}
-                onChangeText={handleStopLossPercentageChange}
+                onChangeText={(text) => {
+                  const digitCount = (text.match(/\d/g) || []).length;
+                  if (digitCount > 9) return; // Block input beyond 9 digits
+                  handleStopLossPercentageChange(text);
+                }}
                 placeholder={strings('perps.tpsl.loss_roe_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={handleStopLossPercentageFocus}
                 onBlur={handleStopLossPercentageBlur}
+                selectionColor={colors.primary.default}
+                cursorColor={colors.primary.default}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 %
@@ -501,13 +566,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           </View>
 
           {/* Error message */}
-          {!isValid && stopLossError && (
+          {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
             <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-              {stopLossError}
+              {stopLossError || stopLossLiquidationError}
             </Text>
           )}
         </View>
-      </View>
+      </ScrollView>
 
       <BottomSheetFooter
         buttonPropsArray={[

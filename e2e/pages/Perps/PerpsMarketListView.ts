@@ -59,17 +59,45 @@ class PerpsMarketListView {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.MODAL);
   }
 
+  get scrollableContainer(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(PerpsTokenSelectorSelectorsIDs.MODAL);
+  }
+
   get closeTokenSelector() {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CLOSE_BUTTON);
   }
 
   // Actions
   async tapMarketRowItemBTC() {
-    await Gestures.tap(this.marketRowItemBTC);
+    await Gestures.scrollToElement(
+      this.marketRowItemBTC,
+      this.scrollableContainer,
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        elemDescription: 'Perps Market Row BTC',
+      },
+    );
+    await Gestures.waitAndTap(this.marketRowItemBTC, {
+      elemDescription: 'Perps Market Row BTC',
+      checkStability: true,
+    });
   }
 
   async tapFirstMarketRowItem() {
-    await Gestures.waitAndTap(this.firstMarketRowItem);
+    await Gestures.scrollToElement(
+      this.firstMarketRowItem,
+      this.scrollableContainer,
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        elemDescription: 'Perps First Market Row',
+      },
+    );
+    await Gestures.waitAndTap(this.firstMarketRowItem, {
+      elemDescription: 'Perps First Market Row',
+      checkStability: true,
+    });
   }
 
   async tapSearchToggleButton() {

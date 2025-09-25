@@ -291,9 +291,6 @@ describe('OrdersList', () => {
         ],
         [
           "Deposit",
-          {
-            "screen": "DepositRoot",
-          },
         ],
       ]
     `);

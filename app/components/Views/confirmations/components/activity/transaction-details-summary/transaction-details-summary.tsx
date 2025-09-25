@@ -13,7 +13,10 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details-summary.styles';
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
-import { selectTransactionsByIds } from '../../../../../../selectors/transactionController';
+import {
+  selectTransactionsByBatchId,
+  selectTransactionsByIds,
+} from '../../../../../../selectors/transactionController';
 import { useSelector } from 'react-redux';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { RootState } from '../../../../../../reducers';
@@ -29,14 +32,28 @@ import { IconName } from '../../../../../../component-library/components/Icons/I
 import { useNavigation } from '@react-navigation/native';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
   const { transactionMeta } = useTransactionDetails();
-  const { requiredTransactionIds } = transactionMeta;
+  const {
+    batchId,
+    id: transactionId,
+    requiredTransactionIds,
+  } = transactionMeta;
+
+  const batchTransactions = useSelector((state: RootState) =>
+    selectTransactionsByBatchId(state, batchId ?? ''),
+  );
+
+  const batchTransactionIds = batchTransactions
+    .filter((t) => t.id !== transactionId)
+    .map((t) => t.id);
 
   const transactionIds = [
     ...(requiredTransactionIds ?? []),
+    ...(batchTransactionIds ?? []),
     transactionMeta.id,
   ];
 
@@ -70,6 +87,11 @@ function SummaryLine({
   const { styles } = useStyles(styleSheet, { isLast });
   const bridgeHistory = useBridgeTxHistoryData({ evmTxMeta: transaction });
   const navigation = useNavigation();
+  const allBridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
+  const approvalBridgeHistory = Object.values(allBridgeHistory).find(
+    (h) => h.approvalTxId === transaction.id,
+  );
 
   const { chainId: chainIdHex, hash: txHash } = transaction;
   const chainId = parseInt(chainIdHex, 16);
@@ -95,7 +117,11 @@ function SummaryLine({
     transaction.submittedTime ?? transaction.time,
   );
 
-  const title = getLineTitle(transaction, bridgeHistory.bridgeTxHistoryItem);
+  const title = getLineTitle(
+    transaction,
+    bridgeHistory.bridgeTxHistoryItem,
+    approvalBridgeHistory,
+  );
 
   if (!title) {
     return null;
@@ -159,10 +185,12 @@ function getDateString(timestamp: number): string {
 function getLineTitle(
   transactionMeta: TransactionMeta,
   bridgeHistory?: BridgeHistoryItem,
+  approvalBridgeHistory?: BridgeHistoryItem,
 ): string | undefined {
   const { type } = transactionMeta;
   const sourceSymbol = bridgeHistory?.quote.srcAsset.symbol;
   const targetSymbol = bridgeHistory?.quote.destAsset.symbol;
+  const approveSymbol = approvalBridgeHistory?.quote.srcAsset.symbol;
 
   switch (type) {
     case TransactionType.bridge:
@@ -170,9 +198,17 @@ function getLineTitle(
         sourceSymbol,
         targetSymbol,
       });
+    case TransactionType.bridgeApproval:
+      return strings('transaction_details.summary_title.bridge_approval', {
+        approveSymbol,
+      });
     case TransactionType.perpsDeposit:
       return strings('transaction_details.summary_title.perps_deposit');
+    case TransactionType.swap:
+      return strings('transaction_details.summary_title.swap');
+    case TransactionType.swapApproval:
+      return strings('transaction_details.summary_title.swap_approval');
     default:
-      return undefined;
+      return strings('transaction_details.summary_title.default');
   }
 }

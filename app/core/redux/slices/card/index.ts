@@ -11,6 +11,7 @@ export interface CardSliceState {
   cardholderAccounts: string[];
   priorityTokensByAddress: Record<string, CardTokenAllowance | null>;
   lastFetchedByAddress: Record<string, Date | string | null>;
+  hasViewedCardButton: boolean;
   isLoaded: boolean;
 }
 
@@ -18,6 +19,7 @@ export const initialState: CardSliceState = {
   cardholderAccounts: [],
   priorityTokensByAddress: {},
   lastFetchedByAddress: {},
+  hasViewedCardButton: false,
   isLoaded: false,
 };
 
@@ -34,6 +36,9 @@ const slice = createSlice({
   initialState,
   reducers: {
     resetCardState: () => initialState,
+    setHasViewedCardButton: (state, action: PayloadAction<boolean>) => {
+      state.hasViewedCardButton = action.payload;
+    },
     setCardPriorityToken: (
       state,
       action: PayloadAction<{
@@ -123,9 +128,15 @@ export const selectIsCardholder = createSelector(
   },
 );
 
+export const selectHasViewedCardButton = createSelector(
+  selectCardState,
+  (card) => card.hasViewedCardButton,
+);
+
 // Actions
 export const {
   resetCardState,
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
+  setHasViewedCardButton,
 } = actions;

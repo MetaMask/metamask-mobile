@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -67,10 +68,11 @@ import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import AppConstants from '../../../../../core/AppConstants';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
+import ApprovalText from '../../components/ApprovalText';
+import { BigNumber } from 'bignumber.js';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -292,16 +294,6 @@ const BridgeView = () => {
     }
   };
 
-  const handleTermsPress = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.TERMS_AND_CONDITIONS,
-        title: strings('bridge.terms_and_conditions'),
-      },
-    });
-  };
-
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
@@ -369,6 +361,10 @@ const BridgeView = () => {
       );
     }
 
+    const hasFee =
+      activeQuote &&
+      new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0);
+
     return (
       activeQuote &&
       quotesLastFetched && (
@@ -388,11 +384,21 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
+          {hasFee ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.fee_disclaimer')}
+            </Text>
+          ) : null}
           <Button
             variant={ButtonVariants.Primary}
             label={getButtonLabel()}
             onPress={handleContinue}
             style={styles.button}
+            testID="bridge-confirm-button"
             isDisabled={
               hasInsufficientBalance ||
               isSubmittingTx ||
@@ -401,15 +407,9 @@ const BridgeView = () => {
               !hasSufficientGas
             }
           />
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Primary}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
+          {activeQuote?.approval && sourceAmount && sourceToken && (
+            <ApprovalText amount={sourceAmount} symbol={sourceToken.symbol} />
+          )}
         </Box>
       )
     );

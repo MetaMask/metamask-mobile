@@ -21,6 +21,7 @@ import {
 } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
+import usePrevious from '../../../../hooks/usePrevious';
 
 interface UseRewardsParams {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -31,6 +32,7 @@ interface UseRewardsResult {
   shouldShowRewardsRow: boolean;
   isLoading: boolean;
   estimatedPoints: number | null;
+  hasError: boolean;
 }
 
 /**
@@ -60,6 +62,8 @@ export const useRewards = ({
   const [isLoading, setIsLoading] = useState(false);
   const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
   const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const prevRequestId = usePrevious(activeQuote?.quote?.requestId);
 
   // Selectors
   const sourceToken = useSelector(selectSourceToken);
@@ -85,6 +89,7 @@ export const useRewards = ({
     }
 
     setIsLoading(true);
+    setHasError(false);
 
     try {
       // Check if rewards feature is enabled
@@ -172,6 +177,7 @@ export const useRewards = ({
     } catch (error) {
       Logger.error(error as Error, 'useRewards: Error estimating points');
       setEstimatedPoints(null);
+      setHasError(true);
     } finally {
       setIsLoading(false);
     }
@@ -186,16 +192,20 @@ export const useRewards = ({
 
   // Estimate points when dependencies change
   useEffect(() => {
-    estimatePoints();
+    if (prevRequestId !== activeQuote?.quote?.requestId) {
+      estimatePoints();
+    }
   }, [
     estimatePoints,
     // Only re-estimate when quote changes (not during loading)
     activeQuote?.quote?.requestId,
+    prevRequestId,
   ]);
 
   return {
     shouldShowRewardsRow,
     isLoading: isLoading || isQuoteLoading,
     estimatedPoints,
+    hasError,
   };
 };

@@ -4,6 +4,7 @@ import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import { getNotificationBadge } from '../../methods/common';
 import METAMASK_FOX from '../../../../images/branding/fox.png';
+import { hasMinimumRequiredVersion } from '../../../remoteFeatureFlag';
 
 type FeatureAnnouncementNotification =
   ExtractedNotification<TRIGGER_TYPES.FEATURES_ANNOUNCEMENT>;
@@ -11,6 +12,26 @@ type FeatureAnnouncementNotification =
 const isFeatureAnnouncementNotification = isOfTypeNodeGuard([
   TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
 ]);
+
+export const isFilteredFeatureAnnonucementNotification = (
+  n: FeatureAnnouncementNotification,
+) => {
+  if (!isFeatureAnnouncementNotification(n)) {
+    return false;
+  }
+
+  // Field is not set, so show by default
+  if (!n.data.mobileMinimumVersionNumber) {
+    return true;
+  }
+
+  try {
+    return hasMinimumRequiredVersion(n.data.mobileMinimumVersionNumber);
+  } catch {
+    // Invalid mobile version number, not showing notification
+    return false;
+  }
+};
 
 const state: NotificationState<FeatureAnnouncementNotification> = {
   guardFn: isFeatureAnnouncementNotification,

@@ -16,6 +16,10 @@ class NetworkConnectMultiSelector {
     );
   }
 
+  getMultiselectElement(label: string): DetoxElement {
+    return Matchers.getElementByLabel(label);
+  }
+
   async tapUpdateButton(): Promise<void> {
     await Gestures.waitAndTap(this.updateButton, {
       elemDescription: 'Tap on the update button',
@@ -43,6 +47,13 @@ class NetworkConnectMultiSelector {
     await Assertions.expectElementToBeVisible(el, {
       timeout: 10000,
       description: `Network chain permission ${chainName} should be selected`,
+    });
+  }
+
+  async selectNetworkChainPermission(chainName: string): Promise<void> {
+    const el = this.getMultiselectElement(chainName);
+    await Gestures.waitAndTap(el, {
+      elemDescription: `Tap on the network chain permission ${chainName}`,
     });
   }
 }

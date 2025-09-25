@@ -1,9 +1,4 @@
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-  RouteProp,
-} from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -31,7 +26,6 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
@@ -115,17 +109,8 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
   return [...defaultScreens, readyToTradeScreen];
 };
 
-interface PerpsTutorialRouteParams {
-  isFromDeeplink?: boolean;
-  isFromGTMModal?: boolean;
-}
-
 const PerpsTutorialCarousel: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route =
-    useRoute<RouteProp<{ params: PerpsTutorialRouteParams }, 'params'>>();
-  const isFromDeeplink = route.params?.isFromDeeplink || false;
-  const isFromGTMModal = route.params?.isFromGTMModal || false;
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -201,22 +186,6 @@ const PerpsTutorialCarousel: React.FC = () => {
     [track],
   );
 
-  const navigateToWalletPerpsTab = useCallback(() => {
-    // Navigate to wallet home first (using global navigation service like deeplink handler)
-    NavigationService.navigation.navigate(Routes.WALLET.HOME);
-    // The timeout is REQUIRED - React Navigation needs time to:
-    // 1. Complete the navigation transition
-    // 2. Mount the Wallet component
-    // 3. Make navigation context available for setParams
-    // Without this delay, the tab selection will fail
-    setTimeout(() => {
-      NavigationService.navigation.setParams({
-        initialTab: 'perps',
-        shouldSelectPerpsTab: true,
-      });
-    }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
-  }, []);
-
   const navigateToMarketsList = useCallback(() => {
     NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKETS,
@@ -245,13 +214,13 @@ const PerpsTutorialCarousel: React.FC = () => {
         [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
       });
 
+      // Mark tutorial as completed
+      markTutorialCompleted();
+
       // We need to enable Arbitrum for desposits to work
       // Arbitrum One is already added for all users as a default network
       // For devs on testnet, Arbitrum Sepolia will be added/enabled
       await ensureArbitrumNetworkExists();
-
-      // Mark tutorial as completed
-      markTutorialCompleted();
 
       if (isEligible) {
         // Navigate immediately to confirmations screen for instant UI response
@@ -266,11 +235,6 @@ const PerpsTutorialCarousel: React.FC = () => {
           console.error('Failed to initialize deposit:', error);
         });
 
-        return;
-      }
-
-      if (isFromGTMModal) {
-        navigateToWalletPerpsTab();
         return;
       }
 
@@ -300,8 +264,6 @@ const PerpsTutorialCarousel: React.FC = () => {
     depositWithConfirmation,
     tutorialScreens.length,
     ensureArbitrumNetworkExists,
-    isFromGTMModal,
-    navigateToWalletPerpsTab,
     navigateToMarketsList,
   ]);
 
@@ -316,25 +278,16 @@ const PerpsTutorialCarousel: React.FC = () => {
         [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
         [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
       });
-
-      // Mark tutorial as completed
-      markTutorialCompleted();
     }
 
-    // Navigate based on deeplink/gtm modal flag
-    if (isFromDeeplink || isFromGTMModal) {
-      navigateToWalletPerpsTab();
-    } else {
-      navigateToMarketsList();
-    }
+    // Mark tutorial as completed
+    markTutorialCompleted();
+    navigateToMarketsList();
   }, [
     isLastScreen,
     markTutorialCompleted,
     currentTab,
     track,
-    isFromGTMModal,
-    isFromDeeplink,
-    navigateToWalletPerpsTab,
     navigateToMarketsList,
   ]);
 
@@ -429,6 +382,11 @@ const PerpsTutorialCarousel: React.FC = () => {
       {/* Footer */}
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.buttonRow}>
+          {isLastScreen && (
+            <Text variant={TextVariant.BodySM} style={styles.fundsInfoText}>
+              {strings('perps.tutorial.ready_to_trade.fund_text_helper')}
+            </Text>
+          )}
           <Button
             variant={ButtonVariants.Primary}
             label={buttonLabel}
@@ -440,7 +398,7 @@ const PerpsTutorialCarousel: React.FC = () => {
           <View style={styles.skipButton}>
             <TouchableOpacity
               onPress={handleSkip}
-              disabled={!isEligible}
+              disabled={isLastScreen && !isEligible}
               testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
             >
               <Text

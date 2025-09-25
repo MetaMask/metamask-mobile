@@ -1,10 +1,5 @@
 import React, { ReactNode } from 'react';
-import {
-  ImageBackground,
-  ImageSourcePropType,
-  PanResponder,
-  View,
-} from 'react-native';
+import { ImageBackground, ImageSourcePropType, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -39,6 +34,7 @@ interface OnboardingStepProps {
   // Render props for customizable content
   renderStepImage?: () => ReactNode;
   renderStepInfo: () => ReactNode;
+  stepInfoContainerStyle?: string;
 
   // Container type customization
   backgroundImageSource?: ImageSourcePropType;
@@ -59,52 +55,20 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
   nextButtonAlternative,
   renderStepImage,
   renderStepInfo,
+  stepInfoContainerStyle,
   backgroundImageSource,
-  enableSwipeGestures = true,
-  swipeThreshold = 50,
 }) => {
   const tw = useTailwind();
 
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => enableSwipeGestures,
-    onMoveShouldSetPanResponder: (_evt, gestureState) =>
-      enableSwipeGestures &&
-      Math.abs(gestureState.dx) > Math.abs(gestureState.dy) &&
-      Math.abs(gestureState.dx) > 20,
-    onPanResponderMove: () => {
-      // Optional: Add visual feedback during swipe
-    },
-    onPanResponderRelease: (_evt, gestureState) => {
-      if (!enableSwipeGestures) return;
-
-      const { dx, dy } = gestureState;
-
-      // Check if it's a horizontal swipe (more horizontal than vertical)
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > swipeThreshold) {
-        if (dx > 0 && onPrevious) {
-          // Swipe right = go to previous step
-          onPrevious();
-        } else if (dx < 0) {
-          // Swipe left = go to next step
-          onNext();
-        }
-      }
-    },
-  });
-
   return (
-    <View
-      style={tw.style('flex-1')}
-      {...panResponder.panHandlers}
-      testID="onboarding-step-container"
-    >
+    <View style={tw.style('flex-1')} testID="onboarding-step-container">
       <ImageBackground
         source={backgroundImageSource}
         style={tw.style('flex-1 px-4 py-10')}
         resizeMode="cover"
         testID="background-image"
       >
-        <Box twClassName="mt-12 justify-center items-center">
+        <Box twClassName="mt-8 justify-center items-center">
           {onPrevious && (
             <Box twClassName="absolute left-1">
               <ButtonIcon
@@ -136,10 +100,12 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
             </Box>
           )}
 
-          <Box twClassName="flex-1 flex-col gap-2 justify-between">
+          <Box
+            twClassName={`flex-1 flex-col gap-2 justify-between ${stepInfoContainerStyle}`}
+          >
             <Box twClassName="flex-col gap-2">{renderStepInfo()}</Box>
 
-            <Box twClassName="w-full flex-col gap-2">
+            <Box twClassName="w-full flex-col gap-6">
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}

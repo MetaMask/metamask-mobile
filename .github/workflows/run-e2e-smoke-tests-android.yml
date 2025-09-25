@@ -106,34 +106,6 @@ jobs:
       total_splits: 2
     secrets: inherit
 
-  # performance-android-smoke:
-  #   strategy:
-  #     matrix:
-  #       split: [1, 2]
-  #     fail-fast: false
-  #   uses: ./.github/workflows/run-e2e-workflow.yml
-  #   with:
-  #     test-suite-name: performance-android-smoke-${{ matrix.split }}
-  #     platform: android
-  #     test_suite_tag: "SmokePerformance"
-  #     split_number: ${{ matrix.split }}
-  #     total_splits: 2
-  #   secrets: inherit
-
-  card-android-smoke:
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: card-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: "SmokeCard"
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-    secrets: inherit
-
   confirmations-redesigned-android-smoke:
    strategy:
      matrix:
@@ -160,8 +132,6 @@ jobs:
       - accounts-android-smoke
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
-      # - performance-android-smoke
-      - card-android-smoke
       - confirmations-redesigned-android-smoke
 
     steps:

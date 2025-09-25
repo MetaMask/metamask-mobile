@@ -5,6 +5,8 @@ export {
   resetRewardsState,
   resetOnboarding,
   setOnboardingActiveStep,
+  setCandidateSubscriptionId,
+  setHideUnlinkedAccountsBanner,
 } from '../../reducers/rewards';
 
 export type { RewardsState } from '../../reducers/rewards';

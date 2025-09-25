@@ -43,14 +43,6 @@ describe('useSeasonStatus', () => {
     expect(result.current).toBeNull();
   });
 
-  it('should skip fetch when seasonId is missing', () => {
-    renderHook(() => useSeasonStatus({ subscriptionId: 'test-id' }));
-
-    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatus(null));
-    expect(mockDispatch).toHaveBeenCalledWith(setSeasonStatusLoading(false));
-    expect(mockEngineCall).not.toHaveBeenCalled();
-  });
-
   it('should skip fetch when subscriptionId is missing', () => {
     renderHook(() => useSeasonStatus({ seasonId: 'season-1' }));
 

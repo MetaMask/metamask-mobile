@@ -19,6 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
 import { AccountWalletId } from '@metamask/account-api';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import createStyles from './AccountListFooter.styles';
 import Engine from '../../../../../core/Engine';
 import {
@@ -122,7 +123,11 @@ const AccountListFooter = memo(
               />
             )}
           </View>
-          <Text variant={TextVariant.BodyMd} style={styles.buttonText}>
+          <Text
+            variant={TextVariant.BodyMd}
+            style={styles.buttonText}
+            testID={AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT}
+          >
             {isLoading
               ? strings('multichain_accounts.wallet_details.creating_account')
               : strings('multichain_accounts.wallet_details.create_account')}

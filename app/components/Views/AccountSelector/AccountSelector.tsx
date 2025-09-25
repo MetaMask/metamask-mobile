@@ -278,6 +278,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       style={styles.bottomSheetContent}
       ref={sheetRef}
       onOpen={onOpen}
+      keyboardAvoidingViewEnabled={false}
     >
       {renderAccountScreens()}
     </BottomSheet>

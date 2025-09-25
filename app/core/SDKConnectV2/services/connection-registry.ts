@@ -70,13 +70,15 @@ export class ConnectionRegistry {
   }
 
   /**
-   * Disconnects a session and cleans up all associated data.
+   * Disconnects a session, cleans up all associated data
+   * and revokes permissions.
    * @param id The ID of the connection to terminate.
    */
   public async disconnect(id: string): Promise<void> {
     await this.connections.get(id)?.disconnect();
     await this.store.delete(id);
     this.connections.delete(id);
+    this.hostapp.revokePermissions(id);
     this.hostapp.syncConnectionList(Array.from(this.connections.values()));
   }
 

@@ -34,7 +34,7 @@ import {
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
-import { SolScope } from '@metamask/keyring-api';
+import { EntropySourceId, SolScope } from '@metamask/keyring-api';
 import { logOut } from '../../actions/user';
 import { RootState } from '../../reducers';
 import {
@@ -87,6 +87,10 @@ jest.mock('../../store/storage-wrapper', () => ({
 const mockSnapClient = {
   addDiscoveredAccounts: jest.fn(),
 };
+
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
+const mockDiscoverAndCreateAccounts = jest.fn();
 
 jest.mock('../SnapKeyring/MultichainWalletSnapClient', () => ({
   ...jest.requireActual('../SnapKeyring/MultichainWalletSnapClient'),
@@ -149,6 +153,16 @@ jest.mock('../BackupVault/backupVault', () => ({
 
 jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
   initializeAccountTree: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
+}));
+
+jest.mock('../../multichain-accounts/discovery', () => ({
+  discoverAndCreateAccounts: (entropySource: EntropySourceId) =>
+    mockDiscoverAndCreateAccounts(entropySource),
 }));
 
 const mockUint8ArrayToMnemonic = jest
@@ -499,6 +513,10 @@ describe('Authentication', () => {
   });
 
   describe('Multichain - discoverAccounts', () => {
+    beforeEach(() => {
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+    });
+
     it('calls discoverAccounts after vault creation in newWalletAndKeychain', async () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
@@ -510,6 +528,20 @@ describe('Authentication', () => {
       expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
         expect.any(String), // mock entropySource
         SolScope.Mainnet,
+      );
+    });
+
+    it('(state 2) - calls discoverAccounts after vault creation in newWalletAndKeychain', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+      await Authentication.newWalletAndKeychain('1234', {
+        currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+      });
+      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
+        expect.any(String), // mock entropySource
       );
     });
 
@@ -532,6 +564,25 @@ describe('Authentication', () => {
       );
     });
 
+    it('(state 2) - calls discoverAccounts in newWalletVaultAndRestore', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+      } as unknown as ReduxStore);
+      mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+      await Authentication.newWalletAndRestore(
+        '1234',
+        {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        },
+        '1234',
+        false,
+      );
+      expect(mockDiscoverAndCreateAccounts).toHaveBeenCalledWith(
+        expect.any(String), // mock entropySource
+      );
+    });
+
     describe('Account discovery failure handling', () => {
       beforeEach(() => {
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -543,6 +594,8 @@ describe('Authentication', () => {
         jest.spyOn(console, 'error').mockImplementation();
         jest.clearAllMocks();
         mockSnapClient.addDiscoveredAccounts.mockClear();
+        mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
+        mockDiscoverAndCreateAccounts.mockClear();
       });
 
       afterEach(() => {
@@ -564,13 +617,30 @@ describe('Authentication', () => {
         expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
       });
 
-      it('completes wallet restore when discovery fails', async () => {
+      it('(state 2) - completes wallet creation when discovery fails', async () => {
+        mockDiscoverAndCreateAccounts.mockRejectedValueOnce(
+          new Error('Discovery error'),
+        );
+
+        mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+        await expect(
+          Authentication.newWalletAndKeychain('1234', {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          }),
+        ).resolves.not.toThrow();
+
+        // Verify discovery was attempted
+        expect(mockDiscoverAndCreateAccounts).toHaveBeenCalled();
+      });
+
+      it('(state 2) - completes wallet restore when discovery fails', async () => {
         // Mock discovery to fail
-        mockSnapClient.addDiscoveredAccounts.mockRejectedValueOnce(
-          new Error('Network timeout'),
+        mockDiscoverAndCreateAccounts.mockRejectedValueOnce(
+          new Error('Discovery timeout'),
         );
 
         // Wallet restore should succeed despite failure
+        mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
         await expect(
           Authentication.newWalletAndRestore(
             '1234',
@@ -581,7 +651,7 @@ describe('Authentication', () => {
         ).resolves.not.toThrow();
 
         // Verify discovery was attempted
-        expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalled();
+        expect(mockDiscoverAndCreateAccounts).toHaveBeenCalled();
       });
 
       it('does not break authentication flow when discovery fails', async () => {
@@ -1342,7 +1412,10 @@ describe('Authentication', () => {
 
       expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(importError);
+      expect(Logger.error).toHaveBeenCalledWith(
+        importError,
+        'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+      );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
@@ -1417,7 +1490,10 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(error);
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+      );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });

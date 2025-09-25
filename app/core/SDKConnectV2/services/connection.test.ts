@@ -36,8 +36,9 @@ describe('Connection', () => {
   const mockConnectionRequest: ConnectionRequest = {
     sessionRequest: {
       id: 'test-session-id',
-      dappPublicKey: 'dapp_pub_key',
-      walletPublicKey: 'wallet_pub_key',
+      publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
+      mode: 'trusted',
+      expiresAt: 1757410033264,
       channel: 'channel-id',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,

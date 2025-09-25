@@ -35,9 +35,6 @@ import {
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsPerformance } from '../../hooks';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useSelector } from 'react-redux';
 import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
@@ -422,14 +419,6 @@ const PerpsMarketListView = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
-          <View style={styles.backButtonWrapper}>
-            <ButtonIcon
-              iconName={IconName.Arrow2Left}
-              size={ButtonIconSizes.Md}
-              onPress={handleBackPressed}
-              testID={PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON}
-            />
-          </View>
           <Text
             variant={TextVariant.HeadingLG}
             color={TextColor.Default}
@@ -446,7 +435,7 @@ const PerpsMarketListView = ({
           >
             <Icon
               name={isSearchVisible ? IconName.Close : IconName.Search}
-              size={IconSize.Md}
+              size={IconSize.Lg}
             />
           </TouchableOpacity>
           <TouchableOpacity
@@ -454,7 +443,7 @@ const PerpsMarketListView = ({
             testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
             style={styles.tutorialButton}
           >
-            <Icon name={IconName.Question} size={IconSize.Md} />
+            <Icon name={IconName.Question} size={IconSize.Lg} />
           </TouchableOpacity>
         </View>
       </View>

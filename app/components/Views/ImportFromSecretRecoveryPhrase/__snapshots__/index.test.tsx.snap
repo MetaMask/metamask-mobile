@@ -573,7 +573,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           "display": "flex",
                                           "flex": 1,
                                           "flexDirection": "row",
-                                          "height": 66,
+                                          "height": 40,
                                           "opacity": 1,
                                           "paddingHorizontal": 0,
                                         }
@@ -618,7 +618,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "borderWidth": 1,
                                               "color": "#686e7d",
                                               "display": "flex",
-                                              "flex": 1,
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",

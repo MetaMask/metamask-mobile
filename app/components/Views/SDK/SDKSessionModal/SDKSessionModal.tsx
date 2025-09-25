@@ -79,13 +79,14 @@ interface SDKSEssionMoodalProps {
       urlOrTitle: string;
       version?: string;
       platform?: string;
+      isV2?: boolean;
     };
   };
 }
 
 const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   const { params } = route;
-  const { channelId, icon, urlOrTitle, version, platform } = params;
+  const { channelId, icon, urlOrTitle, version, platform, isV2 } = params;
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const safeAreaInsets = useSafeAreaInsets();
@@ -180,6 +181,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
                       account: account.address,
                       accountName: account.name,
                       dapp: urlOrTitle,
+                      isV2,
                     },
                   });
                 }
@@ -203,6 +205,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
                 account: undefined,
                 accountsLength: permittedAccountsAddresses.length,
                 dapp: urlOrTitle,
+                isV2,
               },
             });
           }}

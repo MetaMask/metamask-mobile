@@ -282,6 +282,7 @@ describe('useTransactionConfirm', () => {
             gas: '0x1',
             isAfter: false,
             to: QUOTE_MOCK.approval.to,
+            type: TransactionType.swapApproval,
             value: QUOTE_MOCK.approval.value,
           },
           {
@@ -289,6 +290,7 @@ describe('useTransactionConfirm', () => {
             gas: '0x2',
             isAfter: false,
             to: QUOTE_MOCK.trade.to,
+            type: TransactionType.swap,
             value: QUOTE_MOCK.trade.value,
           },
         ],
@@ -298,7 +300,7 @@ describe('useTransactionConfirm', () => {
   });
 
   describe('navigates to', () => {
-    it('previous page if perps deposit', async () => {
+    it('wallet view if perps deposit', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.perpsDeposit,
@@ -308,8 +310,7 @@ describe('useTransactionConfirm', () => {
 
       await result.current.onConfirm();
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('transactions if full screen', async () => {

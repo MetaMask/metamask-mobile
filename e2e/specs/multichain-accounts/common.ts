@@ -6,7 +6,10 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureMultichainAccountsAccountDetails,
+  remoteFeatureMultichainAccountsAccountDetailsV2,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 export interface Account {
@@ -31,7 +34,7 @@ export const goToAccountDetails = async (account: Account) => {
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(account.index);
 };
 
-export const withMultichainAccountDetailsEnabled = async (
+export const withMultichainAccountDetailsEnabledFixtures = async (
   testFn: () => Promise<void>,
 ) => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -44,6 +47,32 @@ export const withMultichainAccountDetailsEnabled = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
+        .build(),
+      restartDevice: true,
+      testSpecificMock,
+    },
+    async () => {
+      await loginToApp();
+      await WalletView.tapIdenticon();
+      await testFn();
+    },
+  );
+};
+
+export const withMultichainAccountDetailsV2EnabledFixtures = async (
+  testFn: () => Promise<void>,
+) => {
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureMultichainAccountsAccountDetailsV2(),
+    );
+  };
+  return await withFixtures(
+    {
+      fixture: new FixtureBuilder()
+        .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountOneQrAccountOneSimpleKeyPairAccount()
+        .ensureMultichainIntroModalSuppressed()
         .build(),
       restartDevice: true,
       testSpecificMock,

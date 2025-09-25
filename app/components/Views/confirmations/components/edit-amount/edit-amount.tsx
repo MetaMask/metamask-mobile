@@ -13,8 +13,17 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { Hex } from '@metamask/utils';
 import { Alert } from '../../types/alerts';
 import { PERPS_CURRENCY } from '../../constants/perps';
+import { AlertKeys } from '../../constants/alerts';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 const MAX_LENGTH = 28;
+
+const ON_CHANGE_ALERTS = [
+  AlertKeys.PerpsDepositMinimum,
+  AlertKeys.InsufficientPayTokenBalance,
+];
 
 export interface EditAmountProps {
   alerts?: Alert[];
@@ -49,9 +58,21 @@ export function EditAmount({
   const fiatRate = useTokenFiatRate(tokenAddress, chainId, fiatCurrency);
 
   const inputRef = createRef<TextInput>();
-  const hasAlert = Boolean(alerts?.length) && inputChanged;
   const fiatSymbol = getCurrencySymbol(fiatCurrency);
   const amountLength = amountFiat.length;
+  const currentAlert = alerts?.[0];
+
+  const hasAlert =
+    Boolean(currentAlert) &&
+    (!ON_CHANGE_ALERTS.includes(currentAlert?.key as AlertKeys) ||
+      inputChanged);
+
+  const alertKeyboard = hasAlert
+    ? currentAlert?.title ?? (currentAlert?.message as string)
+    : undefined;
+
+  const alertMessage =
+    hasAlert && currentAlert?.title ? currentAlert?.message : undefined;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -131,10 +152,6 @@ export function EditAmount({
     [handleChange, tokenFiatAmount],
   );
 
-  const alertMessage = inputChanged
-    ? (alerts?.[0]?.message as string)
-    : undefined;
-
   return (
     <View style={styles.container}>
       <View style={styles.primaryContainer}>
@@ -157,10 +174,15 @@ export function EditAmount({
           />
         </View>
         {children?.(amountHuman)}
+        {showKeyboard && alertMessage && (
+          <Text variant={TextVariant.BodySM} style={styles.alertMessage}>
+            {alertMessage}
+          </Text>
+        )}
       </View>
       {showKeyboard && (
         <DepositKeyboard
-          alertMessage={alertMessage}
+          alertMessage={alertKeyboard}
           value={amountFiat}
           hasInput={hasAmount}
           onChange={handleChange}

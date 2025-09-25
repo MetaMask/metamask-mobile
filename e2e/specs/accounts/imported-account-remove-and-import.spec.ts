@@ -64,12 +64,10 @@ describe(
           );
           await SuccessImportAccountView.tapCloseButton();
 
-          // Check if the account type label is visible
-          await Assertions.expectElementToHaveLabel(
-            AccountListBottomSheet.accountTagLabel,
+          await Assertions.expectTextDisplayed(
             AccountListBottomSheetSelectorsText.ACCOUNT_TYPE_LABEL_TEXT,
             {
-              description: 'Account type label',
+              description: 'Account should be labeled as Imported',
             },
           );
         },

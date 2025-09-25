@@ -24,6 +24,15 @@ jest.mock('react-redux', () => ({
       rewards: {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
+        onboardingActiveStep: 'intro',
+        candidateSubscriptionId: null,
+        rewardsControllerState: {
+          activeAccount: {
+            subscriptionId: null,
+            account: 'test-account',
+            hasOptedIn: false,
+          },
+        },
       },
       engine: {
         backgroundState: {
@@ -35,6 +44,13 @@ jest.mock('react-redux', () => ({
                   type: 'eip155:eoa',
                 },
               },
+            },
+          },
+          RewardsController: {
+            activeAccount: {
+              subscriptionId: null,
+              account: 'test-account',
+              hasOptedIn: false,
             },
           },
         },
@@ -132,6 +148,15 @@ describe('OnboardingIntroStep', () => {
           rewards: {
             optinAllowedForGeo: true,
             optinAllowedForGeoLoading: true,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
           },
           engine: {
             backgroundState: {
@@ -143,6 +168,13 @@ describe('OnboardingIntroStep', () => {
                       type: 'eip155:eoa',
                     },
                   },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
                 },
               },
             },
@@ -181,6 +213,15 @@ describe('OnboardingIntroStep', () => {
           rewards: {
             optinAllowedForGeo: true,
             optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
           },
           engine: {
             backgroundState: {
@@ -193,6 +234,13 @@ describe('OnboardingIntroStep', () => {
                       address: 'solana-address',
                     },
                   },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
                 },
               },
             },
@@ -209,12 +257,16 @@ describe('OnboardingIntroStep', () => {
       fireEvent.press(confirmButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_ERROR_MODAL,
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         {
           title: 'mocked_rewards.onboarding.not_supported_account_needed_title',
           description:
             'mocked_rewards.onboarding.not_supported_account_needed_description',
-          dismissLabel: 'mocked_rewards.onboarding.not_supported_confirm',
+          confirmAction: {
+            label: 'mocked_rewards.onboarding.not_supported_confirm',
+            onPress: expect.any(Function),
+            variant: 'Primary',
+          },
         },
       );
     });
@@ -232,6 +284,15 @@ describe('OnboardingIntroStep', () => {
           rewards: {
             optinAllowedForGeo: false,
             optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-account',
+                hasOptedIn: false,
+              },
+            },
           },
           engine: {
             backgroundState: {
@@ -243,6 +304,13 @@ describe('OnboardingIntroStep', () => {
                       type: 'eip155:eoa',
                     },
                   },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-account',
+                  hasOptedIn: false,
                 },
               },
             },
@@ -263,12 +331,16 @@ describe('OnboardingIntroStep', () => {
       fireEvent.press(confirmButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.MODAL.REWARDS_ERROR_MODAL,
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
         {
           title: 'mocked_rewards.onboarding.not_supported_region_title',
           description:
             'mocked_rewards.onboarding.not_supported_region_description',
-          dismissLabel: 'mocked_rewards.onboarding.not_supported_confirm',
+          confirmAction: {
+            label: 'mocked_rewards.onboarding.not_supported_confirm',
+            onPress: expect.any(Function),
+            variant: 'Primary',
+          },
         },
       );
     });
@@ -281,6 +353,11 @@ describe('OnboardingIntroStep', () => {
           rewards: {
             optinAllowedForGeo: true,
             optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: null,
+            },
           },
           engine: {
             backgroundState: {
@@ -289,6 +366,9 @@ describe('OnboardingIntroStep', () => {
                   selectedAccount: null,
                   accounts: {},
                 },
+              },
+              RewardsController: {
+                activeAccount: null,
               },
             },
           },

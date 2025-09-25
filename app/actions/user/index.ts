@@ -24,6 +24,7 @@ import {
   type SetAppServicesReadyAction,
   type SetExistingUserAction,
   type SetIsConnectionRemovedAction,
+  type SetMultichainAccountsIntroModalSeenAction,
   UserActionType,
 } from './types';
 
@@ -198,5 +199,17 @@ export function setIsConnectionRemoved(
   return {
     type: UserActionType.SET_IS_CONNECTION_REMOVED,
     payload: { isConnectionRemoved },
+  };
+}
+
+/**
+ * Action to set multichain accounts intro modal as seen
+ */
+export function setMultichainAccountsIntroModalSeen(
+  seen: boolean,
+): SetMultichainAccountsIntroModalSeenAction {
+  return {
+    type: UserActionType.SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN,
+    payload: { seen },
   };
 }

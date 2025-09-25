@@ -62,6 +62,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
+import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
 
 const createStyles = (colors) =>
@@ -392,10 +393,12 @@ class Onboarding extends PureComponent {
     }
   };
 
-  onPressCreate = () => {
+  onPressCreate = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+
     trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       trace({
@@ -417,10 +420,12 @@ class Onboarding extends PureComponent {
     endTrace({ name: TraceName.OnboardingCreateWallet });
   };
 
-  onPressImport = () => {
+  onPressImport = async () => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
+    await this.props.metrics.enableSocialLogin(false);
+
     const action = async () => {
       trace({
         name: TraceName.OnboardingExistingSrpImport,
@@ -528,6 +533,10 @@ class Onboarding extends PureComponent {
 
     // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
+
+    // Enable metrics for OAuth users
+    await this.props.metrics.enableSocialLogin(true);
+    await setupSentry();
 
     if (createWallet) {
       this.track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -675,7 +684,7 @@ class Onboarding extends PureComponent {
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
-  handleCtaActions = (actionType) => {
+  handleCtaActions = async (actionType) => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ONBOARDING_SHEET,
@@ -689,9 +698,9 @@ class Onboarding extends PureComponent {
       });
       // else
     } else if (actionType === 'create') {
-      this.onPressCreate();
+      await this.onPressCreate();
     } else {
-      this.onPressImport();
+      await this.onPressImport();
     }
   };
 

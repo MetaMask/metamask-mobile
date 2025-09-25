@@ -12,6 +12,7 @@ import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
 import type { Position } from '../controllers/types';
+import { captureException } from '@sentry/react-native';
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -101,6 +102,29 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         }
       } catch (error) {
         DevLogger.log('Error updating position TP/SL:', error);
+
+        // Capture exception with position context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'usePerpsTPSLUpdate',
+              action: 'position_tpsl_update',
+              operation: 'position_management',
+            },
+            extra: {
+              positionContext: {
+                coin: position.coin,
+                size: position.size,
+                entryPrice: position.entryPrice,
+                unrealizedPnl: position.unrealizedPnl,
+                leverage: position.leverage,
+                takeProfitPrice,
+                stopLossPrice,
+              },
+            },
+          },
+        );
 
         const errorMessage =
           error instanceof Error

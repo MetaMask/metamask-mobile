@@ -75,6 +75,10 @@ const createStyles = (params: {
       paddingHorizontal: 16,
       paddingVertical: 16,
     },
+    fundsInfoText: {
+      textAlign: 'center',
+      color: params.theme.colors.text.alternative,
+    },
     buttonRow: {
       flexDirection: 'column',
       alignItems: 'stretch',

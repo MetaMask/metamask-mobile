@@ -128,12 +128,6 @@ Apply labels to enable automation and proper routing. Some labels can block merg
   - If unsure, leave it out - no team label is better than a wrong one
   - Check for deprecated labels in the label description
   - To see all available team labels: `gh label list --search "team-" --limit 100`
-- **QA labels**:
-  - `needs-qa` (blocks merging until QA passes)
-  - `No QA Needed`
-  - `Run Smoke E2E`
-  - `No E2E Smoke Needed`
-  - `Spot check on release build`
 - **Blocking labels** (cannot merge while applied): `needs-qa`, `issues-found`, `blocked`, `DO-NOT-MERGE`
 - Add any relevant area/scope labels used by the repo (e.g., platform-specific or feature-specific labels).
 

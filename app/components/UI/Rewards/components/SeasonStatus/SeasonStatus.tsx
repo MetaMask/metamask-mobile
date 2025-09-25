@@ -172,17 +172,25 @@ const SeasonStatus: React.FC = () => {
       {/* Bottom Row - Points Summary */}
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="gap-2 justify-between"
+        twClassName="gap-2 justify-between items-center -mt-2"
       >
         <Box twClassName="flex-row items-center gap-2">
           <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
 
-          <Text variant={TextVariant.HeadingLg} twClassName="text-default">
-            {formatNumber(balanceTotal)}{' '}
-            {!balanceTotal || balanceTotal > 1
-              ? strings('rewards.points').toLowerCase()
-              : strings('rewards.point').toLowerCase()}
-          </Text>
+          <Box twClassName="flex-row items-center gap-1">
+            <Text variant={TextVariant.HeadingLg} twClassName="text-default">
+              {formatNumber(balanceTotal)}
+            </Text>
+
+            <Text
+              variant={TextVariant.HeadingSm}
+              twClassName="text-default text-left -mb-1"
+            >
+              {!balanceTotal || balanceTotal > 1
+                ? strings('rewards.points').toLowerCase()
+                : strings('rewards.point').toLowerCase()}
+            </Text>
+          </Box>
         </Box>
 
         {!!nextTierPointsNeeded && (

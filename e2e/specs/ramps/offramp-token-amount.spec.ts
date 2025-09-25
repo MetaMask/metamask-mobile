@@ -33,7 +33,7 @@ describe(SmokeRamps('Off-ramp token amounts'), () => {
       },
       async () => {
         await loginToApp();
-        await WalletView.tapWalletFundButton();
+        await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapSellButton();
         await SellGetStartedView.tapGetStartedButton();
         await BuildQuoteView.enterAmount('5');

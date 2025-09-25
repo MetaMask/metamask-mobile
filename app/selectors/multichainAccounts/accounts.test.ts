@@ -17,6 +17,7 @@ import {
   selectInternalAccountsByGroupId,
   selectInternalAccountListSpreadByScopesByGroupId,
   selectAccountGroupsByAddress,
+  selectIconSeedAddressByAccountGroupId,
 } from './accounts';
 import {
   AccountWalletType,
@@ -44,7 +45,8 @@ const ACCOUNT_GROUP_ID_2 = 'entropy:wallet2/2' as const;
 const ACCOUNT_GROUP_ID_3 = 'snap:wallet3/3' as const;
 
 // Entropy wallet account group that contains both EVM and non-EVM accounts
-const ENTROPY_GROUP_ID = 'entropy:testWallet/multichain' as const;
+const ENTROPY_GROUP_ID =
+  'entropy:testWallet/0' as `entropy:${string}/${number}`;
 
 const ACCOUNT_ID_1 = 'account1' as AccountId;
 const ACCOUNT_ID_2 = 'account2' as AccountId;
@@ -1536,6 +1538,194 @@ describe('accounts selectors', () => {
       expect(result.length).toBe(2);
       expect(result[0].id).toBe(ACCOUNT_GROUP_ID_1);
       expect(result[1].id).toBe(ACCOUNT_GROUP_ID_3);
+    });
+  });
+
+  describe('selectIconSeedAddressByAccountGroupId', () => {
+    it('returns EVM address when group has any EVM account', () => {
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
+                type: AccountWalletType.Entropy,
+                groups: {
+                  [ENTROPY_GROUP_ID]: {
+                    type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+                    accounts: [
+                      ENTROPY_SOLANA_ACCOUNT_ID,
+                      ENTROPY_EVM_ACCOUNT_ID,
+                    ] as [AccountId, ...AccountId[]],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+      const selector = selectIconSeedAddressByAccountGroupId(ENTROPY_GROUP_ID);
+      const result = selector(state);
+      expect(result).toBe(mockEntropyEvmAccount.address);
+    });
+
+    it('falls back to first internal account address when no EVM account exists', () => {
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
+                type: AccountWalletType.Entropy,
+                groups: {
+                  [ENTROPY_GROUP_ID]: {
+                    type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+                    accounts: [ENTROPY_SOLANA_ACCOUNT_ID] as [
+                      AccountId,
+                      ...AccountId[],
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+
+      const selector = selectIconSeedAddressByAccountGroupId(ENTROPY_GROUP_ID);
+      const result = selector(state);
+
+      expect(result).toBe(mockEntropySolanaAccount.address);
+    });
+
+    it('ignores missing internal account ids and uses first resolved address', () => {
+      const missingId = 'missing-account-id' as AccountId;
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
+                groups: {
+                  [ENTROPY_GROUP_ID]: {
+                    id: ENTROPY_GROUP_ID,
+                    accounts: [missingId, ENTROPY_SOLANA_ACCOUNT_ID],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+
+      const selector = selectIconSeedAddressByAccountGroupId(ENTROPY_GROUP_ID);
+      const result = selector(state);
+
+      expect(result).toBe(mockEntropySolanaAccount.address);
+    });
+
+    it('matches any EVM scope (e.g., polygon) even when not mainnet', () => {
+      const polygonEvmAccount: InternalAccount = {
+        ...createMockInternalAccount('0xpoly', 'Polygon EVM'),
+        id: 'poly-evm' as AccountId,
+        scopes: ['eip155:137' as CaipChainId],
+      };
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
+                groups: {
+                  [ENTROPY_GROUP_ID]: {
+                    accounts: [polygonEvmAccount.id] as [
+                      AccountId,
+                      ...AccountId[],
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [polygonEvmAccount.id]: polygonEvmAccount,
+        },
+      );
+
+      const selector = selectIconSeedAddressByAccountGroupId(ENTROPY_GROUP_ID);
+      const result = selector(state);
+
+      expect(result).toBe(polygonEvmAccount.address);
+    });
+
+    it('throws when group has no accounts', () => {
+      const emptyGroupId = 'entropy:empty/0' as AccountGroupId;
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              'entropy:empty': {
+                id: 'entropy:empty',
+                type: AccountWalletType.Entropy,
+                groups: {
+                  [emptyGroupId]: {
+                    type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+                    accounts: [] as unknown as [AccountId, ...AccountId[]],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {},
+      );
+
+      const selector = selectIconSeedAddressByAccountGroupId(emptyGroupId);
+      expect(() => selector(state)).toThrow(
+        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${emptyGroupId}`,
+      );
+    });
+
+    it('throws when no internal accounts resolve', () => {
+      const unresolvedGroupId = 'entropy:unresolved/0' as AccountGroupId;
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              'entropy:unresolved': {
+                id: 'entropy:unresolved',
+                type: AccountWalletType.Entropy,
+                groups: {
+                  [unresolvedGroupId]: {
+                    type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+                    accounts: [
+                      'ghost-account' as AccountId,
+                      'ghost2' as AccountId,
+                    ] as [AccountId, ...AccountId[]],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {},
+      );
+
+      const selector = selectIconSeedAddressByAccountGroupId(unresolvedGroupId);
+      expect(() => selector(state)).toThrow(
+        `Error in selectIconSeedAddressByAccountGroupId: No accounts found in the specified group ${unresolvedGroupId}`,
+      );
     });
   });
 });

@@ -63,6 +63,8 @@ describe('usePerpsTPSLUpdate', () => {
       sinceOpen: '2',
       sinceChange: '1',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
     ...overrides,
   });
 
@@ -89,7 +91,7 @@ describe('usePerpsTPSLUpdate', () => {
     const takeProfitPrice = '3300';
     const stopLossPrice = '2700';
 
-    mockUpdatePositionTPSL.mockResolvedValue(undefined);
+    mockUpdatePositionTPSL.mockResolvedValue({ success: true });
 
     await act(async () => {
       await result.current.handleUpdateTPSL(
@@ -217,7 +219,7 @@ describe('usePerpsTPSLUpdate', () => {
     const { result } = renderHookWithToast();
     const position = createMockPosition();
 
-    mockUpdatePositionTPSL.mockResolvedValue(undefined);
+    mockUpdatePositionTPSL.mockResolvedValue({ success: true });
 
     await act(async () => {
       await result.current.handleUpdateTPSL(position, undefined, undefined);

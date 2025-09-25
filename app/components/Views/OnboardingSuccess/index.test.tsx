@@ -13,12 +13,42 @@ import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import Engine from '../../../core/Engine/Engine';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { capitalize } from 'lodash';
 import { strings } from '../../../../locales/i18n';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { useSelector } from 'react-redux';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+
+jest.mock('../../../core/Engine/Engine', () => ({
+  context: {
+    NetworkController: {
+      addNetwork: jest.fn().mockResolvedValue(undefined),
+      findNetworkClientIdByChainId: jest
+        .fn()
+        .mockResolvedValue('mock-client-id'),
+    },
+    TokenDetectionController: {
+      detectTokens: jest.fn().mockResolvedValue(undefined),
+    },
+    TokenBalancesController: {
+      updateBalances: jest.fn().mockResolvedValue(undefined),
+    },
+    TokenListController: {
+      fetchTokenList: jest.fn().mockResolvedValue(undefined),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn().mockResolvedValue(undefined),
+    },
+    TokenRatesController: {
+      updateExchangeRatesByChainId: jest.fn().mockResolvedValue(undefined),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
 
 const mockNavigate = jest.fn();
 
@@ -55,13 +85,27 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: () => mockDispatch,
 }));
+
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
+jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
+}));
+
 const mockImportAdditionalAccounts = jest.fn();
+
 jest.mock(
   '../../../util/importAdditionalAccounts',
   () => () => mockImportAdditionalAccounts(),
 );
 
 describe('OnboardingSuccessComponent', () => {
+  beforeEach(() => {
+    mockImportAdditionalAccounts.mockReset();
+    mockIsMultichainAccountsState2Enabled.mockReset();
+  });
+
   it('renders matching snapshot when successFlow is BACKED_UP_SRP', () => {
     const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
@@ -105,6 +149,21 @@ describe('OnboardingSuccessComponent', () => {
     await waitFor(() => {
       expect(mockImportAdditionalAccounts).toHaveBeenCalled();
     });
+  });
+
+  it('(state 2) - does not import additional accounts when onDone is called', () => {
+    mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+    const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
+    button.props.onPress();
+
+    expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {
@@ -152,6 +211,42 @@ describe('OnboardingSuccess', () => {
     });
 
     it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('adds networks to the network controller', async () => {
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
+      expect(toJSON()).toMatchSnapshot();
+
+      // wait for the useEffect side-effect to call addNetwork
+      await waitFor(() => {
+        expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenBalancesController.updateBalances,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenListController.fetchTokenList,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenDetectionController.detectTokens,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.AccountTrackerController.refresh,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.CurrencyRateController.updateExchangeRate,
+        ).toHaveBeenCalled();
+      });
+    });
+
+    it('fails to add networks to the network controller but should render the component', async () => {
+      (
+        Engine.context.NetworkController.addNetwork as jest.Mock
+      ).mockRejectedValue(new Error('Failed to add network'));
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });

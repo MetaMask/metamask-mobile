@@ -16,6 +16,7 @@ import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsBalanceModal from '../Views/PerpsBalanceModal';
 import PerpsGTMModal from '../components/PerpsGTMModal';
+import PerpsStreamBridge from '../components/PerpsStreamBridge';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -48,6 +49,7 @@ const PerpsModalStack = () => (
 const PerpsScreenStack = () => (
   <PerpsConnectionProvider isFullScreen>
     <PerpsStreamProvider>
+      <PerpsStreamBridge />
       <Stack.Navigator initialRouteName={Routes.PERPS.TRADING_VIEW}>
         {/* Redirect to wallet perps tab */}
         <Stack.Screen
