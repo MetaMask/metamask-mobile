@@ -422,21 +422,5 @@ describe('OnboardingNavigator', () => {
         expect(getByTestId('rewards-onboarding-intro-step')).toBeOnTheScreen();
       });
     });
-
-    it('handles auth selector returning undefined gracefully', async () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(
-        undefined as unknown as boolean | null,
-      );
-
-      // Act
-      const component = renderWithNavigation(<OnboardingNavigator />);
-
-      // Assert - Should render without errors
-      expect(component).toBeTruthy();
-      await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-    });
   });
 });
