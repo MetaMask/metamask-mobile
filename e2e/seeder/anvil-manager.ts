@@ -1,6 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
-import tcp from 'react-native-tcp';
+import { createServer } from 'net';
 import fs from 'fs';
 import path from 'path';
 import { createAnvilClients } from './anvil-clients';
@@ -95,7 +95,7 @@ class AnvilManager {
    */
   private async isPortAvailable(port: number): Promise<boolean> {
     return new Promise((resolve) => {
-      const server = tcp.createServer();
+      const server = createServer();
 
       server.listen(port, '127.0.0.1', () => {
         server.once('close', () => {
