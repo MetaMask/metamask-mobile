@@ -1,4 +1,3 @@
-import React from 'react';
 import { TransactionActivityEmptyState } from './TransactionActivityEmptyState';
 
 const TransactionActivityEmptyStateMeta = {
@@ -8,6 +7,4 @@ const TransactionActivityEmptyStateMeta = {
 
 export default TransactionActivityEmptyStateMeta;
 
-export const Default = {
-  args: {},
-};
+export const Default = {};

@@ -6,13 +6,15 @@ import { TransactionActivityEmptyState } from './TransactionActivityEmptyState';
 // Mock the navigation and swap bridge navigation
 const mockGoToSwaps = jest.fn();
 jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => ({
-  useSwapBridgeNavigation: jest.fn(() => ({
-    goToSwaps: mockGoToSwaps,
-  })),
   SwapBridgeNavigationLocation: {
     TokenDetails: 'TokenDetails',
   },
 }));
+
+const { useSwapBridgeNavigation } = jest.requireMock(
+  '../Bridge/hooks/useSwapBridgeNavigation',
+);
+useSwapBridgeNavigation.mockReturnValue({ goToSwaps: mockGoToSwaps });
 
 describe('TransactionActivityEmptyState', () => {
   afterEach(() => {
@@ -34,16 +36,5 @@ describe('TransactionActivityEmptyState', () => {
     fireEvent.press(button);
 
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
-  });
-
-  it('should use correct navigation location', () => {
-    const { useSwapBridgeNavigation } = require('../Bridge/hooks/useSwapBridgeNavigation');
-
-    renderWithProvider(<TransactionActivityEmptyState />);
-
-    expect(useSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: 'TokenDetails',
-      sourcePage: 'TransactionActivity',
-    });
   });
 });

@@ -10,8 +10,6 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
-import Text from '../../../component-library/components/Texts/Text';
 import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
@@ -54,10 +52,7 @@ interface MultichainTransactionsViewProps {
    * Enable refresh functionality
    */
   enableRefresh?: boolean;
-  /**
-   * Custom empty message
-   */
-  emptyMessage?: string;
+
   /**
    * Show disclaimer footer
    */
@@ -75,7 +70,6 @@ const MultichainTransactionsView = ({
   selectedAddress,
   chainId,
   enableRefresh = false,
-  emptyMessage,
   showDisclaimer = false,
   onScroll,
 }: MultichainTransactionsViewProps) => {
