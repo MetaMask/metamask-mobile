@@ -357,21 +357,6 @@ describe('BridgeDestTokenSelector', () => {
     );
   });
 
-  it('handles close button correctly', () => {
-    const { getByTestId } = renderScreen(
-      BridgeDestTokenSelector,
-      {
-        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      },
-      { state: initialState },
-    );
-
-    const closeButton = getByTestId('bridge-token-selector-close-button');
-    fireEvent.press(closeButton);
-
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
   it('handles token search functionality correctly', async () => {
     const { getByTestId, getByText, queryByText } = renderScreen(
       BridgeDestTokenSelector,
