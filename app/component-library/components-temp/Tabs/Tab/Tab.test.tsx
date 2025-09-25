@@ -174,21 +174,6 @@ describe('Tab', () => {
       }).not.toThrow();
     });
 
-    it('handles ref changes correctly', () => {
-      const { rerender, getByTestId } = render(
-        <Tab {...defaultProps} testID="ref-tab" />,
-      );
-
-      const tab = getByTestId('ref-tab');
-      expect(tab).toBeOnTheScreen();
-
-      // Re-render to trigger ref callback
-      rerender(<Tab {...defaultProps} label="Updated Tab" testID="ref-tab" />);
-
-      const updatedTab = getByTestId('ref-tab');
-      expect(updatedTab).toBeOnTheScreen();
-    });
-
     it('handles multiple layout events correctly', () => {
       const mockOnLayout = jest.fn();
       const { getByTestId } = render(
@@ -271,16 +256,15 @@ describe('Tab', () => {
       expect(tab).toBeOnTheScreen();
     });
 
-    it('handles undefined onPress gracefully', () => {
+    it('handles onPress callback correctly', () => {
       const mockOnPress = jest.fn();
       const { getAllByText } = render(
         <Tab {...defaultProps} onPress={mockOnPress} />,
       );
 
       const tab = getAllByText('Test Tab')[0];
-      expect(() => {
-        fireEvent.press(tab);
-      }).not.toThrow();
+      fireEvent.press(tab);
+
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
 

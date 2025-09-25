@@ -264,11 +264,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
       // FIXED: Only trigger animation if this is the active tab AND we haven't initialized yet
       // This prevents redundant animation calls since the main useEffect will handle most cases
-      if (
-        index === activeIndex &&
-        activeIndex >= 0 &&
-        !isInitialized.current
-      ) {
+      if (index === activeIndex && activeIndex >= 0 && !isInitialized.current) {
         // This is the active tab and we haven't initialized yet, animate to it
         animateToTab(activeIndex);
       }
