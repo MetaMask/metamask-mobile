@@ -98,20 +98,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
         typeof activeTabLayout.x !== 'number' ||
         typeof activeTabLayout.width !== 'number'
       ) {
-        // Try to force layout measurement by triggering a re-layout
         // Store as pending for when layout measurement completes
         pendingActiveIndex.current = targetIndex;
-
-        // Force a layout pass to try to get measurements
-        requestAnimationFrame(() => {
-          // Check if layout data is now available after forced layout
-          const updatedLayout = tabLayouts.current[targetIndex];
-          if (updatedLayout && updatedLayout.width > 0) {
-            // Recursively call animateToTab now that we have layout data
-            animateToTab(targetIndex);
-          }
-        });
-
         return;
       }
 
@@ -183,25 +171,9 @@ const TabsBar: React.FC<TabsBarProps> = ({
     [scrollEnabled, underlineAnimated, underlineWidthAnimated],
   );
 
-  // Force layout measurement after a short delay
+  // FIXED: Consolidated animation effect - prevents infinite loops by handling all animation triggers in one place
   useEffect(() => {
-    if (tabLayouts.current.length === tabs.length) {
-      const hasAllLayouts = tabLayouts.current.every(
-        (layout) => layout && layout.width > 0,
-      );
-      if (!hasAllLayouts) {
-        // Missing layouts, trying to trigger animation anyway
-        // Try to animate even without complete layout data
-        animateToTab(activeIndex);
-      }
-    }
-  }, [tabs.length, activeIndex, animateToTab]);
-
-  // Animate underline when active tab changes
-  useEffect(() => {
-    // Active index changed, animate to new tab
-
-    // If activeIndex is -1, no tab is active, so don't animate underline
+    // Don't animate if no active tab
     if (activeIndex < 0) {
       // Stop any ongoing animation when no tab is active
       if (currentAnimation.current) {
@@ -211,34 +183,18 @@ const TabsBar: React.FC<TabsBarProps> = ({
       return;
     }
 
-    animateToTab(activeIndex);
+    // Check if we have the necessary layout data for the active tab
+    const activeTabLayout = tabLayouts.current[activeIndex];
+    const hasActiveTabLayout = activeTabLayout && activeTabLayout.width > 0;
+
+    // Only animate if we have valid layout data for the active tab
+    // This prevents infinite loops by only triggering when we actually have the data needed
+    if (hasActiveTabLayout) {
+      animateToTab(activeIndex);
+    }
+    // If we don't have layout data, the animation will be triggered
+    // when handleTabLayout receives the layout information
   }, [activeIndex, animateToTab]);
-
-  // Trigger animation when all layouts become available
-  useEffect(() => {
-    if (hasAllTabLayouts && activeIndex >= 0) {
-      // All layouts available, trigger animation
-      animateToTab(activeIndex);
-    }
-  }, [hasAllTabLayouts, activeIndex, animateToTab]);
-
-  // Ensure underline is initialized when layout becomes ready
-  useEffect(() => {
-    if (isLayoutReady && !isInitialized.current && activeIndex >= 0) {
-      // Force initialization when layout is ready but underline hasn't been initialized yet
-      animateToTab(activeIndex);
-    }
-  }, [isLayoutReady, activeIndex, animateToTab]);
-
-  // Trigger animation when we have layout data
-  useEffect(() => {
-    if (activeIndex >= 0 && !isInitialized.current) {
-      // Check if we have layout data and trigger animation
-      if (tabLayouts.current[activeIndex]?.width > 0) {
-        animateToTab(activeIndex);
-      }
-    }
-  }, [activeIndex, animateToTab, tabs.length]);
 
   // Check if content overflows and update scroll state
   useEffect(() => {
@@ -306,13 +262,15 @@ const TabsBar: React.FC<TabsBarProps> = ({
         setHasAllTabLayouts(true);
       }
 
-      // If this is the active tab, try to animate to it (handles both initialization and updates)
-      if (index === activeIndex && activeIndex >= 0) {
-        // This is the active tab, animate to it
-        // Use the improved animation function to handle initialization properly
+      // FIXED: Only trigger animation if this is the active tab AND we haven't initialized yet
+      // This prevents redundant animation calls since the main useEffect will handle most cases
+      if (
+        index === activeIndex &&
+        activeIndex >= 0 &&
+        !isInitialized.current
+      ) {
+        // This is the active tab and we haven't initialized yet, animate to it
         animateToTab(activeIndex);
-      } else {
-        // Not the active tab, skip animation
       }
 
       // Check if there's a pending animation for this tab that just got its layout
@@ -342,22 +300,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           setIsLayoutReady(true);
         }
 
-        // CRITICAL FIX: If we haven't initialized the underline yet and we now have all layouts,
-        // try to initialize it for the active tab
-        if (
-          !isInitialized.current &&
-          activeIndex >= 0 &&
-          activeIndex < tabLayouts.current.length
-        ) {
-          const activeTabLayout = tabLayouts.current[activeIndex];
-          if (
-            activeTabLayout &&
-            typeof activeTabLayout.x === 'number' &&
-            typeof activeTabLayout.width === 'number'
-          ) {
-            animateToTab(activeIndex);
-          }
-        }
+        // Layout is ready when all tabs are measured - the main useEffect will handle animation
       }
     },
     [
