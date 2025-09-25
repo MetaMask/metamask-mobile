@@ -314,7 +314,7 @@ describe('usePredictClaimablePositions', () => {
     });
   });
 
-  it('should only return the first claimable position', async () => {
+  it('should return all claimable positions', async () => {
     mockGetPositions.mockResolvedValue([MOCK_POSITION_1, MOCK_POSITION_2]);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -325,7 +325,10 @@ describe('usePredictClaimablePositions', () => {
       await waitForNextUpdate();
     });
 
-    expect(result.current.claimablePositions).toEqual([MOCK_POSITION_1]);
-    expect(result.current.claimablePositions.length).toBe(1);
+    expect(result.current.claimablePositions).toEqual([
+      MOCK_POSITION_1,
+      MOCK_POSITION_2,
+    ]);
+    expect(result.current.claimablePositions.length).toBe(2);
   });
 });
