@@ -902,7 +902,7 @@ export class PredictController extends BaseController<
           disable7702: true,
           disableHook: true,
           disableSequential: false,
-          requireApproval: false,
+          requireApproval: true,
         });
 
         this.update((state) => {
