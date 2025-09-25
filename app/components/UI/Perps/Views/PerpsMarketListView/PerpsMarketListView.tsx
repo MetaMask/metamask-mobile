@@ -370,7 +370,7 @@ const PerpsMarketListView = ({
           </View>
           <View style={tw.style('flex-1')}>
             <TabBarItem
-              label="Trade"
+              label=""
               iconName={IconName.SwapVertical}
               onPress={handleActionsPress}
               isActive

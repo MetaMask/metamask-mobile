@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
+exports[`BrowserUrlBar should render correctly 1`] = `
 <View
   style={
     {
@@ -44,58 +44,19 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
-          [
-            {
-              "color": "#121314",
-              "flex": 1,
-              "fontFamily": "Geist Regular",
-              "fontSize": 14,
-              "height": 44,
-              "margin": 0,
-              "paddingLeft": 16,
-              "paddingVertical": 0,
-            },
-            false,
-          ]
+          {
+            "color": "#121314",
+            "flex": 1,
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "height": 44,
+            "margin": 0,
+            "paddingLeft": 16,
+            "paddingVertical": 0,
+          }
         }
         testID="browser-modal-url-input"
       />
-      <Text
-        accessibilityRole="text"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessible={true}
-        ellipsizeMode="head"
-        focusable={true}
-        numberOfLines={1}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Regular",
-            "fontSize": 14,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "opacity": 0,
-            "position": "absolute",
-          }
-        }
-      >
-        https://example.com
-      </Text>
     </View>
     <TouchableOpacity
       accessible={true}
@@ -186,7 +147,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
 </View>
 `;
 
-exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
+exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] = `
 <View
   style={
     {
@@ -244,61 +205,19 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
-          [
-            {
-              "color": "#121314",
-              "flex": 1,
-              "fontFamily": "Geist Regular",
-              "fontSize": 14,
-              "height": 44,
-              "margin": 0,
-              "paddingLeft": 0,
-              "paddingVertical": 0,
-            },
-            {
-              "opacity": 0,
-              "position": "absolute",
-            },
-          ]
+          {
+            "color": "#121314",
+            "flex": 1,
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "height": 44,
+            "margin": 0,
+            "paddingLeft": 0,
+            "paddingVertical": 0,
+          }
         }
         testID="browser-modal-url-input"
       />
-      <Text
-        accessibilityRole="text"
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessible={true}
-        ellipsizeMode="head"
-        focusable={true}
-        numberOfLines={1}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Regular",
-            "fontSize": 14,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "opacity": 1,
-            "position": "relative",
-          }
-        }
-      >
-        https://example.com
-      </Text>
     </View>
   </View>
   <View

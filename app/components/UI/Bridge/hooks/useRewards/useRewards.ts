@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { BigNumber } from 'bignumber.js';
 import Engine from '../../../../../core/Engine';
 import {
   EstimatePointsDto,
@@ -22,41 +21,6 @@ import {
 } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
-import usePrevious from '../../../../hooks/usePrevious';
-
-/**
- *
- * @param totalFeeAmountUsd - The total fee amount in USD
- * @param feeAmountAtomic - The fee amount in atomic units
- * @param feeAssetDecimals - The decimals of the fee asset
- * @returns The USD price per token
- */
-export const getUsdPricePerToken = (
-  totalFeeAmountUsd: string,
-  feeAmountAtomic: string,
-  feeAssetDecimals: number,
-): string | undefined => {
-  try {
-    // Use BigNumber for precision-safe arithmetic
-    const totalFeeUsd = new BigNumber(totalFeeAmountUsd);
-    const feeAmountAtomicBN = new BigNumber(feeAmountAtomic);
-    const feeAmountBN = feeAmountAtomicBN.div(
-      new BigNumber(10).pow(feeAssetDecimals),
-    );
-
-    if (totalFeeUsd.isZero() || feeAmountBN.isZero()) {
-      return undefined;
-    }
-
-    return totalFeeUsd.dividedBy(feeAmountBN).toString();
-  } catch (error) {
-    console.error(
-      error as Error,
-      'useRewards: Error calculating USD price per token',
-    );
-    return undefined;
-  }
-};
 
 interface UseRewardsParams {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -98,7 +62,6 @@ export const useRewards = ({
   const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
   const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const prevRequestId = usePrevious(activeQuote?.quote?.requestId);
 
   // Selectors
   const sourceToken = useSelector(selectSourceToken);
@@ -186,17 +149,7 @@ export const useRewards = ({
       const feeAsset: EstimateAssetDto = {
         id: activeQuote.quote.feeData.metabridge.asset.assetId,
         amount: activeQuote.quote.feeData.metabridge.amount || '0',
-      };
-
-      const usdPricePerToken = getUsdPricePerToken(
-        activeQuote.quote.priceData?.totalFeeAmountUsd || '0',
-        feeAsset.amount,
-        activeQuote.quote.feeData.metabridge.asset.decimals,
-      );
-
-      const feeAssetWithUsdPrice: EstimateAssetDto = {
-        ...feeAsset,
-        ...(usdPricePerToken ? { usdPrice: usdPricePerToken } : {}),
+        // usdPrice: sourceToken.currencyExchangeRate?.toString(), // TODO add this once we get it from backend
       };
 
       // Create estimate request
@@ -207,7 +160,7 @@ export const useRewards = ({
           swapContext: {
             srcAsset,
             destAsset,
-            feeAsset: feeAssetWithUsdPrice,
+            feeAsset,
           },
         },
       };
@@ -237,14 +190,11 @@ export const useRewards = ({
 
   // Estimate points when dependencies change
   useEffect(() => {
-    if (prevRequestId !== activeQuote?.quote?.requestId) {
-      estimatePoints();
-    }
+    estimatePoints();
   }, [
     estimatePoints,
     // Only re-estimate when quote changes (not during loading)
     activeQuote?.quote?.requestId,
-    prevRequestId,
   ]);
 
   return {

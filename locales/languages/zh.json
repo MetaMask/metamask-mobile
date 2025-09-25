@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "资金不足"
+      "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "此密码将仅在此设备上解锁您的 MetaMask 钱包。",
-    "password": "Create password",
+    "password": "创建新密码",
     "confirm_password": "确认密码",
     "create_button": "创建密码",
     "import_with_seed_phrase": "使用私钥助记词导入",
@@ -404,7 +404,7 @@
     "show": "显示",
     "hide": "隐藏",
     "seed_phrase": "私钥助记词",
-    "must_be_at_least": "必须至少包含 {{number}} 个字符",
+    "must_be_at_least": "密码必须包含至少 {{number}} 个字符",
     "remember_me": "记住我",
     "security_alert_title": "安全警报",
     "security_alert_message": "若要继续，您需要开启密码或设备上支持的任何生物特征身份验证方法（FaceID、TouchID 或指纹）",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "如果我忘记此密码，我将永久失去对该钱包的访问权限。MetaMask 无法为我重设密码。",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "请重试"
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "导入钱包",
     "seed_phrase_placeholder": "在此输入您的助记词",
-    "create_new_password": "Create password",
+    "create_new_password": "创建新密码",
     "confirm_password": "确认密码",
     "import_button": "导入",
     "cancel_button": "取消",
@@ -491,7 +491,7 @@
     "srp": "私钥助记词，",
     "srp_placeholder": "在每个单词之间加空格，并确保无人窥视.",
     "learn_more_link": "了解详情",
-    "import_create_password_cta": "Create password",
+    "create_password_cta": "创建密码",
     "pass_flow": "使用 Flow 继续",
     "steps": "第 {{currentStep}} 步（共 {{totalSteps}} 步）",
     "password_error": "密码不匹配。请重试。",
@@ -507,7 +507,6 @@
     "home": "主页",
     "browser": "浏览器",
     "activity": "活动",
-    "trade": "Trade",
     "settings": "设置",
     "rewards": "奖励"
   },
@@ -1077,7 +1076,7 @@
         "limit_price_below": "限价低于当前价格"
       },
       "leverage_modal": {
-        "title": "杠杆",
+        "title": "Leverage",
         "confirm": "确认",
         "entry_price": "建仓价",
         "current_price": "当前价格",
@@ -1165,6 +1164,8 @@
     "tpsl": {
       "title": "止盈与止损",
       "description": "选择盈利或亏损百分比，或输入自定义触发价，以自动平仓。",
+      "set": "设置",
+      "updating": "正在更新......",
       "off": "关闭",
       "current_price": "当前价格",
       "leverage": "杠杆",
@@ -1186,7 +1187,7 @@
       "stop_loss_order_view_warning": "以 {{direction}} 清算价格止损",
       "above": "高于",
       "below": "低于",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "关闭"
     },
     "token_selector": {
       "no_tokens": "无可用代币"
@@ -3953,14 +3954,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "买入",
     "sell": "卖出",
-    "orders": "Transfers",
+    "orders": "订单",
     "All": "所有",
     "Buy": "买入",
     "Sell": "卖出",
     "token_marketplace": "代币市场",
     "Purchased": "已购买",
     "Sold": "已卖出",
-    "empty_orders_list": "No bank or card transfers yet.",
+    "empty_orders_list": "您没有任何订单",
     "empty_buy_orders_list": "您没有任何买入订单！",
     "empty_sell_orders_list": "您没有任何卖出订单！",
     "purchased_currency": "已购买 {{currency}}",
@@ -5341,10 +5342,9 @@
     "quote_info_title": "费率",
     "network_fee_info_title": "网络费",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Est. points",
+    "points": "积分",
     "points_tooltip": "积分",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
-    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "points_tooltip_content": "预估通过此次交易可获得的 MetaMask 奖励积分。积分最多可能需要 1 小时才能在您的奖励余额中确认",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5772,14 +5772,13 @@
       "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Rewards Settings",
-      "subtitle": "Accounts",
-      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Reward Settings",
+      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked ({{count}})",
-      "tab_unlinked_accounts": "Unlinked ({{count}})",
+      "tab_linked_accounts": "Linked Accounts ({{count}})",
+      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5836,6 +5835,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "推荐好友",
         "share_referral_subject": "加入 MetaMask Rewards"

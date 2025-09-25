@@ -1,433 +1,541 @@
-import migrate from './097';
-import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
+import { cloneDeep } from 'lodash';
 
+import migrate from './097';
+
+// Only mock Sentry and ensureValidState - use real implementations for the rest
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
 jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
+  ensureValidState: jest.fn().mockReturnValue(true),
 }));
 
 const mockedCaptureException = jest.mocked(captureException);
-const mockedEnsureValidState = jest.mocked(ensureValidState);
+const mockedEnsureValidState = jest.mocked(
+  jest.requireMock('./util').ensureValidState,
+);
 
-const migrationVersion = 97;
+// Interface for test state structure
+interface TestState {
+  engine: {
+    backgroundState: {
+      NetworkOrderController?: {
+        enabledNetworkMap?: Record<string, Record<string, boolean>>;
+        [key: string]: unknown;
+      };
+      PreferencesController?: {
+        preferences?: {
+          tokenNetworkFilter?: Record<string, boolean>;
+          [key: string]: unknown;
+        };
+        [key: string]: unknown;
+      };
+      MultichainNetworkController?: {
+        selectedMultichainNetworkChainId?: string;
+        [key: string]: unknown;
+      };
+      [key: string]: unknown;
+    };
+  };
+}
 
-describe(`Migration ${migrationVersion}: update hostname keyed PermissionController and SelectedNetworkController entries to origin`, () => {
+describe('Migration 097: Migrate tokenNetworkFilter to enabledNetworkMap', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockedEnsureValidState.mockReturnValue(true);
   });
 
   it('returns state unchanged if ensureValidState fails', () => {
-    const state = { some: 'state' };
-
+    // Arrange
+    const state = 'not an object';
     mockedEnsureValidState.mockReturnValue(false);
 
+    // Act
     const migratedState = migrate(state);
 
-    expect(migratedState).toBe(state);
+    // Assert
+    expect(migratedState).toStrictEqual('not an object');
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if PermissionController is missing', () => {
-    const state = {
-      engine: {
-        backgroundState: {},
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController is undefined`,
-    );
-  });
-
-  it('captures exception if PermissionController is not object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: 'foobar',
+  it.each([
+    {
+      state: { engine: {} },
+      test: 'empty engine state',
+    },
+    {
+      state: { engine: { backgroundState: {} } },
+      test: 'empty backgroundState',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: { NetworkOrderController: 'invalid' },
         },
       },
-    };
+      test: 'invalid NetworkOrderController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkOrderController: {},
+            PreferencesController: 'invalid',
+          },
+        },
+      },
+      test: 'invalid PreferencesController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkOrderController: {},
+            PreferencesController: { preferences: 'invalid' },
+          },
+        },
+      },
+      test: 'invalid preferences state',
+    },
+  ])('does not modify state if the state is invalid - $test', ({ state }) => {
+    // Arrange
+    const orgState = cloneDeep(state);
 
-    mockedEnsureValidState.mockReturnValue(true);
-
+    // Act
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController is string`,
-    );
+    // Assert
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if subjects is not object', () => {
-    const state = {
+  it('does not modify state if tokenNetworkFilter does not exist', () => {
+    // Arrange
+    const state: TestState = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: 'foobar',
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: { otherSetting: 'value' },
+          },
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
         },
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
-
+    // Act
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController.subjects is string`,
-    );
+    // Assert
+    expect(migratedState).toStrictEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if SelectedNetworkController is missing', () => {
+  it('logs error and returns original state when tokenNetworkFilter is not an object', () => {
+    // Arrange
     const state = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {},
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: { tokenNetworkFilter: 'invalid' },
+          },
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
         },
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
-
+    // Act
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.SelectedNetworkController is undefined`,
+    // Assert
+    expect(migratedState).toStrictEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          "Migration 97: tokenNetworkFilter is type 'string', expected object.",
+        ),
+      }),
     );
   });
 
-  it('captures exception if SelectedNetworkController is not object', () => {
+  it('logs error and returns original state when tokenNetworkFilter is empty', () => {
+    // Arrange
     const state = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {},
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: { tokenNetworkFilter: {} },
           },
-          SelectedNetworkController: 'foobar',
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.SelectedNetworkController is string`,
-    );
-  });
-
-  it('captures exception if domains is not object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: {
-            domains: 'foobar',
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
         },
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
-
+    // Act
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.SelectedNetworkController.domains is string`,
+    // Assert
+    expect(migratedState).toStrictEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          'Migration 97: tokenNetworkFilter is empty, expected at least one network configuration.',
+        ),
+      }),
     );
   });
 
-  it('skips malformed subjects', () => {
+  it('logs error and returns original state when MultichainNetworkController is missing', () => {
+    // Arrange
     const state = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {
-              'test.com': 'foobar',
-              'test.xyz': {
-                permissions: 'foobar',
-              },
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: { '0x1': true, '0x89': false },
             },
           },
-          SelectedNetworkController: {
-            domains: {},
-          },
         },
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
-
+    // Act
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual(state);
+    // Assert
+    expect(migratedState).toStrictEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('migrates PermissionController subjects that are valid hostname or "localhost" to https origin', () => {
+  it('logs error and returns original state when MultichainNetworkController is invalid', () => {
+    // Arrange
     const state = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {
-              localhost: {
-                origin: 'localhost',
-                permissions: {
-                  test: {
-                    id: 1,
-                    invoker: 'localhost',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-              'test.com': {
-                origin: 'test.com',
-                permissions: {
-                  test: {
-                    id: 2,
-                    invoker: 'test.com',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: { '0x1': true, '0x89': false },
             },
           },
-          SelectedNetworkController: {
-            domains: {},
+          MultichainNetworkController: 'invalid',
+        },
+      },
+    };
+
+    // Act
+    const migratedState = migrate(state);
+
+    // Assert
+    expect(migratedState).toStrictEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('logs error and returns original state when selectedMultichainNetworkChainId is missing', () => {
+    // Arrange
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: { '0x1': true, '0x89': false },
+            },
+          },
+          MultichainNetworkController: { otherProperty: 'value' },
+        },
+      },
+    };
+
+    // Act
+    const migratedState = migrate(state);
+
+    // Assert
+    expect(migratedState).toStrictEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          "Migration 97: selectedMultichainNetworkChainId is type 'undefined', expected string.",
+        ),
+      }),
+    );
+  });
+
+  it('logs error and returns original state when selectedMultichainNetworkChainId is not a string', () => {
+    // Arrange
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: { '0x1': true, '0x89': false },
+            },
+          },
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId: 123,
           },
         },
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
-
+    // Act
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual({
+    // Assert
+    expect(migratedState).toStrictEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          "Migration 97: selectedMultichainNetworkChainId is type 'number', expected string.",
+        ),
+      }),
+    );
+  });
+
+  it('successfully migrates EVM tokenNetworkFilter to enabledNetworkMap with Solana network', () => {
+    // Arrange - Real data scenario with EVM networks and Solana
+    const state: TestState = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {
-              'https://localhost': {
-                origin: 'https://localhost',
-                permissions: {
-                  test: {
-                    id: 1,
-                    invoker: 'https://localhost',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
+          NetworkOrderController: { otherProperty: 'preserved' },
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: {
+                '0x1': true, // Ethereum mainnet
+                '0x89': false, // Polygon
+                '0xa': true, // Optimism
               },
-              'https://test.com': {
-                origin: 'https://test.com',
-                permissions: {
-                  test: {
-                    id: 2,
-                    invoker: 'https://test.com',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
+              otherPreference: 'preserved',
             },
+            otherProperty: 'preserved',
           },
-          SelectedNetworkController: {
-            domains: {},
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            otherProperty: 'preserved',
           },
         },
+      },
+    };
+
+    // Act
+    const migratedState = migrate(state) as TestState;
+
+    // Assert - Check that enabledNetworkMap was created correctly
+    expect(
+      migratedState.engine.backgroundState.NetworkOrderController
+        ?.enabledNetworkMap,
+    ).toEqual({
+      eip155: {
+        '0x1': true,
+        '0x89': false,
+        '0xa': true,
+      },
+      solana: {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
       },
     });
+
+    // Assert - Check that other properties are preserved
+    expect(
+      migratedState.engine.backgroundState.NetworkOrderController
+        ?.otherProperty,
+    ).toBe('preserved');
+    expect(
+      migratedState.engine.backgroundState.PreferencesController?.preferences
+        ?.otherPreference,
+    ).toBe('preserved');
+    expect(
+      migratedState.engine.backgroundState.PreferencesController?.otherProperty,
+    ).toBe('preserved');
+    expect(
+      migratedState.engine.backgroundState.MultichainNetworkController
+        ?.otherProperty,
+    ).toBe('preserved');
+
+    // Assert - Check that tokenNetworkFilter is still there (migration doesn't remove it)
+    expect(
+      migratedState.engine.backgroundState.PreferencesController?.preferences
+        ?.tokenNetworkFilter,
+    ).toEqual({
+      '0x1': true,
+      '0x89': false,
+      '0xa': true,
+    });
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does not migrate PermissionController subjects that are invalid hostnames, snaps, WalletConnect IDs, or MetaMask SDK IDs', () => {
-    const state = {
+  it('overwrites existing enabledNetworkMap when migration runs', () => {
+    // Arrange
+    const state: TestState = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {
-              nothostname: {
-                origin: 'nothostname',
-                permissions: {
-                  test: {
-                    id: 1,
-                    invoker: 'nothostname',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-              'npm:@metamask/snap': {
-                origin: 'npm:@metamask/snap',
-                permissions: {
-                  test: {
-                    id: 2,
-                    invoker: 'npm:@metamask/snap',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-              '217e651d-6d18-49ef-b929-8773496c11df': {
-                origin: '217e651d-6d18-49ef-b929-8773496c11df',
-                permissions: {
-                  test: {
-                    id: 3,
-                    invoker: '217e651d-6d18-49ef-b929-8773496c11df',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-              '901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b':
-                {
-                  origin:
-                    '901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b',
-                  permissions: {
-                    test: {
-                      id: 4,
-                      invoker:
-                        '901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b',
-                      caveats: [
-                        {
-                          type: 'test-caveat',
-                          value: 'hello',
-                        },
-                      ],
-                    },
-                  },
-                },
+          NetworkOrderController: {
+            enabledNetworkMap: {
+              existingNamespace: { existingChain: true },
             },
           },
-          SelectedNetworkController: {
-            domains: {},
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: {
+                '0x1': true,
+                '0x89': false,
+              },
+            },
+          },
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
         },
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
+    // Act
+    const migratedState = migrate(state) as TestState;
 
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-  });
-
-  it('migrates SelectedNetworkController entries that are valid hostname or "localhost" to https origin', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: {
-            domains: {
-              localhost: 'networkClientId1',
-              'test.com': 'networkClientId2',
-            },
-          },
-        },
+    // Assert - Should overwrite the existing enabledNetworkMap
+    expect(
+      migratedState.engine.backgroundState.NetworkOrderController
+        ?.enabledNetworkMap,
+    ).toEqual({
+      eip155: {
+        '0x1': true,
+        '0x89': false,
       },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: {
-            domains: {
-              'https://localhost': 'networkClientId1',
-              'https://test.com': 'networkClientId2',
-            },
-          },
-        },
+      solana: {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
       },
     });
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does not migrate SelectedNetworkController entries that are invalid hostnames, snaps, WalletConnect IDs, or MetaMask SDK IDs', () => {
+  it('handles errors gracefully and returns original state', () => {
+    // Arrange - Create state with invalid selectedMultichainNetworkChainId that will cause an error
     const state = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: {
-            domains: {
-              nothostname: 'networkClientId1',
-              'npm:@metamask/snap': 'networkClientId2',
-              '217e651d-6d18-49ef-b929-8773496c11df': 'networkClientId3',
-              '901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b':
-                'networkClientId4',
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: { '0x1': true },
             },
+          },
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId: null, // This will cause an error in the migration
           },
         },
       },
     };
 
-    mockedEnsureValidState.mockReturnValue(true);
-
+    // Act
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual(state);
+    // Assert
+    expect(migratedState).toStrictEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          "Migration 97: selectedMultichainNetworkChainId is type 'object', expected string",
+        ),
+      }),
+    );
+  });
+
+  it('handles BSC and Bitcoin networks correctly', () => {
+    // Arrange - Real scenario with BSC (EVM) and Bitcoin (non-EVM)
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: {
+                '0x38': true, // BSC mainnet
+                '0x89': false, // Polygon
+              },
+            },
+          },
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId:
+              'bip122:000000000019d6689c085ae165831e93',
+          },
+        },
+      },
+    };
+
+    // Act
+    const migratedState = migrate(state) as TestState;
+
+    // Assert
+    expect(
+      migratedState.engine.backgroundState.NetworkOrderController
+        ?.enabledNetworkMap,
+    ).toEqual({
+      eip155: {
+        '0x38': true,
+        '0x89': false,
+      },
+      bip122: {
+        'bip122:000000000019d6689c085ae165831e93': true,
+      },
+    });
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles same namespace collision by merging networks', () => {
+    // Arrange - Both EVM networks in tokenNetworkFilter and another EVM chain in selectedMultichainNetworkChainId
+    const state: TestState = {
+      engine: {
+        backgroundState: {
+          NetworkOrderController: {},
+          PreferencesController: {
+            preferences: {
+              tokenNetworkFilter: {
+                '0x1': true,
+                '0x89': false,
+              },
+            },
+          },
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId: '0xa', // Another EVM chain (Optimism)
+          },
+        },
+      },
+    };
+
+    // Act
+    const migratedState = migrate(state) as TestState;
+
+    // Assert - When both EVM and non-EVM networks have the same namespace,
+    // the spread operator causes non-EVM to completely overwrite EVM networks
+    expect(
+      migratedState.engine.backgroundState.NetworkOrderController
+        ?.enabledNetworkMap,
+    ).toEqual({
+      eip155: {
+        '0xa': true, // Only the non-EVM network remains due to namespace collision
+      },
+    });
+
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });

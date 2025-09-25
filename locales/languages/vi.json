@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Không đủ tiền"
+      "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Mật khẩu này sẽ chỉ mở khóa ví MetaMask của bạn trên thiết bị này.",
-    "password": "Create password",
+    "password": "Tạo mật khẩu mới",
     "confirm_password": "Xác nhận mật khẩu",
     "create_button": "Tạo mật khẩu",
     "import_with_seed_phrase": "Nhập bằng Cụm từ khôi phục bí mật",
@@ -404,7 +404,7 @@
     "show": "Hiển thị",
     "hide": "Ẩn",
     "seed_phrase": "Cụm từ khôi phục bí mật",
-    "must_be_at_least": "Phải dài ít nhất {{number}} ký tự",
+    "must_be_at_least": "Mật khẩu phải có ít nhất {{number}} ký tự",
     "remember_me": "Ghi nhớ",
     "security_alert_title": "Cảnh báo bảo mật",
     "security_alert_message": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trong thiết bị của bạn (FaceID, TouchID hoặc Vân tay)",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Nếu tôi quên mật khẩu này, tôi sẽ vĩnh viễn mất quyền truy cập vào ví. MetaMask không thể đặt lại mật khẩu cho tôi.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Thử lại"
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "Nhập ví",
     "seed_phrase_placeholder": "Nhập Cụm từ khôi phục bí mật của bạn",
-    "create_new_password": "Create password",
+    "create_new_password": "Tạo mật khẩu mới",
     "confirm_password": "Xác nhận mật khẩu",
     "import_button": "NHẬP",
     "cancel_button": "Hủy",
@@ -491,7 +491,7 @@
     "srp": "của bạn",
     "srp_placeholder": "Thêm dấu cách giữa mỗi từ và đảm bảo không có ai đang nhìn.",
     "learn_more_link": "Tìm hiểu thêm",
-    "import_create_password_cta": "Create password",
+    "create_password_cta": "Tạo mật khẩu",
     "pass_flow": "Tiếp tục với Flow",
     "steps": "Bước {{currentStep}}/{{totalSteps}}",
     "password_error": "Mật khẩu không khớp. Vui lòng thử lại.",
@@ -507,7 +507,6 @@
     "home": "Trang chủ",
     "browser": "Trình duyệt",
     "activity": "Hoạt động",
-    "trade": "Trade",
     "settings": "Cài đặt",
     "rewards": "Phần thưởng"
   },
@@ -1077,7 +1076,7 @@
         "limit_price_below": "Giá giới hạn thấp hơn giá hiện tại"
       },
       "leverage_modal": {
-        "title": "Đòn bẩy",
+        "title": "Leverage",
         "confirm": "Xác nhận",
         "entry_price": "Giá vào lệnh",
         "current_price": "Giá hiện tại",
@@ -1165,6 +1164,8 @@
     "tpsl": {
       "title": "Chốt lời và cắt lỗ",
       "description": "Chọn phần trăm lãi hoặc lỗ, hoặc nhập giá kích hoạt tùy chỉnh để tự động đóng vị thế của bạn.",
+      "set": "Đặt",
+      "updating": "Đang cập nhật...",
       "off": "Tắt",
       "current_price": "Giá hiện tại",
       "leverage": "Đòn bẩy",
@@ -1186,7 +1187,7 @@
       "stop_loss_order_view_warning": "Giá cắt lỗ {{direction}} giá thanh lý",
       "above": "cao hơn",
       "below": "thấp hơn",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "Đóng"
     },
     "token_selector": {
       "no_tokens": "Không có token khả dụng"
@@ -3953,14 +3954,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "mua",
     "sell": "bán",
-    "orders": "Transfers",
+    "orders": "Lệnh",
     "All": "Tất cả",
     "Buy": "Mua",
     "Sell": "Bán",
     "token_marketplace": "Thị trường token",
     "Purchased": "Đã mua",
     "Sold": "Đã bán",
-    "empty_orders_list": "No bank or card transfers yet.",
+    "empty_orders_list": "Bạn không có bất kỳ lệnh nào",
     "empty_buy_orders_list": "Bạn không có bất kỳ lệnh mua nào",
     "empty_sell_orders_list": "Bạn không có bất kỳ lệnh bán nào",
     "purchased_currency": "Đã mua {{currency}}",
@@ -5341,10 +5342,9 @@
     "quote_info_title": "Tỷ lệ",
     "network_fee_info_title": "Phí mạng",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Est. points",
+    "points": "Điểm",
     "points_tooltip": "Điểm",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
-    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "points_tooltip_content": "Ước tính số Điểm Phần thưởng MetaMask mà bạn sẽ nhận được từ giao dịch này. Điểm có thể mất đến 1 giờ để được xác nhận trong số dư Phần thưởng",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5772,14 +5772,13 @@
       "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Rewards Settings",
-      "subtitle": "Accounts",
-      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Reward Settings",
+      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked ({{count}})",
-      "tab_unlinked_accounts": "Unlinked ({{count}})",
+      "tab_linked_accounts": "Linked Accounts ({{count}})",
+      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5836,6 +5835,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Giới thiệu bạn bè",
         "share_referral_subject": "Tham gia MetaMask Phần thưởng"

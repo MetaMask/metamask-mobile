@@ -13,7 +13,6 @@ import {
   defaultPerpsClosePositionMock,
   defaultPerpsEventTrackingMock,
   defaultMinimumOrderAmountMock,
-  defaultPerpsRewardsMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -29,16 +28,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
-// Mock React Native Linking specifically for this test to prevent NavigationContainer errors
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn().mockResolvedValue(true),
-  getInitialURL: jest.fn().mockResolvedValue(''),
-  sendIntent: jest.fn(),
-}));
-
 // Mock hooks
 jest.mock('../../hooks', () => ({
   useMinimumOrderAmount: jest.fn(),
@@ -47,7 +36,6 @@ jest.mock('../../hooks', () => ({
   usePerpsClosePosition: jest.fn(),
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
-  usePerpsRewards: jest.fn(),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -139,7 +127,6 @@ describe('PerpsClosePositionView', () => {
   const usePerpsMarketDataMock =
     jest.requireMock('../../hooks').usePerpsMarketData;
   const usePerpsToastsMock = jest.requireMock('../../hooks').usePerpsToasts;
-  const usePerpsRewardsMock = jest.requireMock('../../hooks').usePerpsRewards;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -174,9 +161,6 @@ describe('PerpsClosePositionView', () => {
 
     // Setup usePerpsToasts mock
     usePerpsToastsMock.mockReturnValue(defaultPerpsToastsMock);
-
-    // Setup usePerpsRewards mock
-    usePerpsRewardsMock.mockReturnValue(defaultPerpsRewardsMock);
   });
 
   describe('Component Rendering', () => {
@@ -1879,16 +1863,15 @@ describe('PerpsClosePositionView', () => {
         defaultPerpsPositionMock,
         '', // Empty string when closePercentage is 100
         'market',
-        undefined, // limitPrice is undefined for market orders
+        undefined,
         {
-          totalFee: 45,
-          marketPrice: 3000,
-          receivedAmount: 1405,
-          realizedPnl: 150,
-          metamaskFeeRate: 0,
-          feeDiscountPercentage: undefined,
+          error: null,
+          isLoadingMetamaskFee: false,
           metamaskFee: 0,
-          estimatedPoints: undefined,
+          metamaskFeeRate: 0,
+          protocolFee: 45,
+          protocolFeeRate: 0.00045,
+          totalFee: 45,
         },
       );
     });
@@ -1960,16 +1943,6 @@ describe('PerpsClosePositionView', () => {
                   '',
                   orderType,
                   orderType === 'limit' ? limitPrice : undefined,
-                  {
-                    totalFee: 45,
-                    marketPrice: 3000,
-                    receivedAmount: 1405,
-                    realizedPnl: 150,
-                    metamaskFeeRate: 0,
-                    feeDiscountPercentage: undefined,
-                    metamaskFee: 0,
-                    estimatedPoints: undefined,
-                  },
                 );
               }}
             >
@@ -1991,14 +1964,6 @@ describe('PerpsClosePositionView', () => {
           '',
           'limit',
           '50000',
-          expect.objectContaining({
-            totalFee: expect.any(Number),
-            marketPrice: expect.any(Number),
-            receivedAmount: expect.any(Number),
-            realizedPnl: expect.any(Number),
-            metamaskFeeRate: expect.any(Number),
-            metamaskFee: expect.any(Number),
-          }),
         );
       });
     });

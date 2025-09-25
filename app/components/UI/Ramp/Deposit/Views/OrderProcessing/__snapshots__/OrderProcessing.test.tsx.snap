@@ -1,15 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OrderProcessing Component renders created state correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<RCTSafeAreaView
   style={
     {
       "flex": 1,
@@ -590,19 +582,11 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</RCTSafeAreaView>
 `;
 
 exports[`OrderProcessing Component renders error state correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<RCTSafeAreaView
   style={
     {
       "flex": 1,
@@ -1218,19 +1202,11 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</RCTSafeAreaView>
 `;
 
 exports[`OrderProcessing Component renders no order found state 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<RCTSafeAreaView
   style={
     {
       "flex": 1,
@@ -1268,19 +1244,11 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
       />
     </View>
   </View>
-</RNCSafeAreaView>
+</RCTSafeAreaView>
 `;
 
 exports[`OrderProcessing Component renders processing state correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<RCTSafeAreaView
   style={
     {
       "flex": 1,
@@ -1861,19 +1829,11 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</RCTSafeAreaView>
 `;
 
 exports[`OrderProcessing Component renders success state correctly 1`] = `
-<RNCSafeAreaView
-  edges={
-    {
-      "bottom": "additive",
-      "left": "additive",
-      "right": "additive",
-      "top": "additive",
-    }
-  }
+<RCTSafeAreaView
   style={
     {
       "flex": 1,
@@ -2450,5 +2410,5 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
       </View>
     </View>
   </View>
-</RNCSafeAreaView>
+</RCTSafeAreaView>
 `;

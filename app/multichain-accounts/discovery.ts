@@ -7,20 +7,17 @@ import { trace, TraceOperation, TraceName } from '../util/trace';
 /**
  * Discover and create accounts.
  *
- * This function is wrapped by {@link discoverAccounts} to add tracing
+ * This function is wrapped by {@link discoverAndCreateAccounts} to add tracing
  * and should not be called directly.
  *
  * @param entropySource - Entropy source ID to use for account discovery
  * @returns The number of discovered and created accounts.
  */
-async function _discoverAccounts(
+async function _discoverAndCreateAccounts(
   entropySource: EntropySourceId,
 ): Promise<number> {
   // HACK: Force Snap keyring instantiation.
   await Engine.getSnapKeyring();
-
-  // Ensure the account tree is synced with user storage before discovering accounts.
-  await Engine.context.AccountTreeController.syncWithUserStorageAtLeastOnce();
 
   // NOTE: For now, we need to upcast this type, because for now it uses the
   // `MultichainAccountWallet` type from the `account-api` (which is not aligned
@@ -31,10 +28,10 @@ async function _discoverAccounts(
       entropySource,
     }) as MultichainAccountWallet<Bip44Account<KeyringAccount>>;
 
-  const result = await wallet.discoverAccounts();
+  const result = await wallet.discoverAndCreateAccounts();
 
-  // Return the number of discovered accounts across all account providers.
-  return result.length;
+  // Compute the number of discovered accounts across all account providers.
+  return Object.values(result).reduce((acc, discovered) => acc + discovered, 0);
 }
 
 /**
@@ -43,7 +40,7 @@ async function _discoverAccounts(
  * @param entropySource - Entropy source ID to use for account discovery
  * @returns The number of discovered and created accounts.
  */
-export async function discoverAccounts(
+export async function discoverAndCreateAccounts(
   entropySource: EntropySourceId,
 ): Promise<number> {
   return trace(
@@ -51,6 +48,6 @@ export async function discoverAccounts(
       name: TraceName.DiscoverAccounts,
       op: TraceOperation.AccountDiscover,
     },
-    () => _discoverAccounts(entropySource),
+    () => _discoverAndCreateAccounts(entropySource),
   );
 }

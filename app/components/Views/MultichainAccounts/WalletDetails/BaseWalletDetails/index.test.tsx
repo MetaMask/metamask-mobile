@@ -118,7 +118,6 @@ jest.mock(
     selectAccountTreeControllerState: jest.fn(),
     selectSelectedAccountGroupId: jest.fn(),
     selectAccountGroupsByWallet: jest.fn(),
-    selectSelectedAccountGroupInternalAccounts: jest.fn(),
     selectAccountGroupWithInternalAccounts: jest.fn(),
   }),
 );

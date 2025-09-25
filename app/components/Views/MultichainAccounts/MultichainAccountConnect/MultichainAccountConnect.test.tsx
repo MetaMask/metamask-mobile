@@ -18,7 +18,6 @@ import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import {
   createMockAccountsControllerState,
-  createMockUuidFromAddress,
   MOCK_ADDRESS_1,
   MOCK_ADDRESS_2,
 } from '../../../../util/test/accountsControllerTestUtils';
@@ -34,13 +33,6 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   }),
 });
 const mockGetNextAvailableAccountName = jest.fn().mockReturnValue('Account 3');
-
-// Generate consistent UUIDs for testing
-const MOCK_ACCOUNT_1_UUID = createMockUuidFromAddress(MOCK_ADDRESS_1);
-const MOCK_ACCOUNT_2_UUID = createMockUuidFromAddress(MOCK_ADDRESS_2);
-const MOCK_WALLET_ID = 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ';
-const MOCK_ACCOUNT_GROUP_1_ID = `${MOCK_WALLET_ID}/0`;
-const MOCK_ACCOUNT_GROUP_2_ID = `${MOCK_WALLET_ID}/1`;
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -184,93 +176,57 @@ jest.mock(
     ...jest.requireActual(
       '../../../../selectors/multichainAccounts/accountTreeController',
     ),
-    selectAccountGroups: jest.fn(() => {
-      const {
-        createMockUuidFromAddress,
-        MOCK_ADDRESS_1,
-        MOCK_ADDRESS_2,
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      } = require('../../../../util/test/accountsControllerTestUtils');
-
-      const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
-      const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
-
-      return [
-        {
-          id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
-          accounts: [account1Id],
-          metadata: { name: 'Account 1' },
-        },
-        {
-          id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
-          accounts: [account2Id],
-          metadata: { name: 'Account 2' },
-        },
-      ];
-    }),
-    selectAccountGroupsByWallet: jest.fn(() => {
-      const {
-        createMockUuidFromAddress,
-        MOCK_ADDRESS_1,
-        MOCK_ADDRESS_2,
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      } = require('../../../../util/test/accountsControllerTestUtils');
-
-      const account1Id = createMockUuidFromAddress(MOCK_ADDRESS_1);
-      const account2Id = createMockUuidFromAddress(MOCK_ADDRESS_2);
-
-      return [
-        {
-          title: 'Test Wallet',
-          wallet: {
-            id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ',
-            metadata: { name: 'Test Wallet' },
-          },
-          data: [
-            {
-              id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
-              accounts: [account1Id],
-              metadata: { name: 'Account 1' },
-            },
-            {
-              id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
-              accounts: [account2Id],
-              metadata: { name: 'Account 2' },
-            },
-          ],
-        },
-      ];
-    }),
-    selectWalletsMap: jest.fn(() => {
-      const {
-        createMockUuidFromAddress: mockCreateUuidFromAddress,
-        MOCK_ADDRESS_1: mockAddress1,
-        MOCK_ADDRESS_2: mockAddress2,
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      } = require('../../../../util/test/accountsControllerTestUtils');
-
-      const account1Id = mockCreateUuidFromAddress(mockAddress1);
-      const account2Id = mockCreateUuidFromAddress(mockAddress2);
-
-      return {
-        'entropy:01JKAF3DSGM3AB87EM9N0K41AJ': {
+    selectAccountGroups: jest.fn(() => [
+      {
+        id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
+        accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
+        metadata: { name: 'Account 1' },
+      },
+      {
+        id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
+        accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
+        metadata: { name: 'Account 2' },
+      },
+    ]),
+    selectAccountGroupsByWallet: jest.fn(() => [
+      {
+        title: 'Test Wallet',
+        wallet: {
           id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ',
           metadata: { name: 'Test Wallet' },
-          groups: {
-            'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0': {
-              id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
-              accounts: [account1Id],
-              metadata: { name: 'Account 1' },
-            },
-            'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1': {
-              id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
-              accounts: [account2Id],
-              metadata: { name: 'Account 2' },
-            },
+        },
+        data: [
+          {
+            id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
+            accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
+            metadata: { name: 'Account 1' },
+          },
+          {
+            id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
+            accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
+            metadata: { name: 'Account 2' },
+          },
+        ],
+      },
+    ]),
+    selectWalletsMap: jest.fn(() => ({
+      'entropy:01JKAF3DSGM3AB87EM9N0K41AJ': {
+        id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ',
+        metadata: { name: 'Test Wallet' },
+        groups: {
+          'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0': {
+            id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
+            accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
+            metadata: { name: 'Account 1' },
+          },
+          'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1': {
+            id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
+            accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
+            metadata: { name: 'Account 2' },
           },
         },
-      };
-    }),
+      },
+    })),
   }),
 );
 
@@ -284,85 +240,43 @@ jest.mock(
 
 jest.mock('../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../selectors/accountsController'),
-  selectInternalAccountsById: jest.fn(() => {
-    const {
-      createMockUuidFromAddress: mockCreateUuidFromAddress,
-      createMockInternalAccount: mockCreateInternalAccount,
-      MOCK_ADDRESS_1: mockAddress1,
-      MOCK_ADDRESS_2: mockAddress2,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    } = require('../../../../util/test/accountsControllerTestUtils');
-
-    const account1Id = mockCreateUuidFromAddress(mockAddress1);
-    const account2Id = mockCreateUuidFromAddress(mockAddress2);
-
-    return {
-      [account1Id]: mockCreateInternalAccount(mockAddress1, 'Account 1'),
-      [account2Id]: mockCreateInternalAccount(mockAddress2, 'Account 2'),
-    };
-  }),
+  selectInternalAccountsById: jest.fn(() => ({
+    '01JKAF3DSGM3AB87EM9N0K41AJ': {
+      id: '01JKAF3DSGM3AB87EM9N0K41AJ',
+      address: MOCK_ADDRESS_1,
+      metadata: { name: 'Account 1' },
+      scopes: ['eip155:1'],
+    },
+  })),
 }));
 
 jest.mock('../../../../selectors/assets/balances', () => ({
   ...jest.requireActual('../../../../selectors/assets/balances'),
-  selectBalanceByAccountGroup: jest.fn((groupId) =>
-    jest.fn(() => ({
-      walletId: groupId.split('/')[0],
-      groupId,
-      totalBalanceInUserCurrency: 100.5,
-      userCurrency: 'usd',
-    })),
-  ),
+  selectBalanceByAccountGroup: jest.fn(() => () => ({
+    totalBalanceInUserCurrency: 100.5,
+    userCurrency: 'usd',
+  })),
 }));
 
 // Mock useAccountGroupsForPermissions hook
 jest.mock(
   '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions',
   () => ({
-    useAccountGroupsForPermissions: jest.fn(() => {
-      const {
-        createMockUuidFromAddress: mockCreateUuidFromAddress,
-        createMockInternalAccount: mockCreateInternalAccount,
-        MOCK_ADDRESS_1: mockAddress1,
-        MOCK_ADDRESS_2: mockAddress2,
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      } = require('../../../../util/test/accountsControllerTestUtils');
-
-      const account1Id = mockCreateUuidFromAddress(mockAddress1);
-      const account2Id = mockCreateUuidFromAddress(mockAddress2);
-
-      const mockAccountGroups = [
+    useAccountGroupsForPermissions: jest.fn(() => ({
+      supportedAccountGroups: [
         {
           id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
-          accounts: [
-            {
-              ...mockCreateInternalAccount(mockAddress1, 'Account 1'),
-              id: account1Id,
-            },
-          ],
+          accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
           metadata: { name: 'Account 1' },
         },
         {
           id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
-          accounts: [
-            {
-              ...mockCreateInternalAccount(mockAddress2, 'Account 2'),
-              id: account2Id,
-            },
-          ],
+          accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
           metadata: { name: 'Account 2' },
         },
-      ];
-
-      return {
-        supportedAccountGroups: mockAccountGroups,
-        connectedAccountGroups: [],
-        existingConnectedCaipAccountIds: [],
-        connectedAccountGroupWithRequested: [],
-        caipAccountIdsOfConnectedAccountGroupWithRequested: [],
-        selectedAndRequestedAccountGroups: mockAccountGroups,
-      };
-    }),
+      ],
+      connectedAccountGroups: [],
+    })),
   }),
 );
 
@@ -408,24 +322,24 @@ const createMockState = (): DeepPartial<RootState> => ({
       AccountTreeController: {
         accountTree: {
           wallets: {
-            [MOCK_WALLET_ID]: {
-              id: MOCK_WALLET_ID,
+            'entropy:01JKAF3DSGM3AB87EM9N0K41AJ': {
+              id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ',
               metadata: { name: 'Test Wallet' },
               groups: {
-                [MOCK_ACCOUNT_GROUP_1_ID]: {
-                  id: MOCK_ACCOUNT_GROUP_1_ID,
-                  accounts: [MOCK_ACCOUNT_1_UUID],
+                'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0': {
+                  id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
+                  accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
                   metadata: { name: 'Account 1' },
                 },
-                [MOCK_ACCOUNT_GROUP_2_ID]: {
-                  id: MOCK_ACCOUNT_GROUP_2_ID,
-                  accounts: [MOCK_ACCOUNT_2_UUID],
+                'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1': {
+                  id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1',
+                  accounts: ['01JKAF3DSGM3AB87EM9N0K41AJ'],
                   metadata: { name: 'Account 2' },
                 },
               },
             },
           },
-          selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
+          selectedAccountGroup: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
         },
       },
       NetworkController: {
@@ -2055,7 +1969,7 @@ describe('MultichainAccountConnect', () => {
       );
 
       expect(getByTestId('permission-summary-account-text')).toHaveTextContent(
-        'Requesting for',
+        'Requesting for Account 1',
       );
 
       const editAccountsButton = getByTestId('permission-summary-container');
@@ -2100,7 +2014,7 @@ describe('MultichainAccountConnect', () => {
       await waitFor(() => {
         expect(
           getByTestId('permission-summary-account-text'),
-        ).toHaveTextContent('Requesting for');
+        ).toHaveTextContent('Requesting for 2 accounts');
       });
     });
   });

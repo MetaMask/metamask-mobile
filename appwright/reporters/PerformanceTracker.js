@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { BrowserStackCredentials } from '../utils/BrowserStackCredentials.js';
 
 export class PerformanceTracker {
   constructor() {
@@ -21,6 +20,9 @@ export class PerformanceTracker {
   }
 
   async getVideoURL(sessionId, maxRetries = 60, delayMs = 3000) {
+    const BS_USERNAME = process.env.BROWSERSTACK_USERNAME;
+    const BS_ACCESS_KEY = process.env.BROWSERSTACK_ACCESS_KEY;
+
     console.log(
       `🔄 STARTING RETRY MECHANISM: ${maxRetries} retries, ${delayMs}ms delays`,
     );
@@ -37,13 +39,12 @@ export class PerformanceTracker {
         console.log(
           `🎯 === ATTEMPT ${attempt}/${maxRetries} === Time: ${new Date().toISOString()}`,
         );
-        const credentials = BrowserStackCredentials.getCredentials();
         const response = await axios.get(
-          `https://api-cloud.browserstack.com/app-automate/sessions/${sessionId}.json`,
+          `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`,
           {
             auth: {
-              username: credentials.username,
-              password: credentials.accessKey,
+              username: BS_USERNAME,
+              password: BS_ACCESS_KEY,
             },
             timeout: 8000, // 8 second timeout per request
           },

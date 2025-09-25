@@ -511,15 +511,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                               </View>
                             </View>
                           </View>
-                          <RNCSafeAreaView
-                            edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "additive",
-                              }
-                            }
+                          <RCTSafeAreaView
                             style={
                               {
                                 "flex": 1,
@@ -548,7 +540,7 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                                 }
                               />
                             </View>
-                          </RNCSafeAreaView>
+                          </RCTSafeAreaView>
                         </View>
                       </View>
                     </View>
@@ -1075,15 +1067,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                               </View>
                             </View>
                           </View>
-                          <RNCSafeAreaView
-                            edges={
-                              {
-                                "bottom": "additive",
-                                "left": "additive",
-                                "right": "additive",
-                                "top": "additive",
-                              }
-                            }
+                          <RCTSafeAreaView
                             style={
                               {
                                 "flex": 1,
@@ -1111,15 +1095,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                   ]
                                 }
                               >
-                                <RNCSafeAreaView
-                                  edges={
-                                    {
-                                      "bottom": "additive",
-                                      "left": "additive",
-                                      "right": "additive",
-                                      "top": "additive",
-                                    }
-                                  }
+                                <RCTSafeAreaView
                                   style={
                                     {
                                       "flex": 1,
@@ -1211,10 +1187,10 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                       </Text>
                                     </View>
                                   </View>
-                                </RNCSafeAreaView>
+                                </RCTSafeAreaView>
                               </View>
                             </View>
-                          </RNCSafeAreaView>
+                          </RCTSafeAreaView>
                         </View>
                       </View>
                     </View>

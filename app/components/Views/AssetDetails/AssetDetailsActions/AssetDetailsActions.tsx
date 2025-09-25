@@ -9,17 +9,14 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
-import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
-import { CaipChainId, Hex } from '@metamask/utils';
-import { RootState } from '../../../../reducers';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
-  chainId: Hex | CaipChainId;
+  swapsIsLive: boolean | undefined;
   onBuy?: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
@@ -42,7 +39,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
   displayBridgeButton,
-  chainId,
+  swapsIsLive,
   onBuy,
   goToSwaps,
   goToBridge,
@@ -57,9 +54,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state, chainId),
-  );
   const { navigate } = useNavigation();
 
   // Check if FundActionMenu would be empty
@@ -101,7 +95,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconName={IconName.SwapVertical}
             label={strings('asset_overview.swap')}
             onPress={() => goToSwaps()}
-            isDisabled={!isSwapsEnabled}
+            isDisabled={!canSignTransactions || !swapsIsLive}
             testID={swapButtonActionID}
           />
         </View>

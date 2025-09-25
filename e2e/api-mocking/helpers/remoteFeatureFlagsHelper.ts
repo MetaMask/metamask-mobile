@@ -80,7 +80,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
           isUnifiedUIEnabled: true,
           isActiveDest: true,
           isActiveSrc: true,
-          isGaslessSwapEnabled: true,
         },
         '10': {
           isActiveDest: true,

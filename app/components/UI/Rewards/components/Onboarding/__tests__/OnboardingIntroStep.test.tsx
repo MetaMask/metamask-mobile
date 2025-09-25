@@ -12,11 +12,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
-  useFocusEffect: (callback: () => void) => {
-    // Call the callback once to simulate component mount
-    callback();
-    return;
-  },
 }));
 
 // Mock redux
@@ -62,18 +57,6 @@ jest.mock('react-redux', () => ({
       },
     };
     return selector(state);
-  }),
-}));
-
-// Mock metrics
-jest.mock('../../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn(),
-      }),
-    }),
   }),
 }));
 
@@ -214,7 +197,7 @@ describe('OnboardingIntroStep', () => {
   });
 
   describe('account validation', () => {
-    it('should not show error modal for Solana accounts', () => {
+    it('should show error modal for Solana accounts', () => {
       // Reset the mock to ensure it returns true for this test
       const mockIsSolanaAccount = jest.requireMock(
         '../../../../../../core/Multichain/utils',
@@ -273,8 +256,19 @@ describe('OnboardingIntroStep', () => {
       );
       fireEvent.press(confirmButton);
 
-      // The test expects navigation to a modal for Solana accounts
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_ONBOARDING_1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        {
+          title: 'mocked_rewards.onboarding.not_supported_account_needed_title',
+          description:
+            'mocked_rewards.onboarding.not_supported_account_needed_description',
+          confirmAction: {
+            label: 'mocked_rewards.onboarding.not_supported_confirm',
+            onPress: expect.any(Function),
+            variant: 'Primary',
+          },
+        },
+      );
     });
 
     it('should show error modal when geo is not allowed', () => {

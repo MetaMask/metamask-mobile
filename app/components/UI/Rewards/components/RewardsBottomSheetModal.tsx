@@ -36,15 +36,14 @@ export interface ModalAction {
 interface RewardsBottomSheetModalProps {
   route: {
     params: {
-      title: string | React.ReactNode;
-      description: string | React.ReactNode;
+      title: string;
+      description: string;
       // Enhanced props for generic usage
       type?: ModalType;
       confirmAction: ModalAction;
       onCancel?: () => void;
       cancelLabel?: string;
       showCancelButton?: boolean;
-      showIcon?: boolean;
     };
   };
 }
@@ -61,7 +60,6 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     onCancel,
     cancelLabel = 'Cancel',
     showCancelButton = false,
-    showIcon = true,
   } = route.params;
 
   const handleDismiss = useCallback(() => {
@@ -103,44 +101,24 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
   };
 
   const renderTitle = () => (
-    <Box
-      alignItems={
-        typeof title === 'string' ? BoxAlignItems.Center : BoxAlignItems.Start
-      }
-      twClassName="mb-3 w-full"
-    >
-      {typeof title === 'string' ? (
-        <Text
-          variant={TextVariant.HeadingMd}
-          style={tw.style('text-center text-default')}
-        >
-          {title}
-        </Text>
-      ) : (
-        title
-      )}
+    <Box alignItems={BoxAlignItems.Center} twClassName="mb-3">
+      <Text
+        variant={TextVariant.HeadingMd}
+        style={tw.style('text-center text-default')}
+      >
+        {title}
+      </Text>
     </Box>
   );
 
   const renderDescription = () => (
-    <Box
-      alignItems={
-        typeof description === 'string'
-          ? BoxAlignItems.Center
-          : BoxAlignItems.Start
-      }
-      twClassName="mb-6 w-full"
-    >
-      {typeof description === 'string' ? (
-        <Text
-          variant={TextVariant.BodySm}
-          style={tw.style('text-alternative text-center')}
-        >
-          {description}
-        </Text>
-      ) : (
-        description
-      )}
+    <Box alignItems={BoxAlignItems.Center} twClassName="mb-6">
+      <Text
+        variant={TextVariant.BodySm}
+        style={tw.style('text-alternative text-center')}
+      >
+        {description}
+      </Text>
     </Box>
   );
 
@@ -203,7 +181,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         justifyContent={BoxJustifyContent.Center}
         twClassName="p-4"
       >
-        {showIcon && renderIcon()}
+        {renderIcon()}
         {renderTitle()}
         {renderDescription()}
         {renderActions()}

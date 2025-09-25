@@ -570,7 +570,7 @@ describe('Wallet', () => {
           displayBuyButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
           displayBridgeButton: expect.any(Boolean),
-          chainId: expect.any(String),
+          swapsIsLive: expect.any(Boolean),
           goToBridge: expect.any(Function),
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
@@ -609,32 +609,6 @@ describe('Wallet', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
         initialScreen: 1, // QRTabSwitcherScreens.Receive
       });
-    });
-
-    it('should handle onReceive callback correctly when multichain accounts state 2 is enabled', () => {
-      // Patch the selector to return true for isMultichainAccountsState2Enabled
-      jest.mocked(useSelector).mockImplementation((callback) => {
-        const state = {
-          ...mockInitialState,
-          isMultichainAccountsState2Enabled: true,
-        };
-        return callback(state);
-      });
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      const onReceive = mockAssetDetailsActions.mock.calls[0][0].onReceive;
-      onReceive();
-
-      // You need to know what createAddressListNavigationDetails returns.
-      // For example, if it returns [route, params], check those:
-      // expect(mockNavigate).toHaveBeenCalledWith(route, params);
-
-      // If it spreads an array, you can check the call arguments:
-      expect(mockNavigate.mock.calls[0][0]).toBeDefined();
-      expect(mockNavigate.mock.calls[0][1]).toBeDefined();
-      // Optionally, check for groupId or title in params if needed
     });
 
     it('should handle onSend callback correctly with native currency', async () => {

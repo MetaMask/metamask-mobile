@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "자금 부족"
+      "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "이 비밀번호는 이 기기에서 귀하의 MetaMask 지갑을 잠금 해제할 때만 사용됩니다.",
-    "password": "Create password",
+    "password": "새 비밀번호 생성",
     "confirm_password": "비밀번호 확인",
     "create_button": "비밀번호 생성",
     "import_with_seed_phrase": "비밀 복구 구문으로 불러오기",
@@ -404,7 +404,7 @@
     "show": "보이기",
     "hide": "숨기기",
     "seed_phrase": "비밀 복구 구문",
-    "must_be_at_least": "최소 {{number}}자여야 합니다",
+    "must_be_at_least": "비밀번호는 {{number}}자 이상이어야 합니다",
     "remember_me": "로그인 정보 저장",
     "security_alert_title": "보안 경고",
     "security_alert_message": "계속하려면, 비밀번호를 켜거나 또는 귀하의 기기에서 지원되는 생체 인식 인증 방법을 켜야 합니다 (FaceID, TouchID 또는 지문)",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "이 비밀번호를 잊으면 지갑에 영구적으로 접근할 수 없게 됩니다. MetaMask는 비밀번호를 초기화해 드릴 수 없습니다.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "다시 시도"
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "지갑 가져오기",
     "seed_phrase_placeholder": "비밀 복구 구문을 입력하세요",
-    "create_new_password": "Create password",
+    "create_new_password": "새 비밀번호 생성",
     "confirm_password": "비밀번호 확인",
     "import_button": "불러오기",
     "cancel_button": "취소",
@@ -491,7 +491,7 @@
     "srp": "비밀복구구문입니다",
     "srp_placeholder": "각 단어 사이에 공백을 추가하고 아무도 보지 못하게 하세요.",
     "learn_more_link": "더 보기",
-    "import_create_password_cta": "Create password",
+    "create_password_cta": "비밀번호 생성",
     "pass_flow": "Flow로 계속",
     "steps": "{{currentStep}} 단계/{{totalSteps}} 단계",
     "password_error": "비밀번호가 일치하지 않습니다. 다시 시도하세요.",
@@ -507,7 +507,6 @@
     "home": "홈",
     "browser": "브라우저",
     "activity": "활동",
-    "trade": "Trade",
     "settings": "설정",
     "rewards": "보상"
   },
@@ -1077,7 +1076,7 @@
         "limit_price_below": "지정가가 현재 가격보다 낮습니다"
       },
       "leverage_modal": {
-        "title": "레버리지",
+        "title": "Leverage",
         "confirm": "컨펌",
         "entry_price": "진입 가격",
         "current_price": "현재가",
@@ -1165,6 +1164,8 @@
     "tpsl": {
       "title": "익절 및 손절",
       "description": "자동으로 포지션을 종료하려면 이익 또는 손실 퍼센트를 선택하거나 사용자 지정 가격을 입력하세요.",
+      "set": "설정",
+      "updating": "업데이트 중...",
       "off": "비활성화",
       "current_price": "현재가",
       "leverage": "레버리지",
@@ -1186,7 +1187,7 @@
       "stop_loss_order_view_warning": "손절이 {{direction}} 청산 가격입니다",
       "above": " 이상",
       "below": " 미만",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "닫기"
     },
     "token_selector": {
       "no_tokens": "사용 가능한 토큰이 없습니다"
@@ -3953,14 +3954,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "매수",
     "sell": "매도",
-    "orders": "Transfers",
+    "orders": "주문",
     "All": "모두",
     "Buy": "구매",
     "Sell": "매도",
     "token_marketplace": "토큰 마켓플레이스",
     "Purchased": "매수함",
     "Sold": "매도함",
-    "empty_orders_list": "No bank or card transfers yet.",
+    "empty_orders_list": "주문이 없습니다",
     "empty_buy_orders_list": "매수 주문이 없습니다",
     "empty_sell_orders_list": "매도 주문이 없습니다",
     "purchased_currency": "구매한 {{currency}}",
@@ -5341,10 +5342,9 @@
     "quote_info_title": "비율",
     "network_fee_info_title": "네트워크 수수료",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Est. points",
+    "points": "포인트",
     "points_tooltip": "포인트",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
-    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "points_tooltip_content": "이 거래로 적립될 MetaMask 보상 포인트 예상치입니다. 포인트가 보상 잔액에 반영되려면 최대 1시간 정도 소요됩니다",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5772,14 +5772,13 @@
       "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Rewards Settings",
-      "subtitle": "Accounts",
-      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Reward Settings",
+      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked ({{count}})",
-      "tab_unlinked_accounts": "Unlinked ({{count}})",
+      "tab_linked_accounts": "Linked Accounts ({{count}})",
+      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5836,6 +5835,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "친구 추천",
         "share_referral_subject": "MetaMask 보상 프로그램 가입"

@@ -7,12 +7,6 @@ export class AccountTreeInitService {
     await AccountsController.updateAccounts();
     AccountTreeController.init();
   };
-
-  clearState = async (): Promise<void> => {
-    const { AccountTreeController } = Engine.context;
-
-    AccountTreeController.clearState();
-  };
 }
 
 export default new AccountTreeInitService();

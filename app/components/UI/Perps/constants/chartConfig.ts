@@ -174,7 +174,7 @@ export const CANDLE_PERIODS = [
   { label: '8h', value: CandlePeriod.EIGHT_HOURS },
   { label: '12h', value: CandlePeriod.TWELVE_HOURS },
   { label: '1d', value: CandlePeriod.ONE_DAY },
-  { label: '3d', value: CandlePeriod.THREE_DAYS },
+  { label: '2d', value: CandlePeriod.THREE_DAYS },
   { label: '7d', value: CandlePeriod.ONE_WEEK },
 ] as const;
 

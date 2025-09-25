@@ -52,6 +52,7 @@ export const PerpsEventProperties = {
   SOURCE_AMOUNT: 'SourceAmount',
   DESTINATION_AMOUNT: 'destinationAmount',
   NETWORK_FEE: 'networkFee',
+  AVAILABLE_AMOUNT: 'availableAmount',
   WITHDRAWAL_AMOUNT: 'withdrawalAmount',
 
   // Chart properties
@@ -72,7 +73,6 @@ export const PerpsEventProperties = {
 
   // Other properties
   INPUT_METHOD: 'inputMethod', // camelCase per requirements
-  ACTION_TYPE: 'action_type',
   FAILURE_REASON: 'Failure Reason',
   WARNING_TYPE: 'Warning Type',
   WARNING_MESSAGE: 'Warning Message',
@@ -83,13 +83,7 @@ export const PerpsEventProperties = {
   VIEW_OCCURRENCES: 'View occurrences',
   AMOUNT_FILLED: 'Amount filled',
   REMAINING_AMOUNT: 'Remaining amount',
-
-  // Tutorial carousel navigation properties
-  PREVIOUS_SCREEN: 'previous_screen',
-  CURRENT_SCREEN: 'current_screen',
-  SCREEN_POSITION: 'screen_position',
-  TOTAL_SCREENS: 'total_screens',
-  NAVIGATION_METHOD: 'navigation_method',
+  PERP_ACCOUNT_BALANCE: 'Perp Account $ Balance',
 } as const;
 
 /**
@@ -145,11 +139,6 @@ export const PerpsEventValues = {
     TAP: 'tap',
     ZOOM: 'zoom',
     SLIDE: 'slide',
-    CANDLE_PERIOD_CHANGE: 'candle_period_change',
-  },
-  ACTION_TYPE: {
-    START_TRADING: 'Start trading',
-    SKIP: 'Skip',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'PositionLiquidated',
@@ -160,10 +149,5 @@ export const PerpsEventValues = {
   CLOSE_TYPE: {
     FULL: 'full',
     PARTIAL: 'partial',
-  },
-  NAVIGATION_METHOD: {
-    SWIPE: 'swipe',
-    CONTINUE_BUTTON: 'continue_button',
-    PROGRESS_DOT: 'progress_dot',
   },
 } as const;

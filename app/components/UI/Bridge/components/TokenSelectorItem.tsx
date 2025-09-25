@@ -34,14 +34,6 @@ import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
 import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
-import { useSelector } from 'react-redux';
-import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
-import { strings } from '../../../../../locales/i18n';
-import TagBase, {
-  TagShape,
-  TagSeverity,
-} from '../../../../component-library/base-components/TagBase';
-import { RootState } from '../../../../reducers';
 
 const createStyles = ({
   theme,
@@ -91,10 +83,6 @@ const createStyles = ({
       // override the BadgeWrapper alignSelf: 'flex-start', let parent control the alignment
       alignSelf: undefined,
     },
-    noFeeBadge: {
-      marginLeft: 8,
-      paddingHorizontal: 6,
-    },
   });
 
 interface TokenSelectorItemProps {
@@ -117,12 +105,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   children,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
-  const noFeeAssets = useSelector((state: RootState) =>
-    selectNoFeeAssets(state, token.chainId),
-  );
-
-  const isNoFeeAsset = noFeeAssets?.includes(token.address);
-
   const fiatValue = token.balanceFiat;
   const balanceWithSymbol = token.balance
     ? `${
@@ -193,22 +175,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             flexDirection={FlexDirection.Column}
             gap={4}
           >
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-            >
-              <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-              {isNoFeeAsset && (
-                <TagBase
-                  shape={TagShape.Rectangle}
-                  severity={TagSeverity.Info}
-                  textProps={{ variant: TextVariant.BodyXS }}
-                  style={styles.noFeeBadge}
-                >
-                  {strings('bridge.no_mm_fee')}
-                </TagBase>
-              )}
-            </Box>
+            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {token.name}
             </Text>

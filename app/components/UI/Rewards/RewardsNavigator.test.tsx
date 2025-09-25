@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -17,54 +17,36 @@ jest.mock('../../../core/Engine', () => ({
 
 // Mock dependencies
 jest.mock('./hooks/useOptIn');
-jest.mock('./hooks/useSeasonStatus', () => ({
-  useSeasonStatus: jest.fn(),
-}));
-
 jest.mock('./OnboardingNavigator', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockOnboardingNavigator() {
     return React.createElement(
       View,
-      { testID: 'rewards-onboarding-navigator' },
+      { testID: 'onboarding-navigator' },
       React.createElement(Text, null, 'Onboarding Navigator'),
     );
   };
 });
-
 jest.mock('./Views/RewardsDashboard', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockRewardsDashboard() {
     return React.createElement(
       View,
-      { testID: 'rewards-dashboard-view' },
+      { testID: 'rewards-dashboard' },
       React.createElement(Text, null, 'Rewards Dashboard'),
     );
   };
 });
-
 jest.mock('./Views/RewardsReferralView', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return function MockReferralRewardsView() {
     return React.createElement(
       View,
-      { testID: 'rewards-referral-view' },
+      { testID: 'referral-rewards-view' },
       React.createElement(Text, null, 'Referral Rewards View'),
-    );
-  };
-});
-
-jest.mock('./Views/RewardsSettingsView', () => {
-  const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-  return function MockRewardsSettingsView() {
-    return React.createElement(
-      View,
-      { testID: 'rewards-settings-view' },
-      React.createElement(Text, null, 'Rewards Settings View'),
     );
   };
 });
@@ -107,22 +89,18 @@ jest.mock(
     }) {
       return React.createElement(
         View,
-        { testID: 'rewards-auth-error-banner' },
+        { testID: 'banner-alert' },
+        React.createElement(Text, { testID: 'banner-title' }, title),
         React.createElement(
           Text,
-          { testID: 'rewards-auth-error-title' },
-          title,
-        ),
-        React.createElement(
-          Text,
-          { testID: 'rewards-auth-error-description' },
+          { testID: 'banner-description' },
           description,
         ),
         actionButtonProps &&
           React.createElement(
             TouchableOpacity,
             {
-              testID: 'rewards-auth-error-action-button',
+              testID: 'banner-action-button',
               onPress: actionButtonProps.onPress,
             },
             React.createElement(Text, null, actionButtonProps.label),
@@ -280,21 +258,56 @@ describe('RewardsNavigator', () => {
       </Provider>,
     );
 
+  describe('Focus optimization', () => {
+    it('renders empty component when not focused', () => {
+      // Arrange
+      mockIsFocused.mockReturnValue(false);
+
+      // Act
+      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      // Assert - should not render any of the main content components
+      expect(queryByTestId('rewards-dashboard')).toBeNull();
+      expect(queryByTestId('onboarding-navigator')).toBeNull();
+      expect(queryByTestId('skeleton-loader')).toBeNull();
+      expect(queryByTestId('banner-alert')).toBeNull();
+    });
+
+    it('renders content when focused', () => {
+      // Arrange
+      mockIsFocused.mockReturnValue(true);
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      expect(getByTestId('onboarding-navigator')).toBeOnTheScreen();
+    });
+  });
+
   describe('Authentication states', () => {
     beforeEach(() => {
       mockIsFocused.mockReturnValue(true);
     });
 
-    it('handles error subscription state', () => {
+    it('renders error view when subscription state is error', async () => {
       // Arrange
       mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
       mockSelectRewardsSubscriptionId.mockReturnValue('error');
 
       // Act
-      renderWithNavigation(<RewardsNavigator />);
+      const { getByTestId, getByText } = renderWithNavigation(
+        <RewardsNavigator />,
+      );
 
-      // Assert - Just verify it renders without crashing
-      expect(true).toBe(true);
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('banner-alert')).toBeOnTheScreen();
+        expect(getByText('Authentication Failed')).toBeOnTheScreen();
+        expect(getByText('Please try again later')).toBeOnTheScreen();
+      });
     });
 
     it('renders dashboard when user has opted in', async () => {
@@ -307,7 +320,7 @@ describe('RewardsNavigator', () => {
 
       // Assert
       await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-dashboard')).toBeOnTheScreen();
       });
     });
 
@@ -321,7 +334,7 @@ describe('RewardsNavigator', () => {
 
       // Assert
       await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-navigator')).toBeOnTheScreen();
+        expect(getByTestId('onboarding-navigator')).toBeOnTheScreen();
       });
     });
   });
@@ -331,7 +344,69 @@ describe('RewardsNavigator', () => {
       mockIsFocused.mockReturnValue(true);
     });
 
-    it('navigates to dashboard when subscription ID is available', async () => {
+    it('routes to dashboard when user has opted in with subscription ID', async () => {
+      // Arrange
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard')).toBeOnTheScreen();
+      });
+    });
+
+    it('routes to onboarding when user has not opted in and no candidate ID', async () => {
+      // Arrange
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('onboarding-navigator')).toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('Navigation structure', () => {
+    beforeEach(() => {
+      mockIsFocused.mockReturnValue(true);
+    });
+
+    it('sets up correct routes when user has opted in', async () => {
+      // Arrange
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard')).toBeOnTheScreen();
+      });
+    });
+
+    it('sets up onboarding route when user has not opted in', async () => {
+      // Arrange
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      await waitFor(() => {
+        expect(getByTestId('onboarding-navigator')).toBeOnTheScreen();
+      });
+    });
+
+    it('determines initial route correctly for opted-in users', () => {
       // Arrange
       mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
@@ -339,13 +414,12 @@ describe('RewardsNavigator', () => {
       // Act
       renderWithNavigation(<RewardsNavigator />);
 
-      // Assert
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
-      });
+      // Assert - Component should use selectors (tested indirectly through rendered content)
+      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
+      expect(mockSelectRewardsSubscriptionId).toHaveBeenCalled();
     });
 
-    it('navigates to onboarding flow when subscription ID is not available', async () => {
+    it('determines initial route correctly for non-opted-in users', () => {
       // Arrange
       mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
       mockSelectRewardsSubscriptionId.mockReturnValue(null);
@@ -353,94 +427,50 @@ describe('RewardsNavigator', () => {
       // Act
       renderWithNavigation(<RewardsNavigator />);
 
-      // Assert
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_ONBOARDING_FLOW,
-        );
-      });
+      // Assert - Component should use selectors (tested indirectly through rendered content)
+      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
+      expect(mockSelectRewardsSubscriptionId).toHaveBeenCalled();
     });
+  });
 
-    it('handles subscription ID changes', () => {
-      // Arrange - Start with no subscription
+  describe('AuthErrorView sub-component', () => {
+    it('renders error banner with correct content', async () => {
+      // Arrange
       mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockSelectRewardsSubscriptionId.mockReturnValue('error');
 
       // Act
-      const { rerender } = renderWithNavigation(<RewardsNavigator />);
-
-      // Verify initial navigation
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_ONBOARDING_FLOW);
-
-      // Reset mocks to track new calls
-      mockNavigate.mockClear();
-
-      // Change subscription state
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
-      mockSelectRewardsSubscriptionId.mockReturnValue('new-subscription-id');
-
-      // Trigger re-render with new state
-      rerender(
-        <Provider store={store}>
-          <NavigationContainer>
-            <Stack.Navigator>
-              <Stack.Screen name="Test">
-                {() => <RewardsNavigator />}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        </Provider>,
+      const { getByTestId, getByText } = renderWithNavigation(
+        <RewardsNavigator />,
       );
 
-      // Verify navigation was called (without checking specific route)
-      expect(mockNavigate).toHaveBeenCalled();
-    });
-  });
-
-  describe('Stack Navigator Configuration', () => {
-    it('includes onboarding route for all users', async () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
       // Assert
       await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-navigator')).toBeOnTheScreen();
+        expect(getByTestId('banner-alert')).toBeOnTheScreen();
+        expect(getByText('Authentication Failed')).toBeOnTheScreen();
+        expect(getByText('Please try again later')).toBeOnTheScreen();
+        expect(getByText('Back')).toBeOnTheScreen();
       });
     });
 
-    it('includes dashboard and other routes only for subscribed users', async () => {
+    it('navigates to wallet home when back button is pressed', async () => {
       // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockSelectRewardsSubscriptionId.mockReturnValue('error');
 
       // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
-      // Assert - Dashboard should be visible
       await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+        expect(getByTestId('banner-action-button')).toBeOnTheScreen();
       });
 
-      // Note: We can't directly test that the other routes exist in the navigator
-      // since they're not rendered until navigated to, but we can verify the
-      // dashboard is rendered which implies the conditional routes are included
-    });
-  });
+      fireEvent.press(getByTestId('banner-action-button'));
 
-  // Note: Removed AuthErrorView tests as they don't match the actual implementation
-  // The component appears to handle errors differently than originally tested
-
-  describe('Hooks integration', () => {
-    it('renders without crashing with hooks', () => {
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      // Assert - Just verify it renders
-      expect(getByTestId('rewards-onboarding-navigator')).toBeDefined();
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith('Home', {
+        screen: Routes.WALLET.HOME,
+      });
     });
   });
 });

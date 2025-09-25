@@ -109,6 +109,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
         })),
+        [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: parseFloat(
+          account.totalBalance,
+        ),
       });
 
       hasTrackedHomescreen.current = true;

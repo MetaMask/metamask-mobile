@@ -20,9 +20,6 @@ const SIGNATURE_LIST = [
     specName: 'Personal Sign',
     testDappBtn: TestDApp.tapPersonalSignButton.bind(TestDApp),
     requestType: RequestTypes.PersonalSignRequest,
-    additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(RowComponents.NetworkAndOrigin);
-    },
   },
   {
     specName: 'SIWE Sign',
@@ -38,25 +35,16 @@ const SIGNATURE_LIST = [
     specName: 'Typed V1 Sign',
     testDappBtn: TestDApp.tapTypedSignButton.bind(TestDApp),
     requestType: RequestTypes.TypedSignRequest,
-    additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(RowComponents.NetworkAndOrigin);
-    },
   },
   {
     specName: 'Typed V3 Sign',
     testDappBtn: TestDApp.tapTypedV3SignButton.bind(TestDApp),
     requestType: RequestTypes.TypedSignRequest,
-    additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
-    },
   },
   {
     specName: 'Typed V4 Sign',
     testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
     requestType: RequestTypes.TypedSignRequest,
-    additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
-    },
   },
 ];
 
@@ -114,6 +102,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
           await Assertions.expectElementToBeVisible(
             RowComponents.AccountNetwork,
           );
+          await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
           await Assertions.expectElementToBeVisible(RowComponents.Message);
 
           // any signature specific additional assertions

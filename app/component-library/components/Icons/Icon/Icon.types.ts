@@ -220,7 +220,6 @@ export enum IconName {
   Menu = 'Menu',
   MessageQuestion = 'MessageQuestion',
   Messages = 'Messages',
-  MetamaskFoxOutline = 'MetamaskFoxOutline',
   Mic = 'Mic',
   MinusBold = 'MinusBold',
   MinusSquare = 'MinusSquare',

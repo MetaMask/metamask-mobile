@@ -5,10 +5,7 @@ import AccountListFooter from './AccountListFooter';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
-import { useAccountsOperationsLoadingStates } from '../../../../../util/accounts/useAccountsOperationsLoadingStates';
 import Logger from '../../../../../util/Logger';
-import { AccountWalletType } from '@metamask/account-api';
-import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
@@ -36,22 +33,11 @@ jest.mock('../../../../../components/UI/AnimatedSpinner', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../util/accounts/useAccountsOperationsLoadingStates',
-  () => ({
-    useAccountsOperationsLoadingStates: jest.fn(),
-  }),
-);
-
 // Mock InteractionManager
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn();
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
-const mockUseAccountsOperationsLoadingStates =
-  useAccountsOperationsLoadingStates as jest.MockedFunction<
-    typeof useAccountsOperationsLoadingStates
-  >;
 
 describe('AccountListFooter', () => {
   const mockWalletId = 'keyring:test-wallet-id' as const;
@@ -61,7 +47,7 @@ describe('AccountListFooter', () => {
     id: mockWalletId,
     metadata: { name: 'Test Wallet' },
     groups: {},
-    type: AccountWalletType.Entropy,
+    type: 'keyring' as const,
   };
 
   const mockWalletInfo = {
@@ -80,22 +66,17 @@ describe('AccountListFooter', () => {
       MultichainAccountService: mockMultichainAccountService,
     };
 
-    // Always return the mock wallet by default
     (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-      // Check if this is the selectWalletsMap selector by comparing the function reference
-      if (selector === selectWalletsMap) {
+      if (
+        typeof selector === 'function' &&
+        selector.name === 'selectWalletsMap'
+      ) {
         return { [mockWalletId]: mockWallet };
       }
       return {};
     });
 
     (useWalletInfo as jest.Mock).mockReturnValue(mockWalletInfo);
-
-    mockUseAccountsOperationsLoadingStates.mockReturnValue({
-      isAccountSyncingInProgress: false,
-      areAnyOperationsLoading: false,
-      loadingMessage: undefined,
-    });
 
     (InteractionManager.runAfterInteractions as jest.Mock).mockImplementation(
       (callback: unknown) => {
@@ -331,127 +312,6 @@ describe('AccountListFooter', () => {
       await waitFor(() => {
         expect(onAccountCreated).toHaveBeenCalledWith('new-account-group-id');
       });
-    });
-  });
-
-  describe('Wallet Type Filtering', () => {
-    it('renders create account button only for Entropy wallet type', () => {
-      const { getByText } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      expect(getByText('Create account')).toBeOnTheScreen();
-    });
-
-    it('handles loading state transitions correctly', () => {
-      // Start with no loading
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: false,
-        areAnyOperationsLoading: false,
-        loadingMessage: undefined,
-      });
-
-      const { getByText, rerender } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      expect(getByText('Create account')).toBeOnTheScreen();
-
-      // Simulate account syncing starting
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: true,
-        areAnyOperationsLoading: true,
-        loadingMessage: 'Syncing...',
-      });
-
-      rerender(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      expect(getByText('Syncing...')).toBeOnTheScreen();
-
-      // Simulate syncing completing
-      mockUseAccountsOperationsLoadingStates.mockReturnValue({
-        isAccountSyncingInProgress: false,
-        areAnyOperationsLoading: false,
-        loadingMessage: undefined,
-      });
-
-      rerender(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      expect(getByText('Create account')).toBeOnTheScreen();
-    });
-
-    it('does not render create account button for non-Entropy wallet types', () => {
-      const testCases = [
-        {
-          name: 'Keyring wallet type',
-          walletType: AccountWalletType.Keyring,
-        },
-        {
-          name: 'Snap wallet type',
-          walletType: AccountWalletType.Snap,
-        },
-      ];
-
-      testCases.forEach(({ walletType }) => {
-        const mockNonEntropyWallet = {
-          ...mockWallet,
-          type: walletType,
-        };
-
-        // Override the selector mock for this test
-        (useSelector as jest.Mock).mockImplementationOnce(
-          (selector: unknown) => {
-            if (selector === selectWalletsMap) {
-              return { [mockWalletId]: mockNonEntropyWallet };
-            }
-            return {};
-          },
-        );
-
-        const { queryByText } = render(
-          <AccountListFooter
-            walletId={mockWalletId}
-            onAccountCreated={jest.fn()}
-          />,
-        );
-
-        expect(queryByText('Create account')).not.toBeOnTheScreen();
-      });
-    });
-
-    it('does not render create account button when wallet is undefined', () => {
-      // Override the selector mock for this test
-      (useSelector as jest.Mock).mockImplementationOnce((selector: unknown) => {
-        if (selector === selectWalletsMap) {
-          return { [mockWalletId]: undefined };
-        }
-        return {};
-      });
-
-      const { queryByText } = render(
-        <AccountListFooter
-          walletId={mockWalletId}
-          onAccountCreated={jest.fn()}
-        />,
-      );
-
-      expect(queryByText('Create account')).not.toBeOnTheScreen();
     });
   });
 });

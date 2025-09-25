@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "資金不足"
+      "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "このパスワードはこのデバイスでのみMetaMaskウォレットのロックを解除します。",
-    "password": "Create password",
+    "password": "新規パスワードの作成",
     "confirm_password": "パスワードの確認",
     "create_button": "パスワードを作成",
     "import_with_seed_phrase": "秘密のリカバリーフレーズでインポート",
@@ -404,7 +404,7 @@
     "show": "表示",
     "hide": "非表示",
     "seed_phrase": "秘密のリカバリーフレーズ",
-    "must_be_at_least": "{{number}}文字以上必要です",
+    "must_be_at_least": "パスワードは{{number}}文字以上で設定してください",
     "remember_me": "認証情報を保存",
     "security_alert_title": "セキュリティアラート",
     "security_alert_message": "先に進むには、パスコードもしくはデバイスが対応している生体認証方法 (FaceID、TouchID、または指紋) をオンにする必要があります",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "このパスワードを忘れると、ウォレットに永久にアクセスできなくなります。MetaMask側ではウォレットをリセットできません。",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "再試行してください"
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "ウォレットをインポート",
     "seed_phrase_placeholder": "秘密のリカバリーフレーズを入力してください",
-    "create_new_password": "Create password",
+    "create_new_password": "新規パスワードの作成",
     "confirm_password": "パスワードの確認",
     "import_button": "インポート",
     "cancel_button": "キャンセル",
@@ -491,7 +491,7 @@
     "srp": "シークレットリカバリーフレーズです。",
     "srp_placeholder": "各単語の間に半角スペースを入れ、誰にも見られないようにご注意ください.",
     "learn_more_link": "詳細",
-    "import_create_password_cta": "Create password",
+    "create_password_cta": "パスワードを作成",
     "pass_flow": "Flowで続行",
     "steps": "ステップ{{currentStep}}/{{totalSteps}}",
     "password_error": "パスワードが一致しません。もう一度お試しください。",
@@ -507,7 +507,6 @@
     "home": "ホーム",
     "browser": "ブラウザ",
     "activity": "アクティビティ",
-    "trade": "Trade",
     "settings": "設定",
     "rewards": "報酬"
   },
@@ -1077,7 +1076,7 @@
         "limit_price_below": "リミット価格が現在の価格を下回っています"
       },
       "leverage_modal": {
-        "title": "レバレッジ",
+        "title": "Leverage",
         "confirm": "確定",
         "entry_price": "エントリー価格",
         "current_price": "現在の価格",
@@ -1165,6 +1164,8 @@
     "tpsl": {
       "title": "利益確定とストップロス",
       "description": "損益の割合を選択するか、ポジションを自動的にクローズするトリガー価格をカスタムで入力してください。",
+      "set": "設定",
+      "updating": "更新中...",
       "off": "オフ",
       "current_price": "現在の価格",
       "leverage": "レバレッジ",
@@ -1186,7 +1187,7 @@
       "stop_loss_order_view_warning": "ストップロスが清算価格よりも{{direction}}に設定されています",
       "above": "上",
       "below": "下",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "閉じる"
     },
     "token_selector": {
       "no_tokens": "使用可能なトークンがありません"
@@ -3953,14 +3954,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "購入",
     "sell": "売却",
-    "orders": "Transfers",
+    "orders": "注文",
     "All": "すべて",
     "Buy": "購入",
     "Sell": "売却",
     "token_marketplace": "トークンマーケットプレイス",
     "Purchased": "購入しました",
     "Sold": "売却しました",
-    "empty_orders_list": "No bank or card transfers yet.",
+    "empty_orders_list": "注文がありません",
     "empty_buy_orders_list": "購入注文がありません",
     "empty_sell_orders_list": "売却注文がありません",
     "purchased_currency": "{{currency}}を購入しました",
@@ -5341,10 +5342,9 @@
     "quote_info_title": "レート",
     "network_fee_info_title": "ネットワーク手数料",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Est. points",
+    "points": "ポイント",
     "points_tooltip": "ポイント",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
-    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "points_tooltip_content": "この取引で獲得するMetaMaskリワードポイントの見積もりです。ポイントがリワード残高に反映されるまでに最大1時間かかる場合があります。",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5772,14 +5772,13 @@
       "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Rewards Settings",
-      "subtitle": "Accounts",
-      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Reward Settings",
+      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked ({{count}})",
-      "tab_unlinked_accounts": "Unlinked ({{count}})",
+      "tab_linked_accounts": "Linked Accounts ({{count}})",
+      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5836,6 +5835,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "友達を紹介",
         "share_referral_subject": "MetaMaskリワードにご参加ください"

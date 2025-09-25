@@ -38,7 +38,6 @@ import {
   usePerpsClosePositionValidation,
   usePerpsClosePosition,
   usePerpsToasts,
-  usePerpsRewards,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
@@ -69,7 +68,6 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
-import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -177,19 +175,6 @@ const PerpsClosePositionView: React.FC = () => {
     orderType,
     amount: closingValue.toString(),
     isMaker: false, // Closing positions are typically taker orders
-    coin: position.coin,
-    isClosing: true, // This is a position closing operation
-  });
-
-  // Simple boolean calculation for rewards state
-  const hasValidAmount = closePercentage > 0 && closingValue > 0;
-
-  // Get rewards state using the new hook
-  const rewardsState = usePerpsRewards({
-    feeResults,
-    hasValidAmount,
-    isFeesLoading: feeResults.isLoadingMetamaskFee,
-    orderAmount: closingValue.toString(),
   });
 
   // Calculate what user will receive (initial margin - fees)
@@ -228,10 +213,6 @@ const PerpsClosePositionView: React.FC = () => {
   // Track position close screen viewed event
   useEffect(() => {
     if (!hasTrackedCloseView.current) {
-      // Calculate unrealized PnL percentage
-      const unrealizedPnlPercent =
-        initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
-
       track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
         [PerpsEventProperties.ASSET]: position.coin,
         [PerpsEventProperties.DIRECTION]: isLong
@@ -239,22 +220,10 @@ const PerpsClosePositionView: React.FC = () => {
           : PerpsEventValues.DIRECTION.SHORT,
         [PerpsEventProperties.POSITION_SIZE]: absSize,
         [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
-        [PerpsEventProperties.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-        [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
       });
       hasTrackedCloseView.current = true;
     }
-  }, [
-    position.coin,
-    isLong,
-    absSize,
-    pnl,
-    initialMargin,
-    receiveAmount,
-    track,
-  ]);
+  }, [position.coin, isLong, absSize, pnl, track]);
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
@@ -272,11 +241,6 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleConfirm = async () => {
     // Track position close initiated
-    const pnlPercent =
-      initialMargin > 0
-        ? ((effectivePnL * (closePercentage / 100)) / initialMargin) * 100
-        : 0;
-
     track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.DIRECTION]: isLong
@@ -287,13 +251,6 @@ const PerpsClosePositionView: React.FC = () => {
       [PerpsEventProperties.CLOSE_VALUE]: closingValue,
       [PerpsEventProperties.PNL_DOLLAR]: effectivePnL * (closePercentage / 100),
       [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
-      [PerpsEventProperties.OPEN_POSITION_SIZE]: absSize,
-      [PerpsEventProperties.ORDER_SIZE]: parseFloat(closeAmount),
-      [PerpsEventProperties.PNL_PERCENT]: pnlPercent,
-      [PerpsEventProperties.FEE]: feeResults.totalFee,
-      [PerpsEventProperties.ASSET_PRICE]: currentPrice,
-      [PerpsEventProperties.LIMIT_PRICE]:
-        orderType === 'limit' ? parseFloat(limitPrice) || null : null,
     });
 
     // Track position close submitted
@@ -318,16 +275,7 @@ const PerpsClosePositionView: React.FC = () => {
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
-      {
-        totalFee: feeResults.totalFee,
-        marketPrice: currentPrice,
-        receivedAmount: receiveAmount,
-        realizedPnl: effectivePnL * (closePercentage / 100),
-        metamaskFeeRate: feeResults.metamaskFeeRate,
-        feeDiscountPercentage: feeResults.feeDiscountPercentage,
-        metamaskFee: feeResults.metamaskFee,
-        estimatedPoints: rewardsState.estimatedPoints,
-      },
+      feeResults,
     );
   };
 
@@ -430,10 +378,6 @@ const PerpsClosePositionView: React.FC = () => {
     setIsUserInputActive(false);
   };
 
-  const handleSliderChange = (value: number) => {
-    setClosePercentage(value);
-  };
-
   // Tooltip handlers
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey) => {
@@ -524,13 +468,9 @@ const PerpsClosePositionView: React.FC = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.summaryValue}>
-          <PerpsFeesDisplay
-            feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-            formatFeeText={`-${formatPrice(feeResults.totalFee, {
-              maximumDecimals: 2,
-            })}`}
-            variant={TextVariant.BodyMD}
-          />
+          <Text variant={TextVariant.BodyMD}>
+            -{formatPrice(feeResults.totalFee, { maximumDecimals: 2 })}
+          </Text>
         </View>
       </View>
 
@@ -608,7 +548,7 @@ const PerpsClosePositionView: React.FC = () => {
           <View style={styles.sliderSection}>
             <PerpsSlider
               value={closePercentage}
-              onValueChange={handleSliderChange}
+              onValueChange={setClosePercentage}
               minimumValue={0}
               maximumValue={100}
               step={1}
@@ -800,8 +740,6 @@ const PerpsClosePositionView: React.FC = () => {
                 data: {
                   metamaskFeeRate: feeResults.metamaskFeeRate,
                   protocolFeeRate: feeResults.protocolFeeRate,
-                  originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-                  feeDiscountPercentage: feeResults.feeDiscountPercentage,
                 },
               }
             : {})}

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectInternalAccounts,
@@ -8,7 +8,6 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../core/Engine';
 import { OptInStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Logger from '../../../../util/Logger';
-import { useFocusEffect } from '@react-navigation/native';
 
 interface AccountWithOptInStatus extends InternalAccount {
   hasOptedIn: boolean;
@@ -42,25 +41,19 @@ export const useRewardOptinSummary = (
   const [currentAccountOptedIn, setCurrentAccountOptedIn] = useState<
     boolean | null
   >(null);
-  const isLoadingRef = useRef(false);
 
   // Memoize accounts to avoid unnecessary re-renders
   const accounts = useMemo(() => internalAccounts || [], [internalAccounts]);
 
   // Fetch opt-in status for all accounts
-  const fetchOptInStatus = useCallback(async (): Promise<void> => {
+  const fetchOptInStatus = useCallback(async () => {
     if (!enabled || !accounts.length) {
       setIsLoading(false);
       return;
     }
-    if (isLoadingRef.current) {
-      return;
-    }
-    isLoadingRef.current = true;
 
     try {
       setIsLoading(true);
-
       setHasError(false);
       const addresses = accounts.map((account) => account.address);
 
@@ -93,17 +86,16 @@ export const useRewardOptinSummary = (
       setOptedInAccounts([]);
       setCurrentAccountOptedIn(null);
     } finally {
-      isLoadingRef.current = false;
       setIsLoading(false);
     }
   }, [accounts, selectedAccount, enabled]);
 
   // Fetch opt-in status when accounts change or enabled changes
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    if (enabled) {
       fetchOptInStatus();
-    }, [fetchOptInStatus]),
-  );
+    }
+  }, [fetchOptInStatus, enabled]);
 
   // Separate accounts into linked and unlinked
   const { linkedAccounts, unlinkedAccounts } = useMemo(() => {
@@ -115,7 +107,7 @@ export const useRewardOptinSummary = (
   return {
     linkedAccounts,
     unlinkedAccounts,
-    isLoading: isLoading && !optedInAccounts.length, // prevent flickering if accounts are being populated via i.e. profile sync
+    isLoading,
     hasError,
     refresh: fetchOptInStatus,
     currentAccountOptedIn,

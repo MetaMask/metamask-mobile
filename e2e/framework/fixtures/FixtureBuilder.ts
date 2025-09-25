@@ -624,7 +624,6 @@ class FixtureBuilder {
           initialScreen: '',
           appTheme: 'os',
           existingUser: true,
-          multichainAccountsIntroModalSeen: true,
         },
         onboarding: {
           events: [],
@@ -1673,6 +1672,9 @@ class FixtureBuilder {
       isBackupAndSyncUpdateLoading: false,
       isAccountSyncingEnabled: true,
       isContactSyncingEnabled: true,
+      hasAccountSyncingSyncedAtLeastOnce: true,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
       isContactSyncingInProgress: false,
     });
 
@@ -1841,6 +1843,9 @@ class FixtureBuilder {
       isContactSyncingEnabled,
       isBackupAndSyncUpdateLoading: false,
       isContactSyncingInProgress: false,
+      hasAccountSyncingSyncedAtLeastOnce: false,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
     };
     return this;
   }

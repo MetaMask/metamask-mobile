@@ -87,25 +87,17 @@ const Price = ({
     all: strings('asset_overview.chart_time_period.all'),
   };
 
-  const price: number =
-    activeChartIndex >= 0 &&
-    distributedPriceData[activeChartIndex]?.[1] !== undefined
-      ? distributedPriceData[activeChartIndex][1]
-      : isEvmAssetSelected
-      ? currentPrice
-      : Number(multichainAssetRates?.rate);
+  const price: number = isEvmAssetSelected
+    ? distributedPriceData[activeChartIndex]?.[1] || currentPrice
+    : Number(multichainAssetRates?.rate);
 
-  const date: string | undefined =
-    activeChartIndex >= 0 &&
-    distributedPriceData[activeChartIndex]?.[0] !== undefined
-      ? toDateFormat(Number(distributedPriceData[activeChartIndex][0]))
-      : timePeriodTextDict[timePeriod];
+  const date: string | undefined = distributedPriceData[activeChartIndex]?.[0]
+    ? toDateFormat(Number(distributedPriceData[activeChartIndex]?.[0]))
+    : timePeriodTextDict[timePeriod];
 
-  const diff: number | undefined =
-    activeChartIndex >= 0 &&
-    distributedPriceData[activeChartIndex]?.[1] !== undefined
-      ? distributedPriceData[activeChartIndex][1] - comparePrice
-      : priceDiff;
+  const diff: number | undefined = distributedPriceData[activeChartIndex]?.[1]
+    ? distributedPriceData[activeChartIndex]?.[1] - comparePrice
+    : priceDiff;
 
   const { styles, theme } = useStyles(styleSheet, { priceDiff: diff });
   const ticker = asset.ticker || asset.symbol;

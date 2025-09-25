@@ -34,7 +34,6 @@ import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../core/
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
-import { REDESIGNED_TRANSFER_TYPES } from '../../constants/confirmations';
 
 export const Footer = () => {
   const {
@@ -56,7 +55,6 @@ export const Footer = () => {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
-  const isSendReq = REDESIGNED_TRANSFER_TYPES.includes(transactionType);
 
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
@@ -159,8 +157,7 @@ export const Footer = () => {
       variant: ButtonVariants.Secondary,
       label: strings('confirm.cancel'),
       size: ButtonSize.Lg,
-      onPress: () =>
-        onReject(providerErrors.userRejectedRequest(), undefined, isSendReq),
+      onPress: () => onReject(providerErrors.userRejectedRequest()),
       testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
     },
     {

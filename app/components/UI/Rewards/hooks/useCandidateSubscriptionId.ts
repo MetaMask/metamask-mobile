@@ -3,11 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../../selectors/rewards';
-import Logger from '../../../../util/Logger';
+import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
 
 /**
  * Hook to manage fetching candidate subscription ID and setting it in Redux state
@@ -17,14 +13,10 @@ export const useCandidateSubscriptionId = () => {
   const dispatch = useDispatch();
   const account = useSelector(selectSelectedInternalAccount);
   const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
   useEffect(() => {
     const getCandidateId = async () => {
       try {
-        Logger.log(
-          'useCandidateSubscriptionId: Getting candidate subscription ID',
-        );
         const candidateId = await Engine.controllerMessenger.call(
           'RewardsController:getCandidateSubscriptionId',
         );
@@ -36,10 +28,11 @@ export const useCandidateSubscriptionId = () => {
 
     if (
       account &&
-      (hasAccountedOptedIn === false || hasAccountedOptedIn === null) &&
-      !subscriptionId
+      (hasAccountedOptedIn === false || hasAccountedOptedIn === null)
     ) {
+      // if this account has not opted in or we had an error while checking opt-in status, get the candidate subscription ID
+      dispatch(setCandidateSubscriptionId('pending'));
       getCandidateId();
     }
-  }, [account, hasAccountedOptedIn, dispatch, subscriptionId]);
+  }, [account, hasAccountedOptedIn, dispatch]);
 };

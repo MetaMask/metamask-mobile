@@ -5,7 +5,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import {
@@ -14,15 +13,6 @@ import {
   createMockState,
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
-
-const mockSetSelectedAccountGroup = jest.fn();
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AccountTreeController: {
-      setSelectedAccountGroup: (id: string) => mockSetSelectedAccountGroup(id),
-    },
-  },
-}));
 
 jest.mock('../../../../selectors/assets/balances', () => {
   const actual = jest.requireActual('../../../../selectors/assets/balances');
@@ -36,10 +26,6 @@ jest.mock('../../../../selectors/assets/balances', () => {
     }),
   };
 });
-
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
-}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -102,7 +88,7 @@ const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
 
 describe('MultichainAccountsConnectedList', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders component with different account group configurations', () => {
@@ -289,73 +275,6 @@ describe('MultichainAccountsConnectedList', () => {
 
       expect(() => fireEvent.press(editButton)).toThrow('Test error');
       expect(mockHandleEditWithError).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('handleSelectAccount functionality', () => {
-    it('calls setSelectedAccountGroup when account is selected', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
-
-      const accountCell = getByText('Account 1');
-
-      fireEvent.press(accountCell);
-
-      expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(1);
-      expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith(
-        'keyring:test-group/group-1',
-      );
-    });
-
-    it('calls setSelectedAccountGroup with correct account ID for different accounts', () => {
-      const { getByText } = renderMultichainAccountsConnectedList();
-
-      const account1Cell = getByText('Account 1');
-      const account2Cell = getByText('Account 2');
-
-      fireEvent.press(account1Cell);
-
-      expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith(
-        'keyring:test-group/group-1',
-      );
-
-      fireEvent.press(account2Cell);
-
-      expect(mockSetSelectedAccountGroup).toHaveBeenCalledWith(
-        'keyring:test-group/group-2',
-      );
-
-      expect(mockSetSelectedAccountGroup).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe('Selected Account Visual Indicator', () => {
-    it('displays checkmark icon for the selected account', () => {
-      // Given a list of connected accounts with the first account selected
-      const selectedAccountGroupId = MOCK_ACCOUNT_GROUP_1.id;
-      const groups = [MOCK_ACCOUNT_GROUP_1, MOCK_ACCOUNT_GROUP_2];
-      const wallet = createMockWallet('test-group', 'Test Wallet', groups);
-      const internalAccounts = createMockInternalAccountsFromGroups(groups);
-
-      // Create state with selected account group
-      const state = createMockState([wallet], internalAccounts);
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
-        selectedAccountGroupId;
-
-      const store = mockStore(state as unknown as Record<string, unknown>);
-
-      const { getByText, getByTestId } = render(
-        <Provider store={store}>
-          <MultichainAccountsConnectedList {...DEFAULT_PROPS} />
-        </Provider>,
-      );
-
-      // When rendering the list
-      // Then the selected account should display a checkmark
-      expect(getByText('Account 1')).toBeTruthy();
-      expect(getByText('Account 2')).toBeTruthy();
-
-      // Assert that the checkmark icon is present for the selected account
-      expect(getByTestId(AccountCellIds.CHECK_ICON)).toBeTruthy();
     });
   });
 });

@@ -49,12 +49,13 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import {
+  usePerpsLiveAccount,
   usePerpsConnection,
   usePerpsPerformance,
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
-import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
+import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
@@ -120,11 +121,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  const { account } = usePerpsLiveAccount();
-
   // TP/SL order selection state - track TP and SL separately
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
   const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
+
+  const { account } = usePerpsLiveAccount();
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -230,7 +231,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       market &&
       marketStats &&
       !isLoadingHistory &&
-      !isLoadingPosition &&
       !hasTrackedAssetView.current
     ) {
       // Track asset screen loaded
@@ -240,20 +240,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
         [PerpsEventProperties.ASSET]: market.symbol,
         [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
-        [PerpsEventProperties.OPEN_POSITION]: !!existingPosition,
       });
 
       hasTrackedAssetView.current = true;
     }
-  }, [
-    market,
-    marketStats,
-    isLoadingHistory,
-    isLoadingPosition,
-    existingPosition,
-    track,
-    endMeasure,
-  ]);
+  }, [market, marketStats, isLoadingHistory, track, endMeasure]);
 
   useEffect(() => {
     if (!isLoadingPosition && market) {
@@ -269,8 +260,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Track chart interaction
       track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
         [PerpsEventProperties.ASSET]: market?.symbol || '',
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.CANDLE_PERIOD_CHANGE,
+        [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
         [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
       });
 
@@ -622,7 +612,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
         onPeriodChange={handleCandlePeriodChange}
         showAllPeriods
-        asset={market?.symbol}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
       />
 

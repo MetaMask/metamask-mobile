@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
-import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 
 export interface UseOptinResult {
   /**
@@ -28,7 +27,6 @@ export interface UseOptinResult {
 export const useOptin = (): UseOptinResult => {
   const account = useSelector(selectSelectedInternalAccount);
   const [optinError, setOptinError] = useState<string | null>(null);
-  const dispatch = useDispatch();
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
 
   const handleOptin = useCallback(
@@ -41,14 +39,11 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(true);
         setOptinError(null);
 
-        const subscriptionId = await Engine.controllerMessenger.call(
+        await Engine.controllerMessenger.call(
           'RewardsController:optIn',
           account,
           referralCode || undefined,
         );
-        if (subscriptionId) {
-          dispatch(setCandidateSubscriptionId(subscriptionId));
-        }
       } catch (error) {
         const errorMessage = handleRewardsErrorMessage(error);
         setOptinError(errorMessage);
@@ -56,7 +51,7 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(false);
       }
     },
-    [account, dispatch],
+    [account],
   );
 
   const clearOptinError = useCallback(() => setOptinError(null), []);

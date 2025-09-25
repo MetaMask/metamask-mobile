@@ -75,9 +75,7 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
         // Check all expected row components are visible
         await Assertions.expectElementToBeVisible(RowComponents.AccountNetwork);
         await Assertions.expectElementToBeVisible(RowComponents.ApproveRow);
-        await Assertions.expectElementToBeVisible(
-          RowComponents.NetworkAndOrigin,
-        );
+        await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
         await Assertions.expectElementToBeVisible(
           RowComponents.AdvancedDetails,

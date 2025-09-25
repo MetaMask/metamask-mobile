@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
-import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
@@ -33,19 +32,11 @@ export const useConfirmActions = () => {
     approvalType && approvalType === ApprovalType.Transaction;
 
   const onReject = useCallback(
-    async (error?: Error, skipNavigation = false, navigateToHome = false) => {
+    async (error?: Error, skipNavigation = false) => {
       await cancelQRScanRequestIfPresent();
       onRequestReject(error);
       if (!skipNavigation) {
         navigation.goBack();
-      }
-      if (navigateToHome) {
-        navigation.navigate(Routes.WALLET.HOME, {
-          screen: Routes.WALLET.TAB_STACK_FLOW,
-          params: {
-            screen: Routes.WALLET_VIEW,
-          },
-        });
       }
       if (isSignatureReq) {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);

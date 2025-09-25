@@ -37,7 +37,7 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RootState } from '../../../reducers';
-import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 
@@ -50,11 +50,11 @@ const WalletActions = () => {
 
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const chainId = useSelector(selectChainId);
+  const swapsIsLive = useSelector((state: RootState) =>
+    selectIsSwapsLive(state, chainId),
+  );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
-  );
-  const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state, chainId),
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -165,7 +165,7 @@ const WalletActions = () => {
             iconName={IconName.SwapVertical}
             onPress={goToSwaps}
             testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-            isDisabled={!isSwapsEnabled}
+            isDisabled={!canSignTransactions || !swapsIsLive}
           />
         )}
 
@@ -179,7 +179,6 @@ const WalletActions = () => {
             isDisabled={!canSignTransactions}
           />
         )}
-
         {isEarnWalletActionEnabled && (
           <ActionListItem
             label={strings('asset_overview.earn_button')}

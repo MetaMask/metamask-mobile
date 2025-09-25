@@ -44,6 +44,7 @@ import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
+import { createFontScaleHandler } from '../../utils/textUtils';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   SHORT_LONG = '01_Short_Long',
@@ -58,6 +59,7 @@ export interface TutorialScreen {
   title: string;
   description: string;
   subtitle?: string;
+  footerText?: string;
   content?: React.ReactNode;
   riveArtboardName?: PERPS_RIVE_ARTBOARD_NAMES;
 }
@@ -68,6 +70,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
       id: 'what_are_perps',
       title: strings('perps.tutorial.what_are_perps.title'),
       description: strings('perps.tutorial.what_are_perps.description'),
+      subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
       content: (
         <Image
           source={Character}
@@ -92,7 +95,6 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
       id: 'choose_leverage',
       title: strings('perps.tutorial.choose_leverage.title'),
       description: strings('perps.tutorial.choose_leverage.description'),
-      subtitle: strings('perps.tutorial.choose_leverage.subtitle'),
       riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
     },
     {
@@ -113,6 +115,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
+    footerText: strings('perps.tutorial.ready_to_trade.footer_text'),
     riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
   };
 
@@ -130,6 +133,13 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
+
+  // Font scaling state
+  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
+  const [descriptionFontSize, setDescriptionFontSize] = useState<number | null>(
+    null,
+  );
+  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
   const scrollableTabViewRef = useRef<
     ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
@@ -137,8 +147,6 @@ const PerpsTutorialCarousel: React.FC = () => {
   const hasTrackedStarted = useRef(false);
   const tutorialStartTime = useRef(Date.now());
   const continueDebounceRef = useRef<NodeJS.Timeout | null>(null);
-  const previousTabRef = useRef(0);
-  const isProgrammaticNavigationRef = useRef(false);
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -162,6 +170,34 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
+    titleFontSize,
+    descriptionFontSize,
+    subtitleFontSize,
+  });
+
+  // Create font scale handlers with height constraints for 160px headerSection
+  const handleTitleLayout = createFontScaleHandler({
+    maxHeight: 60,
+    currentFontSize: styles.title.fontSize || 24,
+    setter: setTitleFontSize,
+    minFontSize: 20,
+    currentValue: titleFontSize,
+  });
+
+  const handleDescriptionLayout = createFontScaleHandler({
+    maxHeight: 50,
+    currentFontSize: styles.description.fontSize || 16,
+    setter: setDescriptionFontSize,
+    minFontSize: 16,
+    currentValue: descriptionFontSize,
+  });
+
+  const handleSubtitleLayout = createFontScaleHandler({
+    maxHeight: 40,
+    currentFontSize: styles.subtitle.fontSize || 16,
+    setter: setSubtitleFontSize,
+    minFontSize: 16,
+    currentValue: subtitleFontSize,
   });
 
   const PerpsOnboardingAnimation = useMemo(
@@ -174,6 +210,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   useEffect(() => {
     if (!hasTrackedViewed.current) {
       track(MetaMetricsEvents.PERPS_TUTORIAL_VIEWED, {
+        [PerpsEventProperties.TIMESTAMP]: Date.now(),
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
       });
@@ -195,45 +232,19 @@ const PerpsTutorialCarousel: React.FC = () => {
   const handleTabChange = useCallback(
     // The next tab to change to
     (obj: { i: number }) => {
-      const newTab = obj.i;
-      const previousTab = previousTabRef.current;
-
-      // Skip tracking if this is programmatic navigation (from button click)
-      if (isProgrammaticNavigationRef.current) {
-        isProgrammaticNavigationRef.current = false; // Reset flag
-        previousTabRef.current = newTab;
-        setCurrentTab(newTab);
-        return; // Don't track programmatic navigation
-      }
-
-      // Only track if tab actually changed (user swipe)
-      if (newTab !== previousTab) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_CAROUSEL_NAVIGATED, {
-          [PerpsEventProperties.PREVIOUS_SCREEN]:
-            tutorialScreens[previousTab]?.id || 'unknown',
-          [PerpsEventProperties.CURRENT_SCREEN]:
-            tutorialScreens[newTab]?.id || 'unknown',
-          [PerpsEventProperties.SCREEN_POSITION]: newTab + 1,
-          [PerpsEventProperties.TOTAL_SCREENS]: tutorialScreens.length,
-          [PerpsEventProperties.NAVIGATION_METHOD]:
-            PerpsEventValues.NAVIGATION_METHOD.SWIPE,
-        });
-
-        previousTabRef.current = newTab;
-      }
-
-      setCurrentTab(newTab);
+      setCurrentTab(obj.i);
 
       // Track tutorial started when user moves to second screen
-      if (newTab === 1 && !hasTrackedStarted.current) {
+      if (obj.i === 1 && !hasTrackedStarted.current) {
         track(MetaMetricsEvents.PERPS_TUTORIAL_STARTED, {
+          [PerpsEventProperties.TIMESTAMP]: Date.now(),
           [PerpsEventProperties.SOURCE]:
             PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         });
         hasTrackedStarted.current = true;
       }
     },
-    [track, tutorialScreens],
+    [track],
   );
 
   const navigateToMarketsList = useCallback(() => {
@@ -290,28 +301,12 @@ const PerpsTutorialCarousel: React.FC = () => {
     } else {
       // Go to next screen using the ref
       const nextTab = Math.min(currentTab + 1, tutorialScreens.length - 1);
-
-      // Track carousel navigation via continue button (immediate, no debounce needed for button clicks)
-      if (nextTab !== currentTab) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_CAROUSEL_NAVIGATED, {
-          [PerpsEventProperties.PREVIOUS_SCREEN]:
-            tutorialScreens[currentTab]?.id || 'unknown',
-          [PerpsEventProperties.CURRENT_SCREEN]:
-            tutorialScreens[nextTab]?.id || 'unknown',
-          [PerpsEventProperties.SCREEN_POSITION]: nextTab + 1,
-          [PerpsEventProperties.TOTAL_SCREENS]: tutorialScreens.length,
-          [PerpsEventProperties.NAVIGATION_METHOD]:
-            PerpsEventValues.NAVIGATION_METHOD.CONTINUE_BUTTON,
-        });
-      }
-
-      // Set flag to indicate this is programmatic navigation
-      isProgrammaticNavigationRef.current = true;
       scrollableTabViewRef.current?.goToPage(nextTab);
 
       // Track tutorial started on first continue
       if (currentTab === 0 && !hasTrackedStarted.current) {
         track(MetaMetricsEvents.PERPS_TUTORIAL_STARTED, {
+          [PerpsEventProperties.TIMESTAMP]: Date.now(),
           [PerpsEventProperties.SOURCE]:
             PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         });
@@ -322,11 +317,11 @@ const PerpsTutorialCarousel: React.FC = () => {
     isLastScreen,
     track,
     currentTab,
-    tutorialScreens,
     markTutorialCompleted,
     isEligible,
     navigateToConfirmation,
     depositWithConfirmation,
+    tutorialScreens.length,
     ensureArbitrumNetworkExists,
     navigateToMarketsList,
   ]);
@@ -397,50 +392,66 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialPage={0}
         >
           {tutorialScreens.map((screen) => (
-            <View key={screen.id} style={styles.screenContainer}>
-              {/* Header Section - Fixed height for text content */}
-              <View style={styles.headerSection}>
-                <Text
-                  variant={TextVariant.HeadingMD}
-                  color={TextColor.Default}
-                  style={styles.title}
-                >
-                  {screen.title}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                  style={styles.description}
-                >
-                  {screen.description}
-                </Text>
-                {screen.subtitle && (
+            <>
+              <View key={screen.id} style={styles.screenContainer}>
+                {/* Header Section - Fixed height for text content */}
+                <View style={styles.headerSection}>
+                  <Text
+                    variant={TextVariant.HeadingLG}
+                    color={TextColor.Default}
+                    style={styles.title}
+                    onLayout={handleTitleLayout}
+                  >
+                    {screen.title}
+                  </Text>
                   <Text
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
-                    style={styles.subtitle}
+                    style={styles.description}
+                    onLayout={handleDescriptionLayout}
                   >
-                    {screen.subtitle}
+                    {screen.description}
+                  </Text>
+                  {screen.subtitle && (
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                      style={styles.subtitle}
+                      onLayout={handleSubtitleLayout}
+                    >
+                      {screen.subtitle}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Content Section */}
+                <View style={styles.contentSection}>
+                  {screen?.content && screen.content}
+                  {screen?.riveArtboardName && (
+                    <Rive
+                      key={screen.id}
+                      style={styles.animation}
+                      artboardName={screen.riveArtboardName}
+                      source={PerpsOnboardingAnimation}
+                      fit={Fit.FitWidth}
+                      alignment={Alignment.Center}
+                      autoplay
+                    />
+                  )}
+                </View>
+              </View>
+              <View style={styles.footerTextContainer}>
+                {screen.footerText && (
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.footerText}
+                  >
+                    {screen.footerText}
                   </Text>
                 )}
               </View>
-
-              {/* Content Section */}
-              <View style={styles.contentSection}>
-                {screen?.content && screen.content}
-                {screen?.riveArtboardName && (
-                  <Rive
-                    key={screen.id}
-                    style={styles.animation}
-                    artboardName={screen.riveArtboardName}
-                    source={PerpsOnboardingAnimation}
-                    fit={Fit.FitWidth}
-                    alignment={Alignment.Center}
-                    autoplay
-                  />
-                )}
-              </View>
-            </View>
+            </>
           ))}
         </ScrollableTabView>
       </View>

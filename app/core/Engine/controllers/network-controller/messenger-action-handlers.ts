@@ -1,5 +1,5 @@
 import { type Hex, hexToNumber, isObject, isValidJson } from '@metamask/utils';
-import { isPublicEndpointUrl, shouldCreateRpcServiceEvents } from './utils';
+import { shouldCreateRpcServiceEvents } from './utils';
 import Logger from '../../../../util/Logger';
 import onlyKeepHost from '../../../../util/onlyKeepHost';
 import {
@@ -139,7 +139,9 @@ export function trackRpcEndpointEvent(
 ): void {
   if (
     !shouldCreateRpcServiceEvents({
+      endpointUrl,
       error,
+      infuraProjectId,
       metaMetricsId,
     })
   ) {
@@ -150,9 +152,7 @@ export function trackRpcEndpointEvent(
   /* eslint-disable @typescript-eslint/naming-convention */
   const properties = {
     chain_id_caip: `eip155:${hexToNumber(chainId)}`,
-    rpc_endpoint_url: isPublicEndpointUrl(endpointUrl, infuraProjectId)
-      ? onlyKeepHost(endpointUrl)
-      : 'custom',
+    rpc_endpoint_url: onlyKeepHost(endpointUrl),
     ...(isObject(error) &&
     'httpStatus' in error &&
     isValidJson(error.httpStatus)

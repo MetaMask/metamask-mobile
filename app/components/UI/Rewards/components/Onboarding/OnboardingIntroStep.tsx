@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Image, ImageBackground, Text as RNText } from 'react-native';
 
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -16,21 +16,19 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-
 import { setOnboardingActiveStep } from '../../../../../actions/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 import introBg from '../../../../../images/rewards/rewards-onboarding-intro-bg.png';
 import intro from '../../../../../images/rewards/rewards-onboarding-intro.png';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
 import {
   selectOptinAllowedForGeo,
   selectOptinAllowedForGeoLoading,
-  selectCandidateSubscriptionId,
 } from '../../../../../reducers/rewards/selectors';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 
 /**
  * OnboardingIntroStep Component
@@ -49,12 +47,18 @@ const OnboardingIntroStep: React.FC = () => {
   const optinAllowedForGeoLoading = useSelector(
     selectOptinAllowedForGeoLoading,
   );
-  const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   // Computed state
-  const candidateSubscriptionIdLoading =
-    !subscriptionId && candidateSubscriptionId === 'pending';
+  const subscriptionIdLoading = subscriptionId === 'pending';
+  const subscriptionIdValid =
+    Boolean(subscriptionId) &&
+    subscriptionId !== 'error' &&
+    subscriptionId !== 'pending';
+
+  const isLoading =
+    optinAllowedForGeoLoading || subscriptionIdLoading || subscriptionIdValid;
 
   /**
    * Shows error modal for unsupported scenarios
@@ -79,6 +83,20 @@ const OnboardingIntroStep: React.FC = () => {
    * Handles the confirm/continue button press
    */
   const handleNext = useCallback(async () => {
+    // Prevent action if still loading
+    if (isLoading) {
+      return;
+    }
+
+    // Check for Solana account (not supported)
+    if (selectedAccount && isSolanaAccount(selectedAccount)) {
+      showErrorModal(
+        'rewards.onboarding.not_supported_account_needed_title',
+        'rewards.onboarding.not_supported_account_needed_description',
+      );
+      return;
+    }
+
     // Check for geo restrictions
     if (!optinAllowedForGeo) {
       showErrorModal(
@@ -91,7 +109,14 @@ const OnboardingIntroStep: React.FC = () => {
     // Proceed to next onboarding step
     dispatch(setOnboardingActiveStep(OnboardingStep.STEP_2));
     navigation.navigate(Routes.REWARDS_ONBOARDING_1);
-  }, [dispatch, navigation, optinAllowedForGeo, showErrorModal]);
+  }, [
+    dispatch,
+    isLoading,
+    navigation,
+    optinAllowedForGeo,
+    selectedAccount,
+    showErrorModal,
+  ]);
 
   /**
    * Handles the skip button press
@@ -103,13 +128,24 @@ const OnboardingIntroStep: React.FC = () => {
   /**
    * Auto-redirect to dashboard if user is already opted in
    */
-  useFocusEffect(
-    useCallback(() => {
-      if (subscriptionId) {
-        navigation.navigate(Routes.REWARDS_DASHBOARD);
-      }
-    }, [subscriptionId, navigation]),
-  );
+  useEffect(() => {
+    if (subscriptionIdValid) {
+      navigation.navigate(Routes.REWARDS_DASHBOARD);
+    }
+  }, [subscriptionIdValid, navigation]);
+
+  /**
+   * Gets the appropriate loading text based on current state
+   */
+  const getLoadingText = useCallback(() => {
+    if (subscriptionIdLoading) {
+      return strings('rewards.onboarding.checking_opt_in');
+    }
+    if (subscriptionIdValid) {
+      return strings('rewards.onboarding.redirecting_to_dashboard');
+    }
+    return strings('rewards.onboarding.intro_confirm_geo_loading');
+  }, [subscriptionIdLoading, subscriptionIdValid]);
 
   /**
    * Renders the main title section
@@ -120,10 +156,10 @@ const OnboardingIntroStep: React.FC = () => {
       flexDirection={BoxFlexDirection.Column}
       alignItems={BoxAlignItems.Center}
     >
-      <Box twClassName="justify-center items-center">
+      <Box twClassName="justify-center items-center gap-1">
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-[44px]'),
             // eslint-disable-next-line react-native/no-inline-styles
             { fontFamily: 'MM Poly Regular', fontWeight: '400' },
           ]}
@@ -132,7 +168,7 @@ const OnboardingIntroStep: React.FC = () => {
         </RNText>
         <RNText
           style={[
-            tw.style('text-center text-white text-12'),
+            tw.style('text-center text-white text-[44px]'),
             // eslint-disable-next-line react-native/no-inline-styles
             { fontFamily: 'MM Poly Regular', fontWeight: '400' },
           ]}
@@ -153,7 +189,7 @@ const OnboardingIntroStep: React.FC = () => {
    * Renders the intro image section
    */
   const renderImage = () => (
-    <Box twClassName="flex-1 justify-center items-center py-2">
+    <Box twClassName="flex-1 justify-center items-center">
       <Image
         source={intro}
         resizeMode="contain"
@@ -168,21 +204,20 @@ const OnboardingIntroStep: React.FC = () => {
    */
   const renderActions = () => (
     <Box twClassName="gap-2 flex-col">
-      <ButtonHero
+      <Button
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        isLoading={optinAllowedForGeoLoading}
-        loadingText={strings('rewards.onboarding.intro_confirm_geo_loading')}
+        isLoading={isLoading}
+        loadingText={getLoadingText()}
         onPress={handleNext}
         twClassName="w-full bg-primary-default"
       >
-        <Text twClassName="text-white">
-          {strings('rewards.onboarding.intro_confirm')}
-        </Text>
-      </ButtonHero>
+        {strings('rewards.onboarding.intro_confirm')}
+      </Button>
       <Button
         variant={ButtonVariant.Tertiary}
         size={ButtonSize.Lg}
-        isDisabled={candidateSubscriptionIdLoading || !!subscriptionId}
+        isDisabled={subscriptionIdLoading || subscriptionIdValid}
         onPress={handleSkip}
         twClassName="w-full bg-gray-500 border-gray-500"
       >
@@ -193,19 +228,15 @@ const OnboardingIntroStep: React.FC = () => {
     </Box>
   );
 
-  if (candidateSubscriptionIdLoading || !!subscriptionId) {
-    return <Skeleton width="100%" height="100%" />;
-  }
-
   return (
-    <Box twClassName="min-h-full" testID="onboarding-intro-container">
+    <Box twClassName="flex-grow min-h-full" testID="onboarding-intro-container">
       <ImageBackground
         source={introBg}
-        style={tw.style('flex-grow px-4 py-8')}
+        style={tw.style('flex-1 px-4 py-8')}
         resizeMode="cover"
       >
         {/* Spacer */}
-        <Box twClassName="flex-basis-[5%]" />
+        <Box twClassName="flex-basis-[75px]" />
 
         {/* Title Section */}
         {renderTitle()}

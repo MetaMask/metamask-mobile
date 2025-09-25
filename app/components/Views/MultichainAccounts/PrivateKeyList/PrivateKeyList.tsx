@@ -213,7 +213,6 @@ export const PrivateKeyList = () => {
               'multichain_accounts.private_key_list.password_placeholder',
             )}
             secureTextEntry
-            autoCapitalize="none"
             testID={PrivateKeyListIds.PASSWORD_INPUT}
           />
 

@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useReferralDetails } from './useReferralDetails';
 import Engine from '../../../../core/Engine';
 import { setReferralDetailsLoading } from '../../../../reducers/rewards';
-import { useFocusEffect } from '@react-navigation/native';
+import Logger from '../../../../util/Logger';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -30,11 +30,6 @@ jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
-// Mock React Navigation hooks
-jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: jest.fn(),
-}));
-
 describe('useReferralDetails', () => {
   const mockDispatch = jest.fn();
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -43,19 +38,14 @@ describe('useReferralDetails', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
+  const mockLogger = Logger.log as jest.MockedFunction<typeof Logger.log>;
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
-  >;
-  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
-    typeof useFocusEffect
   >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
-
-    // Reset the mocked hook
-    mockUseFocusEffect.mockClear();
   });
 
   it('should return null', () => {
@@ -69,6 +59,9 @@ describe('useReferralDetails', () => {
 
     renderHook(() => useReferralDetails());
 
+    expect(mockLogger).toHaveBeenCalledWith(
+      'useReferralDetails: No subscription ID available',
+    );
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -84,65 +77,18 @@ describe('useReferralDetails', () => {
 
     renderHook(() => useReferralDetails());
 
-    // Get the focus effect callback and trigger it
-    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-    await focusCallback();
-
     expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(true));
   });
 
-  it('should register focus effect callback', () => {
-    mockUseSelector.mockReturnValue('test-subscription-id');
-
-    renderHook(() => useReferralDetails());
-
-    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
-  });
-
-  it('should prevent duplicate fetch calls when already loading', async () => {
+  it('should handle fetch errors gracefully', async () => {
     const mockSubscriptionId = 'test-subscription-id';
-    mockUseSelector.mockReturnValue(mockSubscriptionId);
-
-    // First call will start loading
-    mockEngineCall.mockImplementation(
-      () =>
-        new Promise(() => {
-          // Never resolves
-        }),
-    );
-
-    renderHook(() => useReferralDetails());
-
-    // Trigger focus effect callback multiple times
-    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-    focusCallback();
-    focusCallback();
-
-    // Should only be called once despite multiple focus triggers
-    expect(mockEngineCall).toHaveBeenCalledTimes(1);
-  });
-
-  it('should fetch data when focus effect callback is triggered', async () => {
-    const mockSubscriptionId = 'test-subscription-id';
-    const mockReferralDetails = {
-      referralCode: 'ABC123',
-      totalReferees: 5,
-    };
+    const mockError = new Error('Network error');
 
     mockUseSelector.mockReturnValue(mockSubscriptionId);
-    mockEngineCall.mockResolvedValueOnce(mockReferralDetails);
+    mockEngineCall.mockRejectedValueOnce(mockError);
 
     renderHook(() => useReferralDetails());
 
-    // Get the focus effect callback and trigger it
-    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-    expect(focusCallback).toBeDefined();
-
-    await focusCallback();
-
-    expect(mockEngineCall).toHaveBeenCalledWith(
-      'RewardsController:getReferralDetails',
-      mockSubscriptionId,
-    );
+    expect(mockDispatch).toHaveBeenCalledWith(setReferralDetailsLoading(true));
   });
 });

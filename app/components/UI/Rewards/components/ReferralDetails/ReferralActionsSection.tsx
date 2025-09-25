@@ -7,13 +7,6 @@ import {
 } from '@metamask/design-system-react-native';
 import CopyableField from './CopyableField';
 import { strings } from '../../../../../../locales/i18n';
-
-const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';
-const REFERRAL_BASE_URL = `https://${REFERRAL_LINK_PATH}`;
-
-const buildReferralUrl = (referralCode: string): string =>
-  `${REFERRAL_BASE_URL}${referralCode}`;
-
 interface ReferralActionsSectionProps {
   referralCode?: string | null;
   referralCodeLoading: boolean;
@@ -31,17 +24,19 @@ const ReferralActionsSection: React.FC<ReferralActionsSectionProps> = ({
 }) => (
   <Box twClassName="gap-4">
     <CopyableField
-      label={strings('rewards.referral.referral_code')}
+      label="Your Referral Code"
       value={referralCode}
       onCopy={onCopyCode}
       valueLoading={referralCodeLoading}
     />
 
     <CopyableField
-      label={strings('rewards.referral.referral_link')}
-      value={referralCode ? `${REFERRAL_LINK_PATH}${referralCode}` : undefined}
+      label="Your Referral Link"
+      value={referralCode ? `https://mm.io/invite/${referralCode}` : undefined}
       onCopy={() =>
-        referralCode ? onCopyLink?.(buildReferralUrl(referralCode)) : null
+        referralCode
+          ? onCopyLink?.(`https://mm.io/invite/${referralCode}`)
+          : null
       }
       valueLoading={referralCodeLoading}
     />
@@ -51,7 +46,9 @@ const ReferralActionsSection: React.FC<ReferralActionsSectionProps> = ({
       isFullWidth
       size={ButtonSize.Lg}
       onPress={() =>
-        referralCode ? onShareLink?.(buildReferralUrl(referralCode)) : null
+        referralCode
+          ? onShareLink?.(`https://mm.io/invite/${referralCode}`)
+          : null
       }
       disabled={!onShareLink || !referralCode || referralCodeLoading}
     >

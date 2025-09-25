@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Dana tidak cukup"
+      "title": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -391,7 +391,7 @@
     "description_social_login_update": "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold": "MetaMask can't reset it.",
     "subtitle": "Kata sandi ini akan membuka dompet MetaMask Anda hanya pada perangkat ini.",
-    "password": "Create password",
+    "password": "Buat kata sandi baru",
     "confirm_password": "Konfirmasikan kata sandi",
     "create_button": "Buat kata sandi",
     "import_with_seed_phrase": "Impor dengan Frasa Pemulihan Rahasia",
@@ -404,7 +404,7 @@
     "show": "Tampilkan",
     "hide": "Sembunyikan",
     "seed_phrase": "Frasa Pemulihan Rahasia",
-    "must_be_at_least": "Minimal berisi {{number}} karakter",
+    "must_be_at_least": "Kata sandi minimal berisi {{number}} karakter",
     "remember_me": "Ingat saya",
     "security_alert_title": "Peringatan Keamanan",
     "security_alert_message": "Untuk melanjutkan, Anda harus mengaktifkan Kode Sandi atau metode autentikasi biometrik yang didukung di perangkat Anda (ID Wajah, ID Sentuh, atau Sidik Jari)",
@@ -457,12 +457,12 @@
     "checkbox_forgot_password": "Jika lupa kata sandi ini, saya akan kehilangan akses ke dompet secara permanen. MetaMask tidak dapat mereset kata sandi ini untuk saya.",
     "seedless_change_password_error_modal_title": "Change password failed",
     "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
-    "seedless_change_password_error_modal_confirm": "Coba lagi"
+    "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
     "title": "Impor dompet",
     "seed_phrase_placeholder": "Masukkan Frasa Pemulihan Rahasia",
-    "create_new_password": "Create password",
+    "create_new_password": "Buat kata sandi baru",
     "confirm_password": "Konfirmasikan kata sandi",
     "import_button": "IMPOR",
     "cancel_button": "Batal",
@@ -491,7 +491,7 @@
     "srp": "Frasa Pemulihan Rahasia",
     "srp_placeholder": "Tambahkan spasi di antara setiap kata dan pastikan tidak ada yang melihat.",
     "learn_more_link": "Selengkapnya",
-    "import_create_password_cta": "Create password",
+    "create_password_cta": "Buat kata sandi",
     "pass_flow": "Lanjutkan dengan Flow",
     "steps": "Langkah {{currentStep}} dari {{totalSteps}}",
     "password_error": "Kata sandi tidak sesuai. Coba lagi.",
@@ -507,7 +507,6 @@
     "home": "Beranda",
     "browser": "Browser",
     "activity": "Aktivitas",
-    "trade": "Trade",
     "settings": "Pengaturan",
     "rewards": "Reward"
   },
@@ -1165,6 +1164,8 @@
     "tpsl": {
       "title": "Take profit dan stop loss",
       "description": "Pilih persentase profit atau loss, atau masukkan harga pemicu khusus untuk menutup posisi secara otomatis.",
+      "set": "Atur",
+      "updating": "Memperbarui...",
       "off": "Mati",
       "current_price": "Harga saat ini",
       "leverage": "Leverage",
@@ -1186,7 +1187,7 @@
       "stop_loss_order_view_warning": "Stop loss merupakan harga likuidasi {{direction}}",
       "above": "di atas",
       "below": "di bawah",
-      "done": "Done"
+      "dismiss_tpsl_keypad": "Lewatkan"
     },
     "token_selector": {
       "no_tokens": "Token tidak tersedia"
@@ -3953,14 +3954,14 @@
   "fiat_on_ramp_aggregator": {
     "buy": "beli",
     "sell": "jual",
-    "orders": "Transfers",
+    "orders": "Pesanan",
     "All": "Semua",
     "Buy": "Beli",
     "Sell": "Jual",
     "token_marketplace": "Token marketplace",
     "Purchased": "Dibeli",
     "Sold": "Terjual",
-    "empty_orders_list": "No bank or card transfers yet.",
+    "empty_orders_list": "Anda tidak memiliki order apa pun",
     "empty_buy_orders_list": "Anda tidak memiliki pesanan pembelian",
     "empty_sell_orders_list": "Anda tidak memiliki pesanan penjualan",
     "purchased_currency": "Membeli {{currency}}",
@@ -5341,10 +5342,9 @@
     "quote_info_title": "Tingkat",
     "network_fee_info_title": "Biaya Jaringan",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Est. points",
+    "points": "Poin",
     "points_tooltip": "Poin",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
-    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "points_tooltip_content": "Estimasi Poin Reward MetaMask yang akan Anda peroleh dari trade ini. Poin mungkin memerlukan waktu hingga 1 jam untuk dikonfirmasi di saldo Reward Anda",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5772,14 +5772,13 @@
       "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Rewards Settings",
-      "subtitle": "Accounts",
-      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Reward Settings",
+      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked ({{count}})",
-      "tab_unlinked_accounts": "Unlinked ({{count}})",
+      "tab_linked_accounts": "Linked Accounts ({{count}})",
+      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5836,6 +5835,7 @@
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
+      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Rekomendasikan ke teman",
         "share_referral_subject": "Gabung dengan MetaMask Rewards"

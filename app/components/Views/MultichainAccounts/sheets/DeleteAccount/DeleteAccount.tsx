@@ -35,8 +35,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import AccountInfo from '../../AccountDetails/components/AccountInfo';
 import { MultichainDeleteAccountSelectors } from '../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
-import { removeAccountsFromPermissions } from '../../../../../core/Permissions';
-import { toHex } from '@metamask/controller-utils';
 
 interface RootNavigationParamList extends ParamListBase {
   DeleteAccount: {
@@ -64,7 +62,6 @@ export const DeleteAccount = () => {
     if (!canRemoveAccount) return;
 
     try {
-      await removeAccountsFromPermissions([toHex(account.address)]);
       await KeyringController.removeAccount(account.address);
       navigation.navigate(Routes.WALLET_VIEW);
     } catch {

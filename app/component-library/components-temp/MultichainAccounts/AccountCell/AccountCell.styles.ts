@@ -41,10 +41,6 @@ const styleSheet = (params: {
     },
     accountNameText: {
       minWidth: 0,
-      flex: 1,
-    },
-    checkIcon: {
-      marginLeft: 8,
     },
     endContainer: {
       display: 'flex',

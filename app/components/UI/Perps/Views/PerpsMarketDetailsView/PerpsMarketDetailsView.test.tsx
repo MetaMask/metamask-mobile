@@ -360,18 +360,6 @@ describe('PerpsMarketDetailsView', () => {
       isInitialLoading: false,
     });
 
-    mockUsePerpsLiveAccount.mockReturnValue({
-      account: {
-        availableBalance: '1000',
-        totalBalance: '1000',
-        marginUsed: '0',
-        unrealizedPnl: '0',
-        returnOnEquity: '0',
-        totalValue: '1000',
-      },
-      isInitialLoading: false,
-    });
-
     mockUseHasExistingPosition.mockReturnValue({
       hasPosition: false,
       isLoading: false,
@@ -562,18 +550,6 @@ describe('PerpsMarketDetailsView', () => {
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
           totalValue: '0.00',
-        },
-        isInitialLoading: false,
-      });
-
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalValue: '0',
         },
         isInitialLoading: false,
       });
@@ -990,18 +966,6 @@ describe('PerpsMarketDetailsView', () => {
         isInitialLoading: false,
       });
 
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalValue: '0',
-        },
-        isInitialLoading: false,
-      });
-
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -1109,18 +1073,6 @@ describe('PerpsMarketDetailsView', () => {
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
           totalValue: '0.00',
-        },
-        isInitialLoading: false,
-      });
-
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          availableBalance: '0',
-          totalBalance: '0',
-          marginUsed: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-          totalValue: '0',
         },
         isInitialLoading: false,
       });

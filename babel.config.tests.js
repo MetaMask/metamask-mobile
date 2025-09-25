@@ -15,8 +15,6 @@ const newOverrides = [
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
-      'app/core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init.ts',
-      'app/core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
     ],
