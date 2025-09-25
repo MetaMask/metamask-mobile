@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "Отключиться",
     "cancel": "Отмена"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Назад в приложение",
-    "postNetworkSwitchTitle": "Сеть успешно изменена",
-    "description": "Вернитесь в приложение, чтобы продолжить пользоваться его услугами."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Назад в приложение",
+    "networkSwitchMethodLabel": "Сеть успешно изменена"
   },
   "sdk_feedback_modal": {
     "ok": "ОК",

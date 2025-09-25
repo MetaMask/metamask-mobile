@@ -4,6 +4,7 @@ import SDKConnect, { SDKConnectState } from '../SDKConnect';
 import { waitForCondition } from '../utils/wait.util';
 import handleDeeplink from './handleDeeplink';
 import handleConnectionMessage from './handleConnectionMessage';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../SDKConnect');
 jest.mock('../../AppConstants');
@@ -303,5 +304,45 @@ describe('handleDeeplink', () => {
     expect(mockConnectToChannel).toHaveBeenCalled();
     expect(mockDecrypt).not.toHaveBeenCalled();
     expect(handleConnectionMessage).not.toHaveBeenCalled();
+  });
+
+  it('navigates to ReturnToDappToast and sets trigger to resume', async () => {
+    mockHasInitialized.mockReturnValue(true);
+    mockGetConnections.mockReturnValue({ [channelId]: {} });
+
+    const navigate = jest.fn();
+    const connectionObject = {
+      remote: {
+        isConnected: jest.fn().mockReturnValue(true),
+        decrypt: mockDecrypt,
+        getRPCMethodTracker: jest.fn().mockReturnValue({}),
+      },
+      navigation: { navigate },
+      originatorInfo: { url: 'https://dapp.example' },
+      trigger: 'deeplink',
+      origin: 'testOrigin',
+    };
+
+    mockGetConnected.mockReturnValue({
+      [channelId]: connectionObject,
+    });
+
+    await handleDeeplink({
+      sdkConnect,
+      channelId,
+      origin,
+      url,
+      otherPublicKey,
+      protocolVersion,
+      context,
+      rpc,
+    });
+
+    expect(connectionObject.trigger).toBe('resume');
+    expect(navigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+      method: 'eth_accounts',
+      origin: 'https://dapp.example',
+    });
   });
 });

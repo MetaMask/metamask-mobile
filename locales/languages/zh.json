@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "断开连接",
     "cancel": "取消"
   },
-  "sdk_return_to_app_modal": {
-    "title": "返回应用程序",
-    "postNetworkSwitchTitle": "网络切换成功",
-    "description": "请返回应用程序继续使用其服务。"
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "返回应用程序",
+    "networkSwitchMethodLabel": "网络切换成功"
   },
   "sdk_feedback_modal": {
     "ok": "OK",

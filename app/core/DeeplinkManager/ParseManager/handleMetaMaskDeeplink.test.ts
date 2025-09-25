@@ -295,7 +295,7 @@ describe('handleMetaMaskProtocol', () => {
       url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}`;
     });
 
-    it('should displays RETURN_TO_DAPP_MODAL', () => {
+    it('should displays RETURN_TO_DAPP_TOAST', () => {
       params.redirect = 'true';
       // Mock Device.isIos() to return true
       jest.spyOn(Device, 'isIos').mockReturnValue(true);
@@ -314,7 +314,7 @@ describe('handleMetaMaskProtocol', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
       });
     });
 

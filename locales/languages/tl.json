@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "Idiskonekta",
     "cancel": "Kanselahin"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Bumalik sa app",
-    "postNetworkSwitchTitle": "Matagumpay na nakalipat sa network",
-    "description": "Bumalik sa app para magpatuloy sa paggamit ng kanilang mga serbisyo."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Bumalik sa app",
+    "networkSwitchMethodLabel": "Matagumpay na nakalipat sa network"
   },
   "sdk_feedback_modal": {
     "ok": "OK",

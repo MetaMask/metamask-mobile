@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "Bağlantıyı kes",
     "cancel": "İptal"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Uygulamaya geri dön",
-    "postNetworkSwitchTitle": "Ağ başarılı bir şekilde değiştirildi",
-    "description": "Hizmetlerini kullanmaya devam etmek için lütfen uygulamaya geri dönün."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Uygulamaya geri dön",
+    "networkSwitchMethodLabel": "Ağ başarılı bir şekilde değiştirildi"
   },
   "sdk_feedback_modal": {
     "ok": "Tamam",

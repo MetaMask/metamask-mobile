@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "Αποσύνδεση",
     "cancel": "Άκυρο"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Επιστροφή στην εφαρμογή",
-    "postNetworkSwitchTitle": "Το δίκτυο άλλαξε με επιτυχία",
-    "description": "Επιστρέψτε στην εφαρμογή για να συνεχίσετε να χρησιμοποιείτε τις υπηρεσίες τους."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Επιστροφή στην εφαρμογή",
+    "networkSwitchMethodLabel": "Το δίκτυο άλλαξε με επιτυχία"
   },
   "sdk_feedback_modal": {
     "ok": "Εντάξει",

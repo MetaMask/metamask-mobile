@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "डिसकनेक्ट करें",
     "cancel": "कैंसिल करें"
   },
-  "sdk_return_to_app_modal": {
-    "title": "ऐप पर लौटें",
-    "postNetworkSwitchTitle": "नेटवर्क सफलतापूर्वक स्विच हो गया",
-    "description": "कृपया उनकी सेवाओं का उपयोग जारी रखने के लिए ऐप पर लौटें।"
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "ऐप पर लौटें",
+    "networkSwitchMethodLabel": "नेटवर्क सफलतापूर्वक स्विच हो गया"
   },
   "sdk_feedback_modal": {
     "ok": "ठीक है",

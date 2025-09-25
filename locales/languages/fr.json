@@ -2445,10 +2445,9 @@
     "disconnect_confirm": "Déconnexion",
     "cancel": "Annuler"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Retourner à l’application",
-    "postNetworkSwitchTitle": "Réseau changé avec succès",
-    "description": "Veuillez retourner à l’application pour continuer à utiliser leurs services."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Retourner à l’application",
+    "networkSwitchMethodLabel": "Réseau changé avec succès"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
