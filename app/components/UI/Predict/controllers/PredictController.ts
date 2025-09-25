@@ -573,7 +573,7 @@ export class PredictController extends BaseController<
    */
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
     try {
-      const { address, providerId, claimable = false } = params;
+      const { address, providerId } = params;
       const { AccountsController } = Engine.context;
 
       const selectedAddress =
@@ -590,8 +590,8 @@ export class PredictController extends BaseController<
       const allPositions = await Promise.all(
         providerIds.map((id: string) =>
           this.providers.get(id)?.getPositions({
+            ...params,
             address: selectedAddress,
-            claimable,
           }),
         ),
       );

@@ -63,7 +63,9 @@ export interface PredictProvider {
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
 
   // User information
-  getPositions(params: GetPositionsParams): Promise<PredictPosition[]>;
+  getPositions(
+    params: Omit<GetPositionsParams, 'address'> & { address: string },
+  ): Promise<PredictPosition[]>;
   getActivity(params: { address: string }): Promise<PredictActivity[]>;
 
   // Order management

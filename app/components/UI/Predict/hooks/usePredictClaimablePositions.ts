@@ -80,7 +80,7 @@ export function usePredictClaimablePositions(
         // Get positions from Predict controller
         let validPositions =
           (await getPositions({
-            address: selectedInternalAccountAddress ?? '',
+            address: selectedInternalAccountAddress,
             providerId,
             claimable: true,
           })) ?? [];

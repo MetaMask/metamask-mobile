@@ -77,7 +77,7 @@ export function usePredictPositions(
 
         // Get positions from Predict controller
         const positionsData = await getPositions({
-          address: selectedInternalAccountAddress ?? '',
+          address: selectedInternalAccountAddress,
           providerId,
           claimable,
         });

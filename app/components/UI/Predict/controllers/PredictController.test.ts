@@ -1801,7 +1801,6 @@ describe('PredictController', () => {
         expect(result).toEqual(mockPositions);
         expect(mockPolymarketProvider.getPositions).toHaveBeenCalledWith({
           address: '0x1234567890123456789012345678901234567890', // Default from AccountsController
-          claimable: false,
         });
       });
     });
