@@ -7986,7 +7986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/preferences-controller@npm:latest":
+"@metamask/preferences-controller@npm:^20.0.1":
   version: 20.0.1
   resolution: "@metamask/preferences-controller@npm:20.0.1"
   dependencies:
@@ -33739,7 +33739,7 @@ __metadata:
     "@metamask/phishing-controller": ^13.1.0
     "@metamask/post-message-stream": ^10.0.0
     "@metamask/ppom-validator": ^0.38.0
-    "@metamask/preferences-controller": latest
+    "@metamask/preferences-controller": ^20.0.1
     "@metamask/preinstalled-example-snap": ^0.7.1
     "@metamask/profile-sync-controller": ^25.0.0
     "@metamask/providers": ^18.3.1
