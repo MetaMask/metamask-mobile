@@ -21382,13 +21382,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:0.0.8":
-  version: 0.0.8
-  resolution: "base64-js@npm:0.0.8"
-  checksum: e95d2fa4b9000789fedd1e1ebac7830a70f5b1c06c72b2cf7862a48335af5d42229c0deda5085b2c8e403e479b612a55cd682bd4438838980d07cfc21c91e750
-  languageName: node
-  linkType: hard
-
 "base64-js@npm:^1.0.2, base64-js@npm:^1.2.3, base64-js@npm:^1.3.0, base64-js@npm:^1.3.1, base64-js@npm:^1.5.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
@@ -22060,7 +22053,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"buffer@npm:^5.0.0, buffer@npm:^5.0.8, buffer@npm:^5.1.0, buffer@npm:^5.2.1, buffer@npm:^5.4.3, buffer@npm:^5.5.0, buffer@npm:^5.6.0, buffer@npm:^5.7.1":
+"buffer@npm:^5.0.8, buffer@npm:^5.1.0, buffer@npm:^5.2.1, buffer@npm:^5.4.3, buffer@npm:^5.5.0, buffer@npm:^5.6.0, buffer@npm:^5.7.1":
   version: 5.7.1
   resolution: "buffer@npm:5.7.1"
   dependencies:
@@ -26975,13 +26968,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"events@npm:^1.0.2":
-  version: 1.1.1
-  resolution: "events@npm:1.1.1"
-  checksum: 40431eb005cc4c57861b93d44c2981a49e7feb99df84cf551baed299ceea4444edf7744733f6a6667e942af687359b1f4a87ec1ec4f21d5127dac48a782039b9
-  languageName: node
-  linkType: hard
-
 "eventsource@npm:^2.0.2":
   version: 2.0.2
   resolution: "eventsource@npm:2.0.2"
@@ -30306,13 +30292,6 @@ __metadata:
     jsbn: 1.1.0
     sprintf-js: ^1.1.3
   checksum: aa15f12cfd0ef5e38349744e3654bae649a34c3b10c77a674a167e99925d1549486c5b14730eebce9fea26f6db9d5e42097b00aa4f9f612e68c79121c71652dc
-  languageName: node
-  linkType: hard
-
-"ip-regex@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "ip-regex@npm:1.0.3"
-  checksum: 9ce02e567949be9cf4d16c5c314cd241ce1edf78b2619e94b276cdff97eefe198970a224f9d1f0c22a92c4655997ad68fd34d82e41e7d19fafa47fe15108f22a
   languageName: node
   linkType: hard
 
@@ -34052,7 +34031,7 @@ __metadata:
     react-native-svg-charts: ^5.4.0
     react-native-svg-transformer: ^1.0.0
     react-native-swipe-gestures: 1.0.3
-    react-native-tcp: ^4.0.0
+    react-native-tcp-socket: ^6.3.0
     react-native-url-polyfill: ^1.3.0
     react-native-vector-icons: 10.2.0
     react-native-video: ^6.10.1
@@ -37479,7 +37458,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"process@npm:^0.11.1, process@npm:^0.11.10, process@npm:^0.11.9":
+"process@npm:^0.11.1, process@npm:^0.11.10":
   version: 0.11.10
   resolution: "process@npm:0.11.10"
   checksum: bfcce49814f7d172a6e6a14d5fa3ac92cc3d0c3b9feb1279774708a719e19acd673995226351a082a9ae99978254e320ccda4240ddc474ba31a76c79491ca7c3
@@ -39002,19 +38981,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-tcp@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "react-native-tcp@npm:4.0.0"
+"react-native-tcp-socket@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "react-native-tcp-socket@npm:6.3.0"
   dependencies:
-    base64-js: 0.0.8
-    buffer: ^5.0.0
-    events: ^1.0.2
-    ip-regex: ^1.0.3
-    process: ^0.11.9
-    util: ^0.10.3
+    buffer: ^5.4.3
+    eventemitter3: ^4.0.7
   peerDependencies:
     react-native: ">=0.60.0"
-  checksum: e323a2abecafa713e9e4a259d219029152f82582590a8e743667ce43c37921b253d96621d014cbbb6a58ef35ddcf759e106d1ae2fbed3159a5cd4fc76a57855d
+  checksum: 0cb8c8910bfcff7074bf3493723998f9f990a434f57e02d6fbaf7ee75965f00cdfdcf49e7b1ce3018ea1feb884506d613b62fa09be9f7716cec424bece164cac
   languageName: node
   linkType: hard
 

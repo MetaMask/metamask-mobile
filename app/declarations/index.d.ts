@@ -418,4 +418,4 @@ declare module '@sentry/react-native' {
 declare module '@tommasini/react-native-scrollable-tab-view';
 declare module '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 
-declare module 'react-native-tcp';
+declare module 'react-native-tcp-socket';
