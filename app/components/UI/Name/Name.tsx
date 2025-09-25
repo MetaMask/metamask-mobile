@@ -68,6 +68,7 @@ const Name: React.FC<NameProperties> = ({
   type,
   value,
   variation,
+  maxCharLength = 21,
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   if (type !== NameType.EthereumAddress) {
@@ -97,15 +98,14 @@ const Name: React.FC<NameProperties> = ({
     );
   }
 
-  const MAX_CHAR_LENGTH = 21;
   const MIDDLE_SECTION_ELLIPSIS = '...';
   const truncatedName =
-    name && name.length > MAX_CHAR_LENGTH
+    name && name.length > maxCharLength
       ? `${name.slice(
           0,
-          (MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2,
+          (maxCharLength - MIDDLE_SECTION_ELLIPSIS.length) / 2,
         )}${MIDDLE_SECTION_ELLIPSIS}${name.slice(
-          -(MAX_CHAR_LENGTH - MIDDLE_SECTION_ELLIPSIS.length) / 2,
+          -(maxCharLength - MIDDLE_SECTION_ELLIPSIS.length) / 2,
         )}`
       : name;
 
