@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { PayWithRow } from '../../../../components/rows/pay-with-row';
 import useNavbar from '../../../../hooks/ui/useNavbar';
 import { EditAmount } from '../../../../components/edit-amount';
@@ -9,14 +9,17 @@ import InfoSection from '../../../../components/UI/info-row/info-section/info-se
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
 import AlertBanner from '../../../../components/alert-banner';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
-import { usePerpsDepositEvents } from '../../hooks/usePerpsDepositEvents';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { usePerpsDepositAlerts } from '../../hooks/usePerpsDepositAlerts';
 import { BridgeFeeRow } from '../../../../components/rows/bridge-fee-row';
 import { useAlerts } from '../../../../context/alert-system-context';
 import { AlertKeys } from '../../../../constants/alerts';
-import { usePerpsMeasurement } from '../../../../../../UI/Perps/hooks/usePerpsMeasurement';
-import { PerpsMeasurementName } from '../../../../../../UI/Perps/constants/performanceMetrics';
+import { usePerpsEventTracking } from '../../../../../../UI/Perps/hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../../../../../UI/Perps/constants/eventNames';
 
 const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
@@ -38,18 +41,27 @@ export function PerpsDeposit() {
   const [pendingTokenAmount, setPendingTokenAmount] = useState<string>();
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingAlerts = usePerpsDepositAlerts({ pendingTokenAmount });
+  const { track } = usePerpsEventTracking();
 
   const { isFullView, isPayTokenSelected } = usePerpsDepositView({
     isKeyboardVisible,
   });
 
-  // Track funding screen input loaded using unified Perps measurement hook
-  usePerpsMeasurement({
-    measurementName: PerpsMeasurementName.FUNDING_SCREEN_INPUT_LOADED,
-    conditions: [!!isPayTokenSelected],
-  });
+  // Track funding input viewed on mount
+  useEffect(() => {
+    track(MetaMetricsEvents.PERPS_FUNDING_INPUT_VIEWED, {
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+    });
+  }, [track]);
 
-  usePerpsDepositEvents({ isFullView, isPayTokenSelected });
+  // Track funding review viewed when transaction details are ready to review
+  useEffect(() => {
+    if (isFullView && isPayTokenSelected) {
+      track(MetaMetricsEvents.PERPS_FUNDING_REVIEW_VIEWED, {
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      });
+    }
+  }, [isFullView, isPayTokenSelected, track]);
 
   const filteredConfirmationAlerts = useMemo(
     () =>
