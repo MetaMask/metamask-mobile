@@ -28,6 +28,7 @@ import EarnWithdrawInputView from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { TokenI } from '../../../Tokens/types';
 import { trace, TraceName } from '../../../../../util/trace';
+import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
 
 jest.mock('../../../Navbar', () => ({
   getStakingNavbar: jest.fn().mockReturnValue({}),
@@ -789,7 +790,7 @@ describe('EarnWithdrawInputView', () => {
           properties: {
             action_type: 'withdrawal',
             experience: 'STABLECOIN_LENDING',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'USDC',
             token_name: 'USDC',
             user_token_balance: '1000',
@@ -893,7 +894,7 @@ describe('EarnWithdrawInputView', () => {
           properties: {
             action_type: 'withdrawal',
             experience: 'STABLECOIN_LENDING',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'USDC',
             token_name: 'USDC',
             user_token_balance: '1000',
@@ -910,7 +911,7 @@ describe('EarnWithdrawInputView', () => {
             experience: 'STABLECOIN_LENDING',
             input_value: '25%',
             is_max: false,
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'USDC',
             user_token_balance: '1000',
           },
@@ -925,7 +926,7 @@ describe('EarnWithdrawInputView', () => {
             action_type: 'withdrawal',
             experience: 'STABLECOIN_LENDING',
             lastQuickAmountButtonPressed: '25%',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'USDC',
             transaction_value: '250 USDC',
             user_token_balance: '1000',
@@ -977,7 +978,7 @@ describe('EarnWithdrawInputView', () => {
             is_max: false,
             location: 'UnstakeInputView',
             mode: 'native',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'Ethereum',
             user_token_balance: '1000',
           },
@@ -1028,7 +1029,7 @@ describe('EarnWithdrawInputView', () => {
             is_max: true,
             location: 'UnstakeInputView',
             mode: 'native',
-            network: 'Ethereum Mainnet',
+            network: MAINNET_DISPLAY_NAME,
             token: 'Ethereum',
             user_token_balance: '1000',
           },
@@ -1124,7 +1125,7 @@ describe('EarnWithdrawInputView', () => {
               location: 'EarnWithdrawalInputView',
               token_name: 'USDC',
               token: 'USDC',
-              network: 'Ethereum Mainnet',
+              network: MAINNET_DISPLAY_NAME,
               experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
               action_type: 'withdrawal',
             }),
