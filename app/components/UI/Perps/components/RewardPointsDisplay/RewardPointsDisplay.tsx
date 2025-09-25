@@ -12,6 +12,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import { useRewardsIconAnimation } from '../../../Bridge/hooks/useRewardsIconAnimation';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
@@ -98,8 +99,12 @@ const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
       </View>
     );
   } else if (isLoading || displayState === RewardDisplayState.Loading) {
-    // Show nothing during loading, just icon
-    displayContent = null;
+    // Show loading skeleton
+    displayContent = (
+      <View style={styles.contentContainer}>
+        <Skeleton height={20} width={60} />
+      </View>
+    );
   } else if (
     formattedEstimatedPoints &&
     typeof formattedEstimatedPoints === 'string' &&
