@@ -1997,6 +1997,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-tcp-socket (6.3.0):
+    - CocoaAsyncSocket
+    - React-Core
   - react-native-video (6.10.1):
     - DoubleConversion
     - glog
@@ -2789,9 +2792,6 @@ PODS:
   - SocketRocket (0.7.1)
   - sovran-react-native (1.0.4):
     - React-Core
-  - TcpSockets (4.0.0):
-    - CocoaAsyncSocket
-    - React
   - VisionCamera (4.6.4):
     - VisionCamera/Core (= 4.6.4)
     - VisionCamera/React (= 4.6.4)
@@ -2894,6 +2894,7 @@ DEPENDENCIES:
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
+  - react-native-tcp-socket (from `../node_modules/react-native-tcp-socket`)
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-webview-mm (from `../node_modules/@metamask/react-native-webview`)"
@@ -2952,7 +2953,6 @@ DEPENDENCIES:
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - "segment-analytics-react-native (from `../node_modules/@segment/analytics-react-native`)"
   - "sovran-react-native (from `../node_modules/@segment/sovran-react-native`)"
-  - TcpSockets (from `../node_modules/react-native-tcp`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -3163,6 +3163,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
+  react-native-tcp-socket:
+    :path: "../node_modules/react-native-tcp-socket"
   react-native-video:
     :path: "../node_modules/react-native-video"
   react-native-view-shot:
@@ -3279,8 +3281,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@segment/analytics-react-native"
   sovran-react-native:
     :path: "../node_modules/@segment/sovran-react-native"
-  TcpSockets:
-    :path: "../node_modules/react-native-tcp"
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
   Yoga:
@@ -3396,6 +3396,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: c68127652d8b9a26a28ac9597167a3ad90bcd713
   react-native-slider: e4b7f9d0616032ec2909ba073731eabcde242256
+  react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-video: 3bb92b90b2774144fac7d43d52d11b936e8a14ec
   react-native-view-shot: d1a701eb0719c6dccbd20b4bb43b1069f304cb70
   react-native-webview-mm: b9630326cca01837e1176dc3fb2310258fe49877
@@ -3460,7 +3461,6 @@ SPEC CHECKSUMS:
   Sentry: 1ca8405451040482877dcd344dfa3ef80b646631
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
-  TcpSockets: 48866ffcb39d7114741919d21069fc90189e474a
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
 
