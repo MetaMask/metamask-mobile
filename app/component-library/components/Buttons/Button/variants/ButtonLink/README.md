@@ -38,7 +38,7 @@ Optional prop for the icon name of the icon that will be displayed before the la
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../../../../../Icons/Icon/Icon.types.ts) | No                                                      |
+| [IconName](../../../../../Icons/Icon/Icon.types.ts)                  | No                                                      |
 
 ### `endIconName`
 
@@ -46,7 +46,7 @@ Optional prop for the icon name of the icon that will be displayed after the lab
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../../../../../Icons/Icon/Icon.types.ts) | No                                                      |
+| [IconName](../../../../../Icons/Icon/Icon.types.ts)                  | No                                                      |
 
 ### `isDanger`
 
