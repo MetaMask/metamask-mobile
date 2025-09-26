@@ -3,7 +3,6 @@ import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID,
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
-
 class BridgeScreen {
   get device() {
     return this._device;
@@ -40,7 +39,7 @@ class BridgeScreen {
 
       const element = await this.quoteDisplayed; // bridge swap view shows on 
       await appwrightExpect(element).toBeVisible({ timeout: 30000 });
-      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, QuoteViewSelectorText.FEE_DISCLAIMER);
+      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MM fee");
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
     
 
