@@ -45,6 +45,7 @@ jobs:
         if: always()
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN_TEST }}
           SENTRY_ORG: metamask
           SENTRY_PROJECT: metamask-mobile-ci
           WORKFLOW: ${{ github.workflow }}
