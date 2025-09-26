@@ -543,7 +543,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="optin-metrics-i-agree-button-id"
+                          testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
@@ -1223,7 +1223,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="optin-metrics-i-agree-button-id"
+                          testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"
@@ -2015,7 +2015,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                               "paddingHorizontal": 16,
                             }
                           }
-                          testID="optin-metrics-i-agree-button-id"
+                          testID="optin-metrics-continue-button-id"
                         >
                           <Text
                             accessibilityRole="text"

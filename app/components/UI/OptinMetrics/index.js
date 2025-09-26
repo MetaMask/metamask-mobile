@@ -40,7 +40,11 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { updateCachedConsent, flushBufferedTraces } from '../../../util/trace';
+import {
+  updateCachedConsent,
+  flushBufferedTraces,
+  discardBufferedTraces,
+} from '../../../util/trace';
 import { setupSentry } from '../../../util/sentry/utils';
 import Device from '../../../util/device';
 import PrivacyIllustration from '../../../images/privacy_metrics_illustration.png';
@@ -183,7 +187,7 @@ class OptinMetrics extends PureComponent {
     /**
      * Tracks the checkbox's checked state.
      */
-    isCheckboxChecked: false,
+    isMarketingChecked: false,
     /**
      * Tracks the basic usage checkbox's checked state.
      */
@@ -255,11 +259,16 @@ class OptinMetrics extends PureComponent {
     const { events, metrics, setDataCollectionForMarketing } = this.props;
 
     await metrics.enable(this.state.isBasicUsageChecked);
-    await setupSentry(); // Re-setup Sentry with enabled: true
-    await flushBufferedTraces();
+    await setupSentry(); // enabled/disabled depend on the isBasicUsageChecked
+
+    if (this.state.isBasicUsageChecked) {
+      await flushBufferedTraces();
+    } else {
+      discardBufferedTraces();
+    }
     updateCachedConsent(this.state.isBasicUsageChecked);
 
-    setDataCollectionForMarketing(this.state.isCheckboxChecked);
+    setDataCollectionForMarketing(this.state.isMarketingChecked);
 
     // Track the analytics preference event first
     metrics.trackEvent(
@@ -267,7 +276,7 @@ class OptinMetrics extends PureComponent {
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
           [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-            this.state.isCheckboxChecked,
+            this.state.isMarketingChecked,
           ),
           is_metrics_opted_in: this.state.isBasicUsageChecked,
           location: 'onboarding_metametrics',
@@ -328,16 +337,16 @@ class OptinMetrics extends PureComponent {
     this.setState((prevState) => ({
       isBasicUsageChecked: !prevState.isBasicUsageChecked,
 
-      isCheckboxChecked: prevState.isBasicUsageChecked
+      isMarketingChecked: prevState.isBasicUsageChecked
         ? false
-        : prevState.isCheckboxChecked,
+        : prevState.isMarketingChecked,
     }));
   };
 
   handleMarketingToggle = () => {
     if (this.state.isBasicUsageChecked) {
       this.setState((prevState) => ({
-        isCheckboxChecked: !prevState.isCheckboxChecked,
+        isMarketingChecked: !prevState.isMarketingChecked,
       }));
     }
   };
@@ -354,7 +363,7 @@ class OptinMetrics extends PureComponent {
         <Button
           variant={ButtonVariants.Primary}
           onPress={this.onConfirm}
-          testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID}
+          testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID}
           style={styles.button}
           label={strings('privacy_policy.continue')}
           size={ButtonSize.Lg}
@@ -502,7 +511,7 @@ class OptinMetrics extends PureComponent {
                   disabled={this.isMarketingDisabled}
                 >
                   <Checkbox
-                    isChecked={this.state.isCheckboxChecked}
+                    isChecked={this.state.isMarketingChecked}
                     accessibilityRole={'checkbox'}
                     accessible
                     disabled={this.isMarketingDisabled}

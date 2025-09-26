@@ -17,7 +17,7 @@ class MetaMetricsOptIn {
 
   get iAgreeButton(): DetoxElement {
     return Matchers.getElementByID(
-      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID,
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
     );
   }
 
@@ -38,7 +38,7 @@ class MetaMetricsOptIn {
   async tapAgreeButton(): Promise<void> {
     await this.swipeContentUp();
     await Gestures.waitAndTap(this.iAgreeButton, {
-      elemDescription: 'Opt-in Metrics I Agree Button',
+      elemDescription: 'Opt-in Metrics Continue Button',
     });
   }
 
