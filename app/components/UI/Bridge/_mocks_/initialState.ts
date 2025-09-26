@@ -6,8 +6,10 @@ import {
   EthAccountType,
   SolAccountType,
 } from '@metamask/keyring-api';
+import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
+import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
 jest.mock(
   '../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
@@ -306,27 +308,35 @@ export const initialState = {
       },
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: 'keyring:wallet1/ethereum',
+          selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
           wallets: {
-            'keyring:wallet1': {
-              id: 'keyring:wallet1',
-              type: 'keyring',
+            [`${AccountWalletType.Entropy}:wallet1`]: {
+              id: `${AccountWalletType.Entropy}:wallet1`,
+              type: AccountWalletType.Entropy,
               metadata: {
-                name: 'Wallet 1',
-                keyring: {
-                  type: 'HD Key Tree',
+                name: 'Test Wallet 1',
+                entropy: {
+                  id: 'wallet1',
                 },
               },
               groups: {
-                'keyring:wallet1/ethereum': {
-                  id: 'keyring:wallet1/ethereum',
-                  type: 'ethereum',
+                [`${AccountWalletType.Entropy}:wallet1/0`]: {
+                  id: `${AccountWalletType.Entropy}:wallet1/0`,
+                  type: AccountGroupType.MultichainAccount,
+                  metadata: {
+                    name: 'Test Group 1',
+                    pinned: false,
+                    hidden: false,
+                    entropy: {
+                      groupIndex: 0,
+                    },
+                  },
                   accounts: [evmAccountId, solanaAccountId],
                 },
               },
             },
           },
-        },
+        } as AccountTreeControllerState['accountTree']['wallets'],
       },
       SmartTransactionsController: {
         smartTransactionsState: {
