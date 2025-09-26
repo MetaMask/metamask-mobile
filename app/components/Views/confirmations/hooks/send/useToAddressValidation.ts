@@ -24,48 +24,49 @@ export const useToAddressValidation = () => {
   const { isEvmSendType, isSolanaSendType } = useSendType();
   const { validateName } = useNameValidation();
 
-  const validateToAddress = useCallback(async () => {
-    if (
-      !to ||
-      !chainId ||
-      shouldSkipValidation({
-        toAddress: to,
-        chainId,
-        addressBook,
-        internalAccounts,
-      })
-    ) {
-      return { toAddressValidated: to };
-    }
+  const validateToAddress = useCallback(
+    async (toAddress?: string) => {
+      if (
+        !toAddress ||
+        !chainId ||
+        shouldSkipValidation({
+          toAddress,
+          chainId,
+          addressBook,
+          internalAccounts,
+        })
+      ) {
+        return {};
+      }
 
-    if (
-      isEvmSendType &&
-      isValidHexAddress(to, { mixedCaseUseChecksum: true })
-    ) {
-      return await validateHexAddress(to, chainId as Hex);
-    }
+      if (
+        isEvmSendType &&
+        isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
+      ) {
+        return await validateHexAddress(toAddress, chainId as Hex);
+      }
 
-    if (isSolanaSendType && isSolanaAddress(to)) {
-      return validateSolanaAddress(to);
-    }
+      if (isSolanaSendType && isSolanaAddress(toAddress)) {
+        return validateSolanaAddress(toAddress);
+      }
 
-    if (isENS(to)) {
-      return await validateName(chainId, to);
-    }
+      if (isENS(toAddress)) {
+        return await validateName(chainId, toAddress);
+      }
 
-    return {
-      error: strings('send.invalid_address'),
-      toAddressValidated: to,
-    };
-  }, [
-    addressBook,
-    chainId,
-    internalAccounts,
-    isEvmSendType,
-    isSolanaSendType,
-    to,
-    validateName,
-  ]);
+      return {
+        error: strings('send.invalid_address'),
+      };
+    },
+    [
+      addressBook,
+      chainId,
+      internalAccounts,
+      isEvmSendType,
+      isSolanaSendType,
+      validateName,
+    ],
+  );
 
   const { value, pending } = useAsyncResult<{
     toAddressValidated?: string;
@@ -73,7 +74,10 @@ export const useToAddressValidation = () => {
     warning?: string;
     loading?: boolean;
     resolvedAddress?: string;
-  }>(async () => validateToAddress(), [validateToAddress, chainId, to]);
+  }>(async () => {
+    const result = validateToAddress(to);
+    return { ...result, toAddressValidated: to };
+  }, [validateToAddress, to]);
 
   const {
     toAddressValidated,

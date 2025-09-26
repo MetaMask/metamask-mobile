@@ -100,7 +100,6 @@ describe('validateHexAddress', () => {
       ),
     ).toStrictEqual({
       error: 'Invalid address',
-      toAddressValidated: '0x0000000000000000000000000000000000000000',
     });
     expect(
       await validateHexAddress(
@@ -109,7 +108,6 @@ describe('validateHexAddress', () => {
       ),
     ).toStrictEqual({
       error: 'Invalid address',
-      toAddressValidated: '0x000000000000000000000000000000000000dead',
     });
   });
   it('does not return error for valid evm address', async () => {
@@ -118,9 +116,7 @@ describe('validateHexAddress', () => {
         '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
         '0x1',
       ),
-    ).toStrictEqual({
-      toAddressValidated: '0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73',
-    });
+    ).toStrictEqual({});
   });
   it('returns warning if address is contract address', async () => {
     Engine.context.AssetsContractController.getERC721AssetSymbol = () =>
@@ -131,7 +127,6 @@ describe('validateHexAddress', () => {
         '0x1',
       ),
     ).toStrictEqual({
-      toAddressValidated: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
       warning:
         'This address is a token contract address. If you send tokens to this address, you will lose them.',
     });
@@ -144,13 +139,11 @@ describe('validateSolanaAddress', () => {
       validateSolanaAddress('1nc1nerator11111111111111111111111111111111'),
     ).toStrictEqual({
       error: 'Invalid address',
-      toAddressValidated: '1nc1nerator11111111111111111111111111111111',
     });
     expect(
       validateSolanaAddress('So11111111111111111111111111111111111111112'),
     ).toStrictEqual({
       error: 'Invalid address',
-      toAddressValidated: 'So11111111111111111111111111111111111111112',
     });
   });
   it('returns error if send is of type solana and address is not solana address', () => {
@@ -158,15 +151,12 @@ describe('validateSolanaAddress', () => {
       validateSolanaAddress('0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477'),
     ).toStrictEqual({
       error: 'Invalid address',
-      toAddressValidated: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
     });
   });
   it('does not returns error if address is solana address', () => {
     expect(
       validateSolanaAddress('14grJpemFaf88c8tiVb77W7TYg2W3ir6pfkKz3YjhhZ5'),
-    ).toStrictEqual({
-      toAddressValidated: '14grJpemFaf88c8tiVb77W7TYg2W3ir6pfkKz3YjhhZ5',
-    });
+    ).toStrictEqual({});
   });
 });
 

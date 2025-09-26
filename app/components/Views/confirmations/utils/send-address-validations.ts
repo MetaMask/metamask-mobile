@@ -64,12 +64,10 @@ export const validateHexAddress = async (
 ): Promise<{
   error?: string;
   warning?: string;
-  toAddressValidated?: string;
 }> => {
   if (LOWER_CASED_BURN_ADDRESSES.includes(toAddress?.toLowerCase())) {
     return {
       error: strings('send.invalid_address'),
-      toAddressValidated: toAddress,
     };
   }
 
@@ -87,7 +85,6 @@ export const validateHexAddress = async (
       );
       if (symbol) {
         return {
-          toAddressValidated: toAddress,
           warning: strings('send.token_contract_warning'),
         };
       }
@@ -95,7 +92,7 @@ export const validateHexAddress = async (
       // Not a token address
     }
   }
-  return { toAddressValidated: toAddress };
+  return {};
 };
 
 const SOLANA_BURN_ADDRESSES = [
@@ -108,22 +105,19 @@ export const validateSolanaAddress = (
 ): {
   error?: string;
   warning?: string;
-  toAddressValidated?: string;
 } => {
   if (SOLANA_BURN_ADDRESSES.includes(toAddress)) {
     return {
       error: strings('send.invalid_address'),
-      toAddressValidated: toAddress,
     };
   }
 
   if (!isSolanaAddress(toAddress)) {
     return {
       error: strings('send.invalid_address'),
-      toAddressValidated: toAddress,
     };
   }
-  return { toAddressValidated: toAddress };
+  return {};
 };
 
 export const getConfusableCharacterInfo = (toAddress: string) => {

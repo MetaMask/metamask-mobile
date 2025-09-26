@@ -19,7 +19,6 @@ export const useNameValidation = () => {
 
         if (!resolutions) {
           return {
-            toAddressValidated: to,
             error: strings('send.could_not_resolve_name'),
           };
         }
@@ -28,13 +27,11 @@ export const useNameValidation = () => {
         return {
           resolvedAddress,
           ...getConfusableCharacterInfo(to),
-          toAddressValidated: to,
         };
       }
 
       return {
         error: strings('send.could_not_resolve_name'),
-        toAddressValidated: to,
       };
     },
     [fetchResolutions],
