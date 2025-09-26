@@ -723,12 +723,17 @@ const PerpsOrderViewContentBase: React.FC = () => {
         },
       };
 
+      // Determine initial tab based on order type:
+      // Market orders execute immediately -> show position tab
+      // Limit orders remain pending -> show orders tab
+      const initialTab = orderForm.type === 'limit' ? 'orders' : 'position';
+
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: navigationMarketData,
           isNavigationFromOrderSuccess: false,
-          initialTab: 'position',
+          initialTab,
         },
       });
 
