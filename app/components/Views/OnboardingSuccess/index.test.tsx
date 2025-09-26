@@ -7,6 +7,7 @@ import OnboardingSuccess, {
   OnboardingSuccessComponent,
   ResetNavigationToHome,
 } from '.';
+import createStyles from './index.styles';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
@@ -18,6 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
+import { useTheme } from '../../../util/theme';
 import {
   selectSeedlessOnboardingAuthConnection,
   selectSeedlessOnboardingLoginFlow,
@@ -1023,7 +1025,7 @@ describe('OnboardingSuccess', () => {
 
       const TestNullAuthConnection = () => {
         const testSocialLoginBranch = () => {
-          const currentIsSocialLogin = false; // No authConnection means not social login
+          const currentIsSocialLogin = false;
           expect(currentIsSocialLogin).toBe(false);
         };
 
@@ -1504,7 +1506,72 @@ describe('OnboardingSuccess', () => {
     });
   });
 
-  describe('Switch Case Default Branch Coverage', () => {
+  describe('Styles tests', () => {
+    it('should create styles with light mode (isDarkMode = false)', () => {
+      const TestLightModeStyles = () => {
+        const { colors } = useTheme();
+        const styles = createStyles(colors, false);
+
+        return (
+          <View testID="light-mode-styles" style={styles.root}>
+            <Text>Light mode test</Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(<TestLightModeStyles />, {
+        state: {},
+      });
+      expect(getByTestId('light-mode-styles')).toBeTruthy();
+    });
+
+    it('should create styles with dark mode (isDarkMode = true)', () => {
+      const TestDarkModeStyles = () => {
+        const { colors } = useTheme();
+        const styles = createStyles(colors, true);
+
+        return (
+          <View testID="dark-mode-styles" style={styles.root}>
+            <Text>Dark mode test</Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(<TestDarkModeStyles />, {
+        state: {},
+      });
+      expect(getByTestId('dark-mode-styles')).toBeTruthy();
+    });
+  });
+
+  describe('Switch Case Default Branch tests', () => {
+    it('should hit switch case default for unknown success flow types', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectSeedlessOnboardingAuthConnection) {
+          return null;
+        }
+        if (selector === selectSeedlessOnboardingLoginFlow) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const TestSwitchCaseComponent = () => (
+        <OnboardingSuccessComponent
+          successFlow={'CUSTOM_UNKNOWN_FLOW' as ONBOARDING_SUCCESS_FLOW}
+          onDone={() => {
+            /* empty test handler */
+          }}
+        />
+      );
+
+      const { getByTestId } = renderWithProvider(<TestSwitchCaseComponent />, {
+        state: {},
+      });
+
+      expect(getByTestId('mock-rive-animation')).toBeTruthy();
+    });
+
     it('should render fallback content for undefined success flow types', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectSeedlessOnboardingAuthConnection) {
