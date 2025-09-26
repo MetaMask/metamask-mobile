@@ -155,8 +155,6 @@ export const Recipient = () => {
 
   useRecipientPageReset(resetStateOnInput);
 
-  const addressValidationLoading = loading && toAddressValidated === to;
-
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -213,13 +211,11 @@ export const Recipient = () => {
                 size={ButtonBaseSize.Lg}
                 onPress={handleReview}
                 twClassName="w-full"
-                isDanger={!addressValidationLoading && Boolean(toAddressError)}
+                isDanger={!loading && Boolean(toAddressError)}
                 disabled={
-                  Boolean(toAddressError) ||
-                  isSubmittingTransaction ||
-                  addressValidationLoading
+                  Boolean(toAddressError) || isSubmittingTransaction || loading
                 }
-                isLoading={isSubmittingTransaction || addressValidationLoading}
+                isLoading={isSubmittingTransaction || loading}
               >
                 {isReviewButtonDisabled
                   ? toAddressError
