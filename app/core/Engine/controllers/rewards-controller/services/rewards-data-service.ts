@@ -373,7 +373,7 @@ export class RewardsDataService {
     if (!response.ok) {
       const errorData = await response.json();
 
-      if (errorData.message.includes('Invalid timestamp')) {
+      if (errorData?.message?.includes('Invalid timestamp')) {
         // Retry signing with a new timestamp
         throw new InvalidTimestampError(
           'Invalid timestamp. Please try again with a new timestamp.',
@@ -669,7 +669,7 @@ export class RewardsDataService {
       const errorData = await response.json();
       Logger.log('RewardsDataService: mobileJoin errorData', errorData);
 
-      if (errorData.message.includes('Invalid timestamp')) {
+      if (errorData?.message?.includes('Invalid timestamp')) {
         // Retry signing with a new timestamp
         throw new InvalidTimestampError(
           'Invalid timestamp. Please try again with a new timestamp.',
