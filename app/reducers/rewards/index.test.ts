@@ -1461,11 +1461,13 @@ describe('rewardsReducer', () => {
         // Act
         const state = rewardsReducer(initialState, rehydrateAction);
 
-        // Assert - All state should be reset to initial values
+        // Assert - State should be reset to initial values but preserve banner preferences
         const expectedState = {
           ...initialState,
-          hideUnlinkedAccountsBanner: false,
-          hideCurrentAccountNotOptedInBanner: [],
+          hideUnlinkedAccountsBanner:
+            persistedRewardsState.hideUnlinkedAccountsBanner,
+          hideCurrentAccountNotOptedInBanner:
+            persistedRewardsState.hideCurrentAccountNotOptedInBanner,
         };
         expect(state).toEqual(expectedState);
       });
@@ -1495,8 +1497,12 @@ describe('rewardsReducer', () => {
         const state = rewardsReducer(initialState, rehydrateAction);
 
         // Assert
-        expect(state.hideUnlinkedAccountsBanner).toBe(false);
-        expect(state.hideCurrentAccountNotOptedInBanner).toEqual([]);
+        expect(state.hideUnlinkedAccountsBanner).toBe(
+          persistedRewardsState.hideUnlinkedAccountsBanner,
+        );
+        expect(state.hideCurrentAccountNotOptedInBanner).toEqual(
+          persistedRewardsState.hideCurrentAccountNotOptedInBanner,
+        );
         expect(state.referralCode).toBe(null); // Should be reset
       });
 
