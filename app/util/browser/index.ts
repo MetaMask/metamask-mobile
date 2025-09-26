@@ -30,23 +30,20 @@ export const prefixUrlWithProtocol = (
  */
 export function processUrlForBrowser(input: string, searchEngine = 'Google') {
   const defaultProtocol = 'https://';
-  //Check if it's a url or a keyword
-  if (!input.match(regex.url)) {
-    // Add exception for localhost
-    if (
-      !input.startsWith('http://localhost') &&
-      !input.startsWith('localhost')
-    ) {
-      // In case of keywords we default to google search
-      let searchUrl =
-        'https://www.google.com/search?q=' + encodeURIComponent(input);
-      if (searchEngine === 'DuckDuckGo') {
-        searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
-      }
-      return searchUrl;
-    }
+  // if it's a URL then early return prefixing with protocol
+  if (input.match(regex.url)) {
+    return prefixUrlWithProtocol(input, defaultProtocol);
   }
-  return prefixUrlWithProtocol(input, defaultProtocol);
+  // Add exception for localhost, if it's not a localhost URL then default to google search
+  if (!input.startsWith('http://localhost') && !input.startsWith('localhost')) {
+    // In case of keywords we default to google search
+    let searchUrl =
+      'https://www.google.com/search?q=' + encodeURIComponent(input);
+    if (searchEngine === 'DuckDuckGo') {
+      searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
+    }
+    return searchUrl;
+  }
 }
 
 /**
