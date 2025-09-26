@@ -243,4 +243,15 @@ describe('useSnapNameResolution', () => {
       },
     ]);
   });
+
+  it('retuen undefined if no snap if found for chainId', async () => {
+    const { result } = renderHookWithProvider(
+      () => useSnapNameResolution(),
+      mockState,
+    );
+
+    expect(
+      await result.current.fetchResolutions('dummy_chain_id', 'dummy.test'),
+    ).toStrictEqual(undefined);
+  });
 });
