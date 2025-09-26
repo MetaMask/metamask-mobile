@@ -5422,7 +5422,7 @@
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
-    "fee_disclaimer": "Includes 0.875% MM fee",
+    "fee_disclaimer": "Includes {{feePercentage}}% MM fee",
     "no_mm_fee": "No MM fee",
     "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
