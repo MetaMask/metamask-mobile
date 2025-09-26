@@ -60,7 +60,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ffffff",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
@@ -223,7 +223,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ffffff",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
@@ -386,7 +386,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ffffff",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
@@ -549,7 +549,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ffffff",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
@@ -712,7 +712,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ffffff",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
@@ -875,7 +875,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ffffff",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
@@ -1038,7 +1038,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ffffff",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
@@ -1201,7 +1201,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#ffffff",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
