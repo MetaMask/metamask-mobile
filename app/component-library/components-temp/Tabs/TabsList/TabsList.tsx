@@ -38,6 +38,9 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     const isScrolling = useRef(false);
     const isProgrammaticScroll = useRef(false);
     const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
+    const loadTabTimeout = useRef<NodeJS.Timeout | null>(null);
+    const programmaticScrollTimeout = useRef<NodeJS.Timeout | null>(null);
+    const goToTabTimeout = useRef<NodeJS.Timeout | null>(null);
 
     // Extract tab items from children
     const tabs: TabItem[] = useMemo(
@@ -132,6 +135,29 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       }
     }, [activeIndex, tabs.length]);
 
+    // Cleanup effect to clear all timers on unmount
+    useEffect(
+      () => () => {
+        if (scrollTimeout.current) {
+          clearTimeout(scrollTimeout.current);
+          scrollTimeout.current = null;
+        }
+        if (loadTabTimeout.current) {
+          clearTimeout(loadTabTimeout.current);
+          loadTabTimeout.current = null;
+        }
+        if (programmaticScrollTimeout.current) {
+          clearTimeout(programmaticScrollTimeout.current);
+          programmaticScrollTimeout.current = null;
+        }
+        if (goToTabTimeout.current) {
+          clearTimeout(goToTabTimeout.current);
+          goToTabTimeout.current = null;
+        }
+      },
+      [],
+    );
+
     // Update active index when initialActiveIndex or tabs change
     useEffect(() => {
       // Store the current active tab key for preservation
@@ -214,8 +240,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           if (process.env.JEST_WORKER_ID) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
           } else {
-            setTimeout(() => {
+            if (loadTabTimeout.current) {
+              clearTimeout(loadTabTimeout.current);
+            }
+            loadTabTimeout.current = setTimeout(() => {
               setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+              loadTabTimeout.current = null;
             }, 10); // Small delay to let underline animation start
           }
         }
@@ -240,8 +270,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         }
 
         // Reset programmatic scroll flag after animation
-        setTimeout(() => {
+        if (programmaticScrollTimeout.current) {
+          clearTimeout(programmaticScrollTimeout.current);
+        }
+        programmaticScrollTimeout.current = setTimeout(() => {
           isProgrammaticScroll.current = false;
+          programmaticScrollTimeout.current = null;
         }, 400);
       },
       [
@@ -363,8 +397,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           }
 
           // Reset programmatic scroll flag after animation
-          setTimeout(() => {
+          if (goToTabTimeout.current) {
+            clearTimeout(goToTabTimeout.current);
+          }
+          goToTabTimeout.current = setTimeout(() => {
             isProgrammaticScroll.current = false;
+            goToTabTimeout.current = null;
           }, 400);
         },
         getCurrentIndex: () => activeIndex,
