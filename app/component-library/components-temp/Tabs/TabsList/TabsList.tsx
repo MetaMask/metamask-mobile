@@ -119,34 +119,18 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       return !tabs[activeIndex]?.isDisabled;
     }, [hasAnyEnabledTabs, activeIndex, tabs]);
 
-    // Initialize loaded tabs with active tab
+    // Load tab content on-demand when tab becomes active for the first time
     useEffect(() => {
       if (activeIndex >= 0 && activeIndex < tabs.length) {
-        setLoadedTabs((prev) => new Set(prev).add(activeIndex));
+        setLoadedTabs((prev) => {
+          // Only update if the tab isn't already loaded
+          if (!prev.has(activeIndex)) {
+            return new Set(prev).add(activeIndex);
+          }
+          return prev;
+        });
       }
     }, [activeIndex, tabs.length]);
-
-    // Lazy load non-disabled tabs in background
-    useEffect(() => {
-      const loadBackgroundTabs = () => {
-        const newLoadedTabs = new Set(loadedTabs);
-
-        // Load all non-disabled tabs
-        tabs.forEach((tab, index) => {
-          if (!tab.isDisabled && !newLoadedTabs.has(index)) {
-            newLoadedTabs.add(index);
-          }
-        });
-
-        if (newLoadedTabs.size !== loadedTabs.size) {
-          setLoadedTabs(newLoadedTabs);
-        }
-      };
-
-      // Use a small delay to prioritize the active tab rendering first
-      const timer = setTimeout(loadBackgroundTabs, 100);
-      return () => clearTimeout(timer);
-    }, [tabs, loadedTabs]);
 
     // Update active index when initialActiveIndex or tabs change
     useEffect(() => {
@@ -224,8 +208,12 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         // Update activeIndex immediately for TabsBar animation
         setActiveIndex(tabIndex);
 
-        // Ensure the tab is loaded
-        setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+        // Ensure the tab is loaded - small delay to let animation start first
+        if (!loadedTabs.has(tabIndex)) {
+          setTimeout(() => {
+            setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+          }, 10); // Small delay to let underline animation start
+        }
 
         // Set programmatic scroll flag AFTER state update
         isProgrammaticScroll.current = true;
@@ -257,6 +245,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         onChangeTab,
         containerWidth,
         getContentIndexFromTabIndex,
+        loadedTabs,
       ],
     );
 
@@ -346,7 +335,9 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
           setActiveIndex(tabIndex);
 
           // Ensure the tab is loaded
-          setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+          if (!loadedTabs.has(tabIndex)) {
+            setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+          }
 
           // Set programmatic scroll flag AFTER state update
           isProgrammaticScroll.current = true;
@@ -379,6 +370,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         onChangeTab,
         containerWidth,
         getContentIndexFromTabIndex,
+        loadedTabs,
       ],
     );
 

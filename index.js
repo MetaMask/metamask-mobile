@@ -95,16 +95,16 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 }
 
 /* Uncomment and comment regular registration below */
-// import Storybook from './.storybook';
-// AppRegistry.registerComponent(name, () => Storybook);
+import Storybook from './.storybook';
+AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () =>
-  // Disable Sentry for E2E tests
-  isE2E ? Root : Sentry.wrap(Root),
-);
+// AppRegistry.registerComponent(name, () =>
+//   // Disable Sentry for E2E tests
+//   isE2E ? Root : Sentry.wrap(Root),
+// );
 
 function setupGlobalErrorHandler() {
   const reactNativeDefaultHandler = global.ErrorUtils.getGlobalHandler();

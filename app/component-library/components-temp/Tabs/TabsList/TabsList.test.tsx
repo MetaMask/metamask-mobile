@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { View } from 'react-native';
 
 // External dependencies.
@@ -34,7 +34,7 @@ describe('TabsList', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays correct initial tab content with lazy loading', async () => {
+  it('displays correct initial tab content with on-demand loading', async () => {
     // Arrange
     const tabs = [
       { label: 'Tokens', content: 'Tokens Content' },
@@ -42,7 +42,7 @@ describe('TabsList', () => {
     ];
 
     // Act
-    const { getByText, queryByText } = render(
+    const { getByText, queryByText, getAllByText } = render(
       <TabsList initialActiveIndex={0}>
         {tabs.map((tab, index) => (
           <View
@@ -58,11 +58,16 @@ describe('TabsList', () => {
     // Assert - Active tab loads immediately
     expect(getByText('Tokens Content')).toBeOnTheScreen();
 
-    // Wait for lazy loading to complete
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    // Other tabs should not be loaded yet (on-demand loading)
+    expect(queryByText('NFTs Content')).toBeNull();
 
-    // After lazy loading, NFTs content should be loaded (available in DOM) but not visible
-    expect(queryByText('NFTs Content')).toBeTruthy();
+    // When user clicks the NFTs tab, it should load
+    fireEvent.press(getAllByText('NFTs')[0]);
+
+    // Wait for the delayed loading to complete
+    await waitFor(() => {
+      expect(getByText('NFTs Content')).toBeOnTheScreen();
+    });
   });
 
   it('switches tab content when tab is pressed', () => {
@@ -1072,7 +1077,7 @@ describe('TabsList', () => {
   });
 
   describe('Lazy Loading and Swipe Functionality', () => {
-    it('loads active tab immediately and others in background', async () => {
+    it('loads active tab immediately and others on-demand when accessed', async () => {
       // Arrange
       const tabs = [
         { label: 'Active', content: 'Active Content' },
@@ -1081,7 +1086,7 @@ describe('TabsList', () => {
       ];
 
       // Act
-      const { getByText, queryByText } = render(
+      const { getByText, queryByText, getAllByText } = render(
         <TabsList initialActiveIndex={0}>
           <View key="active" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
             <Text>{tabs[0].content}</Text>
@@ -1104,13 +1109,16 @@ describe('TabsList', () => {
       // Assert - Active tab loads immediately
       expect(getByText('Active Content')).toBeOnTheScreen();
 
-      // Wait for background loading
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 150));
-      });
+      // Other tabs should not be loaded yet (on-demand loading)
+      expect(queryByText('Background Content')).toBeNull();
 
-      // Background tab should be loaded but not visible
-      expect(queryByText('Background Content')).toBeTruthy(); // Background loaded in DOM
+      // When user clicks the background tab, it should load
+      fireEvent.press(getAllByText('Background')[0]);
+
+      // Wait for the delayed loading to complete
+      await waitFor(() => {
+        expect(getByText('Background Content')).toBeOnTheScreen();
+      });
       // Disabled tab should not be loaded
       expect(queryByText('Disabled Content')).toBeNull();
     });
