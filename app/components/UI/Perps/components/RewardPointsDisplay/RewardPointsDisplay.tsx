@@ -27,7 +27,6 @@ const RewardsIconAnimation = require('../../../../../animations/rewards_icon_ani
 
 const RewardPointsDisplay: React.FC<RewardPointsDisplayProps> = ({
   estimatedPoints,
-  bonusBips: _bonusBips,
   isLoading = false,
   hasError = false,
   shouldShow = true,

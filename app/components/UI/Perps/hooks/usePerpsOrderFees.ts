@@ -500,7 +500,6 @@ export function usePerpsOrderFees({
         // Step 3: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
         if (selectedAddress && parseFloat(amount) > 0) {
-          // Use actual fee amount from provider if available, fallback to calculated amount
           const actualFeeUSD = parseFloat(amount) * adjustedRate;
           DevLogger.log('Rewards: Calculating points with discounted fee', {
             originalRate: coreFeesResult.metamaskFeeRate,
@@ -558,7 +557,6 @@ export function usePerpsOrderFees({
     clearFeeState,
     selectedAddress,
     currentChainId,
-    isClosing,
   ]);
 
   return useMemo(() => {

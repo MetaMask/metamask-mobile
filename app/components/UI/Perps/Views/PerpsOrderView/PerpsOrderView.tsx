@@ -218,7 +218,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const estimatedFees = feeResults.totalFee;
 
   // Simple boolean calculation - no need for expensive memoization
-  // Show rewards row if we have a valid amount OR if we're loading fees (to show loading state)
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
 
   // Get rewards state using the new hook
