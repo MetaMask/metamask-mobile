@@ -109,7 +109,7 @@ class SendScreen {
   }
 
   async isVisible() {
-    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Ethereum Mainnet');
+    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'Ethereum');
     await appwrightExpect(networkButton).toBeVisible();
   }
 
@@ -177,7 +177,7 @@ class SendScreen {
 
   async selectToken(tokenName, tokenSymbol) {
     if (!this._device) {
-      await Gestures.tapTextByXpath(token);
+      await Gestures.tapTextByXpath(tokenName);
     } else {
       const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, `${tokenName}, ${tokenSymbol}`);
       await tokenButton.tap();
