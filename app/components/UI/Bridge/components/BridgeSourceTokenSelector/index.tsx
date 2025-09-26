@@ -78,7 +78,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       : undefined;
   }
 
-  const { tokens: tokensList, pending } = useTokens({
+  const { allTokens, tokensToRender, pending } = useTokens({
     topTokensChainId: selectedSourceToken?.chainId,
     balanceChainIds,
     tokensToExclude: selectedDestToken ? [selectedDestToken] : [],
@@ -165,7 +165,8 @@ export const BridgeSourceTokenSelector: React.FC = () => {
         ) : undefined
       }
       renderTokenItem={renderItem}
-      tokensList={tokensList}
+      allTokens={allTokens}
+      tokensToRender={tokensToRender}
       pending={pending}
       chainIdToFetchMetadata={selectedChainId}
     />
