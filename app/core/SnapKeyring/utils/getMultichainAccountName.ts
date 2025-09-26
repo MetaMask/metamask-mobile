@@ -85,11 +85,6 @@ export function getMultichainAccountName(
             'accounts.labels.tron_shasta_account_name',
           )} ${accountNumber}`;
           break;
-        default:
-          accountNameToUse = `${strings(
-            'accounts.labels.tron_account_name',
-          )} ${accountNumber}`;
-          break;
       }
       break;
     }

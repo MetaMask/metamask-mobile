@@ -1,5 +1,4 @@
 import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
-import { CaipChainId } from '@metamask/utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { getMultichainAccountName } from './getMultichainAccountName';
 import { WalletClientType } from '../MultichainWalletSnapClient';
@@ -44,12 +43,4 @@ describe('getMultichainAccountName', () => {
       expect(result).toBe(expectedName);
     },
   );
-
-  it('should return default Tron account name for unknown Tron scope', () => {
-    const result = getMultichainAccountName(
-      'unknown-tron-scope' as CaipChainId,
-      WalletClientType.Tron,
-    );
-    expect(result).toBe('Tron Account 1');
-  });
 });
