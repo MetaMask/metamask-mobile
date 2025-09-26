@@ -1,6 +1,11 @@
 import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
-import { SolScope } from '@metamask/keyring-api';
+import {
+  SolScope,
+  EthScope,
+  EthAccountType,
+  SolAccountType,
+} from '@metamask/keyring-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 
@@ -280,7 +285,8 @@ export const initialState = {
               id: evmAccountId,
               address: evmAccountAddress,
               name: 'Account 1',
-              type: 'eip155:eoa' as const,
+              type: EthAccountType.Eoa,
+              scopes: [EthScope.Eoa],
               metadata: {
                 lastSelected: 0,
               },
@@ -289,7 +295,8 @@ export const initialState = {
               id: solanaAccountId,
               address: solanaAccountAddress,
               name: 'Account 2',
-              type: 'solana:data-account' as const,
+              type: SolAccountType.DataAccount,
+              scopes: [SolScope.Mainnet],
               metadata: {
                 lastSelected: 0,
               },
@@ -299,7 +306,26 @@ export const initialState = {
       },
       AccountTreeController: {
         accountTree: {
-          wallets: {},
+          selectedAccountGroup: 'keyring:wallet1/ethereum',
+          wallets: {
+            'keyring:wallet1': {
+              id: 'keyring:wallet1',
+              type: 'keyring',
+              metadata: {
+                name: 'Wallet 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              groups: {
+                'keyring:wallet1/ethereum': {
+                  id: 'keyring:wallet1/ethereum',
+                  type: 'ethereum',
+                  accounts: [evmAccountId, solanaAccountId],
+                },
+              },
+            },
+          },
         },
       },
       SmartTransactionsController: {
