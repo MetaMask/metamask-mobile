@@ -39,6 +39,7 @@ import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
@@ -149,6 +150,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }) => {
       const targetTab = detectedData === 'positions' ? 'position' : 'orders';
       setProgrammaticActiveTab(targetTab);
+
+      // Reset programmatic tab control after a brief delay to prevent render loops
+      setTimeout(() => {
+        setProgrammaticActiveTab(null);
+      }, PERFORMANCE_CONFIG.TAB_CONTROL_RESET_DELAY_MS);
     },
     [],
   );

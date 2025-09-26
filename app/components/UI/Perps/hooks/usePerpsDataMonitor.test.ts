@@ -289,6 +289,50 @@ describe('usePerpsDataMonitor (Declarative API)', () => {
         }),
       );
     });
+
+    it('does not restart monitoring after successful detection', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with no orders
+      mockUsePerpsLiveOrders.mockReturnValue([]);
+
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          monitor: 'orders',
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+
+      // Add new BTC order to trigger detection
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
+      rerender({});
+
+      expect(onDataDetected).toHaveBeenCalledWith({
+        detectedData: 'orders',
+        asset: 'BTC',
+        reason: 'new_orders_detected',
+      });
+
+      // Clear the mock to check for new calls
+      onDataDetected.mockClear();
+      (DevLogger.log as jest.Mock).mockClear();
+
+      // Simulate more WebSocket updates (position changes, etc.)
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockBTCPosition],
+        isInitialLoading: false,
+      });
+      rerender({});
+
+      // Should NOT restart monitoring or trigger new detections
+      expect(onDataDetected).not.toHaveBeenCalled();
+      expect(DevLogger.log).not.toHaveBeenCalledWith(
+        'usePerpsDataMonitor: Starting to monitor for data changes',
+        expect.any(Object),
+      );
+    });
   });
 
   describe('order monitoring', () => {

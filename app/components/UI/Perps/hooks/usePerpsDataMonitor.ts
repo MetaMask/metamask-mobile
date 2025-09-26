@@ -68,6 +68,9 @@ export function usePerpsDataMonitor(
   const [isMonitoring, setIsMonitoring] = useState<boolean>(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Track if monitoring has completed successfully to prevent restart loops
+  const hasCompletedRef = useRef<boolean>(false);
+
   // State to track positions and orders before order placement (for change detection)
   const [initialPositions, setInitialPositions] = useState<Position[] | null>(
     null,
@@ -81,6 +84,20 @@ export function usePerpsDataMonitor(
   // Get all positions data (real-time WebSocket)
   const { positions, isInitialLoading: isLoadingPositions } =
     usePerpsLivePositions();
+
+  // Helper function to clean up monitoring state - DRY utility
+  const cleanupMonitoring = useCallback((resetCompletion: boolean = false) => {
+    setIsMonitoring(false);
+    setInitialPositions(null);
+    setInitialOrderCount(0);
+    if (resetCompletion) {
+      hasCompletedRef.current = false;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
 
   // Clear timeout on unmount
   useEffect(
@@ -123,6 +140,11 @@ export function usePerpsDataMonitor(
     [initialPositions, positions],
   );
 
+  // Reset completion flag when key parameters change
+  useEffect(() => {
+    hasCompletedRef.current = false;
+  }, [asset, onDataDetected, enabled, monitor, timeoutMs]);
+
   // Auto-start monitoring when enabled becomes true with valid parameters
   useEffect(() => {
     const shouldStartMonitoring =
@@ -130,7 +152,8 @@ export function usePerpsDataMonitor(
       asset &&
       onDataDetected &&
       !isLoadingOrders &&
-      !isLoadingPositions;
+      !isLoadingPositions &&
+      !hasCompletedRef.current; // Don't restart if already completed
 
     if (shouldStartMonitoring) {
       // If already monitoring, restart with new parameters
@@ -138,13 +161,7 @@ export function usePerpsDataMonitor(
         DevLogger.log(
           'usePerpsDataMonitor: Restarting monitoring with new parameters',
         );
-        setIsMonitoring(false);
-        setInitialPositions(null);
-        setInitialOrderCount(0);
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
+        cleanupMonitoring();
       }
 
       DevLogger.log(
@@ -180,22 +197,17 @@ export function usePerpsDataMonitor(
         );
 
         // Clean up on timeout - no callback since no data was detected
-        setIsMonitoring(false);
-        setInitialPositions(null);
-        setInitialOrderCount(0);
-        timeoutRef.current = null;
+        cleanupMonitoring(true); // Reset completion flag on timeout
       }, timeoutMs);
     } else if (!enabled && isMonitoring) {
       // Stop monitoring when enabled becomes false
       DevLogger.log('usePerpsDataMonitor: Stopping monitoring (disabled)');
-      setIsMonitoring(false);
-      setInitialPositions(null);
-      setInitialOrderCount(0);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
+      cleanupMonitoring(true); // Reset completion flag when disabled
     }
+    // NOTE: 'orders' and 'positions' are intentionally excluded from dependencies
+    // to prevent restart loops. We capture their initial state when monitoring starts,
+    // but don't restart monitoring when they change (that would defeat the purpose).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     enabled,
     asset,
@@ -205,16 +217,19 @@ export function usePerpsDataMonitor(
     isLoadingOrders,
     isLoadingPositions,
     isMonitoring,
-    orders,
-    positions,
+    cleanupMonitoring,
   ]);
 
   // Watch for data updates and trigger callback when monitoring is active
   useEffect(() => {
+    // Don't trigger if monitoring has already completed successfully
+    if (hasCompletedRef.current) {
+      return;
+    }
+
     if (
       !isMonitoring ||
       !asset ||
-      !monitor ||
       !onDataDetected ||
       isLoadingOrders ||
       isLoadingPositions
@@ -267,14 +282,11 @@ export function usePerpsDataMonitor(
       // Always use callback - no fallback navigation
       onDataDetected({ detectedData, asset, reason });
 
+      // Mark as completed to prevent restart loops
+      hasCompletedRef.current = true;
+
       // Clear monitoring state
-      setIsMonitoring(false);
-      setInitialPositions(null);
-      setInitialOrderCount(0);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
+      cleanupMonitoring();
       return;
     }
 
@@ -298,6 +310,7 @@ export function usePerpsDataMonitor(
     isLoadingOrders,
     isLoadingPositions,
     hasPositionChangedForAsset,
+    cleanupMonitoring,
   ]);
 
   // Hook returns void - all side effects are managed internally

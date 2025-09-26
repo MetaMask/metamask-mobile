@@ -87,6 +87,10 @@ export const PERFORMANCE_CONFIG = {
   // This ensures navigation context is available when programmatically selecting tabs
   NAVIGATION_PARAMS_DELAY_MS: 200,
 
+  // Tab control reset delay (milliseconds)
+  // Delay to reset programmatic tab control after tab switching to prevent render loops
+  TAB_CONTROL_RESET_DELAY_MS: 500,
+
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
   MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
