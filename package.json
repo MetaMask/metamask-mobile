@@ -179,7 +179,9 @@
     "@ethereumjs/tx": "^5.4.0",
     "cipher-base": "1.0.5",
     "sha.js": "2.4.12",
-    "appwright/form-data": "4.0.4"
+    "appwright/form-data": "4.0.4",
+    "@metamask/transaction-controller@^60.3.0": "patch:@metamask/transaction-controller@npm%3A60.4.0#./.yarn/patches/@metamask-transaction-controller-npm-60.4.0-2123001b35.patch",
+    "@metamask/transaction-controller@^60.4.0": "patch:@metamask/transaction-controller@npm%3A60.4.0#./.yarn/patches/@metamask-transaction-controller-npm-60.4.0-2123001b35.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
