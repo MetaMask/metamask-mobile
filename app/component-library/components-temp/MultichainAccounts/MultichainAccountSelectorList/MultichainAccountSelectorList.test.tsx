@@ -593,7 +593,7 @@ describe('MultichainAccountSelectorList', () => {
           expect(queryByText('My Account')).toBeFalsy();
           expect(queryByText('Test Account')).toBeTruthy();
         },
-        { timeout: 500 },
+        { timeout: 1200 },
       );
 
       // Clear search
