@@ -72,7 +72,6 @@ export const useToAddressValidation = () => {
     toAddressValidated?: string;
     error?: string;
     warning?: string;
-    loading?: boolean;
     resolvedAddress?: string;
   }>(async () => {
     const result = await validateToAddress(to);
@@ -83,12 +82,11 @@ export const useToAddressValidation = () => {
     toAddressValidated,
     error: toAddressError,
     warning: toAddressWarning,
-    loading = false,
     resolvedAddress,
   } = value ?? {};
 
   return {
-    loading: loading || pending,
+    loading: pending,
     resolvedAddress,
     toAddressError,
     toAddressValidated,
