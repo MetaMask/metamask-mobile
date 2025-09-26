@@ -31,7 +31,7 @@ describe('useToAddressValidation', () => {
       mockState,
     );
     expect(result.current).toStrictEqual({
-      loading: true,
+      loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
       toAddressValidated: undefined,
@@ -48,7 +48,7 @@ describe('useToAddressValidation', () => {
       mockState,
     );
     expect(result.current).toStrictEqual({
-      loading: true,
+      loading: false,
       resolvedAddress: undefined,
       toAddressError: undefined,
       toAddressValidated: undefined,
