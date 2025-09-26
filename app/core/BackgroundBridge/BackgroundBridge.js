@@ -203,7 +203,8 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (this.sdkVersion !== 'v1' && !this.isWalletConnect) {
+    // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
+    if (!(this.isMMSDK && this.sdkVersion === 'v1') && !this.isWalletConnect) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -464,7 +465,8 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
-    if (this.sdkVersion !== 'v1' && !this.isWalletConnect) {
+    // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
+    if (!(this.isMMSDK && this.sdkVersion === 'v1') && !this.isWalletConnect) {
       controllerMessenger.unsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
