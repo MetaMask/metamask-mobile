@@ -32,6 +32,7 @@ import { ResetNotificationsButton } from './ResetNotificationsButton';
 import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
 import { useFirstHDWalletAccounts } from './AccountsList.hooks';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
@@ -91,7 +92,12 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             <FeatureAnnouncementToggle />
           </View>
 
-          <View style={styles.line} />
+          <View
+            style={styles.line}
+            testID={
+              NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENT_SEPARATOR
+            }
+          />
 
           {/* Account Notification Toggles */}
           {hasFirstHDWallet && (
