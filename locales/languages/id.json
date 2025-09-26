@@ -845,6 +845,14 @@
       "title": "Terjadi kesalahan",
       "description": "Terjadi kesalahan saat memproses deposit. Hubungi dukungan jika masalah berlanjut.",
       "try_again": "Coba lagi"
+    },
+    "errors": {
+      "fetch_regions": "There was an issue fetching the regions.",
+      "fetch_tokens": "There was an issue fetching the tokens.",
+      "fetch_payment_methods": "There was an issue fetching the payment methods.",
+      "try_again": "Try Again",
+      "error_details_title": "Error Details",
+      "see_more": "See more"
     }
   },
   "perps": {
@@ -857,10 +865,12 @@
     "margin_used": "Margin yang Digunakan",
     "gtm_content": {
       "title": "PERP TELAH HADIR",
-      "title_description": "Token long atau short dengan leverage hingga 40x. Danai akun Anda dengan token EVM dalam satu klik.",
+      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "Tidak sekarang",
       "try_now": "Mulai"
     },
+    "today": "Today",
+    "yesterday": "Yesterday",
     "unrealized_pnl": "PnL Belum Terealisasi",
     "withdraw": "Tarik",
     "refresh_balance": "Segarkan Saldo",
@@ -1050,6 +1060,8 @@
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
       "tp_sl": "TP/SL",
+      "tp": "TP",
+      "sl": "SL",
       "button": {
         "long": "Panjang {{asset}}",
         "short": "Pendek {{asset}}"
@@ -1081,7 +1093,11 @@
         "entry_price": "Harga Masuk",
         "current_price": "Harga saat ini",
         "liquidation_price": "Harga Likuidasi",
-        "liquidation_distance": "Jarak Likuidasi"
+        "liquidation_distance": "Jarak Likuidasi",
+        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
+        "drops": "drops",
+        "rises": "rises",
+        "set_leverage": "Set {{leverage}}x"
       },
       "type": {
         "title": "Jenis Order",
@@ -1168,6 +1184,7 @@
       "updating": "Memperbarui...",
       "off": "Mati",
       "current_price": "Harga saat ini",
+      "entry_price": "Entry price",
       "leverage": "Leverage",
       "margin": "Margin",
       "liquidation_price": "Harga likuidasi",
@@ -1280,7 +1297,7 @@
         "empty_title": "Tidak Ada Posisi Terbuka",
         "empty_description": "Anda belum memiliki posisi terbuka.\nMulai berdagang untuk melihat posisi Anda di sini.",
         "first_time_title": "Perp",
-        "first_time_description": "Prediksi pergerakan harga dengan leverage hingga 40x.",
+        "first_time_description": "Bet on price movements with up to 40x leverage.",
         "start_trading": "Mulai berdagang",
         "start_new_trade": "Mulai perdagangan baru",
         "open_positions": "Posisi Terbuka",
@@ -1321,6 +1338,8 @@
       "countdown": "Hitung mundur",
       "long": "Long",
       "short": "Short",
+      "long_lowercase": "long",
+      "short_lowercase": "short",
       "add_funds": "Tambahkan dana",
       "add_funds_to_start_trading_perps": "Tambahkan dana untuk memulai perdagangan perp",
       "position": "Posisi",
@@ -1426,6 +1445,11 @@
       "candle_intervals": "Interval lilin",
       "candle_period_selector": {
         "show_more": "Selengkapnya"
+      },
+      "time_periods": {
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days"
       }
     },
     "perps_markets": "Pasar perp",
@@ -1495,7 +1519,7 @@
       },
       "choose_leverage": {
         "title": "Pilih leverage",
-        "description": "Leverage mengamplifikasi keuntungan dan kerugian. Dengan leverage 10x, pergerakan harga 1% = keuntungan atau kerugian 10% pada margin Anda."
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "Waspadai likuidasi",
@@ -1503,12 +1527,12 @@
       },
       "close_anytime": {
         "title": "Tutup setiap saat",
-        "description": "Keluar setiap saat Anda mau. Anda akan mendapatkan kembali margin, plus profit atau minus loss."
+        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
       },
       "ready_to_trade": {
         "title": "Siap untuk berdagang?",
-        "fund_text_helper": "MetaMask akan menukar dana Anda ke USDC di Arbitrum, dan mendepositkan ke HyperEVM tanpa biaya tambahan.",
-        "description": "Danai akun perp Anda dengan token apa pun dan lakukan perdagangan pertama dalam hitungan detik."
+        "description": "Danai akun perp Anda dengan token apa pun dan lakukan perdagangan pertama dalam hitungan detik.",
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
       },
       "got_it": "Mengerti"
     },
@@ -1518,6 +1542,51 @@
     "points_error_content": "Jangan khawatir, Anda tetap mendapatkan poin. Poin akan segera muncul di akun Anda atau periksa tab Reward nanti.",
     "tp_on_chart": "TP pada Bagan",
     "sl_on_chart": "SL pada Bagan"
+  },
+  "predict": {
+    "title": "MetaMask Predict",
+    "prediction_markets": "Prediction Markets",
+    "market_list": "Market List",
+    "market_details": "Market Details",
+    "tab": {
+      "no_predictions": "No predictions yet",
+      "no_predictions_description": "Open a prediction to get started.",
+      "explore": "Explore markets",
+      "new_prediction": "New prediction"
+    },
+    "sell_position": "Sell Position",
+    "cash_out": "Cash Out",
+    "buy_yes": "Yes",
+    "buy_no": "No",
+    "outcomes": "outcomes",
+    "volume_abbreviated": "Vol.",
+    "recurrence": {
+      "none": "None",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "quarterly": "Quarterly"
+    },
+    "outcomes_singular": "more outcome",
+    "outcomes_plural": "more outcomes",
+    "category": {
+      "trending": "Trending",
+      "new": "New",
+      "sports": "Sports",
+      "crypto": "Crypto",
+      "politics": "Politics"
+    },
+    "search_placeholder": "Search prediction markets",
+    "search_cancel": "Cancel",
+    "claim_button": "Claim",
+    "markets_won": "Markets won",
+    "won_markets_text": "Won {{count}} market{{s}}",
+    "won_markets_text_singular": "Won {{count}} market",
+    "won_markets_text_plural": "Won {{count}} markets",
+    "claim_amount_text": "Claim ${{amount}}",
+    "unrealized_pnl_label": "Unrealized P&L",
+    "unrealized_pnl_value": "{{amount}} ({{percent}})"
   },
   "receive": {
     "title": "Terima"
@@ -1588,6 +1657,7 @@
     "collectibles": "NFT",
     "defi": "DeFi",
     "perps": "Perp",
+    "predict": "Predictions",
     "transactions": "TRANSAKSI",
     "no_collectibles": "Tidak melihat NFT Anda?",
     "no_available_tokens": "Tidak melihat token Anda?",
@@ -1653,6 +1723,8 @@
     "nfts_autodetection_cta": "Aktifkan deteksi NFT di Pengaturan",
     "learn_more": "Pelajari selengkapnya",
     "add_collectibles": "Impor NFT",
+    "nft_empty_description": "There's a world of NFTs out there. Start your collection today.",
+    "discover_nfts": "Import NFTs",
     "no_transactions": "Belum ada transaksi!",
     "switch_network_to_view_transactions": "Alihkan jaringan untuk melihat transaksi",
     "send_button": "Kirim",
@@ -1762,8 +1834,10 @@
   },
   "defi_positions": {
     "loading_positions": "Memuat posisi DeFi...",
-    "no_visible_positions": "Tidak dapat menemukan yang Anda cari?",
-    "not_supported": "Kami mungkin belum mendukung protokol Anda.",
+    "empty_state": {
+      "description": "Lend, borrow, and trade, right in your wallet.",
+      "explore_defi": "Explore DeFi"
+    },
     "error_cannot_load_page": "Kami tidak dapat memuat halaman ini.",
     "error_visit_again": "Coba kunjungi lagi nanti.",
     "single_token": "Hanya {{symbol}}",
@@ -2446,10 +2520,9 @@
     "disconnect_confirm": "Memutus koneksi",
     "cancel": "Batal"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Kembali ke aplikasi",
-    "postNetworkSwitchTitle": "Jaringan berhasil dialihkan",
-    "description": "Kembali ke aplikasi untuk terus menggunakan layanannya."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Now you can return to app",
+    "networkSwitchMethodLabel": "Network successfully switched"
   },
   "sdk_feedback_modal": {
     "ok": "Oke",
@@ -2555,6 +2628,7 @@
     "deposit_button": "Deposit",
     "earn_button": "Dapatkan",
     "perps_button": "Perp",
+    "predict_button": "Predictions",
     "add_collectible_button": "Tambahkan",
     "info": "Informasi",
     "swap": "Tukar",
@@ -2588,6 +2662,7 @@
     "receive_description": "Terima kripto",
     "earn_description": "Dapatkan imbalan atas token Anda",
     "perps_description": "Kontrak perdagangan perp",
+    "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "Hari ini",
       "7d": "7 hari terakhir",
@@ -3049,6 +3124,8 @@
     "request_from": "Permintaan dari",
     "network_fee": "Biaya Jaringan",
     "network_fee_tooltip": "Jumlah yang dibayarkan untuk memproses transaksi di jaringan.",
+    "confirm_gas_fee_token_tooltip": "This is paid to the network to process your transaction. It includes a {{metamaskFeeFiat}} MetaMask fee for non-ETH tokens or pre-funded ETH.",
+    "confirm_gas_fee_token_metamask_fee": "Includes {{metamaskFeeFiat}} fee",
     "smart_account_upgrade": "Tingkatkan ke akun cerdas",
     "smart_account_downgrade": "Beralih ke akun standar",
     "batched_transactions": "Transaksi batch",
@@ -4071,6 +4148,11 @@
     "change_cash_destination": "Ubah destinasi tunai",
     "try_different_region": "Coba wilayah lain",
     "return_home": "Kembali ke Layar Beranda",
+    "incompatible_token_account_modal": {
+      "title": "Incompatible Account",
+      "description": "Your current account cannot support tokens on {{networkName}}. Please switch to a compatible account to continue.",
+      "cta": "Got it"
+    },
     "region": {
       "buy_crypto_tokens": "Beli Token Kripto",
       "sell_crypto_tokens": "Jual Token Kripto",
@@ -5361,7 +5443,7 @@
     "title": "Bridge",
     "submitting_transaction": "Mengirim",
     "fetching_quote": "Mengambil kuotasi",
-    "fee_disclaimer": "Termasuk biaya MM 0,875%",
+    "fee_disclaimer": "Includes {{feePercentage}}% MM fee",
     "no_mm_fee": "No MM fee",
     "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "Dompet perangkat keras belum didukung. Gunakan hot wallet untuk melanjutkan.",
@@ -5697,6 +5779,52 @@
     "failed_to_authenticate": "Failed to authenticate with rewards program",
     "not_implemented": "Segera hadir",
     "not_implemented_season_summary": "Ringkasan Musim Segera Hadir",
+    "optin_error": {
+      "title": "Opt-in failed",
+      "description": "Check your connection and try again."
+    },
+    "season_status_error": {
+      "error_fetching_title": "Season balance couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "active_boosts_error": {
+      "error_fetching_title": "Boosts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "unlocked_rewards_error": {
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "upcoming_rewards_error": {
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "referral_details_error": {
+      "error_fetching_title": "Referral details couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "referral_validation_unknown_error": {
+      "title": "Referral code couldn’t be validated",
+      "description": "Check your connection and try again."
+    },
+    "active_activity_error": {
+      "error_fetching_title": "Activity couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "claim_reward_error": {
+      "title": "Failed to claim reward"
+    },
+    "accounts_opt_in_state_error": {
+      "error_fetching_title": "Accounts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "referral_rewards_title": "Rujukan",
     "points": "Poin",
     "point": "Poin",
@@ -5716,8 +5844,8 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
-    "toast_dismiss": "Dismiss",
     "events": {
+      "to": "to",
       "type": {
         "swap": "Swap",
         "perps": "Perp",
@@ -5736,21 +5864,26 @@
     "onboarding": {
       "not_supported_region_title": "Wilayah tidak didukung",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_account_needed_title": "Ethereum account needed",
-      "not_supported_account_needed_description": "MetaMask Rewards aren't available for Solana accounts yet. Switch to an Ethereum account to claim your points.",
-      "not_supported_confirm": "Mengerti",
+      "not_supported_hardware_account_title": "Account not supported",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_confirm_go_back": "Go back",
+      "not_supported_confirm_retry": "Retry",
+      "auth_fail_title": "Authentication Failed",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
+      "geo_check_fail_title": "Cannot determine opt-in eligibility",
+      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking opt-in for accounts...",
-      "redirecting_to_dashboard": "Redirecting to dashboard...",
+      "checking_opt_in": "Checking accounts...",
+      "redirecting_to_dashboard": "Redirecting...",
       "intro_skip": "Tidak sekarang",
       "step_confirm": "Berikutnya",
       "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
-      "step1_description": "Setiap pertukaran dan perdagangan perp yang Anda lakukan di MetaMask akan semakin mendekatkan Anda dengan reward. Hubungkan akun dan lihat poin Anda bertambah.",
+      "step1_description": "Setiap swap dan perdagangan perp yang Anda lakukan di MetaMask makin mendekatkan Anda dengan reward. Tambahkan akun dan lihat poin Anda bertambah.",
       "step2_title": "Level up for bigger perks",
       "step2_description": "Capai tonggak poin untuk memperoleh keuntungan seperti diskon 50% untuk biaya perp, token eksklusif, dan Kartu Metal MetaMask gratis.",
       "step3_title": "Exclusive seasonal rewards",
@@ -5763,73 +5896,88 @@
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
-      "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
-      "step4_linking_accounts_loading": "Linking additional accounts...",
+      "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
+      "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
       "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
       "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
       "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
-      "error_title": "Unable to Load Linked Accounts",
-      "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
-      "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
-      "no_linked_accounts": "No linked accounts",
-      "all_accounts_linked_title": "All accounts are linked",
-      "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
-      "link_account_success_title": "Account {{accountName}} successfully linked",
-      "link_account_error_title": "Failed to link account",
-      "link_account_button": "Link"
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
+      "tab_linked_accounts": "Added ({{count}})",
+      "tab_unlinked_accounts": "Not added ({{count}})",
+      "no_linked_accounts": "No accounts opted in",
+      "all_accounts_linked_title": "All accounts opted in",
+      "all_accounts_linked_description": "You have added all your accounts to Rewards.",
+      "link_account_success_title": "{{accountName}} successfully added",
+      "link_account_error_title": "Failed to add account",
+      "link_account_button": "Add",
+      "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
     },
     "optout": {
       "title": "Opt out of Rewards",
-      "description": "This will erase your points and progress. You won't be able to undo this.",
+      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
       "confirm": "Opt out",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll restart at 0.",
+        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
         "cancel": "Cancel",
         "confirm": "Confirm",
-        "error_message": "Failed to opt out of rewards program. Please try again.",
+        "error_message": "Failed to opt out of Rewards. Please try again.",
         "processing": "Processing..."
       }
     },
     "unlinked_accounts_info": {
-      "title": "There are unlinked accounts",
-      "description": "If you want to earn points for the activity of these accounts you can link them in the settings page.",
+      "title": "Accounts not earning points",
+      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
       "go_to_settings": "Go to settings"
     },
     "unlinked_account_info": {
-      "title": "Account not linked",
+      "title": "Account not earning points",
       "description": "This account's activity is not being tracked for this season."
     },
-    "link_account": "Link account",
-    "linking_account": "Linking...",
+    "link_account": "Add account",
+    "linking_account": "Adding...",
     "ways_to_earn": {
       "title": "Ways to earn",
       "supported_networks": "Supported Networks",
       "swap": {
         "title": "Swap",
-        "sheet_title": "Swap tokens",
-        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
-        "points": "80 points per $100",
-        "cta_label": "Start a swap"
+        "description": "80 points per $100",
+        "sheet": {
+          "title": "Swap tokens",
+          "points": "80 points per $100",
+          "description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+          "cta_label": "Start a swap"
+        }
       },
       "perps": {
         "title": "Perp",
-        "sheet_title": "Perdagangkan perp",
-        "sheet_description": "Dapatkan poin pada setiap perdagangan, termasuk pembukaan dan penutupan, order stop loss dan take profit, serta penyesuaian margin.",
-        "points": "10 poin per $100",
-        "cta_label": "Mulai perdagangan"
+        "description": "10 points per $100",
+        "sheet": {
+          "title": "Trade perps",
+          "points": "10 points per $100",
+          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+          "cta_label": "Start a trade"
+        }
       },
       "referrals": {
-        "title": "Referrals",
-        "points": "Get 20% from friends you refer"
+        "title": "Refer friends",
+        "description": "10 points per 50 from friends"
+      },
+      "loyalty": {
+        "title": "Loyalty bonus",
+        "description": "Earn points from past trades",
+        "sheet": {
+          "title": "Loyalty bonus",
+          "points": "250 points per $1250",
+          "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
+          "cta_label": "Add accounts"
+        }
       }
     },
     "referral": {
@@ -5842,13 +5990,10 @@
       },
       "info": {
         "title": "Bagikan kode Anda untuk mendapatkan lebih banyak",
-        "description": "Teman Anda memperoleh poin bonus dan Anda memperoleh 20% dari reward mereka."
+        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
-    "active_boosts": {
-      "title": "Active boosts",
-      "error": "Failed to load active boosts"
-    },
+    "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
       "title": "Upcoming rewards",
@@ -5858,8 +6003,6 @@
     },
     "unlocked_rewards": {
       "title": "Unlocked rewards",
-      "empty": "No rewards yet. \nEarn points and level up.",
-      "see_ways_to_earn": "See ways to earn",
       "cta_label": "Claim now",
       "cta_request_invite": "Request invite",
       "claim_label": "Claim",
@@ -5886,6 +6029,8 @@
     "summary_title": {
       "bridge": "Bridge dari {{sourceSymbol}} ke {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
+      "bridge_approval_loading": "Approve",
+      "bridge_loading": "Bridge",
       "default": "Transaksi",
       "perps_deposit": "Tambahkan dana",
       "swap": "Tukar token",
