@@ -1,18 +1,20 @@
 diff --git a/node_modules/appwright/dist/config.js b/node_modules/appwright/dist/config.js
-index a51913b..8c0335c 100644
+index a51913b..6479c9b 100644
 --- a/node_modules/appwright/dist/config.js
 +++ b/node_modules/appwright/dist/config.js
-@@ -25,7 +25,7 @@ const defaultConfig = {
+@@ -24,8 +24,8 @@ const defaultConfig = {
+     // used across tests in a file where they run sequentially
      fullyParallel: false,
      forbidOnly: false,
-     retries: process.env.CI ? 2 : 0,
+-    retries: process.env.CI ? 2 : 0,
 -    workers: 2,
++    retries: process.env.CI ? 1 : 0,
 +    workers: 1,
      reporter: [["list"], ["html", { open: "always" }]],
      use: {
          // TODO: Use this for actions
 diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
-index 638c5df..b8aa5e5 100644
+index 638c5df..f057770 100644
 --- a/node_modules/appwright/dist/providers/browserstack/index.js
 +++ b/node_modules/appwright/dist/providers/browserstack/index.js
 @@ -120,6 +120,12 @@ class BrowserStackDeviceProvider {
@@ -51,7 +53,7 @@ index 638c5df..b8aa5e5 100644
                          : process.env.USER,
                  },
                  "appium:autoGrantPermissions": true,
-@@ -261,6 +269,15 @@ class BrowserStackDeviceProvider {
+@@ -261,6 +269,12 @@ class BrowserStackDeviceProvider {
                  "appium:autoAcceptAlerts": true,
                  "appium:fullReset": true,
                  "appium:settings[snapshotMaxDepth]": 62,
@@ -60,9 +62,6 @@ index 638c5df..b8aa5e5 100644
 +                "appium:settings[actionAcknowledgmentTimeout]": 3000,
 +                "appium:settings[ignoreUnimportantViews]": true,
 +                "appium:settings[waitForSelectorTimeout]": 10000,
-+                // iOS specific capabilities for system dialogs
-+                "appium:waitForQuiescence": false,
-+                "appium:shouldUseSingletonTestManager": false,
 +                "appium:skipLogCapture": true,
              },
          };
