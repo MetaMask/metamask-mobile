@@ -36,10 +36,6 @@ export interface MultichainAccountSelectorListProps
    * Optional boolean to show checkbox
    */
   showCheckbox?: boolean;
-  /**
-   * Optional boolean to set keyboard avoiding view enabled
-   */
-  setKeyboardAvoidingViewEnabled?: (enabled: boolean) => void;
 }
 
 /**
