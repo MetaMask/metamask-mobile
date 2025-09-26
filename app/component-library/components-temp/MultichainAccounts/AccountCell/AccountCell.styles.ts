@@ -8,6 +8,8 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       gap: 16,
+      paddingTop: 2,
+      paddingBottom: 2,
     },
     accountName: {
       display: 'flex',
