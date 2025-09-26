@@ -3847,7 +3847,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        Arbitrum One
+                                        Arbitrum
                                       </Text>
                                     </View>
                                     <View
@@ -3966,7 +3966,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        BNB Smart Chain Mainnet
+                                        BNB Chain
                                       </Text>
                                     </View>
                                     <View
@@ -4323,7 +4323,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        zkSync Mainnet
+                                        zkSync Era
                                       </Text>
                                     </View>
                                     <View
@@ -4442,7 +4442,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        Sei Mainnet
+                                        Sei
                                       </Text>
                                     </View>
                                     <View

@@ -75,7 +75,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   const periodSections = showAllPeriods
     ? [
         {
-          title: 'Minutes',
+          title: strings('perps.chart.time_periods.minutes'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
               CandlePeriod.ONE_MINUTE,
@@ -87,7 +87,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           ),
         },
         {
-          title: 'Hours',
+          title: strings('perps.chart.time_periods.hours'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
               CandlePeriod.ONE_HOUR,
@@ -99,7 +99,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           ),
         },
         {
-          title: 'Days',
+          title: strings('perps.chart.time_periods.days'),
           periods: CANDLE_PERIODS.filter((period) =>
             [
               CandlePeriod.ONE_DAY,
