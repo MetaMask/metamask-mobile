@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -95,6 +95,13 @@ const createStyles = ({
       marginLeft: 8,
       paddingHorizontal: 6,
     },
+    stockBadge: {
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      alignSelf: 'flex-start',
+    },
   });
 
 interface TokenSelectorItemProps {
@@ -133,6 +140,17 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
+
+  // to check if the token is a stock by checking if the name includes 'ondo' or 'stock'
+  const isStock = useCallback(() => {
+    if (
+      token.name?.toLowerCase().includes('ondo') ||
+      token.name?.toLowerCase().includes('stock')
+    ) {
+      return true;
+    }
+    return false;
+  }, [token.name]);
 
   const balance = shouldShowBalance ? fiatValue : undefined;
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
@@ -212,6 +230,13 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {token.name}
             </Text>
+            {isStock() && (
+              <View style={styles.stockBadge}>
+                <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+                  {strings('token.stock')}
+                </Text>
+              </View>
+            )}
           </Box>
 
           {/* Token balance and fiat value */}
