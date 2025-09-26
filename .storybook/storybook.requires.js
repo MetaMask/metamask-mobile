@@ -126,6 +126,7 @@ const getStories = () => {
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
     "./app/components/Base/Keypad/Keypad.stories.tsx": require("../app/components/Base/Keypad/Keypad.stories.tsx"),
+    "./app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx": require("../app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx"),
     "./app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx": require("../app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx"),
     "./app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx": require("../app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx"),
     "./app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx": require("../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx"),

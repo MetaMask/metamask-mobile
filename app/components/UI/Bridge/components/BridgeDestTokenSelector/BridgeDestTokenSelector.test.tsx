@@ -2,7 +2,7 @@ import {
   initialState as initialStateBase,
   ethToken2Address,
 } from '../../_mocks_/initialState';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestTokenSelector, getNetworkName } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -268,6 +268,7 @@ describe('BridgeDestTokenSelector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   it('renders with initial state and displays tokens', async () => {
@@ -291,6 +292,7 @@ describe('BridgeDestTokenSelector', () => {
   });
 
   it('handles token selection correctly', async () => {
+    // Arrange
     const { getByText } = renderScreen(
       BridgeDestTokenSelector,
       {
@@ -299,11 +301,18 @@ describe('BridgeDestTokenSelector', () => {
       { state: initialState },
     );
 
+    // Act - wait for token to appear and press it
     await waitFor(() => {
       const token1Element = getByText('HELLO');
       fireEvent.press(token1Element);
     });
 
+    // Advance timers to trigger debounced function (wrapped in act to handle state updates)
+    await act(async () => {
+      jest.advanceTimersByTime(500);
+    });
+
+    // Assert - check that actions were called
     expect(setDestToken).toHaveBeenCalledWith(
       expect.objectContaining({
         address: ethToken2Address,

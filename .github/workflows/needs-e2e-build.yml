@@ -160,7 +160,15 @@ jobs:
             state="ANDROID_ONLY"
           elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
             state="IOS_ONLY"
+          elif [[ "$android" == 'true' && "$ios" == 'true' ]]; then
+            state="SHARED"
           elif [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' && "$ignore_files" == "$catch_all_files" ]]; then
+            state="PURE_IGNORE"
+          elif [[ "$ignore_files" != "$catch_all_files" ]]; then
+            # Conservative approach: build both if there are changes outside the ignore set
+            state="SHARED"
+          elif [[ -z "$catch_all_files" ]]; then
+            # No changed files detected
             state="PURE_IGNORE"
           else
             echo "UNEXPECTED STATE"

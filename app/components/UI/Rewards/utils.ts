@@ -1,5 +1,12 @@
+import {
+  CaipAccountId,
+  parseCaipChainId,
+  toCaipAccountId,
+} from '@metamask/utils';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import Logger from '../../../util/Logger';
 
 // Initialize dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
@@ -40,4 +47,20 @@ export const handleRewardsErrorMessage = (error: unknown) => {
     return 'Service is not available at the moment. Please try again shortly.';
   }
   return message;
+};
+
+export const convertInternalAccountToCaipAccountId = (
+  account: InternalAccount,
+): CaipAccountId | null => {
+  try {
+    const [scope] = account.scopes;
+    const { namespace, reference } = parseCaipChainId(scope);
+    return toCaipAccountId(namespace, reference, account.address);
+  } catch (error) {
+    Logger.log(
+      'RewardsUtils: Failed to convert address to CAIP-10 format:',
+      error,
+    );
+    return null;
+  }
 };

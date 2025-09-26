@@ -53,7 +53,6 @@ const RewardsThemeImageComponent: React.FC<RewardsThemeImageComponentProps> = ({
           source={{ uri: imageSource }}
           resizeMode="contain"
           style={style}
-          onLoadStart={() => setImgLoading(true)}
           onLoad={() => setImgLoading(false)}
           onError={() => setImgLoading('error')}
           testID="theme-image"

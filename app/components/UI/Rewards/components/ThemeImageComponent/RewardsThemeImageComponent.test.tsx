@@ -191,22 +191,4 @@ describe('RewardsThemeImageComponent', () => {
     expect(queryByTestId('activity-indicator')).toBeNull();
     expect(getByTestId('fallback-icon')).toBeOnTheScreen();
   });
-
-  it('handles re-loading when onLoadStart is called after successful load', () => {
-    // Arrange
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <RewardsThemeImageComponent themeImage={mockThemeImage} />,
-    );
-    const image = getByTestId('theme-image');
-
-    // Act - initial load success
-    fireEvent(image, 'onLoad');
-    expect(queryByTestId('activity-indicator')).toBeNull();
-
-    // Act - start loading again
-    fireEvent(image, 'onLoadStart');
-
-    // Assert
-    expect(getByTestId('activity-indicator')).toBeOnTheScreen();
-  });
 });

@@ -96,12 +96,11 @@ const SmartAccountModal = () => {
                 </Text>
               </Text>
             </Box>
+            {showNetworkList && (
+              <SmartAccountNetworkList address={account.address} />
+            )}
           </Box>
         </View>
-
-        {showNetworkList && (
-          <SmartAccountNetworkList address={account.address} />
-        )}
       </View>
     </SafeAreaView>
   );

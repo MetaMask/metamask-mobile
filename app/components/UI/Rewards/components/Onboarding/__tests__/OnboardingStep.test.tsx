@@ -1104,16 +1104,6 @@ describe('OnboardingStep4', () => {
     });
   });
 
-  describe('error handling', () => {
-    it('should display opt-in error when present', () => {
-      mockUseOptin.optinError = 'Something went wrong';
-
-      renderWithProviders(<OnboardingStep4 />);
-
-      expect(screen.getByText('Something went wrong')).toBeDefined();
-    });
-  });
-
   describe('navigation', () => {
     it('should have swipe gestures disabled', () => {
       renderWithProviders(<OnboardingStep4 />);

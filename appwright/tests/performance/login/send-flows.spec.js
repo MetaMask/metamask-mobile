@@ -44,7 +44,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on Ethereum Network, until the assets list is displayed',
   );
   timer2.start();
-  await SendScreen.selectNetwork('Ethereum Mainnet');
+  await SendScreen.selectNetwork('Ethereum');
   await SendScreen.assetsListIsDisplayed();
   timer2.stop();
   const timer3 = new TimerHelper(

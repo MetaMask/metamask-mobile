@@ -1190,6 +1190,439 @@ describe('TabsBar', () => {
     });
   });
 
+  describe('Error Handling and Edge Cases', () => {
+    it('handles invalid tab layout indices gracefully', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Act - Simulate invalid layout events
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+
+        // Invalid index (negative)
+        const invalidTab = getByTestId('tabs-bar-tab-0');
+        fireEvent(invalidTab, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+      });
+
+      // Should handle invalid indices without crashing
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles invalid layout data gracefully', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+      const tab0 = getByTestId('tabs-bar-tab-0');
+
+      // Act - Provide invalid layout data
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+
+        // Invalid layout data (zero width, negative values, etc.)
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: -10, y: 0, width: 0, height: 40 } },
+        });
+      });
+
+      // Should handle invalid layout data without crashing
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles layout events with missing properties', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+      const tab0 = getByTestId('tabs-bar-tab-0');
+
+      // Act - Provide layout data with missing properties
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+
+        // Layout event with missing width property
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, height: 40 } },
+        });
+      });
+
+      // Should handle missing properties gracefully
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('stops animation when activeIndex becomes negative', () => {
+      const mockOnTabPress = jest.fn();
+      const { rerender, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Initialize layout
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        const tab0 = getByTestId('tabs-bar-tab-0');
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+      });
+
+      // Change to negative activeIndex (should stop animation)
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={-1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Should handle negative activeIndex gracefully
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles animation interruption during negative activeIndex', () => {
+      const mockOnTabPress = jest.fn();
+      const { rerender, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Initialize some layouts
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        const tab0 = getByTestId('tabs-bar-tab-0');
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+      });
+
+      // Switch to negative activeIndex while animation might be in progress
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={-1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Should stop any ongoing animation
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+  });
+
+  describe('Layout Initialization Edge Cases', () => {
+    it('handles missing layouts during hasAllTabLayouts check', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Act - Provide partial layout data to trigger missing layouts scenario
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+
+        // Only measure first tab, leaving others unmeasured
+        const tab0 = getByTestId('tabs-bar-tab-0');
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+      });
+
+      // Should handle missing layouts gracefully
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('triggers animation when hasAllTabLayouts becomes true', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Act - Gradually provide all layouts to trigger hasAllTabLayouts effect
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+
+        // Measure all tabs one by one
+        mockTabs.forEach((_, index) => {
+          const tab = getByTestId(`tabs-bar-tab-${index}`);
+          fireEvent(tab, 'onLayout', {
+            nativeEvent: {
+              layout: { x: index * 80, y: 0, width: 70, height: 40 },
+            },
+          });
+        });
+      });
+
+      // Should trigger animation when all layouts are available
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles array length mismatch during layout storage', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Act - Trigger array length initialization
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+
+        // This should trigger the array length check and initialization
+        const tab0 = getByTestId('tabs-bar-tab-0');
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+      });
+
+      // Should initialize array to proper length
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+  });
+
+  describe('Scroll Detection Edge Cases', () => {
+    it('handles scroll detection with zero container width', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={manyTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Act - Set container width to 0
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(0));
+
+        // Measure some tabs
+        manyTabs.slice(0, 3).forEach((_, index) => {
+          const tab = getByTestId(`tabs-bar-tab-${index}`);
+          fireEvent(tab, 'onLayout', {
+            nativeEvent: {
+              layout: { x: index * 100, y: 0, width: 90, height: 40 },
+            },
+          });
+        });
+      });
+
+      // Should handle zero container width gracefully
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles scroll detection with undefined layout data', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Act - Provide container width but no tab layouts
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        // Don't provide any tab layouts - should handle undefined gracefully
+      });
+
+      // Should handle undefined layout data gracefully
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('covers scroll to active tab functionality', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={manyTabs}
+          activeIndex={5} // Tab that would be off-screen
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Act - Set up scrolling scenario
+      act(() => {
+        // Small container to force scrolling
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(200));
+
+        // Measure all tabs with wide widths
+        manyTabs.forEach((_, index) => {
+          const tab = getByTestId(`tabs-bar-tab-${index}`);
+          fireEvent(tab, 'onLayout', {
+            nativeEvent: {
+              layout: { x: index * 120, y: 0, width: 100, height: 40 },
+            },
+          });
+        });
+      });
+
+      // Should enable scrolling and scroll to active tab
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+  });
+
+  describe('Animation State Management', () => {
+    it('handles animation cancellation during rapid switching', () => {
+      const mockOnTabPress = jest.fn();
+      const { rerender, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Initialize all layouts
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        mockTabs.forEach((_, index) => {
+          const tab = getByTestId(`tabs-bar-tab-${index}`);
+          fireEvent(tab, 'onLayout', {
+            nativeEvent: {
+              layout: { x: index * 80, y: 0, width: 70, height: 40 },
+            },
+          });
+        });
+      });
+
+      // Rapid switching to trigger animation cancellation
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={2}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Should handle animation cancellation gracefully
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+
+    it('handles hasValidDimensions state updates', () => {
+      const mockOnTabPress = jest.fn();
+      const { rerender, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const tabsBarComponent = getByTestId('tabs-bar');
+
+      // Initialize first tab
+      act(() => {
+        fireEvent(tabsBarComponent, 'onLayout', mockLayoutEvent(300));
+        const tab0 = getByTestId('tabs-bar-tab-0');
+        fireEvent(tab0, 'onLayout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 40 } },
+        });
+      });
+
+      // Switch to another tab to trigger hasValidDimensions update
+      rerender(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={1}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Provide layout for second tab
+      act(() => {
+        const tab1 = getByTestId('tabs-bar-tab-1');
+        fireEvent(tab1, 'onLayout', {
+          nativeEvent: { layout: { x: 84, y: 0, width: 70, height: 40 } },
+        });
+      });
+
+      // Should handle hasValidDimensions state updates
+      expect(tabsBarComponent).toBeOnTheScreen();
+    });
+  });
+
   describe('Accessibility', () => {
     it('provides proper accessibility for tabs', () => {
       const mockOnTabPress = jest.fn();

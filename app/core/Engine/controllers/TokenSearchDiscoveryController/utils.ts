@@ -10,8 +10,7 @@ import { PORTFOLIO_API_URL } from './constants';
 const getPortfolioApiBaseUrl = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (env) {
-    // TODO: Replace local with dev
-    case 'local':
+    case 'dev':
     case 'e2e':
       return PORTFOLIO_API_URL.dev;
     case 'pre-release':
