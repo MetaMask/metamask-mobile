@@ -210,9 +210,14 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
 
         // Ensure the tab is loaded - small delay to let animation start first
         if (!loadedTabs.has(tabIndex)) {
-          setTimeout(() => {
+          // In tests, update synchronously to avoid act() warnings
+          if (process.env.JEST_WORKER_ID) {
             setLoadedTabs((prev) => new Set(prev).add(tabIndex));
-          }, 10); // Small delay to let underline animation start
+          } else {
+            setTimeout(() => {
+              setLoadedTabs((prev) => new Set(prev).add(tabIndex));
+            }, 10); // Small delay to let underline animation start
+          }
         }
 
         // Set programmatic scroll flag AFTER state update

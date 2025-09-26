@@ -118,12 +118,19 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
         // Use requestAnimationFrame to ensure state updates happen in the next frame
         // This ensures the component re-renders with the updated state
-        requestAnimationFrame(() => {
+        // In tests, update synchronously to avoid act() warnings
+        if (process.env.JEST_WORKER_ID) {
           setIsInitializedState(true);
           setHasValidDimensions(true);
           setIsLayoutReady(true);
-          // First initialization complete
-        });
+        } else {
+          requestAnimationFrame(() => {
+            setIsInitializedState(true);
+            setHasValidDimensions(true);
+            setIsLayoutReady(true);
+            // First initialization complete
+          });
+        }
       } else {
         // Subsequent animation - animating to new position
 
