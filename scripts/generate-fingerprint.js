@@ -3,7 +3,7 @@ const { createFingerprintAsync } = require('@expo/fingerprint');
 async function generateFingerprint() {
   try {
     const { hash } = await createFingerprintAsync(process.cwd(), { mode: 'prebuild' });
-    // Only output the hash to stdout, no console.log or extra outputExpand commentComment on line R6ResolvedCode has comments. Press enter to view.
+    // Only output the hash to stdout, with no extra output, to ensure that scripts or tools consuming this output receive only the hash value and are not affected by additional text.
     process.stdout.write(hash);
   } catch (error) {
     // Write error to stderr instead of stdout to avoid corrupting the hash output

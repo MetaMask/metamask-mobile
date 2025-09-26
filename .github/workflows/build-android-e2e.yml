@@ -133,7 +133,6 @@ jobs:
           yarn build:repack
           echo "📦 Final APK size: $(du -h "android/app/build/outputs/apk/prod/release/app-prod-release.apk" | cut -f1)"
 
-
       # Cache build artifacts with the pre-build fingerprint
       - name: Cache build artifacts
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
