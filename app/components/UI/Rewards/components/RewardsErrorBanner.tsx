@@ -59,7 +59,7 @@ const RewardsErrorBanner: React.FC<RewardsErrorBannerProps> = ({
         </Text>
 
         {/* Description */}
-        <Text variant={TextVariant.BodyMd} twClassName="text-whit">
+        <Text variant={TextVariant.BodyMd} twClassName="text-white">
           {description}
         </Text>
       </Box>
