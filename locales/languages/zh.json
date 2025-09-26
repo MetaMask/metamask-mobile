@@ -1631,7 +1631,6 @@
     "buy_asset": "买入 {{asset}}",
     "no_tokens": "您没有任何代币！",
     "show_tokens_without_balance": "显示没有余额的代币",
-    "no_nfts_yet": "尚无 NFT",
     "nfts_autodetection_title": "NFT 检测",
     "nfts_autodetection_desc": "让 MetaMask 自动检测并显示您钱包中的 NFT。",
     "network_details_check": "网络详情检查",
