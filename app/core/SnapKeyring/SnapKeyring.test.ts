@@ -437,7 +437,7 @@ describe('Snap Keyring Methods', () => {
         method: KeyringEvent.AccountCreated,
         params: {
           account: mockAccount,
-          displayConfirmation: false,
+          displayConfirmation: true, // This should trigger skipConfirmation=false
           accountNameSuggestion: mockNameSuggestion,
           displayAccountNameSuggestion: true, // This should trigger the dialog
         },
@@ -589,6 +589,92 @@ describe('Snap Keyring Methods', () => {
         mockAccount.id,
         mockNameSuggestion,
       ]);
+    });
+
+    it('skips startFlow when skipConfirmation is true for preinstalled snaps', async () => {
+      // Mock isSnapPreinstalled to return true for this test
+      (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
+
+      const mockNameSuggestion = 'suggested name';
+      mockListMultichainAccounts.mockReturnValueOnce([]);
+
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false, // This should trigger skipConfirmation=true
+          accountNameSuggestion: mockNameSuggestion,
+        },
+      });
+
+      // Verify that startFlow was NOT called during account creation
+      expect(mockStartFlow).not.toHaveBeenCalled();
+
+      // Verify that the account was created and named
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
+
+      // Wait for any pending promises (including the account finalization)
+      await waitForAllPromises();
+
+      // Verify that setSelectedAccount and setAccountName are called
+      expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
+      expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
+      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledWith([
+        mockAccount.id,
+        mockNameSuggestion,
+      ]);
+
+      // Verify trackSnapAccountEvent was called
+      expect(trackSnapAccountEvent).toHaveBeenCalled();
+    });
+
+    it('calls startFlow when skipConfirmation is false for preinstalled snaps', async () => {
+      // Mock isSnapPreinstalled to return true for this test
+      (isSnapPreinstalled as jest.Mock).mockReturnValue(true);
+
+      const mockNameSuggestion = 'suggested name';
+      mockAddRequest.mockReturnValueOnce({
+        success: true,
+        name: mockNameSuggestion,
+      });
+
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: true, // This should trigger skipConfirmation=false
+          accountNameSuggestion: mockNameSuggestion,
+        },
+      });
+
+      // Verify that startFlow was called during account creation
+      expect(mockStartFlow).toHaveBeenCalledTimes(2);
+
+      // Verify that the account was created and named
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(1);
+
+      // Wait for any pending promises (including the account finalization)
+      await waitForAllPromises();
+
+      // Verify that setSelectedAccount and setAccountName are called
+      expect(mockSetSelectedAccount).toHaveBeenCalledTimes(1);
+      expect(mockSetSelectedAccount).toHaveBeenCalledWith([mockAccount.id]);
+      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledWith([
+        mockAccount.id,
+        mockNameSuggestion,
+      ]);
+
+      // Verify that the approval flow was ended
+      expect(mockEndFlow).toHaveBeenCalledTimes(2);
+      expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
+      expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
+
+      // Verify trackSnapAccountEvent was called
+      expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
   });
   describe('removeAccount', () => {
