@@ -58,6 +58,12 @@ export const TransactionControllerInit: ControllerInitFunction<
     smartTransactionsController,
   } = getControllers(request);
 
+  addTransactionControllerListeners({
+    initMessenger,
+    getState,
+    smartTransactionsController,
+  });
+
   try {
     const transactionController: TransactionController =
       new TransactionController({
@@ -121,12 +127,6 @@ export const TransactionControllerInit: ControllerInitFunction<
         state: persistedState.TransactionController,
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
       });
-
-    addTransactionControllerListeners({
-      initMessenger,
-      getState,
-      smartTransactionsController,
-    });
 
     return { controller: transactionController };
   } catch (error) {
@@ -221,9 +221,7 @@ function publishBatchSmartTransactionHook({
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
   if (!shouldUseSmartTransaction) {
-    throw new Error(
-      'publishBatchSmartTransactionHook: Smart Transaction is required for batch submissions',
-    );
+    return Promise.resolve(undefined);
   }
 
   return submitBatchSmartTransactionHook({

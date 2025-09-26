@@ -2,7 +2,13 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import type { PriceUpdate } from '../controllers/types';
-import { formatPrice, formatLargeNumber } from '../utils/formatUtils';
+import {
+  formatLargeNumber,
+  formatFundingRate,
+  PRICE_RANGES_DETAILED_VIEW,
+  LARGE_NUMBER_RANGES_DETAILED,
+  formatPerpsFiat,
+} from '../utils/formatUtils';
 import { calculate24hHighLow } from '../utils/marketUtils';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
@@ -68,6 +74,7 @@ export const usePerpsMarketStats = (
                 ) {
                   return prev; // Return same reference if no change
                 }
+
                 return {
                   funding: update.funding,
                   openInterest: update.openInterest,
@@ -103,17 +110,29 @@ export const usePerpsMarketStats = (
 
     return {
       // 24h high/low from candlestick data, with fallback estimates
-      high24h: high > 0 ? formatPrice(high) : formatPrice(fallbackPrice),
-      low24h: low > 0 ? formatPrice(low) : formatPrice(fallbackPrice),
+      high24h:
+        high > 0
+          ? formatPerpsFiat(high, { ranges: PRICE_RANGES_DETAILED_VIEW })
+          : formatPerpsFiat(fallbackPrice, {
+              ranges: PRICE_RANGES_DETAILED_VIEW,
+            }),
+      low24h:
+        low > 0
+          ? formatPerpsFiat(low, { ranges: PRICE_RANGES_DETAILED_VIEW })
+          : formatPerpsFiat(fallbackPrice, {
+              ranges: PRICE_RANGES_DETAILED_VIEW,
+            }),
       volume24h: marketData.volume24h
-        ? formatLargeNumber(marketData.volume24h)
+        ? `$${formatLargeNumber(marketData.volume24h, {
+            ranges: LARGE_NUMBER_RANGES_DETAILED,
+          })}`
         : '$0.00',
       openInterest: marketData.openInterest
-        ? formatLargeNumber(marketData.openInterest)
+        ? `$${formatLargeNumber(marketData.openInterest, {
+            ranges: LARGE_NUMBER_RANGES_DETAILED,
+          })}`
         : '$0.00',
-      fundingRate: marketData.funding
-        ? `${(marketData.funding * 100).toFixed(4)}%`
-        : '0.0000%',
+      fundingRate: formatFundingRate(marketData.funding),
       currentPrice: fallbackPrice,
       isLoading: !candleData,
     };

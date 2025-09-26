@@ -9,6 +9,14 @@ import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingWithdrawal from './staking-withdrawal';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
+jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
@@ -27,6 +35,13 @@ jest.mock('../../../../../../../core/Engine', () => ({
   controllerMessenger: {
     subscribeOnceIf: jest.fn(),
   },
+}));
+
+jest.mock('../../../../hooks/gas/useIsGaslessSupported', () => ({
+  useIsGaslessSupported: jest.fn().mockReturnValue({
+    isSupported: false,
+    isSmartTransaction: false,
+  }),
 }));
 
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents', () => ({

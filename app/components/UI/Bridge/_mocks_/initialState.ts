@@ -69,6 +69,7 @@ export const initialState = {
                 isActiveSrc: true,
                 isActiveDest: true,
                 isUnifiedUIEnabled: true,
+                isGaslessSwapEnabled: true,
               },
               [formatChainIdToCaip(optimismChainId)]: {
                 isActiveSrc: true,
@@ -362,8 +363,8 @@ export const initialState = {
           order: 'dsc' as const,
         },
         tokenNetworkFilter: {
-          [ethChainId]: 'true',
-          [optimismChainId]: 'true',
+          [ethChainId]: true,
+          [optimismChainId]: true,
         },
       },
       TokenListController: {

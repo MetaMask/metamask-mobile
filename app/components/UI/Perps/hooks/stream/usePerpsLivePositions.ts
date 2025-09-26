@@ -41,18 +41,22 @@ export function usePerpsLivePositions(
   useEffect(() => {
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
-        if (!newPositions) {
+        // null means no cached data yet, keep loading state
+        if (newPositions === null) {
+          // Keep isInitialLoading as true, positions as empty array
           return;
         }
 
-        // Mark that we've received the first real WebSocket update
+        // We have real data now (either empty array or positions)
         if (!hasReceivedFirstUpdate.current) {
           DevLogger.log(
             'usePerpsLivePositions: Received first WebSocket update',
+            { positionsCount: newPositions?.length ?? 0 },
           );
           hasReceivedFirstUpdate.current = true;
           setIsInitialLoading(false);
         }
+
         // Only update if positions actually changed
         // For empty arrays, use stable reference
         if (newPositions.length === 0) {

@@ -23,6 +23,8 @@ import { isTestNet } from '../../../../util/networks';
 import { TokenI } from '../../Tokens/types';
 import { CardTokenAllowance } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 
 // This hook retrieves the asset balance and related information for a given token and account.
 export const useAssetBalance = (
@@ -37,6 +39,13 @@ export const useAssetBalance = (
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
+  const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
+  const chainIds = Object.entries(popularNetworks || {})
+    .map((network) => network[1]?.chainId)
+    .filter(Boolean);
+  const tokensWithBalance = useTokensWithBalance({
+    chainIds,
+  });
 
   const selectEvmAsset = useMemo(
     () => makeSelectAssetByAddressAndChainId(),
@@ -53,11 +62,16 @@ export const useAssetBalance = (
       : undefined,
   );
 
-  let asset = token && isEvmNetworkSelected ? evmAsset : undefined;
+  let asset = evmAsset;
   let isMappedAsset = false;
 
   if (!asset && token) {
     const iconUrl = buildTokenIconUrl(token.chainId, token.address);
+    const filteredToken = tokensWithBalance.find(
+      (t) =>
+        t.address.toLowerCase() === token.address.toLowerCase() &&
+        t.chainId === token.chainId,
+    );
 
     asset = {
       ...token,
@@ -65,8 +79,8 @@ export const useAssetBalance = (
       logo: iconUrl,
       isETH: false,
       aggregators: [],
-      balance: '0',
-      balanceFiat: '0',
+      balance: filteredToken?.balance ?? '0',
+      balanceFiat: filteredToken?.balanceFiat ?? '0',
     } as TokenI;
     isMappedAsset = true;
   }
@@ -118,12 +132,28 @@ export const useAssetBalance = (
     }
 
     if (isMappedAsset) {
+      const zeroBalanceFiat = formatWithThreshold(
+        0,
+        oneHundredths,
+        I18n.locale,
+        { style: 'currency', currency: currentCurrency },
+      );
+      const zeroBalanceFormatted = `0 ${asset.symbol}`;
+
       return {
-        balanceFiat: formatWithThreshold(0, oneHundredths, I18n.locale, {
-          style: 'currency',
-          currency: currentCurrency,
-        }),
-        balanceValueFormatted: `0 ${asset.symbol}`,
+        balanceFiat:
+          asset.balanceFiat && asset.balanceFiat !== '0'
+            ? asset.balanceFiat
+            : zeroBalanceFiat,
+        balanceValueFormatted:
+          asset.balance && asset.balance !== '0'
+            ? formatWithThreshold(
+                parseFloat(asset.balance),
+                oneHundredThousandths,
+                I18n.locale,
+                { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+              )
+            : zeroBalanceFormatted,
       };
     }
 

@@ -7,16 +7,18 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
+import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectDepositProviderFrontendAuth,
-  selectDepositProviderApiKey,
-} from '../../../../../selectors/featureFlagController/deposit';
+import { selectDepositProviderApiKey } from '../../../../../selectors/featureFlagController/deposit';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
-  TransakEnvironment,
+  SdkEnvironment,
+  Context,
+  DepositPaymentMethod,
+  DepositRegion,
+  DepositCryptoCurrency,
 } from '@consensys/native-ramps-sdk';
 import {
   getProviderToken,
@@ -28,8 +30,11 @@ import {
   setFiatOrdersGetStartedDeposit,
   fiatOrdersRegionSelectorDeposit,
   setFiatOrdersRegionDeposit,
+  fiatOrdersCryptoCurrencySelectorDeposit,
+  setFiatOrdersCryptoCurrencyDeposit,
+  fiatOrdersPaymentMethodSelectorDeposit,
+  setFiatOrdersPaymentMethodDeposit,
 } from '../../../../../reducers/fiatOrders';
-import { DepositRegion, DEPOSIT_REGIONS, DEFAULT_REGION } from '../constants';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -37,7 +42,6 @@ export interface DepositSDK {
   sdk?: NativeRampsSdk;
   sdkError?: Error;
   providerApiKey: string | null;
-  providerFrontendAuth: string | null;
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
@@ -48,6 +52,10 @@ export interface DepositSDK {
   selectedWalletAddress?: string;
   selectedRegion: DepositRegion | null;
   setSelectedRegion: (region: DepositRegion | null) => void;
+  selectedPaymentMethod: DepositPaymentMethod | null;
+  setSelectedPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
+  selectedCryptoCurrency: DepositCryptoCurrency | null;
+  setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
 }
 
 const isDevelopment =
@@ -56,13 +64,20 @@ const isDevelopment =
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
-let environment = TransakEnvironment.Production;
+let environment = SdkEnvironment.Production;
 if (isDevelopmentOrInternalBuild) {
-  environment = TransakEnvironment.Staging;
+  environment = SdkEnvironment.Staging;
 }
 
+const context =
+  Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid;
 export const DEPOSIT_ENVIRONMENT = environment;
-export const DepositSDKNoAuth = new NativeRampsSdk({}, environment);
+export const DepositSDKNoAuth = new NativeRampsSdk(
+  {
+    context,
+  },
+  environment,
+);
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
@@ -74,7 +89,7 @@ export const DepositSDKProvider = ({
 }: Partial<ProviderProps<DepositSDK>>) => {
   const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
-  const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
+
   const selectedWalletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -87,11 +102,20 @@ export const DepositSDKProvider = ({
   const INITIAL_SELECTED_REGION: DepositRegion | null = useSelector(
     fiatOrdersRegionSelectorDeposit,
   );
+  const INITIAL_SELECTED_CRYPTO_CURRENCY: DepositCryptoCurrency | null =
+    useSelector(fiatOrdersCryptoCurrencySelectorDeposit);
+  const INITIAL_SELECTED_PAYMENT_METHOD: DepositPaymentMethod | null =
+    useSelector(fiatOrdersPaymentMethodSelectorDeposit);
   const [getStarted, setGetStarted] = useState<boolean>(INITIAL_GET_STARTED);
 
   const [selectedRegion, setSelectedRegion] = useState<DepositRegion | null>(
     INITIAL_SELECTED_REGION,
   );
+
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<DepositPaymentMethod | null>(INITIAL_SELECTED_PAYMENT_METHOD);
+  const [selectedCryptoCurrency, setSelectedCryptoCurrency] =
+    useState<DepositCryptoCurrency | null>(INITIAL_SELECTED_CRYPTO_CURRENCY);
 
   const setGetStartedCallback = useCallback(
     (getStartedFlag: boolean) => {
@@ -109,38 +133,32 @@ export const DepositSDKProvider = ({
     [dispatch],
   );
 
-  useEffect(() => {
-    async function setRegionByGeolocation() {
-      if (selectedRegion === null) {
-        try {
-          const geo = await DepositSDKNoAuth.getGeolocation();
-          const region = DEPOSIT_REGIONS.find(
-            (r) => r.isoCode === geo?.ipCountryCode,
-          );
-          if (region) {
-            setSelectedRegionCallback(region);
-          } else {
-            setSelectedRegionCallback(DEFAULT_REGION);
-          }
-        } catch (error) {
-          Logger.error(error as Error, 'Error setting region by geolocation:');
-          setSelectedRegionCallback(DEFAULT_REGION);
-        }
-      }
-    }
-    setRegionByGeolocation();
-  }, [selectedRegion, setSelectedRegionCallback]);
+  const setSelectedCryptoCurrencyCallback = useCallback(
+    (cryptoCurrency: DepositCryptoCurrency | null) => {
+      setSelectedCryptoCurrency(cryptoCurrency);
+      dispatch(setFiatOrdersCryptoCurrencyDeposit(cryptoCurrency));
+    },
+    [dispatch],
+  );
+
+  const setSelectedPaymentMethodCallback = useCallback(
+    (paymentMethod: DepositPaymentMethod | null) => {
+      setSelectedPaymentMethod(paymentMethod);
+      dispatch(setFiatOrdersPaymentMethodDeposit(paymentMethod));
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     try {
-      if (!providerApiKey || !providerFrontendAuth) {
-        throw new Error('Deposit SDK requires valid API key and frontend auth');
+      if (!providerApiKey) {
+        throw new Error('Deposit SDK requires valid API key');
       }
 
       const sdkInstance = new NativeRampsSdk(
         {
-          partnerApiKey: providerApiKey,
-          frontendAuth: providerFrontendAuth,
+          apiKey: providerApiKey,
+          context,
         },
         environment,
       );
@@ -149,7 +167,7 @@ export const DepositSDKProvider = ({
     } catch (error) {
       setSdkError(error as Error);
     }
-  }, [providerApiKey, providerFrontendAuth]);
+  }, [providerApiKey]);
 
   useEffect(() => {
     if (sdk && authToken) {
@@ -161,13 +179,14 @@ export const DepositSDKProvider = ({
   const checkExistingToken = useCallback(async () => {
     try {
       const tokenResponse = await getProviderToken();
-      if (tokenResponse.success && tokenResponse.token) {
+
+      if (tokenResponse.success && tokenResponse.token?.accessToken) {
         setAuthToken(tokenResponse.token);
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error checking existing token:', error);
+      Logger.error(error as Error, 'Error checking existing token:');
       return false;
     }
   }, []);
@@ -186,7 +205,7 @@ export const DepositSDKProvider = ({
         }
         return false;
       } catch (error) {
-        console.error('Error setting auth token:', error);
+        Logger.error(error as Error, 'Error setting auth token:');
         return false;
       }
     },
@@ -224,7 +243,6 @@ export const DepositSDKProvider = ({
       sdk,
       sdkError,
       providerApiKey,
-      providerFrontendAuth,
       isAuthenticated,
       authToken,
       setAuthToken: setAuthTokenCallback,
@@ -235,12 +253,15 @@ export const DepositSDKProvider = ({
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegion: setSelectedRegionCallback,
+      selectedPaymentMethod,
+      setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
+      selectedCryptoCurrency,
+      setSelectedCryptoCurrency: setSelectedCryptoCurrencyCallback,
     }),
     [
       sdk,
       sdkError,
       providerApiKey,
-      providerFrontendAuth,
       isAuthenticated,
       authToken,
       setAuthTokenCallback,
@@ -251,6 +272,10 @@ export const DepositSDKProvider = ({
       selectedWalletAddress,
       selectedRegion,
       setSelectedRegionCallback,
+      selectedPaymentMethod,
+      setSelectedPaymentMethodCallback,
+      selectedCryptoCurrency,
+      setSelectedCryptoCurrencyCallback,
     ],
   );
 

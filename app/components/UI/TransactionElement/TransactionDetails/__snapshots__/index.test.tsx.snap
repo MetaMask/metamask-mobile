@@ -353,9 +353,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -384,9 +383,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -401,16 +399,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "CentraNo1-Bold",
-                                  "fontWeight": "600",
+                                  "fontFamily": "Geist Bold",
                                 },
                                 {
                                   "color": "#457a39",
@@ -463,9 +459,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -494,9 +489,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -551,9 +545,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -582,9 +575,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -633,134 +625,12 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "overflow": "hidden",
-                                        },
-                                        {
-                                          "backgroundColor": "#1593F2",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "width": 32,
-                                        },
-                                        {
-                                          "borderRadius": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <RNSVGSvgView
-                                      bbHeight={32}
-                                      bbWidth={32}
-                                      focusable={false}
-                                      height={32}
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "transparent",
-                                            "borderWidth": 0,
-                                          },
-                                          {
-                                            "flex": 0,
-                                            "height": 32,
-                                            "width": 32,
-                                          },
-                                        ]
+                                      {
+                                        "height": 32,
+                                        "width": 32,
                                       }
-                                      width={32}
-                                    >
-                                      <RNSVGGroup
-                                        fill={
-                                          {
-                                            "payload": 4278190080,
-                                            "type": 0,
-                                          }
-                                        }
-                                      >
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4280574177,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.14608302856241107,
-                                              0.9892723329629884,
-                                              -0.9892723329629884,
-                                              -0.14608302856241107,
-                                              37.75501596919891,
-                                              -2.82533949364276,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294395137,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.02094241988335673,
-                                              -0.9997806834748455,
-                                              0.9997806834748455,
-                                              -0.02094241988335673,
-                                              -15.024871507114028,
-                                              40.323921289217864,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294736640,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.458649554484315,
-                                              0.8886172326549487,
-                                              -0.8886172326549487,
-                                              -0.458649554484315,
-                                              28.4800145149268,
-                                              38.60053302995323,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                      </RNSVGGroup>
-                                    </RNSVGSvgView>
-                                  </View>
+                                    }
+                                  />
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -806,9 +676,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -837,9 +706,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -888,134 +756,12 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "overflow": "hidden",
-                                        },
-                                        {
-                                          "backgroundColor": "#1593F2",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "width": 32,
-                                        },
-                                        {
-                                          "borderRadius": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <RNSVGSvgView
-                                      bbHeight={32}
-                                      bbWidth={32}
-                                      focusable={false}
-                                      height={32}
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "transparent",
-                                            "borderWidth": 0,
-                                          },
-                                          {
-                                            "flex": 0,
-                                            "height": 32,
-                                            "width": 32,
-                                          },
-                                        ]
+                                      {
+                                        "height": 32,
+                                        "width": 32,
                                       }
-                                      width={32}
-                                    >
-                                      <RNSVGGroup
-                                        fill={
-                                          {
-                                            "payload": 4278190080,
-                                            "type": 0,
-                                          }
-                                        }
-                                      >
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4280574177,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.14608302856241107,
-                                              0.9892723329629884,
-                                              -0.9892723329629884,
-                                              -0.14608302856241107,
-                                              37.75501596919891,
-                                              -2.82533949364276,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294395137,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.02094241988335673,
-                                              -0.9997806834748455,
-                                              0.9997806834748455,
-                                              -0.02094241988335673,
-                                              -15.024871507114028,
-                                              40.323921289217864,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294736640,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.458649554484315,
-                                              0.8886172326549487,
-                                              -0.8886172326549487,
-                                              -0.458649554484315,
-                                              28.4800145149268,
-                                              38.60053302995323,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                      </RNSVGGroup>
-                                    </RNSVGSvgView>
-                                  </View>
+                                    }
+                                  />
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -1071,9 +817,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -1104,9 +849,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -1163,9 +907,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -1206,9 +949,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -1278,9 +1020,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
@@ -1349,16 +1090,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "CentraNo1-Bold",
-                                    "fontWeight": "600",
+                                    "fontFamily": "Geist Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -1395,16 +1134,14 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "CentraNo1-Bold",
-                                    "fontWeight": "600",
+                                    "fontFamily": "Geist Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -1461,9 +1198,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -1516,9 +1252,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Regular",
                               "fontSize": 16,
-                              "fontWeight": "400",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                               "textAlign": "center",
@@ -1894,9 +1629,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -1925,9 +1659,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -1942,16 +1675,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "CentraNo1-Bold",
-                                  "fontWeight": "600",
+                                  "fontFamily": "Geist Bold",
                                 },
                                 {
                                   "color": "#457a39",
@@ -2004,9 +1735,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -2035,9 +1765,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -2092,9 +1821,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -2123,9 +1851,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -2174,134 +1901,12 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "overflow": "hidden",
-                                        },
-                                        {
-                                          "backgroundColor": "#1593F2",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "width": 32,
-                                        },
-                                        {
-                                          "borderRadius": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <RNSVGSvgView
-                                      bbHeight={32}
-                                      bbWidth={32}
-                                      focusable={false}
-                                      height={32}
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "transparent",
-                                            "borderWidth": 0,
-                                          },
-                                          {
-                                            "flex": 0,
-                                            "height": 32,
-                                            "width": 32,
-                                          },
-                                        ]
+                                      {
+                                        "height": 32,
+                                        "width": 32,
                                       }
-                                      width={32}
-                                    >
-                                      <RNSVGGroup
-                                        fill={
-                                          {
-                                            "payload": 4278190080,
-                                            "type": 0,
-                                          }
-                                        }
-                                      >
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4280574177,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.14608302856241107,
-                                              0.9892723329629884,
-                                              -0.9892723329629884,
-                                              -0.14608302856241107,
-                                              37.75501596919891,
-                                              -2.82533949364276,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294395137,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.02094241988335673,
-                                              -0.9997806834748455,
-                                              0.9997806834748455,
-                                              -0.02094241988335673,
-                                              -15.024871507114028,
-                                              40.323921289217864,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294736640,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.458649554484315,
-                                              0.8886172326549487,
-                                              -0.8886172326549487,
-                                              -0.458649554484315,
-                                              28.4800145149268,
-                                              38.60053302995323,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                      </RNSVGGroup>
-                                    </RNSVGSvgView>
-                                  </View>
+                                    }
+                                  />
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -2347,9 +1952,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -2378,9 +1982,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -2429,134 +2032,12 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "overflow": "hidden",
-                                        },
-                                        {
-                                          "backgroundColor": "#1593F2",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "width": 32,
-                                        },
-                                        {
-                                          "borderRadius": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <RNSVGSvgView
-                                      bbHeight={32}
-                                      bbWidth={32}
-                                      focusable={false}
-                                      height={32}
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "transparent",
-                                            "borderWidth": 0,
-                                          },
-                                          {
-                                            "flex": 0,
-                                            "height": 32,
-                                            "width": 32,
-                                          },
-                                        ]
+                                      {
+                                        "height": 32,
+                                        "width": 32,
                                       }
-                                      width={32}
-                                    >
-                                      <RNSVGGroup
-                                        fill={
-                                          {
-                                            "payload": 4278190080,
-                                            "type": 0,
-                                          }
-                                        }
-                                      >
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4280574177,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.14608302856241107,
-                                              0.9892723329629884,
-                                              -0.9892723329629884,
-                                              -0.14608302856241107,
-                                              37.75501596919891,
-                                              -2.82533949364276,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294395137,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.02094241988335673,
-                                              -0.9997806834748455,
-                                              0.9997806834748455,
-                                              -0.02094241988335673,
-                                              -15.024871507114028,
-                                              40.323921289217864,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294736640,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.458649554484315,
-                                              0.8886172326549487,
-                                              -0.8886172326549487,
-                                              -0.458649554484315,
-                                              28.4800145149268,
-                                              38.60053302995323,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                      </RNSVGGroup>
-                                    </RNSVGSvgView>
-                                  </View>
+                                    }
+                                  />
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -2612,9 +2093,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -2645,9 +2125,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -2704,9 +2183,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -2747,9 +2225,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -2819,9 +2296,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
@@ -2890,16 +2366,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "CentraNo1-Bold",
-                                    "fontWeight": "600",
+                                    "fontFamily": "Geist Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -2936,16 +2410,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "CentraNo1-Bold",
-                                    "fontWeight": "600",
+                                    "fontFamily": "Geist Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -3002,9 +2474,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -3057,9 +2528,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Regular",
                               "fontSize": 16,
-                              "fontWeight": "400",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                               "textAlign": "center",
@@ -3435,9 +2905,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -3466,9 +2935,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -3483,16 +2951,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "CentraNo1-Bold",
-                                  "fontWeight": "600",
+                                  "fontFamily": "Geist Bold",
                                 },
                                 {
                                   "color": "#457a39",
@@ -3545,9 +3011,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -3576,9 +3041,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -3633,9 +3097,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -3664,9 +3127,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -3715,134 +3177,12 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "overflow": "hidden",
-                                        },
-                                        {
-                                          "backgroundColor": "#1593F2",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "width": 32,
-                                        },
-                                        {
-                                          "borderRadius": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <RNSVGSvgView
-                                      bbHeight={32}
-                                      bbWidth={32}
-                                      focusable={false}
-                                      height={32}
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "transparent",
-                                            "borderWidth": 0,
-                                          },
-                                          {
-                                            "flex": 0,
-                                            "height": 32,
-                                            "width": 32,
-                                          },
-                                        ]
+                                      {
+                                        "height": 32,
+                                        "width": 32,
                                       }
-                                      width={32}
-                                    >
-                                      <RNSVGGroup
-                                        fill={
-                                          {
-                                            "payload": 4278190080,
-                                            "type": 0,
-                                          }
-                                        }
-                                      >
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4280574177,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.14608302856241107,
-                                              0.9892723329629884,
-                                              -0.9892723329629884,
-                                              -0.14608302856241107,
-                                              37.75501596919891,
-                                              -2.82533949364276,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294395137,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.02094241988335673,
-                                              -0.9997806834748455,
-                                              0.9997806834748455,
-                                              -0.02094241988335673,
-                                              -15.024871507114028,
-                                              40.323921289217864,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294736640,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.458649554484315,
-                                              0.8886172326549487,
-                                              -0.8886172326549487,
-                                              -0.458649554484315,
-                                              28.4800145149268,
-                                              38.60053302995323,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                      </RNSVGGroup>
-                                    </RNSVGSvgView>
-                                  </View>
+                                    }
+                                  />
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -3888,9 +3228,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -3919,9 +3258,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -3970,134 +3308,12 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 >
                                   <View
                                     style={
-                                      [
-                                        {
-                                          "overflow": "hidden",
-                                        },
-                                        {
-                                          "backgroundColor": "#1593F2",
-                                          "borderRadius": 16,
-                                          "height": 32,
-                                          "width": 32,
-                                        },
-                                        {
-                                          "borderRadius": 8,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <RNSVGSvgView
-                                      bbHeight={32}
-                                      bbWidth={32}
-                                      focusable={false}
-                                      height={32}
-                                      style={
-                                        [
-                                          {
-                                            "backgroundColor": "transparent",
-                                            "borderWidth": 0,
-                                          },
-                                          {
-                                            "flex": 0,
-                                            "height": 32,
-                                            "width": 32,
-                                          },
-                                        ]
+                                      {
+                                        "height": 32,
+                                        "width": 32,
                                       }
-                                      width={32}
-                                    >
-                                      <RNSVGGroup
-                                        fill={
-                                          {
-                                            "payload": 4278190080,
-                                            "type": 0,
-                                          }
-                                        }
-                                      >
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4280574177,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.14608302856241107,
-                                              0.9892723329629884,
-                                              -0.9892723329629884,
-                                              -0.14608302856241107,
-                                              37.75501596919891,
-                                              -2.82533949364276,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294395137,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.02094241988335673,
-                                              -0.9997806834748455,
-                                              0.9997806834748455,
-                                              -0.02094241988335673,
-                                              -15.024871507114028,
-                                              40.323921289217864,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                        <RNSVGRect
-                                          fill={
-                                            {
-                                              "payload": 4294736640,
-                                              "type": 0,
-                                            }
-                                          }
-                                          height={32}
-                                          matrix={
-                                            [
-                                              -0.458649554484315,
-                                              0.8886172326549487,
-                                              -0.8886172326549487,
-                                              -0.458649554484315,
-                                              28.4800145149268,
-                                              38.60053302995323,
-                                            ]
-                                          }
-                                          propList={
-                                            [
-                                              "fill",
-                                            ]
-                                          }
-                                          width={32}
-                                          x={0}
-                                          y={0}
-                                        />
-                                      </RNSVGGroup>
-                                    </RNSVGSvgView>
-                                  </View>
+                                    }
+                                  />
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -4153,9 +3369,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 30,
-                                  "fontWeight": "400",
                                   "marginVertical": 2,
                                 },
                                 undefined,
@@ -4186,9 +3401,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 10,
-                                    "fontWeight": "400",
                                     "marginBottom": 8,
                                   },
                                   undefined,
@@ -4245,9 +3459,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -4288,9 +3501,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -4360,9 +3572,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 30,
-                                      "fontWeight": "400",
                                       "marginVertical": 2,
                                     },
                                     undefined,
@@ -4431,16 +3642,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "CentraNo1-Bold",
-                                    "fontWeight": "600",
+                                    "fontFamily": "Geist Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -4477,16 +3686,14 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "CentraNo1-Bold",
-                                    "fontWeight": "600",
+                                    "fontFamily": "Geist Bold",
                                   },
                                   undefined,
                                   undefined,
@@ -4543,9 +3750,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 30,
-                                    "fontWeight": "400",
                                     "marginVertical": 2,
                                   },
                                   undefined,
@@ -4598,9 +3804,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                           style={
                             {
                               "color": "#4459ff",
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Regular",
                               "fontSize": 16,
-                              "fontWeight": "400",
                               "letterSpacing": 0,
                               "lineHeight": 24,
                               "textAlign": "center",

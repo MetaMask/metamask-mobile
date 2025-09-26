@@ -1,6 +1,13 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { View } from 'react-native';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
+import { View, ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
@@ -26,12 +33,14 @@ import {
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
 } from './MultichainAccountSelectorList.constants';
 import { strings } from '../../../../../locales/i18n';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
-  selectedAccountGroup,
+  selectedAccountGroups,
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
+  showCheckbox = false,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -43,6 +52,19 @@ const MultichainAccountSelectorList = ({
 
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
+  const [lastCreatedAccountId, setLastCreatedAccountId] = useState<
+    string | null
+  >(null);
+  const internalListRef =
+    useRef<FlashListRef<FlattenedMultichainAccountListItem>>(null);
+  const listRefToUse = listRef || internalListRef;
+
+  const selectedIdSet = useMemo(
+    () => new Set(selectedAccountGroups.map((g) => g.id)),
+    [selectedAccountGroups],
+  );
+
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   // Debounce search text with 200ms delay
   useEffect(() => {
@@ -86,6 +108,7 @@ const MultichainAccountSelectorList = ({
       title: section.title,
       data: section.data,
       walletName: section.title,
+      walletId: section.wallet.id,
     }));
   }, [isMultichainAccountsEnabled, accountSections]);
 
@@ -127,51 +150,111 @@ const MultichainAccountSelectorList = ({
 
       items.push({
         type: 'footer',
-        data: { walletName: section.walletName },
+        data: { walletName: section.walletName, walletId: section.walletId },
       });
     });
 
     return items;
   }, [filteredWalletSections]);
 
-  // Handle account selection with debouncing to prevent rapid successive calls
+  // Compute first selected account index for initial positioning only
+  const initialSelectedIndex = useMemo(() => {
+    const targetId = selectedAccountGroups?.[0]?.id;
+    if (!targetId) return undefined;
+    const idx = flattenedData.findIndex(
+      (item) => item.type === 'cell' && item.data.id === targetId,
+    );
+    return idx > 0 ? idx : undefined;
+  }, [flattenedData, selectedAccountGroups]);
+
+  // Reset scroll to top when search text changes
+  useEffect(() => {
+    if (listRefToUse.current) {
+      // Use requestAnimationFrame to ensure the list has finished re-rendering
+      const animationFrameId = requestAnimationFrame(() => {
+        listRefToUse.current?.scrollToOffset({ offset: 0, animated: false });
+      });
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+      };
+    }
+  }, [debouncedSearchText, listRefToUse]);
+
+  // Listen for account creation and scroll to new account
+  useEffect(() => {
+    if (lastCreatedAccountId && listRefToUse.current) {
+      // Find the index of the newly created account
+      const newAccountIndex = flattenedData.findIndex(
+        (item) => item.type === 'cell' && item.data.id === lastCreatedAccountId,
+      );
+
+      if (newAccountIndex !== -1) {
+        listRefToUse.current?.scrollToIndex({
+          index: newAccountIndex,
+          animated: true,
+          viewPosition: 0.5, // Center the item in the visible area
+        });
+      }
+
+      setLastCreatedAccountId(null);
+    }
+  }, [lastCreatedAccountId, flattenedData, listRefToUse]);
+
+  // Handle account creation callback
+  const handleAccountCreated = useCallback((newAccountId: string) => {
+    setLastCreatedAccountId(newAccountId);
+  }, []);
+
+  // Handle account selection/deselection toggle
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
-      // Prevent multiple rapid calls for the same account
-      if (selectedAccountGroup.id === accountGroup.id) return;
       onSelectAccount?.(accountGroup);
     },
-    [onSelectAccount, selectedAccountGroup.id],
+    [onSelectAccount],
   );
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
     useCallback(
-      ({ item }) => {
+      ({ item }: { item: FlattenedMultichainAccountListItem }) => {
         switch (item.type) {
           case 'header': {
             return <AccountListHeader title={item.data.title} />;
           }
 
           case 'cell': {
-            const isSelected = item.data.id === selectedAccountGroup.id;
+            const isSelected = selectedIdSet.has(item.data.id);
             return (
               <AccountListCell
                 accountGroup={item.data}
+                avatarAccountType={avatarAccountType}
                 isSelected={isSelected}
                 onSelectAccount={handleSelectAccount}
+                showCheckbox={showCheckbox}
               />
             );
           }
 
           case 'footer': {
-            return <AccountListFooter />;
+            return (
+              <AccountListFooter
+                walletId={item.data.walletId}
+                onAccountCreated={handleAccountCreated}
+              />
+            );
           }
 
           default:
             return null;
         }
       },
-      [selectedAccountGroup.id, handleSelectAccount],
+      [
+        selectedIdSet,
+        handleSelectAccount,
+        handleAccountCreated,
+        avatarAccountType,
+        showCheckbox,
+      ],
     );
 
   const keyExtractor = useCallback(
@@ -203,11 +286,6 @@ const MultichainAccountSelectorList = ({
     [debouncedSearchText],
   );
 
-  const flashListKey = useMemo(
-    () => `flashlist-${debouncedSearchText}-${flattenedData.length}`,
-    [debouncedSearchText, flattenedData.length],
-  );
-
   return (
     <>
       <View style={styles.searchContainer}>
@@ -215,6 +293,7 @@ const MultichainAccountSelectorList = ({
           value={searchText}
           onChangeText={setSearchText}
           placeholder={strings('accounts.search_your_accounts')}
+          placeholderTextColor={styles.searchPlaceholderText.color}
           testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
           autoFocus={false}
           style={styles.searchTextField}
@@ -236,13 +315,16 @@ const MultichainAccountSelectorList = ({
           </View>
         ) : (
           <FlashList
-            key={flashListKey}
-            ref={listRef}
+            ref={listRefToUse}
             data={flattenedData}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
+            initialScrollIndex={initialSelectedIndex}
+            renderScrollComponent={
+              ScrollView as React.ComponentType<ScrollViewProps>
+            }
             {...props}
           />
         )}

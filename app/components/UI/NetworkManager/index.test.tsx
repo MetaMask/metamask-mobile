@@ -19,6 +19,60 @@ const mockDismissModal = jest.fn();
 const mockOnOpenBottomSheet = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 
+// Mock keyring API dependencies first to prevent import errors
+jest.mock('@metamask/keyring-utils', () => ({
+  definePattern: jest.fn(),
+}));
+
+jest.mock('@metamask/keyring-api', () => ({
+  BtcScope: {
+    Mainnet: 'btc:mainnet',
+    Testnet: 'btc:testnet',
+  },
+  SolScope: {
+    Mainnet: 'solana:mainnet',
+    Testnet: 'solana:testnet',
+    Devnet: 'solana:devnet',
+  },
+}));
+
+// Mock @metamask/utils with all necessary functions
+jest.mock('@metamask/utils', () => ({
+  parseCaipChainId: (caipChainId: string) => ({
+    namespace: 'eip155',
+    reference: caipChainId.split(':')[1],
+  }),
+  hasProperty: (obj: unknown, prop: string) =>
+    obj !== null && typeof obj === 'object' && prop in obj,
+  isObject: (value: unknown) =>
+    value !== null && typeof value === 'object' && !Array.isArray(value),
+}));
+
+// Mock @metamask/rpc-errors to prevent import chain issues
+jest.mock('@metamask/rpc-errors', () => ({
+  rpcErrors: {
+    provider: {
+      userRejectedRequest: () => ({ code: 4001, message: 'User rejected' }),
+    },
+  },
+  getMessageFromCode: jest.fn(() => 'Error message'),
+}));
+
+// Mock @metamask/transaction-controller
+jest.mock('@metamask/transaction-controller', () => ({
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+    GOERLI: '0x5',
+    SEPOLIA: '0xaa36a7',
+  },
+  TransactionController: jest.fn(),
+}));
+
+// Mock controller-utils
+jest.mock('@metamask/controller-utils', () => ({
+  toHex: (value: string | number) => `0x${value.toString(16)}`,
+}));
+
 // Mock external dependencies
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -96,6 +150,12 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     disableNetwork: mockDisableNetwork,
+    enabledNetworksByNamespace: {
+      eip155: {
+        '0x1': true,
+        '0x89': true,
+      },
+    },
   }),
 }));
 
@@ -115,25 +175,52 @@ jest.mock('../../../constants/navigation/Routes', () => ({
   ADD_NETWORK: 'AddNetwork',
 }));
 
+// Create a stable mock object to avoid selector memoization warnings
+const mockNetworkConfigurations = {
+  'eip155:1': {
+    caipChainId: 'eip155:1',
+    name: 'Ethereum Mainnet',
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [{ url: 'https://mainnet.infura.io' }],
+  },
+  'eip155:137': {
+    caipChainId: 'eip155:137',
+    name: 'Polygon Mainnet',
+    nativeCurrency: 'MATIC',
+    rpcEndpoints: [{ url: 'https://polygon-rpc.com' }],
+  },
+};
+
 jest.mock('../../../selectors/networkController', () => ({
-  selectNetworkConfigurationsByCaipChainId: jest.fn(() => ({
-    'eip155:1': {
-      caipChainId: 'eip155:1',
-      name: 'Ethereum Mainnet',
-      nativeCurrency: 'ETH',
-      rpcEndpoints: [{ url: 'https://mainnet.infura.io' }],
-    },
-    'eip155:137': {
-      caipChainId: 'eip155:137',
-      name: 'Polygon Mainnet',
-      nativeCurrency: 'MATIC',
-      rpcEndpoints: [{ url: 'https://polygon-rpc.com' }],
-    },
-  })),
+  selectNetworkConfigurationsByCaipChainId: jest.fn(
+    () => mockNetworkConfigurations,
+  ),
 }));
+
+// Mock feature flag selectors
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(() => false),
+  }),
+);
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
+}));
+
+// Mock popular networks to prevent import chain issues
+jest.mock('../../../constants/popular-networks', () => ({
+  POPULAR_NETWORK_CHAIN_IDS: {
+    ETHEREUM_MAINNET: '0x1',
+    POLYGON_MAINNET: '0x89',
+    ARBITRUM_MAINNET: '0xa4b1',
+  },
+}));
+
+// Mock custom networks
+jest.mock('../../../util/networks/customNetworks', () => ({
+  // Mock any functions from custom networks
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -159,26 +246,16 @@ jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: (chainId: string) => ({ removedChainId: chainId }),
 }));
 
-jest.mock('@metamask/utils', () => ({
-  parseCaipChainId: (caipChainId: string) => ({
-    namespace: 'eip155',
-    reference: caipChainId.split(':')[1],
-  }),
-}));
+// These are now defined above
 
-jest.mock('@metamask/controller-utils', () => ({
-  toHex: (value: string | number) => `0x${value}`,
-}));
-
-// Component mocks with proper functionality
-jest.mock('react-native-scrollable-tab-view', () => {
+// Component mocks with simplified functionality
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
   const ReactActual = jest.requireActual('react');
   const { View: RNView } = jest.requireActual('react-native');
 
   return ({
     children,
     onChangeTab,
-    _renderTabBar,
     initialPage,
   }: {
     children: React.ReactNode;
@@ -186,13 +263,11 @@ jest.mock('react-native-scrollable-tab-view', () => {
       ref: { props: { tabLabel: string } };
       i: number;
     }) => void;
-    _renderTabBar?: unknown;
     initialPage?: number;
   }) => {
-    // Mock tab change functionality
+    // Simulate tab change for analytics testing
     ReactActual.useEffect(() => {
       if (onChangeTab) {
-        // Simulate tab change for testing
         const mockTab = {
           ref: { props: { tabLabel: 'wallet.default' } },
           i: initialPage || 0,
@@ -209,7 +284,7 @@ jest.mock('react-native-scrollable-tab-view', () => {
   };
 });
 
-jest.mock('react-native-scrollable-tab-view/DefaultTabBar', () => {
+jest.mock('@tommasini/react-native-scrollable-tab-view/DefaultTabBar', () => {
   const { View: RNView } = jest.requireActual('react-native');
   return (props: Record<string, unknown>) => (
     <RNView testID="default-tab-bar" {...props} />
@@ -290,54 +365,59 @@ jest.mock('../CustomNetworkSelector/CustomNetworkSelector', () => {
   );
 });
 
-jest.mock('../ReusableModal', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View: RNView } = jest.requireActual('react-native');
-  return ReactActual.forwardRef(
-    (
-      { children, style }: { children: React.ReactNode; style?: unknown },
-      ref: React.Ref<{ dismissModal: (cb?: () => void) => void }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        dismissModal: mockDismissModal,
-      }));
-
-      return (
-        <RNView testID="reusable-modal" style={style}>
-          {children}
-        </RNView>
-      );
-    },
-  );
-});
+// Remove ReusableModal mock as component uses BottomSheet
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View: RNView } = jest.requireActual('react-native');
+
+    let sheetCounter = 0;
+
     return ReactActual.forwardRef(
       (
         {
           children,
-          _onClose,
-        }: { children: React.ReactNode; _onClose?: unknown },
+          style,
+          shouldNavigateBack,
+        }: {
+          children: React.ReactNode;
+          style?: unknown;
+          shouldNavigateBack?: boolean;
+        },
         ref: React.Ref<{
-          onOpenBottomSheet: () => void;
-          onCloseBottomSheet: () => void;
+          onOpenBottomSheet: (cb?: () => void) => void;
+          onCloseBottomSheet: (cb?: () => void) => void;
         }>,
       ) => {
+        const sheetId = ++sheetCounter;
+        const isMainSheet = shouldNavigateBack !== false; // Main sheet has shouldNavigateBack=true or undefined
+
         ReactActual.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: mockOnOpenBottomSheet,
-          onCloseBottomSheet: mockOnCloseBottomSheet,
+          onOpenBottomSheet: (cb?: () => void) => {
+            mockOnOpenBottomSheet();
+            cb?.();
+          },
+          onCloseBottomSheet: (cb?: () => void) => {
+            if (isMainSheet) {
+              mockDismissModal(cb);
+            } else {
+              mockOnCloseBottomSheet();
+            }
+            cb?.();
+          },
         }));
 
-        // Auto-trigger onOpenBottomSheet when mounted to simulate opening
-        ReactActual.useEffect(() => {
-          mockOnOpenBottomSheet();
-        }, []);
+        const testID = isMainSheet
+          ? 'main-bottom-sheet'
+          : `bottom-sheet-${sheetId}`;
 
-        return <RNView testID="bottom-sheet">{children}</RNView>;
+        return (
+          <RNView testID={testID} style={style}>
+            {children}
+          </RNView>
+        );
       },
     );
   },
@@ -487,24 +567,20 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 const mockStore = configureStore([]);
 
 describe('NetworkManager Component', () => {
-  const mockNetworkConfigurations = {
-    'eip155:1': {
-      caipChainId: 'eip155:1',
-      name: 'Ethereum Mainnet',
-      nativeCurrency: 'ETH',
-      rpcEndpoints: [{ url: 'https://mainnet.infura.io' }],
-    },
-    'eip155:137': {
-      caipChainId: 'eip155:137',
-      name: 'Polygon Mainnet',
-      nativeCurrency: 'MATIC',
-      rpcEndpoints: [{ url: 'https://polygon-rpc.com' }],
-    },
-  };
-
   const store = mockStore({
     networkController: {
       networkConfigurations: mockNetworkConfigurations,
+    },
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          // Mock feature flags
+          flags: {},
+        },
+        NetworkController: {
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+        },
+      },
     },
   });
 
@@ -534,21 +610,21 @@ describe('NetworkManager Component', () => {
         <NetworkManager />
       </Provider>,
     );
-  // TODO: Refactor tests - they aren't up to par
+
   describe('Component Rendering', () => {
     it('should render all main elements correctly', () => {
       const { getByText, getByTestId } = renderComponent();
 
-      expect(getByText('wallet.networks')).toBeTruthy();
-      expect(getByTestId('reusable-modal')).toBeTruthy();
-      expect(getByTestId('scrollable-tab-view')).toBeTruthy();
-      expect(getByTestId('network-multi-selector')).toBeTruthy();
-      expect(getByTestId('custom-network-selector')).toBeTruthy();
+      expect(getByText('wallet.networks')).toBeOnTheScreen();
+      expect(getByTestId('main-bottom-sheet')).toBeOnTheScreen();
+      expect(getByTestId('scrollable-tab-view')).toBeOnTheScreen();
+      expect(getByTestId('network-multi-selector')).toBeOnTheScreen();
+      expect(getByTestId('custom-network-selector')).toBeOnTheScreen();
     });
 
     it('should apply correct container styles with safe area insets', () => {
       const { getByTestId } = renderComponent();
-      const modal = getByTestId('reusable-modal');
+      const modal = getByTestId('main-bottom-sheet');
 
       expect(modal.props.style).toEqual([
         {
@@ -582,21 +658,14 @@ describe('NetworkManager Component', () => {
   });
 
   describe('Tab Analytics Tracking', () => {
-    it('should track analytics event when tab changes to default', () => {
+    it('should track analytics event when tab is rendered', () => {
+      // Arrange - Component renders with mocked analytics
+
+      // Act - Render the component
       renderComponent();
 
-      // The mock automatically triggers onChangeTab in useEffect
+      // Assert - Analytics event is tracked
       expect(mockTrackEvent).toHaveBeenCalledWith({ type: 'test_event' });
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'asset_filter_selected',
-      );
-    });
-
-    it('should track analytics event when tab changes to custom', () => {
-      // This test will verify that the default mock already covers the analytics tracking
-      renderComponent();
-
-      // Verify that the default tab analytics is tracked (since our mock defaults to 'wallet.default')
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         'asset_filter_selected',
       );
@@ -604,39 +673,39 @@ describe('NetworkManager Component', () => {
   });
 
   describe('Network Menu Modal', () => {
-    it('should open network menu modal when openModal is called', async () => {
+    it('should display both edit and delete options when displayEdit is true', async () => {
+      // Arrange - Render component
       const { getByTestId } = renderComponent();
 
+      // Act - Open modal that has displayEdit: true (the default mock)
       const openModalButton = getByTestId('open-modal-button');
       fireEvent.press(openModalButton);
 
+      // Assert - Both edit and delete actions are visible
       await waitFor(() => {
-        expect(mockOnOpenBottomSheet).toHaveBeenCalled();
-        expect(getByTestId('bottom-sheet')).toBeTruthy();
+        expect(
+          getByTestId('account-action-transaction.edit'),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId('account-action-app_settings.delete'),
+        ).toBeOnTheScreen();
       });
     });
 
-    it('should show edit and delete options when displayEdit is true', async () => {
-      const { getByTestId } = renderComponent();
-
-      const openModalButton = getByTestId('open-modal-button');
-      fireEvent.press(openModalButton);
-
-      await waitFor(() => {
-        expect(getByTestId('account-action-transaction.edit')).toBeTruthy();
-        expect(getByTestId('account-action-app_settings.delete')).toBeTruthy();
-      });
-    });
-
-    it('should only show edit option when displayEdit is false', async () => {
+    it('should display only edit option when displayEdit is false', async () => {
+      // Arrange - Render component
       const { getByTestId, queryByTestId } = renderComponent();
 
+      // Act - Open custom modal that has displayEdit: false
       const openCustomModalButton = getByTestId('open-custom-modal-button');
       fireEvent.press(openCustomModalButton);
 
+      // Assert - Only edit action is visible, delete is not shown
       await waitFor(() => {
-        expect(getByTestId('account-action-transaction.edit')).toBeTruthy();
-        expect(queryByTestId('account-action-app_settings.delete')).toBeFalsy();
+        expect(
+          getByTestId('account-action-transaction.edit'),
+        ).toBeOnTheScreen();
+        expect(queryByTestId('account-action-app_settings.delete')).toBeNull();
       });
     });
 
@@ -666,6 +735,7 @@ describe('NetworkManager Component', () => {
         fireEvent.press(editButton);
       });
 
+      // The main BottomSheet's onCloseBottomSheet should be called with callback
       expect(mockDismissModal).toHaveBeenCalledWith(expect.any(Function));
       expect(mockNavigate).toHaveBeenCalledWith('AddNetwork', {
         shouldNetworkSwitchPopToWallet: false,
@@ -689,8 +759,8 @@ describe('NetworkManager Component', () => {
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
       await waitFor(() => {
-        expect(getByTestId('bottom-sheet-header')).toBeTruthy();
-        expect(getByTestId('bottom-sheet-footer')).toBeTruthy();
+        expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+        expect(getByTestId('bottom-sheet-footer')).toBeOnTheScreen();
       });
     });
 
@@ -706,10 +776,10 @@ describe('NetworkManager Component', () => {
       });
 
       await waitFor(() => {
-        expect(getByTestId('bottom-sheet-header')).toBeTruthy();
+        expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
         // The network name appears as part of a larger text string, use partial match
-        expect(getByText(/Ethereum Mainnet/)).toBeTruthy();
-        expect(getByText(/app_settings\.network_delete/)).toBeTruthy();
+        expect(getByText(/Ethereum Mainnet/)).toBeOnTheScreen();
+        expect(getByText(/app_settings\.network_delete/)).toBeOnTheScreen();
       });
     });
 
@@ -755,7 +825,6 @@ describe('NetworkManager Component', () => {
       fireEvent.press(confirmButton);
 
       expect(mockRemoveNetwork).toHaveBeenCalledWith('0x1');
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:1');
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         removedChainId: '0x1',
       });
@@ -763,19 +832,26 @@ describe('NetworkManager Component', () => {
   });
 
   describe('Error Handling and Edge Cases', () => {
-    it('should handle navigation errors gracefully', async () => {
-      mockNavigate.mockImplementation(() => {
-        throw new Error('Navigation error');
-      });
-
+    it('should call dismissModal before attempting navigation', async () => {
+      // Arrange - Render component
       const { getByTestId } = renderComponent();
 
+      // Act - Open modal and press edit
       const openModalButton = getByTestId('open-modal-button');
       fireEvent.press(openModalButton);
 
-      const editButton = getByTestId('account-action-transaction.edit');
-      // The navigation error should be thrown since the component doesn't catch it
-      expect(() => fireEvent.press(editButton)).toThrow('Navigation error');
+      await waitFor(() => {
+        const editButton = getByTestId('account-action-transaction.edit');
+        fireEvent.press(editButton);
+      });
+
+      // Assert - dismissModal was called before navigation
+      expect(mockDismissModal).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('AddNetwork', {
+        shouldNetworkSwitchPopToWallet: false,
+        shouldShowPopularNetworks: false,
+        network: 'https://mainnet.infura.io',
+      });
     });
 
     it('should handle missing modal refs gracefully', () => {

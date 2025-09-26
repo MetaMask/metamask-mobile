@@ -18,6 +18,7 @@ import {
   isBtcTestnetAddress,
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
+  isNonEvmAddress,
   lastSelectedAccountAddressInEvmNetwork,
   lastSelectedAccountAddressByNonEvmNetworkChainId,
   shortenTransactionId,
@@ -37,6 +38,7 @@ import {
 // Mock these functions
 jest.mock('../../../util/address', () => ({
   formatAddress: jest.fn(),
+  isEthAddress: jest.requireActual('../../../util/address').isEthAddress,
 }));
 
 jest.mock('../networks', () => ({
@@ -50,9 +52,12 @@ const MOCK_BTC_MAINNET_ADDRESS = 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
 const MOCK_BTC_MAINNET_ADDRESS_2 = '1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ';
 // P2WPKH
 const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+const MOCK_BTC_REGTEST_ADDRESS = 'bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw';
 const MOCK_ETH_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+const MOCK_ETH_ADDRESS_2 = '0x742d35Cc6634C0532925a3b8D1f9C0D5c5b8c5F5';
 
 const SOL_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+const SOL_ADDRESS_2 = 'DRpbCBMxVnDK7maPM5tGv6MvB3v1sRMC86PZ8okm21hy';
 
 const mockEthEOAAccount: InternalAccount = {
   address: MOCK_ETH_ADDRESS,
@@ -115,7 +120,7 @@ const mockBTCAccount: InternalAccount = {
     },
   },
   options: {},
-  methods: [BtcMethod.SendBitcoin],
+  methods: Object.values(BtcMethod),
   type: BtcAccountType.P2wpkh,
 };
 
@@ -222,6 +227,44 @@ describe('MultiChain utils', () => {
     it('returns false for non-Solana accounts', () => {
       expect(isSolanaAccount(mockEthEOAAccount)).toBe(false);
       expect(isSolanaAccount(mockBTCAccount)).toBe(false);
+    });
+  });
+
+  describe('isNonEvmAddress', () => {
+    describe('Solana addresses', () => {
+      it('returns true for valid Solana addresses', () => {
+        expect(isNonEvmAddress(SOL_ADDRESS)).toBe(true);
+        expect(isNonEvmAddress(SOL_ADDRESS_2)).toBe(true);
+      });
+    });
+
+    describe('Bitcoin mainnet addresses', () => {
+      it('returns true for P2WPKH Bitcoin mainnet addresses (bc1...)', () => {
+        expect(isNonEvmAddress(MOCK_BTC_MAINNET_ADDRESS)).toBe(true);
+      });
+
+      it('returns true for P2PKH Bitcoin mainnet addresses (1...)', () => {
+        expect(isNonEvmAddress(MOCK_BTC_MAINNET_ADDRESS_2)).toBe(true);
+      });
+    });
+
+    describe('Bitcoin testnet addresses', () => {
+      it('returns true for Bitcoin testnet addresses (tb1...)', () => {
+        expect(isNonEvmAddress(MOCK_BTC_TESTNET_ADDRESS)).toBe(true);
+      });
+    });
+
+    describe('Bitcoin regtest addresses', () => {
+      it('returns true for Bitcoin regtest addresses', () => {
+        expect(isNonEvmAddress(MOCK_BTC_REGTEST_ADDRESS)).toBe(true);
+      });
+    });
+
+    describe('Ethereum addresses', () => {
+      it('returns false for valid Ethereum addresses', () => {
+        expect(isNonEvmAddress(MOCK_ETH_ADDRESS)).toBe(false);
+        expect(isNonEvmAddress(MOCK_ETH_ADDRESS_2)).toBe(false);
+      });
     });
   });
 

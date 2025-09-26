@@ -6,7 +6,15 @@ import { PerpsController } from '../controllers';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+  useSelector: jest.fn(() => () => ({
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+  })),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+  })),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -28,7 +36,9 @@ describe('usePerpsBlockExplorerUrl', () => {
     jest.clearAllMocks();
     Engine.context.PerpsController =
       mockController as unknown as PerpsController;
-    (useSelector as jest.Mock).mockReturnValue(mockSelectedAddress);
+    (useSelector as jest.Mock).mockReturnValue(() => ({
+      address: mockSelectedAddress,
+    }));
   });
 
   it('should return baseExplorerUrl from controller', () => {
@@ -94,7 +104,7 @@ describe('usePerpsBlockExplorerUrl', () => {
 
     it('should return null when no address available', () => {
       mockController.getBlockExplorerUrl.mockClear();
-      (useSelector as jest.Mock).mockReturnValue(null);
+      (useSelector as jest.Mock).mockReturnValue(() => null);
 
       const { result } = renderHook(() => usePerpsBlockExplorerUrl());
       const url = result.current.getExplorerUrl();

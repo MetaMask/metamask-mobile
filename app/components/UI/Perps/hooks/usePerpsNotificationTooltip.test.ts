@@ -7,6 +7,7 @@ import { usePerpsNotificationTooltip } from './usePerpsNotificationTooltip';
 import Engine from '../../../../core/Engine';
 import { act } from '@testing-library/react-native';
 import type { NotificationServicesControllerState } from '@metamask/notification-services-controller/notification-services';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 
 // Mock notifications feature flag
 jest.mock('../../../../util/notifications/constants', () => ({
@@ -37,7 +38,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 // Mock selectors
 jest.mock('../../../../selectors/notifications', () => ({
-  selectIsPerpsNotificationsEnabled: jest.fn(),
+  selectIsMetaMaskPushNotificationsEnabled: jest.fn(),
 }));
 
 jest.mock('../controllers/selectors', () => ({
@@ -48,6 +49,10 @@ jest.mock('../controllers/selectors', () => ({
 jest.mock('./usePerpsSelector', () => ({
   usePerpsSelector: jest.fn((selector) => selector),
 }));
+
+const mockSelectIsPushEnabled = jest.mocked(
+  selectIsMetaMaskPushNotificationsEnabled,
+);
 
 describe('usePerpsNotificationTooltip', () => {
   // Reset mocks before each test
@@ -63,11 +68,7 @@ describe('usePerpsNotificationTooltip', () => {
     const mockedUseSelector = jest.requireMock('react-redux').useSelector;
     mockedUseSelector.mockImplementation(
       (selector: (state: RootState) => unknown) => {
-        if (
-          selector ===
-          jest.requireMock('../../../../selectors/notifications')
-            .selectIsPerpsNotificationsEnabled
-        ) {
+        if (selector === mockSelectIsPushEnabled) {
           return perpsNotificationsEnabled;
         }
         return undefined;

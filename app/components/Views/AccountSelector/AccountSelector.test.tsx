@@ -1,12 +1,14 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import {
   AccountSelectorParams,
   AccountSelectorProps,
+  AccountSelectorScreens,
 } from './AccountSelector.types';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
@@ -15,6 +17,8 @@ import {
   internalAccount2,
   internalSolanaAccount1,
 } from '../../../util/test/accountsControllerTestUtils';
+
+const mockAvatarAccountType = 'Maskicon' as const;
 
 const mockAccounts = [
   {
@@ -69,7 +73,7 @@ const mockInitialState = {
     reloadAccounts: false,
   },
   settings: {
-    useBlockieIcon: false,
+    avatarAccountType: mockAvatarAccountType,
   },
 };
 
@@ -109,7 +113,7 @@ jest.mock('react-redux', () => ({
         reloadAccounts: false,
       },
       settings: {
-        useBlockieIcon: false,
+        avatarAccountType: mockAvatarAccountType,
       },
     };
     return (selector as (mockState: unknown) => unknown)(mockState);
@@ -161,6 +165,30 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
+// Mock the multichain accounts selector with default disabled state
+const mockSelectMultichainAccountsState2Enabled = jest
+  .fn()
+  .mockReturnValue(false);
+const mockSelectMultichainAccountsState1Enabled = jest
+  .fn()
+  .mockReturnValue(false);
+
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () =>
+      mockSelectMultichainAccountsState2Enabled(),
+    selectMultichainAccountsState1Enabled: () =>
+      mockSelectMultichainAccountsState1Enabled(),
+  }),
+);
+
+const mockUseAccountsOperationsLoadingStates = jest.fn();
+jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
+  useAccountsOperationsLoadingStates: () =>
+    mockUseAccountsOperationsLoadingStates(),
+}));
+
 const mockRoute: AccountSelectorProps['route'] = {
   params: {
     onSelectAccount: jest.fn((address: string) => address),
@@ -175,6 +203,16 @@ const AccountSelectorWrapper = () => <AccountSelector route={mockRoute} />;
 describe('AccountSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset multichain selectors to disabled state by default
+    mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+    mockSelectMultichainAccountsState1Enabled.mockReturnValue(false);
+
+    // Reset useAccountsOperationsLoadingStates hook to default values
+    mockUseAccountsOperationsLoadingStates.mockReturnValue({
+      isAccountSyncingInProgress: false,
+      areAnyOperationsLoading: false,
+      loadingMessage: undefined,
+    });
   });
 
   it('should render correctly', () => {
@@ -271,5 +309,311 @@ describe('AccountSelector', () => {
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
     expect(accountsList).toBeDefined();
+  });
+
+  describe('Multichain Accounts V2', () => {
+    it('shows button text based on feature flag state', () => {
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeDefined();
+      expect(addButton.props.children).toBeDefined();
+    });
+
+    it('shows "Add wallet" text when multichain feature flag is enabled', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // Verify component renders successfully with feature flag enabled
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeDefined();
+
+      // When multichain feature flag is enabled, button text should be "Add wallet"
+      expect(addButton).toHaveTextContent('Add wallet');
+    });
+
+    it('handles navigation to add account actions', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const routeWithNavigation = {
+        params: {
+          ...mockRoute.params,
+          navigateToAddAccountActions:
+            AccountSelectorScreens.MultichainAddWalletActions as
+              | AccountSelectorScreens.AddAccountActions
+              | AccountSelectorScreens.MultichainAddWalletActions,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithNavigation} />,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(screen.getAllByText('Import a wallet')).toBeDefined();
+    });
+
+    it('clicks Add wallet button and displays MultichainAddWalletActions bottomsheet', () => {
+      // Enable the multichain accounts state 2 feature flag for this test
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addWalletButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addWalletButton).toHaveTextContent('Add wallet');
+
+      fireEvent.press(addWalletButton);
+
+      // Check for the "Add wallet" header text which indicates the component is rendered
+      expect(screen.getByText('Add wallet')).toBeDefined();
+
+      expect(
+        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+      ).toBeDefined();
+    });
+  });
+
+  describe('Loading States Integration', () => {
+    it('displays loading message when account syncing is in progress', () => {
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toHaveTextContent('Syncing...');
+    });
+
+    it('disables add button when account syncing is in progress', () => {
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+
+      // Check that the button shows the syncing state
+      expect(addButton).toHaveTextContent('Syncing...');
+
+      // Try to press the button and verify it doesn't trigger the action
+      fireEvent.press(addButton);
+
+      // If button is properly disabled, the navigation to add account actions shouldn't happen
+      // We can verify this by checking that we're still on the account selector screen
+      expect(screen.queryByText('Import a wallet')).toBeNull();
+    });
+
+    it('shows activity indicator when syncing is in progress', () => {
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // The activity indicator should be present when syncing
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeDefined();
+      expect(addButton).toHaveTextContent('Syncing...');
+    });
+
+    it('shows different button text based on multichain feature flag when not syncing', () => {
+      // Test with multichain enabled
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toHaveTextContent('Add wallet');
+    });
+
+    it('shows default button text when multichain is disabled and not syncing', () => {
+      // Reset to disabled state
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toHaveTextContent('Add account or hardware wallet');
+    });
+
+    it('prioritizes syncing message over feature flag text', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      // Should show syncing message, not "Add wallet"
+      expect(addButton).toHaveTextContent('Syncing...');
+    });
+
+    it('enables button when syncing completes', () => {
+      // Initially syncing
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: true,
+        areAnyOperationsLoading: true,
+        loadingMessage: 'Syncing...',
+      });
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      let addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toHaveTextContent('Syncing...');
+
+      // Test that syncing completes by checking for different text content
+      // We'll simulate this by re-mocking the hook and re-rendering
+      mockUseAccountsOperationsLoadingStates.mockReturnValue({
+        isAccountSyncingInProgress: false,
+        areAnyOperationsLoading: false,
+        loadingMessage: undefined,
+      });
+
+      // Re-render the component with new mock values
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+
+      // Should show default text when not syncing
+      expect(addButton).toHaveTextContent('Add account or hardware wallet');
+    });
   });
 });

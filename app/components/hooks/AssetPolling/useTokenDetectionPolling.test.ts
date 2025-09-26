@@ -208,6 +208,13 @@ describe('useTokenDetectionPolling', () => {
                   },
                 },
               },
+              NetworkEnablementController: {
+                enabledNetworkMap: {
+                  eip155: {
+                    '0x5': true,
+                  },
+                },
+              },
             },
           },
         },
@@ -530,9 +537,9 @@ describe('useTokenDetectionPolling', () => {
             PreferencesController: {
               ...state.engine.backgroundState.PreferencesController,
               tokenNetworkFilter: {
-                '0x1': 'true',
-                '0x89': 'true',
-                '0xa': 'true',
+                '0x1': true,
+                '0x89': true,
+                '0xa': true,
               },
             },
           },

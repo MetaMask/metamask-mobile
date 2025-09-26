@@ -47,16 +47,6 @@ const migration = async (state: unknown): Promise<unknown> => {
     } else {
       newState.user.existingUser = existingUserValue;
     }
-
-    if (existingUser !== null) {
-      try {
-        await StorageWrapper.removeItem(EXISTING_USER);
-      } catch (removeError) {
-        // If removeItem fails, capture the error but don't change the existingUser value
-        // since we successfully retrieved it from MMKV
-        captureException(removeError as Error);
-      }
-    }
   } catch (error) {
     captureException(error as Error);
 

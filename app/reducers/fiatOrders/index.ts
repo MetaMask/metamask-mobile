@@ -1,8 +1,11 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import { toHex } from '@metamask/controller-utils';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/Aggregator/types';
-import { DepositRegion } from '../../components/UI/Ramp/Deposit/constants';
+import type {
+  DepositRegion,
+  DepositCryptoCurrency,
+  DepositPaymentMethod,
+} from '@consensys/native-ramps-sdk';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import {
@@ -17,8 +20,7 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
-import { getDecimalChainId, isTestNet } from '../../util/networks';
-import networkChainIdEquals from '../../components/UI/Ramp/utils/networkChainIdEquals';
+import { getDecimalChainId } from '../../util/networks';
 
 export type { FiatOrder } from './types';
 
@@ -46,6 +48,18 @@ export const setFiatOrdersRegionAGG = (region: Region | null) => ({
 export const setFiatOrdersRegionDeposit = (region: DepositRegion | null) => ({
   type: ACTIONS.FIAT_SET_REGION_DEPOSIT,
   payload: region,
+});
+export const setFiatOrdersCryptoCurrencyDeposit = (
+  cryptoCurrency: DepositCryptoCurrency | null,
+) => ({
+  type: ACTIONS.FIAT_SET_CRYPTO_CURRENCY_DEPOSIT,
+  payload: cryptoCurrency,
+});
+export const setFiatOrdersPaymentMethodDeposit = (
+  paymentMethod: DepositPaymentMethod | null,
+) => ({
+  type: ACTIONS.FIAT_SET_PAYMENT_METHOD_DEPOSIT,
+  payload: paymentMethod,
 });
 export const setFiatOrdersPaymentMethodAGG = (
   paymentMethodId: string | null,
@@ -169,6 +183,14 @@ export const fiatOrdersRegionSelectorDeposit: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionDeposit'] = (state: RootState) =>
   state.fiatOrders.selectedRegionDeposit;
+export const fiatOrdersCryptoCurrencySelectorDeposit: (
+  state: RootState,
+) => FiatOrdersState['selectedCryptoCurrencyDeposit'] = (state: RootState) =>
+  state.fiatOrders.selectedCryptoCurrencyDeposit;
+export const fiatOrdersPaymentMethodSelectorDeposit: (
+  state: RootState,
+) => FiatOrdersState['selectedPaymentMethodDeposit'] = (state: RootState) =>
+  state.fiatOrders.selectedPaymentMethodDeposit;
 export const fiatOrdersPaymentMethodSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedPaymentMethodAgg'] = (state: RootState) =>
@@ -201,28 +223,30 @@ export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
 export const getOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
-  chainIdSelector,
-  (orders, selectedAddress, chainId) =>
+  (orders, selectedAddress) =>
     orders.filter(
       (order) =>
-        !order.excludeFromPurchases &&
-        order.account === selectedAddress &&
-        (networkChainIdEquals(order.network, chainId) ||
-          isTestNet(toHex(chainId))),
+        !order.excludeFromPurchases && order.account === selectedAddress,
     ),
+);
+
+export const getAllDepositOrders = createSelector(ordersSelector, (orders) =>
+  orders.filter((order) => order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT),
 );
 
 export const getPendingOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
-  chainIdSelector,
-  (orders, selectedAddress, chainId) =>
+  (orders, selectedAddress) =>
     orders.filter(
       (order) =>
         order.account === selectedAddress &&
-        networkChainIdEquals(order.network, chainId) &&
         order.state === FIAT_ORDER_STATES.PENDING,
     ),
+);
+
+export const getForceUpdateOrders = createSelector(ordersSelector, (orders) =>
+  orders.filter((order) => order.forceUpdate),
 );
 
 const customOrdersSelector: (
@@ -233,12 +257,9 @@ const customOrdersSelector: (
 export const getCustomOrderIds = createSelector(
   customOrdersSelector,
   selectedAddressSelector,
-  chainIdSelector,
-  (customOrderIds, selectedAddress, chainId) =>
+  (customOrderIds, selectedAddress) =>
     customOrderIds.filter(
-      (customOrderId) =>
-        customOrderId.account === selectedAddress &&
-        customOrderId.chainId === chainId,
+      (customOrderId) => customOrderId.account === selectedAddress,
     ),
 );
 
@@ -288,6 +309,8 @@ export const initialState: FiatOrdersState = {
   networks: [],
   selectedRegionAgg: null,
   selectedRegionDeposit: null,
+  selectedCryptoCurrencyDeposit: null,
+  selectedPaymentMethodDeposit: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
   getStartedSell: false,
@@ -388,6 +411,18 @@ const fiatOrderReducer: (
       return {
         ...state,
         selectedRegionDeposit: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_CRYPTO_CURRENCY_DEPOSIT: {
+      return {
+        ...state,
+        selectedCryptoCurrencyDeposit: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_PAYMENT_METHOD_DEPOSIT: {
+      return {
+        ...state,
+        selectedPaymentMethodDeposit: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG: {

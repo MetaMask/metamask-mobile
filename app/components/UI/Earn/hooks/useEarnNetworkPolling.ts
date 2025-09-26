@@ -5,15 +5,15 @@ import { Hex } from '@metamask/utils';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
-import useAccountTrackerPolling from '../../../hooks/AssetPolling/useAccountTrackerPolling';
 import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenBalancesPolling from '../../../hooks/AssetPolling/useTokenBalancesPolling';
 import useTokenDetectionPolling from '../../../hooks/AssetPolling/useTokenDetectionPolling';
 import useTokenListPolling from '../../../hooks/AssetPolling/useTokenListPolling';
 import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
 import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { EVM_SCOPE } from '../constants/networks';
 
 /**
  * Chain IDs that support lending functionality through Aave pools.
@@ -52,45 +52,33 @@ const LENDING_CHAIN_IDS: Hex[] = Object.keys(
  * @returns {void} This hook doesn't return any values, it only manages side effects
  */
 export const useEarnNetworkPolling = () => {
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const useTokenDetection = useSelector(selectUseTokenDetection);
   const tokensState = useSelector(
     (state: RootState) => state.engine?.backgroundState?.TokensController,
   );
   const [lendingChainIds, setLendingChainIds] = useState<Hex[]>([]);
-  const [lendingNetworkClientIds, setLendingNetworkClientIds] = useState<
-    string[]
-  >([]);
 
   useTokenListPolling({ chainIds: lendingChainIds });
   useTokenBalancesPolling({ chainIds: lendingChainIds });
   useCurrencyRatePolling({ chainIds: lendingChainIds });
   useTokenRatesPolling({ chainIds: lendingChainIds });
-  useAccountTrackerPolling({ networkClientIds: lendingNetworkClientIds });
   useTokenDetectionPolling({
     chainIds: useTokenDetection ? lendingChainIds : [],
     address: selectedAccount?.address as Hex,
   });
 
   useEffect(() => {
-    const { NetworkController } = Engine.context;
     const validChainIds: Hex[] = [];
-    const validNetworkClientIds: string[] = [];
 
     LENDING_CHAIN_IDS.forEach((chainId) => {
-      try {
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(chainId);
-        validChainIds.push(chainId);
-        validNetworkClientIds.push(networkClientId);
-      } catch (error) {
-        console.warn(`Network client not found for chain ${chainId}:`, error);
-      }
+      validChainIds.push(chainId);
     });
 
     setLendingChainIds(validChainIds);
-    setLendingNetworkClientIds(validNetworkClientIds);
-  }, [setLendingChainIds, setLendingNetworkClientIds]);
+  }, [setLendingChainIds]);
 
   // Import tokens from all lending chains
   useEffect(() => {

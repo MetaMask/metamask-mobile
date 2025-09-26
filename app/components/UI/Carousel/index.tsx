@@ -1,38 +1,36 @@
-import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
-import {
-  Pressable,
-  Linking,
-  Image as RNImage,
-  FlatList,
-  Dimensions,
-} from 'react-native';
+import React, {
+  useState,
+  useCallback,
+  FC,
+  useMemo,
+  useEffect,
+  useRef,
+} from 'react';
+import { Linking, Dimensions, Animated } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
 import { dismissBanner } from '../../../reducers/banners';
+import { StackCard } from './StackCard';
+import { StackCardEmpty } from './StackCardEmpty';
+import { useTransitionToNextCard, useTransitionToEmpty } from './animations';
 import {
   Box,
   Text,
   TextVariant,
   TextColor,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  FontWeight,
-  ButtonIcon,
-  IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { selectDismissedBanners } from '../../../selectors/banner';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import {
   selectSelectedInternalAccount,
   selectLastSelectedSolanaAccount,
 } from '../../../selectors/accountsController';
-import { isEvmAccountType, SolAccountType } from '@metamask/keyring-api';
+import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
@@ -41,28 +39,92 @@ import {
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import Routes from '../../../constants/navigation/Routes';
 
-const MAX_CAROUSEL_SLIDES = 15;
+const MAX_CAROUSEL_SLIDES = 8;
 
 // Constants from original styles
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
-const CAROUSEL_HEIGHT = 66;
-const DOTS_HEIGHT = 18;
-const PEEK_WIDTH = 5;
+const BANNER_HEIGHT = 100;
 
-const CarouselComponent: FC<CarouselProps> = ({ style }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
+  const placed: (CarouselSlide | undefined)[] = [];
+  const unplaced: CarouselSlide[] = [];
 
+  for (const s of slides) {
+    const raw = s.cardPlacement;
+    const n = typeof raw === 'string' ? Number(raw) : raw;
+    if (typeof n === 'number' && Number.isFinite(n)) {
+      const idx = Math.max(0, Math.floor(n) - 1); // convert 1-based to 0-based
+      if (idx >= placed.length) placed.length = idx + 1;
+      placed[idx] = s;
+    } else {
+      unplaced.push(s);
+    }
+  }
+
+  let up = 0;
+  for (let i = 0; i < placed.length && up < unplaced.length; i++) {
+    if (!placed[i]) placed[i] = unplaced[up++];
+  }
+  while (up < unplaced.length) placed.push(unplaced[up++]);
+
+  return placed.filter(Boolean) as CarouselSlide[];
+}
+
+const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const [priorityContentfulSlides, setPriorityContentfulSlides] = useState<
     CarouselSlide[]
   >([]);
   const [regularContentfulSlides, setRegularContentfulSlides] = useState<
     CarouselSlide[]
   >([]);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [isCarouselVisible, setIsCarouselVisible] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Current card animations (exit)
+  const currentCardOpacity = useRef(new Animated.Value(1)).current;
+  const currentCardScale = useRef(new Animated.Value(1)).current;
+  const currentCardTranslateY = useRef(new Animated.Value(0)).current;
+
+  // Next card animations (enter)
+  const nextCardOpacity = useRef(new Animated.Value(0)).current;
+  const nextCardScale = useRef(new Animated.Value(0.96)).current; // Starts slightly smaller
+  const nextCardTranslateY = useRef(new Animated.Value(8)).current; // Starts slightly lower
+  const nextCardBgOpacity = useRef(new Animated.Value(1)).current; // Background pressed state
+
+  // Carousel-level animations for empty state dismissal
+  const carouselOpacity = useRef(new Animated.Value(1)).current;
+  const carouselHeight = useRef(new Animated.Value(BANNER_HEIGHT + 6)).current;
+  const carouselScaleY = useRef(new Animated.Value(1)).current;
+
+  const isAnimating = useRef(false);
+
+  // Animation hooks
+  const transitionToNextCard = useTransitionToNextCard({
+    currentCardOpacity,
+    currentCardScale,
+    currentCardTranslateY,
+    nextCardOpacity,
+    nextCardScale,
+    nextCardTranslateY,
+    nextCardBgOpacity,
+  });
+
+  const transitionToEmpty = useTransitionToEmpty({
+    carouselOpacity,
+    emptyCardOpacity: currentCardOpacity, // Empty card uses current card opacity when active
+    carouselHeight,
+    carouselScaleY,
+  });
+
   const isContentfulCarouselEnabled = useSelector(
     selectContentfulCarouselEnabledFlag,
   );
+
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasBalance = useSelector(selectAddressHasTokenBalances);
   const dispatch = useDispatch();
@@ -98,64 +160,164 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     loadContentfulSlides();
   }, [isContentfulCarouselEnabled]);
 
-  // Merge all slides (predefined + contentful),
-  const slidesConfig = useMemo(() => {
-    const baseSlides = [
-      ...priorityContentfulSlides,
-      ...PREDEFINED_SLIDES,
-      ...regularContentfulSlides,
-    ];
-    return baseSlides.map((slide) => {
-      if (slide.id === 'fund' && isZeroBalance) {
+  const applyLocalNavigation = useCallback(
+    (s: CarouselSlide): CarouselSlide => {
+      // fund → open buy flow
+      if (s.variableName === 'fund') {
         return {
-          ...slide,
-          undismissable: true,
+          ...s,
+          navigation: {
+            type: 'function',
+            navigate: () => createBuyNavigationDetails(),
+          },
         };
       }
-      return {
-        ...slide,
-        undismissable: false,
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      // solana → open add-account flow (if we don't already redirect below)
+      if (s.variableName === 'solana') {
+        return {
+          ...s,
+          navigation: {
+            type: 'function',
+            navigate: () =>
+              [
+                Routes.MODAL.ROOT_MODAL_FLOW,
+                {
+                  screen: Routes.SHEET.ADD_ACCOUNT,
+                  params: {
+                    clientType: WalletClientType.Solana,
+                    scope: SolScope.Mainnet,
+                  },
+                },
+              ] as const,
+          },
+        };
+      }
+      ///: END:ONLY_INCLUDE_IF
+      return s; // keep Contentful linkUrl for everything else
+    },
+    [],
+  );
+
+  const slidesConfig = useMemo(() => {
+    let slides: CarouselSlide[] = [];
+
+    // Get base slides
+    const patch = (s: CarouselSlide): CarouselSlide => {
+      const withNav = applyLocalNavigation(s);
+      if (withNav.variableName === 'fund' && isZeroBalance) {
+        return { ...withNav, undismissable: withNav.undismissable || true };
+      }
+      return withNav;
+    };
+
+    const priority = priorityContentfulSlides.map(patch);
+    const regular = orderByCardPlacement(regularContentfulSlides.map(patch));
+    slides = [...priority, ...regular];
+
+    // Always add empty card as the last card
+    if (slides.length > 0) {
+      const emptyCard: CarouselSlide = {
+        id: `empty-card-${Date.now()}`,
+        title: '',
+        description: '',
+        navigation: {
+          type: 'url',
+          href: '#',
+        },
+        variableName: 'empty',
+        undismissable: true,
       };
-    });
-  }, [isZeroBalance, priorityContentfulSlides, regularContentfulSlides]);
+      slides.push(emptyCard);
+    }
+
+    return slides;
+  }, [
+    applyLocalNavigation,
+    isZeroBalance,
+    priorityContentfulSlides,
+    regularContentfulSlides,
+  ]);
 
   const visibleSlides = useMemo(() => {
     const filtered = slidesConfig.filter((slide: CarouselSlide) => {
-      const isCurrentlyActive = isActive(slide);
+      const active = isActive(slide);
+      if (!active) return false;
 
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       if (
-        slide.id === 'solana' &&
+        slide.variableName === 'solana' &&
         selectedAccount?.type === SolAccountType.DataAccount
-      ) {
-        return false;
-      }
-      if (
-        slide.id === 'smartAccount' &&
-        selectedAccount?.type &&
-        !isEvmAccountType(selectedAccount.type)
       ) {
         return false;
       }
       ///: END:ONLY_INCLUDE_IF
 
-      if (slide.id === 'fund' && isZeroBalance) {
-        return true;
-      }
-
-      return isCurrentlyActive && !dismissedBanners.includes(slide.id);
+      return !dismissedBanners.includes(slide.id);
     });
     return filtered.slice(0, MAX_CAROUSEL_SLIDES);
   }, [
     slidesConfig,
-    isZeroBalance,
     dismissedBanners,
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     selectedAccount,
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-  const isSingleSlide = visibleSlides.length === 1;
+  // Ensure activeSlideIndex is within bounds after filtering
+  const safeActiveSlideIndex = Math.min(
+    activeSlideIndex,
+    visibleSlides.length - 1,
+  );
+  const currentSlide = visibleSlides[safeActiveSlideIndex];
+  const nextSlide = visibleSlides[safeActiveSlideIndex + 1]; // Next card in stack
+  const hasNextSlide = !!nextSlide;
+
+  // Reset index if it's out of bounds
+  useEffect(() => {
+    if (activeSlideIndex >= visibleSlides.length && visibleSlides.length > 0) {
+      setActiveSlideIndex(0);
+    }
+  }, [activeSlideIndex, visibleSlides.length]);
+
+  // Reset card animations when slides change (but not during transitions)
+  useEffect(() => {
+    if (!isAnimating.current && !isTransitioning) {
+      // Use requestAnimationFrame to prevent flash during re-render
+      requestAnimationFrame(() => {
+        // Reset current card to visible state
+        currentCardOpacity.setValue(1);
+        currentCardScale.setValue(1);
+        currentCardTranslateY.setValue(0);
+
+        // Reset next card to background state
+        if (hasNextSlide) {
+          // For initial setup only - transition completion handles new next cards
+          nextCardOpacity.setValue(0.7); // Dimmed background state
+          nextCardScale.setValue(0.96); // Slightly smaller
+          nextCardTranslateY.setValue(8); // Slightly lower
+          nextCardBgOpacity.setValue(1); // Pressed background state
+        } else {
+          nextCardOpacity.setValue(0);
+          nextCardScale.setValue(0.96);
+          nextCardTranslateY.setValue(8);
+          nextCardBgOpacity.setValue(0);
+        }
+      });
+    }
+  }, [
+    safeActiveSlideIndex,
+    visibleSlides.length,
+    hasNextSlide,
+    isTransitioning,
+    currentCardOpacity,
+    currentCardScale,
+    currentCardTranslateY,
+    nextCardOpacity,
+    nextCardScale,
+    nextCardTranslateY,
+    nextCardBgOpacity,
+  ]);
 
   const openUrl =
     (href: string): (() => Promise<void>) =>
@@ -215,82 +377,126 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     ],
   );
 
-  const handleClose = useCallback(
-    (slideId: string) => {
-      dispatch(dismissBanner(slideId));
+  const handleTransitionToNextCard = useCallback(
+    async (slideId: string) => {
+      if (isAnimating.current) return;
+
+      isAnimating.current = true;
+      setIsTransitioning(true);
+
+      try {
+        await transitionToNextCard.executeTransition('nextCard');
+
+        // After animation, dismiss banner and reset
+        dispatch(dismissBanner(slideId));
+
+        // Set up new next card if there will be one
+        requestAnimationFrame(() => {
+          if (safeActiveSlideIndex < visibleSlides.length - 2) {
+            nextCardOpacity.setValue(0.7);
+            nextCardScale.setValue(0.96);
+            nextCardTranslateY.setValue(8);
+            nextCardBgOpacity.setValue(1);
+          }
+
+          currentCardOpacity.setValue(1);
+          currentCardScale.setValue(1);
+          currentCardTranslateY.setValue(0);
+
+          setIsTransitioning(false);
+          isAnimating.current = false;
+        });
+      } catch (error) {
+        console.error('Transition to next card failed:', error);
+        setIsTransitioning(false);
+        isAnimating.current = false;
+      }
     },
-    [dispatch],
+    [
+      transitionToNextCard,
+      dispatch,
+      safeActiveSlideIndex,
+      visibleSlides.length,
+      currentCardOpacity,
+      currentCardScale,
+      currentCardTranslateY,
+      nextCardBgOpacity,
+      nextCardOpacity,
+      nextCardScale,
+      nextCardTranslateY,
+    ],
   );
 
-  const renderBannerSlides = useCallback(
-    ({ item: slide }: { item: CarouselSlide }) => (
-      <Pressable
-        key={slide.id}
-        testID={`carousel-slide-${slide.id}`}
-        style={({ pressed }) => ({
-          backgroundColor: pressed
-            ? tw.color('bg-muted-pressed')
-            : tw.color('bg-muted'),
-          borderRadius: 8,
-          height: CAROUSEL_HEIGHT,
-          width: BANNER_WIDTH,
-          marginHorizontal: PEEK_WIDTH,
-          position: 'relative',
-          overflow: 'hidden',
-          paddingLeft: 16,
-        })}
-        onPress={() => handleSlideClick(slide.id, slide.navigation)}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Start}
-          twClassName="w-full h-full"
-        >
-          <Box twClassName="flex-1 justify-center py-3">
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              testID={`carousel-slide-${slide.id}-title`}
-              numberOfLines={1}
-            >
-              {slide.title}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              {slide.description}
-            </Text>
-          </Box>
-          <Box
-            style={tw.style('overflow-hidden justify-center items-center', {
-              width: 66,
-              height: 66,
-            })}
-          >
-            <RNImage
-              source={
-                slide.id.startsWith('contentful-')
-                  ? { uri: slide.image }
-                  : BANNER_IMAGES[slide.id]
-              }
-              style={tw.style({ width: 66, height: 66 })}
-              resizeMode="contain"
-            />
-          </Box>
-          {!slide.undismissable && (
-            <ButtonIcon
-              iconName={IconName.Close}
-              onPress={() => handleClose(slide.id)}
-              testID={`carousel-slide-${slide.id}-close-button`}
-              twClassName="m-1"
-            />
-          )}
-        </Box>
-      </Pressable>
-    ),
-    [tw, handleSlideClick, handleClose],
+  const handleTransitionToEmpty = useCallback(async () => {
+    if (isAnimating.current) return;
+
+    isAnimating.current = true;
+
+    try {
+      // Trigger empty state component (fold-up and remove carousel)
+      await transitionToEmpty.executeTransition(() => {
+        onEmptyState?.();
+        setIsCarouselVisible(false);
+      });
+
+      isAnimating.current = false;
+    } catch (error) {
+      console.error('Transition to empty failed:', error);
+      isAnimating.current = false;
+    }
+  }, [transitionToEmpty, onEmptyState]);
+
+  const renderCard = useCallback(
+    (slide: CarouselSlide, isCurrentCard: boolean) => {
+      const isEmptyCard = slide.variableName === 'empty';
+
+      if (isEmptyCard) {
+        return (
+          <StackCardEmpty
+            emptyStateOpacity={
+              isCurrentCard ? currentCardOpacity : nextCardOpacity
+            }
+            emptyStateScale={isCurrentCard ? currentCardScale : nextCardScale}
+            emptyStateTranslateY={
+              isCurrentCard ? currentCardTranslateY : nextCardTranslateY
+            }
+            nextCardBgOpacity={nextCardBgOpacity}
+            onTransitionToEmpty={
+              isCurrentCard ? () => handleTransitionToEmpty() : undefined
+            }
+          />
+        );
+      }
+
+      return (
+        <StackCard
+          slide={slide}
+          isCurrentCard={isCurrentCard}
+          currentCardOpacity={currentCardOpacity}
+          currentCardScale={currentCardScale}
+          currentCardTranslateY={currentCardTranslateY}
+          nextCardOpacity={nextCardOpacity}
+          nextCardScale={nextCardScale}
+          nextCardTranslateY={nextCardTranslateY}
+          nextCardBgOpacity={nextCardBgOpacity}
+          onSlideClick={handleSlideClick}
+          onTransitionToNextCard={() => handleTransitionToNextCard(slide.id)}
+          onTransitionToEmpty={() => handleTransitionToEmpty()}
+        />
+      );
+    },
+    [
+      currentCardOpacity,
+      currentCardScale,
+      currentCardTranslateY,
+      nextCardOpacity,
+      nextCardScale,
+      nextCardTranslateY,
+      nextCardBgOpacity,
+      handleSlideClick,
+      handleTransitionToNextCard,
+      handleTransitionToEmpty,
+    ],
   );
 
   // Track banner display events when visible slides change
@@ -300,79 +506,113 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         createEventBuilder({
           category: 'Banner Display',
           properties: {
-            name: slide.id,
+            name: slide.variableName ?? slide.id,
           },
         }).build(),
       );
     });
   }, [visibleSlides, trackEvent, createEventBuilder]);
 
-  const renderProgressDots = useMemo(
-    () => (
-      <Box
-        testID={WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS}
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Center}
-        alignItems={BoxAlignItems.End}
-        style={{
-          height: DOTS_HEIGHT,
-        }}
-        twClassName="gap-2"
-      >
-        {visibleSlides.map((slide: CarouselSlide, index: number) => (
-          <Box
-            key={slide.id}
-            style={tw.style({
-              width: 6,
-              height: 6,
-              borderRadius: 3,
-              backgroundColor:
-                selectedIndex === index
-                  ? tw.color('bg-icon-default')
-                  : tw.color('bg-icon-muted'),
-              margin: 0,
-            })}
-          />
-        ))}
-      </Box>
-    ),
-    [visibleSlides, selectedIndex, tw],
-  );
+  // Track current slide display
+  useEffect(() => {
+    if (currentSlide) {
+      trackEvent(
+        createEventBuilder({
+          category: 'Banner Display',
+          properties: {
+            name: currentSlide.variableName ?? currentSlide.id,
+          },
+        }).build(),
+      );
+    }
+  }, [currentSlide, trackEvent, createEventBuilder]);
 
-  if (visibleSlides.length === 0) {
+  if (
+    !isCarouselVisible ||
+    (visibleSlides.length === 0 && !isAnimating.current)
+  ) {
     return null;
   }
 
   return (
-    <Box
-      style={tw.style(
-        'self-center overflow-visible',
+    <Animated.View
+      style={[
+        tw.style('mx-4'),
         {
-          width: BANNER_WIDTH + PEEK_WIDTH * 2,
-          height: CAROUSEL_HEIGHT + DOTS_HEIGHT,
+          height: carouselHeight, // Layout animation (non-native)
         },
         style,
-      )}
+      ]}
     >
-      <Box style={tw.style('overflow-visible', { height: CAROUSEL_HEIGHT })}>
-        <FlatList
-          data={visibleSlides}
-          renderItem={renderBannerSlides}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(scrollEvent) => {
-            const newIndex = Math.round(
-              scrollEvent.nativeEvent.contentOffset.x /
-                scrollEvent.nativeEvent.layoutMeasurement.width,
-            );
-            setSelectedIndex(newIndex);
-          }}
-          testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
-        />
-      </Box>
-      {!isSingleSlide && renderProgressDots}
-    </Box>
+      <Animated.View
+        style={{
+          opacity: carouselOpacity,
+          transform: [{ scaleY: carouselScaleY }], // Native animations
+        }}
+      >
+        <Box style={{ height: BANNER_HEIGHT + 6 }}>
+          <Box
+            style={tw.style('relative', { height: BANNER_HEIGHT })}
+            testID={WalletViewSelectorsIDs.CAROUSEL_CONTAINER}
+          >
+            {/* Layer 1: Render future next card first (Card 3 - deepest layer) */}
+            {isTransitioning && (
+              <>
+                {/* Regular future next card */}
+                {visibleSlides[safeActiveSlideIndex + 2] && (
+                  <Box
+                    key={`future-${visibleSlides[safeActiveSlideIndex + 2].id}`}
+                    style={tw.style('absolute', {
+                      opacity: 0.7,
+                      transform: [{ scale: 0.96 }, { translateY: 8 }],
+                      zIndex: 1, // Ensure it's behind other cards
+                    })}
+                  >
+                    <Box
+                      style={tw.style(
+                        'rounded-xl relative overflow-hidden border border-muted bg-default',
+                        {
+                          height: BANNER_HEIGHT,
+                          width: BANNER_WIDTH,
+                        },
+                      )}
+                    >
+                      {/* Pressed background overlay */}
+                      <Box
+                        style={tw.style(
+                          'absolute bg-default-pressed rounded-xl',
+                          {
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                          },
+                        )}
+                      />
+                      {/* Simplified content - just show it's there */}
+                      <Box twClassName="w-full h-full flex justify-center items-center">
+                        <Text
+                          variant={TextVariant.BodyXs}
+                          color={TextColor.TextAlternative}
+                        >
+                          Next card
+                        </Text>
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
+              </>
+            )}
+
+            {/* Layer 2: Render next card (Card 2 - middle layer) */}
+            {nextSlide && renderCard(nextSlide, false)}
+
+            {/* Layer 3: Render current card on top (Card 1 - top layer) */}
+            {currentSlide && renderCard(currentSlide, true)}
+          </Box>
+        </Box>
+      </Animated.View>
+    </Animated.View>
   );
 };
 

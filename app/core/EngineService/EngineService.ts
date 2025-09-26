@@ -59,6 +59,13 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+
+    if (reduxState?.user?.existingUser) {
+      Logger.log(
+        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        !!reduxState?.engine?.backgroundState?.KeyringController?.vault,
+      );
+    }
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
@@ -71,7 +78,6 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`

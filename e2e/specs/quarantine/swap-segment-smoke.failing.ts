@@ -1,250 +1,160 @@
-import { ethers } from 'ethers';
-import { loginToApp } from '../../viewHelper';
-import QuoteView from '../../pages/swaps/QuoteView.ts';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Tenderly from '../../tenderly.js';
+'use strict';
+/* eslint-disable no-console */
+import { Mockttp } from 'mockttp';
+import { loginToApp } from '../../viewHelper.js';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import Ganache from '../../../app/util/test/ganache';
 import {
   loadFixture,
-  startFixtureServer,
   stopFixtureServer,
-} from '../../framework/fixtures/FixtureHelper';
-import { CustomNetworks } from '../../resources/networks.e2e.js';
+  startFixtureServer,
+} from '../../framework/fixtures/FixtureHelper.ts';
 import TestHelpers from '../../helpers.js';
-import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
-import { SmokeTrade } from '../../tags';
-import Assertions from '../../framework/Assertions';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
-import { getEventsPayloads } from '../analytics/helpers.ts';
+import FixtureServer from '../../framework/fixtures/FixtureServer.ts';
 import {
-  startMockServer,
-  stopMockServer,
-} from '../../api-mocking/mock-server.js';
-import SoftAssert from '../../utils/SoftAssert';
-import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
-import SwapView from '../../pages/swaps/SwapView';
-import QuotesModal from '../../pages/swaps/QuoteModal';
-import type { MockttpServer } from 'mockttp';
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../framework/fixtures/FixtureUtils.ts';
+import { SmokeTrade } from '../../tags.js';
+import Assertions from '../../utils/Assertions.js';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import QuoteView from '../../pages/swaps/QuoteView';
+import Matchers from '../../utils/Matchers.js';
+import Gestures from '../../utils/Gestures.js';
+import { Assertions as FrameworkAssertions } from '../../framework';
+import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks.ts';
+import { localNodeOptions } from '../swaps/helpers/constants.ts';
 
-const fixtureServer = new FixtureServer();
+const fixtureServer: FixtureServer = new FixtureServer();
 
-let mockServer: MockttpServer;
+// Deep link URLs for testing unified swap/bridge experience
+// Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
+const SWAP_DEEPLINK_BASE = 'https://metamask.app.link/swap';
+const SWAP_DEEPLINK_FULL = `${SWAP_DEEPLINK_BASE}?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000`;
 
-// This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeTrade('Swaps - Metametrics'), () => {
-  const wallet = ethers.Wallet.createRandom();
+describe(
+  SmokeTrade('Swap Deep Link Tests - Unified Bridge Experience'),
+  (): void => {
+    let mockServer: Mockttp;
+    let localNode: Ganache;
 
-  beforeAll(async () => {
-    await Tenderly.addFunds(
-      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
-      wallet.address,
-    );
+    beforeAll(async (): Promise<void> => {
+      localNode = new Ganache();
+      await localNode.start(localNodeOptions);
 
-    // Start the mock server to get the segment events
-    const segmentMock = {
-      POST: [mockEvents.POST.segmentTrack],
-    };
-    mockServer = await startMockServer(segmentMock);
+      const mockServerPort = getMockServerPort();
+      // Added to pass linting - this pattern is not recommended. Check other swaps test for new patter
+      mockServer = await startMockServer(
+        {},
+        mockServerPort,
+        swapTestSpecificMock,
+      );
 
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
-      .withMetaMetricsOptIn()
-      .build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      permissions: { notifications: 'YES' },
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-      },
+      await TestHelpers.reverseServerPort();
+      const fixture = new FixtureBuilder()
+        .withGanacheNetwork('0x1')
+        .withMetaMetricsOptIn()
+        .build();
+      await startFixtureServer(fixtureServer);
+      await loadFixture(fixtureServer, { fixture });
+      await TestHelpers.launchApp({
+        permissions: { notifications: 'YES' },
+        launchArgs: {
+          fixtureServerPort: `${getFixturesServerPort()}`,
+          mockServerPort: `${mockServerPort}`,
+        },
+      });
+      await loginToApp();
     });
-    await loginToApp();
-    await prepareSwapsTestEnvironment();
-  });
 
-  afterAll(async () => {
-    await stopFixtureServer(fixtureServer);
-    await stopMockServer(mockServer);
-  });
+    afterAll(async (): Promise<void> => {
+      await stopFixtureServer(fixtureServer);
+      if (mockServer) await stopMockServer(mockServer);
+      if (localNode) await localNode.quit();
+    });
 
-  beforeEach(async () => {
-    jest.setTimeout(120000);
-  });
+    beforeEach(async (): Promise<void> => {
+      jest.setTimeout(120000);
+    });
 
-  it('should start a swap and cancel it to test the cancel event', async () => {
-    await TabBarComponent.tapWallet();
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    it('should navigate to bridge view with full parameters (USDC to USDT)', async (): Promise<void> => {
+      await TestHelpers.openDeepLink(SWAP_DEEPLINK_FULL);
 
-    await Assertions.expectElementToBeVisible(QuoteView.getQuotes);
+      // Handle "Proceed with caution" modal that appears for deep links
+      await Assertions.checkIfVisible(
+        Matchers.getElementByText('Proceed with caution'),
+        10000,
+      );
+      await Gestures.waitAndTap(Matchers.getElementByText('Continue'));
 
-    await QuoteView.tapOnSelectDestToken();
-    await QuoteView.tapSearchToken();
-    await QuoteView.typeSearchToken('DAI');
-    await TestHelpers.delay(3000);
-    await QuoteView.selectToken('DAI');
-    await QuoteView.enterSwapAmount('0.01');
-    // This is to ensure we tap cancel before quotes are fetched - the cancel event is only sent if the quotes are not fetched
-    await device.disableSynchronization();
-    await QuoteView.tapOnGetQuotes();
-    await TestHelpers.delay(1000);
-    await QuoteView.tapOnCancelButton();
-    await device.enableSynchronization();
-    await Assertions.expectElementToBeVisible(WalletView.container);
-  });
+      // Wait for bridge view to load after modal is dismissed
+      await FrameworkAssertions.expectElementToBeVisible(
+        QuoteView.selectAmountLabel,
+        {
+          timeout: 10000,
+        },
+      );
 
-  it('should start a swap and open all available quotes to test the event', async () => {
-    await TabBarComponent.tapWallet();
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+      // Verify we can navigate back
+      await Assertions.checkIfVisible(QuoteView.cancelButton, 10000);
+      await QuoteView.tapOnCancelButton();
 
-    await Assertions.expectElementToBeVisible(QuoteView.getQuotes);
-    await QuoteView.tapOnSelectDestToken();
-    await QuoteView.tapSearchToken();
-    await QuoteView.typeSearchToken('DAI');
-    await TestHelpers.delay(3000);
-    await QuoteView.selectToken('DAI');
-    await QuoteView.enterSwapAmount('0.01');
-    await QuoteView.tapOnGetQuotes();
-    await Assertions.expectElementToBeVisible(SwapView.quoteSummary);
-    await SwapView.tapIUnderstandPriceWarning();
-    await device.disableSynchronization();
-    await SwapView.tapViewDetailsAllQuotes();
-    await Assertions.expectElementToBeVisible(QuotesModal.header);
-    await QuotesModal.close();
-    await Assertions.expectElementToNotBeVisible(QuotesModal.header);
-    await device.enableSynchronization();
-  });
+      // Should be back on wallet view - check for wallet elements
+      await Assertions.checkIfNotVisible(QuoteView.selectAmountLabel, 5000);
+    });
 
-  it('should validate segment/metametric events for a cancel and viewing all available quotes', async () => {
-    const EVENT_NAMES = {
-      QUOTES_REQUEST_CANCELLED: 'Quotes Request Cancelled',
-      ALL_AVAILABLE_QUOTES_OPENED: 'All Available Quotes Opened',
-    };
+    it('should navigate to bridge view with no parameters', async (): Promise<void> => {
+      await TestHelpers.openDeepLink(SWAP_DEEPLINK_BASE);
 
-    const events = await getEventsPayloads(
-      mockServer,
-      Object.values(EVENT_NAMES),
-    );
+      // Handle "Proceed with caution" modal that appears for deep links
+      await Assertions.checkIfVisible(
+        Matchers.getElementByText('Proceed with caution'),
+        10000,
+      );
+      await Gestures.waitAndTap(Matchers.getElementByText('Continue'));
 
-    const softAssert = new SoftAssert();
+      // Wait for bridge view to load after modal is dismissed
+      await FrameworkAssertions.expectElementToBeVisible(
+        QuoteView.selectAmountLabel,
+        {
+          timeout: 10000,
+        },
+      );
 
-    await softAssert.checkAndCollect(
-      () => Assertions.checkIfArrayHasLength(events, 2),
-      `Events: Should have 2 events`,
-    );
+      // Verify we can navigate back
+      await Assertions.checkIfVisible(QuoteView.cancelButton, 10000);
+      await QuoteView.tapOnCancelButton();
 
-    const allAvailableQuotesOpenedEvent = events.find(
-      (e: SegmentEvent) => e.event === EVENT_NAMES.ALL_AVAILABLE_QUOTES_OPENED,
-    ) as SegmentEvent;
+      // Should be back on wallet view - check for wallet elements
+      await Assertions.checkIfNotVisible(QuoteView.selectAmountLabel, 5000);
+    });
 
-    await softAssert.checkAndCollect(
-      async () =>
-        Assertions.checkIfObjectContains(
-          allAvailableQuotesOpenedEvent.properties,
-          {
-            action: 'Quote',
-            name: 'Swaps',
-            token_from: 'ETH',
-            token_to: 'DAI',
-            request_type: 'Order',
-            slippage: 2,
-            custom_slippage: false,
-            chain_id: '1',
-            token_from_amount: '0.01',
-          },
-        ),
-      'All Available Quotes Opened: Check main properties',
-    );
+    it('should handle invalid deep link parameters gracefully', async (): Promise<void> => {
+      const invalidDeeplink = `${SWAP_DEEPLINK_BASE}?from=invalid&to=invalid&amount=invalid`;
 
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfValueIsDefined(
-          allAvailableQuotesOpenedEvent.properties.response_time,
-        ),
-      'All Available Quotes Opened: Check response_time',
-    );
+      await TestHelpers.openDeepLink(invalidDeeplink);
 
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfValueIsDefined(
-          allAvailableQuotesOpenedEvent.properties.best_quote_source,
-        ),
-      'All Available Quotes Opened: Check best_quote_source',
-    );
+      // Handle "Proceed with caution" modal that appears for deep links
+      await Assertions.checkIfVisible(
+        Matchers.getElementByText('Proceed with caution'),
+        10000,
+      );
+      await Gestures.waitAndTap(Matchers.getElementByText('Continue'));
 
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfValueIsDefined(
-          allAvailableQuotesOpenedEvent.properties.network_fees_USD,
-        ),
-      'All Available Quotes Opened: Check network_fees_USD',
-    );
+      // Wait for bridge view to load after modal is dismissed
+      await FrameworkAssertions.expectElementToBeVisible(
+        QuoteView.selectAmountLabel,
+        {
+          timeout: 10000,
+        },
+      );
 
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfValueIsDefined(
-          allAvailableQuotesOpenedEvent.properties.network_fees_ETH,
-        ),
-      'All Available Quotes Opened: Check network_fees_ETH',
-    );
+      // Verify we can navigate back
+      await Assertions.checkIfVisible(QuoteView.cancelButton, 10000);
+      await QuoteView.tapOnCancelButton();
 
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfValueIsDefined(
-          allAvailableQuotesOpenedEvent.properties.available_quotes,
-        ),
-      'All Available Quotes Opened: Check available_quotes',
-    );
-
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfValueIsDefined(
-          allAvailableQuotesOpenedEvent.properties.token_to_amount,
-        ),
-      'All Available Quotes Opened: Check token_to_amount',
-    );
-
-    const quotesRequestCancelledEvent = events.find(
-      (e: SegmentEvent) => e.event === EVENT_NAMES.QUOTES_REQUEST_CANCELLED,
-    ) as SegmentEvent;
-
-    await softAssert.checkAndCollect(
-      async () =>
-        Assertions.checkIfObjectContains(
-          quotesRequestCancelledEvent.properties,
-          {
-            action: 'Quote',
-            name: 'Swaps',
-            token_from: 'ETH',
-            token_to: 'DAI',
-            request_type: 'Order',
-            custom_slippage: false,
-            chain_id: '1',
-            token_from_amount: '0.01',
-          },
-        ),
-      'Quotes Request Cancelled: Check properties',
-    );
-
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfValueIsDefined(
-          quotesRequestCancelledEvent.properties.responseTime,
-        ),
-      'Quotes Request Cancelled: Check responseTime',
-    );
-
-    softAssert.throwIfErrors();
-  });
-});
-
-// TODO: move this to a shared file when migrating other tests to TypeScript
-interface SegmentEvent {
-  event: string;
-  properties: Record<string, unknown>;
-}
+      // Should be back on wallet view - check for wallet elements
+      await Assertions.checkIfNotVisible(QuoteView.selectAmountLabel, 5000);
+    });
+  },
+);

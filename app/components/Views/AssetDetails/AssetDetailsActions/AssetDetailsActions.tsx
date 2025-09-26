@@ -9,15 +9,17 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
+import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
-import useRampNetwork from '../../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { RootState } from '../../../../reducers';
 
 export interface AssetDetailsActionsProps {
-  displayFundButton: boolean | undefined;
+  displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
-  swapsIsLive: boolean | undefined;
+  chainId: Hex | CaipChainId;
   onBuy?: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
@@ -29,7 +31,7 @@ export interface AssetDetailsActionsProps {
     chainId?: string;
   };
   // Optional custom action IDs to avoid test ID conflicts
-  fundButtonActionID?: string;
+  buyButtonActionID?: string;
   swapButtonActionID?: string;
   bridgeButtonActionID?: string;
   sendButtonActionID?: string;
@@ -37,17 +39,17 @@ export interface AssetDetailsActionsProps {
 }
 
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
-  displayFundButton,
+  displayBuyButton,
   displaySwapsButton,
   displayBridgeButton,
-  swapsIsLive,
+  chainId,
   onBuy,
   goToSwaps,
   goToBridge,
   onSend,
   onReceive,
   asset,
-  fundButtonActionID = TokenOverviewSelectorsIDs.FUND_BUTTON,
+  buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
   bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
@@ -55,17 +57,19 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const isSwapsEnabled = useSelector((state: RootState) =>
+    selectIsSwapsEnabled(state, chainId),
+  );
   const { navigate } = useNavigation();
 
   // Check if FundActionMenu would be empty
-  const [isNetworkRampSupported] = useRampNetwork();
   const { isDepositEnabled } = useDepositEnabled();
-  const isFundMenuAvailable = isDepositEnabled || isNetworkRampSupported;
+  const isBuyMenuAvailable = isDepositEnabled || true;
 
   // Button should be enabled if we have standard funding options OR a custom onBuy function
-  const isFundingAvailable = isFundMenuAvailable || !!onBuy;
+  const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
 
-  const handleFundPress = () => {
+  const handleBuyPress = () => {
     // Navigate to FundActionMenu with both custom onBuy and asset context
     // The menu will prioritize custom onBuy over standard funding options
     // This allows custom funding flows even when deposit/ramp are unavailable
@@ -80,14 +84,14 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 
   return (
     <View style={styles.activitiesButton}>
-      {displayFundButton && (
+      {displayBuyButton && (
         <View style={styles.buttonContainer}>
           <MainActionButton
-            iconName={IconName.Money}
-            label={strings('asset_overview.fund_button')}
-            onPress={handleFundPress}
-            isDisabled={!canSignTransactions || !isFundingAvailable}
-            testID={fundButtonActionID}
+            iconName={IconName.AttachMoney}
+            label={strings('asset_overview.buy_button')}
+            onPress={handleBuyPress}
+            isDisabled={!isBuyingAvailable}
+            testID={buyButtonActionID}
           />
         </View>
       )}
@@ -97,7 +101,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconName={IconName.SwapVertical}
             label={strings('asset_overview.swap')}
             onPress={() => goToSwaps()}
-            isDisabled={!canSignTransactions || !swapsIsLive}
+            isDisabled={!isSwapsEnabled}
             testID={swapButtonActionID}
           />
         </View>

@@ -1,4 +1,7 @@
-import { AdvancedViewSelectorsIDs } from '../../selectors/Settings/AdvancedView.selectors';
+import {
+  AdvancedViewSelectorsIDs,
+  AdvancedViewSelectorsText,
+} from '../../selectors/Settings/AdvancedView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 
@@ -17,6 +20,17 @@ class AdvancedSettingsView {
 
   get smartTransactionsToggle(): DetoxElement {
     return Matchers.getElementByID(AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH);
+  }
+
+  get resetAccountButton(): DetoxElement {
+    return Matchers.getElementByText(
+      AdvancedViewSelectorsText.RESET_ACCOUNT,
+      1,
+    );
+  }
+
+  get resetConfirmButton(): DetoxElement {
+    return Matchers.getElementByText(AdvancedViewSelectorsText.RESET_CONFIRMED);
   }
 
   async tapShowFiatOnTestnetsSwitch(): Promise<void> {
@@ -39,6 +53,18 @@ class AdvancedSettingsView {
         elemDescription: 'Scroll to Show Fiat on Testnets Toggle',
       },
     );
+  }
+
+  async tapResetAccountButton(): Promise<void> {
+    await Gestures.waitAndTap(this.resetAccountButton, {
+      elemDescription: 'Smart Transactions Reset Account Button',
+    });
+  }
+
+  async tapConfirmResetButton(): Promise<void> {
+    await Gestures.waitAndTap(this.resetConfirmButton, {
+      elemDescription: 'Smart Transactions Confirm Reset Button',
+    });
   }
 }
 

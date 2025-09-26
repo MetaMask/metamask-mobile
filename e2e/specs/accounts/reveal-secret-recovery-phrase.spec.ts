@@ -91,10 +91,8 @@ describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
             RevealSecretRecoveryPhrase.revealCredentialQRCodeImage,
           );
         }
-        const isDoneVisible = await RevealSecretRecoveryPhrase.doneButton;
-        if (!isDoneVisible) {
-          await RevealSecretRecoveryPhrase.scrollToDone();
-        }
+
+        await RevealSecretRecoveryPhrase.scrollToDone();
         await RevealSecretRecoveryPhrase.tapDoneButton();
         await Assertions.expectElementToBeVisible(
           SecurityAndPrivacy.securityAndPrivacyHeading,

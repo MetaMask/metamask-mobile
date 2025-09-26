@@ -24,6 +24,7 @@ import {
   selectSelectedInternalAccountId,
   selectInternalEvmAccounts,
   selectInternalAccountsByScope,
+  selectInternalAccountByAddresses,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -362,14 +363,14 @@ describe('selectCanSignTransactions', () => {
     methods: [SolMethod.SignAndSendTransaction],
   };
 
-  const btcAccountWithSendBitcoin = {
+  const btcAccountWithSignPsbt = {
     ...createMockInternalAccount(
       'bc1q123',
-      'BTC Account with Send',
+      'BTC Account with SignPsbt',
       KeyringTypes.snap,
       BtcAccountType.P2wpkh,
     ),
-    methods: [BtcMethod.SendBitcoin],
+    methods: [BtcMethod.SignPsbt],
   };
 
   const accountWithoutSigningMethods = {
@@ -407,8 +408,8 @@ describe('selectCanSignTransactions', () => {
     expect(selectCanSignTransactions(state)).toBe(true);
   });
 
-  it('returns true for BTC account with SendBitcoin method', () => {
-    const state = getStateWithAccount(btcAccountWithSendBitcoin);
+  it('returns true for BTC account with SignPsbt method', () => {
+    const state = getStateWithAccount(btcAccountWithSignPsbt);
     expect(selectCanSignTransactions(state)).toBe(true);
   });
 
@@ -899,6 +900,84 @@ describe('selectInternalAccountsByScope', () => {
     } as unknown as RootState;
 
     const result = selectInternalAccountsByScope(state, BtcScope.Mainnet);
+    expect(result).toEqual([]);
+  });
+});
+
+describe('selectInternalAccountByAddresses', () => {
+  const account1 = createMockInternalAccount(
+    '0xAddress1',
+    'Account 1',
+    KeyringTypes.hd,
+    EthAccountType.Eoa,
+  );
+
+  const account2 = createMockInternalAccount(
+    '0xAddress2',
+    'Account 2',
+    KeyringTypes.hd,
+    EthAccountType.Eoa,
+  );
+
+  const account3 = createMockInternalAccount(
+    '0xAddress3',
+    'Account 3',
+    KeyringTypes.hd,
+    EthAccountType.Eoa,
+  );
+
+  const account4 = createMockInternalAccount(
+    '0xAddress4',
+    'Account 4',
+    KeyringTypes.hd,
+    EthAccountType.Eoa,
+  );
+
+  it('returns accounts matching the provided addresses', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [account1.id]: account1,
+                [account2.id]: account2,
+                [account3.id]: account3,
+                [account4.id]: account4,
+              },
+              selectedAccount: account1.id,
+            },
+          },
+        },
+      },
+    } as RootState;
+
+    const getInternalAccountsByAddresses =
+      selectInternalAccountByAddresses(state);
+    const result = getInternalAccountsByAddresses(['0xAddress1', '0xAddress3']);
+    expect(result).toEqual([account1, account3]);
+  });
+
+  it('returns an empty array if no accounts match the provided addresses', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [account1.id]: account1,
+                [account2.id]: account2,
+              },
+              selectedAccount: account1.id,
+            },
+          },
+        },
+      },
+    } as RootState;
+
+    const getInternalAccountsByAddresses =
+      selectInternalAccountByAddresses(state);
+    const result = getInternalAccountsByAddresses(['0xAddress3']);
     expect(result).toEqual([]);
   });
 });

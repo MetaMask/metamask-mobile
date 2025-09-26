@@ -1,0 +1,198 @@
+diff --git a/node_modules/appwright/dist/config.js b/node_modules/appwright/dist/config.js
+index a51913b..8c0335c 100644
+--- a/node_modules/appwright/dist/config.js
++++ b/node_modules/appwright/dist/config.js
+@@ -25,7 +25,7 @@ const defaultConfig = {
+     fullyParallel: false,
+     forbidOnly: false,
+     retries: process.env.CI ? 2 : 0,
+-    workers: 2,
++    workers: 1,
+     reporter: [["list"], ["html", { open: "always" }]],
+     use: {
+         // TODO: Use this for actions
+diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
+index 638c5df..b8aa5e5 100644
+--- a/node_modules/appwright/dist/providers/browserstack/index.js
++++ b/node_modules/appwright/dist/providers/browserstack/index.js
+@@ -120,6 +120,12 @@ class BrowserStackDeviceProvider {
+         return this.sessionDetails?.app_details.app_name ?? "";
+     }
+     static async downloadVideo(sessionId, outputDir, fileName) {
++        // Check if video download is disabled via environment variable
++        if (process.env.DISABLE_VIDEO_DOWNLOAD === 'true') {
++            logger_1.logger.log('Video download disabled by environment variable DISABLE_VIDEO_DOWNLOAD');
++            return null;
++        }
++        
+         const sessionData = await getSessionDetails(sessionId);
+         const sessionDetails = sessionData?.automation_session;
+         const videoURL = sessionDetails?.video_url;
+@@ -241,7 +247,9 @@ class BrowserStackDeviceProvider {
+             capabilities: {
+                 "bstack:options": {
+                     debug: true,
++                    networkProfile : '4g-lte-advanced-good',
+                     interactiveDebugging: true,
++                    appProfiling: true,
+                     networkLogs: true,
+                     appiumVersion: "2.6.0",
+                     enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
+@@ -250,10 +258,10 @@ class BrowserStackDeviceProvider {
+                     osVersion: this.project.use.device.osVersion,
+                     platformName: platformName,
+                     deviceOrientation: this.project.use.device?.orientation,
+-                    buildName: `${projectName} ${platformName}`,
++                    buildName: process.env.BROWSERSTACK_BUILD_NAME || `${projectName} ${platformName}`,
+                     sessionName: `${projectName} ${platformName} test`,
+                     buildIdentifier: process.env.GITHUB_ACTIONS === "true"
+-                        ? `CI ${process.env.GITHUB_RUN_ID}`
++                        ? ""
+                         : process.env.USER,
+                 },
+                 "appium:autoGrantPermissions": true,
+@@ -261,6 +269,15 @@ class BrowserStackDeviceProvider {
+                 "appium:autoAcceptAlerts": true,
+                 "appium:fullReset": true,
+                 "appium:settings[snapshotMaxDepth]": 62,
++                "appium:settings[autoGrantPermissions]": true,
++                "appium:settings[waitForIdleTimeout]": 10000,
++                "appium:settings[actionAcknowledgmentTimeout]": 3000,
++                "appium:settings[ignoreUnimportantViews]": true,
++                "appium:settings[waitForSelectorTimeout]": 10000,
++                // iOS specific capabilities for system dialogs
++                "appium:waitForQuiescence": false,
++                "appium:shouldUseSingletonTestManager": false,
++                "appium:skipLogCapture": true,
+             },
+         };
+     }
+diff --git a/node_modules/appwright/dist/reporter.js b/node_modules/appwright/dist/reporter.js
+index 516da40..ae1895b 100644
+--- a/node_modules/appwright/dist/reporter.js
++++ b/node_modules/appwright/dist/reporter.js
+@@ -6,8 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ const providers_1 = require("./providers");
+ const fs_1 = __importDefault(require("fs"));
+ const path_1 = __importDefault(require("path"));
+-const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
+-const ffmpeg_1 = __importDefault(require("@ffmpeg-installer/ffmpeg"));
++// const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
++// const ffmpeg_1 = __importDefault(require("@ffmpeg-installer/ffmpeg"));
+ const logger_1 = require("./logger");
+ const utils_1 = require("./utils");
+ const workerInfo_1 = require("./fixture/workerInfo");
+@@ -183,25 +183,32 @@ function trimVideo({ originalVideoPath, startSecs, durationSecs, outputPath, })
+     fs_1.default.copyFileSync(originalVideoPath, copyFullPath);
+     return new Promise((resolve, reject) => {
+         let stdErrs = "";
+-        (0, fluent_ffmpeg_1.default)(copyFullPath)
+-            .setFfmpegPath(ffmpeg_1.default.path)
+-            .setStartTime(startSecs)
+-            .setDuration(durationSecs)
+-            .output(fullOutputPath)
+-            .on("end", () => {
+-            logger_1.logger.log(`Trimmed video saved at: ${fullOutputPath}`);
+-            fs_1.default.unlinkSync(copyFullPath);
+-            resolve(fullOutputPath);
+-        })
+-            .on("stderr", (stderrLine) => {
+-            stdErrs += stderrLine + "\n";
+-        })
+-            .on("error", (err) => {
+-            logger_1.logger.error("ffmpeg error:", err);
+-            logger_1.logger.error("ffmpeg stderr:", stdErrs);
+-            reject(err);
+-        })
+-            .run();
++        // Video trimming disabled - ffmpeg removed
++        // (0, fluent_ffmpeg_1.default)(copyFullPath)
++        //     .setFfmpegPath(ffmpeg_1.default.path)
++        //     .setStartTime(startSecs)
++        //     .setDuration(durationSecs)
++        //     .output(fullOutputPath)
++        //     .on("end", () => {
++        //     logger_1.logger.log(`Trimmed video saved at: ${fullOutputPath}`);
++        //     fs_1.default.unlinkSync(copyFullPath);
++        //     resolve(fullOutputPath);
++        // })
++        //     .on("stderr", (stderrLine) => {
++        //     stdErrs += stderrLine + "\n";
++        // })
++        //     .on("error", (err) => {
++        //     logger_1.logger.error("ffmpeg error:", err);
++        //     logger_1.logger.error("ffmpeg stderr:", stdErrs);
++        //     reject(err);
++        // })
++        //     .run();
++        
++        // Just copy the original video without trimming
++        fs_1.default.copyFileSync(copyFullPath, fullOutputPath);
++        fs_1.default.unlinkSync(copyFullPath);
++        logger_1.logger.log(`Video copied without trimming: ${fullOutputPath}`);
++        resolve(fullOutputPath);
+     });
+ }
+ async function getWorkerStartTime(idx) {
+diff --git a/node_modules/appwright/dist/vision/index.js b/node_modules/appwright/dist/vision/index.js
+index bf48530..8e5f191 100644
+--- a/node_modules/appwright/dist/vision/index.js
++++ b/node_modules/appwright/dist/vision/index.js
+@@ -38,8 +38,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.VisionProvider = void 0;
+-const vision_1 = require("@empiricalrun/llm/vision");
+-const point_1 = require("@empiricalrun/llm/vision/point");
++// const vision_1 = require("@empiricalrun/llm/vision");
++// const point_1 = require("@empiricalrun/llm/vision/point");
+ const fs_1 = __importDefault(require("fs"));
+ const test_1 = __importDefault(require("@playwright/test"));
+ const utils_1 = require("../utils");
+@@ -64,42 +64,12 @@ let VisionProvider = (() => {
+             this.webDriverClient = webDriverClient;
+         }
+         async query(prompt, options) {
+-            test_1.default.skip(!process.env.OPENAI_API_KEY, "LLM vision based extract text is not enabled. Set the OPENAI_API_KEY environment variable to enable it");
+-            let base64Screenshot = options?.screenshot;
+-            if (!base64Screenshot) {
+-                base64Screenshot = await this.webDriverClient.takeScreenshot();
+-            }
+-            return await (0, vision_1.query)(base64Screenshot, prompt, options);
++            test_1.default.skip(true, "LLM vision based extract text is disabled - @empiricalrun/llm removed");
++            throw new Error("LLM vision functionality has been disabled");
+         }
+         async tap(prompt, options) {
+-            test_1.default.skip(!process.env.EMPIRICAL_API_KEY, "LLM vision based tap is not enabled. Set the EMPIRICAL_API_KEY environment variable to enable it");
+-            const base64Image = await this.webDriverClient.takeScreenshot();
+-            const coordinates = await (0, point_1.getCoordinatesFor)(prompt, base64Image, options);
+-            if (coordinates.annotatedImage) {
+-                const random = Math.floor(1000 + Math.random() * 9000);
+-                const file = test_1.default.info().outputPath(`${random}.png`);
+-                await fs_1.default.promises.writeFile(file, Buffer.from(coordinates.annotatedImage, "base64"));
+-                await test_1.default.info().attach(`${random}`, { path: file });
+-            }
+-            const driverSize = await this.webDriverClient.getWindowRect();
+-            const { container: imageSize, x, y } = coordinates;
+-            const scaleFactorWidth = imageSize.width / driverSize.width;
+-            const scaleFactorHeight = imageSize.height / driverSize.height;
+-            if (scaleFactorWidth !== scaleFactorHeight) {
+-                logger_1.logger.warn(`Scale factors are different: ${scaleFactorWidth} vs ${scaleFactorHeight}`);
+-            }
+-            const tapTargetX = x / scaleFactorWidth;
+-            // This uses the width scale factor because getWindowRect on LambdaTest returns a smaller
+-            // height value than the screenshot height, which causes disproportionate scaling
+-            // for width and height.
+-            // For example, Pixel 8 screenshot is 1080 (w) x 2400 (h), but LambdaTest returns
+-            // 1080 (w) x 2142 (h) for getWindowRect.
+-            const tapTargetY = y / scaleFactorWidth;
+-            await this.device.tap({
+-                x: tapTargetX,
+-                y: tapTargetY,
+-            });
+-            return { x: tapTargetX, y: tapTargetY };
++            test_1.default.skip(true, "LLM vision based tap is disabled - @empiricalrun/llm removed");
++            throw new Error("LLM vision functionality has been disabled");
+         }
+     };
+ })();

@@ -17,7 +17,7 @@ import {
   isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
-import { selectSelectedInternalAccountAddress } from '../../accountsController';
+import { selectSelectedInternalAccountByScope } from '../../multichainAccounts/accounts';
 import { selectAccountsByChainId } from '../../accountTrackerController';
 import {
   selectCurrencyRates,
@@ -35,6 +35,7 @@ import {
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
+import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
 
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
@@ -48,7 +49,7 @@ const selectEarnTokenBaseData = createSelector(
     pooledStakingSelectors.selectEligibility,
     selectTokensBalances,
     selectTokenMarketData,
-    selectSelectedInternalAccountAddress,
+    selectSelectedInternalAccountByScope,
     selectCurrentCurrency,
     selectNetworkConfigurations,
     selectAccountTokensAcrossChains,
@@ -63,7 +64,7 @@ const selectEarnTokenBaseData = createSelector(
     isPooledStakingEligible,
     tokenBalances,
     marketData,
-    selectedAddress,
+    selectedAccountByScope,
     currentCurrency,
     networkConfigs,
     accountTokensAcrossChains,
@@ -77,7 +78,7 @@ const selectEarnTokenBaseData = createSelector(
     isPooledStakingEligible,
     tokenBalances,
     marketData,
-    selectedAddress,
+    selectedAddress: selectedAccountByScope(EVM_SCOPE)?.address,
     currentCurrency,
     networkConfigs,
     accountTokensAcrossChains,

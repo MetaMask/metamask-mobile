@@ -27,6 +27,8 @@ import {
 import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
 import { mockAuthServices } from '../../identity/utils/mocks';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { createLogger } from '../../../framework/logger';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 mockListNotificationsResponse.response = [
@@ -51,6 +53,10 @@ mockListNotificationsResponse.response = [
   n.created_at = date.toString();
   n.unread = false;
   return n;
+});
+
+const logger = createLogger({
+  name: 'MockNotificationServices',
 });
 
 const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
@@ -82,8 +88,17 @@ export async function mockNotificationServices(server: Mockttp) {
   // Trigger Config
   await new MockttpNotificationTriggerServer().setupServer(server);
 
+  const contentfulUrlRegex =
+    /^https:\/\/cdn\.contentful\.com:443\/spaces\/[a-zA-Z0-9]+\/environments\/[a-zA-Z0-9]+\/entries\?.*$/;
+
   // Notifications
   await mockAPICall(server, mockFeatureAnnouncementResponse);
+  await setupMockRequest(server, {
+    url: contentfulUrlRegex,
+    requestMethod: 'GET',
+    response: mockFeatureAnnouncementResponse.response,
+    responseCode: 200,
+  });
   await mockAPICall(server, mockListNotificationsResponse);
   await mockAPICall(server, getMockMarkNotificationsAsReadResponse());
 
@@ -99,7 +114,7 @@ interface ResponseParam {
   response: unknown;
 }
 
-async function mockAPICall(server: Mockttp, response: ResponseParam) {
+export async function mockAPICall(server: Mockttp, response: ResponseParam) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
@@ -125,8 +140,7 @@ async function mockAPICall(server: Mockttp, response: ResponseParam) {
     })
     .asPriority(999)
     .thenCallback((request) => {
-      // eslint-disable-next-line no-console
-      console.log(
+      logger.info(
         `Mocking ${request.method} request to: ${getDecodedProxiedURL(
           request.url,
         )}`,

@@ -3,6 +3,8 @@ import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import {
   BUILDER_FEE_CONFIG,
   FEE_RATES,
@@ -13,7 +15,9 @@ import {
   TRADING_DEFAULTS,
 } from '../../constants/hyperLiquidConfig';
 import {
+  PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
+  TP_SL_CONFIG,
   WITHDRAWAL_CONSTANTS,
 } from '../../constants/perpsConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
@@ -79,7 +83,10 @@ import type {
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
+  GetHistoricalPortfolioParams,
+  HistoricalPortfolioResult,
 } from '../types';
+import { PERPS_ERROR_CODES } from '../PerpsController';
 
 /**
  * HyperLiquid provider implementation
@@ -98,6 +105,34 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   // Asset mapping
   private coinToAssetId = new Map<string, number>();
+
+  // Cache for user fee rates to avoid excessive API calls
+  private userFeeCache = new Map<
+    string,
+    {
+      perpsTakerRate: number;
+      perpsMakerRate: number;
+      spotTakerRate: number;
+      spotMakerRate: number;
+      timestamp: number;
+      ttl: number;
+    }
+  >();
+
+  // Cache for max leverage values to avoid excessive API calls
+  private maxLeverageCache = new Map<
+    string,
+    { value: number; timestamp: number }
+  >();
+
+  // Fee discount context for MetaMask reward discounts (in basis points)
+  private userFeeDiscountBips?: number;
+
+  // Error mappings from HyperLiquid API errors to standardized PERPS_ERROR_CODES
+  private readonly ERROR_MAPPINGS = {
+    'isolated position does not have sufficient margin available to decrease leverage':
+      PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
+  };
 
   constructor(options: { isTestnet?: boolean } = {}) {
     const isTestnet = options.isTestnet || false;
@@ -150,6 +185,37 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Set user fee discount context for next operations
+   * Used by PerpsController to apply MetaMask reward discounts
+   * @param discountBips - The discount in basis points (e.g., 550 = 5.5%)
+   */
+  setUserFeeDiscount(discountBips: number | undefined): void {
+    this.userFeeDiscountBips = discountBips;
+
+    DevLogger.log('HyperLiquid: Fee discount context updated', {
+      discountBips,
+      discountPercentage: discountBips ? discountBips / 100 : undefined,
+      isActive: discountBips !== undefined,
+    });
+  }
+
+  /**
+   * Map HyperLiquid API errors to standardized PERPS_ERROR_CODES
+   */
+  private mapError(error: unknown): Error {
+    const message = error instanceof Error ? error.message : String(error);
+
+    for (const [pattern, code] of Object.entries(this.ERROR_MAPPINGS)) {
+      if (message.toLowerCase().includes(pattern.toLowerCase())) {
+        return new Error(code);
+      }
+    }
+
+    // Return original error to preserve stack trace for unmapped errors
+    return error instanceof Error ? error : new Error(String(error));
+  }
+
+  /**
    * Get supported deposit routes with complete asset and routing information
    */
   getDepositRoutes(params?: GetSupportedPathsParams): AssetRoute[] {
@@ -157,15 +223,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
     const supportedAssets = getSupportedPaths({ ...params, isTestnet });
     const bridgeInfo = getBridgeInfo(isTestnet);
 
+    const estimatedTimeString =
+      HYPERLIQUID_WITHDRAWAL_MINUTES > 1
+        ? strings('time.minutes_format_plural', {
+            count: HYPERLIQUID_WITHDRAWAL_MINUTES,
+          })
+        : strings('time.minutes_format', {
+            count: HYPERLIQUID_WITHDRAWAL_MINUTES,
+          });
+
     return supportedAssets.map((assetId) => ({
       assetId,
       chainId: bridgeInfo.chainId,
       contractAddress: bridgeInfo.contractAddress,
       constraints: {
         minAmount: WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
-        estimatedTime: strings('time.minutes_format', {
-          count: HYPERLIQUID_WITHDRAWAL_MINUTES,
-        }),
+        estimatedTime: estimatedTimeString,
         fees: {
           fixed: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT,
           token: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_TOKEN,
@@ -383,10 +456,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.reduceOnly || false,
+        /**
+         * HyperLiquid Time-In-Force (TIF) options:
+         * - 'Gtc' (Good Till Canceled): Standard limit orders that remain active until filled or canceled
+         * - 'Ioc' (Immediate or Cancel): Limit orders that fill immediately or cancel unfilled portion
+         * - 'FrontendMarket': True market orders as used in HyperLiquid UI - USE THIS FOR MARKET ORDERS
+         * - 'Alo' (Add Liquidity Only): Maker-only orders that add liquidity to order book
+         * - 'LiquidationMarket': Similar to IoC, used for liquidation orders
+         *
+         * IMPORTANT: Use 'FrontendMarket' for market orders, NOT 'Ioc'
+         * Using 'Ioc' causes market orders to be treated as limit orders by HyperLiquid,
+         * leading to incorrect order type display in transaction history (TAT-1475)
+         */
         t:
           params.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.clientOrderId ? (params.clientOrderId as Hex) : undefined,
       };
       orders.push(mainOrder);
@@ -473,8 +558,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         averagePrice: filledOrder?.avgPx,
       };
     } catch (error) {
-      DevLogger.log('Order placement failed:', error);
-      return createErrorResult(error, { success: false });
+      Logger.error(error as Error, {
+        message: 'Order placement failed',
+        context: 'HyperLiquidProvider.placeOrder',
+      });
+      const mappedError = this.mapError(error);
+      return createErrorResult(mappedError, { success: false });
     }
   }
 
@@ -548,10 +637,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         p: formattedPrice,
         s: formattedSize,
         r: params.newOrder.reduceOnly || false,
+        // Same TIF logic as placeOrder - see documentation above for details
         t:
           params.newOrder.orderType === 'limit'
-            ? { limit: { tif: 'Gtc' } }
-            : { limit: { tif: 'Ioc' } },
+            ? { limit: { tif: 'Gtc' } } // Standard limit order
+            : { limit: { tif: 'FrontendMarket' } }, // True market order
         c: params.newOrder.clientOrderId
           ? (params.newOrder.clientOrderId as Hex)
           : undefined,
@@ -576,7 +666,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orderId: params.orderId.toString(),
       };
     } catch (error) {
-      DevLogger.log('Order modification failed:', error);
+      Logger.error(error as Error, {
+        message: 'Order modification failed',
+        context: 'HyperLiquidProvider.editOrder',
+      });
       return createErrorResult(error, { success: false });
     }
   }
@@ -622,7 +715,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
         error: success ? undefined : 'Order cancellation failed',
       };
     } catch (error) {
-      DevLogger.log('Order cancellation failed:', error);
+      Logger.error(error as Error, {
+        message: 'Order cancellation failed',
+        context: 'HyperLiquidProvider.cancelOrder',
+      });
       return createErrorResult(error, { success: false });
     }
   }
@@ -658,7 +754,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         positions = await this.getPositions();
       } catch (error) {
-        DevLogger.log('Error getting positions:', error);
+        Logger.error(error as Error, {
+          message: 'Error getting positions during close position',
+          context: 'HyperLiquidProvider.closePosition',
+        });
+
+        // Capture exception with data context
+        captureException(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: {
+              component: 'HyperLiquidProvider',
+              action: 'data_fetch',
+              operation: 'data_management',
+              dataType: 'positions',
+            },
+            extra: {
+              dataContext: {
+                dataType: 'positions',
+                timestamp: new Date().toISOString(),
+                method: 'updatePositionTPSL',
+              },
+            },
+          },
+        );
+
         // If it's a WebSocket error, try to provide a more helpful message
         if (error instanceof Error && error.message.includes('WebSocket')) {
           throw new Error(
@@ -706,6 +826,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         (order) =>
           order.coin === coin &&
           order.reduceOnly === true &&
+          order.isPositionTpsl === !!TP_SL_CONFIG.USE_POSITION_BOUND_TPSL &&
           order.isTrigger === true &&
           (order.orderType.includes('Take Profit') ||
             order.orderType.includes('Stop')),
@@ -752,6 +873,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Build orders array for TP/SL
       const orders: SDKOrderParams[] = [];
 
+      const size = TP_SL_CONFIG.USE_POSITION_BOUND_TPSL
+        ? '0'
+        : formatHyperLiquidSize({
+            size: positionSize,
+            szDecimals: assetInfo.szDecimals,
+          });
       // Take Profit order
       if (takeProfitPrice) {
         const tpOrder: SDKOrderParams = {
@@ -761,10 +888,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             price: parseFloat(takeProfitPrice),
             szDecimals: assetInfo.szDecimals,
           }),
-          s: formatHyperLiquidSize({
-            size: positionSize,
-            szDecimals: assetInfo.szDecimals,
-          }),
+          s: size,
           r: true, // Always reduce-only for position TP
           t: {
             trigger: {
@@ -789,10 +913,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             price: parseFloat(stopLossPrice),
             szDecimals: assetInfo.szDecimals,
           }),
-          s: formatHyperLiquidSize({
-            size: positionSize,
-            szDecimals: assetInfo.szDecimals,
-          }),
+          s: size,
           r: true, // Always reduce-only for position SL
           t: {
             trigger: {
@@ -1177,11 +1298,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const rawOrders = await infoClient.frontendOpenOrders({
         user: userAddress,
       });
+      const positions = await this.getPositions();
 
       DevLogger.log('Currently open orders received:', rawOrders);
 
       // Transform HyperLiquid open orders to abstract Order type using adapter
-      const orders: Order[] = (rawOrders || []).map(adaptOrderFromSDK);
+      const orders: Order[] = (rawOrders || []).map((order) => {
+        const position = positions.find((p) => p.coin === order.coin);
+        return adaptOrderFromSDK(order, position);
+      });
 
       return orders;
     } catch (error) {
@@ -1232,6 +1357,79 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get historical portfolio data for percentage calculations
+   */
+  async getHistoricalPortfolio(
+    params?: GetHistoricalPortfolioParams,
+  ): Promise<HistoricalPortfolioResult> {
+    try {
+      DevLogger.log(
+        'Getting historical portfolio via HyperLiquid SDK:',
+        params,
+      );
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      // Get portfolio data
+      const portfolioData = await infoClient.portfolio({
+        user: userAddress,
+      });
+
+      // Calculate target time (default to 24 hours ago)
+      const targetTime = Date.now() - 24 * 60 * 60 * 1000;
+
+      // Get UTC 00:00 of the target day
+      const targetDate = new Date(targetTime);
+      const targetTimestamp = targetDate.getTime();
+
+      // Get the account value history from the last week's data
+      const weeklyPeriod = portfolioData?.[1];
+      const weekData = weeklyPeriod?.[1];
+      const accountValueHistory = weekData?.accountValueHistory || [];
+
+      // Find entries that are before the target timestamp, then get the closest one
+      const entriesBeforeTarget = accountValueHistory.filter(
+        ([timestamp]) => timestamp < targetTimestamp,
+      );
+
+      let closestEntry = null;
+      let smallestDiff = Infinity;
+      for (const entry of entriesBeforeTarget) {
+        const [timestamp] = entry;
+        const diff = targetTimestamp - timestamp;
+        if (diff < smallestDiff) {
+          smallestDiff = diff;
+          closestEntry = entry;
+        }
+      }
+
+      const result: HistoricalPortfolioResult = closestEntry
+        ? {
+            accountValue1dAgo: closestEntry[1] || '0',
+            timestamp: closestEntry[0] || 0,
+          }
+        : {
+            accountValue1dAgo:
+              accountValueHistory?.[accountValueHistory.length - 1]?.[1] || '0',
+            timestamp: 0,
+          };
+
+      DevLogger.log('Historical portfolio result:', result);
+      return result;
+    } catch (error) {
+      DevLogger.log('Error getting historical portfolio:', error);
+      return {
+        accountValue1dAgo: '0',
+        timestamp: 0,
+      };
+    }
+  }
+
+  /**
    * Get account state
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
@@ -1265,7 +1463,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return accountState;
     } catch (error) {
-      DevLogger.log('Error getting account state:', error);
+      Logger.error(error as Error, {
+        message: 'Error getting account state',
+        context: 'HyperLiquidProvider.getAccountState',
+      });
       // Re-throw the error so the controller can handle it properly
       // This allows the UI to show proper error messages instead of zeros
       throw error;
@@ -1465,34 +1666,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
       }
 
-      // Validate close size if provided
+      // Determine minimum order size (needed for precedence logic)
+      const minimumOrderSize = this.clientService.isTestnetMode()
+        ? TRADING_DEFAULTS.amount.testnet
+        : TRADING_DEFAULTS.amount.mainnet;
+
+      // Validate close size & minimum only if size provided (partial close)
       if (params.size) {
         const closeSize = parseFloat(params.size);
+        const price = params.currentPrice
+          ? parseFloat(params.currentPrice.toString())
+          : undefined;
+        const orderValueUSD =
+          price && !isNaN(closeSize) ? closeSize * price : undefined;
+
+        // Precedence rule: if size <= 0 treat as minimum_amount failure (more actionable)
         if (isNaN(closeSize) || closeSize <= 0) {
-          return {
-            isValid: false,
-            error: strings('perps.errors.orderValidation.sizePositive'),
-          };
-        }
-
-        // Note: Remaining position validation should be done in the UI layer
-        // where position data is available. The UI should check:
-        // 1. That closeSize doesn't exceed current position size
-        // 2. That remaining size meets minimum order requirements
-      }
-
-      // Validate minimum order value if we have the necessary data
-      if (params.currentPrice && params.size) {
-        const closeSize = parseFloat(params.size);
-        const price = parseFloat(params.currentPrice.toString());
-        const orderValueUSD = closeSize * price;
-
-        // Get minimum order size based on network
-        const minimumOrderSize = this.clientService.isTestnetMode()
-          ? TRADING_DEFAULTS.amount.testnet
-          : TRADING_DEFAULTS.amount.mainnet;
-
-        if (orderValueUSD < minimumOrderSize) {
           return {
             isValid: false,
             error: strings('perps.order.validation.minimum_amount', {
@@ -1500,9 +1689,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
             }),
           };
         }
+
+        // Enforce minimum order value for partial closes when price known
+        if (orderValueUSD !== undefined && orderValueUSD < minimumOrderSize) {
+          return {
+            isValid: false,
+            error: strings('perps.order.validation.minimum_amount', {
+              amount: minimumOrderSize.toString(),
+            }),
+          };
+        }
+
+        // Note: Remaining position validation stays in UI layer.
       }
-      // Note: For full closes (when size is undefined), the validation
-      // should be done in the UI layer where the full position size is known.
+      // Full closes (size undefined) bypass minimum check by design
+      // Note: For full closes (when size is undefined), there is no minimum
+      // This allows users to close positions worth less than $10 completely
 
       return { isValid: true };
     } catch (error) {
@@ -1548,7 +1750,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
     try {
-      DevLogger.log('🚀 HyperLiquidProvider: STARTING WITHDRAWAL', {
+      DevLogger.log('HyperLiquidProvider: STARTING WITHDRAWAL', {
         params,
         timestamp: new Date().toISOString(),
         assetId: params.assetId,
@@ -1558,7 +1760,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
 
       // Step 1: Validate withdrawal parameters
-      DevLogger.log('🔍 HyperLiquidProvider: VALIDATING PARAMETERS');
+      DevLogger.log('HyperLiquidProvider: VALIDATING PARAMETERS');
       const validation = validateWithdrawalParams(params);
       if (!validation.isValid) {
         DevLogger.log('❌ HyperLiquidProvider: PARAMETER VALIDATION FAILED', {
@@ -1568,12 +1770,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
         throw new Error(validation.error);
       }
-      DevLogger.log('✅ HyperLiquidProvider: PARAMETERS VALIDATED');
+      DevLogger.log('HyperLiquidProvider: PARAMETERS VALIDATED');
 
       // Step 2: Get supported withdrawal routes and validate asset
-      DevLogger.log('🔍 HyperLiquidProvider: CHECKING ASSET SUPPORT');
+      DevLogger.log('HyperLiquidProvider: CHECKING ASSET SUPPORT');
       const supportedRoutes = this.getWithdrawalRoutes();
-      DevLogger.log('📋 HyperLiquidProvider: SUPPORTED WITHDRAWAL ROUTES', {
+      DevLogger.log('HyperLiquidProvider: SUPPORTED WITHDRAWAL ROUTES', {
         routeCount: supportedRoutes.length,
         routes: supportedRoutes.map((route) => ({
           assetId: route.assetId,
@@ -1587,7 +1789,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const error = strings(
           'perps.errors.withdrawValidation.assetIdRequired',
         );
-        DevLogger.log('❌ HyperLiquidProvider: MISSING ASSET ID', {
+        DevLogger.log('HyperLiquidProvider: MISSING ASSET ID', {
           error,
           params,
         });
@@ -1606,36 +1808,36 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
         throw new Error(assetValidation.error);
       }
-      DevLogger.log('✅ HyperLiquidProvider: ASSET SUPPORTED', {
+      DevLogger.log('HyperLiquidProvider: ASSET SUPPORTED', {
         assetId: params.assetId,
       });
 
       // Step 3: Determine destination address
-      DevLogger.log('🔍 HyperLiquidProvider: DETERMINING DESTINATION ADDRESS');
+      DevLogger.log('HyperLiquidProvider: DETERMINING DESTINATION ADDRESS');
       let destination: Hex;
       if (params.destination) {
         destination = params.destination;
-        DevLogger.log('📍 HyperLiquidProvider: USING PROVIDED DESTINATION', {
+        DevLogger.log('HyperLiquidProvider: USING PROVIDED DESTINATION', {
           destination,
         });
       } else {
         destination = await this.walletService.getUserAddressWithDefault();
-        DevLogger.log('📍 HyperLiquidProvider: USING USER WALLET ADDRESS', {
+        DevLogger.log('HyperLiquidProvider: USING USER WALLET ADDRESS', {
           destination,
         });
       }
 
       // Step 4: Ensure client is ready
-      DevLogger.log('🔌 HyperLiquidProvider: ENSURING CLIENT READY');
+      DevLogger.log('HyperLiquidProvider: ENSURING CLIENT READY');
       await this.ensureReady();
       const exchangeClient = this.clientService.getExchangeClient();
-      DevLogger.log('✅ HyperLiquidProvider: CLIENT READY');
+      DevLogger.log('HyperLiquidProvider: CLIENT READY');
 
       // Step 5: Validate amount against account balance
-      DevLogger.log('🔍 HyperLiquidProvider: CHECKING ACCOUNT BALANCE');
+      DevLogger.log('HyperLiquidProvider: CHECKING ACCOUNT BALANCE');
       const accountState = await this.getAccountState();
       const availableBalance = parseFloat(accountState.availableBalance);
-      DevLogger.log('💰 HyperLiquidProvider: ACCOUNT BALANCE', {
+      DevLogger.log('HyperLiquidProvider: ACCOUNT BALANCE', {
         availableBalance,
         totalBalance: accountState.totalBalance,
         marginUsed: accountState.marginUsed,
@@ -1645,7 +1847,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
         const error = strings('perps.errors.withdrawValidation.amountRequired');
-        DevLogger.log('❌ HyperLiquidProvider: MISSING AMOUNT', {
+        DevLogger.log('HyperLiquidProvider: MISSING AMOUNT', {
           error,
           params,
         });
@@ -1653,7 +1855,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       const withdrawAmount = parseFloat(params.amount);
-      DevLogger.log('🔢 HyperLiquidProvider: WITHDRAWAL AMOUNT', {
+      DevLogger.log('HyperLiquidProvider: WITHDRAWAL AMOUNT', {
         requestedAmount: withdrawAmount,
         availableBalance,
         sufficientBalance: withdrawAmount <= availableBalance,
@@ -1664,7 +1866,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         availableBalance,
       );
       if (!balanceValidation.isValid) {
-        DevLogger.log('❌ HyperLiquidProvider: INSUFFICIENT BALANCE', {
+        DevLogger.log('HyperLiquidProvider: INSUFFICIENT BALANCE', {
           error: balanceValidation.error,
           requestedAmount: withdrawAmount,
           availableBalance,
@@ -1675,7 +1877,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('✅ HyperLiquidProvider: BALANCE SUFFICIENT');
 
       // Step 6: Execute withdrawal via HyperLiquid SDK (API call)
-      DevLogger.log('📡 HyperLiquidProvider: CALLING WITHDRAW3 API', {
+      DevLogger.log('HyperLiquidProvider: CALLING WITHDRAW3 API', {
         destination,
         amount: params.amount,
         endpoint: 'withdraw3',
@@ -1687,7 +1889,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         amount: params.amount,
       });
 
-      DevLogger.log('📊 HyperLiquidProvider: WITHDRAW3 API RESPONSE', {
+      DevLogger.log('HyperLiquidProvider: WITHDRAW3 API RESPONSE', {
         status: result.status,
         response: result,
         timestamp: new Date().toISOString(),
@@ -1695,7 +1897,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       if (result.status === 'ok') {
         DevLogger.log(
-          '✅ HyperLiquidProvider: WITHDRAWAL SUBMITTED SUCCESSFULLY',
+          'HyperLiquidProvider: WITHDRAWAL SUBMITTED SUCCESSFULLY',
           {
             destination,
             amount: params.amount,
@@ -1717,7 +1919,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       const errorMessage = `Withdrawal failed: ${result.status}`;
-      DevLogger.log('❌ HyperLiquidProvider: WITHDRAWAL FAILED', {
+      DevLogger.log('HyperLiquidProvider: WITHDRAWAL FAILED', {
         error: errorMessage,
         status: result.status,
         response: result,
@@ -1730,7 +1932,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      DevLogger.log('💥 HyperLiquidProvider: WITHDRAWAL EXCEPTION', {
+      DevLogger.log('HyperLiquidProvider: WITHDRAWAL EXCEPTION', {
         error: errorMessage,
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
@@ -1746,7 +1948,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Subscribe to live price updates
    */
   subscribeToPrices(params: SubscribePricesParams): () => void {
-    return this.subscriptionService.subscribeToPrices(params);
+    // Handle async subscription service by immediately returning cleanup function
+    // The subscription service will load correct funding rates before any callbacks
+    let unsubscribe: (() => void) | undefined;
+    let cancelled = false;
+
+    this.subscriptionService
+      .subscribeToPrices(params)
+      .then((unsub) => {
+        // If cleanup was called before subscription completed, immediately unsubscribe
+        if (cancelled) {
+          unsub();
+        } else {
+          unsubscribe = unsub;
+        }
+      })
+      .catch((error) => {
+        DevLogger.log('Error subscribing to prices:', error);
+      });
+
+    return () => {
+      cancelled = true;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }
 
   /**
@@ -1925,14 +2151,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const denominator = 1 - l * side;
       if (Math.abs(denominator) < 0.0001) {
         // Avoid division by very small numbers
-        return entryPrice.toFixed(2);
+        return String(entryPrice);
       }
 
       const liquidationPrice =
         entryPrice - (side * marginAvailable * entryPrice) / denominator;
 
       // Ensure liquidation price is non-negative
-      return Math.max(0, liquidationPrice).toFixed(2);
+      return String(Math.max(0, liquidationPrice));
     } catch (error) {
       DevLogger.log('Error calculating liquidation price:', error);
       return '0.00';
@@ -1961,6 +2187,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getMaxLeverage(asset: string): Promise<number> {
     try {
+      // Check cache first
+      const cached = this.maxLeverageCache.get(asset);
+      const now = Date.now();
+
+      if (
+        cached &&
+        now - cached.timestamp <
+          PERFORMANCE_CONFIG.MAX_LEVERAGE_CACHE_DURATION_MS
+      ) {
+        return cached.value;
+      }
+
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
@@ -1981,6 +2219,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
         return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
       }
+
+      // Cache the result
+      this.maxLeverageCache.set(asset, {
+        value: assetInfo.maxLeverage,
+        timestamp: now,
+      });
 
       return assetInfo.maxLeverage;
     } catch (error) {
@@ -2011,46 +2255,278 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Calculate fees based on HyperLiquid's fee structure
    * Returns fee rate as decimal (e.g., 0.00045 for 0.045%)
    *
-   * HyperLiquid base fees (Tier 0, no discounts):
-   * - Taker: 0.045% (market orders, aggressive limit orders)
-   * - Maker: 0.015% (limit orders that add liquidity)
-   *
-   * TODO: Apply volume and staking discounts when APIs available
+   * Uses the SDK's userFees API to get actual discounted rates when available,
+   * falling back to base rates if the API is unavailable or user not connected.
    */
   async calculateFees(
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
     const { orderType, isMaker = false, amount } = params;
 
-    // Use base rates from config
-    const baseRate =
+    // Start with base rates from config
+    let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
-    // TODO: When APIs available, apply user-specific discounts
-    // const volume = await this.getUserVolume();
-    // const staking = await this.getUserStaking();
-    // const { volumeTier, volumeDiscount, stakingDiscount } = await this.calculateDiscounts(volume, staking);
-    // const finalRate = baseRate * (1 - volumeDiscount) * (1 - stakingDiscount);
+    DevLogger.log('HyperLiquid Fee Calculation Started', {
+      orderType,
+      isMaker,
+      amount,
+      baseFeeRate: feeRate,
+      baseTakerRate: FEE_RATES.taker,
+      baseMakerRate: FEE_RATES.maker,
+    });
+
+    // Try to get user-specific rates if wallet is connected
+    try {
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      DevLogger.log('User Address Retrieved', {
+        userAddress,
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      });
+
+      // Check cache first
+      if (this.isFeeCacheValid(userAddress)) {
+        const cached = this.userFeeCache.get(userAddress);
+        if (cached) {
+          // Market orders always use taker rate, limit orders check isMaker
+          feeRate =
+            orderType === 'market' || !isMaker
+              ? cached.perpsTakerRate
+              : cached.perpsMakerRate;
+
+          DevLogger.log('📦 Using Cached Fee Rates', {
+            cacheHit: true,
+            perpsTakerRate: cached.perpsTakerRate,
+            perpsMakerRate: cached.perpsMakerRate,
+            spotTakerRate: cached.spotTakerRate,
+            spotMakerRate: cached.spotMakerRate,
+            selectedRate: feeRate,
+            cacheExpiry: new Date(cached.timestamp + cached.ttl).toISOString(),
+            cacheAge: `${Math.round((Date.now() - cached.timestamp) / 1000)}s`,
+          });
+        }
+      } else {
+        DevLogger.log('Fetching Fresh Fee Rates from HyperLiquid API', {
+          cacheHit: false,
+          userAddress,
+        });
+
+        // Fetch fresh rates from SDK
+        await this.ensureReady();
+        const infoClient = this.clientService.getInfoClient();
+        const userFees = await infoClient.userFees({
+          user: userAddress as `0x${string}`,
+        });
+
+        DevLogger.log('HyperLiquid userFees API Response', {
+          userCrossRate: userFees.userCrossRate,
+          userAddRate: userFees.userAddRate,
+          activeReferralDiscount: userFees.activeReferralDiscount,
+          activeStakingDiscount: userFees.activeStakingDiscount,
+        });
+
+        // Parse base user rates (these don't include discounts as expected)
+        const baseUserTakerRate = parseFloat(userFees.userCrossRate);
+        const baseUserMakerRate = parseFloat(userFees.userAddRate);
+        const baseUserSpotTakerRate = parseFloat(userFees.userSpotCrossRate);
+        const baseUserSpotMakerRate = parseFloat(userFees.userSpotAddRate);
+
+        // Apply discounts manually since HyperLiquid API doesn't apply them
+        const referralDiscount = parseFloat(
+          userFees.activeReferralDiscount || '0',
+        );
+        const stakingDiscount = parseFloat(
+          userFees.activeStakingDiscount?.discount || '0',
+        );
+
+        // Calculate total discount (referral + staking, but not compounding)
+        const totalDiscount = Math.min(referralDiscount + stakingDiscount, 0.4); // Cap at 40%
+
+        // Apply discount to rates
+        const perpsTakerRate = baseUserTakerRate * (1 - totalDiscount);
+        const perpsMakerRate = baseUserMakerRate * (1 - totalDiscount);
+        const spotTakerRate = baseUserSpotTakerRate * (1 - totalDiscount);
+        const spotMakerRate = baseUserSpotMakerRate * (1 - totalDiscount);
+
+        DevLogger.log('Fee Discount Calculation', {
+          discounts: {
+            referral: `${(referralDiscount * 100).toFixed(1)}%`,
+            staking: `${(stakingDiscount * 100).toFixed(1)}%`,
+            total: `${(totalDiscount * 100).toFixed(1)}%`,
+          },
+          rates: {
+            before: {
+              taker: `${(baseUserTakerRate * 100).toFixed(4)}%`,
+              maker: `${(baseUserMakerRate * 100).toFixed(4)}%`,
+            },
+            after: {
+              taker: `${(perpsTakerRate * 100).toFixed(4)}%`,
+              maker: `${(perpsMakerRate * 100).toFixed(4)}%`,
+            },
+          },
+        });
+
+        // Validate all rates are valid numbers before caching
+        if (
+          isNaN(perpsTakerRate) ||
+          isNaN(perpsMakerRate) ||
+          isNaN(spotTakerRate) ||
+          isNaN(spotMakerRate) ||
+          perpsTakerRate < 0 ||
+          perpsMakerRate < 0 ||
+          spotTakerRate < 0 ||
+          spotMakerRate < 0
+        ) {
+          DevLogger.log('Fee Rate Validation Failed', {
+            validation: {
+              perpsTakerValid: !isNaN(perpsTakerRate) && perpsTakerRate >= 0,
+              perpsMakerValid: !isNaN(perpsMakerRate) && perpsMakerRate >= 0,
+              spotTakerValid: !isNaN(spotTakerRate) && spotTakerRate >= 0,
+              spotMakerValid: !isNaN(spotMakerRate) && spotMakerRate >= 0,
+            },
+            rawValues: {
+              perpsTakerRate,
+              perpsMakerRate,
+              spotTakerRate,
+              spotMakerRate,
+            },
+          });
+          throw new Error('Invalid fee rates received from API');
+        }
+
+        const rates = {
+          perpsTakerRate,
+          perpsMakerRate,
+          spotTakerRate,
+          spotMakerRate,
+          timestamp: Date.now(),
+          ttl: 5 * 60 * 1000, // 5 minutes
+        };
+
+        this.userFeeCache.set(userAddress, rates);
+        // Market orders always use taker rate, limit orders check isMaker
+        feeRate =
+          orderType === 'market' || !isMaker
+            ? rates.perpsTakerRate
+            : rates.perpsMakerRate;
+
+        DevLogger.log('Fee Rates Validated and Cached', {
+          selectedRate: feeRate,
+          selectedRatePercentage: `${(feeRate * 100).toFixed(4)}%`,
+          discountApplied: perpsTakerRate < FEE_RATES.taker,
+          cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
+        });
+      }
+    } catch (error) {
+      // Silently fall back to base rates
+      DevLogger.log('Fee API Call Failed - Falling Back to Base Rates', {
+        error: error instanceof Error ? error.message : String(error),
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        fallbackTakerRate: FEE_RATES.taker,
+        fallbackMakerRate: FEE_RATES.maker,
+        userAddress: 'unknown',
+      });
+    }
 
     const parsedAmount = amount ? parseFloat(amount) : 0;
-    const feeAmount =
+
+    // Protocol base fee (HyperLiquid's fee)
+    const protocolFeeRate = feeRate;
+    const protocolFeeAmount =
       amount !== undefined
         ? isNaN(parsedAmount)
           ? 0
-          : parsedAmount * baseRate
+          : parsedAmount * protocolFeeRate
         : undefined;
 
-    return {
-      feeRate: baseRate,
-      feeAmount,
-      // Future: Include breakdown when we have user data
-      // breakdown: {
-      //   baseFeeRate: baseRate,
-      //   volumeTier,
-      //   volumeDiscount,
-      //   stakingDiscount,
-      // },
+    // MetaMask builder fee (0.1% = 0.001) with optional reward discount
+    let metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+
+    // Apply MetaMask reward discount if active
+    if (this.userFeeDiscountBips !== undefined) {
+      const discount = this.userFeeDiscountBips / 10000; // Convert basis points to decimal
+      metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal * (1 - discount);
+
+      DevLogger.log('HyperLiquid: Applied MetaMask fee discount', {
+        originalRate: BUILDER_FEE_CONFIG.maxFeeDecimal,
+        discountBips: this.userFeeDiscountBips,
+        discountPercentage: this.userFeeDiscountBips / 100,
+        adjustedRate: metamaskFeeRate,
+        discountAmount: BUILDER_FEE_CONFIG.maxFeeDecimal * discount,
+      });
+    }
+
+    const metamaskFeeAmount =
+      amount !== undefined
+        ? isNaN(parsedAmount)
+          ? 0
+          : parsedAmount * metamaskFeeRate
+        : undefined;
+
+    // Total fees
+    const totalFeeRate = protocolFeeRate + metamaskFeeRate;
+    const totalFeeAmount =
+      amount !== undefined
+        ? isNaN(parsedAmount)
+          ? 0
+          : parsedAmount * totalFeeRate
+        : undefined;
+
+    const result = {
+      // Total fees
+      feeRate: totalFeeRate,
+      feeAmount: totalFeeAmount,
+
+      // Protocol fees
+      protocolFeeRate,
+      protocolFeeAmount,
+
+      // MetaMask fees
+      metamaskFeeRate,
+      metamaskFeeAmount,
     };
+
+    DevLogger.log('Final Fee Calculation Result', {
+      orderType,
+      amount,
+      fees: {
+        protocolRate: `${(protocolFeeRate * 100).toFixed(4)}%`,
+        metamaskRate: `${(metamaskFeeRate * 100).toFixed(4)}%`,
+        totalRate: `${(totalFeeRate * 100).toFixed(4)}%`,
+        totalAmount: totalFeeAmount,
+      },
+      usingFallbackRates:
+        protocolFeeRate === FEE_RATES.taker ||
+        protocolFeeRate === FEE_RATES.maker,
+    });
+
+    return result;
+  }
+
+  /**
+   * Check if the fee cache is valid for a user
+   * @private
+   */
+  private isFeeCacheValid(userAddress: string): boolean {
+    const cached = this.userFeeCache.get(userAddress);
+    if (!cached) return false;
+    return Date.now() - cached.timestamp < cached.ttl;
+  }
+
+  /**
+   * Clear fee cache for a specific user or all users
+   * @param userAddress - Optional address to clear cache for
+   */
+  public clearFeeCache(userAddress?: string): void {
+    if (userAddress) {
+      this.userFeeCache.delete(userAddress);
+      DevLogger.log('Cleared fee cache for user', { userAddress });
+    } else {
+      this.userFeeCache.clear();
+      DevLogger.log('Cleared all fee cache');
+    }
   }
 
   /**
@@ -2065,6 +2541,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Clear subscriptions through subscription service
       this.subscriptionService.clearAll();
+
+      // Clear fee cache
+      this.clearFeeCache();
 
       // Disconnect client service
       await this.clientService.disconnect();

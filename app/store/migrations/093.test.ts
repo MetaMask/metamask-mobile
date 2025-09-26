@@ -60,7 +60,6 @@ describe('Migration 093', () => {
     });
 
     expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
@@ -84,7 +83,6 @@ describe('Migration 093', () => {
     });
 
     expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
@@ -128,7 +126,6 @@ describe('Migration 093', () => {
     });
 
     expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message:
@@ -155,7 +152,6 @@ describe('Migration 093', () => {
     });
 
     expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message:
@@ -182,7 +178,6 @@ describe('Migration 093', () => {
     });
 
     expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       expect.objectContaining({
         message:
@@ -216,17 +211,15 @@ describe('Migration 093', () => {
     expect(mockedCaptureException).toHaveBeenCalledWith(error);
   });
 
-  it('handles StorageWrapper.removeItem throwing an error', async () => {
+  it('migrates data successfully without attempting to remove from MMKV', async () => {
     const state = {
       user: {
         someOtherField: 'value',
       },
     };
 
-    const error = new Error('Remove error');
     mockedEnsureValidState.mockReturnValue(true);
     mockedStorageWrapper.getItem.mockResolvedValue('true');
-    mockedStorageWrapper.removeItem.mockRejectedValue(error);
 
     const migratedState = await migrate(state);
 
@@ -238,8 +231,6 @@ describe('Migration 093', () => {
     });
 
     expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(error);
   });
 
   it('initializes with full userInitialState when user state is missing and error occurs', async () => {
@@ -284,7 +275,6 @@ describe('Migration 093', () => {
     });
 
     expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
@@ -332,7 +322,6 @@ describe('Migration 093', () => {
     });
 
     expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { SolScope } from '@metamask/keyring-api';
 import {
   ImageSourcePropType,
   RefreshControl,
@@ -66,7 +67,7 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { selectedChainId, isBuy, intent, setIntent } = useRampSDK();
+  const { isBuy, intent, setIntent, selectedAsset } = useRampSDK();
 
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -114,18 +115,21 @@ function NetworkSwitcher() {
   }, [networksDetails, supportedNetworks]);
 
   const handleCancelPress = useCallback(() => {
+    const chainId = selectedAsset?.network?.chainId;
+    if (!chainId) return;
+
     if (isBuy) {
       trackEvent('ONRAMP_CANCELED', {
         location: 'Network Switcher Screen',
-        chain_id_destination: selectedChainId,
+        chain_id_destination: chainId,
       });
     } else {
       trackEvent('OFFRAMP_CANCELED', {
         location: 'Network Switcher Screen',
-        chain_id_source: selectedChainId,
+        chain_id_source: chainId,
       });
     }
-  }, [isBuy, selectedChainId, trackEvent]);
+  }, [isBuy, trackEvent, selectedAsset]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -152,7 +156,7 @@ function NetworkSwitcher() {
   }, [navigation]);
 
   const switchToMainnet = useCallback(
-    (type: 'mainnet' | 'linea-mainnet') => {
+    (type: 'mainnet' | 'linea-mainnet' | SolScope.Mainnet) => {
       const { MultichainNetworkController } = Engine.context;
       MultichainNetworkController.setActiveNetwork(type);
       navigateToGetStarted();
@@ -215,6 +219,10 @@ function NetworkSwitcher() {
         return switchToMainnet('linea-mainnet');
       }
 
+      if (chainId === SolScope.Mainnet) {
+        return switchToMainnet(SolScope.Mainnet);
+      }
+
       const supportedNetworkConfigurations = rampNetworksDetails.map(
         (networkConfiguration) => {
           const isAdded = Object.values(networkConfigurations).some(
@@ -248,10 +256,7 @@ function NetworkSwitcher() {
   );
 
   useEffect(() => {
-    if (
-      isCurrentNetworkRampSupported &&
-      (!intent?.chainId || selectedChainId === intent.chainId)
-    ) {
+    if (isCurrentNetworkRampSupported && !intent?.chainId) {
       navigateToGetStarted();
     } else if (intent?.chainId) {
       handleIntentChainId(intent.chainId);
@@ -262,7 +267,6 @@ function NetworkSwitcher() {
     isCurrentNetworkRampSupported,
     navigateToGetStarted,
     navigation,
-    selectedChainId,
   ]);
 
   const handleNetworkModalClose = useCallback(() => {
@@ -346,12 +350,7 @@ function NetworkSwitcher() {
                       <Text bold>Ethereum Main Network</Text>
                     </View>
                     <View style={customNetworkStyle.popularWrapper}>
-                      {selectedChainId ===
-                      getDecimalChainId(ChainId.mainnet) ? (
-                        <Text link>{strings('networks.continue')}</Text>
-                      ) : (
-                        <Text link>{strings('networks.switch')}</Text>
-                      )}
+                      <Text link>{strings('networks.switch')}</Text>
                     </View>
                   </TouchableOpacity>
                 ) : null}
@@ -377,12 +376,7 @@ function NetworkSwitcher() {
                       <Text bold>Linea Main Network</Text>
                     </View>
                     <View style={customNetworkStyle.popularWrapper}>
-                      {selectedChainId ===
-                      getDecimalChainId(ChainId['linea-mainnet']) ? (
-                        <Text link>{strings('networks.continue')}</Text>
-                      ) : (
-                        <Text link>{strings('networks.switch')}</Text>
-                      )}
+                      <Text link>{strings('networks.switch')}</Text>
                     </View>
                   </TouchableOpacity>
                 ) : null}

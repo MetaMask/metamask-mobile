@@ -27,12 +27,27 @@ jest.mock('../BackupVault', () => ({
 }));
 jest.unmock('./Engine');
 jest.mock('../../store', () => ({
-  store: { getState: jest.fn(() => ({ engine: {} })) },
+  store: {
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              rewards: true,
+            },
+          },
+        },
+      },
+    })),
+  },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
   selectSmartTransactionsEnabled: jest.fn().mockReturnValue(false),
   selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
+  selectPendingSmartTransactionsForSelectedAccountGroup: jest
+    .fn()
+    .mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
   ...jest.requireActual('../../selectors/settings'),
@@ -70,9 +85,10 @@ describe('Engine', () => {
     ReduxService.store = configureStore({});
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.restoreAllMocks();
     (backupVault as jest.Mock).mockReset();
+    await Engine.destroyEngine();
   });
 
   it('should expose an API', () => {
@@ -112,6 +128,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('DeFiPositionsController');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
+    expect(engine.context).toHaveProperty('GatorPermissionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -177,11 +194,36 @@ describe('Engine', () => {
     // Create expected state by merging the static fixture with current AppMetadataController state
     const expectedState = {
       ...backgroundState,
+      AccountTrackerController: {
+        ...backgroundState.AccountTrackerController,
+        // This is just hotfix, because it should not be empty but it reflects current state of Engine code
+        // More info: https://github.com/MetaMask/metamask-mobile/pull/18949
+        accountsByChainId: {},
+      },
       AppMetadataController: {
         currentAppVersion,
         previousAppVersion: '', // This will be managed by the controller
         previousMigrationVersion: 0, // This will be managed by the controller
         currentMigrationVersion,
+      },
+      PredictController: {
+        activeOrders: {},
+        eligibility: {},
+        lastError: null,
+        lastUpdateTimestamp: 0,
+        notifications: [],
+      },
+      GatorPermissionsController: {
+        gatorPermissionsMapSerialized: JSON.stringify({
+          'native-token-stream': {},
+          'native-token-periodic': {},
+          'erc20-token-stream': {},
+          'erc20-token-periodic': {},
+          other: {},
+        }),
+        gatorPermissionsProviderSnapId: 'npm:@metamask/gator-permissions-snap',
+        isFetchingGatorPermissions: false,
+        isGatorPermissionsEnabled: false,
       },
     };
 
@@ -329,9 +371,6 @@ describe('Engine', () => {
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
-    let engine: EngineClass;
-    afterEach(() => engine?.destroyEngineInstance());
-
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const selectedAccountId = 'test-account-id';
     const chainId: Hex = '0x1';
@@ -382,14 +421,26 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      engine = Engine.init(state);
+      const engine = Engine.init({
+        ...state,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: {
+                balance: '0',
+                stakedBalance: '0',
+              },
+            },
+          },
+        },
+      });
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
         ethFiat1dAgo: 0,
         tokenFiat: 0,
         tokenFiat1dAgo: 0,
-        ticker: '',
+        ticker: 'ETH',
         totalNativeTokenBalance: '0',
       });
     });
@@ -397,7 +448,7 @@ describe('Engine', () => {
     it('calculates when theres only ETH', () => {
       const ethPricePercentChange1d = 5; // up 5%
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         TokenRatesController: {
           marketData: {
@@ -448,7 +499,7 @@ describe('Engine', () => {
         },
       ];
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         TokensController: {
           allTokens: {
@@ -544,7 +595,7 @@ describe('Engine', () => {
         },
       ];
 
-      engine = Engine.init({
+      const engine = Engine.init({
         ...state,
         AccountTrackerController: {
           accountsByChainId: {
@@ -679,6 +730,62 @@ describe('Engine', () => {
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
       expect.anything(),
+    );
+  });
+
+  it('ensures network names are updated for new users', () => {
+    // Create a state without NetworkController to simulate first-time setup
+    const initState = { ...backgroundState };
+    delete (initState as Partial<EngineState>).NetworkController;
+
+    const engine = Engine.init(initState);
+
+    const networkState = engine.context.NetworkController.state;
+    const networks = networkState.networkConfigurationsByChainId;
+
+    // Verify that network names have been updated for new users
+    expect(networks['0x1'].name).toBe('Ethereum');
+    expect(networks['0x2105'].name).toBe('Base');
+    expect(networks['0xe708'].name).toBe('Linea');
+  });
+
+  it('does not update network names for existing users', () => {
+    // Arrange - Create state with existing NetworkController that has original names
+    const initState = {
+      ...backgroundState,
+      NetworkController: mockNetworkState(
+        {
+          chainId: '0x1',
+          nickname: 'Ethereum Mainnet',
+        },
+        {
+          chainId: '0xe708',
+          nickname: 'Linea Mainnet', // Original name from API
+        },
+        {
+          chainId: '0x2105',
+          nickname: 'Base Mainnet', // Original name from API
+        },
+      ),
+    };
+
+    // Act - Initialize engine with existing NetworkController state
+    const engine = Engine.init(initState);
+    const networkState = engine.context.NetworkController.state;
+
+    // Assert - Ethereum network name remains unchanged for existing users
+    expect(networkState.networkConfigurationsByChainId['0x1'].name).toBe(
+      'Ethereum Mainnet',
+    );
+
+    // Assert - Linea network name remains unchanged for existing users
+    expect(networkState.networkConfigurationsByChainId['0xe708'].name).toBe(
+      'Linea Mainnet',
+    );
+
+    // Assert - Base network name remains unchanged for existing users
+    expect(networkState.networkConfigurationsByChainId['0x2105'].name).toBe(
+      'Base Mainnet',
     );
   });
 });

@@ -1,5 +1,5 @@
 import { Nft } from '@metamask/assets-controllers';
-import { StyleProp, ViewProps, ViewStyle } from 'react-native';
+import { StyleProp, TextStyle, ViewProps } from 'react-native';
 
 export interface NftDetailsParams {
   collectible: Nft;
@@ -8,8 +8,8 @@ export interface NftDetailsParams {
 export interface NftDetailsInformationRowProps extends ViewProps {
   title: string;
   value?: string | null;
-  titleStyle?: StyleProp<ViewStyle>;
-  valueStyle?: StyleProp<ViewStyle>;
+  titleStyle?: StyleProp<TextStyle>;
+  valueStyle?: StyleProp<TextStyle>;
   icon?: React.ReactNode;
   onValuePress?: () => void;
 }
@@ -17,11 +17,11 @@ export interface NftDetailsInformationRowProps extends ViewProps {
 export interface NftDetailsBoxProps extends ViewProps {
   title?: string;
   value: string | null;
-  titleStyle?: StyleProp<ViewStyle>;
-  valueStyle?: StyleProp<ViewStyle>;
+  titleStyle?: StyleProp<TextStyle>;
+  valueStyle?: StyleProp<TextStyle>;
   icon?: React.ReactNode;
   onValuePress?: () => void;
 
-  titleTextStyle?: StyleProp<ViewStyle>;
-  valueTextStyle?: StyleProp<ViewStyle>;
+  titleTextStyle?: StyleProp<TextStyle>;
+  valueTextStyle?: StyleProp<TextStyle>;
 }

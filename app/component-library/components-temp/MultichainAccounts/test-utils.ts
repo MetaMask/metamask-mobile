@@ -6,6 +6,7 @@ import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { RootState } from '../../../reducers';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 /**
  * Creates a mock internal account for testing
@@ -37,6 +38,7 @@ export const createMockAccountGroup = (
   id: string,
   name: string,
   accounts: string[] = [`account-${id}`],
+  isEntropyGroup: boolean = false,
 ): AccountGroupObject => {
   if (accounts.length === 1) {
     const group = {
@@ -47,6 +49,11 @@ export const createMockAccountGroup = (
         name,
         pinned: false,
         hidden: false,
+        ...(isEntropyGroup && {
+          entropy: {
+            groupIndex: 0,
+          },
+        }),
       },
     };
     return group as unknown as AccountGroupObject;
@@ -60,9 +67,11 @@ export const createMockAccountGroup = (
       name,
       pinned: false,
       hidden: false,
-      entropy: {
-        groupIndex: 0,
-      },
+      ...(isEntropyGroup && {
+        entropy: {
+          groupIndex: 0,
+        },
+      }),
     },
   };
   return group as unknown as AccountGroupObject;
@@ -95,6 +104,32 @@ export const createMockWallet = (
 };
 
 /**
+ * Creates a mock Entropy wallet for testing
+ */
+export const createMockEntropyWallet = (
+  id: string,
+  name: string,
+  groups: AccountGroupObject[],
+): AccountWalletObject => {
+  const wallet = {
+    id: id as AccountWalletObject['id'],
+    type: AccountWalletType.Entropy,
+    metadata: {
+      name,
+      entropy: {
+        id: 'test-entropy-id',
+      },
+    },
+    groups: groups.reduce((acc, group) => {
+      acc[group.id] = group;
+      return acc;
+    }, {} as Record<string, AccountGroupObject>),
+  };
+
+  return wallet as unknown as AccountWalletObject;
+};
+
+/**
  * Creates mock state with accounts and internal accounts
  */
 export const createMockState = (
@@ -102,13 +137,19 @@ export const createMockState = (
   internalAccounts: Record<string, InternalAccount>,
 ): RootState => {
   const walletMap = wallets.reduce((acc, wallet) => {
-    acc[`keyring:${wallet.id}`] = wallet;
+    const prefixedKey = `${wallet.type}:${wallet.id}`;
+
+    // Store with both prefixed key (for selectors) and plain key (for AccountListFooter)
+    acc[prefixedKey] = wallet;
+    acc[wallet.id] = wallet;
+
     return acc;
   }, {} as Record<string, AccountWalletObject>);
 
   return {
     engine: {
       backgroundState: {
+        ...backgroundState,
         AccountTreeController: {
           accountTree: {
             wallets: walletMap,

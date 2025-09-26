@@ -90,11 +90,11 @@ describe('useContacts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'John Doe',
+          contactName: 'John Doe',
           address: '0x1234567890123456789012345678901234567890',
         },
         {
-          name: 'Jane Smith',
+          contactName: 'Jane Smith',
           address: '0x9876543210987654321098765432109876543210',
         },
       ]);
@@ -144,7 +144,7 @@ describe('useContacts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Solana Contact',
+          contactName: 'Solana Contact',
           address: 'Sol1234567890123456789012345678901234567890',
         },
       ]);
@@ -190,19 +190,19 @@ describe('useContacts', () => {
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
-            name: 'John Doe',
+            contactName: 'John Doe',
             address: '0x1234567890123456789012345678901234567890',
           },
           {
-            name: 'Jane Smith',
+            contactName: 'Jane Smith',
             address: '0x9876543210987654321098765432109876543210',
           },
           {
-            name: 'Solana Contact',
+            contactName: 'Solana Contact',
             address: 'Sol1234567890123456789012345678901234567890',
           },
           {
-            name: 'Invalid Contact',
+            contactName: 'Invalid Contact',
             address: '0xinvalid',
           },
         ]),
@@ -255,7 +255,7 @@ describe('useContacts', () => {
 
     expect(result.current).toEqual([
       {
-        name: 'John Doe',
+        contactName: 'John Doe',
         address: '0x1234567890123456789012345678901234567890',
       },
     ]);
@@ -265,23 +265,23 @@ describe('useContacts', () => {
     const edgeCaseAddressBook = {
       '1': {
         validEvm: {
-          name: 'Valid EVM',
+          contactName: 'Valid EVM',
           address: '0x1234567890123456789012345678901234567890',
         },
         invalidEvmShort: {
-          name: 'Invalid EVM Short',
+          contactName: 'Invalid EVM Short',
           address: '0x123456',
         },
         invalidEvmLong: {
-          name: 'Invalid EVM Long',
+          contactName: 'Invalid EVM Long',
           address: '0x123456789012345678901234567890123456789012345',
         },
         validSolana: {
-          name: 'Valid Solana',
+          contactName: 'Valid Solana',
           address: 'Sol12345678901234567890123456789012345678901234567890',
         },
         invalidSolanaShort: {
-          name: 'Invalid Solana Short',
+          contactName: 'Invalid Solana Short',
           address: 'Sol123',
         },
       },
@@ -328,46 +328,6 @@ describe('useContacts', () => {
       expect(result.current[0].address).toBe(
         'Sol12345678901234567890123456789012345678901234567890',
       );
-    });
-  });
-
-  describe('contact deduplication', () => {
-    const duplicateAddressBook = {
-      '1': {
-        contact1: {
-          name: 'First John',
-          address: '0x1234567890123456789012345678901234567890',
-        },
-      },
-      '137': {
-        contact2: {
-          name: 'Second John',
-          address: '0x1234567890123456789012345678901234567890',
-        },
-      },
-      '56': {
-        contact3: {
-          name: 'Third John',
-          address: '0x1234567890123456789012345678901234567890',
-        },
-      },
-    };
-
-    it('keeps only the first occurrence of duplicate addresses', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAddressBook) {
-          return duplicateAddressBook;
-        }
-        return {};
-      });
-
-      const { result } = renderHook(() => useContacts());
-
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0]).toEqual({
-        name: 'First John',
-        address: '0x1234567890123456789012345678901234567890',
-      });
     });
   });
 });

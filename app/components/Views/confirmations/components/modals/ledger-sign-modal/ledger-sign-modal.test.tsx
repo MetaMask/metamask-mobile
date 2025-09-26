@@ -18,6 +18,13 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(() => ({
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
+  })),
+}));
+
 const mockDeviceId = 'MockDeviceId';
 const mockCloseLedgerSignModal = jest.fn();
 jest.mock('../../../context/ledger-context', () => ({
@@ -26,6 +33,8 @@ jest.mock('../../../context/ledger-context', () => ({
     closeLedgerSignModal: mockCloseLedgerSignModal,
   }),
 }));
+
+jest.mock('../../../hooks/gas/useGasFeeToken');
 
 const MockView = View;
 const MockText = Text;

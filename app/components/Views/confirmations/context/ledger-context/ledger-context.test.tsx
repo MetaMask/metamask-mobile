@@ -16,6 +16,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/gas/useGasFeeToken');
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -29,6 +31,12 @@ jest.mock('../../../../../core/Engine', () => ({
       },
     },
   },
+}));
+
+jest.mock('../../hooks/transactions/useTransactionConfirm', () => ({
+  useTransactionConfirm: () => ({
+    onConfirm: jest.fn(),
+  }),
 }));
 
 const MockView = View;

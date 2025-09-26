@@ -7,7 +7,8 @@ import { selectNetworkConfigurations } from '../../../../selectors/networkContro
 import { enhanceTokenWithIcon } from '../utils/tokenIconUtils';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
-import { usePerpsAccount, usePerpsNetwork } from './index';
+import { usePerpsNetwork } from './index';
+import { usePerpsLiveAccount } from './stream';
 import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
@@ -16,7 +17,7 @@ import {
   TRADING_DEFAULTS,
   USDC_ARBITRUM_MAINNET_ADDRESS,
 } from '../constants/hyperLiquidConfig';
-import type { PerpsToken } from '../components/PerpsTokenSelector';
+import type { PerpsToken } from '../types';
 
 /**
  * Hook to get all payment tokens for Perps, including:
@@ -39,10 +40,10 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   const previousTokensRef = useRef<PerpsToken[]>([]);
 
   // Get Hyperliquid account balance
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
   const currentNetwork = usePerpsNetwork();
   const hyperliquidBalance = parseFloat(
-    cachedAccountState?.availableBalance?.toString() || '0',
+    account?.availableBalance?.toString() || '0',
   );
 
   // Get all chain IDs to search for tokens

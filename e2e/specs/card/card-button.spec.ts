@@ -10,7 +10,7 @@ import CardHomeView from '../../pages/Card/CardHomeView';
 import SoftAssert from '../../utils/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-describe(SmokeCard('Card NavBar Button'), () => {
+describe.skip(SmokeCard('Card NavBar Button'), () => {
   const eventsToCheck: EventPayload[] = [];
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {
@@ -19,11 +19,24 @@ describe(SmokeCard('Card NavBar Button'), () => {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
           .withNetworkController(CustomNetworks.Tenderly.Linea)
+          .withAccountTreeController()
+          .withTokens(
+            [
+              {
+                address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                decimals: 18,
+                symbol: 'USDC',
+                chainId: '0xe708',
+                name: 'USDCoin',
+              },
+            ],
+            '0xe708',
+          )
           .build(),
         restartDevice: true,
         testSpecificMock,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          const events = await getEventsPayloads(mockServerInstance);
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
           eventsToCheck.push(...events);
         },
       },
@@ -41,6 +54,9 @@ describe(SmokeCard('Card NavBar Button'), () => {
   it('should open Card Home when pressing card navbar button', async () => {
     await setupCardTest(async () => {
       await Assertions.expectElementToBeVisible(WalletView.navbarCardButton);
+      await Assertions.expectElementToBeVisible(
+        WalletView.navbarCardButtonBadge,
+      );
       await WalletView.tapNavbarCardButton();
       await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
     });

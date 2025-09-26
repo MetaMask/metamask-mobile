@@ -124,7 +124,6 @@ const createStyles = ({ colors }) =>
  */
 class OptinMetrics extends PureComponent {
   static propTypes = {
-    isDataCollectionForMarketingEnabled: PropTypes.bool,
     setDataCollectionForMarketing: PropTypes.func,
     /**
     /* navigation object required to push and pop other views
@@ -162,6 +161,10 @@ class OptinMetrics extends PureComponent {
      * Tracks the scroll view's height.
      */
     scrollViewHeight: undefined,
+    /**
+     * Tracks the checkbox's checked state.
+     */
+    isCheckboxChecked: false,
   };
 
   getStyles = () => {
@@ -305,18 +308,11 @@ class OptinMetrics extends PureComponent {
    * Callback on press cancel
    */
   onCancel = async () => {
-    const {
-      isDataCollectionForMarketingEnabled,
-      setDataCollectionForMarketing,
-    } = this.props;
     setTimeout(async () => {
-      const { clearOnboardingEvents, metrics } = this.props;
-      if (
-        isDataCollectionForMarketingEnabled === null &&
-        setDataCollectionForMarketing
-      ) {
-        setDataCollectionForMarketing(false);
-      }
+      const { clearOnboardingEvents, metrics, setDataCollectionForMarketing } =
+        this.props;
+      // Ensure marketing data collection is explicitly disabled when declining metrics
+      setDataCollectionForMarketing(false);
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
       // and disable analytics
@@ -333,25 +329,14 @@ class OptinMetrics extends PureComponent {
    * Callback on press confirm
    */
   onConfirm = async () => {
-    const {
-      events,
-      metrics,
-      isDataCollectionForMarketingEnabled,
-      setDataCollectionForMarketing,
-    } = this.props;
+    const { events, metrics, setDataCollectionForMarketing } = this.props;
 
     await metrics.enable();
     await setupSentry(); // Re-setup Sentry with enabled: true
     await flushBufferedTraces();
     updateCachedConsent(true);
 
-    // Handle null case for marketing consent
-    if (
-      isDataCollectionForMarketingEnabled === null &&
-      setDataCollectionForMarketing
-    ) {
-      setDataCollectionForMarketing(false);
-    }
+    setDataCollectionForMarketing(this.state.isCheckboxChecked);
 
     // Track the analytics preference event first
     metrics.trackEvent(
@@ -359,7 +344,7 @@ class OptinMetrics extends PureComponent {
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
           [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-            isDataCollectionForMarketingEnabled,
+            this.state.isCheckboxChecked,
           ),
           is_metrics_opted_in: true,
           location: 'onboarding_metametrics',
@@ -568,11 +553,6 @@ class OptinMetrics extends PureComponent {
   };
 
   render() {
-    const {
-      isDataCollectionForMarketingEnabled,
-      setDataCollectionForMarketing,
-    } = this.props;
-
     const styles = this.getStyles();
 
     return (
@@ -616,20 +596,20 @@ class OptinMetrics extends PureComponent {
               <TouchableOpacity
                 style={styles.checkbox}
                 onPress={() =>
-                  setDataCollectionForMarketing(
-                    !isDataCollectionForMarketingEnabled,
-                  )
+                  this.setState((prevState) => ({
+                    isCheckboxChecked: !prevState.isCheckboxChecked,
+                  }))
                 }
                 activeOpacity={1}
               >
                 <Checkbox
-                  isChecked={isDataCollectionForMarketingEnabled}
+                  isChecked={this.state.isCheckboxChecked}
                   accessibilityRole={'checkbox'}
                   accessible
                   onPress={() =>
-                    setDataCollectionForMarketing(
-                      !isDataCollectionForMarketingEnabled,
-                    )
+                    this.setState((prevState) => ({
+                      isCheckboxChecked: !prevState.isCheckboxChecked,
+                    }))
                   }
                 />
                 <Text
@@ -657,8 +637,6 @@ OptinMetrics.navigationOptions = {
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
-  isDataCollectionForMarketingEnabled:
-    state.security.dataCollectionForMarketing,
 });
 
 const mapDispatchToProps = (dispatch) => ({

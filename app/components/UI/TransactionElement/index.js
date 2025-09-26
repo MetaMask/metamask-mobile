@@ -32,6 +32,7 @@ import {
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectTickerByChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../reducers/swaps';
@@ -56,12 +57,20 @@ import {
 import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
+import Routes from '../../../constants/navigation/Routes';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
     row: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    rowWithBorder: {
+      backgroundColor: colors.background.default,
+      flex: 1,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.muted,
     },
     actionContainerStyle: {
       height: 25,
@@ -158,6 +167,10 @@ class TransactionElement extends PureComponent {
     */
     selectedInternalAccount: PropTypes.object,
     /**
+     * Internal accounts for the selected account group
+     */
+    selectSelectedAccountGroupInternalAccounts: PropTypes.array,
+    /**
      * Current element of the list index
      */
     i: PropTypes.number,
@@ -195,6 +208,14 @@ class TransactionElement extends PureComponent {
     navigation: PropTypes.shape({
       navigate: PropTypes.func.isRequired,
     }).isRequired,
+    /**
+     * Whether multichain accounts state 2 is enabled
+     */
+    isMultichainAccountsState2Enabled: PropTypes.bool,
+    /**
+     * Whether to render a bottom border for row separation (used in unified list)
+     */
+    showBottomBorder: PropTypes.bool,
   };
 
   state = {
@@ -243,17 +264,22 @@ class TransactionElement extends PureComponent {
 
   onPressItem = () => {
     const { tx, i, onPressItem } = this.props;
-    onPressItem(tx.id, i);
+    onPressItem && onPressItem(tx.id, i);
 
     const isUnifiedSwap =
       tx.type === TransactionType.swap &&
       this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
+
     if (tx.type === TransactionType.bridge || isUnifiedSwap) {
       handleUnifiedSwapsTxHistoryItemClick(
         this.props.navigation,
         tx,
         this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
       );
+    } else if (tx.type === TransactionType.perpsDeposit) {
+      this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
+        transactionId: tx.id,
+      });
     } else {
       this.setState({ detailsModalVisible: true });
     }
@@ -272,13 +298,36 @@ class TransactionElement extends PureComponent {
   };
 
   renderTxTime = () => {
-    const { tx, selectedInternalAccount } = this.props;
-    const selectedAddress = safeToChecksumAddress(
-      selectedInternalAccount?.address,
-    );
-    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
-    const selfSent =
-      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
+    const {
+      tx,
+      selectedInternalAccount,
+      selectSelectedAccountGroupInternalAccounts,
+    } = this.props;
+
+    let incoming = false;
+    let selfSent = false;
+
+    if (
+      this.props.isMultichainAccountsState2Enabled &&
+      process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true'
+    ) {
+      const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
+        (account) => account.address,
+      );
+      incoming = selectedAddresses.includes(
+        safeToChecksumAddress(tx.txParams.to),
+      );
+      selfSent =
+        incoming &&
+        selectedAddresses.includes(safeToChecksumAddress(tx.txParams.from));
+    } else {
+      const selectedAddress = safeToChecksumAddress(
+        selectedInternalAccount?.address,
+      );
+      incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
+      selfSent =
+        incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
+    }
     return `${
       (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
         ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
@@ -635,7 +684,9 @@ class TransactionElement extends PureComponent {
     return (
       <>
         <TouchableHighlight
-          style={styles.row}
+          style={
+            this.props.showBottomBorder ? styles.rowWithBorder : styles.row
+          }
           onPress={this.onPressItem}
           underlayColor={colors.background.alternative}
           activeOpacity={1}
@@ -699,6 +750,8 @@ class TransactionElement extends PureComponent {
 
 const mapStateToProps = (state, ownProps) => ({
   selectedInternalAccount: selectSelectedInternalAccount(state),
+  selectSelectedAccountGroupInternalAccounts:
+    selectSelectedAccountGroupInternalAccounts(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
@@ -709,6 +762,8 @@ const mapStateToProps = (state, ownProps) => ({
     ownProps.txChainId,
   ),
   tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
+  isMultichainAccountsState2Enabled:
+    selectMultichainAccountsState2Enabled(state),
 });
 
 TransactionElement.contextType = ThemeContext;

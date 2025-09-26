@@ -25,7 +25,6 @@ describe('ConfirmationAssetPollingProvider', () => {
   const mockTransactionMetadata = {
     id: 'test-transaction-id',
     chainId: CHAIN_ID_MOCK,
-    networkClientId: 'mainnet',
     txParams: {
       from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
       to: '0x1234567890123456789012345678901234567890',
@@ -42,8 +41,9 @@ describe('ConfirmationAssetPollingProvider', () => {
     jest.clearAllMocks();
     mockAssetPollingProvider.mockClear();
     selectEnabledSourceChainsMock.mockReturnValue([
-      { chainId: CHAIN_ID_MOCK },
-      { chainId: CHAIN_ID_2_MOCK },
+      { chainId: CHAIN_ID_MOCK, isEvm: true },
+      { chainId: CHAIN_ID_2_MOCK, isEvm: true },
+      { chainId: 'SolanaChainId', isEvm: false },
     ] as unknown as MultichainNetworkConfiguration[]);
   });
 
@@ -80,7 +80,6 @@ describe('ConfirmationAssetPollingProvider', () => {
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
-          networkClientId: 'mainnet',
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),
@@ -181,7 +180,6 @@ describe('ConfirmationAssetPollingProvider', () => {
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
-          networkClientId: 'mainnet',
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),
@@ -207,7 +205,6 @@ describe('ConfirmationAssetPollingProvider', () => {
       const customTransactionMetadata = {
         ...mockTransactionMetadata,
         chainId: '0x89' as `0x${string}`,
-        networkClientId: 'polygon-mainnet',
       };
 
       jest
@@ -226,7 +223,6 @@ describe('ConfirmationAssetPollingProvider', () => {
       expect(mockAssetPollingProvider).toHaveBeenCalledWith(
         {
           chainIds: [CHAIN_ID_MOCK, CHAIN_ID_2_MOCK],
-          networkClientId: 'polygon-mainnet',
           address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
         },
         expect.anything(),

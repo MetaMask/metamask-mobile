@@ -17,14 +17,13 @@ import {
 } from '../../framework/fixtures/FixtureUtils.ts';
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
-import QuoteView from '../../pages/Bridge/QuoteView.ts';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import QuoteView from '../../pages/swaps/QuoteView';
 import Matchers from '../../utils/Matchers.js';
 import Gestures from '../../utils/Gestures.js';
 import { Assertions as FrameworkAssertions } from '../../framework';
-import { startMockServer } from '../swaps/helpers/swap-mocks.ts';
-import { testSpecificMock } from '../swaps/helpers/constants.ts';
-import { localNodeOptions } from '../bridge/constants.ts';
+import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks.ts';
+import { localNodeOptions } from '../swaps/helpers/constants';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
@@ -44,7 +43,12 @@ describe(
       await localNode.start(localNodeOptions);
 
       const mockServerPort = getMockServerPort();
-      mockServer = await startMockServer(testSpecificMock, mockServerPort);
+      // Added to pass linting - this pattern is not recommended. Check other swaps test for new patter
+      mockServer = await startMockServer(
+        {},
+        mockServerPort,
+        swapTestSpecificMock,
+      );
 
       await TestHelpers.reverseServerPort();
       const fixture = new FixtureBuilder()

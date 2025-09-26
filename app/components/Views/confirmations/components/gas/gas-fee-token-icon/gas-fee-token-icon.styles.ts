@@ -1,11 +1,21 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: {
+    isLogoSizeMd?: boolean;
+  };
+}) => {
+  const { isLogoSizeMd } = params.vars ?? { isLogoSizeMd: false };
   return StyleSheet.create({
-    nativeTokenIcon: {
-      backgroundColor: theme.colors.background.default,
+    badgeWrapper: {
+      marginRight: 4,
+    },
+    logoNative: {
+      width: isLogoSizeMd ? 32 : 16,
+      height: isLogoSizeMd ? 32 : 16,
+      borderRadius: 99,
     },
   });
 };

@@ -72,6 +72,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         cancelAnimation(translateYProgress);
       }
       timeoutDuration = 100;
+      // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
+      setToastOptions(undefined);
     }
     setTimeout(() => {
       setToastOptions(options);
@@ -202,11 +204,19 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const { labelOptions, linkButtonOptions, closeButtonOptions } = options;
+    const {
+      labelOptions,
+      linkButtonOptions,
+      closeButtonOptions,
+      startAccessory,
+    } = options;
+
+    const isStartAccessoryValid =
+      startAccessory != null && React.isValidElement(startAccessory);
 
     return (
       <>
-        {renderAvatar()}
+        {isStartAccessoryValid ? startAccessory : renderAvatar()}
         <View
           style={styles.labelsContainer}
           testID={ToastSelectorsIDs.CONTAINER}

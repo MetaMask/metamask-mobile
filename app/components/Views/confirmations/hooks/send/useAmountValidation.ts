@@ -1,24 +1,31 @@
 import { useMemo } from 'react';
 
-import { TokenStandard } from '../../types/token';
+import { strings } from '../../../../../../locales/i18n';
+import {
+  isValidPositiveNumericString,
+  toTokenMinimalUnit,
+} from '../../utils/send';
+
 import { useSendContext } from '../../context/send-context';
-import { useEvmAmountValidation } from './evm/useEvmAmountValidation';
-import { useNonEvmAmountValidation } from './non-evm/useNonEvmAmountValidation';
-import { useSendType } from './useSendType';
+import { useBalance } from './useBalance';
 
 export const useAmountValidation = () => {
-  const { asset } = useSendContext();
-  const { isEvmSendType } = useSendType();
-  const { validateEvmAmount } = useEvmAmountValidation();
-  const { validateNonEvmAmount } = useNonEvmAmountValidation();
+  const { value } = useSendContext();
+  const { decimals, rawBalanceBN } = useBalance();
 
   const amountError = useMemo(() => {
-    if (asset?.standard === TokenStandard.ERC1155) {
-      // todo: add logic to check units for ERC1155 tokens
-      return;
+    if (value === undefined || value === null || value === '') {
+      return undefined;
     }
-    return isEvmSendType ? validateEvmAmount() : validateNonEvmAmount();
-  }, [asset?.standard, isEvmSendType, validateEvmAmount, validateNonEvmAmount]);
+    if (!isValidPositiveNumericString(value)) {
+      return strings('send.invalid_value');
+    }
+    const amountInputBN = toTokenMinimalUnit(value, decimals ?? 0);
+    if (rawBalanceBN.cmp(amountInputBN) === -1) {
+      return strings('send.insufficient_funds');
+    }
+    return undefined;
+  }, [decimals, rawBalanceBN, value]);
 
   return { amountError };
 };

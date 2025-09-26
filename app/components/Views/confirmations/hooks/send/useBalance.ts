@@ -1,79 +1,40 @@
-import { AccountInformation } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
+import BN from 'bnjs4';
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 
-import {
-  fromTokenMinimalUnitString,
-  fromWei,
-  hexToBN,
-} from '../../../../../util/number';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
+import { hexToBN } from '../../../../../util/number';
 import { AssetType, TokenStandard } from '../../types/token';
-import { formatToFixedDecimals } from '../../utils/send';
-import { isNativeToken } from '../../utils/generic';
+import { formatToFixedDecimals, fromHexWithDecimals } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
-import { useSendType } from './useSendType';
-
-export interface GetEvmBalanceArgs {
-  accounts: Record<Hex, AccountInformation>;
-  asset?: AssetType;
-  contractBalances: Record<Hex, Hex>;
-  from: string;
-}
-
-export const getEvmBalance = ({
-  accounts,
-  asset,
-  contractBalances,
-  from,
-}: GetEvmBalanceArgs) => {
-  if (!asset) {
-    return '0';
-  }
-  if (isNativeToken(asset)) {
-    const accountAddress = Object.keys(accounts).find(
-      (address) => address.toLowerCase() === from.toLowerCase(),
-    ) as Hex;
-    const account = accounts[accountAddress];
-    const balance = hexToBN(account.balance);
-    return formatToFixedDecimals(fromWei(balance), asset.decimals);
-  }
-  return formatToFixedDecimals(
-    fromTokenMinimalUnitString(
-      contractBalances[asset.address as Hex],
-      asset.decimals,
-    ),
-    asset.decimals,
-  );
-};
-
-export const getNonEvmBalance = (asset?: AssetType) => {
-  if (!asset) {
-    return '0';
-  }
-
-  return formatToFixedDecimals(asset.balance, asset?.decimals);
-};
 
 export const useBalance = () => {
-  const { isEvmSendType } = useSendType();
-  const accounts = useSelector(selectAccounts);
-  const contractBalances = useSelector(selectContractBalances);
-  const { asset, from } = useSendContext();
+  const { asset } = useSendContext();
 
-  const balance = useMemo(() => {
-    if (asset?.standard === TokenStandard.ERC1155) {
-      // todo: add logic to check balance units for ERC1155 tokens
-      return '0';
+  const { balance, decimals, rawBalanceBN } = useMemo(() => {
+    if (!asset) {
+      return { balance: '0', decimals: 0, rawBalanceBN: new BN('0') };
     }
-    return isEvmSendType
-      ? getEvmBalance({ accounts, asset, contractBalances, from })
-      : getNonEvmBalance(asset);
-  }, [accounts, asset, contractBalances, from, isEvmSendType]);
+    if (asset?.standard === TokenStandard.ERC1155) {
+      const assetBalance = asset?.balance ?? '0';
+      return {
+        balance: assetBalance,
+        rawBalanceBN: new BN(assetBalance),
+        decimals: 0,
+      };
+    }
+    const rawBalanceHex = (asset as AssetType)?.rawBalance ?? '0x0';
+    return {
+      balance: formatToFixedDecimals(
+        fromHexWithDecimals(rawBalanceHex, (asset as AssetType)?.decimals),
+        (asset as AssetType)?.decimals,
+      ),
+      decimals: (asset as AssetType)?.decimals,
+      rawBalanceBN: hexToBN(rawBalanceHex),
+    };
+  }, [asset]);
 
   return {
     balance,
+    decimals,
+    rawBalanceBN,
   };
 };

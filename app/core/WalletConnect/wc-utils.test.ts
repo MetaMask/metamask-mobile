@@ -57,10 +57,6 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
 }));
 
-jest.mock('../../reducers/swaps', () => ({
-  swapsLivenessSelector: jest.fn().mockReturnValue({}),
-}));
-
 jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
   findExistingNetwork: jest.fn(),
   switchToNetwork: jest.fn().mockResolvedValue(true),
@@ -153,9 +149,9 @@ describe('WalletConnect Utils', () => {
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
-    it('navigates back from RETURN_TO_DAPP_MODAL', () => {
+    it('navigates back from RETURN_TO_DAPP_TOAST', () => {
       mockNavigation.getCurrentRoute.mockReturnValue({
-        name: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        name: Routes.SDK.RETURN_TO_DAPP_TOAST,
         key: '123',
       });
       hideWCLoadingState({ navigation: mockNavigation });

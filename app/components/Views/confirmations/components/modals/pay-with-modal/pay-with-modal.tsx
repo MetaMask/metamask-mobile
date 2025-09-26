@@ -13,35 +13,59 @@ import {
 } from '../../../../../../core/redux/slices/bridge';
 import { useSortedSourceNetworks } from '../../../../../UI/Bridge/hooks/useSortedSourceNetworks';
 import { BridgeToken } from '../../../../../UI/Bridge/types';
-import { useTokens } from '../../../../../UI/Bridge/hooks/useTokens';
 import { TokenSelectorItem } from '../../../../../UI/Bridge/components/TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 
 export function PayWithModal() {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
-  const { sortedSourceNetworks } = useSortedSourceNetworks();
   const navigation = useNavigation();
   const { payToken, setPayToken } = useTransactionPayToken();
-  const { minimumFiatBalance } = useParams<{ minimumFiatBalance?: number }>();
 
-  const { tokens: tokensList, pending } = useTokens({
-    balanceChainIds: selectedSourceChainIds,
-    tokensToExclude: [],
-  });
+  const { availableTokens, availableChainIds } =
+    useTransactionPayAvailableTokens();
 
-  const filteredTokensList = useMemo(
+  const tokens = useMemo(
     () =>
-      tokensList.filter(
-        (token) => (token.tokenFiatAmount ?? 0) >= (minimumFiatBalance ?? 0),
+      availableTokens.filter((token) =>
+        selectedSourceChainIds.includes(token.chainId as Hex),
       ),
-    [tokensList, minimumFiatBalance],
+    [availableTokens, selectedSourceChainIds],
+  );
+
+  const { sortedSourceNetworks: sortedSourceNetworksRaw } =
+    useSortedSourceNetworks();
+
+  const supportedChains = useMemo(
+    () =>
+      enabledSourceChains.filter(
+        (chain) =>
+          !isSolanaChainId(chain.chainId) &&
+          availableChainIds.includes(chain.chainId as Hex),
+      ),
+    [availableChainIds, enabledSourceChains],
+  );
+
+  const networksWithIcon = useMemo(
+    () =>
+      sortedSourceNetworksRaw.filter(
+        (chain) =>
+          supportedChains.some((c) => c.chainId === chain.chainId) &&
+          selectedSourceChainIds.includes(chain.chainId),
+      ),
+    [selectedSourceChainIds, sortedSourceNetworksRaw, supportedChains],
+  );
+
+  const chainIdsInCount = useMemo(
+    () => networksWithIcon.map((n) => n.chainId),
+    [networksWithIcon],
   );
 
   const handleTokenSelect = useCallback(
@@ -90,28 +114,19 @@ export function PayWithModal() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL);
   }, [navigation]);
 
-  const networksToShow = useMemo(
-    () =>
-      sortedSourceNetworks.filter(({ chainId }) =>
-        selectedSourceChainIds.includes(chainId),
-      ),
-    [selectedSourceChainIds, sortedSourceNetworks],
-  );
-
   return (
     <BridgeTokenSelectorBase
       networksBar={
         <BridgeSourceNetworksBar
-          networksToShow={networksToShow}
+          networksToShow={networksWithIcon}
           networkConfigurations={allNetworkConfigurations}
-          selectedSourceChainIds={selectedSourceChainIds as Hex[]}
-          enabledSourceChains={enabledSourceChains}
+          selectedSourceChainIds={chainIdsInCount as Hex[]}
+          enabledSourceChains={supportedChains}
           onPress={handleNetworkPress}
         />
       }
       renderTokenItem={renderItem}
-      tokensList={filteredTokensList}
-      pending={pending}
+      tokensList={tokens}
       title={strings('pay_with_modal.title')}
     />
   );

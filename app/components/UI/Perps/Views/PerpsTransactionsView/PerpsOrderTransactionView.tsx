@@ -20,7 +20,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
@@ -37,7 +37,9 @@ const PerpsOrderTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsOrderTransactionRouteProp>();
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedInternalAccount = useSelector(
+    selectSelectedInternalAccountByScope,
+  )('eip155:1');
   const { getExplorerUrl } = usePerpsBlockExplorerUrl();
   // Get transaction from route params
   const transaction = route.params?.transaction;

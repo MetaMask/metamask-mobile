@@ -5,6 +5,7 @@ import { createBridgeTestState } from '../../testUtils';
 import Engine from '../../../../../core/Engine';
 import { act } from '@testing-library/react-native';
 import { isSolanaChainId } from '@metamask/bridge-controller';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -38,16 +39,31 @@ jest.mock('../useUnifiedSwapBridgeContext', () => ({
   useUnifiedSwapBridgeContext: jest.fn(),
 }));
 
+// Mock the bridge selector
+jest.mock('../../../../../selectors/bridge', () => ({
+  selectSourceWalletAddress: jest.fn(),
+}));
+
 jest.useFakeTimers();
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
   'updateBridgeQuoteRequestParams',
 );
 
+const mockSelectSourceWalletAddress =
+  selectSourceWalletAddress as jest.MockedFunction<
+    typeof selectSourceWalletAddress
+  >;
+
 describe('useBridgeQuoteRequest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    // Mock wallet address selector to return a valid address
+    mockSelectSourceWalletAddress.mockReturnValue(
+      '0x1234567890123456789012345678901234567890',
+    );
   });
 
   afterEach(() => {

@@ -30,6 +30,7 @@ export interface SnapUISelectorProps {
   disabled?: boolean;
   style?: ViewStyle;
   compact?: boolean;
+  testID?: string;
 }
 
 interface SelectorItemProps {
@@ -84,6 +85,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   onSelect,
   style,
   compact = false,
+  testID = 'snap-ui-renderer__selector',
 }) => {
   const { styles } = useStyles(stylesheet, { compact });
   const { handleInputChange, getValue } = useSnapInterfaceContext();
@@ -145,7 +147,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
           endIconName={IconName.ArrowDown}
           onPress={handleModalOpen}
           style={styles.button}
-          testID="snap-ui-renderer__selector"
+          testID={testID}
         />
         {error && (
           <HelpText severity={HelpTextSeverity.Error} style={styles.helpText}>

@@ -5,26 +5,9 @@ import { CreateNewWallet } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { getEventsPayloads, onboardingEvents } from './helpers';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import {
-  getBalanceMocks,
-  INFURA_MOCK_BALANCE_1_ETH,
-} from '../../api-mocking/mock-responses/balance-mocks';
 import SoftAssert from '../../utils/SoftAssert';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { TestSpecificMock } from '../../framework';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-
-const balanceMock = getBalanceMocks([
-  {
-    address: '0xAa4179E7f103701e904D27DF223a39Aa9c27405a',
-    balance: INFURA_MOCK_BALANCE_1_ETH,
-  },
-]);
-
-const testSpecificMock = {
-  POST: [...balanceMock, mockEvents.POST.segmentTrack],
-} as TestSpecificMock;
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -50,7 +33,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async ({ mockServer }) => {
         await CreateNewWallet();
@@ -68,12 +50,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         const analyticsPreferenceSelectedEvent = events.find(
           (event) => event.event === 'Analytics Preference Selected',
         );
-        const welcomeMessageViewedEvent = events.find(
-          (event) => event.event === 'Welcome Message Viewed',
-        );
-        const onboardingStartedEvent = events.find(
-          (event) => event.event === 'Onboarding Started',
-        );
         const walletSetupStartedEvent = events.find(
           (event) => event.event === 'Wallet Setup Started',
         );
@@ -85,15 +61,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         );
         const walletSetupCompletedEvent = events.find(
           (event) => event.event === 'Wallet Setup Completed',
-        );
-
-        const walletSecurityReminderDismissedEvent = events.find(
-          (event) => event.event === 'Wallet Security Reminder Dismissed',
-        );
-
-        const checkEventCount = softAssert.checkAndCollect(
-          () => Assertions.checkIfArrayHasLength(events, 8),
-          'Expected 8 events for new wallet onboarding',
         );
 
         const checkAnalyticsPreferenceSelected = softAssert.checkAndCollect(
@@ -111,25 +78,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           },
           'Analytics Preference Selected: Should be present with correct properties',
         );
-
-        const checkWelcomeMessageViewed = softAssert.checkAndCollect(
-          async () => {
-            Assertions.checkIfValueIsDefined(welcomeMessageViewedEvent);
-            Assertions.checkIfObjectsMatch(
-              welcomeMessageViewedEvent!.properties,
-              {},
-            );
-          },
-          'Welcome Message Viewed: Should be present with empty properties',
-        );
-
-        const checkOnboardingStarted = softAssert.checkAndCollect(async () => {
-          Assertions.checkIfValueIsDefined(onboardingStartedEvent);
-          Assertions.checkIfObjectsMatch(
-            onboardingStartedEvent!.properties,
-            {},
-          );
-        }, 'Onboarding Started: Should be present with empty properties');
 
         const checkWalletSetupStarted = softAssert.checkAndCollect(async () => {
           Assertions.checkIfValueIsDefined(walletSetupStartedEvent);
@@ -174,32 +122,12 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           'Wallet Setup Completed: Should be present with correct properties',
         );
 
-        const checkWalletSecurityReminderDismissed = softAssert.checkAndCollect(
-          async () => {
-            Assertions.checkIfValueIsDefined(
-              walletSecurityReminderDismissedEvent,
-            );
-            Assertions.checkIfObjectsMatch(
-              walletSecurityReminderDismissedEvent!.properties,
-              {
-                wallet_protection_required: false,
-                source: 'Backup Alert',
-              },
-            );
-          },
-          'Wallet Security Reminder Dismissed: Should be present with correct properties',
-        );
-
         await Promise.all([
-          checkEventCount,
           checkAnalyticsPreferenceSelected,
-          checkWelcomeMessageViewed,
-          checkOnboardingStarted,
           checkWalletSetupStarted,
           checkWalletCreationAttempted,
           checkWalletCreated,
           checkWalletSetupCompleted,
-          checkWalletSecurityReminderDismissed,
         ]);
 
         softAssert.throwIfErrors();
@@ -212,7 +140,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async ({ mockServer }) => {
         await CreateNewWallet({

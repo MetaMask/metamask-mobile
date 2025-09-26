@@ -58,6 +58,7 @@ const initialState = {
             ],
           },
         },
+        allNftContracts: {},
       },
       AccountsController: {
         internalAccounts: {
@@ -69,12 +70,23 @@ const initialState = {
           },
         },
       },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          sendRedesign: {
+            enabled: false,
+          },
+        },
+      },
     },
   },
 };
 const store = mockStore(initialState);
 
 describe('CollectibleContractOverview', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
@@ -93,6 +105,28 @@ describe('CollectibleContractOverview', () => {
   });
 
   it('calls onSend and navigates when send button is pressed', () => {
+    // Mock the collectibles selector to return our test collectible
+    const mockCollectible = {
+      address: '0x72b1FDb6443338A158DeC2FbF411B71123456789',
+      description: 'Description of NFT 1',
+      favorite: false,
+      image: 'https://image.com/113',
+      isCurrentlyOwned: true,
+      name: 'My Nft #113',
+      standard: 'ERC721',
+      tokenId: '113',
+      tokenURI:
+        'https://opensea.io/assets/0x72b1FDb6443338A158DeC2FbF411B71123456789/113',
+    };
+
+    // Mock the selector to return our collectible
+    const collectiblesModule = jest.requireActual(
+      '../../../reducers/collectibles',
+    );
+    jest
+      .spyOn(collectiblesModule, 'collectiblesSelector')
+      .mockReturnValue([mockCollectible]);
+
     const wrapper = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>

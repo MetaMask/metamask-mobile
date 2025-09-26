@@ -2,7 +2,6 @@ import FixtureBuilder from './framework/fixtures/FixtureBuilder';
 import { withFixtures } from './framework/fixtures/FixtureHelper';
 import { loginToApp } from './viewHelper';
 import TestHelpers from './helpers';
-import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from './pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import WalletView from './pages/wallet/WalletView';
 import AccountListBottomSheet from './pages/wallet/AccountListBottomSheet';
@@ -24,9 +23,7 @@ export async function withSolanaAccountEnabled(
   },
   test: () => Promise<void>,
 ) {
-  let fixtureBuilder = new FixtureBuilder()
-    .withSolanaFixture()
-    .withSolanaFeatureSheetDisplayed();
+  let fixtureBuilder = new FixtureBuilder().withSolanaFixture();
 
   if (solanaAccountPermitted) {
     fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();
@@ -49,9 +46,6 @@ export async function withSolanaAccountEnabled(
     async () => {
       await TestHelpers.reverseServerPort();
       await loginToApp();
-
-      // Dismiss the new feature view
-      await SolanaNewFeatureSheet.tapNotNowButton();
 
       // Create Solana accounts through the wallet view
       for (let i = 0; i < numberOfAccounts; i++) {

@@ -6,3 +6,6 @@ export type {
   MultichainAddressRowsListProps,
   NetworkAddressItem,
 } from './MultichainAddressRowsList/MultichainAddressRowsList.types';
+
+export { MultichainAddWalletActions } from './MultichainAddWalletActions';
+export type { MultichainAddWalletActionsProps } from './MultichainAddWalletActions/MultichainAddWalletActions.types';

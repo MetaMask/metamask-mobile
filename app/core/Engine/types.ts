@@ -275,6 +275,22 @@ import {
   PerpsControllerActions,
   PerpsControllerEvents,
 } from '../../components/UI/Perps/controllers/PerpsController';
+import { RewardsController } from './controllers/rewards-controller/RewardsController';
+import {
+  RewardsDataService,
+  RewardsDataServiceActions,
+} from './controllers/rewards-controller/services/rewards-data-service';
+import type {
+  RewardsControllerState,
+  RewardsControllerEvents,
+  RewardsControllerActions,
+} from './controllers/rewards-controller/types';
+import {
+  PredictController,
+  PredictControllerState,
+  PredictControllerActions,
+  PredictControllerEvents,
+} from '../../components/UI/Predict/controllers/PredictController';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -304,16 +320,26 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
+import {
+  GatorPermissionsController,
+  GatorPermissionsControllerState,
+} from '@metamask/gator-permissions-controller';
 
 /**
  * Controllers that area always instantiated
  */
-type RequiredControllers = Omit<Controllers, 'PPOMController'>;
+type RequiredControllers = Omit<
+  Controllers,
+  'PPOMController' | 'RewardsDataService'
+>;
 
 /**
  * Controllers that are sometimes not instantiated
  */
-type OptionalControllers = Pick<Controllers, 'PPOMController'>;
+type OptionalControllers = Pick<
+  Controllers,
+  'PPOMController' | 'RewardsDataService'
+>;
 
 /**
  * Controllers that are defined with state.
@@ -392,6 +418,9 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | PerpsControllerActions
+  | PredictControllerActions
+  | RewardsControllerActions
+  | RewardsDataServiceActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -450,6 +479,8 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | PerpsControllerEvents
+  | PredictControllerEvents
+  | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
@@ -533,7 +564,11 @@ export type Controllers = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   PerpsController: PerpsController;
+  PredictController: PredictController;
+  RewardsController: RewardsController;
+  RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
+  GatorPermissionsController: GatorPermissionsController;
 };
 
 /**
@@ -601,7 +636,10 @@ export type EngineState = {
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
   PerpsController: PerpsControllerState;
+  PredictController: PredictControllerState;
+  RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
+  GatorPermissionsController: GatorPermissionsControllerState;
 };
 
 /** Controller names */
@@ -661,9 +699,12 @@ export type ControllersToInitialize =
   | 'SeedlessOnboardingController'
   | 'TransactionController'
   | 'PerpsController'
+  | 'PredictController'
   | 'BridgeController'
   | 'BridgeStatusController'
-  | 'NetworkEnablementController';
+  | 'NetworkEnablementController'
+  | 'RewardsController'
+  | 'GatorPermissionsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
   View,
-  SafeAreaView,
   StyleSheet,
   BackHandler,
   Image,
   Platform,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -25,7 +25,7 @@ import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboard
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import SRPDesignLight from '../../../images/secure_wallet.png';
+import SRPDesignLight from '../../../images/secure_wallet_light.png';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import Button, {
   ButtonVariants,
@@ -201,7 +201,7 @@ const AccountBackupStep1 = (props) => {
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper}>
+    <SafeAreaView style={styles.mainWrapper} edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}

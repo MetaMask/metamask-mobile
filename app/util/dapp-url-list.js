@@ -32,6 +32,10 @@ export default [
     name: 'Breaker',
   },
   {
+    url: 'https://card.metamask.io/',
+    name: 'MetaMask Card',
+  },
+  {
     url: 'https://beta.cent.co',
     name: 'Cent',
   },

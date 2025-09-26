@@ -1,182 +1,234 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { RecipientList } from './recipient-list';
-import { RecipientType } from '../UI/recipient';
+import type { RecipientType } from '../UI/recipient';
 
-const mockOnRecipientSelected = jest.fn();
-
-jest.mock('../../hooks/useAccountAvatarType', () => {
-  const { AvatarAccountType } = jest.requireActual(
-    '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
-  );
-
-  return {
-    useAccountAvatarType: jest.fn(() => AvatarAccountType.JazzIcon),
-  };
-});
-
-jest.mock('../../context/send-context/send-context', () => ({
-  useSendContext: jest.fn(() => ({
-    to: '0x1234567890123456789012345678901234567890',
-  })),
+jest.mock('../../hooks/useAccountAvatarType', () => ({
+  useAccountAvatarType: jest.fn(() => 'JazzIcon'),
 }));
 
-jest.mock('../UI/recipient', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+jest.mock('../../context/send-context/send-context', () => ({
+  useSendContext: jest.fn(),
+}));
 
-  return {
-    Recipient: ({
-      recipient,
-      isSelected,
-      onPress,
-    }: {
-      recipient: RecipientType;
-      isSelected: boolean;
-      onPress: (recipient: RecipientType) => void;
-    }) => (
-      <Pressable
-        testID={`recipient-${recipient.address}`}
-        onPress={() => onPress(recipient)}
-      >
-        <Text testID={`recipient-name-${recipient.address}`}>
-          {recipient.name}
-        </Text>
-        <Text testID={`recipient-address-${recipient.address}`}>
-          {recipient.address}
-        </Text>
-        {isSelected && (
-          <Text testID={`selected-${recipient.address}`}>Selected</Text>
-        )}
-      </Pressable>
-    ),
-  };
-});
+jest.mock('../../hooks/send/useSendScope', () => ({
+  useSendScope: jest.fn(),
+}));
 
-jest.mock('@shopify/flash-list', () => {
-  const { View } = jest.requireActual('react-native');
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const map: Record<string, string> = {
+      'send.accounts': 'Your Accounts',
+      'send.contacts': 'Contacts',
+    };
+    return map[key] ?? key;
+  }),
+}));
 
-  return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    FlashList: ({ data, renderItem, keyExtractor }: any) => {
-      const items = data.map((item: RecipientType, index: number) => (
-        <View key={keyExtractor(item)} testID={`flashlist-item-${index}`}>
-          {renderItem({ item })}
-        </View>
-      ));
-      return <View testID="flashlist">{items}</View>;
-    },
-  };
-});
+// Mock child Recipient to keep tests deterministic and focused on grouping logic
+jest.mock('../UI/recipient', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Recipient: ({ recipient, isSelected, onPress }: any) => {
+    const { Pressable, Text, View } = jest.requireActual('react-native');
+    return (
+      <View>
+        <Pressable
+          testID={
+            isSelected
+              ? `selected-${recipient.address}`
+              : `recipient-${recipient.address}`
+          }
+          onPress={() => onPress?.(recipient)}
+        >
+          <Text>
+            {recipient.accountGroupName ||
+              recipient.accountName ||
+              recipient.contactName ||
+              recipient.address}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  },
+}));
 
-describe('RecipientList', () => {
-  const mockRecipients: RecipientType[] = [
+const { useSendScope } = jest.requireMock('../../hooks/send/useSendScope');
+const { useSendContext } = jest.requireMock(
+  '../../context/send-context/send-context',
+);
+
+describe('RecipientList - BIP44 grouping', () => {
+  const onRecipientSelected = jest.fn();
+
+  const data: RecipientType[] = [
     {
-      name: 'Alice',
-      address: '0x1234567890123456789012345678901234567890',
-      fiatValue: '$100.00',
+      address: '0x1111111111111111111111111111111111111111',
+      walletName: 'Wallet A',
+      accountGroupName: 'Account Group 1',
     },
     {
-      name: 'Bob',
-      address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      fiatValue: '$50.00',
+      address: '0x2222222222222222222222222222222222222222',
+      walletName: 'Wallet A',
+      accountGroupName: 'Account Group 2',
     },
     {
-      name: 'Charlie',
-      address: '0x9876543210987654321098765432109876543210',
+      address: '0x3333333333333333333333333333333333333333',
+      walletName: 'Wallet B',
+      accountGroupName: 'Account Group 3',
+    },
+    {
+      address: '0x4444444444444444444444444444444444444444',
+      // no walletName to trigger Unknown Wallet grouping
     },
   ];
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('when data is provided', () => {
-    it('renders list of recipients', () => {
-      const { getByTestId, getByText } = render(
-        <RecipientList
-          data={mockRecipients}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
-
-      expect(getByTestId('flashlist')).toBeOnTheScreen();
-      expect(getByText('Alice')).toBeOnTheScreen();
-      expect(getByText('Bob')).toBeOnTheScreen();
-      expect(getByText('Charlie')).toBeOnTheScreen();
-    });
-
-    it('marks selected recipient when address matches context', () => {
-      const { getByTestId } = render(
-        <RecipientList
-          data={mockRecipients}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
-
-      expect(
-        getByTestId('selected-0x1234567890123456789012345678901234567890'),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls onRecipientSelected when recipient is pressed', () => {
-      const { getByTestId } = render(
-        <RecipientList
-          data={mockRecipients}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
-
-      fireEvent.press(
-        getByTestId('recipient-0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'),
-      );
-
-      expect(mockOnRecipientSelected).toHaveBeenCalledTimes(1);
-      expect(mockOnRecipientSelected).toHaveBeenCalledWith(mockRecipients[1]);
-    });
-
-    it('renders all recipient addresses correctly', () => {
-      const { getByTestId } = render(
-        <RecipientList
-          data={mockRecipients}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
-
-      mockRecipients.forEach((recipient) => {
-        expect(
-          getByTestId(`recipient-address-${recipient.address}`),
-        ).toBeOnTheScreen();
-      });
+    useSendScope.mockReturnValue({ isBIP44: true });
+    useSendContext.mockReturnValue({
+      to: '0x2222222222222222222222222222222222222222',
     });
   });
 
-  describe('when data is empty', () => {
-    it('renders empty message when provided', () => {
-      const emptyMessage = 'No recipients found';
+  it('renders group headers for each wallet and Unknown Wallet', () => {
+    const { getByText } = renderWithProvider(
+      <RecipientList data={data} onRecipientSelected={onRecipientSelected} />,
+    );
 
-      const { getByText, queryByTestId } = render(
-        <RecipientList
-          data={[]}
-          onRecipientSelected={mockOnRecipientSelected}
-          emptyMessage={emptyMessage}
-        />,
-      );
+    // Group headers
+    expect(getByText('Wallet A')).toBeOnTheScreen();
+    expect(getByText('Wallet B')).toBeOnTheScreen();
+    expect(getByText('Unknown Wallet')).toBeOnTheScreen();
+  });
 
-      expect(getByText(emptyMessage)).toBeOnTheScreen();
-      expect(queryByTestId('flashlist')).toBeNull();
+  it('marks the selected recipient based on `to` address', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList data={data} onRecipientSelected={onRecipientSelected} />,
+    );
+
+    expect(
+      getByTestId('selected-0x2222222222222222222222222222222222222222'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('recipient-0x1111111111111111111111111111111111111111'),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls onRecipientSelected when a recipient is pressed (enabled)', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList data={data} onRecipientSelected={onRecipientSelected} />,
+    );
+
+    fireEvent.press(
+      getByTestId('recipient-0x1111111111111111111111111111111111111111'),
+    );
+    expect(onRecipientSelected).toHaveBeenCalledTimes(1);
+    expect(onRecipientSelected).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0x1111111111111111111111111111111111111111',
+      }),
+    );
+  });
+
+  it('does not call onRecipientSelected when disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList
+        data={data}
+        onRecipientSelected={onRecipientSelected}
+        disabled
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId('recipient-0x1111111111111111111111111111111111111111'),
+    );
+    expect(onRecipientSelected).not.toHaveBeenCalled();
+  });
+});
+
+describe('RecipientList - non-BIP44 (flat list)', () => {
+  const onRecipientSelected = jest.fn();
+
+  const flatData: RecipientType[] = [
+    {
+      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      accountName: 'Account 1',
+    },
+    {
+      address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      accountName: 'Account 2',
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useSendScope.mockReturnValue({ isBIP44: false });
+    useSendContext.mockReturnValue({
+      to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
     });
+  });
 
-    it('renders empty FlashList when no empty message provided', () => {
-      const { getByTestId, queryByText } = render(
-        <RecipientList
-          data={[]}
-          onRecipientSelected={mockOnRecipientSelected}
-        />,
-      );
+  it('renders accounts header and no wallet group headers', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+      />,
+    );
 
-      expect(getByTestId('flashlist')).toBeOnTheScreen();
-      expect(queryByText(/No recipients/)).toBeNull();
-    });
+    expect(getByText('Your Accounts')).toBeOnTheScreen();
+    expect(queryByText('Wallet A')).toBeNull();
+    expect(queryByText('Wallet B')).toBeNull();
+    expect(queryByText('Unknown Wallet')).toBeNull();
+  });
+
+  it('marks selection and calls onRecipientSelected on press', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+      />,
+    );
+
+    expect(
+      getByTestId('selected-0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId('recipient-0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+    );
+    expect(onRecipientSelected).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      }),
+    );
+  });
+
+  it('does not call onRecipientSelected when disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientList
+        data={flatData}
+        onRecipientSelected={onRecipientSelected}
+        disabled
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId('recipient-0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+    );
+    expect(onRecipientSelected).not.toHaveBeenCalled();
+  });
+
+  it('renders empty state when data is empty and emptyMessage provided', () => {
+    const { getByText } = renderWithProvider(
+      <RecipientList
+        data={[]}
+        onRecipientSelected={onRecipientSelected}
+        emptyMessage="No recipients"
+      />,
+    );
+
+    expect(getByText('No recipients')).toBeOnTheScreen();
   });
 });

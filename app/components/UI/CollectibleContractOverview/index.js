@@ -17,6 +17,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
 
@@ -85,6 +86,10 @@ class CollectibleContractOverview extends PureComponent {
      * Start transaction with asset
      */
     newAssetTransaction: PropTypes.func,
+    /**
+     * Whether the send redesign is enabled
+     */
+    isSendRedesignEnabled: PropTypes.bool,
   };
 
   onAdd = () => {
@@ -96,7 +101,8 @@ class CollectibleContractOverview extends PureComponent {
   };
 
   onSend = () => {
-    const { collectibleContract, collectibles } = this.props;
+    const { collectibleContract, collectibles, isSendRedesignEnabled } =
+      this.props;
     const collectible = collectibles.find((collectible) =>
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
@@ -104,6 +110,7 @@ class CollectibleContractOverview extends PureComponent {
     handleSendPageNavigation(
       this.props.navigation.navigate,
       InitSendLocation.CollectibleContractOverview,
+      isSendRedesignEnabled,
       collectible,
     );
   };
@@ -169,6 +176,7 @@ class CollectibleContractOverview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   collectibles: collectiblesSelector(state),
+  isSendRedesignEnabled: selectSendRedesignFlags(state).enabled,
 });
 
 const mapDispatchToProps = (dispatch) => ({

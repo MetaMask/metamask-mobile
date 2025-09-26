@@ -12,11 +12,16 @@ import {
   selectSelectedInternalAccount,
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
-import { Balance } from '@metamask/keyring-api';
+import {
+  Balance,
+  SolScope,
+  Transaction as NonEvmTransaction,
+} from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
+import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTestnet';
 import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
@@ -40,7 +45,7 @@ import {
 } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '../featureFlagController';
+import { selectSelectedAccountGroupInternalAccounts } from '../multichainAccounts/accountTreeController';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -400,11 +405,23 @@ const DEFAULT_TRANSACTION_STATE_ENTRY = {
   lastUpdated: 0,
 };
 
+interface NonEvmTransactionStateEntry {
+  transactions: NonEvmTransaction[];
+  next: null;
+  lastUpdated: number | undefined;
+}
+
 export const selectNonEvmTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
   selectSelectedNonEvmNetworkChainId,
-  (nonEvmTransactions, selectedAccount, selectedNonEvmNetworkChainId) => {
+  selectIsSolanaTestnetEnabled,
+  (
+    nonEvmTransactions,
+    selectedAccount,
+    selectedNonEvmNetworkChainId,
+    isSolanaTestnetEnabled,
+  ) => {
     if (!selectedAccount) {
       return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
@@ -414,12 +431,86 @@ export const selectNonEvmTransactions = createDeepEqualSelector(
       return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
 
+    // If trying to access devnet transactions but feature flag is disabled, return the default transaction state entry
+    if (
+      selectedNonEvmNetworkChainId === SolScope.Devnet &&
+      !isSolanaTestnetEnabled
+    ) {
+      return DEFAULT_TRANSACTION_STATE_ENTRY;
+    }
+
+    // For all other cases, return transactions for the selected chain
     return (
       accountTransactions[selectedNonEvmNetworkChainId] ??
       DEFAULT_TRANSACTION_STATE_ENTRY
     );
   },
 );
+
+/**
+ * Returns non-EVM transactions for all internal accounts in the selected account group.
+ * Flattens transactions across all supported non-EVM chains within the group.
+ */
+export const selectNonEvmTransactionsForSelectedAccountGroup =
+  createDeepEqualSelector(
+    selectMultichainTransactions,
+    selectSelectedAccountGroupInternalAccounts,
+    (nonEvmTransactions, selectedGroupAccounts) => {
+      if (!selectedGroupAccounts || selectedGroupAccounts.length === 0) {
+        return DEFAULT_TRANSACTION_STATE_ENTRY;
+      }
+
+      const aggregated = {
+        ...DEFAULT_TRANSACTION_STATE_ENTRY,
+      } as NonEvmTransactionStateEntry;
+
+      for (const account of selectedGroupAccounts) {
+        const accountTx = nonEvmTransactions?.[
+          account.id as keyof typeof nonEvmTransactions
+        ] as
+          | NonEvmTransactionStateEntry
+          | Record<string, NonEvmTransactionStateEntry>
+          | undefined;
+        if (!accountTx) {
+          continue;
+        }
+
+        // Support both single-level and chain-scoped structures
+        const isSingleLevel = (
+          tx:
+            | NonEvmTransactionStateEntry
+            | Record<string, NonEvmTransactionStateEntry>,
+        ): tx is NonEvmTransactionStateEntry =>
+          Array.isArray((tx as NonEvmTransactionStateEntry).transactions);
+
+        const entries = isSingleLevel(accountTx)
+          ? [accountTx]
+          : Object.values(
+              accountTx as Record<string, NonEvmTransactionStateEntry>,
+            );
+
+        for (const entry of entries) {
+          const txs = entry?.transactions ?? [];
+          aggregated.transactions.push(...txs);
+
+          const lu = entry?.lastUpdated;
+          if (typeof lu === 'number') {
+            aggregated.lastUpdated =
+              aggregated.lastUpdated !== undefined
+                ? Math.max(aggregated.lastUpdated, lu)
+                : lu;
+          }
+        }
+      }
+
+      // Sort by timestamp (non-EVM tx use seconds)
+      aggregated.transactions.sort(
+        (a, b) => (b?.timestamp ?? 0) - (a?.timestamp ?? 0),
+      );
+
+      return aggregated;
+    },
+  );
 
 export const makeSelectNonEvmAssetById = () =>
   createSelector(
@@ -490,9 +581,46 @@ export const makeSelectNonEvmAssetById = () =>
     },
   );
 
-export const selectSolanaOnboardingModalEnabled = createDeepEqualSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => Boolean(remoteFeatureFlags.solanaOnboardingModal),
+export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
+  selectInternalAccounts,
+  selectMultichainBalances,
+  (_: RootState, params: { chainId: string }) => params.chainId,
+  (
+    internalAccounts,
+    multichainBalances,
+    chainId,
+  ): Record<string, Balance & { assetId: string }> => {
+    return internalAccounts.reduce((list, account) => {
+      const accountBalances = multichainBalances?.[account.id];
+
+      if (!accountBalances) {
+        return list;
+      }
+
+      const nativeBalanceAssetId = Object.keys(accountBalances).find(
+        (assetId) => {
+          const { chainId: assetChainId, assetNamespace } = parseCaipAssetType(
+            assetId as CaipAssetId,
+          );
+          return assetChainId === chainId && assetNamespace === 'slip44';
+        },
+      );
+
+      if (nativeBalanceAssetId) {
+        const accountNativeBalance = accountBalances[nativeBalanceAssetId];
+
+        return {
+          ...list,
+          [account.id]: {
+            assetId: nativeBalanceAssetId,
+            ...accountNativeBalance,
+          },
+        };
+      }
+
+      return list;
+    }, {});
+  },
 );
 
 ///: END:ONLY_INCLUDE_IF

@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
+import { createDepositNavigationDetails } from '../../../Deposit/routes/utils';
 import OrderListItem from '../../components/OrderListItem';
 import Row from '../../components/Row';
 import createStyles from './OrdersList.styles';
@@ -28,7 +29,6 @@ import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
-import Routes from '../../../../../../constants/navigation/Routes';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
@@ -83,9 +83,7 @@ function OrdersList() {
       const order = orders.find((o) => o.id === orderId);
 
       if (order?.state === FIAT_ORDER_STATES.CREATED) {
-        navigation.navigate(Routes.DEPOSIT.ID, {
-          screen: Routes.DEPOSIT.ROOT,
-        });
+        navigation.navigate(...createDepositNavigationDetails());
       } else {
         navigation.navigate(
           ...createDepositOrderDetailsNavDetails({
@@ -149,6 +147,9 @@ function OrdersList() {
             color={TextColor.Muted}
             style={styles.emptyMessage}
           >
+            {currentFilter === 'ALL'
+              ? strings('fiat_on_ramp_aggregator.empty_orders_list')
+              : null}
             {currentFilter === 'PURCHASE'
               ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
               : null}

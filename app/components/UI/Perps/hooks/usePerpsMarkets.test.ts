@@ -1,40 +1,28 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import Engine from '../../../../core/Engine';
-import { usePerpsMarkets } from './usePerpsMarkets';
-import type { PerpsMarketData, IPerpsProvider } from '../controllers/types';
+import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
+import type { PerpsMarketData } from '../controllers/types';
 
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    PerpsController: {
-      getActiveProvider: jest.fn(),
-    },
-  },
-}));
 
-// Mock PerpsConnectionProvider
-jest.mock('../providers/PerpsConnectionProvider', () => ({
-  usePerpsConnection: jest.fn(() => ({
-    isConnected: true,
-    isConnecting: false,
-    isInitialized: true,
-    error: null,
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    resetError: jest.fn(),
+// Mock PerpsStreamManager
+const mockSubscribe = jest.fn();
+const mockRefresh = jest.fn();
+const mockMarketData = {
+  subscribe: mockSubscribe,
+  refresh: mockRefresh,
+};
+
+jest.mock('../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    marketData: mockMarketData,
   })),
 }));
 
-// Mock stream hooks
-jest.mock('./stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
-}));
-
 // Mock data
-const mockMarketData: PerpsMarketData[] = [
+const mockMarketDataArray: PerpsMarketData[] = [
   {
     symbol: 'BTC',
     name: 'Bitcoin',
@@ -51,68 +39,10 @@ const mockMarketData: PerpsMarketData[] = [
     price: '$3,000.00',
     change24h: '-1.2%',
     change24hPercent: '-1.2',
-    volume: '$800M',
+    volume: '$900M',
   },
 ];
 
-const mockProvider = {
-  protocolId: 'hyperliquid' as const,
-  getMarketDataWithPrices: jest.fn(),
-  getDepositRoutes: jest.fn(),
-  getWithdrawalRoutes: jest.fn(),
-  placeOrder: jest.fn(),
-  editOrder: jest.fn(),
-  cancelOrder: jest.fn(),
-  closePosition: jest.fn(),
-  getPositions: jest.fn(),
-  getAccountState: jest.fn(),
-  getMarkets: jest.fn(),
-  withdraw: jest.fn(),
-  subscribeToPrices: jest.fn(),
-  subscribeToPositions: jest.fn(),
-  subscribeToOrderFills: jest.fn(),
-  setLiveDataConfig: jest.fn(),
-  disconnect: jest.fn(),
-  toggleTestnet: jest.fn(),
-  initialize: jest.fn(),
-  isReadyToTrade: jest.fn(),
-  deposit: jest.fn(),
-  validateDeposit: jest.fn(),
-  calculateLiquidationPrice: jest.fn(),
-  calculateMaintenanceMargin: jest.fn(),
-  getMaxLeverage: jest.fn(),
-  calculateFees: jest.fn().mockResolvedValue({
-    feeRate: 0.00045,
-    feeAmount: 45,
-  }),
-  updatePositionTPSL: jest.fn().mockResolvedValue({
-    success: true,
-    orderId: '123',
-  }),
-  checkWithdrawalStatus: jest.fn().mockResolvedValue({
-    status: 'pending',
-    metadata: {},
-  }),
-  validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
-  validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
-  validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
-  getBlockExplorerUrl: jest.fn(),
-  getOrderFills: jest.fn(),
-  getOrders: jest.fn(),
-  getOpenOrders: jest.fn(),
-  getFunding: jest.fn(),
-  getIsFirstTimeUser: jest.fn(),
-  subscribeToOrders: jest.fn(),
-  unsubscribeFromOrders: jest.fn(),
-  unsubscribeFromPrices: jest.fn(),
-  unsubscribeFromPositions: jest.fn(),
-  unsubscribeFromOrderFills: jest.fn(),
-  subscribeToAccount: jest.fn(() => jest.fn()),
-};
-
-const mockPerpsController = Engine.context.PerpsController as jest.Mocked<
-  typeof Engine.context.PerpsController
->;
 const mockLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 
 describe('usePerpsMarkets', () => {
@@ -120,11 +50,14 @@ describe('usePerpsMarkets', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
-    // Set up default mocks
-    mockPerpsController.getActiveProvider.mockReturnValue(
-      mockProvider as IPerpsProvider,
-    );
-    mockProvider.getMarketDataWithPrices.mockResolvedValue(mockMarketData);
+    // Set up default mock behavior
+    mockSubscribe.mockImplementation(({ callback }) => {
+      // Simulate immediate callback with data
+      setTimeout(() => callback(mockMarketDataArray), 0);
+      // Return unsubscribe function
+      return jest.fn();
+    });
+    mockRefresh.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -133,6 +66,9 @@ describe('usePerpsMarkets', () => {
 
   describe('Initial state', () => {
     it('returns initial state with empty markets and loading true', () => {
+      // Setup to not call the callback immediately
+      mockSubscribe.mockImplementation(() => jest.fn());
+
       // Act
       const { result } = renderHook(() => usePerpsMarkets());
 
@@ -168,16 +104,20 @@ describe('usePerpsMarkets', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Assert
-      expect(result.current.markets).toEqual(mockMarketData);
+      // Assert - markets should be sorted by volume (BTC first due to $1.2B vs $900M)
+      expect(result.current.markets).toHaveLength(2);
+      expect(result.current.markets[0].symbol).toBe('BTC');
+      expect(result.current.markets[1].symbol).toBe('ETH');
       expect(result.current.error).toBeNull();
-      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      expect(mockSubscribe).toHaveBeenCalledTimes(1);
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'Perps: Fetching market data from active provider...',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Perps: Successfully fetched and transformed market data',
-        { marketCount: 2, livePricesEnabled: false },
+        'Perps: Market data received (first load)',
+        expect.objectContaining({
+          marketCount: 2,
+          cacheHit: expect.any(Boolean),
+          source: expect.any(String),
+          timeToDataMs: expect.any(Number),
+        }),
       );
     });
 
@@ -195,7 +135,7 @@ describe('usePerpsMarkets', () => {
       // Assert
       expect(result.current.isLoading).toBe(false);
       expect(result.current.markets).toEqual([]);
-      expect(mockProvider.getMarketDataWithPrices).not.toHaveBeenCalled();
+      expect(mockSubscribe).not.toHaveBeenCalled();
     });
 
     it('updates markets when data changes', async () => {
@@ -218,97 +158,52 @@ describe('usePerpsMarkets', () => {
         },
       ];
 
-      mockProvider.getMarketDataWithPrices.mockResolvedValue(newMarketData);
+      // Simulate data update by calling the callback again
+      const subscriberCallback = mockSubscribe.mock.calls[0][0].callback;
 
       // Act
-      await act(async () => {
-        await result.current.refresh();
+      act(() => {
+        subscriberCallback(newMarketData);
       });
 
-      // Assert
-      expect(result.current.markets).toEqual(newMarketData);
-      expect(result.current.error).toBeNull();
+      expect(result.current.markets).toEqual([
+        {
+          ...newMarketData[0],
+          // used during sorting
+          volumeNumber: 100000000,
+        },
+      ]);
     });
-  });
 
-  describe('Error handling', () => {
-    it('handles fetch errors with empty markets', async () => {
+    it('handles empty market data', async () => {
       // Arrange
-      const errorMessage = 'Network error';
-      mockProvider.getMarketDataWithPrices.mockRejectedValue(
-        new Error(errorMessage),
-      );
+      mockSubscribe.mockImplementation(({ callback }) => {
+        setTimeout(() => callback([]), 0);
+        return jest.fn();
+      });
 
       // Act
       const { result } = renderHook(() => usePerpsMarkets());
 
+      // Wait for async operations
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
       // Assert
       expect(result.current.markets).toEqual([]);
-      expect(result.current.error).toBe(errorMessage);
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Perps: Failed to fetch market data',
-        expect.any(Error),
-      );
-    });
-
-    it('handles fetch errors with existing markets', async () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsMarkets());
-
-      // Wait for initial successful fetch
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.markets).toEqual(mockMarketData);
-
-      // Set up error for next call
-      const errorMessage = 'Network error';
-      mockProvider.getMarketDataWithPrices.mockRejectedValue(
-        new Error(errorMessage),
-      );
-
-      // Act
-      await act(async () => {
-        await result.current.refresh();
-      });
-
-      // Assert - should keep existing data on error
-      expect(result.current.markets).toEqual(mockMarketData);
-      expect(result.current.error).toBe(errorMessage);
-    });
-
-    it('handles unknown error types', async () => {
-      // Arrange
-      mockProvider.getMarketDataWithPrices.mockRejectedValue('String error');
-
-      // Act
-      const { result } = renderHook(() => usePerpsMarkets());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Assert
-      expect(result.current.error).toBe('Unknown error occurred');
+      expect(result.current.error).toBeNull();
     });
   });
 
-  describe('Refresh functionality', () => {
-    it('refreshes data when refresh function is called', async () => {
+  describe('Manual refresh', () => {
+    it('refreshes market data when refresh is called', async () => {
       // Arrange
       const { result } = renderHook(() => usePerpsMarkets());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
-
-      // Clear previous calls
-      mockProvider.getMarketDataWithPrices.mockClear();
 
       // Act
       await act(async () => {
@@ -316,58 +211,53 @@ describe('usePerpsMarkets', () => {
       });
 
       // Assert
-      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
-      expect(result.current.markets).toEqual(mockMarketData);
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+      expect(result.current.isRefreshing).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Perps: Manual refresh completed',
+      );
     });
 
-    it('sets isRefreshing to true during refresh', async () => {
+    it('sets isRefreshing state during refresh', async () => {
       // Arrange
+      let resolveRefresh: () => void;
+      const refreshPromise = new Promise<void>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      mockRefresh.mockReturnValue(refreshPromise);
+
       const { result } = renderHook(() => usePerpsMarkets());
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Make the next call hang to test refreshing state
-      let resolvePromise: (value: PerpsMarketData[]) => void;
-      const hangingPromise = new Promise<PerpsMarketData[]>((resolve) => {
-        resolvePromise = resolve;
-      });
-      mockProvider.getMarketDataWithPrices.mockReturnValue(hangingPromise);
-
-      // Act
-      act(() => {
-        result.current.refresh();
-      });
+      // Act - start refresh
+      const refreshCall = act(() => result.current.refresh());
 
       // Assert - should be refreshing
       expect(result.current.isRefreshing).toBe(true);
-      expect(result.current.isLoading).toBe(false);
 
-      // Complete the promise
-      act(() => {
-        resolvePromise(mockMarketData);
+      // Complete refresh
+      await act(async () => {
+        resolveRefresh?.();
+        await refreshCall;
       });
 
-      await waitFor(() => {
-        expect(result.current.isRefreshing).toBe(false);
-      });
+      // Assert - no longer refreshing
+      expect(result.current.isRefreshing).toBe(false);
     });
 
-    it('clears error on successful refresh', async () => {
+    it('handles refresh errors gracefully', async () => {
       // Arrange
-      mockProvider.getMarketDataWithPrices.mockRejectedValueOnce(
-        new Error('Initial error'),
-      );
+      const refreshError = new Error('Failed to fetch markets');
+      mockRefresh.mockRejectedValue(refreshError);
 
       const { result } = renderHook(() => usePerpsMarkets());
 
       await waitFor(() => {
-        expect(result.current.error).toBe('Initial error');
+        expect(result.current.isLoading).toBe(false);
       });
-
-      // Set up successful response for refresh
-      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockMarketData);
 
       // Act
       await act(async () => {
@@ -375,278 +265,343 @@ describe('usePerpsMarkets', () => {
       });
 
       // Assert
-      expect(result.current.error).toBeNull();
-      expect(result.current.markets).toEqual(mockMarketData);
+      expect(result.current.error).toBe('Failed to fetch markets');
+      expect(result.current.isRefreshing).toBe(false);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Perps: Failed to refresh market data',
+        refreshError,
+      );
     });
   });
 
-  describe('Polling functionality', () => {
-    it('does not poll when enablePolling is false', async () => {
+  describe('Polling', () => {
+    it('polls for updates when enablePolling is true', async () => {
       // Arrange
-      const { result } = renderHook(() =>
-        usePerpsMarkets({ enablePolling: false }),
-      );
+      const pollingInterval = 5000;
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      mockProvider.getMarketDataWithPrices.mockClear();
-
-      // Act - advance time beyond default polling interval
-      act(() => {
-        jest.advanceTimersByTime(65000);
-      });
-
-      // Assert
-      expect(mockProvider.getMarketDataWithPrices).not.toHaveBeenCalled();
-    });
-
-    it('polls at default interval when enablePolling is true', async () => {
-      // Arrange
-      const { result } = renderHook(() =>
-        usePerpsMarkets({ enablePolling: true }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      mockProvider.getMarketDataWithPrices.mockClear();
-
-      // Act - advance time to trigger polling
-      act(() => {
-        jest.advanceTimersByTime(60000);
-      });
-
-      // Assert
-      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
-    });
-
-    it('polls at custom interval when specified', async () => {
-      // Arrange
-      const customInterval = 30000;
-      const { result } = renderHook(() =>
+      // Act
+      renderHook(() =>
         usePerpsMarkets({
           enablePolling: true,
-          pollingInterval: customInterval,
+          pollingInterval,
         }),
       );
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      // Wait for initial load
+      await act(async () => {
+        jest.advanceTimersByTime(100);
       });
 
-      mockProvider.getMarketDataWithPrices.mockClear();
+      // Clear previous calls
+      mockRefresh.mockClear();
 
-      // Act - advance time to custom interval
-      act(() => {
-        jest.advanceTimersByTime(customInterval);
-      });
-
-      // Assert
-      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
-    });
-
-    it('continues polling multiple times', async () => {
-      // Arrange
-      const { result } = renderHook(() =>
-        usePerpsMarkets({ enablePolling: true }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      mockProvider.getMarketDataWithPrices.mockClear();
-
-      // Act - advance time for multiple intervals
-      act(() => {
-        jest.advanceTimersByTime(60000);
-      });
-      act(() => {
-        jest.advanceTimersByTime(60000);
+      // Advance time to trigger polling
+      await act(async () => {
+        jest.advanceTimersByTime(pollingInterval);
       });
 
       // Assert
-      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(2);
-    });
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
 
-    it('clears polling interval on unmount', async () => {
-      // Arrange
-      const { result, unmount } = renderHook(() =>
-        usePerpsMarkets({ enablePolling: true }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      // Advance time again
+      await act(async () => {
+        jest.advanceTimersByTime(pollingInterval);
       });
 
+      // Assert
+      expect(mockRefresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not poll when enablePolling is false', async () => {
       // Act
+      renderHook(() =>
+        usePerpsMarkets({
+          enablePolling: false,
+          pollingInterval: 5000,
+        }),
+      );
+
+      // Wait for initial load
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Clear previous calls
+      mockRefresh.mockClear();
+
+      // Advance time
+      await act(async () => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      // Assert - refresh should not have been called
+      expect(mockRefresh).not.toHaveBeenCalled();
+    });
+
+    it('cleans up polling interval on unmount', async () => {
+      // Arrange
+      const { unmount } = renderHook(() =>
+        usePerpsMarkets({
+          enablePolling: true,
+          pollingInterval: 5000,
+        }),
+      );
+
+      // Wait for initial load
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Clear previous calls
+      mockRefresh.mockClear();
+
+      // Act - unmount
       unmount();
-      mockProvider.getMarketDataWithPrices.mockClear();
 
-      act(() => {
-        jest.advanceTimersByTime(60000);
+      // Advance time after unmount
+      await act(async () => {
+        jest.advanceTimersByTime(10000);
       });
 
-      // Assert
-      expect(mockProvider.getMarketDataWithPrices).not.toHaveBeenCalled();
+      // Assert - refresh should not have been called after unmount
+      expect(mockRefresh).not.toHaveBeenCalled();
+    });
+
+    it('handles polling errors gracefully', async () => {
+      // Arrange
+      mockRefresh.mockRejectedValue(new Error('Polling failed'));
+
+      // Act
+      renderHook(() =>
+        usePerpsMarkets({
+          enablePolling: true,
+          pollingInterval: 5000,
+        }),
+      );
+
+      // Wait for initial load
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Clear logs
+      mockLogger.log.mockClear();
+
+      // Advance time to trigger polling
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      // Assert - error should be logged but not crash
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'Perps: Polling refresh failed',
+        expect.any(Error),
+      );
     });
   });
 
-  describe('Options configuration', () => {
-    it('applies default options when none provided', () => {
+  describe('Volume sorting', () => {
+    it('sorts markets by volume correctly', async () => {
+      // Arrange - markets with various volume formats
+      const unsortedMarkets: PerpsMarketData[] = [
+        {
+          symbol: 'A',
+          name: 'A',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$100K',
+        },
+        {
+          symbol: 'B',
+          name: 'B',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$1.5B',
+        },
+        {
+          symbol: 'C',
+          name: 'C',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$<1',
+        },
+        {
+          symbol: 'D',
+          name: 'D',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$500M',
+        },
+        {
+          symbol: 'E',
+          name: 'E',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '—',
+        },
+        {
+          symbol: 'F',
+          name: 'F',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$0',
+        },
+        {
+          symbol: 'G',
+          name: 'G',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '—',
+        },
+      ];
+
+      mockSubscribe.mockImplementation(({ callback }) => {
+        setTimeout(() => callback(unsortedMarkets), 0);
+        return jest.fn();
+      });
+
       // Act
       const { result } = renderHook(() => usePerpsMarkets());
 
-      // Assert - should start loading (default skipInitialFetch: false)
-      expect(result.current.isLoading).toBe(true);
-    });
-
-    it('applies custom options correctly', async () => {
-      // Arrange
-      const options = {
-        enablePolling: true,
-        pollingInterval: 45000,
-        skipInitialFetch: true,
-      };
-
-      // Act
-      const { result } = renderHook(() => usePerpsMarkets(options));
-
-      // Assert
-      expect(result.current.isLoading).toBe(false);
-      expect(mockProvider.getMarketDataWithPrices).not.toHaveBeenCalled();
-
-      // Test polling with custom interval
-      mockProvider.getMarketDataWithPrices.mockClear();
-      act(() => {
-        jest.advanceTimersByTime(45000);
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      // Assert - should be sorted by volume descending
+      const sortedSymbols = result.current.markets.map((m) => m.symbol);
+      expect(sortedSymbols).toEqual(['B', 'D', 'A', 'C', 'F', 'E', 'G']);
     });
   });
 
-  describe('Loading states', () => {
-    it('maintains correct loading state during initial fetch', async () => {
+  describe('Cleanup', () => {
+    it('unsubscribes from market data on unmount', () => {
       // Arrange
-      let resolvePromise: (value: PerpsMarketData[]) => void;
-      const hangingPromise = new Promise<PerpsMarketData[]>((resolve) => {
-        resolvePromise = resolve;
-      });
-      mockProvider.getMarketDataWithPrices.mockReturnValue(hangingPromise);
+      const unsubscribeFn = jest.fn();
+      mockSubscribe.mockReturnValue(unsubscribeFn);
 
       // Act
-      const { result } = renderHook(() => usePerpsMarkets());
+      const { unmount } = renderHook(() => usePerpsMarkets());
+      unmount();
 
-      // Assert - should be loading
-      expect(result.current.isLoading).toBe(true);
-      expect(result.current.isRefreshing).toBe(false);
-
-      // Complete the promise
-      act(() => {
-        resolvePromise(mockMarketData);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-    });
-
-    it('maintains correct loading state during refresh', async () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsMarkets());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      let resolvePromise: (value: PerpsMarketData[]) => void;
-      const hangingPromise = new Promise<PerpsMarketData[]>((resolve) => {
-        resolvePromise = resolve;
-      });
-      mockProvider.getMarketDataWithPrices.mockReturnValue(hangingPromise);
-
-      // Act
-      act(() => {
-        result.current.refresh();
-      });
-
-      // Assert - should be refreshing, not loading
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.isRefreshing).toBe(true);
-
-      // Complete the promise
-      act(() => {
-        resolvePromise(mockMarketData);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isRefreshing).toBe(false);
-      });
+      // Assert
+      expect(unsubscribeFn).toHaveBeenCalled();
     });
   });
 
-  describe('Edge cases', () => {
-    it('handles provider not available', async () => {
-      // Arrange
-      mockPerpsController.getActiveProvider.mockImplementation(() => {
-        throw new Error('Provider not available');
+  describe('parseVolume', () => {
+    describe('handles undefined and special cases', () => {
+      it('returns -1 for undefined input', () => {
+        const result = parseVolume(undefined);
+        expect(result).toBe(-1);
       });
 
-      // Act
-      const { result } = renderHook(() => usePerpsMarkets());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      it('returns -1 for fallback price display', () => {
+        const result = parseVolume('—');
+        expect(result).toBe(-1);
       });
 
-      // Assert
-      expect(result.current.error).toBe('Provider not available');
-      expect(result.current.markets).toEqual([]);
+      it('returns 0.5 for very small volume indicator', () => {
+        const result = parseVolume('$<1');
+        expect(result).toBe(0.5);
+      });
     });
 
-    it('handles empty market data response', async () => {
-      // Arrange
-      mockProvider.getMarketDataWithPrices.mockResolvedValue([]);
-
-      // Act
-      const { result } = renderHook(() => usePerpsMarkets());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+    describe('parses suffixed volume values', () => {
+      it('parses thousand suffix correctly', () => {
+        expect(parseVolume('$100K')).toBe(100000);
+        expect(parseVolume('$1.5K')).toBe(1500);
+        expect(parseVolume('$999K')).toBe(999000);
       });
 
-      // Assert
-      expect(result.current.markets).toEqual([]);
-      expect(result.current.error).toBeNull();
+      it('parses million suffix correctly', () => {
+        expect(parseVolume('$1M')).toBe(1000000);
+        expect(parseVolume('$2.5M')).toBe(2500000);
+        expect(parseVolume('$900M')).toBe(900000000);
+      });
+
+      it('parses billion suffix correctly', () => {
+        expect(parseVolume('$1B')).toBe(1000000000);
+        expect(parseVolume('$1.2B')).toBe(1200000000);
+        expect(parseVolume('$50B')).toBe(50000000000);
+      });
+
+      it('parses trillion suffix correctly', () => {
+        expect(parseVolume('$1T')).toBe(1000000000000);
+        expect(parseVolume('$2.5T')).toBe(2500000000000);
+      });
+
+      it('handles values without dollar sign', () => {
+        expect(parseVolume('100K')).toBe(100000);
+        expect(parseVolume('1.5M')).toBe(1500000);
+        expect(parseVolume('2B')).toBe(2000000000);
+      });
+
+      it('handles comma-separated numbers with suffixes', () => {
+        expect(parseVolume('$1,500K')).toBe(1500000);
+        expect(parseVolume('$2,300M')).toBe(2300000000);
+        expect(parseVolume('$10,000B')).toBe(10000000000000);
+      });
     });
 
-    it('handles concurrent refresh calls', async () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsMarkets());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+    describe('parses regular numeric values', () => {
+      it('parses whole numbers without suffix', () => {
+        expect(parseVolume('$1000')).toBe(1000);
+        expect(parseVolume('$500000')).toBe(500000);
+        expect(parseVolume('1000')).toBe(1000);
       });
 
-      mockProvider.getMarketDataWithPrices.mockClear();
-
-      // Act - call refresh multiple times quickly
-      act(() => {
-        result.current.refresh();
-        result.current.refresh();
-        result.current.refresh();
+      it('parses decimal numbers without suffix', () => {
+        expect(parseVolume('$1234.56')).toBe(1234.56);
+        expect(parseVolume('$0.01')).toBe(0.01);
+        expect(parseVolume('999.99')).toBe(999.99);
       });
 
-      await waitFor(() => {
-        expect(result.current.isRefreshing).toBe(false);
+      it('handles comma-separated numbers without suffix', () => {
+        expect(parseVolume('$1,234')).toBe(1234);
+        expect(parseVolume('$1,234,567')).toBe(1234567);
+        expect(parseVolume('$1,234.56')).toBe(1234.56);
+      });
+    });
+
+    describe('handles invalid inputs', () => {
+      it('returns -1 for invalid numeric strings', () => {
+        expect(parseVolume('invalid')).toBe(-1);
+        expect(parseVolume('$abc')).toBe(-1);
+        expect(parseVolume('$K')).toBe(-1);
+        expect(parseVolume('')).toBe(-1);
       });
 
-      // Assert - should not call API more than the number of refresh calls
-      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalledTimes(3);
+      it('returns -1 for NaN results', () => {
+        expect(parseVolume('$NaN')).toBe(-1);
+        expect(parseVolume('$...')).toBe(-1);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('handles zero values', () => {
+        expect(parseVolume('$0')).toBe(0);
+        expect(parseVolume('$0.00')).toBe(0);
+        expect(parseVolume('0K')).toBe(0);
+      });
+
+      it('handles very large numbers', () => {
+        expect(parseVolume('$999.99T')).toBe(999990000000000);
+        expect(parseVolume('$1,000T')).toBe(1000000000000000);
+      });
     });
   });
 });

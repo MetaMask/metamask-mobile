@@ -34,6 +34,9 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
+  EXPLORE_TOKENS: {
+    URL: `${PORTFOLIO_URL}/explore/tokens?MetaMaskEntry=mobile`,
+  },
   CARD: {
     URL: 'https://card.metamask.io',
   },
@@ -153,10 +156,17 @@ export default {
     EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
     ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
       'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts',
+    TERMS_OF_USE_URL: 'https://consensys.io/terms-of-use',
+    PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
+  REWARDS_API_URL: {
+    DEV: 'https://rewards.dev-api.cx.metamask.io',
+    UAT: 'https://rewards.uat-api.cx.metamask.io',
+    PRD: 'https://rewards.api.cx.metamask.io',
+  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

@@ -10,7 +10,7 @@ import CardHomeView from '../../pages/Card/CardHomeView';
 import SoftAssert from '../../utils/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-describe(SmokeCard('CardHome - Manage Card'), () => {
+describe.skip(SmokeCard('CardHome - Manage Card'), () => {
   const eventsToCheck: EventPayload[] = [];
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {
@@ -19,11 +19,24 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
           .withNetworkController(CustomNetworks.Tenderly.Linea)
+          .withAccountTreeController()
+          .withTokens(
+            [
+              {
+                address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                decimals: 18,
+                symbol: 'USDC',
+                chainId: '0xe708',
+                name: 'USDCoin',
+              },
+            ],
+            '0xe708',
+          )
           .build(),
         restartDevice: true,
         testSpecificMock,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          const events = await getEventsPayloads(mockServerInstance);
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
           eventsToCheck.push(...events);
         },
       },

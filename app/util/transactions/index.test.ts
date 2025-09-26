@@ -526,6 +526,14 @@ describe('Transactions utils :: getMethodData', () => {
       MOCK_NETWORK_CLIENT_ID,
     );
   });
+
+  it('calls handleMethodData with normalized 4-byte data', async () => {
+    const transferData =
+      '0xA9059CBB00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a';
+    const result = await getMethodData(transferData, MOCK_NETWORK_CLIENT_ID);
+
+    expect(result.name).toStrictEqual(TOKEN_METHOD_TRANSFER);
+  });
 });
 
 describe('Transactions utils :: getActionKey', () => {
@@ -1258,6 +1266,7 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     TransactionType.stakingUnstake,
     TransactionType.lendingDeposit,
     TransactionType.lendingWithdraw,
+    TransactionType.perpsDeposit,
   ])('returns transaction type if type is %s', async (type) => {
     const transaction = { type };
     const chainId = '1';
@@ -2065,8 +2074,8 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
     // Use unknown cast to work with JS function parameter expectations
     const result = validateTransactionActionBalance(
       transaction as unknown as object,
-      rate as unknown as string,
-      accounts as unknown as string,
+      String(rate),
+      accounts,
     );
     expect(result).toBe(false);
   });
@@ -2087,8 +2096,8 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
 
     const result = validateTransactionActionBalance(
       transaction as unknown as object,
-      rate as unknown as string,
-      accounts as unknown as string,
+      String(rate),
+      accounts,
     );
     expect(result).toBe(true);
   });
@@ -2110,8 +2119,8 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
 
     const result = validateTransactionActionBalance(
       transaction as unknown as object,
-      rate as unknown as string,
-      accounts as unknown as string,
+      String(rate),
+      accounts,
     );
     expect(result).toBe(false);
   });
@@ -2123,8 +2132,8 @@ describe('Transactions utils :: validateTransactionActionBalance', () => {
 
     const result = validateTransactionActionBalance(
       transaction as unknown as object,
-      rate as unknown as string,
-      accounts as unknown as string,
+      String(rate),
+      accounts,
     );
     expect(result).toBe(false);
   });

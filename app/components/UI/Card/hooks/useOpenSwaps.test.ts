@@ -156,7 +156,6 @@ describe('useOpenSwaps', () => {
     act(() => {
       result.current.openSwaps({
         chainId: '0xe708',
-        cardholderAddress: '0xcard',
       });
     });
 
@@ -194,7 +193,6 @@ describe('useOpenSwaps', () => {
     act(() => {
       result.current.openSwaps({
         chainId: '0xe708',
-        cardholderAddress: '0xcard',
       });
     });
 
@@ -222,7 +220,6 @@ describe('useOpenSwaps', () => {
     act(() => {
       result.current.openSwaps({
         chainId: '0xe708',
-        cardholderAddress: '0xcard',
         beforeNavigate,
       });
     });
@@ -276,7 +273,6 @@ describe('useOpenSwaps', () => {
     act(() => {
       result.current.openSwaps({
         chainId: '0xe708',
-        cardholderAddress: '0xcard',
       });
     });
 

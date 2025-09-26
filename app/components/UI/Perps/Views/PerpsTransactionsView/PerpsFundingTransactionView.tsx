@@ -19,9 +19,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
+import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import {
@@ -40,7 +41,9 @@ const PerpsFundingTransactionView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsFundingTransactionRouteProp>();
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedInternalAccount = useSelector(
+    selectSelectedInternalAccountByScope,
+  )('eip155:1');
   const { getExplorerUrl } = usePerpsBlockExplorerUrl();
 
   // Get transaction from route params
@@ -111,6 +114,11 @@ const PerpsFundingTransactionView: React.FC = () => {
         style={styles.container}
       >
         <View style={styles.content}>
+          <PerpsTransactionDetailAssetHero
+            transaction={transaction}
+            styles={styles}
+          />
+
           {/* Transaction details - clean list design */}
           <View style={styles.detailsContainer}>
             {detailRows.map((detail, index) => (

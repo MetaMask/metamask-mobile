@@ -4,7 +4,7 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -21,21 +21,19 @@ import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import type { Position } from '../../controllers/types';
-import {
-  usePerpsAccount,
-  usePerpsLivePositions,
-  usePerpsTPSLUpdate,
-} from '../../hooks';
+import { usePerpsLivePositions, usePerpsTPSLUpdate } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PerpsPositionsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
     null,
@@ -114,7 +112,10 @@ const PerpsPositionsView: React.FC = () => {
     }
 
     return (
-      <View style={styles.positionsSection}>
+      <View
+        style={styles.positionsSection}
+        testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION}
+      >
         <View style={styles.sectionHeader}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.open_positions')}
@@ -123,20 +124,30 @@ const PerpsPositionsView: React.FC = () => {
             {positionCountText}
           </Text>
         </View>
-        {positions.map((position, index) => (
-          <PerpsPositionCard
-            key={`${position.coin}-${index}`}
-            position={position}
-          />
-        ))}
+        {positions.map((position, index) => {
+          const sizeValue = parseFloat(position.size);
+          const directionSegment = Number.isFinite(sizeValue)
+            ? sizeValue > 0
+              ? 'long'
+              : sizeValue < 0
+              ? 'short'
+              : 'unknown'
+            : 'unknown';
+          return (
+            <View
+              key={`${position.coin}-${index}`}
+              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+            >
+              <PerpsPositionCard position={position} />
+            </View>
+          );
+        })}
       </View>
     );
   };
 
-  const { top } = useSafeAreaInsets();
-
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: top }]}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
@@ -163,7 +174,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.total_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.totalBalance || '0')}
+              {formatPrice(account?.totalBalance || '0')}
             </Text>
           </View>
 
@@ -172,7 +183,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.available_balance')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.availableBalance || '0')}
+              {formatPrice(account?.availableBalance || '0')}
             </Text>
           </View>
 
@@ -181,7 +192,7 @@ const PerpsPositionsView: React.FC = () => {
               {strings('perps.position.account.margin_used')}
             </Text>
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-              {formatPrice(cachedAccountState?.marginUsed || '0')}
+              {formatPrice(account?.marginUsed || '0')}
             </Text>
           </View>
 
@@ -199,7 +210,6 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
           </View>
         </View>
-
         {renderContent()}
       </ScrollView>
 
@@ -225,6 +235,7 @@ const PerpsPositionsView: React.FC = () => {
           initialTakeProfitPrice={selectedPosition.takeProfitPrice}
           initialStopLossPrice={selectedPosition.stopLossPrice}
           isUpdating={isUpdating}
+          orderType="market" // Default to market for existing positions
         />
       )}
     </SafeAreaView>

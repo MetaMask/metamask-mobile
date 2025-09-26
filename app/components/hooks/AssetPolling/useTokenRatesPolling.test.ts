@@ -75,7 +75,7 @@ describe('useTokenRatesPolling', () => {
             eip155: {
               '0x1': true,
               '0x89': true,
-              '0x5': true,
+              '0x5': false,
             },
           },
         },
@@ -317,9 +317,9 @@ describe('useTokenRatesPolling', () => {
             PreferencesController: {
               ...state.engine.backgroundState.PreferencesController,
               tokenNetworkFilter: {
-                '0x1': 'true',
-                '0x89': 'true',
-                '0xa': 'true',
+                '0x1': true,
+                '0x89': true,
+                '0xa': true,
               },
             },
           },

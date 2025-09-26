@@ -14,21 +14,6 @@ jest.mock('../../../../core/Engine', () => ({
 // Mock the dependent hooks
 jest.mock('./usePerpsPositionData');
 
-// Mock the format utils
-jest.mock('../utils/formatUtils', () => ({
-  formatPrice: (price: number) =>
-    `$${price.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`,
-  formatLargeNumber: (num: number) => {
-    if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
-    if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-    if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    return `$${num.toFixed(2)}`;
-  },
-}));
-
 import Engine from '../../../../core/Engine';
 import { usePerpsPositionData } from './usePerpsPositionData';
 
@@ -46,6 +31,7 @@ describe('usePerpsMarketStats', () => {
     jest.useRealTimers();
   });
 
+  // Shared test data
   const mockPriceData = {
     BTC: {
       coin: 'BTC',
@@ -53,7 +39,9 @@ describe('usePerpsMarketStats', () => {
       timestamp: Date.now(),
       percentChange24h: '2.50',
       funding: 0.01,
-      openInterest: 987654321,
+      // openInterest is now in USD (already converted from token units * price)
+      // For example: 22,000 BTC * $45,000 = $990M
+      openInterest: 990000000,
       volume24h: 1234567890,
     },
   };
@@ -81,60 +69,64 @@ describe('usePerpsMarketStats', () => {
     ],
   };
 
-  it('should return market statistics with correct formatting', () => {
-    // Mock the subscription to trigger the callback with price data
+  it('formats and displays all market statistics when data is available', () => {
+    // Arrange: Set up market data with funding, volume, and open interest
     mockSubscribeToPrices.mockImplementation(({ callback }) => {
-      // Simulate the callback being called with price updates
       callback([mockPriceData.BTC]);
-      return jest.fn(); // Return unsubscribe function
+      return jest.fn();
     });
-
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
 
+    // Act: Render the hook with a symbol
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
+    // Assert: All market statistics are correctly formatted
     expect(result.current.currentPrice).toBe(45000);
     expect(result.current.high24h).toBe('$46,000.00');
     expect(result.current.low24h).toBe('$43,500.00');
     expect(result.current.volume24h).toBe('$1.23B');
-    expect(result.current.openInterest).toBe('$987.65M');
+    expect(result.current.openInterest).toBe('$990.00M');
     expect(result.current.fundingRate).toBe('1.0000%');
     expect(result.current.isLoading).toBe(false);
   });
 
-  it('should handle loading state correctly', () => {
-    // Mock subscription but don't call the callback (simulating no data yet)
+  it('indicates loading state when candle data is not yet available', () => {
+    // Arrange: Set up state with no candle data
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
-
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
+      priceData: null,
       isLoadingHistory: true,
       refreshCandleData: jest.fn(),
     });
 
+    // Act: Render the hook
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
+    // Assert: Loading state is true and default values are shown
     expect(result.current.isLoading).toBe(true);
     expect(result.current.currentPrice).toBe(0);
   });
 
-  // Funding countdown tests removed - handled by separate component
-
-  it('should handle no market data gracefully', () => {
+  it('displays default values when no market data is available', () => {
+    // Arrange: Set up empty market data state
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
-
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
 
+    // Act: Render the hook
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
+    // Assert: All values show appropriate defaults
     expect(result.current.currentPrice).toBe(0);
     expect(result.current.high24h).toBe('$0.00');
     expect(result.current.low24h).toBe('$0.00');
@@ -143,12 +135,14 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.fundingRate).toBe('0.0000%');
   });
 
-  it('should format large numbers correctly', () => {
+  it('formats extremely large numbers with appropriate suffixes', () => {
+    // Given market data with very large volume and open interest values
     const largeNumberPriceData = {
       BTC: {
         ...mockPriceData.BTC,
         volume24h: 12345678901234,
-        openInterest: 98765432109876,
+        // openInterest is now in USD (already converted from token units * price)
+        openInterest: 99000000000000, // $99T
       },
     };
 
@@ -159,17 +153,19 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    expect(result.current.volume24h).toBe('$12.35T');
-    expect(result.current.openInterest).toBe('$98.77T');
+    expect(result.current.volume24h).toBe('$12.35T'); // Decimals in formatVolume for detailed view
+    expect(result.current.openInterest).toBe('$99.00T'); // Decimals in formatLargeNumber for detailed view
   });
 
-  it('should format negative funding rate correctly', () => {
+  it('formats negative funding rates with proper sign and decimals', () => {
+    // Given a negative funding rate
     const negativeFundingData = {
       BTC: {
         ...mockPriceData.BTC,
@@ -184,6 +180,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });

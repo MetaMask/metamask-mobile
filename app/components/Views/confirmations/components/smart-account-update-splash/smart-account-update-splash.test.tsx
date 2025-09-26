@@ -13,6 +13,8 @@ import * as ConfirmationActions from '../../hooks/useConfirmActions';
 import * as AddressUtils from '../../../../../util/address';
 import { SmartAccountUpdateSplash } from './smart-account-update-splash';
 
+jest.mock('../../hooks/gas/useGasFeeToken');
+
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
@@ -35,6 +37,12 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(() => ({
+    onConfirm: jest.fn(),
+  })),
+}));
 
 const renderComponent = (state?: Record<string, unknown>) =>
   renderWithProvider(<SmartAccountUpdateSplash />, {

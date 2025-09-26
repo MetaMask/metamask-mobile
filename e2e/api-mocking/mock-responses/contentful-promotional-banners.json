@@ -1,0 +1,262 @@
+{
+  "sys": {
+    "type": "Array"
+  },
+  "total": 4,
+  "skip": 0,
+  "limit": 100,
+  "items": [
+    {
+      "metadata": {
+        "tags": [],
+        "concepts": []
+      },
+      "sys": {
+        "space": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Space",
+            "id": "jdkgyfmyd9sw"
+          }
+        },
+        "id": "solana-banner",
+        "type": "Entry",
+        "createdAt": "2024-01-15T10:00:00.000Z",
+        "updatedAt": "2024-01-15T10:00:00.000Z",
+        "environment": {
+          "sys": {
+            "id": "dev",
+            "type": "Link",
+            "linkType": "Environment"
+          }
+        },
+        "revision": 1,
+        "contentType": {
+          "sys": {
+            "type": "Link",
+            "linkType": "ContentType",
+            "id": "promotionalBanner"
+          }
+        }
+      },
+      "fields": {
+        "headline": "Solana is now supported",
+        "teaser": "Trade, send, and receive Solana tokens",
+        "showInMobile": true,
+        "linkUrl": "https://metamask.io/solana",
+        "undismissable": false,
+        "variableName": "solana",
+        "priorityPlacement": false,
+        "cardPlacement": 1,
+        "image": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Asset",
+            "id": "solana-image"
+          }
+        }
+      }
+    },
+    {
+      "metadata": {
+        "tags": [],
+        "concepts": []
+      },
+      "sys": {
+        "space": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Space",
+            "id": "jdkgyfmyd9sw"
+          }
+        },
+        "id": "smart-account-banner",
+        "type": "Entry",
+        "createdAt": "2024-01-15T10:00:00.000Z",
+        "updatedAt": "2024-01-15T10:00:00.000Z",
+        "environment": {
+          "sys": {
+            "id": "dev",
+            "type": "Link",
+            "linkType": "Environment"
+          }
+        },
+        "revision": 1,
+        "contentType": {
+          "sys": {
+            "type": "Link",
+            "linkType": "ContentType",
+            "id": "promotionalBanner"
+          }
+        }
+      },
+      "fields": {
+        "headline": "Start using smart accounts",
+        "teaser": "Enhanced security and functionality",
+        "showInMobile": true,
+        "linkUrl": "https://metamask.io/smart-accounts",
+        "undismissable": false,
+        "variableName": "smartAccount",
+        "priorityPlacement": false,
+        "cardPlacement": 2,
+        "image": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Asset",
+            "id": "smart-account-image"
+          }
+        }
+      }
+    },
+    {
+      "metadata": {
+        "tags": [],
+        "concepts": []
+      },
+      "sys": {
+        "space": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Space",
+            "id": "jdkgyfmyd9sw"
+          }
+        },
+        "id": "card-banner",
+        "type": "Entry",
+        "createdAt": "2024-01-15T10:00:00.000Z",
+        "updatedAt": "2024-01-15T10:00:00.000Z",
+        "environment": {
+          "sys": {
+            "id": "dev",
+            "type": "Link",
+            "linkType": "Environment"
+          }
+        },
+        "revision": 1,
+        "contentType": {
+          "sys": {
+            "type": "Link",
+            "linkType": "ContentType",
+            "id": "promotionalBanner"
+          }
+        }
+      },
+      "fields": {
+        "headline": "MetaMask Card",
+        "teaser": "Spend your crypto anywhere",
+        "showInMobile": true,
+        "linkUrl": "https://metamask.io/card",
+        "undismissable": false,
+        "variableName": "card",
+        "priorityPlacement": false,
+        "cardPlacement": 3,
+        "image": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Asset",
+            "id": "card-image"
+          }
+        }
+      }
+    },
+    {
+      "metadata": {
+        "tags": [],
+        "concepts": []
+      },
+      "sys": {
+        "space": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Space",
+            "id": "jdkgyfmyd9sw"
+          }
+        },
+        "id": "fund-banner",
+        "type": "Entry",
+        "createdAt": "2024-01-15T10:00:00.000Z",
+        "updatedAt": "2024-01-15T10:00:00.000Z",
+        "environment": {
+          "sys": {
+            "id": "dev",
+            "type": "Link",
+            "linkType": "Environment"
+          }
+        },
+        "revision": 1,
+        "contentType": {
+          "sys": {
+            "type": "Link",
+            "linkType": "ContentType",
+            "id": "promotionalBanner"
+          }
+        }
+      },
+      "fields": {
+        "headline": "Fund your wallet",
+        "teaser": "Buy crypto with your bank account",
+        "showInMobile": true,
+        "linkUrl": "https://metamask.io/fund",
+        "undismissable": false,
+        "variableName": "fund",
+        "priorityPlacement": false,
+        "cardPlacement": 4,
+        "image": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Asset",
+            "id": "fund-image"
+          }
+        }
+      }
+    }
+  ],
+  "includes": {
+    "Asset": [
+      {
+        "sys": {
+          "id": "solana-image",
+          "type": "Asset"
+        },
+        "fields": {
+          "file": {
+            "url": "//images.ctfassets.net/jdkgyfmyd9sw/solana-image/image.png"
+          }
+        }
+      },
+      {
+        "sys": {
+          "id": "smart-account-image",
+          "type": "Asset"
+        },
+        "fields": {
+          "file": {
+            "url": "//images.ctfassets.net/jdkgyfmyd9sw/smart-account-image/image.png"
+          }
+        }
+      },
+      {
+        "sys": {
+          "id": "card-image",
+          "type": "Asset"
+        },
+        "fields": {
+          "file": {
+            "url": "//images.ctfassets.net/jdkgyfmyd9sw/card-image/image.png"
+          }
+        }
+      },
+      {
+        "sys": {
+          "id": "fund-image",
+          "type": "Asset"
+        },
+        "fields": {
+          "file": {
+            "url": "//images.ctfassets.net/jdkgyfmyd9sw/fund-image/image.png"
+          }
+        }
+      }
+    ]
+  }
+}

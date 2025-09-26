@@ -27,6 +27,7 @@ export enum UserActionType {
   SET_APP_SERVICES_READY = 'SET_APP_SERVICES_READY',
   SET_EXISTING_USER = 'SET_EXISTING_USER',
   SET_IS_CONNECTION_REMOVED = 'SET_IS_CONNECTION_REMOVED',
+  SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN = 'SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN',
 }
 
 // User actions
@@ -103,6 +104,11 @@ export type SetIsConnectionRemovedAction =
     payload: { isConnectionRemoved: boolean };
   };
 
+export type SetMultichainAccountsIntroModalSeenAction =
+  Action<UserActionType.SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN> & {
+    payload: { seen: boolean };
+  };
+
 /**
  * User actions union type
  */
@@ -130,4 +136,5 @@ export type UserAction =
   | CheckedAuthAction
   | SetAppServicesReadyAction
   | SetExistingUserAction
-  | SetIsConnectionRemovedAction;
+  | SetIsConnectionRemovedAction
+  | SetMultichainAccountsIntroModalSeenAction;

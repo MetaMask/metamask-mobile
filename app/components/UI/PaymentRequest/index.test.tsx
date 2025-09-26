@@ -276,20 +276,6 @@ describe('PaymentRequest', () => {
         },
       );
     });
-
-    it('should not render network picker when feature flag is disabled', () => {
-      // Feature flag is already set to false in beforeEach
-      const { queryByTestId } = renderComponent({
-        chainId: '0x1',
-        networkImageSource: ethLogo,
-      });
-
-      const networkPicker = queryByTestId(
-        WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
-      );
-
-      expect(networkPicker).toBeNull();
-    });
   });
 
   describe('Clear Search Input Functionality', () => {

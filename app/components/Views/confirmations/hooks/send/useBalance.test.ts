@@ -1,95 +1,66 @@
+import BN from 'bnjs4';
+
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { AssetType } from '../../types/token';
-import {
-  evmSendStateMock,
-  TOKEN_ADDRESS_MOCK_1,
-} from '../../__mocks__/send.mock';
-import {
-  getEvmBalance,
-  GetEvmBalanceArgs,
-  getNonEvmBalance,
-  useBalance,
-} from './useBalance';
+import { evmSendStateMock, MOCK_NFT1155 } from '../../__mocks__/send.mock';
+import { useSendContext } from '../../context/send-context';
+import { useBalance } from './useBalance';
+
+jest.mock('../../context/send-context', () => ({
+  useSendContext: jest.fn(),
+}));
 
 const mockState = {
   state: evmSendStateMock,
 };
 
-const getEvmbalanceFnArguments = (params: Record<string, unknown>) => ({
-  accounts: { [TOKEN_ADDRESS_MOCK_1]: { balance: '0x3635C9ADC5DEA00000' } },
-  asset: {},
-  contractBalances: { '0x111': '0x3B9ACA00' },
-  from: TOKEN_ADDRESS_MOCK_1,
-  ...params,
-});
-
-describe('getPercentageValueFn', () => {
-  it('return default if no asset is passed', () => {
-    expect(
-      getEvmBalance(
-        getEvmbalanceFnArguments({
-          asset: undefined,
-        }) as unknown as GetEvmBalanceArgs,
-      ),
-    ).toStrictEqual('0');
-  });
-
-  it('return correct value for native token', () => {
-    expect(
-      getEvmBalance(
-        getEvmbalanceFnArguments({
-          asset: {
-            isNative: true,
-            chainId: '0x1',
-          },
-        }) as unknown as GetEvmBalanceArgs,
-      ),
-    ).toStrictEqual('1000');
-  });
-
-  it('return correct value for ERC20 token', () => {
-    expect(
-      getEvmBalance(
-        getEvmbalanceFnArguments({
-          asset: {
-            address: '0x111',
-            decimals: 2,
-          },
-        }) as unknown as GetEvmBalanceArgs,
-      ),
-    ).toStrictEqual('10000000');
-  });
-});
-
-describe('getNonEvmBalance', () => {
-  it('return default if no asset is passed', () => {
-    expect(getNonEvmBalance(undefined)).toStrictEqual('0');
-  });
-
-  it('return correct value for native token', () => {
-    expect(
-      getNonEvmBalance({
-        isNative: true,
-        chainId: '0x1',
-        balance: '0.0001',
-      } as AssetType),
-    ).toStrictEqual('0.0001');
-  });
-
-  it('return correct value for non-native token', () => {
-    expect(
-      getNonEvmBalance({
-        address: '0x111',
-        decimals: 2,
-        balance: '10.05',
-      } as AssetType),
-    ).toStrictEqual('10.05');
-  });
-});
+const mockUseSendContext = useSendContext as jest.MockedFunction<
+  typeof useSendContext
+>;
 
 describe('useBalance', () => {
-  it('return balance of the user', () => {
+  it('return default if no asset is passed', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: undefined,
+    } as unknown as ReturnType<typeof useSendContext>);
+
     const { result } = renderHookWithProvider(() => useBalance(), mockState);
-    expect(result.current).toEqual({ balance: '0' });
+
+    expect(result.current).toStrictEqual({
+      balance: '0',
+      decimals: 0,
+      rawBalanceBN: new BN('0'),
+    });
+  });
+
+  it('use asset.balance to get balance of ERC1155 tokens', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_NFT1155,
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { result } = renderHookWithProvider(() => useBalance(), mockState);
+
+    expect(result.current).toStrictEqual({
+      balance: '2',
+      decimals: 0,
+      rawBalanceBN: new BN(2, 10),
+    });
+  });
+
+  it('use asset.rawBalance to get balance if available', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        rawBalance: '0x3635C9ADC5DEA00000',
+        decimals: 18,
+      } as unknown as AssetType,
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { result } = renderHookWithProvider(() => useBalance(), mockState);
+
+    expect(result.current).toStrictEqual({
+      balance: '1000',
+      decimals: 18,
+      rawBalanceBN: new BN('3635c9adc5dea00000', 16),
+    });
   });
 });

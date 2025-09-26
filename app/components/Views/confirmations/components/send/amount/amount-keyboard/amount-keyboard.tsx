@@ -8,7 +8,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { TokenStandard } from '../../../../types/token';
+import { AssetType, TokenStandard } from '../../../../types/token';
+import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
@@ -43,12 +44,13 @@ export const AmountKeyboard = ({
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
   const { amountError } = useAmountValidation();
   const { asset, updateValue } = useSendContext();
+  const isNFT = asset?.standard === TokenStandard.ERC1155;
   const { styles } = useStyles(styleSheet, {
-    continueDisabled: Boolean(amountError),
+    amountError: Boolean(amountError),
+    submitDisabled: isNFT && !amount,
   });
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
-  const isNFT = asset?.standard === TokenStandard.ERC1155;
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
@@ -56,7 +58,7 @@ export const AmountKeyboard = ({
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
       );
-      updateValue(percentageAmount);
+      updateValue(percentageAmount, percentage === 100);
       if (percentage === 100) {
         setAmountInputMethodPressedMax();
       }
@@ -73,10 +75,17 @@ export const AmountKeyboard = ({
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
+      const fractionSize = getFractionLength(amt);
+      if (
+        (fiatMode && fractionSize > 2) ||
+        (!fiatMode && fractionSize > ((asset as AssetType)?.decimals ?? 0))
+      ) {
+        return;
+      }
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
     },
-    [fiatMode, getNativeValue, updateAmount, updateValue],
+    [asset, fiatMode, getNativeValue, updateAmount, updateValue],
   );
 
   const goToNextPage = useCallback(() => {
@@ -94,7 +103,7 @@ export const AmountKeyboard = ({
       additionalRow={
         amount.length > 0 || isNFT ? (
           <Button
-            disabled={Boolean(amountError)}
+            disabled={Boolean(amountError) || !amount}
             label={
               amountError ??
               (isNFT ? strings('send.next') : strings('send.continue'))
@@ -107,6 +116,7 @@ export const AmountKeyboard = ({
           />
         ) : undefined
       }
+      enableEmptyValueString
       hideDoneButton
       onChange={updateToNewAmount}
       onPercentagePress={updateToPercentageAmount}

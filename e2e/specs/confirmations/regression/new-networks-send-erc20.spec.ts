@@ -1,4 +1,4 @@
-import { Regression } from '../../../tags';
+import { RegressionConfirmations } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -12,7 +12,7 @@ import { DappVariants } from '../../../framework/Constants';
 import TestHelpers from '../../../helpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-describe(Regression('ERC20 tokens'), () => {
+describe(RegressionConfirmations('ERC20 tokens'), () => {
   // Table-driven tests for all networks
   for (const networkConfig of NETWORK_TEST_CONFIGS) {
     it(`send an ERC20 token from a dapp using ${networkConfig.name} (local)`, async () => {

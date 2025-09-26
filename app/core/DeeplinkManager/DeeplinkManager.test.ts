@@ -1,12 +1,20 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { waitFor } from '@testing-library/react-native';
+import Routes from '../../constants/navigation/Routes';
+import { RampType } from '../../reducers/fiatOrders/types';
+import FCMService from '../../util/notifications/services/FCMService';
+import NavigationService from '../NavigationService';
 import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
+import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
+import { handleDeeplink } from './Handlers/handleDeeplink';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
+import { handlePerpsUrl } from './Handlers/handlePerpsUrl';
 import handleRampUrl from './Handlers/handleRampUrl';
+import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
-import { RampType } from '../../reducers/fiatOrders/types';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
@@ -14,26 +22,25 @@ jest.mock('./Handlers/handleBrowserUrl');
 jest.mock('./Handlers/handleRampUrl');
 jest.mock('./ParseManager/parseDeeplink');
 jest.mock('./Handlers/switchNetwork');
+jest.mock('./Handlers/handleSwapUrl');
+jest.mock('./Handlers/handleCreateAccountUrl');
+jest.mock('./Handlers/handlePerpsUrl');
+jest.mock('./Handlers/handleDeeplink');
+jest.mock('../../util/notifications/services/FCMService');
 
 const mockNavigation = {
   navigate: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
 
-const mockDispatch = jest.fn();
-
 describe('DeeplinkManager', () => {
-  let deeplinkManager = new DeeplinkManager({
-    navigation: mockNavigation,
-    dispatch: mockDispatch,
-  });
+  let deeplinkManager: DeeplinkManager;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    deeplinkManager = new DeeplinkManager({
-      navigation: mockNavigation,
-      dispatch: mockDispatch,
-    });
+    // Ensure navigation is available before DeeplinkManager is constructed
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    NavigationService.navigation = mockNavigation as any;
+    deeplinkManager = new DeeplinkManager();
   });
 
   it('should set, get, and expire a deeplink correctly', () => {
@@ -142,6 +149,144 @@ describe('DeeplinkManager', () => {
       origin,
       browserCallBack,
       onHandled,
+    });
+  });
+
+  it('should handle open home correctly', () => {
+    deeplinkManager._handleOpenHome();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it('should handle swap correctly', () => {
+    const swapPath = '/swap/path';
+    deeplinkManager._handleSwap(swapPath);
+    expect(handleSwapUrl).toHaveBeenCalledWith({
+      swapPath,
+    });
+  });
+
+  it('should handle create account correctly', () => {
+    const createAccountPath = '/create/account/path';
+    deeplinkManager._handleCreateAccount(createAccountPath);
+    expect(handleCreateAccountUrl).toHaveBeenCalledWith({
+      path: createAccountPath,
+      navigation: mockNavigation,
+    });
+  });
+
+  it('should handle perps correctly', () => {
+    const perpsPath = '/perps/markets';
+    deeplinkManager._handlePerps(perpsPath);
+    expect(handlePerpsUrl).toHaveBeenCalledWith({
+      perpsPath,
+    });
+  });
+
+  it('should handle perps asset correctly', () => {
+    // Asset URLs now handled through _handlePerps with screen=asset parameter
+    deeplinkManager._handlePerps('perps?screen=asset&symbol=ETH');
+    expect(handlePerpsUrl).toHaveBeenCalledWith({
+      perpsPath: 'perps?screen=asset&symbol=ETH',
+    });
+  });
+});
+
+describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
+  const arrangeMocks = () => {
+    const mockOnClickPushNotificationWhenAppClosed = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppClosed,
+    );
+    const mockOnClickPushNotificationWhenAppSuspended = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppSuspended,
+    );
+    const mockHandleDeeplink = jest.mocked(handleDeeplink);
+
+    return {
+      mockOnClickPushNotificationWhenAppClosed,
+      mockOnClickPushNotificationWhenAppSuspended,
+      mockHandleDeeplink,
+    };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Push Notification - App Closed', () => {
+    const arrangeAct = async (deeplink: string | null) => {
+      const mocks = arrangeMocks();
+      mocks.mockOnClickPushNotificationWhenAppClosed.mockResolvedValue(
+        deeplink,
+      );
+
+      DeeplinkManager.start();
+
+      return mocks;
+    };
+
+    it('handles deeplink when push notification clicked from closed app', async () => {
+      const testDeeplink = 'https://link.metamask.io/perps-asset?symbol=ETH';
+
+      const mocks = await arrangeAct(testDeeplink);
+
+      await waitFor(() => {
+        expect(
+          mocks.mockOnClickPushNotificationWhenAppClosed,
+        ).toHaveBeenCalled();
+        expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+          uri: testDeeplink,
+        });
+      });
+    });
+
+    it('does not handle deeplink when no deeplink returned from closed app', async () => {
+      const mocks = await arrangeAct(null);
+
+      await waitFor(() => {
+        expect(
+          mocks.mockOnClickPushNotificationWhenAppClosed,
+        ).toHaveBeenCalled();
+        expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Push Notification - App Suspended', () => {
+    const arrangeAct = (deeplink?: string) => {
+      const mocks = arrangeMocks();
+
+      DeeplinkManager.start();
+
+      // Get the callback that was passed to onClickPushNotificationWhenAppSuspended
+      const suspendedCallback =
+        mocks.mockOnClickPushNotificationWhenAppSuspended.mock.calls[0][0];
+
+      // Simulate the callback being called
+      suspendedCallback(deeplink);
+
+      return mocks;
+    };
+
+    it('handles deeplink when push notification clicked from suspended app', () => {
+      const testDeeplink = 'https://link.metamask.io/perps-asset?symbol=ETH';
+
+      const mocks = arrangeAct(testDeeplink);
+
+      expect(
+        mocks.mockOnClickPushNotificationWhenAppSuspended,
+      ).toHaveBeenCalledWith(expect.any(Function));
+      expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: testDeeplink,
+      });
+    });
+
+    it('does not handle deeplink when no deeplink provided from suspended app', () => {
+      const mocks = arrangeAct(undefined);
+
+      expect(
+        mocks.mockOnClickPushNotificationWhenAppSuspended,
+      ).toHaveBeenCalledWith(expect.any(Function));
+      expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
     });
   });
 });

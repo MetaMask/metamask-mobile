@@ -33,7 +33,7 @@ const styleSheet = (params: {
       {
         backgroundColor,
         borderRadius: 12,
-        paddingHorizontal: 8,
+        paddingHorizontal: 4,
         paddingVertical: 16,
         justifyContent: 'center',
         alignItems: 'center',
@@ -47,10 +47,14 @@ const styleSheet = (params: {
     container: {
       alignItems: 'center',
       justifyContent: 'center',
+      width: '100%',
     },
     label: {
       textAlign: 'center',
       marginTop: 2,
+      width: '100%',
+      flexShrink: 0,
+      minWidth: 0,
     },
   });
 };

@@ -308,6 +308,95 @@ The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from
    yarn test:api-specs
    ```
 
+### Appwright
+
+This is a recent mobile framework which was built using appium and playwright. We adopted it to meet our need for running performance focused end to end tests on real iOS and Android devices through BrowserStack.
+
+#### Running Tests Against BrowserStack Devices
+
+You can get your BrowserStack username and access key from the Access key dropdown on the app automate screen in BrowserStack.
+
+##### Set Environment Variables for BrowserStack
+
+```bash
+export BROWSERSTACK_USERNAME='your_username'
+export BROWSERSTACK_ACCESS_KEY='your_access_key'
+```
+
+Update the config file with the appropriate BrowserStack app URL. You’ll need a BrowserStack URL first. To get it:
+
+1. Run `create_qa_builds_pipeline` on Bitrise
+2. Once done, open the **Artifacts** tab and find `browserstack_uploaded_apps.json` (from `build_android_qa` and `build_ios_qa`).
+
+See this [build](https://app.bitrise.io/app/be69d4368ee7e86d/pipelines/de2bf4ee-b000-4a7c-bd5b-c995ae0f3b4d?tab=artifacts) as an example.
+
+The first entry in that JSON will include your app’s URL (look for the bs:// prefix).
+
+Add it to the config file by replacing `process.env.BROWSERSTACK_ANDROID_APP_URL` in the `buildPath` with the appropriate BrowserStack application URL:
+
+```typescript
+{
+  name: 'browserstack-android',
+  use: {
+    platform: Platform.ANDROID,
+    device: {
+      provider: 'browserstack',
+      name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can be changed
+      osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can be changed
+    },
+    buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to BrowserStack URL bs:// link
+  },
+}
+```
+
+You can repeat the same for iOS builds by replacing `process.env.BROWSERSTACK_IOS_APP_URL` in the config.
+
+##### Run Android Tests on BrowserStack
+
+```bash
+yarn run-appwright:android-bs
+```
+
+##### Run iOS Tests on BrowserStack
+
+```bash
+yarn run-appwright:ios-bs
+```
+
+#### Testing Locally (Simulators/Emulators)
+
+You need to make sure that the artifact is created. Download the binary from the [runway](https://github.com/MetaMask/metamask-mobile/tree/MMQA-521-part-2?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Appwright.
+
+Then update the build path in the `ios` or `android` config:
+
+```typescript
+{
+  name: 'ios',
+  use: {
+    platform: Platform.IOS,
+    device: {
+      provider: 'emulator',
+      osVersion: '16.0', // this can be changed to your simulator version
+    },
+    buildPath: 'PATH-TO-BUILD', // Path to your .app file
+  },
+}
+```
+
+##### Test on Your Local Android Emulator
+
+```bash
+yarn run-appwright:android
+```
+
+##### Test on Your Local iOS Simulator
+
+```bash
+yarn run-appwright:ios
+```
+
+**Important**: If the test fail to start, double check the OS version your simulator/emulator is running and make sure the config has the correct version.
+
 ### Bitrise Pipelines Overview
 
 Our CI/CD process is automated through various Bitrise pipelines, each designed to streamline and optimize different aspects of our E2E testing.
@@ -315,7 +404,7 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 #### **1. PR_Smoke_e2e_Pipeline**
 
 - **Triggers**:
-  - **When "Run Smoke E2E" label is applied to a Pull request**: Automatically runs smoke tests.
+  - **When "run-ios-e2e-smoke" label is applied to a Pull request**: Automatically runs smoke tests.
 - **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `pr_smoke_e2e_pipeline` from the pipeline dropdown menu.
 
 #### **2. PR_Regression_e2e_Pipeline**
@@ -388,4 +477,5 @@ Our CI/CD process is automated through various Bitrise pipelines, each designed 
 For detailed E2E framework documentation, patterns, and best practices, see:
 
 - **[E2E Framework Guide](../../e2e/framework/README.md)** - Comprehensive guide to the TypeScript testing framework
+- **[Mocking Guide](../../e2e/MOCKING.md)** - Guide on how to mock API call in tests
 - **[General E2E Best Practices](https://github.com/MetaMask/contributor-docs/blob/main/docs/testing/e2e-testing.md)** - MetaMask-wide testing guidelines
