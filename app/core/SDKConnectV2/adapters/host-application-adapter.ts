@@ -8,31 +8,42 @@ import {
   getPermittedAccounts,
   removePermittedAccounts,
 } from '../../../core/Permissions';
+import {
+  hideNotificationById,
+  showSimpleNotification,
+} from '../../../actions/notification';
+import { strings } from '../../../../locales/i18n';
+import { ConnectionInfo } from '../types/connection-info';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
-  showLoading(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showLoading called but is not yet implemented.',
+  showConnectionLoading(conninfo: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo.id,
+        autodismiss: 8000,
+        title: strings('sdk_connect_v2.show_loading.title'),
+        description: strings('sdk_connect_v2.show_loading.description', {
+          dappName: conninfo.metadata.dapp.name,
+        }),
+        status: 'pending',
+      }),
     );
   }
 
-  hideLoading(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.hideLoading called but is not yet implemented.',
-    );
+  hideConnectionLoading(conninfo: ConnectionInfo): void {
+    store.dispatch(hideNotificationById(conninfo.id));
   }
 
-  showAlert(): void {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showAlert called but is not yet implemented.',
+  showConnectionError(): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_error.title'),
+        description: strings('sdk_connect_v2.show_error.description'),
+        status: 'error',
+      }),
     );
-  }
-
-  showOTPModal(): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showOTPModal called but is not yet implemented.',
-    );
-    return Promise.resolve();
   }
 
   syncConnectionList(conns: Connection[]): void {
