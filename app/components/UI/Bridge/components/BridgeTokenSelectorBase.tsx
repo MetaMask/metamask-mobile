@@ -204,7 +204,11 @@ export const BridgeTokenSelectorBase: React.FC<
     }, [pending, tokensToRenderWithSearch]);
 
   return (
-    <BottomSheet ref={sheetRef} isFullscreen>
+    <BottomSheet
+      ref={sheetRef}
+      isFullscreen
+      keyboardAvoidingViewEnabled={false}
+    >
       <BottomSheetHeader
         onClose={dismissModal}
         closeButtonProps={{ testID: 'bridge-token-selector-close-button' }}
