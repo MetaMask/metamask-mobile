@@ -118,15 +118,15 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput,
     accountNameSuggestion,
     skipAccountNameSuggestionDialog,
-    skipConfirmation,
+    skipApprovalFlow,
   }: {
     snapId: SnapId;
     accountNameSuggestion: string;
     handleUserInput: (accepted: boolean) => Promise<void>;
     skipAccountNameSuggestionDialog: boolean;
-    skipConfirmation: boolean;
+    skipApprovalFlow: boolean;
   }): Promise<{ accountName?: string }> {
-    if (skipConfirmation) {
+    if (skipApprovalFlow) {
       const { accountName } = await this.getAccountNameFromSuggestion(
         accountNameSuggestion,
       );
@@ -153,14 +153,14 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     address: _address,
     snapId,
     skipSetSelectedAccountStep,
-    skipConfirmation,
+    skipApprovalFlow,
     onceSaved,
     accountName,
   }: {
     address: string;
     snapId: SnapId;
     skipSetSelectedAccountStep: boolean;
-    skipConfirmation: boolean;
+    skipApprovalFlow: boolean;
     onceSaved: Promise<string>;
     accountName?: string;
   }) {
@@ -215,7 +215,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         Logger.error(error, 'Error occurred while creating snap account');
       }
     };
-    if (skipConfirmation) {
+    if (skipApprovalFlow) {
       return finalizeFn();
     }
     await this.withApprovalFlow(finalizeFn);
@@ -238,7 +238,10 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     // Only pre-installed Snaps can skip the account name suggestion dialog.
     const skipAccountNameSuggestionDialog =
       isSnapPreinstalled(snapId) && !displayAccountNameSuggestion;
-    const skipConfirmation = isSnapPreinstalled(snapId) && !displayConfirmation;
+    const skipApprovalFlow =
+      isSnapPreinstalled(snapId) &&
+      skipAccountNameSuggestionDialog &&
+      !displayConfirmation;
 
     // First part of the flow, which includes confirmation dialogs (if not skipped).
     // Once confirmed, we resume the Snap execution.
@@ -247,7 +250,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       accountNameSuggestion,
       handleUserInput,
       skipAccountNameSuggestionDialog,
-      skipConfirmation,
+      skipApprovalFlow,
     });
 
     // Only pre-installed Snaps can skip the account from being selected.
@@ -262,7 +265,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       address,
       snapId,
       skipSetSelectedAccountStep,
-      skipConfirmation,
+      skipApprovalFlow,
       onceSaved,
       accountName,
     });

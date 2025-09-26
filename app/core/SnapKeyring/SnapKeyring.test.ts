@@ -603,7 +603,8 @@ describe('Snap Keyring Methods', () => {
         method: KeyringEvent.AccountCreated,
         params: {
           account: mockAccount,
-          displayConfirmation: false, // This should trigger skipConfirmation=true
+          displayConfirmation: false, // This should trigger skipApprovalFlow=true
+          displayAccountNameSuggestion: false, // This should trigger skipAccountNameSuggestionDialog=true
           accountNameSuggestion: mockNameSuggestion,
         },
       });
