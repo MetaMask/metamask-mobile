@@ -846,6 +846,14 @@
       "title": "出错了",
       "description": "处理您的存款时出现错误。如果问题仍然存在，请联系支持团队。",
       "try_again": "请重试"
+    },
+    "errors": {
+      "fetch_regions": "There was an issue fetching the regions.",
+      "fetch_tokens": "There was an issue fetching the tokens.",
+      "fetch_payment_methods": "There was an issue fetching the payment methods.",
+      "try_again": "Try Again",
+      "error_details_title": "Error Details",
+      "see_more": "See more"
     }
   },
   "perps": {
@@ -858,10 +866,12 @@
     "margin_used": "已用保证金",
     "gtm_content": {
       "title": "永续合约已上线",
-      "title_description": "支持最高40倍杠杆的多空代币交易。一键使用任意 EVM 代币为账户充值。",
+      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "暂时不",
       "try_now": "开始"
     },
+    "today": "Today",
+    "yesterday": "Yesterday",
     "unrealized_pnl": "未实现盈亏",
     "withdraw": "提取",
     "refresh_balance": "刷新余额",
@@ -1051,6 +1061,8 @@
       "take_profit": "止盈",
       "stop_loss": "止损",
       "tp_sl": "止盈/止损",
+      "tp": "TP",
+      "sl": "SL",
       "button": {
         "long": "做多 {{asset}}",
         "short": "做空 {{asset}}"
@@ -1082,7 +1094,11 @@
         "entry_price": "建仓价",
         "current_price": "当前价格",
         "liquidation_price": "清算价格",
-        "liquidation_distance": "清算距离"
+        "liquidation_distance": "清算距离",
+        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
+        "drops": "drops",
+        "rises": "rises",
+        "set_leverage": "Set {{leverage}}x"
       },
       "type": {
         "title": "订单类型",
@@ -1167,6 +1183,7 @@
       "description": "选择盈利或亏损百分比，或输入自定义触发价，以自动平仓。",
       "off": "关闭",
       "current_price": "当前价格",
+      "entry_price": "Entry price",
       "leverage": "杠杆",
       "margin": "保证金",
       "liquidation_price": "清算价格",
@@ -1279,6 +1296,7 @@
         "empty_title": "无未平仓头寸",
         "empty_description": "您目前没有任何未平仓头寸。\n开始交易后，即可在此处将查看您的头寸。",
         "first_time_title": "永续合约",
+        "first_time_description": "Bet on price movements with up to 40x leverage.",
         "start_trading": "开始交易",
         "start_new_trade": "开始新交易",
         "open_positions": "未平仓头寸",
@@ -1319,6 +1337,8 @@
       "countdown": "倒计时",
       "long": "做多",
       "short": "做空",
+      "long_lowercase": "long",
+      "short_lowercase": "short",
       "add_funds": "充值",
       "add_funds_to_start_trading_perps": "充值以开始交易永续合约",
       "position": "仓位",
@@ -1424,6 +1444,11 @@
       "candle_intervals": "K 线周期",
       "candle_period_selector": {
         "show_more": "展开"
+      },
+      "time_periods": {
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days"
       }
     },
     "perps_markets": "永续合约市场",
@@ -1493,20 +1518,20 @@
       },
       "choose_leverage": {
         "title": "选择您的杠杆",
-        "description": "杠杆交易会同步放大收益和亏损。使用 10 倍杠杆时，1% 的价格波动将导致保证金产生 10% 的盈利或亏损。"
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "注意清算风险",
-        "description": "若代币价格触及清算价，您将损失全部保证金。杠杆倍数越高，意味着可避免清算的缓冲空间越小。"
+        "description": "如果代币价格触及您的清算价格，您将损失全部保证金。杠杆越高，意味着可避免清算的缓冲空间越小。"
       },
       "close_anytime": {
         "title": "随时平仓",
-        "description": "随时可以平仓。平仓后将获得保证金余额，并获得盈利或扣除亏损。"
+        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
       },
       "ready_to_trade": {
         "title": "准备好交易了吗？",
-        "fund_text_helper": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperEVM，无需任何额外费用。",
-        "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。"
+        "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。",
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
       },
       "got_it": "知道了"
     },
@@ -1516,6 +1541,51 @@
     "points_error_content": "请放心，您的积分仍在累计。稍后将在账户中显示或可在奖励标签页查看。",
     "tp_on_chart": "图表显示止盈",
     "sl_on_chart": "图表显示止损"
+  },
+  "predict": {
+    "title": "MetaMask Predict",
+    "prediction_markets": "Prediction Markets",
+    "market_list": "Market List",
+    "market_details": "Market Details",
+    "tab": {
+      "no_predictions": "No predictions yet",
+      "no_predictions_description": "Open a prediction to get started.",
+      "explore": "Explore markets",
+      "new_prediction": "New prediction"
+    },
+    "sell_position": "Sell Position",
+    "cash_out": "Cash Out",
+    "buy_yes": "Yes",
+    "buy_no": "No",
+    "outcomes": "outcomes",
+    "volume_abbreviated": "Vol.",
+    "recurrence": {
+      "none": "None",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "quarterly": "Quarterly"
+    },
+    "outcomes_singular": "more outcome",
+    "outcomes_plural": "more outcomes",
+    "category": {
+      "trending": "Trending",
+      "new": "New",
+      "sports": "Sports",
+      "crypto": "Crypto",
+      "politics": "Politics"
+    },
+    "search_placeholder": "Search prediction markets",
+    "search_cancel": "Cancel",
+    "claim_button": "Claim",
+    "markets_won": "Markets won",
+    "won_markets_text": "Won {{count}} market{{s}}",
+    "won_markets_text_singular": "Won {{count}} market",
+    "won_markets_text_plural": "Won {{count}} markets",
+    "claim_amount_text": "Claim ${{amount}}",
+    "unrealized_pnl_label": "Unrealized P&L",
+    "unrealized_pnl_value": "{{amount}} ({{percent}})"
   },
   "receive": {
     "title": "接收"
@@ -1586,6 +1656,7 @@
     "collectibles": "收藏品",
     "defi": "去中心化金融",
     "perps": "永续合约",
+    "predict": "Predictions",
     "transactions": "交易",
     "no_collectibles": "您没有任何收藏品！",
     "no_available_tokens": "没有看到您的代币？",
@@ -1650,6 +1721,8 @@
     "nfts_autodetection_cta": "在设置中打开 NFT 检测",
     "learn_more": "了解更多",
     "add_collectibles": "添加收藏品",
+    "nft_empty_description": "There's a world of NFTs out there. Start your collection today.",
+    "discover_nfts": "Import NFTs",
     "no_transactions": "您没有交易！",
     "switch_network_to_view_transactions": "请切换网络以查看交易",
     "send_button": "发送",
@@ -1759,6 +1832,10 @@
   },
   "defi_positions": {
     "loading_positions": "正在加载去中心化金融持仓......",
+    "empty_state": {
+      "description": "Lend, borrow, and trade, right in your wallet.",
+      "explore_defi": "Explore DeFi"
+    },
     "error_cannot_load_page": "我们无法加载该页面。",
     "error_visit_again": "请稍后再次尝试访问。",
     "single_token": "仅限 {{symbol}}",
@@ -2442,8 +2519,8 @@
     "cancel": "取消"
   },
   "sdk_return_to_app_toast": {
-    "returnToAppLabel": "返回应用程序",
-    "networkSwitchMethodLabel": "网络切换成功"
+    "returnToAppLabel": "Now you can return to app",
+    "networkSwitchMethodLabel": "Network successfully switched"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -2549,6 +2626,7 @@
     "deposit_button": "存款",
     "earn_button": "赚取",
     "perps_button": "永续合约",
+    "predict_button": "Predictions",
     "add_collectible_button": "添加",
     "info": "信息",
     "swap": "兑换",
@@ -2582,6 +2660,7 @@
     "receive_description": "接收加密货币",
     "earn_description": "通过您的代币赚取奖励",
     "perps_description": "交易永续合约",
+    "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "今天",
       "7d": "过去 7 天",
@@ -3043,6 +3122,8 @@
     "request_from": "请求来自",
     "network_fee": "网络费",
     "network_fee_tooltip": "网络上处理交易所支付的金额。",
+    "confirm_gas_fee_token_tooltip": "This is paid to the network to process your transaction. It includes a {{metamaskFeeFiat}} MetaMask fee for non-ETH tokens or pre-funded ETH.",
+    "confirm_gas_fee_token_metamask_fee": "Includes {{metamaskFeeFiat}} fee",
     "smart_account_upgrade": "升级至智能账户",
     "smart_account_downgrade": "切换到标准账户",
     "batched_transactions": "批量交易",
@@ -4065,6 +4146,11 @@
     "change_cash_destination": "更改现金目的地",
     "try_different_region": "请尝试其他区域",
     "return_home": "返回主屏幕",
+    "incompatible_token_account_modal": {
+      "title": "Incompatible Account",
+      "description": "Your current account cannot support tokens on {{networkName}}. Please switch to a compatible account to continue.",
+      "cta": "Got it"
+    },
     "region": {
       "buy_crypto_tokens": "购买加密代币",
       "sell_crypto_tokens": "卖出加密代币",
@@ -5356,7 +5442,7 @@
     "title": "桥接",
     "submitting_transaction": "正在提交",
     "fetching_quote": "正在获取报价",
-    "fee_disclaimer": "包含0.875%的做市商手续费",
+    "fee_disclaimer": "Includes {{feePercentage}}% MM fee",
     "no_mm_fee": "No MM fee",
     "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "目前暂不支持硬件钱包。请改用热钱包继续操作。",
@@ -5692,6 +5778,52 @@
     "failed_to_authenticate": "Failed to authenticate with rewards program",
     "not_implemented": "即将推出",
     "not_implemented_season_summary": "赛季总结即将推出",
+    "optin_error": {
+      "title": "Opt-in failed",
+      "description": "Check your connection and try again."
+    },
+    "season_status_error": {
+      "error_fetching_title": "Season balance couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "active_boosts_error": {
+      "error_fetching_title": "Boosts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "unlocked_rewards_error": {
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "upcoming_rewards_error": {
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "referral_details_error": {
+      "error_fetching_title": "Referral details couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "referral_validation_unknown_error": {
+      "title": "Referral code couldn’t be validated",
+      "description": "Check your connection and try again."
+    },
+    "active_activity_error": {
+      "error_fetching_title": "Activity couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "claim_reward_error": {
+      "title": "Failed to claim reward"
+    },
+    "accounts_opt_in_state_error": {
+      "error_fetching_title": "Accounts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "referral_rewards_title": "推荐",
     "points": "积分",
     "point": "积分",
@@ -5711,8 +5843,8 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
-    "toast_dismiss": "Dismiss",
     "events": {
+      "to": "to",
       "type": {
         "swap": "交换",
         "perps": "永续合约",
@@ -5731,21 +5863,26 @@
     "onboarding": {
       "not_supported_region_title": "不支持此地区",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_account_needed_title": "Ethereum account needed",
-      "not_supported_account_needed_description": "MetaMask Rewards aren't available for Solana accounts yet. Switch to an Ethereum account to claim your points.",
-      "not_supported_confirm": "知道了",
+      "not_supported_hardware_account_title": "Account not supported",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_confirm_go_back": "Go back",
+      "not_supported_confirm_retry": "Retry",
+      "auth_fail_title": "Authentication Failed",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
+      "geo_check_fail_title": "Cannot determine opt-in eligibility",
+      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking opt-in for accounts...",
-      "redirecting_to_dashboard": "Redirecting to dashboard...",
+      "checking_opt_in": "Checking accounts...",
+      "redirecting_to_dashboard": "Redirecting...",
       "intro_skip": "暂时不",
       "step_confirm": "下一步",
       "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
-      "step1_description": "您在 MetaMask 的每次兑换和永续合约交易都将加速解锁奖励。关联账户，见证积分不断累积。",
+      "step1_description": "您在 MetaMask 进行的每次兑换和永续合约交易都将助您加速解锁奖励。添加您的账户，见证积分不断累积。",
       "step2_title": "Level up for bigger perks",
       "step2_description": "达成积分里程碑可享专属福利：永续合约手续费5折优惠、独家代币及免费 MetaMask Metal Card 等。",
       "step3_title": "Exclusive seasonal rewards",
@@ -5758,10 +5895,10 @@
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
-      "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
-      "step4_linking_accounts_loading": "Linking additional accounts...",
+      "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
+      "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
       "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
       "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
       "step4_legal_disclaimer_4": "learn more"
@@ -5769,63 +5906,77 @@
     "settings": {
       "title": "Rewards Settings",
       "subtitle": "Accounts",
-      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
-      "error_title": "Unable to Load Linked Accounts",
-      "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
-      "error_retry": "Retry",
-      "tab_linked_accounts": "Linked ({{count}})",
-      "tab_unlinked_accounts": "Unlinked ({{count}})",
-      "no_linked_accounts": "No linked accounts",
-      "all_accounts_linked_title": "All accounts are linked",
-      "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
-      "link_account_success_title": "Account {{accountName}} successfully linked",
-      "link_account_error_title": "Failed to link account",
-      "link_account_button": "Link"
+      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
+      "tab_linked_accounts": "Added ({{count}})",
+      "tab_unlinked_accounts": "Not added ({{count}})",
+      "no_linked_accounts": "No accounts opted in",
+      "all_accounts_linked_title": "All accounts opted in",
+      "all_accounts_linked_description": "You have added all your accounts to Rewards.",
+      "link_account_success_title": "{{accountName}} successfully added",
+      "link_account_error_title": "Failed to add account",
+      "link_account_button": "Add",
+      "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
     },
     "optout": {
       "title": "Opt out of Rewards",
-      "description": "This will erase your points and progress. You won't be able to undo this.",
+      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
       "confirm": "Opt out",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll restart at 0.",
+        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
         "cancel": "Cancel",
         "confirm": "Confirm",
-        "error_message": "Failed to opt out of rewards program. Please try again.",
+        "error_message": "Failed to opt out of Rewards. Please try again.",
         "processing": "Processing..."
       }
     },
     "unlinked_accounts_info": {
-      "title": "There are unlinked accounts",
-      "description": "If you want to earn points for the activity of these accounts you can link them in the settings page.",
+      "title": "Accounts not earning points",
+      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
       "go_to_settings": "Go to settings"
     },
     "unlinked_account_info": {
-      "title": "Account not linked",
+      "title": "Account not earning points",
       "description": "This account's activity is not being tracked for this season."
     },
-    "link_account": "Link account",
-    "linking_account": "Linking...",
+    "link_account": "Add account",
+    "linking_account": "Adding...",
     "ways_to_earn": {
       "title": "Ways to earn",
       "supported_networks": "Supported Networks",
       "swap": {
         "title": "Swap",
-        "sheet_title": "Swap tokens",
-        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
-        "points": "80 points per $100",
-        "cta_label": "Start a swap"
+        "description": "80 points per $100",
+        "sheet": {
+          "title": "Swap tokens",
+          "points": "80 points per $100",
+          "description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+          "cta_label": "Start a swap"
+        }
       },
       "perps": {
         "title": "永续合约",
-        "sheet_title": "交易永续合约",
-        "sheet_description": "每笔交易均可赚取积分，包括开仓与平仓、止损与止盈订单设置以及保证金调整等操作。",
-        "points": "每 100 美元 10 积分",
-        "cta_label": "开始交易"
+        "description": "10 points per $100",
+        "sheet": {
+          "title": "Trade perps",
+          "points": "10 points per $100",
+          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+          "cta_label": "Start a trade"
+        }
       },
       "referrals": {
-        "title": "Referrals",
-        "points": "Get 20% from friends you refer"
+        "title": "Refer friends",
+        "description": "10 points per 50 from friends"
+      },
+      "loyalty": {
+        "title": "Loyalty bonus",
+        "description": "Earn points from past trades",
+        "sheet": {
+          "title": "Loyalty bonus",
+          "points": "250 points per $1250",
+          "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
+          "cta_label": "Add accounts"
+        }
       }
     },
     "referral": {
@@ -5837,13 +5988,10 @@
       },
       "info": {
         "title": "分享您的邀请码以赚取更多",
-        "description": "您的好友获得奖励积分，您可获得其奖励的 20% 分成。"
+        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
-    "active_boosts": {
-      "title": "Active boosts",
-      "error": "Failed to load active boosts"
-    },
+    "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
       "title": "Upcoming rewards",
@@ -5853,8 +6001,6 @@
     },
     "unlocked_rewards": {
       "title": "Unlocked rewards",
-      "empty": "No rewards yet. \nEarn points and level up.",
-      "see_ways_to_earn": "See ways to earn",
       "cta_label": "Claim now",
       "cta_request_invite": "Request invite",
       "claim_label": "Claim",
@@ -5881,6 +6027,8 @@
     "summary_title": {
       "bridge": "从 {{sourceSymbol}} 桥接至 {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
+      "bridge_approval_loading": "Approve",
+      "bridge_loading": "Bridge",
       "default": "交易",
       "perps_deposit": "充值",
       "swap": "兑换代币",
