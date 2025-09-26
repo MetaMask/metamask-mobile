@@ -75,7 +75,7 @@ export const useToAddressValidation = () => {
     loading?: boolean;
     resolvedAddress?: string;
   }>(async () => {
-    const result = validateToAddress(to);
+    const result = await validateToAddress(to);
     return { ...result, toAddressValidated: to };
   }, [validateToAddress, to]);
 
