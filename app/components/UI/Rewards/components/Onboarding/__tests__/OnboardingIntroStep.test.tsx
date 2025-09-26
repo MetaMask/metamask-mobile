@@ -82,6 +82,11 @@ jest.mock('../../../../../../core/Multichain/utils', () => ({
   isSolanaAccount: jest.fn(() => false),
 }));
 
+// Mock hardware account utils
+jest.mock('../../../../../../util/address', () => ({
+  isHardwareAccount: jest.fn(() => false),
+}));
+
 // Mock useGeoRewardsMetadata hook
 jest.mock('../../../hooks/useGeoRewardsMetadata', () => ({
   useGeoRewardsMetadata: jest.fn(() => ({
@@ -99,6 +104,12 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 describe('OnboardingIntroStep', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset hardware account mock to default (false)
+    const mockIsHardwareAccount = jest.requireMock(
+      '../../../../../../util/address',
+    ).isHardwareAccount as jest.Mock;
+    mockIsHardwareAccount.mockReturnValue(false);
   });
 
   describe('rendering', () => {
@@ -292,6 +303,12 @@ describe('OnboardingIntroStep', () => {
       mockIsSolanaAccount.mockClear();
       mockIsSolanaAccount.mockReturnValue(false);
 
+      // Ensure hardware account check returns false so geo check is reached
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
       const mockSelectorWithGeoBlocked = jest.fn((selector) => {
         const state = {
           rewards: {
@@ -350,12 +367,153 @@ describe('OnboardingIntroStep', () => {
           description:
             'mocked_rewards.onboarding.not_supported_region_description',
           confirmAction: {
-            label: 'mocked_rewards.onboarding.not_supported_confirm',
+            label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
             onPress: expect.any(Function),
             variant: 'Primary',
           },
         },
       );
+    });
+
+    it('should show error modal when account is hardware wallet', () => {
+      // Mock hardware account check to return true
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(true);
+
+      const mockSelectorWithHardwareAccount = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true, // Geo is allowed, so hardware check is reached
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-hardware-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-hardware-account',
+                  accounts: {
+                    'test-hardware-account': {
+                      type: 'eip155:eoa',
+                      address: '0x123',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-hardware-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorHardware = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorHardware.mockImplementation(
+        mockSelectorWithHardwareAccount,
+      );
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      const confirmButton = screen.getByText(
+        'mocked_rewards.onboarding.intro_confirm',
+      );
+      fireEvent.press(confirmButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        {
+          title:
+            'mocked_rewards.onboarding.not_supported_hardware_account_title',
+          description:
+            'mocked_rewards.onboarding.not_supported_hardware_account_description',
+          confirmAction: {
+            label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
+            onPress: expect.any(Function),
+            variant: 'Primary',
+          },
+        },
+      );
+    });
+
+    it('should proceed to onboarding when account is not a hardware wallet', () => {
+      // Mock hardware account check to return false
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
+      const mockSelectorWithRegularAccount = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-regular-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-regular-account',
+                  accounts: {
+                    'test-regular-account': {
+                      type: 'eip155:eoa',
+                      address: '0x456',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-regular-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorRegular = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorRegular.mockImplementation(mockSelectorWithRegularAccount);
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      const confirmButton = screen.getByText(
+        'mocked_rewards.onboarding.intro_confirm',
+      );
+      fireEvent.press(confirmButton);
+
+      // Should proceed to next onboarding step
+      expect(mockDispatch).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_ONBOARDING_1);
     });
   });
 
@@ -411,7 +569,7 @@ describe('OnboardingIntroStep', () => {
       expect(screen.queryByTestId('onboarding-intro-container')).toBeNull();
     });
 
-    it('should show error banner when candidateSubscriptionId is error', () => {
+    it('should show error modal when candidateSubscriptionId is error', () => {
       const mockSelectorWithError = jest.fn((selector) => {
         const state = {
           rewards: {
@@ -458,24 +616,25 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      // Should show error banner
-      expect(
-        screen.getByText('mocked_rewards.auth_fail_banner.title'),
-      ).toBeDefined();
-      expect(
-        screen.getByText('mocked_rewards.auth_fail_banner.description'),
-      ).toBeDefined();
-
-      // Should show retry and cancel buttons
-      expect(
-        screen.getByText('mocked_rewards.auth_fail_banner.cta_retry'),
-      ).toBeDefined();
-      expect(
-        screen.getByText('mocked_rewards.auth_fail_banner.cta_cancel'),
-      ).toBeDefined();
+      // Should show error modal via navigation
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        {
+          title: 'mocked_rewards.onboarding.auth_fail_title',
+          description: 'mocked_rewards.onboarding.auth_fail_description',
+          confirmAction: {
+            label: 'mocked_rewards.onboarding.not_supported_confirm_retry',
+            onPress: expect.any(Function),
+            variant: 'Primary',
+          },
+          onCancel: expect.any(Function),
+          cancelLabel:
+            'mocked_rewards.onboarding.not_supported_confirm_go_back',
+        },
+      );
     });
 
-    it('should dispatch setCandidateSubscriptionId with retry when retry button is pressed', () => {
+    it('should dispatch setCandidateSubscriptionId with retry when modal retry is triggered', () => {
       const mockSelectorWithError = jest.fn((selector) => {
         const state = {
           rewards: {
@@ -522,10 +681,22 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const retryButton = screen.getByText(
-        'mocked_rewards.auth_fail_banner.cta_retry',
+      // Should have called navigation with retry function
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          confirmAction: expect.objectContaining({
+            onPress: expect.any(Function),
+          }),
+        }),
       );
-      fireEvent.press(retryButton);
+
+      // Get the retry function from the mock call and execute it
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const retryFunction = navCall[1].confirmAction.onPress;
+      retryFunction();
 
       // Should dispatch setCandidateSubscriptionId with 'retry'
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -536,7 +707,7 @@ describe('OnboardingIntroStep', () => {
       );
     });
 
-    it('should navigate to wallet view when cancel button is pressed', () => {
+    it('should navigate back when modal cancel is triggered', () => {
       const mockSelectorWithError = jest.fn((selector) => {
         const state = {
           rewards: {
@@ -583,13 +754,23 @@ describe('OnboardingIntroStep', () => {
 
       renderWithProviders(<OnboardingIntroStep />);
 
-      const cancelButton = screen.getByText(
-        'mocked_rewards.auth_fail_banner.cta_cancel',
+      // Should have called navigation with cancel function
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          onCancel: expect.any(Function),
+        }),
       );
-      fireEvent.press(cancelButton);
 
-      // Should navigate to wallet view
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      // Get the cancel function from the mock call and execute it
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      );
+      const cancelFunction = navCall[1].onCancel;
+      cancelFunction();
+
+      // Should navigate back
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -645,139 +826,6 @@ describe('OnboardingIntroStep', () => {
 
       // Should navigate to rewards dashboard
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
-    });
-  });
-
-  describe('geo error banner functionality', () => {
-    it('should show geo error banner when geo rewards metadata fails to load', () => {
-      const mockSelectorWithGeoError = jest.fn((selector) => {
-        const state = {
-          rewards: {
-            optinAllowedForGeo: false,
-            optinAllowedForGeoLoading: false,
-            optinAllowedForGeoError: true,
-            onboardingActiveStep: 'intro',
-            candidateSubscriptionId: null,
-            rewardsControllerState: {
-              activeAccount: {
-                subscriptionId: null,
-                account: 'test-account',
-                hasOptedIn: false,
-              },
-            },
-          },
-          engine: {
-            backgroundState: {
-              AccountsController: {
-                internalAccounts: {
-                  selectedAccount: 'test-account',
-                  accounts: {
-                    'test-account': {
-                      type: 'eip155:eoa',
-                    },
-                  },
-                },
-              },
-              RewardsController: {
-                activeAccount: {
-                  subscriptionId: null,
-                  account: 'test-account',
-                  hasOptedIn: false,
-                },
-              },
-            },
-          },
-        };
-        return selector(state);
-      });
-
-      const mockUseSelectorWithGeoError = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorWithGeoError.mockImplementation(mockSelectorWithGeoError);
-
-      renderWithProviders(<OnboardingIntroStep />);
-
-      // Should show geo error banner
-      expect(
-        screen.getByText(
-          'mocked_rewards.geo_rewards_metadata_error.error_fetching_title',
-        ),
-      ).toBeDefined();
-      expect(
-        screen.getByText(
-          'mocked_rewards.geo_rewards_metadata_error.error_fetching_description',
-        ),
-      ).toBeDefined();
-      expect(
-        screen.getByText(
-          'mocked_rewards.geo_rewards_metadata_error.retry_button',
-        ),
-      ).toBeDefined();
-    });
-
-    it('should call fetchGeoRewardsMetadata when retry button is pressed in geo error banner', () => {
-      const mockFetchGeoRewardsMetadata = jest.fn();
-      const mockUseGeoRewardsMetadata = jest.requireMock(
-        '../../../hooks/useGeoRewardsMetadata',
-      ).useGeoRewardsMetadata as jest.Mock;
-      mockUseGeoRewardsMetadata.mockReturnValue({
-        fetchGeoRewardsMetadata: mockFetchGeoRewardsMetadata,
-      });
-
-      const mockSelectorWithGeoError = jest.fn((selector) => {
-        const state = {
-          rewards: {
-            optinAllowedForGeo: false,
-            optinAllowedForGeoLoading: false,
-            optinAllowedForGeoError: true,
-            onboardingActiveStep: 'intro',
-            candidateSubscriptionId: null,
-            rewardsControllerState: {
-              activeAccount: {
-                subscriptionId: null,
-                account: 'test-account',
-                hasOptedIn: false,
-              },
-            },
-          },
-          engine: {
-            backgroundState: {
-              AccountsController: {
-                internalAccounts: {
-                  selectedAccount: 'test-account',
-                  accounts: {
-                    'test-account': {
-                      type: 'eip155:eoa',
-                    },
-                  },
-                },
-              },
-              RewardsController: {
-                activeAccount: {
-                  subscriptionId: null,
-                  account: 'test-account',
-                  hasOptedIn: false,
-                },
-              },
-            },
-          },
-        };
-        return selector(state);
-      });
-
-      const mockUseSelectorWithGeoError = jest.requireMock('react-redux')
-        .useSelector as jest.Mock;
-      mockUseSelectorWithGeoError.mockImplementation(mockSelectorWithGeoError);
-
-      renderWithProviders(<OnboardingIntroStep />);
-
-      const retryButton = screen.getByText(
-        'mocked_rewards.geo_rewards_metadata_error.retry_button',
-      );
-      fireEvent.press(retryButton);
-
-      // Should call the fetch function
-      expect(mockFetchGeoRewardsMetadata).toHaveBeenCalledTimes(1);
     });
   });
 

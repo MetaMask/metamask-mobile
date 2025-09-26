@@ -62,6 +62,7 @@ import useOriginSource from '../../../hooks/useOriginSource.ts';
 import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
+  mergeCaip25Values,
 } from '../../AccountConnect/utils.ts';
 import {
   getPhishingTestResultAsync,
@@ -108,10 +109,17 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const existingPermissionsCaip25CaveatValue = useMemo(
     () =>
-      getRequestedCaip25CaveatValue(
-        existingPermissionsForHost,
-        hostInfo?.metadata?.origin,
-      ),
+      existingPermissionsForHost
+        ? getRequestedCaip25CaveatValue(
+            existingPermissionsForHost,
+            hostInfo?.metadata?.origin,
+          )
+        : {
+            requiredScopes: {},
+            optionalScopes: {},
+            sessionProperties: {},
+            isMultichainOrigin: true,
+          },
     [existingPermissionsForHost, hostInfo?.metadata?.origin],
   );
 
@@ -122,6 +130,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         hostInfo.metadata.origin,
       ),
     [hostInfo.permissions, hostInfo.metadata.origin],
+  );
+
+  const requestedRequestWithExistingPermissions = useMemo(
+    () =>
+      mergeCaip25Values(
+        existingPermissionsCaip25CaveatValue,
+        requestedCaip25CaveatValue,
+      ),
+    [existingPermissionsCaip25CaveatValue, requestedCaip25CaveatValue],
   );
 
   const requestedCaipAccountIds = useMemo(
@@ -452,7 +469,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       permissions: {
         ...hostInfo.permissions,
         ...getCaip25PermissionsResponse(
-          requestedCaip25CaveatValue,
+          requestedRequestWithExistingPermissions,
           selectedCaipAccountIds,
           selectedChainIds,
         ),
@@ -506,7 +523,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   }, [
     hostInfo,
     channelIdOrHostname,
-    requestedCaip25CaveatValue,
+    requestedRequestWithExistingPermissions,
     selectedCaipAccountIds,
     selectedChainIds,
     selectedAccountGroupIds.length,
