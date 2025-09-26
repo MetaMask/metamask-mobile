@@ -195,7 +195,7 @@ export async function isAtomicBatchSupported(
   request: IsAtomicBatchSupportedRequest,
 ): Promise<IsAtomicBatchSupportedResult> {
   const { TransactionController } = Engine.context;
-  return TransactionController.isAtomicBatchSupported(request);
+  return TransactionController?.isAtomicBatchSupported(request);
 }
 
 function sanitizeTransactionParamsGasValues(

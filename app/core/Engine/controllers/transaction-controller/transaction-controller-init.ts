@@ -15,10 +15,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 
 import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
-import {
-  selectShouldUseSmartTransaction,
-  selectSmartTransactionsEnabled,
-} from '../../../../selectors/smartTransactionsController';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
 import {
   submitSmartTransactionHook,
@@ -125,7 +122,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           const { chainId } = transactionMeta;
           const state = getState();
 
-          return !selectSmartTransactionsEnabled(state, chainId);
+          return !selectShouldUseSmartTransaction(state, chainId);
         },
         isSimulationEnabled: () =>
           preferencesController.state.useTransactionSimulations,
