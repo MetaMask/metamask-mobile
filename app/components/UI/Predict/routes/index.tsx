@@ -25,6 +25,14 @@ const PredictModalStack = () => (
       name={Routes.PREDICT.MODALS.CASH_OUT}
       component={PredictCashOut}
     />
+    <ModalStack.Screen
+      name={Routes.PREDICT.MARKET_DETAILS}
+      component={PredictMarketDetails}
+      options={{
+        title: strings('predict.market.details.title'),
+        headerShown: true,
+      }}
+    />
   </ModalStack.Navigator>
 );
 
@@ -45,15 +53,6 @@ const PredictScreenStack = () => (
         title: strings('predict.markets.title'),
         headerShown: false,
         animationEnabled: false,
-      }}
-    />
-
-    <Stack.Screen
-      name={Routes.PREDICT.MARKET_DETAILS}
-      component={PredictMarketDetails}
-      options={{
-        title: strings('predict.market.details.title'),
-        headerShown: true,
       }}
     />
 

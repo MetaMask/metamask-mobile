@@ -593,6 +593,7 @@ export const parsePolymarketEvents = (
         ? PredictMarketStatus.CLOSED
         : PredictMarketStatus.OPEN,
       recurrence: getRecurrence(event.series),
+      endDate: event.endDate,
       categories: [category],
       outcomes: event.markets.map((market: PolymarketApiMarket) => {
         const outcomeTokensIds = market.clobTokenIds
@@ -727,4 +728,20 @@ export const getMarketFromPolymarketApi = async ({
   const responseData = await response.json();
   const market = responseData[0];
   return market as PolymarketApiMarket;
+};
+
+export const getMarketDetailsFromGammaApi = async ({
+  marketId,
+}: {
+  marketId: string;
+}): Promise<PolymarketApiEvent> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+  const response = await fetch(`${GAMMA_API_ENDPOINT}/events/${marketId}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to get market details');
+  }
+
+  const responseData = await response.json();
+  return responseData as PolymarketApiEvent;
 };

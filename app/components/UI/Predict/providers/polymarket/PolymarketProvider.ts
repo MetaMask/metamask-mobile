@@ -8,10 +8,13 @@ import {
   OffchainTradeResponse,
   OnchainTradeParams,
   PredictActivity,
+  PredictCategory,
   PredictMarket,
   PredictOrder,
   PredictPosition,
   Side,
+  PredictPriceHistoryPoint,
+  GetPriceHistoryParams,
 } from '../../types';
 import {
   GetMarketsParams,
@@ -36,8 +39,10 @@ import {
   createApiKey,
   encodeApprove,
   encodeErc1155Approve,
+  getMarketDetailsFromGammaApi,
   getContractConfig,
   getL2Headers,
+  parsePolymarketEvents,
   getMarketFromPolymarketApi,
   getMarketsFromPolymarketApi,
   getOrderTypedData,
@@ -59,10 +64,36 @@ export class PolymarketProvider implements PredictProvider {
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
 
-  public getMarketDetails(_params: {
+  private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
+
+  public async getMarketDetails({
+    marketId,
+  }: {
     marketId: string;
   }): Promise<PredictMarket> {
-    throw new Error('Method not implemented.');
+    if (!marketId) {
+      throw new Error('marketId is required');
+    }
+
+    try {
+      const event = await getMarketDetailsFromGammaApi({
+        marketId,
+      });
+
+      const [parsedMarket] = parsePolymarketEvents(
+        [event],
+        PolymarketProvider.FALLBACK_CATEGORY,
+      );
+
+      if (!parsedMarket) {
+        throw new Error('Failed to parse market details');
+      }
+
+      return parsedMarket;
+    } catch (error) {
+      DevLogger.log('Error getting market details via Polymarket API:', error);
+      throw error;
+    }
   }
   public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
     throw new Error('Method not implemented.');
@@ -166,6 +197,61 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  public async getPriceHistory({
+    market,
+    fidelity,
+    interval,
+  }: GetPriceHistoryParams): Promise<PredictPriceHistoryPoint[]> {
+    if (!market) {
+      throw new Error('market parameter is required');
+    }
+
+    try {
+      const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+      const searchParams = new URLSearchParams({ market });
+
+      if (typeof fidelity === 'number') {
+        searchParams.set('fidelity', String(fidelity));
+      }
+
+      if (interval) {
+        searchParams.set('interval', interval);
+      }
+
+      const response = await fetch(
+        `${CLOB_ENDPOINT}/prices-history?${searchParams.toString()}`,
+        {
+          method: 'GET',
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get price history');
+      }
+
+      const data = (await response.json()) as {
+        history?: { t?: number; p?: number }[];
+      };
+
+      if (!Array.isArray(data?.history)) {
+        return [];
+      }
+
+      return data.history
+        .filter(
+          (entry): entry is { t: number; p: number } =>
+            typeof entry?.t === 'number' && typeof entry?.p === 'number',
+        )
+        .map((entry) => ({
+          timestamp: entry.t,
+          price: entry.p,
+        }));
+    } catch (error) {
+      DevLogger.log('Error getting price history via Polymarket API:', error);
+      return [];
+    }
+  }
+
   public async getPositions({
     address,
     limit = 100, // todo: reduce this once we've decided on the pagination approach
@@ -176,6 +262,9 @@ export class PolymarketProvider implements PredictProvider {
     offset?: number;
   }): Promise<PredictPosition[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+
+    // NOTE: hardcoded address for testing
+    // address = '0x33a90b4f8a9cccfe19059b0954e3f052d93efc00';
 
     const response = await fetch(
       `${DATA_API_ENDPOINT}/positions?limit=${limit}&offset=${offset}&user=${address}&sortBy=CURRENT`,

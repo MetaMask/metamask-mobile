@@ -26,12 +26,14 @@ import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { GetMarketsParams, PredictProvider } from '../providers/types';
 import {
   BuyParams,
+  GetPriceHistoryParams,
   GetPositionsParams,
   OffchainTradeResponse,
   PredictMarket,
   PredictNotification,
   PredictOrder,
   PredictPosition,
+  PredictPriceHistoryPoint,
   Result,
   SellParams,
 } from '../types';
@@ -43,6 +45,8 @@ import {
 export const PREDICT_ERROR_CODES = {
   CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
   MARKETS_FAILED: 'MARKETS_FAILED',
+  MARKET_DETAILS_FAILED: 'MARKET_DETAILS_FAILED',
+  PRICE_HISTORY_FAILED: 'PRICE_HISTORY_FAILED',
   POSITIONS_FAILED: 'POSITIONS_FAILED',
   PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
@@ -490,6 +494,108 @@ export class PredictController extends BaseController<
       });
 
       // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
+  }
+
+  /**
+   * Get detailed information for a single market
+   */
+  async getMarket({
+    marketId,
+    providerId,
+  }: {
+    marketId: string | number;
+    providerId?: string;
+  }): Promise<PredictMarket> {
+    const resolvedMarketId = String(marketId);
+
+    if (!resolvedMarketId) {
+      throw new Error('marketId is required');
+    }
+
+    try {
+      await this.initializeProviders();
+
+      const targetProviderId = providerId ?? 'polymarket';
+      const provider = this.providers.get(targetProviderId);
+
+      if (!provider) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const market = await provider.getMarketDetails({
+        marketId: resolvedMarketId,
+      });
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return market;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKET_DETAILS_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      throw new Error(PREDICT_ERROR_CODES.MARKET_DETAILS_FAILED);
+    }
+  }
+
+  /**
+   * Get market price history
+   */
+  async getPriceHistory(
+    params: GetPriceHistoryParams,
+  ): Promise<PredictPriceHistoryPoint[]> {
+    try {
+      const providerIds = params.providerId
+        ? [params.providerId]
+        : Array.from(this.providers.keys());
+
+      if (providerIds.some((id) => !this.providers.has(id))) {
+        throw new Error(PREDICT_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      }
+
+      const histories = await Promise.all(
+        providerIds.map((id: string) =>
+          this.providers.get(id)?.getPriceHistory({
+            ...params,
+            providerId: id,
+          }),
+        ),
+      );
+
+      const priceHistory = histories.flatMap((history) => history ?? []);
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return priceHistory;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.PRICE_HISTORY_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
       throw error;
     }
   }

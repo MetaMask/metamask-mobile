@@ -9,6 +9,6 @@ export interface PredictNavigationParamList extends ParamListBase {
   };
 
   PredictMarketDetails: {
-    position: PredictPosition;
+    marketId?: string;
   };
 }
