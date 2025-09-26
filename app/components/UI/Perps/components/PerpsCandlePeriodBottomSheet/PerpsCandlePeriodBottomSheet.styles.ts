@@ -28,7 +28,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.muted,
     },
     periodOptionActive: {
-      backgroundColor: colors.primary.alternative,
+      backgroundColor: colors.background.alternative,
     },
     sectionTitle: {
       paddingVertical: 8,
