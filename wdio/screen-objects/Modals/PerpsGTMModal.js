@@ -1,7 +1,7 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import AppwrightGestures from '../../../appwright/utils/AppwrightGestures';
+import AppwrightGestures from "../../../e2e/framework/AppwrightGestures";
 import { expect } from 'appwright';
 import { PerpsGTMModalSelectorsIDs } from '../../../e2e/selectors/Perps/Perps.selectors';
 
