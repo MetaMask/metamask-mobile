@@ -56,6 +56,9 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
 
       await WalletView.tapIdenticon();
       await AccountListBottomSheet.tapAccountByNameV2(visibleAccounts[LAST]);
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description: 'Wallet container should be visible',
+      });
 
       // Switch to Solana
       await WalletView.tapNetworksButtonOnNavBar();
