@@ -190,8 +190,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
     if (isE2E) {
       setAnimationStep(3);
-      if (currentIsSocialLogin && currentOnDone) {
-        setTimeout(() => currentOnDone(), 100);
+      if (currentOnDone) {
+        setTimeout(() => currentOnDone(), 500);
       }
       return;
     }
