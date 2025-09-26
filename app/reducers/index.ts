@@ -30,6 +30,9 @@ import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
 import cronjobControllerReducer from '../core/redux/slices/cronjobController';
+import networkConnectionBannerReducer, {
+  NetworkConnectionBannerState,
+} from './networkConnectionBanner';
 
 import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
@@ -131,6 +134,7 @@ export interface RootState {
   performance?: PerformanceState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
+  networkConnectionBanner: NetworkConnectionBannerState;
 }
 
 const baseReducers = {
@@ -170,6 +174,7 @@ const baseReducers = {
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
+  networkConnectionBanner: networkConnectionBannerReducer,
 };
 
 if (isTest) {
