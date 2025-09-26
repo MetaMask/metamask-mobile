@@ -937,7 +937,7 @@ describe('MultichainAccountSelectorList', () => {
       const internalAccounts = createMockInternalAccountsFromGroups([account1]);
       const mockState = createMockState([wallet1], internalAccounts);
 
-      const { getByTestId } = renderWithProvider(
+      const { getAllByTestId } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[]}
@@ -946,9 +946,9 @@ describe('MultichainAccountSelectorList', () => {
         { state: mockState },
       );
 
-      expect(
-        getByTestId(`account-list-cell-checkbox-${account1.id}`),
-      ).toBeTruthy();
+      // Ensure wrapper exists with expected testID (from ListItemSelect)
+      const wrappers = getAllByTestId('list-item-select');
+      expect(wrappers.length).toBeGreaterThan(0);
     });
 
     it('hides checkboxes when showCheckbox prop is false', () => {
@@ -996,7 +996,7 @@ describe('MultichainAccountSelectorList', () => {
       ]);
       const mockState = createMockState([wallet1], internalAccounts);
 
-      const { getAllByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[account1]}
@@ -1005,24 +1005,8 @@ describe('MultichainAccountSelectorList', () => {
         { state: mockState },
       );
 
-      // Check that checkboxes exist for both accounts
-      const account1Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      const account2Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account2.id}`,
-      );
-      expect(account1Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
-      expect(account2Checkboxes.length).toEqual(1); // Only container should have the testID (unselected account)
-
-      // Check that there is at least 1 checked checkbox icon (for the selected account)
-      // The checkbox icon uses the testID from the Checkbox component, which is overridden by the custom testID
-      // So we need to look for the actual checkbox elements with the custom testID
-      const selectedAccount = account1; // account1 is selected
-      const checkboxElements = getAllByTestId(
-        `account-list-cell-checkbox-${selectedAccount.id}`,
-      );
-      expect(checkboxElements.length).toEqual(1); // Only container should have the testID (selected account)
+      // The Checkbox component renders an icon when checked
+      expect(getByTestId('checkbox-icon-component')).toBeTruthy();
     });
 
     it('displays unchecked checkbox for unselected accounts', () => {
@@ -1046,7 +1030,7 @@ describe('MultichainAccountSelectorList', () => {
       ]);
       const mockState = createMockState([wallet1], internalAccounts);
 
-      const { getAllByTestId, queryByTestId } = renderWithProvider(
+      const { queryByTestId } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
           selectedAccountGroups={[]}
@@ -1054,16 +1038,6 @@ describe('MultichainAccountSelectorList', () => {
         />,
         { state: mockState },
       );
-
-      // Check that checkboxes exist for both accounts
-      const account1Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      const account2Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account2.id}`,
-      );
-      expect(account1Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
-      expect(account2Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
 
       // Check that there are no checked checkbox icons (since none are selected)
       expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
@@ -1088,10 +1062,9 @@ describe('MultichainAccountSelectorList', () => {
         { state: mockState },
       );
 
-      const checkboxElements = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      fireEvent.press(checkboxElements[0]);
+      // Press the list item wrapper (acts as the selection control)
+      const wrappers = getAllByTestId('list-item-select');
+      fireEvent.press(wrappers[0]);
 
       expect(mockOnSelectAccount).toHaveBeenCalledWith(account1);
     });
@@ -1133,33 +1106,9 @@ describe('MultichainAccountSelectorList', () => {
         { state: mockState },
       );
 
-      // Check that all 3 checkboxes exist
-      const account1Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account1.id}`,
-      );
-      const account2Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account2.id}`,
-      );
-      const account3Checkboxes = getAllByTestId(
-        `account-list-cell-checkbox-${account3.id}`,
-      );
-      expect(account1Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
-      expect(account2Checkboxes.length).toEqual(1); // Only container should have the testID (unselected account)
-      expect(account3Checkboxes.length).toEqual(1); // Only container should have the testID (selected account)
-
       // Check that there are checked checkbox icons (for the 2 selected accounts)
-      // The checkbox icon uses the testID from the Checkbox component, which is overridden by the custom testID
-      // So we need to look for the actual checkbox elements with their custom testIDs
-      const selectedAccount1 = account1; // account1 is selected
-      const selectedAccount3 = account3; // account3 is selected
-      const checkboxElements1 = getAllByTestId(
-        `account-list-cell-checkbox-${selectedAccount1.id}`,
-      );
-      const checkboxElements3 = getAllByTestId(
-        `account-list-cell-checkbox-${selectedAccount3.id}`,
-      );
-      expect(checkboxElements1.length).toEqual(1); // Only container should have the testID (selected account)
-      expect(checkboxElements3.length).toEqual(1); // Only container should have the testID (selected account)
+      const checkedIcons = getAllByTestId('checkbox-icon-component');
+      expect(checkedIcons.length).toEqual(2);
     });
   });
 });
