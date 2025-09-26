@@ -1,0 +1,84 @@
+name: Sentry Performance Reporting
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sentry-reporting:
+    name: 'Report Workflow Performance to Sentry'
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Record job start time
+        id: start-time
+        run: echo "start_time=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - name: Install sentry-cli
+        run: |
+          curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Setup basic job info
+        id: job-info
+        env:
+          JOB_NAME: 'Sentry Performance Reporting'
+        run: |
+          echo "job_name=${JOB_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Simulate some work (placeholder)
+        run: |
+          # This is a placeholder step - in a real scenario, this would be your actual job work
+          echo "Performing workflow operations..."
+          sleep 5
+          echo "Operations completed"
+
+      - name: Report job performance to Sentry
+        if: always()
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: metamask
+          SENTRY_PROJECT: metamask-mobile-ci
+          WORKFLOW: ${{ github.workflow }}
+          JOB_ID: ${{ github.job }}
+          JOB_NAME: ${{ steps.job-info.outputs.job_name }}
+          RUN_ID: ${{ github.run_id }}
+          ATTEMPT: ${{ github.run_attempt }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          START_TIME: ${{ steps.start-time.outputs.start_time }}
+        run: |
+          # Compute end time and duration
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          
+          echo "Job started at: $START_TIME"
+          echo "Job ended at: $END_TIME"
+          echo "Job duration: $DURATION seconds"
+          
+          # Convert to milliseconds for Sentry (Sentry expects millisecond timestamps)
+          START_TIME_MS=$((START_TIME * 1000))
+          END_TIME_MS=$((END_TIME * 1000))
+          
+          # Report performance transaction to Sentry
+          sentry-cli performance send-transaction \
+            --name "${JOB_NAME:-$JOB_ID}" \
+            --tag workflow="$WORKFLOW" \
+            --tag job="$JOB_ID" \
+            --tag job_name="$JOB_NAME" \
+            --tag run_id="$RUN_ID" \
+            --tag run_attempt="$ATTEMPT" \
+            --tag branch="$BRANCH" \
+            --tag sha="$SHA" \
+            --tag event_name="${{ github.event_name }}" \
+            --tag actor="${{ github.actor }}" \
+            --start-time "$START_TIME_MS" \
+            --end-time "$END_TIME_MS"
