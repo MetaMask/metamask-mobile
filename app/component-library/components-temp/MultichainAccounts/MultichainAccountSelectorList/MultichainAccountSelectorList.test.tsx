@@ -22,6 +22,13 @@ import {
 } from '../test-utils';
 import { ReactTestInstance } from 'react-test-renderer';
 
+// Mock the new hook to avoid dependencies
+jest.mock('../../../../components/UI/Assets/hooks', () => ({
+  useAssetsUpdateAllAccountBalances: jest.fn(() => ({
+    updateBalances: jest.fn(),
+  })),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountsController: {
