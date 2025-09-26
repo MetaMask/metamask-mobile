@@ -97,6 +97,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const riveRef = useRef<RiveRef>(null);
   const [animationStep, setAnimationStep] = useState(1);
   const [dotsCount, setDotsCount] = useState(1);
+  const [showButtons, setShowButtons] = useState(false);
   const hasAnimationStarted = useRef(false);
   const animationId = useRef<NodeJS.Timeout | null>(null);
   const dotsIntervalId = useRef<NodeJS.Timeout | null>(null);
@@ -190,6 +191,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
     if (isE2E) {
       setAnimationStep(3);
+      setShowButtons(true);
       if (currentOnDone) {
         setTimeout(() => currentOnDone(), 500);
       }
@@ -227,6 +229,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
       finalTimeoutId.current = setTimeout(() => {
         setAnimationStep(3);
+        setShowButtons(true);
         requestAnimationFrame(() => {
           if (riveRef.current) {
             riveRef.current.fireState('OnboardingLoader', 'End');
@@ -342,7 +345,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   };
 
   const renderFooter = () => {
-    if (isSocialLogin) return null;
+    if (isSocialLogin || !showButtons) return null;
 
     return (
       <View style={styles.footerWrapper}>
@@ -367,7 +370,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       <View style={styles.contentContainer}>
         <View style={styles.contentWrapper}>
           {renderContent()}
-          {!isSocialLogin && (
+          {!isSocialLogin && showButtons && (
             <View style={styles.buttonWrapper}>
               <Button
                 testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}

@@ -54,6 +54,13 @@ jest.mock('rive-react-native', () => {
 
 jest.mock('../../../animations/onboarding_loader.riv', () => 'mock-rive-file');
 
+let mockIsE2EValue = false;
+jest.mock('../../../util/test/utils', () => ({
+  get isE2E() {
+    return mockIsE2EValue;
+  },
+}));
+
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
     KeyringController: {
@@ -210,22 +217,29 @@ describe('OnboardingSuccessComponent', () => {
   });
 
   it('imports additional accounts when onDone is called', async () => {
+    mockIsE2EValue = true;
+
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
+
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
 
     await waitFor(() => {
       expect(mockImportAdditionalAccounts).toHaveBeenCalled();
     });
+
+    mockIsE2EValue = false;
   });
 
-  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', () => {
+  it('(state 2) - calls discoverAccounts but does not import additional accounts when onDone is called', async () => {
     mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+
+    mockIsE2EValue = true;
 
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
@@ -233,20 +247,26 @@ describe('OnboardingSuccessComponent', () => {
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
+
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     button.props.onPress();
 
     expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).toHaveBeenCalled();
+
+    mockIsE2EValue = false;
   });
 
-  it('navigate to the default settings screen when the manage default settings button is pressed', () => {
+  it('navigate to the default settings screen when the manage default settings button is pressed', async () => {
+    mockIsE2EValue = true;
+
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
+
     const button = getByTestId(
       OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
     );
@@ -254,16 +274,22 @@ describe('OnboardingSuccessComponent', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ONBOARDING.SUCCESS_FLOW, {
       screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
     });
+
+    mockIsE2EValue = false;
   });
 });
 
 describe('OnboardingSuccess', () => {
   mockImportAdditionalAccounts.mockResolvedValue(true);
 
-  beforeEach(() => {
-    // Reset mocks before each test
-    (useSelector as jest.Mock).mockReset();
-  });
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockReset();
+      mockIsE2EValue = false; // Reset to default value
+    });
+
+    afterEach(() => {
+      mockIsE2EValue = false; // Ensure cleanup after each test
+    });
 
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
     mockRoute.mockReturnValue({
@@ -327,6 +353,8 @@ describe('OnboardingSuccess', () => {
     });
 
     it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
+      mockIsE2EValue = true;
+
       const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
       const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
       fireEvent.press(button);
@@ -335,6 +363,71 @@ describe('OnboardingSuccess', () => {
       expect(mockNavigationDispatch).toHaveBeenCalledWith(
         ResetNavigationToHome,
       );
+
+      mockIsE2EValue = false;
+    });
+
+    it('shows done button and footer link when showButtons is true', () => {
+      // Set E2E mode before rendering
+      mockIsE2EValue = true;
+
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={jest.fn()}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
+      );
+
+      // In E2E mode, buttons should be visible immediately
+      expect(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeTruthy();
+      expect(getByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON)).toBeTruthy();
+
+      // Reset mock
+      mockIsE2EValue = false;
+    });
+
+    it('hides done button and footer link when showButtons is false', () => {
+      const { queryByTestId } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={jest.fn()}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
+      );
+
+      expect(queryByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeNull();
+      expect(queryByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON)).toBeNull();
+    });
+
+    it('shows buttons immediately in E2E mode', () => {
+      // Set E2E mode before rendering
+      mockIsE2EValue = true;
+
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={jest.fn()}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
+      );
+
+      expect(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeTruthy();
+      expect(getByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON)).toBeTruthy();
+
+      // Reset mock
+      mockIsE2EValue = false;
+    });
+
+    it('hides buttons for social login even when showButtons is true', () => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      const { queryByTestId } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={jest.fn()}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
+      );
+
+      expect(queryByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeNull();
+      expect(queryByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON)).toBeNull();
     });
   });
 
