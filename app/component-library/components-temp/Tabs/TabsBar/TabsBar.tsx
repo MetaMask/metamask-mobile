@@ -38,6 +38,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const tabLayouts = useRef<{ x: number; width: number }[]>([]);
   const isInitialized = useRef(false);
   const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
+  const rafId = useRef<number | null>(null);
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const pendingActiveIndex = useRef<number | null>(null);
   const [hasValidDimensions, setHasValidDimensions] = useState(false);
@@ -124,11 +125,12 @@ const TabsBar: React.FC<TabsBarProps> = ({
           setHasValidDimensions(true);
           setIsLayoutReady(true);
         } else {
-          requestAnimationFrame(() => {
+          rafId.current = requestAnimationFrame(() => {
             setIsInitializedState(true);
             setHasValidDimensions(true);
             setIsLayoutReady(true);
             // First initialization complete
+            rafId.current = null;
           });
         }
       } else {
@@ -314,6 +316,21 @@ const TabsBar: React.FC<TabsBarProps> = ({
       hasAllTabLayouts,
       tabs,
     ],
+  );
+
+  // Cleanup effect to cancel requestAnimationFrame on unmount
+  useEffect(
+    () => () => {
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+      if (currentAnimation.current) {
+        currentAnimation.current.stop();
+        currentAnimation.current = null;
+      }
+    },
+    [],
   );
 
   const handleTabPress = (index: number) => {
