@@ -64,7 +64,7 @@ jobs:
       - name: Generate current fingerprint
         id: generate-fingerprint
         run: |
-          FINGERPRINT=$(yarn -s fingerprint:generate)
+          FINGERPRINT=$(yarn fingerprint:generate)
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
