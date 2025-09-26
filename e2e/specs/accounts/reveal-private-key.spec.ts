@@ -22,7 +22,7 @@ describe(RegressionAccounts('Account details private key'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      remoteFeatureMultichainAccountsAccountDetailsV2(false),
+      remoteFeatureMultichainAccountsAccountDetailsV2(true),
     );
   };
 
