@@ -12,7 +12,6 @@ import {
   Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
-import Logger from '../../../util/Logger';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -64,18 +63,9 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
-import Rive, { Fit, Alignment } from 'rive-react-native';
 
-import FoxAnimation from '../../../animations/fox_appear.riv';
-import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
-import { isE2E } from '../../../util/test/utils';
-
-const getFoxAnimationHeight = (hasFooter) => {
-  if (hasFooter) {
-    return Device.isMediumDevice() ? 150 : 180;
-  }
-  return Device.isMediumDevice() ? 300 : 350;
-};
+import FoxAnimation from './FoxAnimation';
+import OnboardingAnimation from './OnboardingAnimation';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -248,31 +238,12 @@ const createStyles = (colors) =>
     inverseBlackButton: {
       backgroundColor: importedColors.applePayBlack,
     },
-    foxAnimationWrapper: (hasFooter) => ({
-      position: 'absolute',
-      bottom: hasFooter ? 100 : -20,
-      left: 0,
-      right: 0,
-      height: getFoxAnimationHeight(hasFooter),
-      alignItems: 'center',
-      justifyContent: 'center',
-      pointerEvents: 'none',
-    }),
-    foxAnimation: {
-      width: '100%',
-      height: '100%',
-    },
   });
 
 /**
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-  logoRef = React.createRef();
-  foxRef = React.createRef();
-  logoPosition = new Animated.Value(0);
-  buttonsOpacity = new Animated.Value(isE2E ? 1 : 0);
-  foxOpacity = new Animated.Value(0);
   static propTypes = {
     disableNewPrivacyPolicyToast: PropTypes.func,
     /**
@@ -341,6 +312,8 @@ class Onboarding extends PureComponent {
     existingWallet: false,
     errorSheetVisible: false,
     errorToThrow: null,
+    startOnboardingAnimation: false,
+    startFoxAnimation: false,
   };
 
   seedwords = null;
@@ -397,85 +370,9 @@ class Onboarding extends PureComponent {
           this.props.unsetLoading();
         }, 2000);
       }
-
-      this.startRiveAnimation();
+      this.setState({ startOnboardingAnimation: true });
     });
   }
-
-  startRiveAnimation = () => {
-    if (isE2E) {
-      this.moveLogoUp();
-      return;
-    }
-
-    try {
-      if (this.logoRef.current && this.mounted) {
-        const { themeAppearance } = this.context;
-        const isDarkMode = themeAppearance === 'dark';
-        this.logoRef.current.setInputState(
-          'WordmarkBuildUp',
-          'Dark',
-          isDarkMode,
-        );
-        this.logoRef.current.fireState('WordmarkBuildUp', 'Start');
-        setTimeout(() => {
-          if (this.mounted) {
-            this.moveLogoUp();
-          }
-        }, 1000);
-      }
-    } catch (error) {
-      Logger.error(error, 'Error triggering Rive animation');
-    }
-  };
-
-  moveLogoUp = () => {
-    if (isE2E) {
-      this.logoPosition.setValue(-180);
-      this.buttonsOpacity.setValue(1);
-      this.showFoxAnimation();
-      return;
-    }
-
-    Animated.parallel([
-      Animated.timing(this.logoPosition, {
-        toValue: -180,
-        duration: 1200,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }),
-      Animated.timing(this.buttonsOpacity, {
-        toValue: 1,
-        duration: 1200,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      this.showFoxAnimation();
-    });
-  };
-
-  showFoxAnimation = () => {
-    if (isE2E) {
-      this.foxOpacity.setValue(1);
-      return;
-    }
-
-    Animated.timing(this.foxOpacity, {
-      toValue: 1,
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
-      if (this.foxRef.current && this.mounted) {
-        try {
-          this.foxRef.current.fireState('FoxRaiseUp', 'Start');
-        } catch (error) {
-          Logger.error(error, 'Error triggering Fox Rive animation');
-        }
-      }
-    });
-  };
 
   componentWillUnmount() {
     this.mounted = false;
@@ -836,6 +733,10 @@ class Onboarding extends PureComponent {
     }
   };
 
+  setStartFoxAnimation = (value) => {
+    this.setState({ startFoxAnimation: value });
+  };
+
   renderLoader = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -858,36 +759,9 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <View style={styles.titleWrapper}>
-          <Animated.View
-            style={[
-              styles.largeFoxWrapper,
-              {
-                transform: [{ translateY: this.logoPosition }],
-              },
-            ]}
-          >
-            <Rive
-              ref={this.logoRef}
-              style={styles.image}
-              source={MetaMaskWordmarkAnimation}
-              fit={Fit.Contain}
-              alignment={Alignment.Center}
-              autoplay={false}
-              stateMachineName="WordmarkBuildUp"
-              testID="metamask-wordmark-animation"
-            />
-          </Animated.View>
-        </View>
-
-        <Animated.View
-          style={[
-            styles.createWrapper,
-            {
-              opacity: this.buttonsOpacity,
-              transform: [{ translateY: this.logoPosition }],
-            },
-          ]}
+        <OnboardingAnimation
+          startOnboardingAnimation={this.state.startOnboardingAnimation}
+          setStartFoxAnimation={this.setStartFoxAnimation}
         >
           <Button
             variant={ButtonVariants.Primary}
@@ -923,7 +797,7 @@ class Onboarding extends PureComponent {
             }
             style={styles.inverseBlackButton}
           />
-        </Animated.View>
+        </OnboardingAnimation>
       </View>
     );
   }
@@ -956,7 +830,7 @@ class Onboarding extends PureComponent {
 
   render() {
     const { loading } = this.props;
-    const { existingUser, errorToThrow } = this.state;
+    const { existingUser, errorToThrow, startFoxAnimation } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const hasFooter = existingUser && !loading;
@@ -1029,25 +903,10 @@ class Onboarding extends PureComponent {
 
           <FadeOutOverlay />
 
-          <Animated.View
-            style={[
-              styles.foxAnimationWrapper(hasFooter),
-              {
-                opacity: this.foxOpacity,
-              },
-            ]}
-          >
-            <Rive
-              ref={this.foxRef}
-              style={styles.foxAnimation}
-              source={FoxAnimation}
-              fit={Fit.Contain}
-              alignment={Alignment.Center}
-              autoplay={false}
-              stateMachineName="FoxRaiseUp"
-              testID="fox-animation"
-            />
-          </Animated.View>
+          <FoxAnimation
+            hasFooter={hasFooter}
+            startFoxAnimation={startFoxAnimation}
+          />
 
           <View>{this.handleSimpleNotification()}</View>
         </View>
