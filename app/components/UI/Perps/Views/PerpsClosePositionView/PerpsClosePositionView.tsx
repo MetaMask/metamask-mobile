@@ -530,6 +530,8 @@ const PerpsClosePositionView: React.FC = () => {
               maximumDecimals: 2,
             })}`}
             variant={TextVariant.BodyMD}
+            isDAOTokenHolder={rewardsState.isDAOTokenHolder}
+            isDAOFeeBypassActive={rewardsState.isDAOFeeBypassActive}
           />
         </View>
       </View>

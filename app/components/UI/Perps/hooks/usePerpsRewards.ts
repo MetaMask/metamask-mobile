@@ -30,6 +30,10 @@ interface UsePerpsRewardsResult {
   hasError: boolean;
   /** Whether this is a refresh operation (points value changed) */
   isRefresh: boolean;
+  /** Whether user is a MetaMask Grants DAO token holder */
+  isDAOTokenHolder: boolean;
+  /** Whether the DAO token holder bypass is active */
+  isDAOFeeBypassActive: boolean;
 }
 
 /**
@@ -124,5 +128,7 @@ export const usePerpsRewards = ({
     feeDiscountPercentage: feeResults.feeDiscountPercentage,
     hasError,
     isRefresh,
+    isDAOTokenHolder: feeResults.isDAOTokenHolder ?? false,
+    isDAOFeeBypassActive: feeResults.isDAOFeeBypassActive ?? false,
   };
 };

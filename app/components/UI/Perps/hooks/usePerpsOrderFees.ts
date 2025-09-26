@@ -15,6 +15,7 @@ import {
   PERFORMANCE_CONFIG,
 } from '../constants/perpsConfig';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
+import { metamaskDAOService } from '../services/MetaMaskDAOService';
 
 // Cache for fee discount to avoid repeated API calls
 let feeDiscountCache: {
@@ -29,6 +30,14 @@ let pointsCalculationCache: {
   address: string;
   bonusBips: number | undefined;
   basePointsPerDollar: number; // Derived from first API call
+  timestamp: number;
+  ttl: number;
+} | null = null;
+
+// Cache for DAO token holder status to avoid repeated blockchain queries
+let daoTokenHolderCache: {
+  address: string;
+  isHolder: boolean;
   timestamp: number;
   ttl: number;
 } | null = null;
@@ -59,6 +68,10 @@ export interface OrderFeesResult {
   estimatedPoints?: number;
   /** Bonus multiplier in basis points (100 = 1%) */
   bonusBips?: number;
+  /** Whether user is a MetaMask Grants DAO token holder (bypasses MM fees) */
+  isDAOTokenHolder?: boolean;
+  /** Whether the DAO token holder bypass is active */
+  isDAOFeeBypassActive?: boolean;
 }
 
 interface UsePerpsOrderFeesParams {
@@ -88,7 +101,9 @@ interface UsePerpsOrderFeesParams {
 export function clearRewardsCaches(): void {
   feeDiscountCache = null;
   pointsCalculationCache = null;
-  DevLogger.log('Rewards: Cleared all caches');
+  daoTokenHolderCache = null;
+  metamaskDAOService.clearCache();
+  DevLogger.log('Rewards: Cleared all caches including DAO token holder cache');
 }
 
 export function usePerpsOrderFees({
@@ -263,6 +278,65 @@ export function usePerpsOrderFees({
     [rewardsEnabled, currentChainId],
   );
 
+  /**
+   * Check if user is a MetaMask Grants DAO token holder (non-blocking)
+   */
+  const checkDAOTokenHolder = useCallback(
+    async (address: string): Promise<boolean> => {
+      if (!address) {
+        return false;
+      }
+
+      try {
+        // Check cache first
+        const now = Date.now();
+        if (
+          daoTokenHolderCache &&
+          daoTokenHolderCache.address === address &&
+          now - daoTokenHolderCache.timestamp < daoTokenHolderCache.ttl
+        ) {
+          DevLogger.log('DAO: Using cached token holder status', {
+            address,
+            isHolder: daoTokenHolderCache.isHolder,
+            cacheAge: Math.round((now - daoTokenHolderCache.timestamp) / 1000) + 's',
+          });
+          return daoTokenHolderCache.isHolder;
+        }
+
+        DevLogger.log('DAO: Checking token holder status', { address });
+
+        // Check with DAO service
+        const isHolder = await metamaskDAOService.isTokenHolder(address);
+
+        // Cache the result
+        daoTokenHolderCache = {
+          address,
+          isHolder,
+          timestamp: now,
+          ttl: PERFORMANCE_CONFIG.FEE_DISCOUNT_CACHE_DURATION_MS, // Reuse existing cache duration
+        };
+
+        DevLogger.log('DAO: Token holder status determined', {
+          address,
+          isHolder,
+          cacheExpiry: new Date(
+            now + PERFORMANCE_CONFIG.FEE_DISCOUNT_CACHE_DURATION_MS,
+          ).toISOString(),
+        });
+
+        return isHolder;
+      } catch (error) {
+        DevLogger.log('DAO: Error checking token holder status', {
+          error: error instanceof Error ? error.message : String(error),
+          address,
+        });
+        // Return false on error to avoid blocking trades
+        return false;
+      }
+    },
+    [],
+  );
+
   // State for fees from provider
   const [protocolFeeRate, setProtocolFeeRate] = useState(0);
   const [metamaskFeeRate, setMetamaskFeeRate] = useState(0);
@@ -278,16 +352,56 @@ export function usePerpsOrderFees({
   const [estimatedPoints, setEstimatedPoints] = useState<number | undefined>();
   const [bonusBips, setBonusBips] = useState<number | undefined>();
 
+  // State for DAO token holder bypass
+  const [isDAOTokenHolder, setIsDAOTokenHolder] = useState<boolean>(false);
+  const [isDAOFeeBypassActive, setIsDAOFeeBypassActive] = useState<boolean>(false);
+
   /**
    * Apply fee discount and calculate actual rate
+   * Priority: DAO token holder bypass > rewards discount > original rate
    */
   const applyFeeDiscount = useCallback(
     async (originalRate: number) => {
-      if (!rewardsEnabled || !selectedAddress) {
-        return { adjustedRate: originalRate, discountPercentage: undefined };
+      if (!selectedAddress) {
+        return { 
+          adjustedRate: originalRate, 
+          discountPercentage: undefined,
+          isDAOBypass: false,
+        };
       }
 
       try {
+        // Step 1: Check if user is a MetaMask Grants DAO token holder (highest priority)
+        const isDAOHolder = await checkDAOTokenHolder(selectedAddress);
+        setIsDAOTokenHolder(isDAOHolder);
+
+        if (isDAOHolder) {
+          // Complete bypass of MetaMask fees for DAO token holders
+          setIsDAOFeeBypassActive(true);
+          DevLogger.log('DAO: Fee bypass activated for DAO token holder', {
+            address: selectedAddress,
+            originalRate,
+            adjustedRate: 0,
+            bypassPercentage: 100,
+          });
+          return {
+            adjustedRate: 0, // Complete bypass
+            discountPercentage: 100, // Show as 100% discount
+            isDAOBypass: true,
+          };
+        }
+
+        setIsDAOFeeBypassActive(false);
+
+        // Step 2: If not a DAO holder, check for rewards-based discounts
+        if (!rewardsEnabled) {
+          return { 
+            adjustedRate: originalRate, 
+            discountPercentage: undefined,
+            isDAOBypass: false,
+          };
+        }
+
         // Development-only simulation for testing fee discount UI
         const shouldSimulateFeeDiscount =
           __DEV__ &&
@@ -314,10 +428,15 @@ export function usePerpsOrderFees({
           return {
             adjustedRate,
             discountPercentage: percentage,
+            isDAOBypass: false,
           };
         }
 
-        return { adjustedRate: originalRate, discountPercentage: undefined };
+        return { 
+          adjustedRate: originalRate, 
+          discountPercentage: undefined,
+          isDAOBypass: false,
+        };
       } catch (discountError) {
         DevLogger.log('Rewards: Fee discount calculation failed', {
           error:
@@ -325,10 +444,14 @@ export function usePerpsOrderFees({
               ? discountError.message
               : String(discountError),
         });
-        return { adjustedRate: originalRate, discountPercentage: undefined };
+        return { 
+          adjustedRate: originalRate, 
+          discountPercentage: undefined,
+          isDAOBypass: false,
+        };
       }
     },
-    [rewardsEnabled, fetchFeeDiscount, amount, selectedAddress],
+    [rewardsEnabled, fetchFeeDiscount, amount, selectedAddress, checkDAOTokenHolder],
   );
 
   /**
@@ -470,6 +593,8 @@ export function usePerpsOrderFees({
     setFeeDiscountPercentage(undefined);
     setEstimatedPoints(undefined);
     setBonusBips(undefined);
+    setIsDAOTokenHolder(false);
+    setIsDAOFeeBypassActive(false);
   }, []);
 
   // Main effect to orchestrate fee calculation
@@ -490,8 +615,8 @@ export function usePerpsOrderFees({
 
         if (!isComponentMounted) return;
 
-        // Step 2: Apply fee discount if rewards are enabled
-        const { adjustedRate, discountPercentage } = await applyFeeDiscount(
+        // Step 2: Apply fee discount or DAO bypass
+        const { adjustedRate, discountPercentage, isDAOBypass } = await applyFeeDiscount(
           coreFeesResult.metamaskFeeRate,
         );
 
@@ -501,12 +626,13 @@ export function usePerpsOrderFees({
         let pointsResult: { points?: number; bonusBips?: number } = {};
         if (selectedAddress && parseFloat(amount) > 0) {
           const actualFeeUSD = parseFloat(amount) * adjustedRate;
-          DevLogger.log('Rewards: Calculating points with discounted fee', {
+          DevLogger.log('Rewards: Calculating points with adjusted fee', {
             originalRate: coreFeesResult.metamaskFeeRate,
             discountPercentage,
             adjustedRate,
             amount: parseFloat(amount),
             actualFeeUSD,
+            isDAOBypass,
           });
 
           pointsResult = await handlePointsEstimation(
@@ -580,6 +706,9 @@ export function usePerpsOrderFees({
       feeDiscountPercentage,
       estimatedPoints,
       bonusBips,
+      // DAO token holder data
+      isDAOTokenHolder,
+      isDAOFeeBypassActive,
     };
   }, [
     amount,
@@ -592,6 +721,8 @@ export function usePerpsOrderFees({
     feeDiscountPercentage,
     estimatedPoints,
     bonusBips,
+    isDAOTokenHolder,
+    isDAOFeeBypassActive,
   ]);
 }
 
