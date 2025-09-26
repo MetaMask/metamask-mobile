@@ -68,7 +68,10 @@ import {
 } from '@metamask/snaps-rpc-methods';
 import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 ///: END:ONLY_INCLUDE_IF
-import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
+import {
+  QrKeyring,
+  QrKeyringDeferredPromiseBridge,
+} from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
 import { TokenSearchDiscoveryControllerMessenger } from '@metamask/token-search-discovery-controller';
 import {
@@ -235,7 +238,9 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
+import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
+import { predictControllerInit } from './controllers/predict-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
@@ -300,7 +305,21 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+
+  readonly qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
+    onScanRequested: (request) => {
+      store.dispatch(scanRequested(request));
+    },
+    onScanResolved: () => {
+      store.dispatch(scanCompleted());
+    },
+    onScanRejected: () => {
+      store.dispatch(scanCompleted());
+    },
+  });
+
   rewardsDataService: RewardsDataService;
+
   /**
    * Creates a CoreController instance
    */
@@ -384,6 +403,17 @@ export class Engine {
         ChainId['base-mainnet']
       ].rpcEndpoints[0].failoverUrls =
         getFailoverUrlsForInfuraNetwork('base-mainnet');
+
+      // Update default popular network names
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId.mainnet
+      ].name = 'Ethereum';
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['linea-mainnet']
+      ].name = 'Linea';
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['base-mainnet']
+      ].name = 'Base';
     }
 
     const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
@@ -573,12 +603,12 @@ export class Engine {
     const additionalKeyrings = [];
 
     const qrKeyringBuilder = () => {
-      const keyring = new QRHardwareKeyring();
+      const keyring = new QrKeyring({ bridge: this.qrKeyringScanner });
       // to fix the bug in #9560, forgetDevice will reset all keyring properties to default.
       keyring.forgetDevice();
       return keyring;
     };
-    qrKeyringBuilder.type = QRHardwareKeyring.type;
+    qrKeyringBuilder.type = QrKeyring.type;
 
     additionalKeyrings.push(qrKeyringBuilder);
 
@@ -1177,6 +1207,7 @@ export class Engine {
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
+        PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
         DelegationController: DelegationControllerInit,
       },
@@ -1195,6 +1226,7 @@ export class Engine {
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
+    const predictController = controllersByName.PredictController;
     const rewardsController = controllersByName.RewardsController;
     const gatorPermissionsController =
       controllersByName.GatorPermissionsController;
@@ -1590,6 +1622,7 @@ export class Engine {
       SeedlessOnboardingController: seedlessOnboardingController,
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
+      PredictController: predictController,
       RewardsController: rewardsController,
       DelegationController: delegationController,
     };
@@ -1610,12 +1643,6 @@ export class Engine {
         }),
       },
     );
-
-    const { NftController: nfts } = this.context;
-
-    if (process.env.MM_OPENSEA_KEY) {
-      nfts.setApiKey(process.env.MM_OPENSEA_KEY);
-    }
 
     this.controllerMessenger.subscribe(
       'TransactionController:incomingTransactionsReceived',
@@ -2336,6 +2363,7 @@ export default {
       BridgeStatusController,
       EarnController,
       PerpsController,
+      PredictController,
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
@@ -2394,6 +2422,7 @@ export default {
       BridgeStatusController,
       EarnController,
       PerpsController,
+      PredictController,
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
@@ -2461,6 +2490,11 @@ export default {
   setAccountLabel: (address: string, label: string) => {
     assertEngineExists(instance);
     instance.setAccountLabel(address, label);
+  },
+
+  getQrKeyringScanner: () => {
+    assertEngineExists(instance);
+    return instance.qrKeyringScanner;
   },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

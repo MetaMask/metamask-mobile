@@ -9,8 +9,6 @@ import {
 } from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
 
-import Logger from '../../../../util/Logger';
-
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
@@ -68,7 +66,6 @@ describe('useActivePointsBoosts', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
-  const mockLogger = Logger.log as jest.MockedFunction<typeof Logger.log>;
 
   const mockActiveBoosts = [
     {
@@ -117,13 +114,16 @@ describe('useActivePointsBoosts', () => {
     mockUseFocusEffect.mockClear();
   });
 
-  it('should return void', () => {
+  it('should return a fetch function', () => {
     const { result } = renderHook(() => useActivePointsBoosts());
 
     // Verify that the focus effect callback was registered
     expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
 
-    expect(result.current).toBeUndefined();
+    expect(result.current).toEqual({
+      fetchActivePointsBoosts: expect.any(Function),
+    });
+    expect(typeof result.current.fetchActivePointsBoosts).toBe('function');
   });
 
   it('should skip fetch when seasonId is missing', () => {
@@ -196,6 +196,7 @@ describe('useActivePointsBoosts', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getActivePointsBoosts',
       'test-season-id',
@@ -204,12 +205,11 @@ describe('useActivePointsBoosts', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setActiveBoosts(mockActiveBoosts),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });
 
-  it('should handle fetch error gracefully', async () => {
+  it('should handle fetch error gracefully and dispatch error state', async () => {
     const mockError = new Error('Network error');
     mockEngineCall.mockRejectedValue(mockError);
 
@@ -226,14 +226,11 @@ describe('useActivePointsBoosts', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getActivePointsBoosts',
       'test-season-id',
       'test-subscription-id',
-    );
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Failed to fetch active points boosts:',
-      expect.any(String),
     );
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(true));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
@@ -263,8 +260,8 @@ describe('useActivePointsBoosts', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
-    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });
@@ -285,8 +282,8 @@ describe('useActivePointsBoosts', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
-    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });

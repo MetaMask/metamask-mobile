@@ -318,7 +318,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1916,7 +1916,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={

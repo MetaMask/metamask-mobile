@@ -1279,7 +1279,6 @@
         "empty_title": "Açık Pozisyon Yok",
         "empty_description": "Henüz açık pozisyonunuz yok.\nPozisyonlarınızı burada görmek için işlem yapmaya başlayın.",
         "first_time_title": "Sürekli Vadeli İşlem Sözleşmeleri",
-        "first_time_description": "40 kata varan kaldıraçla fiyat hareketlerini tahmin edin.",
         "start_trading": "İşlem yapmaya başlayın",
         "start_new_trade": "Yeni bir işlem başlat",
         "open_positions": "Açık Pozisyonlar",
@@ -1761,8 +1760,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFi pozisyonları yükleniyor...",
-    "no_visible_positions": "Aradığınızı bulamadınız mı?",
-    "not_supported": "Protokolünüzü henüz desteklemiyor olabiliriz.",
     "error_cannot_load_page": "Bu sayfayı yükleyemedik.",
     "error_visit_again": "Daha sonra tekrar ziyaret etmeyi deneyin.",
     "single_token": "Yalnızca {{symbol}}",
@@ -2445,10 +2442,9 @@
     "disconnect_confirm": "Bağlantıyı kes",
     "cancel": "İptal"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Uygulamaya geri dön",
-    "postNetworkSwitchTitle": "Ağ başarılı bir şekilde değiştirildi",
-    "description": "Hizmetlerini kullanmaya devam etmek için lütfen uygulamaya geri dönün."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Uygulamaya geri dön",
+    "networkSwitchMethodLabel": "Ağ başarılı bir şekilde değiştirildi"
   },
   "sdk_feedback_modal": {
     "ok": "Tamam",
