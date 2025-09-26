@@ -309,7 +309,7 @@ export const asyncifyMigrations = (
       ) => {
         let state = await incomingState;
 
-        if (!didInflate && Number(migrationNumber) > 102) {
+        if (!didInflate && Number(migrationNumber) > 104) {
           state = await inflateFromControllers(state);
           didInflate = true;
         }
