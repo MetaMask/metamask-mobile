@@ -1,26 +1,34 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures';
 import { expect } from 'appwright';
 import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../../app/components/Views/MultichainAccounts/IntroModal/testIds';
 
+class MultichainAccountEducationModal extends AppwrightGestures {
+  constructor() {
+    super();
+  }
 
-class MultichainAccountEducationModal {
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get closeButton() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(
-        'MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS',
+        MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON);
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
+      );
     }
   }
 
@@ -28,13 +36,11 @@ class MultichainAccountEducationModal {
     await expect(await this.closeButton).toBeVisible({ timeout });
   }
 
-  
   async tapGotItButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.closeButton);
     } else {
-      const closeButton = await this.closeButton;
-      await closeButton.tap();
+      await this.tap(this.closeButton);
     }
   }
 }

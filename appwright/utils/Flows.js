@@ -12,9 +12,8 @@ import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsS
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
 import { getPasswordForScenario } from './TestConstants.js';
 import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
-import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
-import { PerpsGTMModalSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors.js';
-import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from '../../app/components/Views/MultichainAccounts/IntroModal/testIds.js';
+import MultichainAccountEducationModal from '../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
+import PerpsGTMModal from '../../wdio/screen-objects/Modals/PerpsGTMModal.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -125,24 +124,21 @@ export async function login(device, options = {}) {
   }
 }
 export async function tapPerpsBottomSheetGotItButton(device) {
-  console.log('Looking for perps onboarding button...');
-  const button = await AppwrightSelectors.getElementByID(
-    device,
-    PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON,
-  );
-  await button.tap();
-  console.log('Perps onboarding dismissed');
+  PerpsGTMModal.device = device;
+  const container = await PerpsGTMModal.container;
+  if (await container.isVisible({ timeout: 5000 })) {
+    await PerpsGTMModal.tapNotNowButton();
+    console.log('Perps onboarding dismissed');
+  }
 }
 
 export async function dismissMultichainAccountsIntroModal(
   device,
   timeout = 5000,
 ) {
-  const closeButton = await AppwrightSelectors.getElementByID(
-    device,
-    MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS.CLOSE_BUTTON,
-  );
+  MultichainAccountEducationModal.device = device;
+  const closeButton = await MultichainAccountEducationModal.closeButton;
   if (await closeButton.isVisible({ timeout })) {
-    await closeButton.tap();
+    await MultichainAccountEducationModal.tapGotItButton();
   }
 }
