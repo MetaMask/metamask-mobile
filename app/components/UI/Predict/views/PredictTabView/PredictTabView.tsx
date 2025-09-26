@@ -141,6 +141,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
+      <PredictOnboarding />
       <FlashList
         ref={listRef}
         data={positions}

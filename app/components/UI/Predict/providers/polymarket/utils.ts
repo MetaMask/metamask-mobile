@@ -3,6 +3,7 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Hex, hexToNumber } from '@metamask/utils';
 import { Interface, parseUnits } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   PredictMarketStatus,
   Side,
@@ -11,6 +12,7 @@ import {
   type PredictPosition,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
+import { GetMarketsParams } from '../types';
 import {
   ClobAuthDomain,
   EIP712Domain,
@@ -39,8 +41,6 @@ import {
   UserMarketOrder,
   UtilsSide,
 } from './types';
-import { GetMarketsParams } from '../types';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
