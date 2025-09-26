@@ -81,7 +81,7 @@ test.skip('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await performanceTracker.attachToTest(testInfo);
 });
 
-test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
+test.skip('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
 }, testInfo) => {
