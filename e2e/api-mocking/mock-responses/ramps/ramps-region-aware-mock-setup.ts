@@ -1,5 +1,5 @@
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../mockHelpers';
+import { setupMockRequest } from '../../helpers/mockHelpers';
 import { MockApiEndpoint, RampsRegion } from '../../../framework/types';
 import {
   RAMPS_NETWORKS_RESPONSE,

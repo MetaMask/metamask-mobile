@@ -104,6 +104,3 @@ export const ETHEREUM_LOGO =
 
 export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
   'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
-
-export const SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE =
-  'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts';

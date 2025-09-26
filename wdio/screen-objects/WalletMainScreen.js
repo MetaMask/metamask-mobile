@@ -35,7 +35,26 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
+
+          if (AppwrightSelectors.isAndroid(this._device)) {
+            return AppwrightSelectors.getElementByID(
+              this._device,
+              WalletViewSelectorsIDs.ACCOUNT_ICON,
+            );
+          } else {
+            return AppwrightSelectors.getElementByCatchAll(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
+          }
+        }
+      
+  
+   
+  }
+
+  get swapButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
     }
   }
 
@@ -51,7 +70,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, 'token-network-filter');
     }
   }
 
@@ -168,6 +187,14 @@ class WalletMainScreen {
       await element.tap();
     }
   }
+  async tapSwapButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.swapButton);
+    } else {
+      const element = await this.swapButton;
+      await element.tap();
+    }
+  }
 
   async tapNetworkNavBar() {
 
@@ -216,6 +243,7 @@ class WalletMainScreen {
       await this.walletButton.waitForDisplayed();
     } else {
       const element = await this.walletButton;
+      await element.waitFor('visible',{ timeout: 10000 });
       await appwrightExpect(element).toBeVisible();
     }
   }

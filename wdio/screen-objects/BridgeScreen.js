@@ -2,9 +2,7 @@ import AppwrightSelectors from '../helpers/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
-import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
-import { SwapsViewSelectorsIDs } from '../../e2e/selectors/swaps/SwapsView.selectors';
-import { QuoteViewSelectorText as BridgeQuotesSelectorText } from '../../e2e/selectors/Bridge/QuoteView.selectors';
+import { QuoteViewSelectorText } from '../../e2e/selectors/swaps/QuoteView.selectors';
 
 class BridgeScreen {
   get device() {
@@ -38,18 +36,13 @@ class BridgeScreen {
     return AppwrightSelectors.getElementByText(this._device, QuoteViewSelectorText.GET_QUOTES);
   }
 
-  async isQuoteDisplayed(network) {
-    if (network == 'Ethereum'){ // legacy swap view only shows on etheruem network
-      const mmFee = await AppwrightSelectors.getElementByID(this._device, SwapsViewSelectorsIDs.QUOTE_SUMMARY);
-      await appwrightExpect(mmFee).toBeVisible({ timeout: 10000 });
+  async isQuoteDisplayed() {
 
-    }
-    else{
       const element = await this.quoteDisplayed; // bridge swap view shows on 
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
-      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, BridgeQuotesSelectorText.FEE_DISCLAIMER);
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 });
+      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, QuoteViewSelectorText.FEE_DISCLAIMER);
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
-    }
+    
 
   }
 
@@ -57,31 +50,105 @@ class BridgeScreen {
     // Split amount into digits
     const digits = this.splitAmountIntoDigits(amount);
     console.log('Amount digits:', digits);
-    digits.forEach(async digit => {
+    for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
         if (digit != '.') {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`);
+          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+          await numberKey.waitFor('visible',{ timeout: 30000 });
           await numberKey.tap();
         }
         else {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.ViewGroup[@content-desc="."]`);
+          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
+          await numberKey.waitFor('visible',{ timeout: 30000 });
           await numberKey.tap();
         }
       }
       else {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        await numberKey.waitFor('visible', { timeout: 30000 });
         await numberKey.tap();
       }
-    });
+    }
   }
 
   async selectNetworkAndTokenTo(network, token) {
-    const bridgeButton = await AppwrightSelectors.getElementByText(this._device, 'Bridge to');
-    await bridgeButton.tap();
-    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, network);
-    await networkButton.tap();
-    const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
-    await tokenButton.tap();
+      const destinationToken = await this.destinationTokenArea;
+      await destinationToken.tap();
+      const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, network);
+      await networkButton.tap();
+      const tokenField = await AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
+      await tokenField.fill(token);
+      let tokenNetworkId;
+      if (network == 'Ethereum'){
+        tokenNetworkId = `0x1`;
+      }
+      else if (network == 'Polygon'){
+        tokenNetworkId = `0x89`;
+      }
+      else if (network == 'Solana'){
+        tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
+      }
+      let tokenButton;
+      if (AppwrightSelectors.isAndroid(this._device)){
+        tokenButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@resource-id="asset-${tokenNetworkId}-${token}"]`);
+      }
+      else {
+        // Try multiple iOS element selection strategies
+        console.log(`Looking for iOS token with ID: asset-${tokenNetworkId}-${token}`);
+        
+        try {
+          tokenButton = await AppwrightSelectors.getElementByNameiOS(this._device, `asset-${tokenNetworkId}-${token}`);
+          console.log('Found token button by Name');
+        } catch (error) {
+          console.log('Name selector failed, trying ID selector for iOS...');
+          tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+          console.log('Found token button by ID');
+        }
+      }
+      await tokenButton.waitFor('visible',{ timeout: 10000 });
+      console.log('Token button found and visible');
+      
+      console.log('About to hide keyboard...');
+      await AppwrightSelectors.hideKeyboard(this._device);
+      console.log('Keyboard hidden successfully');
+
+      console.log('About to tap token button...');
+      
+      // Try multiple tap strategies for iOS
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        await tokenButton.tap();
+      } else {
+        // iOS-specific tap strategy
+        console.log('Using iOS-specific tap strategy...');
+        try {
+          await tokenButton.tap();
+          console.log('iOS click() succeeded');
+        } catch (error) {
+          console.log('iOS click() failed, trying tap()...');
+          await tokenButton.tap();
+          console.log('iOS tap() succeeded');
+        }
+      }
+      console.log('Token button tapped successfully');
+      
+      // Wait for the amount input field to appear after tapping token
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Waited 2 seconds after token button tap');
+      
+      // Check if number input field is available
+      try {
+        const testNumberButton = AppwrightSelectors.isIOS(this._device) ? await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="1"]`) : await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='1']`);
+        await testNumberButton.waitFor('visible', { timeout: 5000 });
+        console.log('Number input field is visible - token tap worked');
+      } catch (error) {
+        console.log('Number input field not visible - token tap may not have worked, trying alternative tap method...');
+        
+        // Try alternative tap methods for iOS
+        await tokenButton.tap(); // Try click instead of tap
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log('Tried alternative tap methods');
+      }
   }
 
   async tapGetQuotes(network){

@@ -107,11 +107,21 @@ describe('asyncifyMigrations', () => {
 describe('migrations', () => {
   beforeAll(() => {
     // Used by redux-persist library to function properly
-    process.env.NODE_ENV = 'production';
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'production',
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
   });
   afterAll(() => {
     // Reset to default value
-    process.env.NODE_ENV = defaultNodeEnv;
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: defaultNodeEnv,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
   });
 
   it('should migrate successfully when latest migration is synchronous', async () => {

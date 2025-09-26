@@ -605,7 +605,7 @@ class Asset extends PureComponent {
     const isRampAvailable = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
-    const displayFundButton = isDepositAvailable || isRampAvailable;
+    const displayBuyButton = isDepositAvailable || isRampAvailable;
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
@@ -620,7 +620,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayFundButton={displayFundButton}
+                  displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -646,7 +646,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayFundButton={displayFundButton}
+                  displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}

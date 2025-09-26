@@ -1,5 +1,4 @@
 import { BNToHex } from '@metamask/controller-utils';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   ChainId,
   LendingProvider,
@@ -15,7 +14,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 // eslint-disable-next-line import/no-namespace
 import {
   ConfirmationRedesignRemoteFlags,
@@ -165,9 +163,10 @@ jest.mock('../../../../../selectors/multichain', () => ({
   })),
 }));
 
-jest.mock('../../../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../../../selectors/accountsController'),
-  selectSelectedInternalAccount: jest.fn(),
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: MOCK_ADDRESS_2,
+  })),
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
@@ -347,9 +346,6 @@ describe('EarnInputView', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
-  const selectSelectedInternalAccountMock = jest.mocked(
-    selectSelectedInternalAccount,
-  );
   const selectStablecoinLendingEnabledFlagMock = jest.mocked(
     selectStablecoinLendingEnabledFlag,
   );
@@ -378,13 +374,6 @@ describe('EarnInputView', () => {
     (
       getIsRedesignedStablecoinLendingScreenEnabled as jest.Mock
     ).mockReturnValue(false);
-
-    selectSelectedInternalAccountMock.mockImplementation(
-      () =>
-        ({
-          address: MOCK_ADDRESS_2,
-        } as InternalAccount),
-    );
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,
     } as unknown as ConfirmationRedesignRemoteFlags);

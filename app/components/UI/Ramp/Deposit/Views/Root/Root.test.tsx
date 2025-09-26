@@ -116,7 +116,7 @@ describe('Root Component', () => {
     });
   });
 
-  it('redirects to bank details when there is a created order', async () => {
+  it('redirects to bank details when there is a created order and user is authenticated', async () => {
     const mockOrders = [
       {
         id: 'test-created-order-id',
@@ -128,7 +128,7 @@ describe('Root Component', () => {
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue(mockOrders);
-    mockCheckExistingToken.mockResolvedValue(false);
+    mockCheckExistingToken.mockResolvedValue(true); // User is authenticated
     render(Root);
 
     await waitFor(() => {
@@ -139,6 +139,37 @@ describe('Root Component', () => {
             name: 'BankDetails',
             params: {
               orderId: 'test-created-order-id',
+              animationEnabled: false,
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  it('redirects to enterEmail with redirectToRootAfterAuth when there is a created order and user is not authenticated', async () => {
+    const mockOrders = [
+      {
+        id: 'test-created-order-id-unauth',
+        provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+        state: FIAT_ORDER_STATES.CREATED,
+      },
+    ] as FiatOrder[];
+
+    (
+      getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
+    ).mockReturnValue(mockOrders);
+    mockCheckExistingToken.mockResolvedValue(false); // User is not authenticated
+    render(Root);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'EnterEmail',
+            params: {
+              redirectToRootAfterAuth: true,
               animationEnabled: false,
             },
           },

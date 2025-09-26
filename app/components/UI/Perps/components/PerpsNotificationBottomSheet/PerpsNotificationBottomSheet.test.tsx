@@ -3,6 +3,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsNotificationBottomSheet from './PerpsNotificationBottomSheet';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
+import { useEnableNotifications } from '../../../../../util/notifications/hooks/useNotifications';
 
 // Mock DevLogger
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -26,15 +27,19 @@ jest.mock(
 );
 
 // Mock the notification toggle hook
-const mockSwitchPerpsNotifications = jest.fn();
-jest.mock(
-  '../../../../../util/notifications/hooks/useSwitchNotifications',
-  () => ({
-    usePerpsNotificationToggle: jest.fn(() => ({
-      switchPerpsNotifications: mockSwitchPerpsNotifications,
-    })),
-  }),
-);
+jest.mock('../../../../../util/notifications/hooks/useNotifications', () => ({
+  useEnableNotifications: jest.fn(),
+}));
+
+const mockEnableNotifications = jest.fn().mockResolvedValue(undefined);
+jest.mocked(useEnableNotifications).mockReturnValue({
+  enableNotifications: mockEnableNotifications,
+  data: false,
+  error: null,
+  loading: false,
+  isEnablingNotifications: false,
+  isEnablingPushNotifications: false,
+});
 
 describe('PerpsNotificationBottomSheet', () => {
   const mockOnClose = jest.fn();
@@ -46,7 +51,6 @@ describe('PerpsNotificationBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSwitchPerpsNotifications.mockResolvedValue(undefined);
   });
 
   it('should not render when not visible', () => {
@@ -80,7 +84,7 @@ describe('PerpsNotificationBottomSheet', () => {
     );
 
     await waitFor(() => {
-      expect(mockSwitchPerpsNotifications).toHaveBeenCalledWith(true);
+      expect(mockEnableNotifications).toHaveBeenCalledWith();
     });
   });
 
@@ -94,7 +98,7 @@ describe('PerpsNotificationBottomSheet', () => {
     );
 
     await waitFor(() => {
-      expect(mockSwitchPerpsNotifications).toHaveBeenCalledWith(true);
+      expect(mockEnableNotifications).toHaveBeenCalledWith();
       // The component would close the bottom sheet on success
       // but we can't test that with our simplified mock
     });
@@ -102,7 +106,7 @@ describe('PerpsNotificationBottomSheet', () => {
 
   it('should handle errors when enabling notifications fails', async () => {
     const testError = new Error('Test error');
-    mockSwitchPerpsNotifications.mockRejectedValueOnce(testError);
+    mockEnableNotifications.mockRejectedValueOnce(testError);
 
     const { getByText } = renderWithProvider(
       <PerpsNotificationBottomSheet {...defaultProps} />,
@@ -113,7 +117,7 @@ describe('PerpsNotificationBottomSheet', () => {
     );
 
     await waitFor(() => {
-      expect(mockSwitchPerpsNotifications).toHaveBeenCalledWith(true);
+      expect(mockEnableNotifications).toHaveBeenCalledWith();
       // When there's an error, the bottom sheet should remain open
       // We verify this by checking that the component is still rendered
     });

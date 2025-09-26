@@ -22,7 +22,6 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import { formatAddress, getLabelTextByAddress } from '../../../util/address';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
@@ -39,7 +38,6 @@ import { CaipAccountSelectorListProps } from './CaipAccountSelectorList.types';
 import styleSheet from './CaipAccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { RootState } from '../../../reducers';
 import { ACCOUNT_SELECTOR_LIST_TESTID } from './CaipAccountSelectorList.constants';
 import { toHex } from '@metamask/controller-utils';
 import AccountNetworkIndicator from '../AccountNetworkIndicator/AccountNetworkIndicator';
@@ -48,6 +46,7 @@ import {
   parseCaipAccountId,
   CaipChainId,
 } from '@metamask/utils';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -72,13 +71,7 @@ const CaipAccountSelectorList = ({
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
-  const accountAvatarType = useSelector(
-    (state: RootState) =>
-      state.settings.useBlockieIcon
-        ? AvatarAccountType.Blockies
-        : AvatarAccountType.JazzIcon,
-    shallowEqual,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType, shallowEqual);
   const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
 
   const renderAccountBalances = useCallback(

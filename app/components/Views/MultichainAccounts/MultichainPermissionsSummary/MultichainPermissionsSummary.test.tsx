@@ -23,6 +23,7 @@ const mockOnEditNetworks = jest.fn();
 const mockOnBack = jest.fn();
 const mockOnCancel = jest.fn();
 const mockOnConfirm = jest.fn();
+const mockOnRevokeAll = jest.fn();
 const mockOnCreateAccount = jest.fn();
 const mockOnUserAction = jest.fn();
 const mockOnAddNetwork = jest.fn();
@@ -66,6 +67,7 @@ const DEFAULT_MULTICHAIN_PERMISSIONS_SUMMARY_PROPS = {
   onBack: mockOnBack,
   onCancel: mockOnCancel,
   onConfirm: mockOnConfirm,
+  onRevokeAll: mockOnRevokeAll,
   onCreateAccount: mockOnCreateAccount,
   onUserAction: mockOnUserAction,
   onAddNetwork: mockOnAddNetwork,
@@ -180,6 +182,7 @@ describe('MultichainPermissionsSummary', () => {
   it('renders for already connected state', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       isAlreadyConnected: true,
+      isDisconnectAllShown: true,
     });
     expect(
       getByTestId(
@@ -423,6 +426,107 @@ describe('MultichainPermissionsSummary', () => {
     const { getByTestId } = renderMultichainPermissionsSummary({
       networkAvatars: MOCK_NETWORK_AVATARS,
     });
+    expect(
+      getByTestId(
+        ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+      ),
+    ).toBeTruthy();
+  });
+
+  it('calls custom onRevokeAll when disconnect all button is pressed', () => {
+    const { getByTestId } = renderMultichainPermissionsSummary({
+      isAlreadyConnected: true,
+      isDisconnectAllShown: true,
+      onRevokeAll: mockOnRevokeAll,
+    });
+
+    const disconnectAllButton = getByTestId(
+      ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+    );
+    fireEvent.press(disconnectAllButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'RevokeAllAccountPermissions',
+      params: expect.objectContaining({
+        onRevokeAll: expect.any(Function),
+      }),
+    });
+  });
+
+  it('falls back to default revoke behavior when no custom onRevokeAll is provided', () => {
+    const { getByTestId } = renderMultichainPermissionsSummary({
+      isAlreadyConnected: true,
+      isDisconnectAllShown: true,
+      onRevokeAll: undefined,
+    });
+
+    const disconnectAllButton = getByTestId(
+      ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+    );
+    fireEvent.press(disconnectAllButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'RevokeAllAccountPermissions',
+      params: expect.objectContaining({
+        onRevokeAll: expect.any(Function),
+      }),
+    });
+  });
+
+  it('renders with empty network avatars array', () => {
+    const { getByTestId } = renderMultichainPermissionsSummary({
+      networkAvatars: [],
+    });
+    expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+  });
+
+  it('renders with single network avatar', () => {
+    const { getByTestId } = renderMultichainPermissionsSummary({
+      networkAvatars: [MOCK_NETWORK_AVATARS[0]],
+    });
+    expect(
+      getByTestId(
+        ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+      ),
+    ).toBeTruthy();
+  });
+
+  it('disables confirm button when no account groups are selected', () => {
+    const { getByTestId } = renderMultichainPermissionsSummary({
+      selectedAccountGroupIds: [],
+      networkAvatars: MOCK_NETWORK_AVATARS,
+    });
+
+    const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
+    expect(confirmButton.props.disabled).toBe(true);
+  });
+
+  it('disables confirm button when no networks are selected', () => {
+    const { getByTestId } = renderMultichainPermissionsSummary({
+      selectedAccountGroupIds: [MOCK_GROUP_ID_1],
+      networkAvatars: [],
+    });
+
+    const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
+    expect(confirmButton.props.disabled).toBe(true);
+  });
+
+  it('enables confirm button when both accounts and networks are selected', () => {
+    const { getByTestId } = renderMultichainPermissionsSummary({
+      selectedAccountGroupIds: [MOCK_GROUP_ID_1],
+      networkAvatars: MOCK_NETWORK_AVATARS,
+    });
+
+    const confirmButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
+    expect(confirmButton.props.disabled).toBe(false);
+  });
+
+  it('renders network avatars correctly', () => {
+    const { getByTestId } = renderMultichainPermissionsSummary({
+      networkAvatars: MOCK_NETWORK_AVATARS,
+    });
+
+    // Verify the component renders with network information
     expect(
       getByTestId(
         ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,

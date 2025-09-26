@@ -192,6 +192,9 @@ const actionKeys = {
   [TransactionType.lendingWithdraw]: strings(
     'transactions.tx_review_lending_withdraw',
   ),
+  [TransactionType.perpsDeposit]: strings(
+    'transactions.tx_review_perps_deposit',
+  ),
 };
 
 /**
@@ -520,6 +523,7 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.stakingUnstake,
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
+      TransactionType.perpsDeposit,
     ].includes(type)
   ) {
     return type;

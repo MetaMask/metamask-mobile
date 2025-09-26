@@ -42,7 +42,8 @@ export const DEFAULT_GAS_API_MOCKS: MockEventsObject = {
       responseCode: 200,
     },
     {
-      urlEndpoint: 'https://gas.api.cx.metamask.io/networks/56/gasPrices',
+      urlEndpoint:
+        /^https:\/\/gas\.api\.cx\.metamask\.io\/networks\/\d+\/gasPrices$/,
       responseCode: 200,
       response: {
         SafeGasPrice: '0',

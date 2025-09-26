@@ -40,7 +40,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapWallet();
-        await WalletView.tapWalletFundButton();
+        await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapSellButton();
         await SellGetStartedView.tapGetStartedButton();
         await Assertions.expectElementToBeVisible(
@@ -50,7 +50,7 @@ describe(SmokeTrade('Off-Ramp'), () => {
           BuildQuoteView.getQuotesButton,
         );
         await BuildQuoteView.tapCancelButton();
-        await WalletView.tapWalletFundButton();
+        await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapSellButton();
         await BuildQuoteView.enterAmount('2');
         await BuildQuoteView.tapGetQuotesButton();

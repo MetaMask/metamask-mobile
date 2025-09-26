@@ -20,7 +20,7 @@ import {
   setActiveTab,
   updateTab,
 } from '../../../actions/browser';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 import {
   ToastContext,
   ToastVariants,
@@ -87,11 +87,8 @@ export const Browser = (props) => {
   const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const [shouldShowTabs, setShouldShowTabs] = useState(false);
 
-  const accountAvatarType = useSelector((state) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType);
+
   const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,
   );

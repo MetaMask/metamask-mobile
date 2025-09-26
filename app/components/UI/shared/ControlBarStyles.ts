@@ -31,7 +31,7 @@ const createControlBarStyles = (params: { theme: Theme }) => {
     },
     controlButton: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
       borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
       borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
       maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
@@ -39,7 +39,7 @@ const createControlBarStyles = (params: { theme: Theme }) => {
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
       marginRight: 4,
       borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
       borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,

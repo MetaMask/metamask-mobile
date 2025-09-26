@@ -17,7 +17,7 @@ import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../../../Earn/util
 const ContractTag = ({
   contractName,
   contractAddress,
-  useBlockieIcon = false,
+  avatarAccountType = AvatarAccountType.Maskicon,
 }: ContractTagProps) => {
   // A set of addresses for the Aave V3 pool contracts
   const aaveAddresses = useMemo(
@@ -45,11 +45,7 @@ const ContractTag = ({
             variant={AvatarVariant.Account}
             size={AvatarSize.Xs}
             accountAddress={contractAddress}
-            type={
-              useBlockieIcon
-                ? AvatarAccountType.Blockies
-                : AvatarAccountType.JazzIcon
-            }
+            type={avatarAccountType}
           />
         )
       }

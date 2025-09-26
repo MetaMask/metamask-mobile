@@ -8,7 +8,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { RampType } from '../../../reducers/fiatOrders/types';
-import Routes from '../../../constants/navigation/Routes';
+import { createDepositNavigationDetails } from '../Ramp/Deposit/routes/utils';
 
 // Internal dependencies.
 import { useMetrics } from '../../hooks/useMetrics';
@@ -244,7 +244,9 @@ describe('FundActionMenu', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          ...createDepositNavigationDetails(),
+        );
       });
     });
 

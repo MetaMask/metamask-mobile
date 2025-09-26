@@ -324,12 +324,14 @@ function decodeIncomingTransfer(args) {
 
 async function decodeTransferTx(args) {
   const {
+    actionKey: originalActionKey,
     tx: {
       txParams,
       txParams: { from, gas, data, to },
       hash,
     },
     txChainId,
+    useOriginalActionKey,
   } = args;
 
   const decodedData = decodeTransferData('transfer', data);
@@ -347,7 +349,14 @@ async function decodeTransferTx(args) {
   let [transactionElement, transactionDetails] = isCollectible
     ? getCollectibleTransfer({ ...args, totalGas })
     : getTokenTransfer({ ...args, totalGas });
-  transactionElement = { ...transactionElement, renderTo: addressTo };
+  const actionKey = useOriginalActionKey
+    ? originalActionKey
+    : transactionElement.actionKey;
+  transactionElement = {
+    ...transactionElement,
+    renderTo: addressTo,
+    actionKey,
+  };
   transactionDetails = {
     ...transactionDetails,
     ...{
@@ -890,9 +899,12 @@ export default async function decodeTransaction(args) {
   } else {
     switch (actionKey) {
       case strings('transactions.sent_tokens'):
+      case strings('transactions.tx_review_perps_deposit'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,
+          useOriginalActionKey:
+            actionKey !== strings('transactions.sent_tokens'),
         });
         break;
       case strings('transactions.sent_collectible'):

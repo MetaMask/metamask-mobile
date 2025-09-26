@@ -6,6 +6,8 @@ import { processNotification } from '@metamask/notification-services-controller/
 import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
 
 import FCMService from './FCMService';
+import { EVENT_NAME, MetaMetrics } from '../../../core/Analytics';
+import { NativeModules, Platform } from 'react-native';
 
 // Firebase Mock
 jest.mock('@react-native-firebase/messaging', () => {
@@ -17,6 +19,8 @@ jest.mock('@react-native-firebase/messaging', () => {
   const deleteToken = jest.fn();
   const setBackgroundMessageHandler = jest.fn();
   const onMessage = jest.fn();
+  const getInitialNotification = jest.fn();
+  const onNotificationOpenedApp = jest.fn();
 
   // Messaging() function mock
   const mockMessaging = jest.fn(() => ({
@@ -27,6 +31,8 @@ jest.mock('@react-native-firebase/messaging', () => {
     deleteToken,
     setBackgroundMessageHandler,
     onMessage,
+    getInitialNotification,
+    onNotificationOpenedApp,
   }));
 
   // Retain the messaging properties
@@ -55,6 +61,12 @@ const arrangeFirebaseMocks = () => {
     .mockResolvedValue('MOCK_FCM_TOKEN');
   const mockDeleteToken = jest.mocked(messaging().deleteToken);
   const mockOnMessage = jest.mocked(messaging().onMessage);
+  const mockGetInitialNotification = jest.mocked(
+    messaging().getInitialNotification,
+  );
+  const mockOnNotificationOpenedApp = jest.mocked(
+    messaging().onNotificationOpenedApp,
+  );
 
   return {
     mockHasPermission,
@@ -62,11 +74,23 @@ const arrangeFirebaseMocks = () => {
     mockGetToken,
     mockDeleteToken,
     mockOnMessage,
+    mockGetInitialNotification,
+    mockOnNotificationOpenedApp,
+  };
+};
+
+const arrangeNativeModuleMocks = () => {
+  const mockNativeModuleGetInitialNotification = jest.fn();
+  NativeModules.NotificationModule = {
+    getInitialNotification: mockNativeModuleGetInitialNotification,
+  };
+  return {
+    mockNativeModuleGetInitialNotification,
   };
 };
 
 describe('FCMService - createRegToken()', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -105,7 +129,7 @@ describe('FCMService - createRegToken()', () => {
 });
 
 describe('FCMService - deleteRegToken()', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -143,7 +167,7 @@ describe('FCMService - deleteRegToken()', () => {
 });
 
 describe('FCMService - isPushNotificationsEnabled()', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -288,5 +312,232 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
 
       expect(mocks.mockHandler).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const arrangeMocks = () => {
+    const mockTrackEvent = jest.spyOn(MetaMetrics.getInstance(), 'trackEvent');
+    const firebaseMocks = arrangeFirebaseMocks();
+    const nativeModuleMocks = arrangeNativeModuleMocks();
+    return {
+      ...firebaseMocks,
+      ...nativeModuleMocks,
+      mockTrackEvent,
+    };
+  };
+
+  const createMockRemoteMessage = (
+    data?: unknown,
+  ): FirebaseMessagingTypes.RemoteMessage =>
+    ({
+      data,
+    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+
+  const platformTestConfigs = [
+    {
+      platform: 'android' as const,
+      mockSetup: (
+        mocks: ReturnType<typeof arrangeMocks>,
+        notification: FirebaseMessagingTypes.RemoteMessage | null,
+      ) => {
+        mocks.mockNativeModuleGetInitialNotification.mockResolvedValue(
+          notification,
+        );
+      },
+      assertMockInitialNotificationCalled: (
+        mocks: ReturnType<typeof arrangeMocks>,
+      ) => {
+        expect(mocks.mockNativeModuleGetInitialNotification).toHaveBeenCalled();
+        expect(mocks.mockGetInitialNotification).not.toHaveBeenCalled();
+      },
+    },
+    {
+      platform: 'ios' as const,
+      mockSetup: (
+        mocks: ReturnType<typeof arrangeMocks>,
+        notification: FirebaseMessagingTypes.RemoteMessage | null,
+      ) => {
+        mocks.mockGetInitialNotification.mockResolvedValue(notification);
+      },
+      assertMockInitialNotificationCalled: (
+        mocks: ReturnType<typeof arrangeMocks>,
+      ) => {
+        expect(mocks.mockGetInitialNotification).toHaveBeenCalled();
+        expect(
+          mocks.mockNativeModuleGetInitialNotification,
+        ).not.toHaveBeenCalled();
+      },
+    },
+  ];
+
+  describe.each(platformTestConfigs)(
+    '$platform Platform',
+    ({ platform, mockSetup, assertMockInitialNotificationCalled }) => {
+      beforeEach(() => {
+        Platform.OS = platform;
+      });
+
+      const arrangeAct = async (data?: null | Record<string, unknown>) => {
+        const mocks = arrangeMocks();
+        const mockNotification =
+          data === null ? null : createMockRemoteMessage(data);
+        mockSetup(mocks, mockNotification);
+        const result = await FCMService.onClickPushNotificationWhenAppClosed();
+        return { result, mocks };
+      };
+
+      it('returns deeplink when notification has deeplink data', async () => {
+        const testData = {
+          kind: 'take_profit_executed',
+          deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+        };
+
+        const { result, mocks } = await arrangeAct(testData);
+
+        expect(result).toBe('https://test.metamask.io/perps-asset?symbol=ETH');
+        assertMockInitialNotificationCalled(mocks);
+        expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+            properties: expect.objectContaining(testData),
+          }),
+        );
+      });
+
+      it('tracks click event but does not return deeplink when no deeplink present', async () => {
+        const testData = { kind: 'take_profit_executed' };
+
+        const { result, mocks } = await arrangeAct(testData);
+
+        expect(result).toBeFalsy();
+        assertMockInitialNotificationCalled(mocks);
+        expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+            properties: expect.objectContaining(testData),
+          }),
+        );
+      });
+
+      it('does not track event or return deeplink when notification is null', async () => {
+        const { result, mocks } = await arrangeAct(null);
+
+        expect(result).toBeFalsy();
+        assertMockInitialNotificationCalled(mocks);
+        expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
+      });
+    },
+  );
+});
+
+describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const arrangeMocks = () => {
+    const mockTrackEvent = jest.spyOn(MetaMetrics.getInstance(), 'trackEvent');
+    const firebaseMocks = arrangeFirebaseMocks();
+    const deeplinkCallback = jest.fn();
+    return {
+      ...firebaseMocks,
+      mockTrackEvent,
+      deeplinkCallback,
+    };
+  };
+
+  const createMockRemoteMessage = (
+    data?: unknown,
+  ): FirebaseMessagingTypes.RemoteMessage =>
+    ({
+      data,
+    } as unknown as FirebaseMessagingTypes.RemoteMessage);
+
+  const arrangeAct = (
+    testData: unknown,
+    overrideMocks?: (mocks: ReturnType<typeof arrangeMocks>) => void,
+  ) => {
+    const mocks = arrangeMocks();
+    overrideMocks?.(mocks);
+    const mockNotification =
+      testData === null ? null : createMockRemoteMessage(testData);
+
+    // Act - Setup listener & Call handler (simulate notification opened)
+    FCMService.onClickPushNotificationWhenAppSuspended(mocks.deeplinkCallback);
+    const notificationHandler =
+      mocks.mockOnNotificationOpenedApp.mock.calls[0][0];
+    notificationHandler(
+      mockNotification as FirebaseMessagingTypes.RemoteMessage,
+    );
+
+    return { mocks, deeplinkCallback: mocks.deeplinkCallback };
+  };
+
+  it('calls deeplink callback with deeplink when notification has deeplink data', () => {
+    const testData = {
+      kind: 'take_profit_executed',
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    };
+
+    const { mocks, deeplinkCallback } = arrangeAct(testData);
+
+    expect(deeplinkCallback).toHaveBeenCalledWith(
+      'https://test.metamask.io/perps-asset?symbol=ETH',
+    );
+    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+        properties: expect.objectContaining(testData),
+      }),
+    );
+  });
+
+  it('calls deeplink callback with undefined when notification has no deeplink', () => {
+    const testData = { kind: 'take_profit_executed' };
+
+    const { mocks, deeplinkCallback } = arrangeAct(testData);
+
+    expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
+    expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+        properties: expect.objectContaining(testData),
+      }),
+    );
+  });
+
+  it('calls deeplink callback with undefined when notification has null data', () => {
+    const { mocks, deeplinkCallback } = arrangeAct(null);
+
+    expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
+    expect(mocks.mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('handles deeplink callback that throws an error gracefully', () => {
+    const testData = {
+      kind: 'take_profit_executed',
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    };
+
+    expect(() => {
+      const { mocks } = arrangeAct(testData, (m) => {
+        m.deeplinkCallback.mockImplementation(() => {
+          throw new Error('Callback error');
+        });
+      });
+
+      // Assert - Analytics should still be tracked even if callback fails
+      expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: EVENT_NAME.PUSH_NOTIFICATION_CLICKED,
+          properties: expect.objectContaining(testData),
+        }),
+      );
+    }).not.toThrow();
   });
 });

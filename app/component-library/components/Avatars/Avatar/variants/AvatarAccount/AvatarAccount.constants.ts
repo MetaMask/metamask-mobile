@@ -19,7 +19,7 @@ export const BORDERRADIUS_BY_AVATARSIZE: BorderRadiusByAvatarSize = {
 };
 
 // Defaults
-export const DEFAULT_AVATARACCOUNT_TYPE = AvatarAccountType.JazzIcon;
+export const DEFAULT_AVATARACCOUNT_TYPE = AvatarAccountType.Maskicon;
 export const DEFAULT_AVATARACCOUNT_SIZE = AvatarSize.Md;
 
 // Sample consts

@@ -29,7 +29,7 @@ if (__DEV__) {
 enableFreeze(true);
 
 // Setup Sentry
-setupSentry();
+setupSentry(__DEV__);
 
 // Setup Performance observers
 Performance.setupPerformanceObservers();

@@ -8,11 +8,11 @@ import { isSwapsAllowed } from '../../../Swaps/utils';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
-import Routes from '../../../../../constants/navigation/Routes';
 import { CardTokenAllowance, AllowanceState } from '../../types';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
 
 // Mock dependencies
 jest.mock('../../hooks/useOpenSwaps', () => ({
@@ -108,7 +108,6 @@ describe('AddFundsBottomSheet', () => {
     sheetRef: mockSheetRef,
     priorityToken: mockPriorityToken,
     chainId: '0xe708',
-    cardholderAddresses: ['0xcardholder'],
     navigate: mockNavigate,
   };
 
@@ -221,7 +220,6 @@ describe('AddFundsBottomSheet', () => {
 
     expect(mockOpenSwaps).toHaveBeenCalledWith({
       chainId: '0xe708',
-      cardholderAddress: '0xcardholder',
       beforeNavigate: expect.any(Function),
     });
   });
@@ -299,7 +297,9 @@ describe('AddFundsBottomSheet', () => {
 
     fireEvent.press(getByText('Fund with cash'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createDepositNavigationDetails(),
+    );
   });
 
   it('handles ref prop correctly', () => {

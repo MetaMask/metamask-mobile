@@ -27,6 +27,7 @@ describe(
         },
         async (): Promise<void> => {
           await loginToApp();
+          await device.disableSynchronization();
           await Assertions.expectElementToBeVisible(WalletView.container);
           // Request asset from main Receive button
           await WalletView.tapWalletReceiveButton();

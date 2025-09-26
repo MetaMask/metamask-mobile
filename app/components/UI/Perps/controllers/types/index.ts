@@ -14,6 +14,24 @@ export * from '../../types/navigation';
 // Order type enumeration
 export type OrderType = 'market' | 'limit';
 
+// Unified tracking data interface for analytics events (never persisted in state)
+export interface TrackingData {
+  // Common to all operations
+  totalFee: number; // Total fee for the operation
+  marketPrice: number; // Market price at operation time
+  metamaskFee?: number; // MetaMask fee amount
+  metamaskFeeRate?: number; // MetaMask fee rate
+  feeDiscountPercentage?: number; // Fee discount percentage
+  estimatedPoints?: number; // Estimated reward points
+
+  // Order-specific (used for trade operations)
+  marginUsed?: number; // Margin required for this order
+
+  // Close-specific (used for position close operations)
+  receivedAmount?: number; // Amount user receives after close
+  realizedPnl?: number; // Realized P&L from close
+}
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
@@ -32,6 +50,9 @@ export type OrderParams = {
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
+
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export type OrderResult = {
@@ -65,6 +86,8 @@ export type Position = {
   };
   takeProfitPrice?: string; // Take profit price (if set)
   stopLossPrice?: string; // Stop loss price (if set)
+  takeProfitCount: number; // Take profit count, how many tps can affect the position
+  stopLossCount: number; // Stop loss count, how many sls can affect the position
 };
 
 export type AccountState = {
@@ -82,6 +105,8 @@ export type ClosePositionParams = {
   orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
   currentPrice?: number; // Current market price for validation
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export interface InitializeResult {
@@ -153,6 +178,10 @@ export interface PerpsMarketData {
    * Funding interval in hours (optional, market-specific)
    */
   fundingIntervalHours?: number;
+  /**
+   * Current funding rate as decimal (optional, from predictedFundings API)
+   */
+  fundingRate?: number;
 }
 
 export interface ToggleTestnetResult {
@@ -264,6 +293,14 @@ export interface LiveDataConfig {
   priceThrottleMs?: number; // ms between price updates (default: 2000)
   positionThrottleMs?: number; // ms between position updates (default: 5000)
   maxUpdatesPerSecond?: number; // hard limit to prevent UI blocking
+}
+
+export interface PerpsControllerConfig {
+  /**
+   * Fallback blocked regions to use when RemoteFeatureFlagController fails to fetch.
+   * The fallback is set by default if defined and replaced with remote block list once available.
+   */
+  fallbackBlockedRegions?: string[];
 }
 
 export interface PriceUpdate {

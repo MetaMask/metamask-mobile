@@ -1,4 +1,3 @@
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Result,
   TransactionStatus,
@@ -13,7 +12,6 @@ import EarnLendingDepositConfirmationView, {
 } from '.';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { MOCK_ADDRESS_2 } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -44,9 +42,10 @@ type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
 }) => void;
 
-jest.mock('../../../../../selectors/accountsController', () => ({
-  ...jest.requireActual('../../../../../selectors/accountsController'),
-  selectSelectedInternalAccount: jest.fn(),
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: MOCK_ADDRESS_2,
+  })),
 }));
 
 const mockGoBack = jest.fn();
@@ -253,10 +252,6 @@ describe('EarnLendingDepositConfirmationView', () => {
     Engine.context.NetworkController.findNetworkClientIdByChainId,
   );
 
-  const selectSelectedInternalAccountMock = jest.mocked(
-    selectSelectedInternalAccount,
-  );
-
   const mockEndTrace = jest.mocked(endTrace);
   const mockTrace = jest.mocked(trace);
 
@@ -297,10 +292,6 @@ describe('EarnLendingDepositConfirmationView', () => {
         typeof selectStablecoinLendingEnabledFlag
       >
     ).mockReturnValue(true);
-
-    selectSelectedInternalAccountMock.mockReturnValue({
-      address: MOCK_ADDRESS_2,
-    } as InternalAccount);
   });
 
   it('matches snapshot', () => {

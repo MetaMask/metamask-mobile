@@ -4,9 +4,14 @@ import {
   getMockUpdateOnChainNotifications,
 } from '@metamask/notification-services-controller/notification-services/mocks';
 import { getDecodedProxiedURL } from './helpers';
+import { createLogger } from '../../../framework/logger';
 
 const GET_CONFIG_URL = getMockOnChainNotificationsConfig().url;
 const UPDATE_CONFIG_URL = getMockUpdateOnChainNotifications().url;
+
+const logger = createLogger({
+  name: 'MockttpNotificationTriggerServer',
+});
 
 export interface NotificationConfig {
   address: string;
@@ -66,8 +71,7 @@ export class MockttpNotificationTriggerServer {
       )
       .asPriority(999)
       .thenCallback((request) => {
-        // eslint-disable-next-line no-console
-        console.log(
+        logger.debug(
           `Mocking ${request.method} request to: ${getDecodedProxiedURL(
             request.url,
           )}`,
@@ -82,8 +86,7 @@ export class MockttpNotificationTriggerServer {
       )
       .asPriority(999)
       .thenCallback((request) => {
-        // eslint-disable-next-line no-console
-        console.log(
+        logger.debug(
           `Mocking ${request.method} request to: ${getDecodedProxiedURL(
             request.url,
           )}`,

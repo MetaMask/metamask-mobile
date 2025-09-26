@@ -216,11 +216,14 @@ export const TokenInputArea = forwardRef<
     });
 
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
+    const parsedTokenBalance = parseFloat(tokenBalance || '0');
+    const roundedTokenBalance =
+      Math.floor(parsedTokenBalance * 100000) / 100000;
     const formattedBalance =
       token?.symbol && tokenBalance
-        ? `${parseFloat(tokenBalance)
-            .toFixed(3)
-            .replace(/\.?0+$/, '')} ${token?.symbol}`
+        ? `${roundedTokenBalance.toFixed(5).replace(/\.?0+$/, '')} ${
+            token?.symbol
+          }`
         : undefined;
     const formattedAddress =
       token?.address && token.address !== ethers.constants.AddressZero

@@ -13,12 +13,13 @@ import Text, {
 import { Box } from '../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../UI/Box/box.types';
 import { useDisplayName } from './useDisplayName';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 export interface SnapUIAddressProps {
   // The address must be a CAIP-10 string.
   address: string;
   // This is not currently exposed to Snaps.
-  avatarSize?: 'xs' | 'sm' | 'md' | 'lg';
+  avatarSize?: AvatarSize;
   truncate?: boolean;
   displayName?: boolean;
   avatar?: boolean;
@@ -27,7 +28,7 @@ export interface SnapUIAddressProps {
 
 export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
   address,
-  avatarSize = 'md',
+  avatarSize = AvatarSize.Md,
   truncate = true,
   displayName = false,
   avatar = true,

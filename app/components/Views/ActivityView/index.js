@@ -319,6 +319,7 @@ const ActivityView = () => {
           {isPerpsEnabled && (
             <PerpsConnectionProvider
               tabLabel={strings('perps.transactions.title')}
+              isVisible={isPerpsTabActive}
             >
               <PerpsTransactionsView />
             </PerpsConnectionProvider>

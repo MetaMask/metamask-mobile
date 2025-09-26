@@ -338,6 +338,7 @@ describe('BridgeStepDescription', () => {
           decimals: 18,
         },
         destTokenAmount: '1',
+        minDestTokenAmount: '0.95',
         feeData: {
           metabridge: {
             amount: '0.1',

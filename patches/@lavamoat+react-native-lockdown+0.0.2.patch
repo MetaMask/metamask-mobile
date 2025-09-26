@@ -1,0 +1,14 @@
+diff --git a/node_modules/@lavamoat/react-native-lockdown/src/repair.js b/node_modules/@lavamoat/react-native-lockdown/src/repair.js
+index e16173b..2d811f0 100644
+--- a/node_modules/@lavamoat/react-native-lockdown/src/repair.js
++++ b/node_modules/@lavamoat/react-native-lockdown/src/repair.js
+@@ -41,7 +41,8 @@ const dumbPolyfillExposedInternals = Object.entries(Promise).filter(
+ 
+ // eslint-disable-next-line no-undef
+ repairIntrinsics({
+-  errorTaming: 'unsafe',
++  // https://github.com/MetaMask/metamask-mobile/issues/19735
++  errorTaming: 'unsafe-debug',
+   consoleTaming: 'unsafe',
+   errorTrapping: 'none',
+   unhandledRejectionTrapping: 'none',

@@ -481,9 +481,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                               "borderColor": "#b7bbc8",
                               "color": "#121314",
                               "flex": 1,
-                              "fontFamily": "CentraNo1-Book",
+                              "fontFamily": "Geist Regular",
                               "fontSize": 14,
-                              "fontWeight": "400",
                               "paddingLeft": 10,
                             }
                           }
@@ -497,9 +496,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Bold",
+                                "fontFamily": "Geist Bold",
                                 "fontSize": 14,
-                                "fontWeight": "600",
                                 "paddingVertical": 12,
                               }
                             }
@@ -544,9 +542,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                       }
                                     }
                                   >
@@ -617,9 +614,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                       }
                                     }
                                   >
@@ -690,9 +686,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                       }
                                     }
                                   >
@@ -765,9 +760,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                       }
                                     }
                                   >
@@ -807,9 +801,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontFamily": "Geist Bold",
                                   "fontSize": 14,
-                                  "fontWeight": "600",
                                   "paddingVertical": 12,
                                 }
                               }
@@ -864,9 +857,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
-                                        "fontWeight": "400",
                                       }
                                     }
                                   >
@@ -880,9 +872,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Bold",
+                                "fontFamily": "Geist Bold",
                                 "fontSize": 14,
-                                "fontWeight": "600",
                                 "paddingVertical": 12,
                               }
                             }
@@ -920,9 +911,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                     }
                                   }
                                 >
@@ -985,9 +975,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                     }
                                   }
                                 >
@@ -1050,9 +1039,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                     }
                                   }
                                 >
@@ -1115,9 +1103,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                     }
                                   }
                                 >
@@ -1187,9 +1174,8 @@ exports[`NetworksSettings should render correctly 1`] = `
                               null,
                               [
                                 {
-                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontFamily": "Geist Bold",
                                   "fontSize": 14,
-                                  "fontWeight": "600",
                                   "textAlign": "center",
                                 },
                                 {

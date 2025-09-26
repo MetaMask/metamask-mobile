@@ -30,6 +30,7 @@ import {
 import { useDisplayName } from '../SnapUIAddress/useDisplayName';
 import { AlignItems, FlexDirection } from '../../UI/Box/box.types';
 import { useTheme } from '../../../util/theme';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 export interface SnapUIAddressInputProps {
   name: string;
@@ -93,7 +94,7 @@ const MatchedAccountInfo = ({
         testID="snap-ui-address-input__matched-account-info"
       >
         {displayAvatar && (
-          <SnapUIAvatar address={`${chainId}:${value}`} size="sm" />
+          <SnapUIAvatar address={`${chainId}:${value}`} size={AvatarSize.Sm} />
         )}
         <Box
           flexDirection={FlexDirection.Column}
@@ -243,7 +244,10 @@ export const SnapUIAddressInput = ({
         testID={`${name}-snap-address-input`}
         startAccessory={
           displayAvatar && value && isCaipAccountId(`${chainId}:${value}`) ? (
-            <SnapUIAvatar address={`${chainId}:${value}`} size="sm" />
+            <SnapUIAvatar
+              address={`${chainId}:${value}`}
+              size={AvatarSize.Sm}
+            />
           ) : null
         }
         endAccessory={

@@ -6,14 +6,13 @@ import {
   REMIND_LATER_BUTTON_ID,
   SUBMIT_BUTTON,
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-} from '../testIDs/Screens/WalletSetupScreen.testIds';
-import Gestures from '../../helpers/Gestures';
-import Selectors from '../../helpers/Selectors';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect } from 'appwright';
+} from "../testIDs/Screens/WalletSetupScreen.testIds";
+import Gestures from "../../helpers/Gestures";
+import Selectors from "../../helpers/Selectors";
+import AppwrightSelectors from "../../helpers/AppwrightSelectors";
+import { expect } from "appwright";
 
-class CreateNewWalletScreen{
-
+class CreateNewWalletScreen {
   get device() {
     return this._device;
   }
@@ -28,7 +27,10 @@ class CreateNewWalletScreen{
         WALLET_SETUP_SCREEN_DESCRIPTION_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WALLET_SETUP_SCREEN_DESCRIPTION_ID);
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        WALLET_SETUP_SCREEN_DESCRIPTION_ID,
+      );
     }
   }
 
@@ -38,7 +40,10 @@ class CreateNewWalletScreen{
         PROTECT_YOUR_WALLET_CONTAINER_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, PROTECT_YOUR_WALLET_CONTAINER_ID);
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        PROTECT_YOUR_WALLET_CONTAINER_ID,
+      );
     }
   }
 
@@ -46,7 +51,10 @@ class CreateNewWalletScreen{
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(REMIND_LATER_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, REMIND_LATER_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        REMIND_LATER_BUTTON_ID,
+      );
     }
   }
 
@@ -56,7 +64,15 @@ class CreateNewWalletScreen{
         CREATE_PASSWORD_INPUT_FIRST_FIELD,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(
+          this._device,
+          CREATE_PASSWORD_INPUT_FIRST_FIELD,
+        );
+      } else {
+        return  AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="Enter a strong password"]');
+            
+      }
     }
   }
 
@@ -66,7 +82,14 @@ class CreateNewWalletScreen{
         CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(
+          this._device,
+          CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
+        );
+      } else {
+        return  AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="create-password-second-input-field"]');
+      }
     }
   }
 
@@ -74,7 +97,10 @@ class CreateNewWalletScreen{
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(I_UNDERSTAND_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, I_UNDERSTAND_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        I_UNDERSTAND_BUTTON_ID,
+      );
     }
   }
 
@@ -108,7 +134,6 @@ class CreateNewWalletScreen{
       await field.fill(secondPassword);
       const checkbox = await this.termsAndConditionCheckBox;
       await checkbox.tap();
-  
     }
   }
 

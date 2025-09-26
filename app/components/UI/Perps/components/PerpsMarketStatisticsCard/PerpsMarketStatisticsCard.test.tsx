@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
+import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -41,6 +42,12 @@ jest.mock('../../../../hooks/useStyles', () => ({
   })),
 }));
 
+// Mock the usePerpsLivePrices hook
+const mockUsePerpsLivePrices = jest.fn(() => ({}));
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: () => mockUsePerpsLivePrices(),
+}));
+
 describe('PerpsMarketStatisticsCard', () => {
   const mockMarketStats = {
     high24h: '$50,000.00',
@@ -57,12 +64,14 @@ describe('PerpsMarketStatisticsCard', () => {
   const mockOnTooltipPress = jest.fn();
 
   const defaultProps: PerpsMarketStatisticsCardProps = {
+    symbol: 'BTC',
     marketStats: mockMarketStats,
     onTooltipPress: mockOnTooltipPress,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsLivePrices.mockReturnValue({});
   });
 
   it('renders all statistics rows correctly', () => {
@@ -124,7 +133,7 @@ describe('PerpsMarketStatisticsCard', () => {
   it('displays zero funding rate in default color', () => {
     const zeroFundingStats = {
       ...mockMarketStats,
-      fundingRate: '0.0000%',
+      fundingRate: FUNDING_RATE_CONFIG.ZERO_DISPLAY,
     };
 
     const { getByText } = render(
@@ -134,7 +143,7 @@ describe('PerpsMarketStatisticsCard', () => {
       />,
     );
 
-    const fundingRateText = getByText('0.0000%');
+    const fundingRateText = getByText(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
     expect(fundingRateText).toBeOnTheScreen();
   });
 
@@ -246,5 +255,86 @@ describe('PerpsMarketStatisticsCard', () => {
 
     // Verify total calls
     expect(mockOnTooltipPress).toHaveBeenCalledTimes(2);
+  });
+
+  describe('Live funding rate from WebSocket', () => {
+    it('displays live funding rate when available from WebSocket', () => {
+      // Mock live funding rate from WebSocket
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          funding: 0.0005, // 0.05% when multiplied by 100
+        },
+      });
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...defaultProps} />,
+      );
+
+      // Should display the live funding rate formatted to 4 decimal places
+      expect(getByText('0.0500%')).toBeOnTheScreen();
+    });
+
+    it('displays negative live funding rate correctly', () => {
+      // Mock negative live funding rate from WebSocket
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          funding: -0.0023, // -0.23% when multiplied by 100
+        },
+      });
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...defaultProps} />,
+      );
+
+      // Should display the negative live funding rate
+      expect(getByText('-0.2300%')).toBeOnTheScreen();
+    });
+
+    it('falls back to marketStats funding rate when live data is undefined', () => {
+      // Mock no live funding data (undefined)
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          // funding is undefined
+        },
+      });
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...defaultProps} />,
+      );
+
+      // Should fall back to the marketStats funding rate
+      expect(getByText('0.0125%')).toBeOnTheScreen();
+    });
+
+    it('uses marketStats when empty symbol provided', () => {
+      // Test with empty symbol
+      const propsWithEmptySymbol = {
+        ...defaultProps,
+        symbol: '',
+      };
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...propsWithEmptySymbol} />,
+      );
+
+      // Should use marketStats funding rate
+      expect(getByText('0.0125%')).toBeOnTheScreen();
+    });
+
+    it('displays zero funding rate when live data is zero', () => {
+      // Mock zero funding rate from WebSocket
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          funding: 0,
+        },
+      });
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...defaultProps} />,
+      );
+
+      // Should display zero funding rate
+      expect(getByText(FUNDING_RATE_CONFIG.ZERO_DISPLAY)).toBeOnTheScreen();
+    });
   });
 });

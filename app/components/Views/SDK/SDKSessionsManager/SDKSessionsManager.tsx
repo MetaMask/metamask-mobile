@@ -1,5 +1,5 @@
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -70,11 +70,20 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   const route =
     useRoute<RouteProp<{ params: { trigger?: number } }, 'params'>>();
 
-  const { connections, dappConnections } = useSelector(
+  const { connections, dappConnections, v2Connections } = useSelector(
     (state: RootState) => state.sdk,
   );
-  const connectionsList = Object.values(connections);
-  const dappConnectionsList = Object.values(dappConnections);
+
+  // Combine all connection sources into a single list for rendering
+  const connectionsList = useMemo(
+    () => [
+      ...Object.values(connections),
+      ...Object.values(dappConnections),
+      ...Object.values(v2Connections),
+    ],
+    [connections, dappConnections, v2Connections],
+  );
+
   const { trigger } = route.params ?? { trigger: undefined };
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
@@ -110,12 +119,6 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
               connection={sdkSession}
             />
           ))}
-          {dappConnectionsList.map((androidSession, _index) => (
-            <SDKSessionItem
-              key={`${_index}_${androidSession.id}`}
-              connection={androidSession}
-            />
-          ))}
         </ScrollView>
         <View style={styles.disconnectAllContainer}>
           <Button
@@ -129,13 +132,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
         </View>
       </>
     ),
-    [
-      connectionsList,
-      trigger,
-      dappConnectionsList,
-      styles,
-      toggleClearMMSDKConnectionModal,
-    ],
+    [connectionsList, trigger, styles, toggleClearMMSDKConnectionModal],
   );
 
   const renderEmptyResult = () => (
@@ -155,9 +152,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.wrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {connectionsList.length + dappConnectionsList.length > 0
-        ? renderSDKSessions()
-        : renderEmptyResult()}
+      {connectionsList.length > 0 ? renderSDKSessions() : renderEmptyResult()}
     </View>
   );
 };

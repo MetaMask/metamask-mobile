@@ -13,7 +13,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 
 export interface AssetDetailsActionsProps {
-  displayFundButton: boolean | undefined;
+  displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
   swapsIsLive: boolean | undefined;
@@ -28,7 +28,7 @@ export interface AssetDetailsActionsProps {
     chainId?: string;
   };
   // Optional custom action IDs to avoid test ID conflicts
-  fundButtonActionID?: string;
+  buyButtonActionID?: string;
   swapButtonActionID?: string;
   bridgeButtonActionID?: string;
   sendButtonActionID?: string;
@@ -36,7 +36,7 @@ export interface AssetDetailsActionsProps {
 }
 
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
-  displayFundButton,
+  displayBuyButton,
   displaySwapsButton,
   displayBridgeButton,
   swapsIsLive,
@@ -46,7 +46,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onSend,
   onReceive,
   asset,
-  fundButtonActionID = TokenOverviewSelectorsIDs.FUND_BUTTON,
+  buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
   bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
@@ -58,12 +58,12 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 
   // Check if FundActionMenu would be empty
   const { isDepositEnabled } = useDepositEnabled();
-  const isFundMenuAvailable = isDepositEnabled || true;
+  const isBuyMenuAvailable = isDepositEnabled || true;
 
   // Button should be enabled if we have standard funding options OR a custom onBuy function
-  const isFundingAvailable = isFundMenuAvailable || !!onBuy;
+  const isBuyingAvailable = isBuyMenuAvailable || !!onBuy;
 
-  const handleFundPress = () => {
+  const handleBuyPress = () => {
     // Navigate to FundActionMenu with both custom onBuy and asset context
     // The menu will prioritize custom onBuy over standard funding options
     // This allows custom funding flows even when deposit/ramp are unavailable
@@ -78,14 +78,14 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 
   return (
     <View style={styles.activitiesButton}>
-      {displayFundButton && (
+      {displayBuyButton && (
         <View style={styles.buttonContainer}>
           <MainActionButton
-            iconName={IconName.Money}
-            label={strings('asset_overview.fund_button')}
-            onPress={handleFundPress}
-            isDisabled={!isFundingAvailable}
-            testID={fundButtonActionID}
+            iconName={IconName.AttachMoney}
+            label={strings('asset_overview.buy_button')}
+            onPress={handleBuyPress}
+            isDisabled={!isBuyingAvailable}
+            testID={buyButtonActionID}
           />
         </View>
       )}

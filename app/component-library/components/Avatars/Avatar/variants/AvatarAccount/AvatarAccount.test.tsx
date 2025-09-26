@@ -72,20 +72,20 @@ describe('AvatarAccount', () => {
       expect(getByTestId(`avatar-${avatarType}`)).toBeOnTheScreen();
     });
 
-    it('defaults to JazzIcon when no type is specified', () => {
+    it('defaults to Maskicon when no type is specified', () => {
       // Arrange & Act
       const defaultAvatar = render(
         <AvatarAccount accountAddress={mockAccountAddress} />,
       );
-      const jazzIconAvatar = render(
+      const maskIconAvatar = render(
         <AvatarAccount
           accountAddress={mockAccountAddress}
-          type={AvatarAccountType.JazzIcon}
+          type={AvatarAccountType.Maskicon}
         />,
       );
 
-      // Assert - Default should behave same as JazzIcon
-      expect(defaultAvatar.toJSON()).toEqual(jazzIconAvatar.toJSON());
+      // Assert - Default should behave same as Maskicon
+      expect(defaultAvatar.toJSON()).toEqual(maskIconAvatar.toJSON());
     });
 
     it('renders different content for different avatar types', () => {

@@ -12,6 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
     sliderContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      marginHorizontal: 16,
     },
     trackContainer: {
       flex: 1,
@@ -19,15 +20,15 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 30,
     },
     track: {
-      height: 6,
+      height: 8,
       backgroundColor: colors.border.muted,
-      borderRadius: 3,
+      borderRadius: 20,
       position: 'relative',
     },
     progress: {
-      height: 6,
-      backgroundColor: colors.primary.default,
-      borderRadius: 3,
+      height: 8,
+      backgroundColor: colors.icon.alternative,
+      borderRadius: 20,
       position: 'absolute',
       left: 0,
       top: 0,
@@ -35,21 +36,14 @@ const styleSheet = (params: { theme: Theme }) => {
     thumb: {
       width: 32,
       height: 32,
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.icon.defaultPressed,
       borderRadius: 16,
       position: 'absolute',
       top: -13,
       left: -16,
-      shadowColor: colors.shadow.default,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
       elevation: 4,
-      borderWidth: 2,
-      borderColor: colors.border.default,
+      borderWidth: 4,
+      borderColor: colors.icon.default,
     },
     percentageRow: {
       flexDirection: 'row',
@@ -63,7 +57,7 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'absolute',
       top: 14,
       alignItems: 'center',
-      transform: [{ translateX: -20 }],
+      transform: [{ translateX: -15 }],
     },
     percentageWrapper0: {
       left: 0,
@@ -84,13 +78,17 @@ const styleSheet = (params: { theme: Theme }) => {
       transform: [{ translateX: 0 }],
     },
     percentageDot: {
-      width: 5,
-      height: 5,
+      width: 4,
+      height: 4,
       backgroundColor: colors.text.muted,
       borderRadius: 2.5,
       position: 'absolute',
-      top: 0.5,
+      top: 2,
       transform: [{ translateX: -2.5 }],
+      zIndex: -2,
+    },
+    percentageDot0: {
+      left: '2%',
     },
     percentageDot25: {
       left: '25%',
@@ -101,9 +99,13 @@ const styleSheet = (params: { theme: Theme }) => {
     percentageDot75: {
       left: '75%',
     },
+    percentageDot100: {
+      left: '98%',
+    },
     percentageText: {
+      marginTop: 8,
       color: colors.text.muted,
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: '500',
     },
     quickValuesRow: {

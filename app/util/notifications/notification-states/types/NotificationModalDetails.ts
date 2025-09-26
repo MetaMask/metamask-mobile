@@ -197,9 +197,7 @@ export interface ModalFooterBlockExplorer {
 
 export interface ModalFooterAnnouncementCta {
   type: ModalFooterType.ANNOUNCEMENT_CTA;
-
-  // We currently to not support a mobile link
-  mobileLink?: FeatureAnnouncementRawNotification['data']['extensionLink'];
+  mobileLink?: FeatureAnnouncementRawNotification['data']['mobileLink'];
 }
 
 export type ModalFooter = ModalFooterBlockExplorer | ModalFooterAnnouncementCta;

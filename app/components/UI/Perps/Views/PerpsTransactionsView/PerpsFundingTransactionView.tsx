@@ -22,6 +22,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
+import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import {
@@ -113,6 +114,11 @@ const PerpsFundingTransactionView: React.FC = () => {
         style={styles.container}
       >
         <View style={styles.content}>
+          <PerpsTransactionDetailAssetHero
+            transaction={transaction}
+            styles={styles}
+          />
+
           {/* Transaction details - clean list design */}
           <View style={styles.detailsContainer}>
             {detailRows.map((detail, index) => (

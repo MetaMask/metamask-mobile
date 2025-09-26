@@ -1,12 +1,6 @@
 // Third party dependencies
 import React, { useRef, useState, useCallback, useMemo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  InteractionManager,
-  ViewStyle,
-} from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Token as TokenType } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
@@ -70,7 +64,7 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
-      ...(fontStyles.normal as ViewStyle),
+      ...fontStyles.normal,
       fontSize: 18,
       paddingVertical: 16,
       color: colors.text.default,

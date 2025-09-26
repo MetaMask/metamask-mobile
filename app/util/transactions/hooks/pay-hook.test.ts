@@ -1,5 +1,11 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
-import { TransactionBridgeQuote } from '../../../components/Views/confirmations/utils/bridge';
+import {
+  TransactionControllerUnapprovedTransactionAddedEvent,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
+import {
+  TransactionBridgeQuote,
+  refreshQuote,
+} from '../../../components/Views/confirmations/utils/bridge';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { PayHook } from './pay-hook';
 import { Messenger } from '@metamask/base-controller';
@@ -8,6 +14,7 @@ import {
   BridgeStatusControllerActions,
   BridgeStatusControllerEvents,
   BridgeStatusControllerState,
+  BridgeStatusControllerStateChangeEvent,
 } from '@metamask/bridge-status-controller';
 import { store } from '../../../store';
 import { RootState } from '../../../reducers';
@@ -15,6 +22,8 @@ import { StatusTypes } from '@metamask/bridge-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 
 jest.mock('../../../selectors/smartTransactionsController');
+jest.mock('../../transaction-controller');
+jest.mock('../../../components/Views/confirmations/utils/bridge');
 
 const TRANSACTION_ID_MOCK = '123-456';
 const BRIDGE_TRANSACTION_ID_MOCK = '456-789';
@@ -34,6 +43,9 @@ const QUOTE_2_MOCK = {
 
 const TRANSACTION_META_MOCK = {
   id: TRANSACTION_ID_MOCK,
+  txParams: {
+    from: '0xabc',
+  },
 } as TransactionMeta;
 
 const BRIDGE_TRANSACTION_META_MOCK = {
@@ -48,7 +60,8 @@ describe('Pay Publish Hook', () => {
   let hook: PayHook;
   let baseMessenger: Messenger<
     BridgeStatusControllerActions,
-    BridgeStatusControllerEvents
+    | BridgeStatusControllerEvents
+    | TransactionControllerUnapprovedTransactionAddedEvent
   >;
   let messengerMock: jest.Mocked<TransactionControllerInitMessenger>;
 
@@ -59,6 +72,8 @@ describe('Pay Publish Hook', () => {
   const submitTransactionMock: jest.MockedFunction<
     BridgeStatusController['submitTx']
   > = jest.fn();
+
+  const refreshQuoteMock = jest.mocked(refreshQuote);
 
   function runHook() {
     return hook.getHook()(TRANSACTION_META_MOCK, '0x1234');
@@ -84,11 +99,12 @@ describe('Pay Publish Hook', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
     baseMessenger = new Messenger<
       BridgeStatusControllerActions,
-      BridgeStatusControllerEvents
+      | BridgeStatusControllerStateChangeEvent
+      | TransactionControllerUnapprovedTransactionAddedEvent
     >();
 
     baseMessenger.registerActionHandler(
@@ -99,7 +115,10 @@ describe('Pay Publish Hook', () => {
     messengerMock = baseMessenger.getRestricted({
       name: 'TransactionControllerInitMessenger',
       allowedActions: ['BridgeStatusController:submitTx'],
-      allowedEvents: ['BridgeStatusController:stateChange'],
+      allowedEvents: [
+        'BridgeStatusController:stateChange',
+        'TransactionController:unapprovedTransactionAdded',
+      ],
     }) as jest.Mocked<TransactionControllerInitMessenger>;
 
     hook = new PayHook({
@@ -131,6 +150,8 @@ describe('Pay Publish Hook', () => {
     });
 
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
+
+    refreshQuoteMock.mockImplementation(async (_quote) => _quote);
   });
 
   it('submits matching quotes to bridge status controller', async () => {
@@ -153,6 +174,26 @@ describe('Pay Publish Hook', () => {
     jest.spyOn(store, 'getState').mockReturnValue({
       confirmationMetrics: {
         transactionBridgeQuotesById: {},
+      },
+    } as unknown as RootState);
+
+    await runHook();
+
+    expect(submitTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it('does nothing if first quote has same source and target chain', async () => {
+    jest.spyOn(store, 'getState').mockReturnValue({
+      confirmationMetrics: {
+        transactionBridgeQuotesById: {
+          [TRANSACTION_ID_MOCK]: [
+            {
+              ...QUOTE_MOCK,
+              quote: { ...QUOTE_MOCK.quote, destChainId: 123 },
+            },
+            QUOTE_2_MOCK,
+          ],
+        },
       },
     } as unknown as RootState);
 
@@ -192,5 +233,11 @@ describe('Pay Publish Hook', () => {
     expect(result).toEqual({
       transactionHash: undefined,
     });
+  });
+
+  it('refreshes quote if subsequent bridge transaction', async () => {
+    await runHook();
+
+    expect(refreshQuoteMock).toHaveBeenCalledWith(QUOTE_2_MOCK);
   });
 });

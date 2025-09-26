@@ -115,8 +115,8 @@ describe('useBridgeQuoteData', () => {
       destTokenAmount: '57.056221',
       formattedQuoteData: {
         networkFee: '-',
-        estimatedTime: '1 min',
-        rate: '1 ETH = 0.0 USDC',
+        estimatedTime: '5 seconds',
+        rate: '1 ETH = 0.0000000000000000571 USDC',
         priceImpact: '-0.20%',
         slippage: '0.5%',
       },

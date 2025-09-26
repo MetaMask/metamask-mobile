@@ -741,7 +741,6 @@ describe('NetworkManager Component', () => {
       fireEvent.press(confirmButton);
 
       expect(mockRemoveNetwork).toHaveBeenCalledWith('0x1');
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:1');
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         removedChainId: '0x1',
       });

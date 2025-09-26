@@ -142,7 +142,6 @@ describe('AddAsset component', () => {
       selectNetwork: mockSelectNetwork,
       deselectAll: jest.fn(),
       selectAllPopularNetworks: jest.fn(),
-      resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
     mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
@@ -358,7 +357,6 @@ describe('AddAsset component', () => {
         selectNetwork: mockSelectNetworkFn,
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -591,7 +589,6 @@ describe('AddAsset component', () => {
         selectNetwork: mockSelectNetworkFn,
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 
@@ -612,7 +609,6 @@ describe('AddAsset component', () => {
         selectNetwork: mockSelectNetworkFn,
         deselectAll: jest.fn(),
         selectAllPopularNetworks: jest.fn(),
-        resetCustomNetworks: jest.fn(),
         customNetworksToReset: [],
       });
 

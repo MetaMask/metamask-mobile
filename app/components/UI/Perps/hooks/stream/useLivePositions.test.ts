@@ -36,6 +36,8 @@ describe('usePerpsLivePositions', () => {
       sinceOpen: '0',
       sinceChange: '0',
     },
+    takeProfitCount: 0,
+    stopLossCount: 0,
   };
 
   beforeEach(() => {

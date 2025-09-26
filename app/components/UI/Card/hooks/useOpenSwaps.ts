@@ -18,7 +18,6 @@ import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 export interface OpenSwapsParams {
   chainId: string;
-  cardholderAddress?: string;
   beforeNavigate?: (navigate: () => void) => void;
 }
 

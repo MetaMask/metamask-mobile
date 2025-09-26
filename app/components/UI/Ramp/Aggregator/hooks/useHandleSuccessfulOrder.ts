@@ -64,8 +64,8 @@ function useHandleSuccessfulOrder() {
             ...payload,
             provider_offramp: (order?.data as Order)?.provider?.name,
             chain_id_source: selectedChainId,
-            currency_source: (order?.data as Order)?.cryptoCurrency.symbol,
-            currency_destination: (order?.data as Order)?.fiatCurrency.symbol,
+            currency_source: (order?.data as Order)?.cryptoCurrency?.symbol,
+            currency_destination: (order?.data as Order)?.fiatCurrency?.symbol,
           });
           navigation.navigate(Routes.TRANSACTIONS_VIEW, {
             screen: Routes.RAMP.ORDER_DETAILS,
@@ -94,8 +94,9 @@ function useHandleSuccessfulOrder() {
                   ) as any
                 )?.isZero?.()
               : undefined,
-            currency_source: (order?.data as Order)?.fiatCurrency.symbol,
-            currency_destination: (order?.data as Order)?.cryptoCurrency.symbol,
+            currency_source: (order?.data as Order)?.fiatCurrency?.symbol,
+            currency_destination: (order?.data as Order)?.cryptoCurrency
+              ?.symbol,
           });
         }
       });

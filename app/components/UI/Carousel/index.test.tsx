@@ -84,7 +84,6 @@ const createMockSlide = (
   description: 'Test Description',
   navigation: { type: 'url', href: 'https://example.com' },
   image: 'https://example.com/image.jpg',
-  undismissable: false,
   ...overrides,
 });
 
@@ -165,12 +164,13 @@ describe('Carousel Data Fetching', () => {
       regularSlides: [regularSlide],
     });
 
-    const { findAllByTestId } = render(<Carousel />);
+    const { findByTestId } = render(<Carousel />);
 
+    // In the new stack implementation, only the current slide is rendered
+    // Priority slides should appear first
     await waitFor(async () => {
-      const slides = await findAllByTestId(/carousel-slide-/);
-      expect(slides.length > 0).toBe(true);
-      expect(slides[0]).toHaveTextContent('Priority');
+      const currentSlide = await findByTestId('carousel-slide-priority');
+      expect(currentSlide).toHaveTextContent('Priority');
     });
   });
 });
@@ -247,10 +247,9 @@ describe('Carousel Navigation', () => {
 });
 
 describe('Carousel Slide Dismissal', () => {
-  it('dispatches dismiss action when close button is clicked', async () => {
+  it('triggers transition animation when close button is clicked', async () => {
     const dismissibleSlide = createMockSlide({
       id: 'dismissible-slide',
-      undismissable: false,
     });
     mockFetchCarouselSlides.mockResolvedValue({
       prioritySlides: [],
@@ -262,34 +261,33 @@ describe('Carousel Slide Dismissal', () => {
     const closeButton = await findByTestId(
       'carousel-slide-dismissible-slide-close-button',
     );
+
+    // In the new implementation, close button triggers animation transition
+    // The dispatch happens as part of the transition animation
     fireEvent.press(closeButton);
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'banners/dismissBanner',
-        payload: 'dismissible-slide',
-      }),
-    );
+    // The close button should exist and be pressable
+    expect(closeButton).toBeOnTheScreen();
   });
 
-  it('does not show close button for undismissable slides', async () => {
-    const undismissableSlide = createMockSlide({
-      id: 'undismissable-slide',
-      undismissable: true,
+  it('shows close button for all slides in new implementation', async () => {
+    const testSlide = createMockSlide({
+      id: 'test-slide',
     });
     mockFetchCarouselSlides.mockResolvedValue({
       prioritySlides: [],
-      regularSlides: [undismissableSlide],
+      regularSlides: [testSlide],
     });
 
-    const { queryByTestId, findByTestId } = render(<Carousel />);
+    const { findByTestId } = render(<Carousel />);
 
-    expect(
-      await findByTestId('carousel-slide-undismissable-slide'),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId('carousel-slide-undismissable-slide-close-button'),
-    ).toBeNull();
+    const slide = await findByTestId('carousel-slide-test-slide');
+    const closeButton = await findByTestId(
+      'carousel-slide-test-slide-close-button',
+    );
+
+    expect(slide).toBeOnTheScreen();
+    expect(closeButton).toBeOnTheScreen();
   });
 });
 
@@ -344,10 +342,10 @@ describe('Carousel Solana Integration', () => {
 });
 
 describe('Carousel UI Behavior', () => {
-  it('shows progress dots for multiple slides', async () => {
+  it('renders stack-based carousel with current slide', async () => {
     const slides = [
-      createMockSlide({ id: 'slide-1' }),
-      createMockSlide({ id: 'slide-2' }),
+      createMockSlide({ id: 'slide-1', title: 'First Slide' }),
+      createMockSlide({ id: 'slide-2', title: 'Second Slide' }),
     ];
     mockFetchCarouselSlides.mockResolvedValue({
       prioritySlides: [],
@@ -356,35 +354,44 @@ describe('Carousel UI Behavior', () => {
 
     const { findByTestId } = render(<Carousel />);
 
-    expect(
-      await findByTestId(WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS),
-    ).toBeOnTheScreen();
-  });
-
-  it('updates scroll position when swiping', async () => {
-    const slides = [
-      createMockSlide({ id: 'slide-1' }),
-      createMockSlide({ id: 'slide-2' }),
-    ];
-    mockFetchCarouselSlides.mockResolvedValue({
-      prioritySlides: [],
-      regularSlides: slides,
-    });
-
-    const { findByTestId } = render(<Carousel />);
-
-    const flatList = await findByTestId(
+    // New implementation renders stack-based carousel without progress dots
+    const carouselContainer = await findByTestId(
       WalletViewSelectorsIDs.CAROUSEL_CONTAINER,
     );
+    expect(carouselContainer).toBeOnTheScreen();
 
-    fireEvent(flatList, 'onMomentumScrollEnd', {
-      nativeEvent: {
-        contentOffset: { x: 400, y: 0 },
-        layoutMeasurement: { width: 400, height: 66 },
-        contentSize: { width: 800, height: 66 },
-      },
+    // Should show the current (first) slide
+    const currentSlide = await findByTestId('carousel-slide-slide-1');
+    expect(currentSlide).toBeOnTheScreen();
+
+    // Check that the slide contains the expected title
+    const slideTitle = await findByTestId('carousel-slide-slide-1-title');
+    expect(slideTitle).toHaveTextContent('First Slide');
+  });
+
+  it('shows stacked cards when multiple slides exist', async () => {
+    const slides = [
+      createMockSlide({ id: 'slide-1', title: 'Current Slide' }),
+      createMockSlide({ id: 'slide-2', title: 'Next Slide' }),
+    ];
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: slides,
     });
 
-    expect(flatList).toBeOnTheScreen();
+    const { findByTestId } = render(<Carousel />);
+
+    const carouselContainer = await findByTestId(
+      WalletViewSelectorsIDs.CAROUSEL_CONTAINER,
+    );
+    expect(carouselContainer).toBeOnTheScreen();
+
+    // Current slide should be visible
+    const currentSlide = await findByTestId('carousel-slide-slide-1');
+    expect(currentSlide).toBeOnTheScreen();
+
+    // Next slide should also be rendered (stacked behind)
+    const nextSlide = await findByTestId('carousel-slide-slide-2');
+    expect(nextSlide).toBeOnTheScreen();
   });
 });

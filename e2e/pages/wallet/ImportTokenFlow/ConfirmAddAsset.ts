@@ -4,6 +4,7 @@ import {
 } from '../../../selectors/wallet/ImportTokenView.selectors';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import { TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT } from '../../../../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 
 class ConfirmAddAssetView {
   get container(): DetoxElement {
@@ -19,9 +20,7 @@ class ConfirmAddAssetView {
   }
 
   get confirmButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ImportTokenViewSelectorsText.CONFIRM_IMPORT_TOKEN,
-    );
+    return Matchers.getElementByID(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT);
   }
 
   get cancelModal(): DetoxElement {
@@ -45,6 +44,8 @@ class ConfirmAddAssetView {
   async tapOnConfirmButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm Add Asset Button',
+      waitForElementToDisappear: true,
+      timeout: 15000,
     });
   }
 

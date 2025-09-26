@@ -10,6 +10,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { formatAddress } from '../../../../util/address';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 1, right: 2, bottom: 3, left: 4 };
@@ -95,7 +96,7 @@ const renderWithAccount = (account: InternalAccount | undefined) => {
           },
         },
         settings: {
-          useBlockieIcon: false,
+          avatarAccountType: AvatarAccountType.Maskicon,
         },
       },
     },
@@ -155,7 +156,7 @@ describe('AccountDetails', () => {
             },
           },
           settings: {
-            useBlockieIcon: false,
+            avatarAccountType: AvatarAccountType.Maskicon,
           },
         },
       },

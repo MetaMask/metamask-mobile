@@ -108,6 +108,11 @@ export const mockedEngine = {
         }),
       },
     },
+    TransactionController: {
+      addTransaction: jest.fn(),
+      addTransactionBatch: jest.fn(),
+      isAtomicBatchSupported: jest.fn(),
+    },
   },
   hasFunds: jest.fn(),
   resetState: jest.fn(),

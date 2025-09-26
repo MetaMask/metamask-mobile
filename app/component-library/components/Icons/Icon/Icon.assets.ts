@@ -28,6 +28,7 @@ import arrowdropdowncircleSVG from './assets/arrow-drop-down-circle.svg';
 import arrowleftSVG from './assets/arrow-left.svg';
 import arrowrightSVG from './assets/arrow-right.svg';
 import arrowupSVG from './assets/arrow-up.svg';
+import attachmoneySVG from './assets/attach-money.svg';
 import attachmentSVG from './assets/attachment.svg';
 import banSVG from './assets/ban.svg';
 import bankassuredSVG from './assets/bank-assured.svg';
@@ -304,6 +305,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ArrowLeft]: arrowleftSVG,
   [IconName.ArrowRight]: arrowrightSVG,
   [IconName.ArrowUp]: arrowupSVG,
+  [IconName.AttachMoney]: attachmoneySVG,
   [IconName.Attachment]: attachmentSVG,
   [IconName.Ban]: banSVG,
   [IconName.BankAssured]: bankassuredSVG,

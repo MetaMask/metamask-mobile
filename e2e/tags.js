@@ -76,7 +76,6 @@ const SmokeWalletUX = (testName) => `${tags.smokeWalletUX} ${testName}`;
 const RegressionWalletUX = (testName) =>
   `${tags.regressionWalletUX} ${testName}`;
 const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
-
 const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
 
 export {

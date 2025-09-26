@@ -105,6 +105,7 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { isSnapId } from '@metamask/snaps-utils';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -327,7 +328,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     let url = dappUrl || channelIdOrHostname || '';
 
     const checkOrigin = async () => {
-      if (isProductSafetyDappScanningEnabled()) {
+      if (isProductSafetyDappScanningEnabled() && !isSnapId(url)) {
         url = prefixUrlWithProtocol(url);
       }
       const scanResult = await getPhishingTestResultAsync(url);

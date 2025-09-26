@@ -56,6 +56,7 @@ import {
 import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -248,12 +249,17 @@ class TransactionElement extends PureComponent {
     const isUnifiedSwap =
       tx.type === TransactionType.swap &&
       this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
+
     if (tx.type === TransactionType.bridge || isUnifiedSwap) {
       handleUnifiedSwapsTxHistoryItemClick(
         this.props.navigation,
         tx,
         this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
       );
+    } else if (tx.type === TransactionType.perpsDeposit) {
+      this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
+        transactionId: tx.id,
+      });
     } else {
       this.setState({ detailsModalVisible: true });
     }

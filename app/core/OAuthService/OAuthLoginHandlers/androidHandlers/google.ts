@@ -21,6 +21,8 @@ const ACM_ERRORS_REGEX = {
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
   readonly #scope = ['email', 'profile', 'openid'];
 
+  private retried: boolean = false;
+
   protected clientId: string;
 
   get authConnection() {
@@ -73,7 +75,7 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         OAuthErrorType.UnknownError,
       );
     } catch (error) {
-      Logger.error(error as Error, 'handleGoogleLogin: error');
+      Logger.log(error, 'handleGoogleLogin: error');
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
@@ -83,6 +85,10 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
             OAuthErrorType.UserCancelled,
           );
         } else if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)) {
+          if (!this.retried) {
+            this.retried = true;
+            return await this.login();
+          }
           throw new OAuthError(
             'handleGoogleLogin: Google login has no credential',
             OAuthErrorType.GoogleLoginNoCredential,
@@ -90,6 +96,10 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         } else if (
           ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)
         ) {
+          if (!this.retried) {
+            this.retried = true;
+            return await this.login();
+          }
           throw new OAuthError(
             'handleGoogleLogin: Google login has no matching credential',
             OAuthErrorType.GoogleLoginNoMatchingCredential,

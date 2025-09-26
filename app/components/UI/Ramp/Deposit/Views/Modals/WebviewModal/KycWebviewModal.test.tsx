@@ -21,7 +21,9 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => ({
     quote: { id: 'test-quote' } as unknown as BuyQuote,
-    kycWorkflowRunId: 'test-workflow-run-id',
+    workFlowRunId: 'test-workflow-run-id',
+    cryptoCurrencyChainId: 'eip155:1',
+    paymentMethodId: 'credit_debit_card',
   })),
 }));
 
@@ -104,7 +106,12 @@ describe('KycWebviewModal', () => {
     const mockUseParams = jest.requireMock(
       '../../../../../../../util/navigation/navUtils',
     ).useParams;
-    mockUseParams.mockReturnValue({ quote: null });
+    mockUseParams.mockReturnValue({
+      quote: null,
+      workFlowRunId: 'test-workflow-run-id',
+      cryptoCurrencyChainId: 'eip155:1',
+      paymentMethodId: 'credit_debit_card',
+    });
 
     mockUseIdProofPolling.mockReturnValue({
       idProofStatus: 'SUBMITTED',

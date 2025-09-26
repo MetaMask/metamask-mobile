@@ -1,6 +1,7 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RefObject } from 'react';
 import { FlashListProps, FlashListRef } from '@shopify/flash-list';
+import { AccountWalletId } from '@metamask/account-api';
 
 /**
  * Flattened item type for the account list
@@ -8,7 +9,7 @@ import { FlashListProps, FlashListRef } from '@shopify/flash-list';
 export type FlattenedMultichainAccountListItem =
   | { type: 'cell'; data: AccountGroupObject; walletName: string }
   | { type: 'header'; data: { title: string; walletName: string } }
-  | { type: 'footer'; data: { walletName: string } };
+  | { type: 'footer'; data: { walletName: string; walletId: AccountWalletId } };
 
 /**
  * Props for MultichainAccountSelectorList component
@@ -40,4 +41,5 @@ export interface WalletSection {
   title: string;
   data: AccountGroupObject[];
   walletName: string;
+  walletId: AccountWalletId;
 }

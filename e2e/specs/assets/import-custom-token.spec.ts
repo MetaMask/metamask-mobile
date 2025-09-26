@@ -1,16 +1,13 @@
 import { RegressionAssets } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
-
-const TOKEN_ADDRESS = '0x2d1aDB45Bb1d7D2556c6558aDb76CFD4F9F4ed16';
+import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
 describe(RegressionAssets('Import custom token'), () => {
   beforeAll(async () => {
@@ -18,29 +15,42 @@ describe(RegressionAssets('Import custom token'), () => {
     await TestHelpers.launchApp();
   });
 
-  it('should Import custom token', async () => {
+  it('should Import custom token with auto-population', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .build(),
         restartDevice: true,
+        smartContracts: [SMART_CONTRACTS.HST],
       },
+      async ({ contractRegistry }) => {
+        const hstAddress = await contractRegistry?.getContractAddress(
+          SMART_CONTRACTS.HST,
+        );
 
-      async () => {
         await loginToApp();
         await WalletView.tapImportTokensButton();
         await ImportTokensView.switchToCustomTab();
         await ImportTokensView.tapOnNetworkInput();
         await ImportTokensView.swipeNetworkList();
-        await ImportTokensView.tapNetworkOption('Base');
-        await ImportTokensView.typeTokenAddress(TOKEN_ADDRESS);
-        await ImportTokensView.tapOnNextButtonWithFallback();
+        await ImportTokensView.tapNetworkOption('Localhost');
+        await ImportTokensView.typeTokenAddress(hstAddress);
+        await Assertions.expectElementToHaveText(
+          ImportTokensView.symbolInput,
+          'TST',
+          {
+            timeout: 5000,
+            description: 'Symbol field should auto-populate with TST',
+          },
+        );
+        await ImportTokensView.tapOnNextButton('Import Token');
         await ConfirmAddAssetView.tapOnConfirmButton();
-        await Assertions.expectElementToNotBeVisible(WalletView.container);
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetworkTo('Base');
-        await NetworkEducationModal.tapGotItButton();
         await Assertions.expectElementToBeVisible(
-          WalletView.tokenInWallet('0 USDT'),
+          WalletView.tokenInWallet('100 TST'),
         );
       },
     );

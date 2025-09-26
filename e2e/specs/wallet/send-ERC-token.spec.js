@@ -12,10 +12,10 @@ import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAs
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
@@ -38,14 +38,10 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer) => {
-          const { urlEndpoint, response } =
-            mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-          await setupMockRequest(mockServer, {
-            requestMethod: 'GET',
-            url: urlEndpoint,
-            response,
-            responseCode: 200,
-          });
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+          );
         },
       },
       async () => {

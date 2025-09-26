@@ -66,6 +66,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
   }
 
+  get navbarCardButtonBadge(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON_BADGE);
+  }
+
   get nftTab(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
@@ -108,6 +112,10 @@ class WalletView {
 
   get tokenNetworkFilter(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get sortButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON);
   }
 
   get sortBy(): DetoxElement {
@@ -184,6 +192,7 @@ class WalletView {
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
       elemDescription: 'Top Account Icon',
+      checkStability: true,
     });
   }
 
@@ -325,7 +334,7 @@ class WalletView {
   }
 
   async tapSortBy(): Promise<void> {
-    await Gestures.waitAndTap(this.sortBy, {
+    await Gestures.waitAndTap(this.sortButton, {
       elemDescription: 'Sort By',
     });
   }
@@ -397,7 +406,9 @@ class WalletView {
    * @returns {Promise<void>} Resolves when the tap action is complete.
    */
   async tapCarouselSlide(id: string): Promise<void> {
-    await Gestures.tap(this.getCarouselSlide(id));
+    await Gestures.tap(this.getCarouselSlide(id), {
+      elemDescription: `tap carousel slide ${id}`,
+    });
   }
 
   get defiTab(): DetoxElement {
@@ -496,8 +507,8 @@ class WalletView {
   }
 
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletFundButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_FUND_BUTTON);
+  get walletBuyButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
   }
 
   get walletSwapButton(): DetoxElement {
@@ -518,9 +529,9 @@ class WalletView {
     );
   }
 
-  async tapWalletFundButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletFundButton, {
-      elemDescription: 'Wallet Fund Button',
+  async tapWalletBuyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletBuyButton, {
+      elemDescription: 'Wallet Buy Button',
     });
   }
 
@@ -546,6 +557,26 @@ class WalletView {
     await Gestures.waitAndTap(this.walletReceiveButton, {
       elemDescription: 'Wallet Receive Button',
     });
+  }
+
+  get perpsTab(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+  }
+
+  async tapOnPerpsTab(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsTab, {
+      elemDescription: 'Perps Tab Button',
+    });
+  }
+
+  async verifyTokenNetworkFilterText(expectedText: string): Promise<void> {
+    await Assertions.expectElementToHaveLabel(
+      this.tokenNetworkFilter,
+      expectedText,
+      {
+        description: `token network filter should display "${expectedText}"`,
+      },
+    );
   }
 }
 

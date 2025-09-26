@@ -1,4 +1,8 @@
 import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import {
   isFromOrToSelectedAddress,
   isFromCurrentChain,
   sortTransactions,
@@ -6,6 +10,7 @@ import {
 } from '.';
 import { Token } from '../../components/UI/Swaps/utils/token-list-utils';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
+import { DeepPartial } from '../test/renderWithProvider';
 
 const TEST_ADDRESS_ONE = '0x5a3ca5cd63807ce5e4d7841ab32ce6b6d9bbba2d';
 const TEST_ADDRESS_TWO = '0x202637daaefbd7f131f90338a4a6c69f6cd5ce91';
@@ -152,7 +157,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       },
       isTransfer: false,
       transferInformation: undefined,
-    };
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
     const tokens = [] as Token[];
 
     const result = filterByAddressAndNetwork(
@@ -177,7 +182,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transferInformation: {
         contractAddress: TEST_ADDRESS_THREE,
       },
-    };
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
     const tokens = [{ address: TEST_ADDRESS_THREE }];
 
     const result = filterByAddressAndNetwork(
@@ -200,7 +205,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       },
       isTransfer: false,
       transferInformation: undefined,
-    };
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
     const tokens = [{ address: TEST_ADDRESS_THREE }];
 
     const result = filterByAddressAndNetwork(
@@ -214,7 +219,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
 
   it('should return false if the transaction does not meet the chain condition', () => {
     const transaction = {
-      chainId: '4',
+      chainId: '0x4',
       status: TX_SUBMITTED,
       txParams: {
         from: TEST_ADDRESS_ONE,
@@ -222,7 +227,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       },
       isTransfer: false,
       transferInformation: undefined,
-    };
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
     const tokens = [{ address: TEST_ADDRESS_THREE }];
 
     const result = filterByAddressAndNetwork(
@@ -247,7 +252,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transferInformation: {
         contractAddress: TEST_ADDRESS_THREE,
       },
-    };
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
     // Empty tokens array so matching token is not found.
     const tokens = [] as Token[];
 
@@ -271,7 +276,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       },
       isTransfer: false,
       transferInformation: undefined,
-    };
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
     const tokens = [] as Token[];
 
     const result = filterByAddressAndNetwork(
@@ -293,7 +298,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       },
       isTransfer: false,
       transferInformation: undefined,
-    };
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
     const tokens = [] as Token[];
 
     // tokenNetworkFilter array with two items, so Object.keys(tokenNetworkFilter).length === 2
@@ -305,5 +310,149 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     );
     // Despite chainId mismatch, the condition becomes true
     expect(result).toEqual(true);
+  });
+
+  it('returns true if network filter matches chain of required transaction', () => {
+    const transaction = {
+      chainId: '0x2',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+      requiredTransactionIds: ['123-456'],
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '123-456',
+        chainId: '0x1',
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+    );
+
+    expect(result).toEqual(true);
+  });
+
+  it('returns false if required transaction of alternate transaction', () => {
+    const transaction = {
+      id: '123',
+      chainId: '0x1',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '456',
+        chainId: '0x1',
+        requiredTransactionIds: ['123'],
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+    );
+
+    expect(result).toEqual(false);
+  });
+
+  it('returns false if hash matches required transaction of alternate transaction', () => {
+    const transaction = {
+      id: '123',
+      hash: '0xabc',
+      chainId: '0x1',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '456',
+        chainId: '0x1',
+        requiredTransactionIds: ['789'],
+      },
+      {
+        id: '789',
+        chainId: '0x1',
+        requiredTransactionIds: ['123'],
+        hash: '0xabc',
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+    );
+
+    expect(result).toEqual(false);
+  });
+
+  it('returns false if in batch with perps deposit', () => {
+    const transaction = {
+      id: '123',
+      batchId: '0x456',
+      chainId: '0x1',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_TWO,
+      },
+      isTransfer: false,
+      transferInformation: undefined,
+    } as Partial<TransactionMeta> as TransactionMeta;
+
+    const allTransactions = [
+      {
+        id: '789',
+        batchId: '0x456',
+        chainId: '0x1',
+        type: TransactionType.perpsDeposit,
+      },
+    ] as Partial<TransactionMeta>[] as TransactionMeta[];
+
+    const tokens = [] as Token[];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_ONE,
+      { '0x1': true },
+      allTransactions,
+    );
+
+    expect(result).toEqual(false);
   });
 });

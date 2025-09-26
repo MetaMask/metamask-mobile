@@ -93,16 +93,20 @@ describe('PermissionController selectors', () => {
       expect(selected2).toBe(getAuthorizedScopes('foo.bar')(state2));
     });
 
-    it('returns undefined for empty subjects', () => {
+    it('returns an empty Caip25CaveatValue for empty subjects', () => {
       const state = {
         subjects: {},
       };
 
       const selected = getAuthorizedScopes('foo.bar')(state);
-      expect(selected).toBeUndefined();
+      expect(selected).toStrictEqual({
+        requiredScopes: {},
+        optionalScopes: {},
+        sessionProperties: {},
+      });
     });
 
-    it('returns undefined for subject without CAIP-25 permissions', () => {
+    it('returns an empty Caip25CaveatValue for subject without CAIP-25 permissions', () => {
       const state = {
         subjects: {
           'foo.bar': {
@@ -117,10 +121,14 @@ describe('PermissionController selectors', () => {
       };
 
       const selected = getAuthorizedScopes('foo.bar')(state);
-      expect(selected).toBeUndefined();
+      expect(selected).toStrictEqual({
+        requiredScopes: {},
+        optionalScopes: {},
+        sessionProperties: {},
+      });
     });
 
-    it('returns undefined for subject with CAIP-25 permissions but wrong caveat type', () => {
+    it('returns an empty Caip25CaveatValue for subject with CAIP-25 permissions but wrong caveat type', () => {
       const state = {
         subjects: {
           'foo.bar': {
@@ -142,7 +150,11 @@ describe('PermissionController selectors', () => {
       };
 
       const selected = getAuthorizedScopes('foo.bar')(state);
-      expect(selected).toBeUndefined();
+      expect(selected).toStrictEqual({
+        requiredScopes: {},
+        optionalScopes: {},
+        sessionProperties: {},
+      });
     });
   });
 });

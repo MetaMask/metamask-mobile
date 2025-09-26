@@ -64,16 +64,33 @@ echo -e "\n🚀 Running matching tests for split $SPLIT_NUMBER..."
 # Join array elements with spaces to pass to test command
 TEST_FILES="${split_files[*]}"
 
+# Determine platform and environment
+IS_IOS_WORKFLOW="false"
+IS_GITHUB_CI="false"
+
 if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == *"ios"* ]]; then
-    echo "Detected iOS workflow"
+    IS_IOS_WORKFLOW="true"
+fi
+
+if [[ -n "${GITHUB_CI:-}" ]]; then
+    IS_GITHUB_CI="true"
+fi
+
+# Run tests based on platform and environment
+if [[ "$IS_IOS_WORKFLOW" == "true" ]] && [[ "$IS_GITHUB_CI" == "true" ]]; then
+    echo "🍎 Running iOS tests on GitHub Actions"
+    IGNORE_BOXLOGS_DEVELOPMENT="true" \
+    yarn test:e2e:ios-gha:$METAMASK_BUILD_TYPE:prod $TEST_FILES
+elif [[ "$IS_IOS_WORKFLOW" == "true" ]]; then
+    echo "🍎 Running iOS tests on Bitrise"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
     yarn test:e2e:ios:$METAMASK_BUILD_TYPE:prod $TEST_FILES
-elif [[ -n "${GITHUB_CI:-}" ]]; then
-    echo "Detected GitHub Actions workflow - using GitHub CI configuration"
+elif [[ "$IS_GITHUB_CI" == "true" ]]; then
+    echo "🤖 Running Android tests on GitHub Actions"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
     yarn test:e2e:android:run:github:qa-release $TEST_FILES
 else
-    echo "Detected Android workflow"
+    echo "🤖 Running Android tests on Bitrise"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
     yarn test:e2e:android:$METAMASK_BUILD_TYPE:prod $TEST_FILES
 fi

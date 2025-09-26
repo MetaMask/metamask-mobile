@@ -1,4 +1,5 @@
 import { merge } from 'lodash';
+import { toHex } from '@metamask/controller-utils';
 
 export const accountMock = '0xdc47789de4ceff0e8fe9d15d728af7f17550c164';
 export const tokenAddress1Mock = '0x1234567890abcdef1234567890abcdef12345678';
@@ -45,7 +46,13 @@ export const accountTrackerControllerMock = {
   engine: {
     backgroundState: {
       AccountTrackerController: {
-        accountsByChainId: {},
+        accountsByChainId: {
+          '0x1': {
+            [accountMock]: {
+              balance: toHex(2 * 10 ** 18),
+            },
+          },
+        },
       },
     },
   },
@@ -68,7 +75,14 @@ export const tokenBalancesControllerMock = {
   engine: {
     backgroundState: {
       TokenBalancesController: {
-        tokenBalances: {},
+        tokenBalances: {
+          [accountMock]: {
+            '0x1': {
+              [tokenAddress1Mock]: '0x64', // 100
+              '0x1234567890AbcdEF1234567890aBcdef12345678': '0x64',
+            },
+          },
+        },
       },
     },
   },

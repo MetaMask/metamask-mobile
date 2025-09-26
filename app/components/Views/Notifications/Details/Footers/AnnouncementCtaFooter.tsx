@@ -2,6 +2,7 @@ import React from 'react';
 import { Linking } from 'react-native';
 import Button, {
   ButtonVariants,
+  ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { ModalFooterAnnouncementCta } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
@@ -17,15 +18,17 @@ export default function AnnouncementCtaFooter(
     return null;
   }
 
-  const { extensionLinkRoute, extensionLinkText } = props.mobileLink;
+  // Mobile links are URLS. We can utilise deeplinks for specific behaviour
+  // either normal URL to leave app, or deeplinks to open in-app browser or other functionality.
+  const { mobileLinkUrl, mobileLinkText } = props.mobileLink;
 
-  // TODO - Feature Announcement Links are internal, needs rework
   return (
     <Button
-      variant={ButtonVariants.Secondary}
-      label={extensionLinkText}
+      variant={ButtonVariants.Primary}
+      width={ButtonWidthTypes.Full}
+      label={mobileLinkText}
       style={styles.ctaBtn}
-      onPress={() => Linking.openURL(extensionLinkRoute)}
+      onPress={() => Linking.openURL(mobileLinkUrl)}
     />
   );
 }

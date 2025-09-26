@@ -1238,6 +1238,7 @@ export class Engine {
         allowedEvents: [],
       }),
       fetch,
+      locale: I18n.locale,
     });
 
     // Backwards compatibility for existing references
@@ -1275,6 +1276,10 @@ export class Engine {
     const multichainAccountService = controllersByName.MultichainAccountService;
     ///: END:ONLY_INCLUDE_IF
 
+    const networkEnablementController =
+      controllersByName.NetworkEnablementController;
+    networkEnablementController.init();
+
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainRatesControllerMessenger =
       this.controllerMessenger.getRestricted({
@@ -1287,9 +1292,6 @@ export class Engine {
       messenger: multichainRatesControllerMessenger,
       initialState: initialState.RatesController,
     });
-
-    const networkEnablementController =
-      controllersByName.NetworkEnablementController;
 
     // Set up currency rate sync
     setupCurrencyRateSync(
@@ -1362,13 +1364,13 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'EarnController',
         allowedEvents: [
-          'AccountsController:selectedAccountChange',
+          'AccountTreeController:selectedAccountGroupChange',
           'TransactionController:transactionConfirmed',
           'NetworkController:networkDidChange',
         ],
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'NetworkController:getNetworkClientById',
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         ],
       }),
       addTransactionFn: transactionController.addTransaction.bind(
@@ -1868,7 +1870,7 @@ export class Engine {
     let totalEthFiat1dAgo = 0;
     let totalTokenFiat = 0;
     let totalTokenFiat1dAgo = 0;
-    let aggregatedNativeTokenBalance = '';
+    let aggregatedNativeTokenBalance = '0';
     let primaryTicker = '';
 
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;

@@ -23,6 +23,7 @@ exports[`SrpInput should render default settings correctly 1`] = `
         [
           {
             "backgroundColor": "inherit",
+            "height": 38,
           },
           {
             "flex": 1,

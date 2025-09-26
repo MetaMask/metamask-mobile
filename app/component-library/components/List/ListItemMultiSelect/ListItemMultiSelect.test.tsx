@@ -390,7 +390,12 @@ describe('ListItemMultiSelect', () => {
       const originalIsTest = process.env.IS_TEST;
       const originalMetaMaskEnv = process.env.METAMASK_ENVIRONMENT;
 
-      process.env.NODE_ENV = 'development';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'development',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       delete process.env.IS_TEST;
       delete process.env.METAMASK_ENVIRONMENT;
 
@@ -407,7 +412,12 @@ describe('ListItemMultiSelect', () => {
 
         expect(mockOnPress).toHaveBeenCalledTimes(1);
       } finally {
-        process.env.NODE_ENV = originalEnv;
+        Object.defineProperty(process.env, 'NODE_ENV', {
+          value: originalEnv,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
         if (originalIsTest) process.env.IS_TEST = originalIsTest;
         if (originalMetaMaskEnv)
           process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;
@@ -492,7 +502,12 @@ describe('ListItemMultiSelect', () => {
     });
 
     it('should use RNTouchableOpacity in unit test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const mockOnPress = jest.fn();
       const { getByTestId } = render(
         <ListItemMultiSelect onPress={mockOnPress} testID="list-item-multi">
@@ -522,7 +537,12 @@ describe('ListItemMultiSelect', () => {
     });
 
     it('should set onPress to undefined when disabled in test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const mockOnPress = jest.fn();
       const { getByTestId } = render(
         <ListItemMultiSelect
@@ -541,7 +561,12 @@ describe('ListItemMultiSelect', () => {
     });
 
     it('should expose disabled prop in test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const { getByTestId } = render(
         <ListItemMultiSelect
           onPress={() => null}

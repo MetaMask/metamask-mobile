@@ -1,12 +1,19 @@
 import { NotificationTransactionTypes } from '../util/notifications';
 
 import NotificationManager, {
+  PERPS_DEPOSIT_SKIP_STATUS,
+  SKIP_NOTIFICATION_TRANSACTION_TYPES,
   constructTitleAndMessage,
 } from './NotificationManager';
 import { strings } from '../../locales/i18n';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import Engine from './Engine';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionController,
+  TransactionControllerState,
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 interface NavigationMock {
   navigate: jest.Mock;
@@ -17,6 +24,8 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.unmock('./NotificationManager');
+
+jest.useFakeTimers();
 
 const mockNavigate: jest.Mock = jest.fn();
 const mockNavigation: NavigationMock = {
@@ -129,25 +138,10 @@ describe('NotificationManager', () => {
     });
   });
 
-  describe('smartTransactionListener', () => {
+  describe('controller events', () => {
     const mockTransactionController = {
       getTransactions: jest.fn(),
-      state: {
-        transactions: [
-          {
-            id: '0x123',
-            txParams: {
-              nonce: '0x1',
-              from: '0x123',
-            },
-            chainId: '0x1',
-            time: 123,
-            status: 'failed' as TransactionMeta['status'],
-            error: { message: 'test error', rpc: { code: 0 }, name: 'Error' },
-          },
-        ],
-      },
-    };
+    } as unknown as jest.Mocked<TransactionController>;
 
     const mockControllerMessenger = {
       subscribe: jest.fn(),
@@ -156,12 +150,27 @@ describe('NotificationManager', () => {
       tryUnsubscribe: jest.fn(),
     };
 
+    const mockNetworkController = {
+      findNetworkClientIdByChainId: jest.fn(),
+    };
+
+    const mockAccountTrackerController = {
+      refresh: jest.fn(),
+    };
+
+    const mockTokenBalancesController = {
+      updateBalances: jest.fn(),
+    };
+
     let showNotificationSpy: jest.SpyInstance;
 
     beforeAll(() => {
       // Set up spies and mocks once before all tests
       Object.defineProperty(Engine, 'context', {
         value: {
+          AccountTrackerController: mockAccountTrackerController,
+          NetworkController: mockNetworkController,
+          TokenBalancesController: mockTokenBalancesController,
           TransactionController: mockTransactionController,
         },
         writable: true,
@@ -191,6 +200,22 @@ describe('NotificationManager', () => {
         notificationManager,
         '_showNotification',
       );
+
+      mockTransactionController.state = {
+        transactions: [
+          {
+            id: '0x123',
+            txParams: {
+              nonce: '0x1',
+              from: '0x123',
+            },
+            chainId: '0x1',
+            time: 123,
+            status: 'failed' as TransactionMeta['status'],
+            error: { message: 'test error', rpc: { code: 0 }, name: 'Error' },
+          },
+        ],
+      } as unknown as TransactionControllerState;
     });
 
     afterAll(() => {
@@ -232,7 +257,7 @@ describe('NotificationManager', () => {
         },
       };
       mockTransactionController.getTransactions.mockReturnValue([
-        mockTransaction,
+        mockTransaction as TransactionMeta,
       ]);
 
       const smartTransaction = {
@@ -314,5 +339,224 @@ describe('NotificationManager', () => {
         expect.any(Function),
       );
     });
+
+    it('shows a submit notification for a transaction', async () => {
+      notificationManager.watchSubmittedTransaction({
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+        },
+        silent: false,
+      });
+
+      expect(showNotificationSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'pending',
+        }),
+      );
+    });
+
+    it('shows a confirm notification for a transaction', async () => {
+      notificationManager.watchSubmittedTransaction({
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+        },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback({
+        id: '0x123',
+        txParams: { nonce: '0x1' },
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      expect(showNotificationSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'success',
+        }),
+      );
+    });
+
+    it('shows a failed notification for a transaction', async () => {
+      notificationManager.watchSubmittedTransaction({
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+        },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[1][1];
+
+      subscribeCallback({
+        id: '0x123',
+        txParams: { nonce: '0x1' },
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      expect(showNotificationSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+        }),
+      );
+    });
+
+    describe.each(SKIP_NOTIFICATION_TRANSACTION_TYPES)(
+      'if transaction type is %s',
+      (transactionType) => {
+        it('does not show a submit notification', () => {
+          mockTransactionController.state.transactions[0].type =
+            transactionType;
+
+          notificationManager.watchSubmittedTransaction({
+            id: '0x123',
+            txParams: {
+              nonce: '0x1',
+            },
+            silent: false,
+            type: transactionType,
+          });
+
+          expect(showNotificationSpy).not.toHaveBeenCalled();
+        });
+
+        it('does not show a confirm notification', () => {
+          notificationManager.watchSubmittedTransaction({
+            id: '0x123',
+            txParams: {
+              nonce: '0x1',
+            },
+            silent: false,
+          });
+
+          const subscribeCallback =
+            mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+          subscribeCallback({
+            id: '0x123',
+            txParams: { nonce: '0x1' },
+            type: transactionType,
+          });
+
+          jest.advanceTimersByTime(2000);
+
+          expect(showNotificationSpy).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'success',
+            }),
+          );
+        });
+
+        it('does not show a failed notification', () => {
+          notificationManager.watchSubmittedTransaction({
+            id: '0x123',
+            txParams: {
+              nonce: '0x1',
+            },
+            silent: false,
+          });
+
+          const subscribeCallback =
+            mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+          subscribeCallback({
+            id: '0x123',
+            txParams: { nonce: '0x1' },
+            type: transactionType,
+          });
+
+          jest.advanceTimersByTime(2000);
+
+          expect(showNotificationSpy).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'error',
+            }),
+          );
+        });
+      },
+    );
+
+    describe.each(PERPS_DEPOSIT_SKIP_STATUS)(
+      'if perps deposit transaction exists with status of %s',
+      (transactionStatus) => {
+        beforeEach(() => {
+          mockTransactionController.state.transactions.push({
+            type: TransactionType.perpsDeposit,
+            status: transactionStatus,
+          } as TransactionMeta);
+        });
+
+        it('does not show submit confirmation', () => {
+          notificationManager.watchSubmittedTransaction({
+            id: '0x123',
+            txParams: {
+              nonce: '0x1',
+            },
+            silent: false,
+          });
+
+          expect(showNotificationSpy).not.toHaveBeenCalled();
+        });
+
+        it('does not show a confirm notification', () => {
+          notificationManager.watchSubmittedTransaction({
+            id: '0x123',
+            txParams: {
+              nonce: '0x1',
+            },
+            silent: false,
+          });
+
+          const subscribeCallback =
+            mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+          subscribeCallback({
+            id: '0x123',
+            txParams: { nonce: '0x1' },
+          });
+
+          jest.advanceTimersByTime(2000);
+
+          expect(showNotificationSpy).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'success',
+            }),
+          );
+        });
+
+        it('does not show a failed notification', () => {
+          notificationManager.watchSubmittedTransaction({
+            id: '0x123',
+            txParams: {
+              nonce: '0x1',
+            },
+            silent: false,
+          });
+
+          const subscribeCallback =
+            mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+          subscribeCallback({
+            id: '0x123',
+            txParams: { nonce: '0x1' },
+          });
+
+          jest.advanceTimersByTime(2000);
+
+          expect(showNotificationSpy).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              type: 'error',
+            }),
+          );
+        });
+      },
+    );
   });
 });

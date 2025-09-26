@@ -5,6 +5,7 @@ import { StyleSheet } from 'react-native';
 import { FIAT_ORDER_STATES } from '../../constants/on-ramp';
 import { strings } from '../../../locales/i18n';
 import { useTheme } from '../../util/theme';
+import { TransactionStatus } from '@metamask/transaction-controller';
 
 const styles = StyleSheet.create({
   status: {
@@ -64,6 +65,7 @@ function StatusText({ status, context, testID, ...props }) {
     case 'pending':
     case 'Submitted':
     case 'submitted':
+    case TransactionStatus.signed:
       return (
         <PendingText testID={testID} {...props}>
           {strings(`${context}.${status}`)}

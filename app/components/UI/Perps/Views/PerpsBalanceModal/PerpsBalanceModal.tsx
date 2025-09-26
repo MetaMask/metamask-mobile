@@ -1,5 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
@@ -18,8 +18,16 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { usePerpsTrading } from '../../hooks';
+import { usePerpsTrading, usePerpsNetworkManagement } from '../../hooks';
 import createStyles from './PerpsBalanceModal.styles';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 
 interface PerpsBalanceModalProps {}
 
@@ -27,33 +35,59 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { depositWithConfirmation } = usePerpsTrading();
-
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { navigateToConfirmation } = useConfirmNavigation();
+  const { track } = usePerpsEventTracking();
+
+  // Track balance modal viewed on mount
+  useEffect(() => {
+    track(MetaMetricsEvents.PERPS_BALANCE_MODAL_VIEWED, {
+      [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+    });
+  }, [track]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleAddFunds = useCallback(() => {
-    navigation.goBack();
+  const handleAddFunds = useCallback(async () => {
+    try {
+      // Ensure the network exists before proceeding
+      await ensureArbitrumNetworkExists();
 
-    // Navigate immediately to confirmations screen for instant UI response
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
+      navigation.goBack();
 
-    // Initialize deposit in the background without blocking
-    depositWithConfirmation().catch((error) => {
-      console.error('Failed to initialize deposit:', error);
-    });
-  }, [depositWithConfirmation, navigation]);
+      // Navigate immediately to confirmations screen for instant UI response
+      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
 
-  const handleWithdrawFunds = useCallback(() => {
-    navigation.goBack();
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.WITHDRAW,
-    });
-  }, [navigation]);
+      // Initialize deposit in the background without blocking
+      depositWithConfirmation().catch((error) => {
+        console.error('Failed to initialize deposit:', error);
+      });
+    } catch (error) {
+      console.error('Failed to proceed with deposit:', error);
+    }
+  }, [
+    depositWithConfirmation,
+    ensureArbitrumNetworkExists,
+    navigation,
+    navigateToConfirmation,
+  ]);
+
+  const handleWithdrawFunds = useCallback(async () => {
+    try {
+      // Ensure the network exists before proceeding
+      await ensureArbitrumNetworkExists();
+
+      navigation.goBack();
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.WITHDRAW,
+      });
+    } catch (error) {
+      console.error('Failed to proceed with withdraw:', error);
+    }
+  }, [navigation, ensureArbitrumNetworkExists]);
 
   return (
     <BottomSheet
@@ -75,6 +109,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
           onPress={handleAddFunds}
           style={styles.actionButton}
           startIconName={IconName.Add}
+          testID={PerpsTabViewSelectorsIDs.ADD_FUNDS_BUTTON}
         />
         <Button
           variant={ButtonVariants.Secondary}

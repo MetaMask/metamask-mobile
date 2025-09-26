@@ -10,7 +10,7 @@ const mockTransaction = {
   type: 'funding' as const,
   category: 'funding_fee' as const,
   title: 'Received funding fee',
-  subtitle: '',
+  subtitle: 'ETH',
   timestamp: 1640995200000,
   asset: 'ETH',
   fundingAmount: {

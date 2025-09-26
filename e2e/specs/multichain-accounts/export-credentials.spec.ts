@@ -2,7 +2,7 @@ import { RegressionWalletPlatform } from '../../tags.js';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
-  withMultichainAccountDetailsEnabled,
+  withMultichainAccountDetailsEnabledFixtures,
 } from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import Assertions from '../../framework/Assertions';
@@ -46,14 +46,14 @@ describe(
     });
 
     it('exports private key', async () => {
-      await withMultichainAccountDetailsEnabled(async () => {
+      await withMultichainAccountDetailsEnabledFixtures(async () => {
         await goToAccountDetails(HD_ACCOUNT);
         await exportPrivateKey();
       });
     });
 
     it('exports SRP', async () => {
-      await withMultichainAccountDetailsEnabled(async () => {
+      await withMultichainAccountDetailsEnabledFixtures(async () => {
         await goToAccountDetails(HD_ACCOUNT);
         await exportSrp();
       });

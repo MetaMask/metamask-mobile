@@ -2,6 +2,7 @@ import { createClient, type EntrySkeletonType } from 'contentful';
 import { isProduction } from '../../../util/environment';
 import { CarouselSlide } from './types';
 import { ACCESS_TOKEN, SPACE_ID } from './constants';
+import { hasMinimumRequiredVersion } from '../../../util/remoteFeatureFlag';
 
 export interface ContentfulCarouselSlideFields {
   headline: string;
@@ -123,6 +124,7 @@ function mapContentfulEntriesToSlides(
       priorityPlacement,
       cardPlacement,
       variableName,
+      mobileMinimumVersionNumber,
     } = entry.fields;
 
     const slide: CarouselSlide = {
@@ -144,6 +146,10 @@ function mapContentfulEntriesToSlides(
       variableName,
     };
 
+    if (!isValidMinimumVersion(mobileMinimumVersionNumber)) {
+      continue;
+    }
+
     if (priorityPlacement) {
       prioritySlides.push(slide);
     } else {
@@ -152,6 +158,20 @@ function mapContentfulEntriesToSlides(
   }
 
   return { prioritySlides, regularSlides };
+}
+
+function isValidMinimumVersion(contentfulMinimumVersionNumber?: string) {
+  // Field is not set, show by default
+  if (!contentfulMinimumVersionNumber) {
+    return true;
+  }
+
+  try {
+    return hasMinimumRequiredVersion(contentfulMinimumVersionNumber);
+  } catch {
+    // Invalid mobile version number, not showing banner
+    return false;
+  }
 }
 
 export function isActive(

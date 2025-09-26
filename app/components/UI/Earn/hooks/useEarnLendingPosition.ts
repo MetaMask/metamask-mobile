@@ -2,9 +2,10 @@ import BigNumber from 'bignumber.js';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { earnSelectors } from '../../../../selectors/earnController';
 import { TokenI } from '../../Tokens/types';
+import { EVM_SCOPE } from '../constants/networks';
 
 const { selectEarnTokenPair } = earnSelectors;
 
@@ -12,7 +13,9 @@ const useEarnLendingPositions = (asset: TokenI) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasEarnLendingPositions, setHasEarnLendingPositions] = useState(false);
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const { outputToken } = useSelector((state: RootState) =>
     selectEarnTokenPair(state, asset),
   );

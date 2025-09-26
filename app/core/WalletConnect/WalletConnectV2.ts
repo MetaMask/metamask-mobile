@@ -39,6 +39,7 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId } from '@metamask/utils';
+import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -203,12 +204,19 @@ export class WC2Manager {
   }
 
   public static async init({
-    navigation,
     sessions = {},
   }: {
-    navigation: NavigationContainerRef;
     sessions?: { [topic: string]: WalletConnect2Session };
   }) {
+    if (!isWC2Enabled) {
+      console.warn(`WC2::init WC2 is not enabled --- SKIP INIT`);
+
+      //If WC is not enabled, we don't need to initialize it
+      return;
+    }
+
+    const navigation = NavigationService.navigation;
+
     if (!navigation) {
       console.warn(`WC2::init missing navigation --- SKIP INIT`);
       return;
@@ -228,6 +236,7 @@ export class WC2Manager {
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
+
     await waitForKeychainUnlocked({
       keyringController,
       context: 'WalletConnectV2::init',

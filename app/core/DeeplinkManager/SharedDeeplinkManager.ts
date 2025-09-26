@@ -1,5 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { Dispatch } from 'redux';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import DeeplinkManager from './DeeplinkManager';
 
@@ -7,22 +5,11 @@ let instance: DeeplinkManager;
 
 const SharedDeeplinkManager = {
   getInstance: () => instance,
-  init: ({
-    navigation,
-    dispatch,
-  }: {
-    navigation: NavigationProp<ParamListBase>;
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dispatch: Dispatch<any>;
-  }) => {
+  init: () => {
     if (instance) {
       return;
     }
-    instance = new DeeplinkManager({
-      navigation,
-      dispatch,
-    });
+    instance ??= new DeeplinkManager();
     DevLogger.log(`DeeplinkManager initialized`);
   },
   parse: (
@@ -32,7 +19,11 @@ const SharedDeeplinkManager = {
       origin: string;
       onHandled?: () => void;
     },
-  ) => instance.parse(url, args),
+  ) => {
+    // Always try initialize, but instance will only be assigned once
+    SharedDeeplinkManager.init();
+    return instance.parse(url, args);
+  },
   setDeeplink: (url: string) => instance.setDeeplink(url),
   getPendingDeeplink: () => instance.getPendingDeeplink(),
   expireDeeplink: () => instance.expireDeeplink(),

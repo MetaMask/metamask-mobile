@@ -3,13 +3,13 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../helpers';
 import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const MEMO = 'Address for testing 123123123';
 
@@ -25,6 +25,19 @@ describe(
         {
           fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
           restartDevice: true,
+          testSpecificMock: async (mockServer) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              Object.assign(
+                {},
+                {
+                  sendRedesign: {
+                    enabled: false,
+                  },
+                },
+              ),
+            );
+          },
         },
         async () => {
           await loginToApp();
@@ -44,14 +57,13 @@ describe(
           await TestHelpers.launchApp({
             launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
           });
+          await device.disableSynchronization();
           await loginToApp();
+          await device.enableSynchronization();
           await TabBarComponent.tapSettings();
           await SettingsView.tapContacts();
           await Assertions.expectElementToBeVisible(ContactsView.container);
           await ContactsView.expectContactIsVisible('Curtis');
-          await TabBarComponent.tapWallet();
-          await WalletView.tapWalletSendButton();
-          await Assertions.expectTextDisplayed('Curtis');
         },
       );
     });

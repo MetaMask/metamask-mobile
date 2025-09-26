@@ -18,7 +18,6 @@ class WalletActionsBottomSheet {
   get swapButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
-      1,
     );
   }
 
@@ -37,6 +36,12 @@ class WalletActionsBottomSheet {
   get sellButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+    );
+  }
+
+  get perpsButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
     );
   }
 
@@ -66,6 +71,10 @@ class WalletActionsBottomSheet {
 
   async tapSellButton() {
     await Gestures.waitAndTap(this.sellButton);
+  }
+
+  async tapPerpsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsButton);
   }
 
   async swipeDownActionsBottomSheet(): Promise<void> {

@@ -29,6 +29,7 @@ jest.mock(
   '../../../hooks/useNetworksByNamespace/useNetworksByNamespace',
   () => ({
     useNetworksByNamespace: jest.fn(),
+    useNetworksByCustomNamespace: jest.fn(),
     NetworkType: {
       Popular: 'popular',
     },
@@ -171,6 +172,10 @@ describe('BaseControlBar', () => {
     useNetworksByNamespaceModule.useNetworksByNamespace.mockReturnValue(
       defaultNetworksByNamespace,
     );
+    useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue({
+      areAllNetworksSelected: false,
+      totalEnabledNetworksCount: 2,
+    });
     useStylesModule.useStyles.mockReturnValue({ styles: defaultStyles });
     mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
 
@@ -232,6 +237,12 @@ describe('BaseControlBar', () => {
           enabledNetworks: [{ chainId: '1', enabled: true }],
         };
         mockUseCurrentNetworkInfo.mockReturnValue(singleNetworkInfo);
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+          {
+            areAllNetworksSelected: false,
+            totalEnabledNetworksCount: 1,
+          },
+        );
 
         const { getByText } = renderComponent();
         expect(getByText('Ethereum Mainnet')).toBeTruthy();
@@ -244,31 +255,43 @@ describe('BaseControlBar', () => {
           getNetworkInfo: jest.fn(() => null),
         };
         mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+          {
+            areAllNetworksSelected: false,
+            totalEnabledNetworksCount: 1,
+          },
+        );
 
         const { getByText } = renderComponent();
         expect(getByText('wallet.current_network')).toBeTruthy();
       });
 
       it('should show network avatar when not all networks selected', () => {
-        useNetworksByNamespaceModule.useNetworksByNamespace.mockReturnValue({
-          areAllNetworksSelected: false,
-        });
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+          {
+            areAllNetworksSelected: false,
+            totalEnabledNetworksCount: 2,
+          },
+        );
 
         renderComponent();
         // Avatar should be rendered (tested via component structure)
         expect(
-          useNetworksByNamespaceModule.useNetworksByNamespace,
+          useNetworksByNamespaceModule.useNetworksByCustomNamespace,
         ).toHaveBeenCalled();
       });
 
       it('should not show network avatar when all networks selected', () => {
-        useNetworksByNamespaceModule.useNetworksByNamespace.mockReturnValue({
-          areAllNetworksSelected: true,
-        });
+        useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+          {
+            areAllNetworksSelected: true,
+            totalEnabledNetworksCount: 5,
+          },
+        );
 
         renderComponent();
         expect(
-          useNetworksByNamespaceModule.useNetworksByNamespace,
+          useNetworksByNamespaceModule.useNetworksByCustomNamespace,
         ).toHaveBeenCalled();
       });
     });

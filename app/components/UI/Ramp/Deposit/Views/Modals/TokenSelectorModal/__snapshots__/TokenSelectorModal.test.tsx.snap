@@ -1480,6 +1480,35 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             }
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -1540,7 +1569,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,

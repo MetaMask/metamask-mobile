@@ -1,3 +1,4 @@
+import React from 'react';
 import { initialState } from '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -6,6 +7,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/bridge';
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
+import { cloneDeep } from 'lodash';
+import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -227,5 +231,45 @@ describe('BridgeSourceNetworkSelector', () => {
     // Make sure networks are sorted by fiat value in descending order
     expect(networkItems[0].props.testID).toBe(`chain-${mockChainId}`);
     expect(networkItems[1].props.testID).toBe(`chain-${optimismChainId}`);
+  });
+
+  it('renders non-EVM networks', async () => {
+    const state = cloneDeep(initialState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+      MultichainNetwork.Solana
+    ] = {
+      isActiveSrc: true,
+      isActiveDest: true,
+      isUnifiedUIEnabled: true,
+    };
+
+    const { getByText } = renderScreen(
+      BridgeSourceNetworkSelector,
+      {
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+      },
+      { state },
+    );
+
+    await waitFor(() => {
+      expect(getByText('Solana')).toBeTruthy();
+      expect(getByText('$30012.75599')).toBeTruthy();
+    });
+  });
+
+  it('does not render networks if not in chain IDs', async () => {
+    const { getByText, queryByText } = renderScreen(
+      () => <BridgeSourceNetworkSelector chainIds={[CHAIN_IDS.OPTIMISM]} />,
+      {
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+      },
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(queryByText('Ethereum Mainnet')).toBeNull();
+      expect(getByText('Optimism')).toBeTruthy();
+    });
   });
 });

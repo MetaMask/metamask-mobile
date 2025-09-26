@@ -32,6 +32,8 @@ describe('useHasExistingPosition', () => {
         sinceOpen: '30',
         sinceChange: '10',
       },
+      takeProfitCount: 0,
+      stopLossCount: 0,
     },
     {
       coin: 'ETH',
@@ -52,6 +54,8 @@ describe('useHasExistingPosition', () => {
         sinceOpen: '15',
         sinceChange: '5',
       },
+      takeProfitCount: 0,
+      stopLossCount: 0,
     },
   ];
 

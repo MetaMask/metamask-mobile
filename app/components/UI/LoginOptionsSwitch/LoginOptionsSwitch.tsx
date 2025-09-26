@@ -57,6 +57,7 @@ const LoginOptionsSwitch = ({
         )}
         value={biometryChoiceState}
         onOptionUpdated={onBiometryValueChanged}
+        testId={LoginViewSelectors.BIOMETRIC_SWITCH}
       />
     );
   } else if (shouldRenderBiometricOption === null && allowLoginWithRememberMe) {

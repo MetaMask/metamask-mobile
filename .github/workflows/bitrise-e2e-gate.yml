@@ -7,8 +7,7 @@ on:
     types: [checks_requested]
 
 env:
-  E2E_LABEL: 'Run Smoke E2E'
-  NO_E2E_LABEL: 'No E2E Smoke Needed'
+  E2E_LABEL: 'run-ios-e2e-smoke'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
   WORKFLOW_NAME: 'run-bitrise-e2e-check'
 
@@ -28,9 +27,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Install dependencies
-        run: yarn --immutable
-        working-directory: '.github/scripts'
+      - name: Install dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: cd .github/scripts && yarn --immutable
 
       - name: Check Bitrise E2E Gate
         env:

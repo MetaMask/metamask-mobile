@@ -22,10 +22,8 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Debugging](./docs/readme/debugging.md)
 - [Performance](./docs/readme/performance.md)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
-- [API Call Logging for Debugging](./docs/readme/api-logging.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
-- [E2E Testing Segment Events](./docs/testing/e2e/segment-events.md)
 
 ## Getting started
 

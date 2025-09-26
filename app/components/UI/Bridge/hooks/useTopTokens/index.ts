@@ -9,7 +9,7 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import { BridgeToken } from '../../types';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
@@ -19,8 +19,43 @@ import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slice
 import { RootState } from '../../../../../reducers';
 import { BRIDGE_API_BASE_URL } from '../../../../../constants/bridge';
 import { normalizeToCaipAssetType } from '../../utils';
+import { memoize } from 'lodash';
+import { selectERC20TokensByChain } from '../../../../../selectors/tokenListController';
+import { TokenListToken } from '@metamask/assets-controllers';
 
 const MAX_TOP_TOKENS = 30;
+export const memoizedFetchBridgeTokens = memoize(fetchBridgeTokens);
+
+/**
+ * Convert cached tokens from TokenListController to BridgeToken format
+ */
+const formatCachedTokenListControllerTokens = (
+  cachedTokens: Record<string, TokenListToken>,
+  chainId: Hex | CaipChainId,
+): Record<string, BridgeToken> => {
+  const bridgeTokenObj: Record<string, BridgeToken> = {};
+
+  Object.entries(cachedTokens).forEach(([address, token]) => {
+    const caipChainId = formatChainIdToCaip(chainId);
+    const hexChainId = formatChainIdToHex(chainId);
+
+    // Convert Solana addresses to CAIP format for consistent deduplication
+    const tokenAddress = isSolanaChainId(caipChainId)
+      ? normalizeToCaipAssetType(token.address, caipChainId)
+      : token.address;
+
+    bridgeTokenObj[address] = {
+      address: tokenAddress,
+      symbol: token.symbol,
+      name: token.name,
+      image: token.iconUrl || '',
+      decimals: token.decimals,
+      chainId: isSolanaChainId(caipChainId) ? caipChainId : hexChainId,
+    };
+  });
+
+  return bridgeTokenObj;
+};
 
 interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
@@ -44,15 +79,34 @@ export const useTopTokens = ({
     ? false
     : !swapsTopAssets;
 
+  // Get cached tokens from TokenListController
+  const cachedTokensByChain = useSelector(selectERC20TokensByChain);
+  const cachedTokensForChain = useMemo(() => {
+    if (!chainId || !cachedTokensByChain) return null;
+
+    if (isSolanaChainId(chainId)) {
+      return null;
+    }
+
+    // Convert to hex chainId if it's a CAIP chainId, as cached tokens use hex chainIds
+    const hexChainId = isCaipChainId(chainId)
+      ? formatChainIdToHex(chainId)
+      : chainId;
+
+    // Type assertion for the cache object which may have chainId keys
+    return cachedTokensByChain[hexChainId]?.data || null;
+  }, [chainId, cachedTokensByChain]);
+
+  // Check if we have cached tokens to avoid unnecessary API calls
+  const hasCachedTokens = Boolean(
+    cachedTokensForChain && Object.keys(cachedTokensForChain).length > 0,
+  );
+
   // Get top assets for Solana from Bridge API feature flags for now,
   // Swap API doesn't have top assets for Solana
   const topAssetsFromFeatureFlags = useSelector((state: RootState) =>
     selectTopAssetsFromFeatureFlags(state, chainId),
   );
-
-  const cachedBridgeTokens = useRef<
-    Record<string, Record<string, BridgeToken>>
-  >({});
 
   // Get the top assets from the Swaps API
   useEffect(() => {
@@ -71,7 +125,7 @@ export const useTopTokens = ({
     })();
   }, [chainId]);
 
-  // Get the token data from the bridge API
+  // Get the token data - use cached tokens if available, otherwise fetch from bridge API
   const {
     value: bridgeTokens,
     pending: bridgeTokensPending,
@@ -81,11 +135,16 @@ export const useTopTokens = ({
       return {};
     }
 
-    if (cachedBridgeTokens.current[chainId]) {
-      return cachedBridgeTokens.current[chainId];
+    // If we have cached tokens, use them instead of fetching from bridge API
+    if (hasCachedTokens && cachedTokensForChain) {
+      return formatCachedTokenListControllerTokens(
+        cachedTokensForChain,
+        chainId,
+      );
     }
 
-    const rawBridgeAssets = await fetchBridgeTokens(
+    // Fallback to bridge API if no cached tokens available
+    const rawBridgeAssets = await memoizedFetchBridgeTokens(
       chainId,
       BridgeClientId.MOBILE,
       handleFetch,
@@ -115,13 +174,8 @@ export const useTopTokens = ({
       };
     });
 
-    cachedBridgeTokens.current = {
-      ...cachedBridgeTokens.current,
-      [chainId]: bridgeTokenObj,
-    };
-
     return bridgeTokenObj;
-  }, [chainId]);
+  }, [chainId, hasCachedTokens, cachedTokensForChain]);
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
   const { topTokens, remainingTokens } = useMemo(() => {

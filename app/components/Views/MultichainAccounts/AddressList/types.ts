@@ -5,6 +5,7 @@ import { type InternalAccount } from '@metamask/keyring-internal-api';
 export interface AddressListProps {
   groupId: AccountGroupId;
   title: string;
+  onLoad?: () => void;
 }
 
 export interface AddressItem {

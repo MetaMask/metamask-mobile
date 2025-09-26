@@ -7,6 +7,9 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
+import { AlertKeys } from '../../constants/alerts';
+import { strings } from '../../../../../../locales/i18n';
+import { Severity } from '../../types/alerts';
 
 const FROM_MOCK = '0x123';
 const CHAIN_ID_MOCK = '0x456' as Hex;
@@ -105,14 +108,15 @@ describe('useSignedOrSubmittedAlert', () => {
         },
       );
 
-      expect(result.current).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            message:
-              'A previous transaction is still being signed or submitted.',
-          }),
-        ]),
-      );
+      expect(result.current).toStrictEqual([
+        {
+          isBlocking: true,
+          key: AlertKeys.SignedOrSubmitted,
+          message: strings('alert_system.signed_or_submitted.message'),
+          title: strings('alert_system.signed_or_submitted.title'),
+          severity: Severity.Danger,
+        },
+      ]);
     },
   );
 
@@ -154,5 +158,46 @@ describe('useSignedOrSubmittedAlert', () => {
     );
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert if current and existing transaction are perps deposit', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...TRANSACTION_META_MOCK,
+      id: '2',
+      status: TransactionStatus.confirmed,
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta);
+
+    const { result } = renderHookWithProvider(
+      () => useSignedOrSubmittedAlert(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    ...TRANSACTION_META_MOCK,
+                    type: TransactionType.perpsDeposit,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toStrictEqual([
+      {
+        isBlocking: true,
+        key: AlertKeys.SignedOrSubmitted,
+        message: strings(
+          'alert_system.signed_or_submitted_perps_deposit.message',
+        ),
+        title: strings('alert_system.signed_or_submitted_perps_deposit.title'),
+        severity: Severity.Danger,
+      },
+    ]);
   });
 });

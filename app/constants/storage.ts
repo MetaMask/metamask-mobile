@@ -10,6 +10,7 @@ export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
+export const METRICS_OPT_IN_SOCIAL_LOGIN = `${prefix}metricsOptInSocialLogin`;
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
 export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
@@ -61,11 +62,11 @@ export const themeAppearanceLight = 'light';
 
 export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;
 
-export const SOLANA_FEATURE_MODAL_SHOWN = `${prefix}solanaFeatureModalShownV2`;
-
 export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;
 
 export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
+
+export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 

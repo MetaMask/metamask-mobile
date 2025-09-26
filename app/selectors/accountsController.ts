@@ -10,6 +10,7 @@ import { selectFlattenedKeyringAccounts } from './keyringController';
 import {
   BtcMethod,
   EthMethod,
+  SolAccountType,
   SolMethod,
   isEvmAccountType,
 } from '@metamask/keyring-api';
@@ -161,7 +162,7 @@ export const selectLastSelectedEvmAccount = createSelector(
 export const selectLastSelectedSolanaAccount = createSelector(
   selectOrderedInternalAccountsByLastSelected,
   (accounts) =>
-    accounts.find((account) => account.type === 'solana:data-account'),
+    accounts.find((account) => account.type === SolAccountType.DataAccount),
 );
 
 /**
@@ -277,4 +278,25 @@ export const selectInternalAccountsByScope = createDeepEqualSelector(
         Array.isArray(account.scopes) && anyScopesMatch(account.scopes, scope),
     );
   },
+);
+
+/**
+ * Returns a function that takes an array of addresses and returns all internal accounts
+ * that match any of the provided addresses. Address matching is case-insensitive.
+ *
+ * @param _state - Redux state (unused; required for selector signature)
+ * @returns A function that, given an array of addresses, returns an array of InternalAccount objects that match
+ */
+export const selectInternalAccountByAddresses = createDeepEqualSelector(
+  [selectInternalAccountsById],
+  (accountsMap) =>
+    (addresses: string[]): InternalAccount[] => {
+      const accountsByLowerCaseAddress = new Map<string, InternalAccount>();
+      for (const account of Object.values(accountsMap)) {
+        accountsByLowerCaseAddress.set(account.address.toLowerCase(), account);
+      }
+      return addresses
+        .map((address) => accountsByLowerCaseAddress.get(address.toLowerCase())) // Normalize the input address
+        .filter((account): account is InternalAccount => account !== undefined);
+    },
 );

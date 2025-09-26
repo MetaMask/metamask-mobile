@@ -3,6 +3,7 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { SnapId } from '@metamask/snaps-sdk';
 
 import { renderInterface } from '../testUtils';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../../../core/Engine/Engine', () => ({
   controllerMessenger: {
@@ -80,7 +81,7 @@ describe('SnapUIAccountSelector', () => {
   };
 
   const mockSettings = {
-    useBlockieIcon: true,
+    avatarAccountType: AvatarAccountType.Maskicon,
   };
 
   it('renders an account selector', () => {

@@ -6,6 +6,7 @@ import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { HEADERBASE_TITLE_TEST_ID } from '../../../../../../component-library/components/HeaderBase/HeaderBase.constants';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -30,7 +31,7 @@ jest.mock('../../../../confirmations/hooks/7702/useEIP7702Networks', () => ({
 
 const mockInitialState = {
   settings: {
-    useBlockieIcon: false,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
 };
 

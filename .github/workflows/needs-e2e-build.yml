@@ -1,0 +1,190 @@
+# This workflow is used to detect changes in the Android and iOS projects.
+# It can be used to determine if the build should be triggered for the Android and iOS projects.
+# Outputs:
+# - android_changed: Whether Android-impacting files changed
+# - ios_changed: Whether iOS-impacting files changed
+# - any_changed: Whether either platform requires a build
+
+name: Detect Mobile Build Changes
+
+on:
+  workflow_call:
+    outputs:
+      android_changed:
+        description: 'Whether Android-impacting files changed'
+        value: ${{ jobs.needs-e2e-build.outputs.android }}
+      ios_changed:
+        description: 'Whether iOS-impacting files changed'
+        value: ${{ jobs.needs-e2e-build.outputs.ios }}
+      builds:
+        description: 'Whether any builds will happen'
+        value: ${{ jobs.needs-e2e-build.outputs.builds }}
+
+jobs:
+  needs-e2e-build:
+    name: Check if builds will happen
+    runs-on: ubuntu-latest
+    outputs:
+      android: ${{ steps.set-outputs.outputs.android_final }}
+      ios: ${{ steps.set-outputs.outputs.ios_final }}
+      builds: ${{ steps.set-outputs.outputs.builds }}
+    env:
+      # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
+      # For a `push` event, the head commit hash is `github.sha`.
+      HEAD_COMMIT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Specifying `ref` ensures that the head commit is checked out directly.
+          ref: ${{ env.HEAD_COMMIT_HASH }}
+
+      - name: Check skip commit tag
+        id: skip-tag
+        run: |
+          echo "SKIP=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "pull_request" ]] || [[ "${{ github.event_name }}" == "merge_group" ]]; then
+            if git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}" | grep --fixed-strings --quiet '[skip-e2e]'; then
+              echo "SKIP=true" >> "$GITHUB_OUTPUT"
+              echo "-> SKIP=true due to [skip-e2e] tag in last commit message"
+            fi
+          fi
+
+      - name: Check skip label
+        id: skip-label
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "SKIP=false" >> "$GITHUB_OUTPUT"
+          if gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' | grep -qx "skip-e2e"; then
+            echo "SKIP=true" >> "$GITHUB_OUTPUT"
+            echo "-> SKIP=true due to 'skip-e2e' label on PR"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}    
+      
+      - name: Paths filter (Android/iOS impact)
+        id: filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        with:
+          filters: |
+            android:
+              - 'android/**'                       # All Android project files
+
+            ios:
+              - 'ios/**'                           # All iOS project files
+
+            shared:
+              - 'package.json'                     # If native deps change
+              - 'metro.config.js'                  # Metro bundler affects both
+              - 'tsconfig.json'                    # TypeScript config affects both
+              - 'babel.config.js'                  # Transpilation affects both
+              - 'yarn.lock'                        # Dependency changes affect both
+              - 'app/**'                           # Shared app files
+              - 'e2e/**'                           # E2E test files (separate from mobile builds)
+              - 'sentry*.properties*'              # Sentry configs
+              - 'wdio/**'                          # WebDriver test files
+              - 'wdio.conf.js'                     # WebDriver config
+              - 'appwright/**'                     # Appwright test files
+
+
+            ignore:
+              - '**/*.md'                          # Documentation files
+              - 'docs/**'                          # Documentation directory
+              - '**/*.yml'                         # Workflow files  
+              - '.github/**'                       # GitHub workflow changes
+              - 'LICENSE'                          # License file
+              - 'README.md'                        # Main README
+              - 'RELEASE.MD'                       # Release notes
+              - 'CHANGELOG.md'                     # Changelog
+              - 'attribution.txt'                  # Attribution file
+              - '*.svg'                            # SVG files (like architecture.svg)
+              - '*.png'                            # PNG files (like logo.png, image.png)
+              - 'codecov.yml'                      # Code coverage config
+              - 'crowdin.yml'                      # Translation config
+              - 'bitrise.yml'                      # CI config (non-GitHub)
+              - 'sonar-project.properties'         # SonarQube config
+              - 'scripts/**'                       # Build/utility scripts
+              - 'patches/**'                       # Dependency patches
+              - 'ppom/**'                          # PPOM sub-project
+
+            catch_all:
+              - '**/*'                             # Matches everything for conservative fallback
+          list-files: 'shell'  # Output lists for comparison
+
+      - name: Set final outputs
+        id: set-outputs
+        run: |
+
+          # Skip if [skip-e2e] tag found or label exists on PR
+          if [[ "${{ steps.skip-tag.outputs.SKIP }}" == "true" ]] || [[ "${{ steps.skip-label.outputs.SKIP }}" == "true" ]]; then
+            {
+              echo "android_final=false"
+              echo "ios_final=false"
+              echo "builds=false"
+            } >> "${GITHUB_OUTPUT}"
+            echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
+            exit 0
+          fi                   
+          
+          # Get filter results
+          android="${{ steps.filter.outputs.android }}"
+          ios="${{ steps.filter.outputs.ios }}"
+          shared="${{ steps.filter.outputs.shared }}"
+          ignore="${{ steps.filter.outputs.ignore }}"
+
+          # Get lists of files
+          ignore_files="${{ steps.filter.outputs.ignore_files }}"
+          catch_all_files="${{ steps.filter.outputs.catch_all_files }}"
+
+          # Use Cases for State Machine:
+          # 1. Purely ignored changes -> Skip both
+          # 2. Shared changes -> Build both 
+          # 3. Mixed ignore + new/unmatched files -> Build both (conservative)
+          # 4. New/unmatched files only -> Build both (conservative)
+          # 5. Android-only changes -> Android only
+          # 6. iOS-only changes -> iOS only
+
+          # State Machine
+          if [[ "$android" == 'true' && "$ios" != 'true' ]]; then
+            state="ANDROID_ONLY"
+          elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
+            state="IOS_ONLY"
+          elif [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' && "$ignore_files" == "$catch_all_files" ]]; then
+            state="PURE_IGNORE"
+          else
+            state="SHARED"
+          fi
+
+          case "$state" in
+            "PURE_IGNORE")
+              echo "Ignoring - no mobile code changes"
+              android_final="false"
+              ios_final="false"
+              ;;
+            "SHARED")
+              echo "Building both platforms"
+              android_final="true"
+              ios_final="true"
+              ;;
+            "ANDROID_ONLY")
+              echo "Building Android only"
+              android_final="true"
+              ios_final="false"
+              ;;
+            "IOS_ONLY")
+              echo "Building iOS only"
+              android_final="false"
+              ios_final="true"
+              ;;
+          esac
+
+          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
+          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
+
+          # Check if any builds will happen
+          if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
+            builds="true"
+          else
+            builds="false"
+          fi
+          echo "builds=$builds" >> "${GITHUB_OUTPUT}"

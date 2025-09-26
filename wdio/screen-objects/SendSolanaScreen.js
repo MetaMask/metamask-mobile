@@ -57,6 +57,7 @@ class SendSolanaScreen {
   }
 
   async tapContinueButton() {
+    await this._device.waitForTimeout(5000); //workaroud for the button to become clickable
     const continueButton = await this.continueButton;
     await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });
     const timer1 = new TimerHelper(

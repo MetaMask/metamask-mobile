@@ -8,6 +8,7 @@ import { AccountDetailsIds } from '../../../../../../../e2e/selectors/Multichain
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { ExportCredentialsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/ExportCredentials.selectors';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 
 const mockIsHDOrFirstPartySnapAccount = jest.fn();
 const mockNavigate = jest.fn();
@@ -51,7 +52,7 @@ const mockThirdPartySnapAccount = createMockInternalAccount(
 const mockKeyringId = 'keyring-1';
 const mockInitialState = {
   settings: {
-    useBlockieIcon: false,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {

@@ -28,9 +28,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Install dependencies
-        run: yarn --immutable
-        working-directory: '.github/scripts'
+      - name: Install dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: cd .github/scripts && yarn --immutable
 
       - name: Check Bitrise Flask E2E Status
         env:

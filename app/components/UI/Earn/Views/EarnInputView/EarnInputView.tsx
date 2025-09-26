@@ -23,7 +23,7 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import {
@@ -70,6 +70,7 @@ import { doesTokenRequireAllowanceReset } from '../../utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
+import { EVM_SCOPE } from '../../constants/networks';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -92,7 +93,9 @@ const EarnInputView = () => {
 
   const isStakingDepositRedesignedEnabled =
     confirmationRedesignFlags?.staking_confirmations;
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token?.chainId as Hex),
@@ -245,7 +248,7 @@ const EarnInputView = () => {
 
   const handleLendingFlow = useCallback(async () => {
     if (
-      !activeAccount?.address ||
+      !selectedAccount?.address ||
       !earnToken?.experience?.market?.underlying?.address ||
       !earnToken?.experience?.market?.protocol
     )
@@ -362,7 +365,7 @@ const EarnInputView = () => {
       };
 
       addTransactionBatch({
-        from: (activeAccount?.address as Hex) || '0x',
+        from: (selectedAccount?.address as Hex) || '0x',
         networkClientId,
         origin: ORIGIN_METAMASK,
         transactions: [approveTx, lendingDepositTx],
@@ -403,7 +406,7 @@ const EarnInputView = () => {
     const isRedesignedStablecoinLendingScreenEnabled =
       getIsRedesignedStablecoinLendingScreenEnabled();
     if (isRedesignedStablecoinLendingScreenEnabled) {
-      createRedesignedLendingDepositConfirmation(earnToken, activeAccount);
+      createRedesignedLendingDepositConfirmation(earnToken, selectedAccount);
     } else {
       createLegacyLendingDepositConfirmation(
         lendingPoolContractAddress,
@@ -411,7 +414,7 @@ const EarnInputView = () => {
       );
     }
   }, [
-    activeAccount,
+    selectedAccount,
     earnToken,
     shouldLogStablecoinEvent,
     trackEvent,
@@ -491,7 +494,7 @@ const EarnInputView = () => {
       if (!attemptDepositTransaction) return;
       await attemptDepositTransaction(
         amountWeiString,
-        activeAccount?.address as string,
+        selectedAccount?.address as string,
         undefined,
         true,
       );
@@ -531,7 +534,7 @@ const EarnInputView = () => {
         .build(),
     );
   }, [
-    activeAccount?.address,
+    selectedAccount?.address,
     amountFiatNumber,
     amountToken,
     amountTokenMinimalUnit,

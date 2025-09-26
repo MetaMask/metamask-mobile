@@ -10,9 +10,13 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 import io.branch.rnbranch.RNBranchModule
+import io.metamask.nativeModules.NotificationModule
 
 class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Capture Notification Intent
+        NotificationModule.saveNotificationIntent(intent)
+
         // Set the theme to AppTheme BEFORE onCreate to support
         // coloring the background, status bar, and navigation bar.
         // This is required for expo-splash-screen.
@@ -33,6 +37,9 @@ class MainActivity : ReactActivity() {
     }
 
     override fun onNewIntent(intent: Intent) {
+        // Capture New Notification Intent
+        NotificationModule.saveNotificationIntent(intent)
+
         super.onNewIntent(intent)
         /*
          * if activity is in foreground (or in backstack but partially visible) launch the same

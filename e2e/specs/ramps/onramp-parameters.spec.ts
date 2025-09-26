@@ -42,7 +42,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
     },
     async () => {
       await loginToApp();
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await testFn();

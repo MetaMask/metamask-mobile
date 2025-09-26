@@ -6,7 +6,6 @@ import {
   disableAccounts,
   fetchAccountNotificationSettings,
   toggleFeatureAnnouncements,
-  togglePerpsNotifications,
 } from '../../../actions/notification/helpers';
 
 import { debounce } from 'lodash';
@@ -16,7 +15,6 @@ import {
   selectIsMetaMaskPushNotificationsLoading,
   selectIsUpdatingMetamaskNotifications,
   selectIsUpdatingMetamaskNotificationsAccount,
-  selectIsPerpsNotificationsEnabled,
 } from '../../../selectors/notifications';
 import {
   useListNotifications,
@@ -75,31 +73,6 @@ export function useFeatureAnnouncementToggle() {
   return {
     data,
     switchFeatureAnnouncements,
-  };
-}
-
-export function usePerpsNotificationToggle() {
-  const { listNotifications } = useListNotifications();
-  const isEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
-  const data = useSelector(selectIsPerpsNotificationsEnabled);
-  const switchPerpsNotifications = useCallback(
-    async (val: boolean) => {
-      assertIsFeatureEnabled();
-      if (!isEnabled) {
-        return;
-      }
-
-      await togglePerpsNotifications(val);
-
-      // Refetch notifications
-      debounce(listNotifications)();
-    },
-    [isEnabled, listNotifications],
-  );
-
-  return {
-    data,
-    switchPerpsNotifications,
   };
 }
 

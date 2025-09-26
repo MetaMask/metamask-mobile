@@ -94,6 +94,8 @@ export const defaultPerpsPositionMock: Position = {
     sinceOpen: '0',
     sinceChange: '0',
   },
+  takeProfitCount: 0,
+  stopLossCount: 0,
 };
 
 export const defaultPerpsOrderMock: Order = {
@@ -134,7 +136,7 @@ export const createPerpsHooksMocks = (overrides = {}) => ({
   usePerpsEventTracking: jest.fn(() => defaultPerpsEventTrackingMock),
   usePerpsScreenTracking: jest.fn(() => defaultPerpsScreenTrackingMock),
   useMinimumOrderAmount: jest.fn(() => defaultMinimumOrderAmountMock),
-  usePerpsAccount: jest.fn(() => defaultPerpsAccountMock),
+  usePerpsLiveAccount: jest.fn(() => defaultPerpsAccountMock),
   usePerpsNetwork: jest.fn(() => defaultPerpsNetworkMock),
   usePerpsTrading: jest.fn(() => defaultPerpsTradingMock),
   usePerpsConnection: jest.fn(() => defaultPerpsConnectionMock),

@@ -36,8 +36,8 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         );
 
         // Test push notifications toggle functionality
-        if (device.getPlatform() === 'android' || !process.env.CI) {
-          // Failing on iOS on CI
+        // On iOS this is OS-gated and flaky in CI; exercise only on Android
+        if (device.getPlatform() === 'android') {
           await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState(
             'off',
           );

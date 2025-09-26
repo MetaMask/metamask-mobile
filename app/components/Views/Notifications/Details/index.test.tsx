@@ -11,6 +11,7 @@ import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__
 import * as NotificationStatesModule from '../../../../util/notifications/notification-states';
 // eslint-disable-next-line import/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../../../util/notifications/constants/config', () => ({
   ...jest.requireActual('../../../../util/notifications/constants/config'),
@@ -19,7 +20,7 @@ jest.mock('../../../../util/notifications/constants/config', () => ({
 
 const mockInitialState = {
   settings: {
-    useBlockieIcon: false,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState,

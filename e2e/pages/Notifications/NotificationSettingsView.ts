@@ -51,19 +51,39 @@ class NotificationsSettingsView {
   ) {
     return Utilities.executeWithRetry(
       async () => {
+        const assertOn = Assertions.expectToggleToBeOn;
+        const assertOff = Assertions.expectToggleToBeOff;
+
+        // Short read with graceful fallback on platforms where toggle state is flaky
+        const isAlreadyInState = async (): Promise<boolean> => {
+          try {
+            if (expectedToggleState === 'on') {
+              await assertOn(config.element, { timeout: 500 });
+            } else {
+              await assertOff(config.element, { timeout: 500 });
+            }
+            return true;
+          } catch {
+            return false;
+          }
+        };
+
+        if (await isAlreadyInState()) {
+          return;
+        }
+
         await Gestures.waitAndTap(config.element, {
-          timeout: 2000,
+          timeout: 3000,
+          checkEnabled: false,
           elemDescription: config.elemDescription,
         });
 
-        const assertion =
-          expectedToggleState === 'on'
-            ? Assertions.expectToggleToBeOn
-            : Assertions.expectToggleToBeOff;
-
-        await assertion(config.element, {
-          timeout: 2000,
-        });
+        // Verify expected state with a more generous timeout
+        if (expectedToggleState === 'on') {
+          await assertOn(config.element, { timeout: 5000 });
+        } else {
+          await assertOff(config.element, { timeout: 5000 });
+        }
       },
       {
         timeout: 30000,

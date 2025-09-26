@@ -1,8 +1,5 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
-import AnimatedSpinner, {
-  SpinnerSize,
-} from '../../../../../UI/AnimatedSpinner';
 import InfoRow from '../../UI/info-row';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -12,6 +9,7 @@ import {
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
 import Text from '../../../../../../component-library/components/Texts/Text';
+import { SkeletonRow } from '../skeleton-row';
 
 export function BridgeTimeRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
@@ -35,15 +33,15 @@ export function BridgeTimeRow() {
     return null;
   }
 
+  if (isQuotesLoading) {
+    return <SkeletonRow testId="bridge-time-row-skeleton" />;
+  }
+
   return (
     <InfoRow label={strings('confirm.label.bridge_estimated_time')}>
-      {isQuotesLoading ? (
-        <AnimatedSpinner size={SpinnerSize.SM} />
-      ) : (
-        <Text>
-          {estimatedTimeSeconds} {strings('unit.second')}
-        </Text>
-      )}
+      <Text>
+        {estimatedTimeSeconds} {strings('unit.second')}
+      </Text>
     </InfoRow>
   );
 }

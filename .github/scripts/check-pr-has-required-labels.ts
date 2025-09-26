@@ -42,15 +42,12 @@ async function main(): Promise<void> {
 
   const preventMergeLabels = [
     'needs-qa',
-    "QA'd but questions",
-    'issues-found',
     'need-ux-ds-review',
     'blocked',
     'stale',
     'DO-NOT-MERGE',
   ];
   let hasTeamLabel = false;
-  let hasQALabel = false;
 
   // Check pull request has at least required QA label and team label
   for (const label of pullRequestLabels) {
@@ -58,17 +55,13 @@ async function main(): Promise<void> {
       console.log(`PR contains a team label as expected: ${label}`);
       hasTeamLabel = true;
     }
-    if (label.includes('No QA Needed') || label.includes('QA Passed')  ) {
-      console.log(`PR contains a QA label as expected: ${label}`);
-      hasQALabel = true;
-    }
     if (preventMergeLabels.includes(label)) {
       core.setFailed(
         `PR cannot be merged because it still contains this label: ${label}`,
       );
       process.exit(1);
     }
-    if (hasTeamLabel && hasQALabel) {
+    if (hasTeamLabel) {
       return;
     }
   }
@@ -79,9 +72,6 @@ async function main(): Promise<void> {
     errorMessage += 'No team labels found on the PR. ';
   }
   
-  if (!hasQALabel) {
-    errorMessage += 'No \'No QA Needed\' or \'QA Passed\' label. ';
-  }
   errorMessage += `Please make sure the PR is appropriately labeled before merging it.\n\nSee labeling guidelines for more detail: https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md`;
   core.setFailed(errorMessage);
   process.exit(1);

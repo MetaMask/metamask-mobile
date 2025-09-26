@@ -7,22 +7,18 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { SmokeConfirmations } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeConfirmations('Personal Sign'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+    );
   };
 
   beforeAll(async () => {

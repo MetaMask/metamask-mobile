@@ -37,7 +37,6 @@ export function useNoPayTokenQuotesAlert() {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
         message: strings('alert_system.no_pay_token_quotes.message'),
-        title: strings('alert_system.no_pay_token_quotes.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },

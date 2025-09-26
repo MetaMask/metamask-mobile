@@ -9,6 +9,13 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { Splash } from './splash';
 
+jest.mock('../../hooks/useConfirmActions', () => ({
+  useConfirmActions: () => ({
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));

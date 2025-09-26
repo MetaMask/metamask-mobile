@@ -24,23 +24,7 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
       testID="badge-wrapper-badge"
     >
       <View>
-        <Image
-          onError={[Function]}
-          placeholderStyle={
-            {
-              "backgroundColor": "#f3f5f9",
-              "borderColor": "#f3f5f9",
-              "borderRadius": 16,
-              "borderWidth": 0.5,
-              "height": 32,
-              "width": 32,
-            }
-          }
-          source={
-            {
-              "uri": "",
-            }
-          }
+        <View
           style={
             {
               "borderColor": "#f3f5f9",
@@ -51,7 +35,17 @@ exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
               "width": 32,
             }
           }
-        />
+        >
+          <View
+            style={
+              {
+                "height": "80%",
+                "margin": "auto",
+                "width": "80%",
+              }
+            }
+          />
+        </View>
       </View>
       <View
         style={

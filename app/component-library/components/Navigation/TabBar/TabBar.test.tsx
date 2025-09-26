@@ -19,36 +19,22 @@ const navigation = {
 
 const mockInitialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          rewards: true,
+        },
+      },
+    },
   },
 };
 
-// Mock localization strings
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const mockStrings: { [key: string]: string } = {
-      'bottom_nav.home': 'Home',
-      'bottom_nav.browser': 'Browser',
-      'bottom_nav.activity': 'Activity',
-      'bottom_nav.settings': 'Settings',
-    };
-    return mockStrings[key] || key;
-  }),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(mockInitialState)),
-}));
-
 // Define the test cases.
 describe('TabBar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   const state = {
     index: 0,
     routes: [
@@ -150,5 +136,36 @@ describe('TabBar', () => {
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: 'Settings',
     });
+  });
+
+  it('navigates to rewards when rewards tab is pressed', () => {
+    const rewardsState = {
+      index: 0,
+      routes: [{ key: '1', name: 'Tab 1' }],
+    };
+    const rewardsDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Rewards,
+          rootScreenName: Routes.REWARDS_VIEW,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <TabBar
+        state={rewardsState as TabNavigationState<ParamListBase>}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        descriptors={rewardsDescriptors as any}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigation={navigation as any}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Rewards}`));
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 });

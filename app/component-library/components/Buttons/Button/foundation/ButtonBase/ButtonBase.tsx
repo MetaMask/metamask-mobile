@@ -26,7 +26,7 @@ import {
 } from './ButtonBase.constants';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
-const TouchableOpacity = ({
+export const TouchableOpacity = ({
   onPress,
   disabled,
   children,

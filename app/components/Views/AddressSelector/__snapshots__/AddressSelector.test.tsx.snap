@@ -554,6 +554,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   "padding": 16,
                                 }
                               }
+                              testID="address-selector-account-picker-dropdown"
                             >
                               <Text
                                 accessibilityRole="text"

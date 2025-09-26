@@ -182,6 +182,13 @@ export function updateSelectedGasFeeToken(
   );
 }
 
+export function updateRequiredTransactionIds(
+  ...args: Parameters<BaseTransactionController['updateRequiredTransactionIds']>
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updateRequiredTransactionIds(...args);
+}
+
 function sanitizeTransactionParamsGasValues(
   transactionId: string,
   requestedTransactionParamsToUpdate: Partial<TransactionParams>,

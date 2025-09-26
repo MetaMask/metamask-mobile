@@ -3,7 +3,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Assertions from '../../framework/Assertions';
+import { Assertions } from '../../framework';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
@@ -59,10 +59,11 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
 
   it('should navigate to buy page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
+      await BuildQuoteView.tapSelectAddressDropdown();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3', {
         description:
@@ -76,10 +77,11 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
 
   it('should navigate to sell page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
+      await BuildQuoteView.tapSelectAddressDropdown();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3', {
         description:
@@ -93,15 +95,17 @@ describe(RegressionTrade('Ramps with Account Switching'), () => {
 
   it('should maintain account selection across ramp flows', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
+      await BuildQuoteView.tapSelectAddressDropdown();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
+      await BuildQuoteView.dismissAccountSelector();
       await Assertions.expectTextDisplayed('Account 3');
       await BuildQuoteView.tapCancelButton();
       await TabBarComponent.tapWallet();
-      await WalletView.tapWalletFundButton();
+      await WalletView.tapWalletBuyButton();
       await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await Assertions.expectTextDisplayed('Account 3', {

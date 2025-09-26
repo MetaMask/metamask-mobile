@@ -8,6 +8,11 @@ import {
 } from './framework/fixtures/FixtureUtils';
 import Utilities from './utils/Utilities';
 import { resolveConfig } from 'detox/internals';
+import { createLogger } from './framework/logger';
+
+const logger = createLogger({
+  name: 'TestHelpers',
+});
 
 export default class TestHelpers {
   /**
@@ -364,8 +369,7 @@ export default class TestHelpers {
         if (attempt === maxAttempts) {
           throw error;
         } else {
-          // eslint-disable-next-line no-console
-          console.log('Test attempt failed', {
+          logger.error('Test attempt failed', {
             attempt,
             error,
           });
