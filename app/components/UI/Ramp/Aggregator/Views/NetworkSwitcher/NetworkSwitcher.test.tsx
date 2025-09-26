@@ -1,5 +1,6 @@
 import React from 'react';
 import { AggregatorNetwork } from '@consensys/on-ramp-sdk/dist/API';
+import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
@@ -12,6 +13,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import Engine from '../../../../../../core/Engine';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { mockNetworkState } from '../../../../../../util/test/network';
+import { POLYGON_DISPLAY_NAME } from '../../../../../../core/Engine/constants';
 
 const mockedRampNetworksValues: AggregatorNetwork[] = [
   {
@@ -180,11 +182,14 @@ jest.mock('../../hooks/useRampNetworksDetail', () =>
 );
 
 const mockuseRampSDKInitialValues: Partial<RampSDK> = {
-  selectedChainId: '56',
   isBuy: true,
   isSell: false,
   rampType: RampType.BUY,
   setIntent: jest.fn(),
+  selectedAsset: {
+    id: 'mock-asset-id',
+    network: { chainId: '56' },
+  } as CryptoCurrency,
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
@@ -297,7 +302,7 @@ describe('NetworkSwitcher View', () => {
 
     jest.clearAllMocks();
     render(NetworkSwitcher);
-    const polygonNetworkTest = screen.getByText('Polygon Mainnet');
+    const polygonNetworkTest = screen.getByText(POLYGON_DISPLAY_NAME);
     fireEvent.press(polygonNetworkTest);
 
     expect(

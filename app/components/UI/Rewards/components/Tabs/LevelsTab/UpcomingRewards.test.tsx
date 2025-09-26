@@ -28,15 +28,41 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../../reducers/rewards/selectors', () => ({
   selectSeasonTiers: jest.fn(),
   selectCurrentTier: jest.fn(),
+  selectSeasonStatusLoading: jest.fn(),
+  selectSeasonStatusError: jest.fn(),
+  selectSeasonStartDate: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/rewards', () => ({
   selectRewardsActiveAccountAddress: jest.fn(),
 }));
 
+// Mock RewardsErrorBanner
+jest.mock('../../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ title, description }: { title: string; description: string }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+      ),
+  };
+});
+
 import {
   selectSeasonTiers,
   selectCurrentTier,
+  selectSeasonStatusLoading,
+  selectSeasonStatusError,
+  selectSeasonStartDate,
 } from '../../../../../../reducers/rewards/selectors';
 
 import { selectRewardsActiveAccountAddress } from '../../../../../../selectors/rewards';
@@ -46,6 +72,17 @@ const mockSelectSeasonTiers = selectSeasonTiers as jest.MockedFunction<
 >;
 const mockSelectCurrentTier = selectCurrentTier as jest.MockedFunction<
   typeof selectCurrentTier
+>;
+const mockSelectSeasonStatusLoading =
+  selectSeasonStatusLoading as jest.MockedFunction<
+    typeof selectSeasonStatusLoading
+  >;
+const mockSelectSeasonStatusError =
+  selectSeasonStatusError as jest.MockedFunction<
+    typeof selectSeasonStatusError
+  >;
+const mockSelectSeasonStartDate = selectSeasonStartDate as jest.MockedFunction<
+  typeof selectSeasonStartDate
 >;
 const mockSelectRewardsActiveAccountAddress =
   selectRewardsActiveAccountAddress as jest.MockedFunction<
@@ -157,11 +194,17 @@ describe('UpcomingRewards', () => {
     jest.clearAllMocks();
     mockSelectSeasonTiers.mockReturnValue([mockCurrentTier, mockSeasonTier]);
     mockSelectCurrentTier.mockReturnValue(mockCurrentTier);
+    mockSelectSeasonStatusLoading.mockReturnValue(false);
+    mockSelectSeasonStatusError.mockReturnValue('');
+    mockSelectSeasonStartDate.mockReturnValue(new Date('2024-01-01'));
     mockSelectRewardsActiveAccountAddress.mockReturnValue('0x123');
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSeasonTiers)
         return [mockCurrentTier, mockSeasonTier];
       if (selector === selectCurrentTier) return mockCurrentTier;
+      if (selector === selectSeasonStatusLoading) return false;
+      if (selector === selectSeasonStatusError) return false;
+      if (selector === selectSeasonStartDate) return new Date('2024-01-01');
       if (selector === selectRewardsActiveAccountAddress) return '0x123';
       return [];
     });
@@ -207,11 +250,87 @@ describe('UpcomingRewards', () => {
       if (selector === selectSeasonTiers)
         return [lowerTier, currentTierWithHigherPoints];
       if (selector === selectCurrentTier) return currentTierWithHigherPoints;
+      if (selector === selectSeasonStatusLoading) return false;
+      if (selector === selectSeasonStatusError) return false;
+      if (selector === selectSeasonStartDate) return new Date('2024-01-01');
       return [];
     });
 
     const { toJSON } = render(<UpcomingRewards />);
     expect(toJSON()).toBeNull();
+  });
+
+  describe('Loading and Error States', () => {
+    it('should show loading state when seasonStatusLoading is true', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonTiers)
+          return [mockCurrentTier, mockSeasonTier];
+        if (selector === selectCurrentTier) return mockCurrentTier;
+        if (selector === selectSeasonStatusLoading) return true;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return new Date('2024-01-01');
+        return [];
+      });
+
+      const { getByText } = render(<UpcomingRewards />);
+
+      // Should show section header with loading indicator
+      expect(getByText('rewards.upcoming_rewards.title')).toBeTruthy();
+    });
+
+    it('should show error banner when seasonStatusError is true and no seasonStartDate', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonTiers) return [];
+        if (selector === selectCurrentTier) return null;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return null;
+        return [];
+      });
+
+      const { getByText, getByTestId } = render(<UpcomingRewards />);
+
+      // Should show section header
+      expect(getByText('rewards.upcoming_rewards.title')).toBeTruthy();
+
+      // Should show error banner
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
+    });
+
+    it('should show skeleton when loading or seasonStartDate is null', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonTiers) return [];
+        if (selector === selectCurrentTier) return null;
+        if (selector === selectSeasonStatusLoading) return true;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return null;
+        return [];
+      });
+
+      const { getByText } = render(<UpcomingRewards />);
+
+      // Should show section header
+      expect(getByText('rewards.upcoming_rewards.title')).toBeTruthy();
+    });
+
+    it('should not show error banner when seasonStatusError is true but seasonStartDate exists', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectSeasonTiers) return [];
+        if (selector === selectCurrentTier) return null;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return true;
+        if (selector === selectSeasonStartDate) return new Date('2024-01-01');
+        return [];
+      });
+
+      const { getByText, queryByTestId } = render(<UpcomingRewards />);
+
+      // Should show section header
+      expect(getByText('rewards.upcoming_rewards.title')).toBeTruthy();
+
+      // Should NOT show error banner when seasonStartDate exists
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
+    });
   });
 
   describe('RewardsThemeImageComponent Integration', () => {
@@ -255,6 +374,9 @@ describe('UpcomingRewards', () => {
         if (selector === selectSeasonTiers)
           return [mockCurrentTier, tierWithoutImage];
         if (selector === selectCurrentTier) return mockCurrentTier;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return new Date('2024-01-01');
         return [];
       });
 
@@ -289,6 +411,9 @@ describe('UpcomingRewards', () => {
         if (selector === selectSeasonTiers)
           return [mockCurrentTier, updatedTier];
         if (selector === selectCurrentTier) return mockCurrentTier;
+        if (selector === selectSeasonStatusLoading) return false;
+        if (selector === selectSeasonStatusError) return false;
+        if (selector === selectSeasonStartDate) return new Date('2024-01-01');
         return [];
       });
 

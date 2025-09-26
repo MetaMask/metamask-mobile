@@ -40,10 +40,10 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await Assertions.expectElementToBeVisible(WalletView.defiTabContainer);
         await Assertions.expectElementToBeVisible(WalletView.defiNetworkFilter);
         await Assertions.expectTextDisplayed(
-          WalletViewSelectorsText.DEFI_NO_VISIBLE_POSITIONS,
+          WalletViewSelectorsText.DEFI_EMPTY_STATE_DESCRIPTION,
         );
         await Assertions.expectTextDisplayed(
-          WalletViewSelectorsText.DEFI_NOT_SUPPORTED,
+          WalletViewSelectorsText.DEFI_EMPTY_STATE_EXPLORE_BUTTON,
         );
       },
     );

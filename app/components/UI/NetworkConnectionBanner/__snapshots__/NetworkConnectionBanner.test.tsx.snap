@@ -1,0 +1,306 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkConnectionBanner snapshots should match snapshot for different network 1`] = `
+<View
+  style={
+    {
+      "marginTop": 16,
+      "paddingLeft": 16,
+      "paddingRight": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#9a63001a",
+        "borderColor": "#9a6300",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
+      }
+    }
+    testID="banneralert"
+    variant="Alert"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+    >
+      <View
+        testID="animated-spinner"
+      >
+        <Text
+          testID="spinner-size"
+        >
+          SM
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Medium",
+            "fontSize": 18,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Still connecting to Polygon Mainnet...
+      </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Update RPC
+        </Text>
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`NetworkConnectionBanner snapshots should match snapshot for slow status banner 1`] = `
+<View
+  style={
+    {
+      "marginTop": 16,
+      "paddingLeft": 16,
+      "paddingRight": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#9a63001a",
+        "borderColor": "#9a6300",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
+      }
+    }
+    testID="banneralert"
+    variant="Alert"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+    >
+      <View
+        testID="animated-spinner"
+      >
+        <Text
+          testID="spinner-size"
+        >
+          SM
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Medium",
+            "fontSize": 18,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Still connecting to Ethereum Mainnet...
+      </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Update RPC
+        </Text>
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`NetworkConnectionBanner snapshots should match snapshot for unavailable status banner 1`] = `
+<View
+  style={
+    {
+      "marginTop": 16,
+      "paddingLeft": 16,
+      "paddingRight": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#9a63001a",
+        "borderColor": "#9a6300",
+        "borderLeftWidth": 4,
+        "borderRadius": 4,
+        "flexDirection": "row",
+        "padding": 12,
+        "paddingLeft": 8,
+      }
+    }
+    testID="banneralert"
+    variant="Alert"
+  >
+    <View
+      style={
+        {
+          "marginRight": 8,
+        }
+      }
+    >
+      <View
+        testID="icon"
+      >
+        <Text
+          testID="icon-size"
+        >
+          Md
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Medium",
+            "fontSize": 18,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Unable to connect to Ethereum Mainnet.
+      </Text>
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#121314",
+            "fontFamily": "Geist Regular",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Update RPC
+        </Text>
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`NetworkConnectionBanner snapshots should match snapshot when banner is not visible 1`] = `null`;
