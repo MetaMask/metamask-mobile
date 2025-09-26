@@ -31,6 +31,7 @@ const AccountListCell = memo(
         style={styles.accountItem}
         onPress={handlePress}
         activeOpacity={0.7}
+        testID="list-item-select"
       >
         <AccountCell
           accountGroup={accountGroup}
