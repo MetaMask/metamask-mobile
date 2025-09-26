@@ -96,6 +96,14 @@ jest.mock('../../../hooks/useGeoRewardsMetadata', () => ({
 
 // Tailwind mock is handled in test-utils.ts
 
+// Mock Engine controllerMessenger
+const mockControllerMessengerCall = jest.fn();
+jest.mock('../../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: mockControllerMessengerCall,
+  },
+}));
+
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => `mocked_${key}`,
@@ -110,6 +118,9 @@ describe('OnboardingIntroStep', () => {
       '../../../../../../util/address',
     ).isHardwareAccount as jest.Mock;
     mockIsHardwareAccount.mockReturnValue(false);
+
+    // Reset controller messenger mock to default (returns true for isOptInSupported)
+    mockControllerMessengerCall.mockReturnValue(true);
   });
 
   describe('rendering', () => {
@@ -510,6 +521,173 @@ describe('OnboardingIntroStep', () => {
         'mocked_rewards.onboarding.intro_confirm',
       );
       fireEvent.press(confirmButton);
+
+      // Should proceed to next onboarding step
+      expect(mockDispatch).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_ONBOARDING_1);
+    });
+
+    it('should show error modal when account type is not supported for opt-in', () => {
+      // Mock isOptInSupported to return false
+      mockControllerMessengerCall.mockReturnValue(false);
+
+      // Mock hardware account check to return false so we reach the isOptInSupported check
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
+      const mockSelectorWithUnsupportedAccount = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true, // Geo is allowed, so account type check is reached
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-unsupported-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-unsupported-account',
+                  accounts: {
+                    'test-unsupported-account': {
+                      type: 'unsupported:type',
+                      address: '0x789',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-unsupported-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorUnsupported = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorUnsupported.mockImplementation(
+        mockSelectorWithUnsupportedAccount,
+      );
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      const confirmButton = screen.getByText(
+        'mocked_rewards.onboarding.intro_confirm',
+      );
+      fireEvent.press(confirmButton);
+
+      // Should call isOptInSupported with the internal account
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        {
+          type: 'unsupported:type',
+          address: '0x789',
+        },
+      );
+
+      // Should show error modal for unsupported account type
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        {
+          title: 'mocked_rewards.onboarding.not_supported_account_type_title',
+          description:
+            'mocked_rewards.onboarding.not_supported_account_type_description',
+          confirmAction: {
+            label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
+            onPress: expect.any(Function),
+            variant: 'Primary',
+          },
+        },
+      );
+    });
+
+    it('should proceed to onboarding when account type is supported for opt-in', () => {
+      // Mock isOptInSupported to return true
+      mockControllerMessengerCall.mockReturnValue(true);
+
+      // Mock hardware account check to return false so we reach the isOptInSupported check
+      const mockIsHardwareAccount = jest.requireMock(
+        '../../../../../../util/address',
+      ).isHardwareAccount as jest.Mock;
+      mockIsHardwareAccount.mockReturnValue(false);
+
+      const mockSelectorWithSupportedAccount = jest.fn((selector) => {
+        const state = {
+          rewards: {
+            optinAllowedForGeo: true,
+            optinAllowedForGeoLoading: false,
+            onboardingActiveStep: 'intro',
+            candidateSubscriptionId: null,
+            rewardsControllerState: {
+              activeAccount: {
+                subscriptionId: null,
+                account: 'test-supported-account',
+                hasOptedIn: false,
+              },
+            },
+          },
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'test-supported-account',
+                  accounts: {
+                    'test-supported-account': {
+                      type: 'eip155:eoa',
+                      address: '0x999',
+                    },
+                  },
+                },
+              },
+              RewardsController: {
+                activeAccount: {
+                  subscriptionId: null,
+                  account: 'test-supported-account',
+                  hasOptedIn: false,
+                },
+              },
+            },
+          },
+        };
+        return selector(state);
+      });
+
+      const mockUseSelectorSupported = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      mockUseSelectorSupported.mockImplementation(
+        mockSelectorWithSupportedAccount,
+      );
+
+      renderWithProviders(<OnboardingIntroStep />);
+
+      const confirmButton = screen.getByText(
+        'mocked_rewards.onboarding.intro_confirm',
+      );
+      fireEvent.press(confirmButton);
+
+      // Should call isOptInSupported with the internal account
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'RewardsController:isOptInSupported',
+        {
+          type: 'eip155:eoa',
+          address: '0x999',
+        },
+      );
 
       // Should proceed to next onboarding step
       expect(mockDispatch).toHaveBeenCalled();
