@@ -170,12 +170,13 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
       finalTimeoutId.current = setTimeout(() => {
         setAnimationStep(3);
+
         setTimeout(() => {
           if (riveRef.current) {
             riveRef.current.fireState('OnboardingLoader', 'End');
             startFadeTransition();
           }
-        }, 50);
+        }, 100);
 
         finalTimeoutId.current = null;
 
@@ -265,19 +266,18 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                   <Text
                     variant={TextVariant.HeadingLG}
                     style={styles.textTitle}
-                    color={TextColor.Default}
+                    color={isDarkMode ? TextColor.Default : TextColor.Inverse}
                   >
                     {strings('onboarding_success.setting_up_wallet')}
                   </Text>
                 </Animated.View>
-                {/* Fade in: Ready text */}
                 <Animated.View
                   style={[styles.fadeInContainer, { opacity: fadeInOpacity }]}
                 >
                   <Text
                     variant={TextVariant.DisplayMD}
                     style={styles.textTitle}
-                    color={TextColor.Default}
+                    color={isDarkMode ? TextColor.Default : TextColor.Inverse}
                   >
                     {strings('onboarding_success.wallet_ready')}
                   </Text>
@@ -287,7 +287,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
               <Text
                 variant={TextVariant.HeadingLG}
                 style={styles.textTitle}
-                color={TextColor.Default}
+                color={isDarkMode ? TextColor.Default : TextColor.Inverse}
               >
                 {animationStep === 1
                   ? `${strings(
@@ -318,7 +318,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                     <Text
                       variant={TextVariant.HeadingLG}
                       style={styles.textTitle}
-                      color={TextColor.Default}
+                      color={isDarkMode ? TextColor.Default : TextColor.Inverse}
                     >
                       {strings('onboarding_success.setting_up_wallet')}
                     </Text>
@@ -329,7 +329,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                     <Text
                       variant={TextVariant.DisplayMD}
                       style={styles.textTitle}
-                      color={TextColor.Default}
+                      color={isDarkMode ? TextColor.Default : TextColor.Inverse}
                     >
                       {strings('onboarding_success.wallet_ready')}
                     </Text>
@@ -339,7 +339,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                 <Text
                   variant={TextVariant.HeadingLG}
                   style={styles.textTitle}
-                  color={TextColor.Default}
+                  color={isDarkMode ? TextColor.Default : TextColor.Inverse}
                 >
                   {animationStep === 1
                     ? `${strings(

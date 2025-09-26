@@ -1,4 +1,4 @@
 declare module '*.riv' {
-  const value: unknown;
+  const value: number | { uri: string };
   export default value;
 }
