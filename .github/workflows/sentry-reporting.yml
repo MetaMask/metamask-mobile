@@ -68,16 +68,16 @@ jobs:
           sentry-cli send-event \
             --message "GitHub Actions Job Performance: ${JOB_NAME:-$JOB_ID}" \
             --level info \
-            --tag workflow="$WORKFLOW" \
-            --tag job="$JOB_ID" \
-            --tag job_name="$JOB_NAME" \
-            --tag run_id="$RUN_ID" \
-            --tag run_attempt="$ATTEMPT" \
-            --tag branch="$BRANCH" \
-            --tag sha="$SHA" \
-            --tag event_name="${{ github.event_name }}" \
-            --tag actor="${{ github.actor }}" \
-            --extra duration_seconds="$DURATION" \
-            --extra start_time="$START_TIME" \
-            --extra end_time="$END_TIME" \
-            --extra job_status="${{ job.status }}"
+            --tag workflow:"$WORKFLOW" \
+            --tag job:"$JOB_ID" \
+            --tag job_name:"$JOB_NAME" \
+            --tag run_id:"$RUN_ID" \
+            --tag run_attempt:"$ATTEMPT" \
+            --tag branch:"$BRANCH" \
+            --tag sha:"$SHA" \
+            --tag event_name:"${{ github.event_name }}" \
+            --tag actor:"${{ github.actor }}" \
+            --extra duration_seconds:"$DURATION" \
+            --extra start_time:"$START_TIME" \
+            --extra end_time:"$END_TIME" \
+            --extra job_status:"${{ job.status }}"
