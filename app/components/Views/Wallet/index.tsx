@@ -1150,7 +1150,7 @@ const Wallet = ({
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
-      } else {
+      } else if (tabLabel === strings('wallet.collectibles')) {
         // Return early if no address selected
         if (!selectedAddress) return;
 
@@ -1193,6 +1193,15 @@ const Wallet = ({
               .build(),
           );
         });
+      } else if (tabLabel === strings('wallet.perps')) {
+        // Track Perps tab selection - no NFT detection needed
+        // Note: Add Perps analytics tracking here if needed
+      } else if (tabLabel === strings('wallet.predict')) {
+        // Track Predictions tab selection - no NFT detection needed
+        // Note: Add Predictions analytics tracking here if needed
+      } else {
+        // Handle any other tabs that might be added in the future
+        // Note: Only add NFT detection if specifically needed for that tab
       }
     },
     [
