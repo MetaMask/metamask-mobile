@@ -35,7 +35,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
       paddingBottom: 8,
       gap: 8,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
     },
     description: {
       flexWrap: 'wrap',
