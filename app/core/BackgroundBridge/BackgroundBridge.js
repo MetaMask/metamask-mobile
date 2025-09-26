@@ -114,7 +114,7 @@ export class BackgroundBridge extends EventEmitter {
     getApprovedHosts,
     remoteConnHost,
     isMMSDK,
-    sdkVersion,
+    sdkVersion = 'v1',
     channelId,
   }) {
     super();
@@ -125,7 +125,7 @@ export class BackgroundBridge extends EventEmitter {
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
     this.isMMSDK = isMMSDK;
-    this.sdkVersion = sdkVersion || 'v1';
+    this.sdkVersion = sdkVersion;
     this.isRemoteConn = isRemoteConn;
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
