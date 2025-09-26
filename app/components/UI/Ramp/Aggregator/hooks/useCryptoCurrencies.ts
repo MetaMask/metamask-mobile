@@ -7,6 +7,7 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selecto
 import { isCaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
+import { parseCAIP19AssetId } from '../utils/parseCaip19AssetId';
 
 export default function useCryptoCurrencies() {
   const {
@@ -69,15 +70,67 @@ export default function useCryptoCurrencies() {
    */
   useEffect(() => {
     if (cryptoCurrencies) {
-      if (intent?.address) {
-        const intentAsset = cryptoCurrencies.find(
-          (token) =>
-            token.address.toLowerCase() === intent.address?.toLowerCase(),
-        );
-        if (intentAsset) {
-          setSelectedAsset(intentAsset);
-          setIntent((prevIntent) => ({ ...prevIntent, address: undefined }));
-          return;
+      if (intent?.assetId) {
+        try {
+          const intentParsedCaip19 = parseCAIP19AssetId(intent.assetId);
+          // If we can't parse the assetId, we can't match it to a token
+          if (!intentParsedCaip19) {
+            return;
+          }
+
+          const intentAsset = cryptoCurrencies.find((token) => {
+            if (!token.assetId) {
+              // Legacy token with EVM chainId and address only
+
+              // We try to match the token initally by chainId
+              if (token.network?.chainId !== intentParsedCaip19.chainId) {
+                return false;
+              }
+
+              // If the token address is the native address, we match it to slip44 namespace
+              if (token.address === NATIVE_ADDRESS) {
+                return intentParsedCaip19.assetNamespace === 'slip44';
+              }
+
+              // Finally we match by address
+              if (
+                token.address?.toLowerCase() ===
+                intentParsedCaip19.assetReference.toLowerCase()
+              ) {
+                return true;
+              }
+
+              // The current token does not match the intent
+              return false;
+            }
+
+            // New token with assetId defined
+            if (
+              // From the Ramps API we combine chainId and assetId with a slash
+              // to form a CAIP19 assetId
+              `${token.network.chainId}/${token.assetId}` === intent.assetId
+            ) {
+              return true;
+            }
+
+            return false;
+          });
+
+          if (intentAsset) {
+            setSelectedAsset(intentAsset);
+            setIntent((prevIntent) => ({
+              ...prevIntent,
+              assetId: undefined,
+            }));
+            return;
+          }
+        } catch {
+          // do nothing and clear the intent assetId below
+        } finally {
+          setIntent((prevIntent) => ({
+            ...prevIntent,
+            assetId: undefined,
+          }));
         }
       }
 
@@ -97,7 +150,7 @@ export default function useCryptoCurrencies() {
     }
   }, [
     cryptoCurrencies,
-    intent?.address,
+    intent?.assetId,
     selectedAsset,
     setSelectedAsset,
     setIntent,

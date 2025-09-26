@@ -431,7 +431,7 @@ describe('useCryptoCurrencies', () => {
       address: 'test-address-3',
     };
 
-    const mockedIntent = { address: 'test-address-2' };
+    const mockedIntent = { assetId: 'eip155:1/erc20:test-address-2' };
     mockUseRampSDKValues.intent = mockedIntent;
 
     const { result } = renderHookWithProvider(() => useCryptoCurrencies(), {

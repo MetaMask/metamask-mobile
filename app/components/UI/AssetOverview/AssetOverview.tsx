@@ -6,6 +6,7 @@ import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetType,
+  isCaipAssetType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import I18n, { strings } from '../../../../locales/i18n';
@@ -78,6 +79,7 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -240,10 +242,30 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onBuy = () => {
+    let assetId;
+    try {
+      if (isCaipAssetType(asset.address)) {
+        assetId = asset.address;
+      } else {
+        const caipChainId = toEvmCaipChainId(asset.chainId as Hex);
+        let assetReference;
+        if (asset.isNative) {
+          // TODO: replace slip44 with the actual slip44 value for the chain
+          assetReference = 'slip44:.';
+        } else {
+          assetReference = `erc20:${safeToChecksumAddress(
+            asset.address as string,
+          )}`;
+        }
+        assetId = `${caipChainId}/${assetReference}`;
+      }
+    } catch {
+      assetId = undefined;
+    }
+
     navigation.navigate(
       ...createBuyNavigationDetails({
-        address: asset.address,
-        chainId: getDecimalChainId(chainId),
+        assetId,
       }),
     );
     trackEvent(

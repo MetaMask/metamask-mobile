@@ -41,7 +41,7 @@ export default function parseRampIntent(
 
     if (!assetIdAssetReference || assetIdAssetReference === NATIVE_ADDRESS) {
       // TODO: replace slip44 with the actual slip44 value for the chain
-      assetIdAssetReference = 'slip44:*';
+      assetIdAssetReference = 'slip44:.';
     } else if (assetIdAssetReference) {
       try {
         const checksumAddress = toChecksumAddress(assetIdAssetReference);
