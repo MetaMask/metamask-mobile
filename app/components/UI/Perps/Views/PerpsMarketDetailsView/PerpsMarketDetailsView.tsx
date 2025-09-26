@@ -54,6 +54,10 @@ import {
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
+import {
+  usePerpsDataMonitor,
+  type DataMonitorParams,
+} from '../../hooks/usePerpsDataMonitor';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
@@ -76,15 +80,14 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
-  isNavigationFromOrderSuccess?: boolean;
+  monitoringIntent?: Partial<DataMonitorParams>;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, initialTab, isNavigationFromOrderSuccess } =
-    route.params || {};
+  const { market, initialTab, monitoringIntent } = route.params || {};
   const { track } = usePerpsEventTracking();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -126,9 +129,55 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
   const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
 
+  // Programmatic tab control state for data-driven navigation
+  const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
+    string | null
+  >(null);
+
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
+  // Handle data-driven monitoring when coming from order success
+  const { startMonitoring, cancelMonitoring } = usePerpsDataMonitor();
+
+  // Callback to handle data detection from monitoring hook
+  const handleDataDetected = useCallback(
+    ({
+      detectedData,
+    }: {
+      detectedData: 'positions' | 'orders';
+      asset: string;
+      reason: string;
+    }) => {
+      const targetTab = detectedData === 'positions' ? 'position' : 'orders';
+      setProgrammaticActiveTab(targetTab);
+    },
+    [],
+  );
+
+  // Start monitoring if we have monitoring intent from navigation params
+  useEffect(() => {
+    if (
+      monitoringIntent &&
+      market &&
+      monitoringIntent.asset &&
+      monitoringIntent.monitor
+    ) {
+      startMonitoring({
+        asset: monitoringIntent.asset,
+        monitor: monitoringIntent.monitor,
+        timeoutMs: monitoringIntent.timeoutMs,
+        onDataDetected: handleDataDetected,
+      });
+    }
+
+    // Cleanup function to cancel monitoring when component unmounts
+    return () => {
+      cancelMonitoring();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [monitoringIntent, market]);
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({});
   // Filter orders for the current market
@@ -536,6 +585,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               isLoadingPosition={isLoadingPosition}
               unfilledOrders={openOrders}
               initialTab={initialTab}
+              activeTabId={programmaticActiveTab || undefined}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
               onOrderSelect={handleOrderSelect}
@@ -638,9 +688,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       )}
 
       {/* Notification Tooltip - Shows after first successful order */}
-      {isNotificationsEnabled && isNavigationFromOrderSuccess && (
+      {isNotificationsEnabled && !!monitoringIntent && (
         <PerpsNotificationTooltip
-          orderSuccess={isNavigationFromOrderSuccess}
+          orderSuccess={!!monitoringIntent}
           testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
         />
       )}

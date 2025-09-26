@@ -6,6 +6,7 @@ import type {
   PerpsMarketData,
 } from '../controllers/types';
 import { PerpsTransaction } from './transactionHistory';
+import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 
 /**
  * PERPS navigation parameter types
@@ -68,6 +69,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsMarketDetails: {
     market: PerpsMarketData;
     initialTab?: 'position' | 'orders' | 'info';
+    monitoringIntent?: Partial<DataMonitorParams>;
   };
 
   PerpsPositions: undefined;
