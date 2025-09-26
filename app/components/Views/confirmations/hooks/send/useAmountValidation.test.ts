@@ -1,14 +1,9 @@
 import BN from 'bnjs4';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { Nft } from '../../types/token';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useSendContext } from '../../context/send-context';
-import {
-  useAmountValidation,
-  validateERC1155Balance,
-  validateTokenBalance,
-} from './useAmountValidation';
+import { useAmountValidation } from './useAmountValidation';
 import { useBalance } from './useBalance';
 
 jest.mock('../../context/send-context', () => ({
@@ -28,31 +23,6 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
 >;
 
 const mockUseBalance = useBalance as jest.MockedFunction<typeof useBalance>;
-
-describe('validateERC1155Balance', () => {
-  it('return error if amount is greater than balance and not otherwise', () => {
-    expect(
-      validateERC1155Balance({ balance: 5 } as unknown as Nft, '5'),
-    ).toEqual(undefined);
-    expect(
-      validateERC1155Balance({ balance: 5 } as unknown as Nft, '1'),
-    ).toEqual(undefined);
-    expect(
-      validateERC1155Balance({ balance: 5 } as unknown as Nft, '10'),
-    ).toEqual('Insufficient funds');
-  });
-});
-
-describe('validateTokenBalance', () => {
-  it('return error if amount is greater than balance and not otherwise', () => {
-    expect(validateTokenBalance('1000', 2, new BN('100000'))).toEqual(
-      undefined,
-    );
-    expect(validateTokenBalance('10000', 2, new BN('100000'))).toEqual(
-      'Insufficient funds',
-    );
-  });
-});
 
 describe('useAmountValidation', () => {
   it('return field for amount error', () => {

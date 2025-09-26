@@ -42,7 +42,7 @@ jobs:
         with:
           # Specifying `ref` ensures that the head commit is checked out directly.
           ref: ${{ env.HEAD_COMMIT_HASH }}
-        
+
       - name: Check skip commit tag
         id: skip-tag
         run: |
@@ -64,8 +64,8 @@ jobs:
             echo "-> SKIP=true due to 'skip-e2e' label on PR"
           fi
         env:
-          GH_TOKEN: ${{ github.token }}    
-      
+          GH_TOKEN: ${{ github.token }}
+
       - name: Paths filter (Android/iOS impact)
         id: filter
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
@@ -113,7 +113,7 @@ jobs:
 
             catch_all:
               - '**/*'                             # Matches everything for conservative fallback
-          list-files: 'shell'  # Output lists for comparison
+          list-files: 'shell' # Output lists for comparison
 
       - name: Set final outputs
         id: set-outputs
@@ -134,7 +134,7 @@ jobs:
             echo "-> Skipping build+E2E tests due to 'skip-e2e' tag"
             exit 0
           fi                   
-          
+
           # Get filter results
           android="${{ steps.filter.outputs.android }}"
           ios="${{ steps.filter.outputs.ios }}"
@@ -154,14 +154,25 @@ jobs:
           # 6. iOS-only changes -> iOS only
 
           # State Machine
-          if [[ "$android" == 'true' && "$ios" != 'true' ]]; then
+          if [[ "$shared" == 'true' ]]; then
+            state="SHARED"
+          elif [[ "$android" == 'true' && "$ios" != 'true' ]]; then
             state="ANDROID_ONLY"
           elif [[ "$ios" == 'true' && "$android" != 'true' ]]; then
             state="IOS_ONLY"
+          elif [[ "$android" == 'true' && "$ios" == 'true' ]]; then
+            state="SHARED"
           elif [[ "$ignore" == 'true' && "$shared" == 'false' && "$android" != 'true' && "$ios" != 'true' && "$ignore_files" == "$catch_all_files" ]]; then
             state="PURE_IGNORE"
-          else
+          elif [[ "$ignore_files" != "$catch_all_files" ]]; then
+            # Conservative approach: build both if there are changes outside the ignore set
             state="SHARED"
+          elif [[ -z "$catch_all_files" ]]; then
+            # No changed files detected
+            state="PURE_IGNORE"
+          else
+            echo "UNEXPECTED STATE"
+            exit 1
           fi
 
           case "$state" in

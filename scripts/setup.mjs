@@ -122,18 +122,18 @@ const buildPpomTask = {
     return task.newListr(
       [
         {
+          title: 'Install deps',
+          task: async () => {
+            await $ppom`yarn install`;
+          },
+        },
+        {
           title: 'Clean',
           task: async (_, task) => {
             if (GITHUB_CI) {
               return task.skip('Skipping clean in GitHub CI.');
             }
             await $ppom`yarn clean`;
-          },
-        },
-        {
-          title: 'Install deps',
-          task: async () => {
-            await $ppom`yarn`;
           },
         },
         {

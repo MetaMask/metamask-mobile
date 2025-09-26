@@ -1,13 +1,9 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import {
-  selectRewardsActiveAccountHasOptedIn,
-  selectRewardsSubscriptionId,
-} from '../../../../selectors/rewards';
-import Logger from '../../../../util/Logger';
+import { selectCandidateSubscriptionId } from '../../../../reducers/rewards/selectors';
+import Engine from '../../../../core/Engine';
+import { useFocusEffect } from '@react-navigation/native';
 
 /**
  * Hook to manage fetching candidate subscription ID and setting it in Redux state
@@ -15,31 +11,28 @@ import Logger from '../../../../util/Logger';
  */
 export const useCandidateSubscriptionId = () => {
   const dispatch = useDispatch();
-  const account = useSelector(selectSelectedInternalAccount);
-  const hasAccountedOptedIn = useSelector(selectRewardsActiveAccountHasOptedIn);
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
+
+  const fetchCandidateSubscriptionId = useCallback(async () => {
+    try {
+      const candidateId = await Engine.controllerMessenger.call(
+        'RewardsController:getCandidateSubscriptionId',
+      );
+      dispatch(setCandidateSubscriptionId(candidateId));
+    } catch (error) {
+      dispatch(setCandidateSubscriptionId('error'));
+    }
+  }, [dispatch]);
 
   useEffect(() => {
-    const getCandidateId = async () => {
-      try {
-        Logger.log(
-          'useCandidateSubscriptionId: Getting candidate subscription ID',
-        );
-        const candidateId = await Engine.controllerMessenger.call(
-          'RewardsController:getCandidateSubscriptionId',
-        );
-        dispatch(setCandidateSubscriptionId(candidateId));
-      } catch (error) {
-        dispatch(setCandidateSubscriptionId('error'));
-      }
-    };
-
-    if (
-      account &&
-      (hasAccountedOptedIn === false || hasAccountedOptedIn === null) &&
-      !subscriptionId
-    ) {
-      getCandidateId();
+    if (candidateSubscriptionId === 'retry') {
+      fetchCandidateSubscriptionId();
     }
-  }, [account, hasAccountedOptedIn, dispatch, subscriptionId]);
+  }, [candidateSubscriptionId, fetchCandidateSubscriptionId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCandidateSubscriptionId();
+    }, [fetchCandidateSubscriptionId]),
+  );
 };

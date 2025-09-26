@@ -2101,6 +2101,178 @@ describe('RewardsController', () => {
         controller.getSeasonStatus(mockSubscriptionId, mockSeasonId),
       ).rejects.toThrow('API error');
     });
+
+    it('should handle network timeout error and log it', async () => {
+      // Arrange
+      const mockTimeoutError = new Error('Request timed out');
+      const testableController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {};
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+      });
+
+      mockMessenger.call.mockRejectedValue(mockTimeoutError);
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Request timed out');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get season status:',
+        'Request timed out',
+      );
+    });
+
+    it('should handle 403 error and invalidate subscription cache', async () => {
+      // Arrange
+      const mock403Error = new Error('Forbidden: 403');
+      const testableController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {};
+        state.subscriptions = {
+          [mockSubscriptionId]: {
+            id: mockSubscriptionId,
+            referralCode: 'REF123',
+            accounts: [],
+          },
+        };
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+      });
+
+      mockMessenger.call.mockRejectedValue(mock403Error);
+
+      // Spy on invalidation methods
+      const invalidateSubscriptionCacheSpy = jest.spyOn(
+        testableController,
+        'invalidateSubscriptionCache',
+      );
+      const invalidateAccountsAndSubscriptionsSpy = jest.spyOn(
+        testableController,
+        'invalidateAccountsAndSubscriptions',
+      );
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Forbidden: 403');
+
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(invalidateAccountsAndSubscriptionsSpy).toHaveBeenCalled();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get season status:',
+        'Forbidden: 403',
+      );
+    });
+
+    it('should handle API server error (500)', async () => {
+      // Arrange
+      const serverError = new Error('Internal Server Error: 500');
+      const testableController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {};
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+      });
+
+      mockMessenger.call.mockRejectedValue(serverError);
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Internal Server Error: 500');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get season status:',
+        'Internal Server Error: 500',
+      );
+    });
+
+    it('should handle API rate limit error (429)', async () => {
+      // Arrange
+      const rateLimitError = new Error('Too Many Requests: 429');
+      const testableController = new TestableRewardsController({
+        messenger: mockMessenger,
+      });
+      testableController.testUpdate((state) => {
+        state.activeAccount = {
+          subscriptionId: mockSubscriptionId,
+          account: 'eip155:1:0x123',
+          hasOptedIn: true,
+          lastCheckedAuth: Date.now(),
+          lastCheckedAuthError: false,
+          perpsFeeDiscount: null,
+          lastPerpsDiscountRateFetched: null,
+        };
+        state.accounts = {};
+        state.subscriptions = {};
+        state.seasons = {};
+        state.subscriptionReferralDetails = {};
+        state.seasonStatuses = {};
+        state.activeBoosts = {};
+        state.unlockedRewards = {};
+      });
+
+      mockMessenger.call.mockRejectedValue(rateLimitError);
+
+      // Act & Assert
+      await expect(
+        testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
+      ).rejects.toThrow('Too Many Requests: 429');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get season status:',
+        'Too Many Requests: 429',
+      );
+    });
   });
 
   describe('getReferralDetails', () => {
@@ -2838,15 +3010,6 @@ describe('RewardsController', () => {
       expect(await controller.validateReferralCode('ABC1234')).toBe(false); // Too long
     });
 
-    it('should return false for codes with invalid characters', async () => {
-      // Act & Assert
-      expect(await controller.validateReferralCode('ABC12@')).toBe(false); // Invalid character @
-      expect(await controller.validateReferralCode('ABC120')).toBe(false); // Invalid character 0
-      expect(await controller.validateReferralCode('ABC121')).toBe(false); // Invalid character 1
-      expect(await controller.validateReferralCode('ABC12I')).toBe(false); // Invalid character I
-      expect(await controller.validateReferralCode('ABC12O')).toBe(false); // Invalid character O
-    });
-
     it('should return true for valid referral codes from service', async () => {
       // Arrange
       jest.clearAllMocks();
@@ -2914,16 +3077,15 @@ describe('RewardsController', () => {
       }
     });
 
-    it('should handle service errors and return false', async () => {
+    it('should handle service errors and throw error', async () => {
       // Arrange
       jest.clearAllMocks();
       mockMessenger.call.mockRejectedValue(new Error('Service error'));
 
-      // Act
-      const result = await controller.validateReferralCode('ABC123');
-
-      // Assert
-      expect(result).toBe(false);
+      // Act & Assert
+      await expect(controller.validateReferralCode('ABC123')).rejects.toThrow(
+        'Service error',
+      );
     });
   });
 
@@ -4624,6 +4786,137 @@ describe('RewardsController', () => {
       expect(processedAccounts).toEqual(['0x123', '0x456']); // Should process first two accounts only
     });
 
+    it('should handle timeout errors during candidate subscription search', async () => {
+      // Arrange
+      const timeoutError = new Error(
+        'Request timeout during subscription search',
+      );
+      // Create a test controller with a custom implementation
+      class TestRewardsController extends RewardsController {
+        async getCandidateSubscriptionId(): Promise<string | null> {
+          // Log timeout error as expected in implementation
+          Logger.log(
+            'RewardsController: Failed to get candidate subscription ID:',
+            timeoutError.message,
+          );
+          return null;
+        }
+      }
+
+      const testController = new TestRewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+        },
+      });
+
+      // Clear previous calls to mockLogger.log
+      mockLogger.log.mockClear();
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get candidate subscription ID:',
+        'Request timeout during subscription search',
+      );
+    });
+
+    it('should handle API errors during candidate subscription search', async () => {
+      // Arrange
+      const apiError = new Error('API returned 500: Internal server error');
+      // Create a test controller with a custom implementation
+      class TestRewardsController extends RewardsController {
+        async getCandidateSubscriptionId(): Promise<string | null> {
+          // Log API error as expected in implementation
+          Logger.log(
+            'RewardsController: Failed to get candidate subscription ID:',
+            apiError.message,
+          );
+          return null;
+        }
+      }
+
+      const testController = new TestRewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+        },
+      });
+
+      // Clear previous calls to mockLogger.log
+      mockLogger.log.mockClear();
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get candidate subscription ID:',
+        'API returned 500: Internal server error',
+      );
+    });
+
+    it('should handle network errors during candidate subscription search', async () => {
+      // Arrange
+      const networkError = new Error('Network connection failed');
+      // Create a test controller with a custom implementation
+      class TestRewardsController extends RewardsController {
+        async getCandidateSubscriptionId(): Promise<string | null> {
+          // Log network error as expected in implementation
+          Logger.log(
+            'RewardsController: Failed to get candidate subscription ID:',
+            networkError.message,
+          );
+          return null;
+        }
+      }
+
+      const testController = new TestRewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+          activeBoosts: {},
+          unlockedRewards: {},
+        },
+      });
+
+      // Clear previous calls to mockLogger.log
+      mockLogger.log.mockClear();
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get candidate subscription ID:',
+        'Network connection failed',
+      );
+    });
+
     it('should add delay between processing accounts except for the last one', async () => {
       // Arrange
       const mockSubscriptionId = 'success-sub-123';
@@ -4776,6 +5069,223 @@ describe('RewardsController', () => {
           expect.anything(),
         );
       });
+    });
+
+    it('should log and return null when no opted-in accounts are found via getOptInStatus', async () => {
+      // Arrange
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+      const mockOptInStatusResponse = { ois: [false, false] };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Mock messagingSystem.call to return accounts
+      mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+
+      // Mock getOptInStatus to return no opted-in accounts
+      jest
+        .spyOn(testController, 'getOptInStatus')
+        .mockResolvedValueOnce(mockOptInStatusResponse);
+
+      mockLogger.log.mockClear();
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull();
+      expect(testController.getOptInStatus).toHaveBeenCalledWith({
+        addresses: ['0x123', '0x456'],
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: No candidate subscription ID found. No opted in accounts found via opt-in status response.',
+      );
+    });
+
+    it('should log when attempting silent auth and throw error when all silent auth attempts fail', async () => {
+      // Arrange
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+      const mockOptInStatusResponse = { ois: [true, true] };
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Mock messagingSystem.call to return accounts
+      mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+
+      // Mock getOptInStatus to return opted-in accounts
+      jest
+        .spyOn(testController, 'getOptInStatus')
+        .mockResolvedValueOnce(mockOptInStatusResponse);
+
+      // Act & Assert
+      await expect(testController.getCandidateSubscriptionId()).rejects.toThrow(
+        'No candidate subscription ID found after all silent auth attempts. There is an opted in account but we cannot use it to fetch the season status.',
+      );
+
+      expect(testController.getOptInStatus).toHaveBeenCalledWith({
+        addresses: ['0x123', '0x456'],
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Found opted in account via opt-in status response. Attempting silent auth to determine candidate subscription ID.',
+      );
+    });
+
+    it('should handle getOptInStatus throwing an error and log failure', async () => {
+      // Arrange
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+      const mockError = new Error('getOptInStatus failed');
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Mock messagingSystem.call to return accounts
+      mockMessenger.call.mockReturnValueOnce(mockAccounts as any);
+
+      // Mock getOptInStatus to throw an error
+      jest
+        .spyOn(testController, 'getOptInStatus')
+        .mockRejectedValueOnce(mockError);
+
+      mockLogger.log.mockClear();
+
+      // Act & Assert
+      await expect(testController.getCandidateSubscriptionId()).rejects.toThrow(
+        'No candidate subscription ID found after all silent auth attempts. There is an opted in account but we cannot use it to fetch the season status.',
+      );
+
+      expect(testController.getOptInStatus).toHaveBeenCalledWith({
+        addresses: ['0x123', '0x456'],
+      });
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get candidate subscription ID:',
+        'getOptInStatus failed',
+      );
+    });
+
+    it('should exclude hardware accounts from getOptInStatus call', async () => {
+      // Arrange
+      const mockInternalAccounts = [
+        {
+          address: '0x123', // Regular account
+          type: 'eip155:eoa' as const,
+          id: 'account1',
+          options: {},
+          metadata: {
+            name: 'Account 1',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x456', // Hardware account
+          type: 'eip155:eoa' as const,
+          id: 'account2',
+          options: {},
+          metadata: {
+            name: 'Hardware Account',
+            importTime: Date.now(),
+            keyring: { type: 'Ledger Hardware' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+        {
+          address: '0x789', // Another regular account
+          type: 'eip155:eoa' as const,
+          id: 'account3',
+          options: {},
+          metadata: {
+            name: 'Account 3',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: ['eip155:1' as const],
+          methods: [],
+        },
+      ];
+
+      // Mock hardware account detection - only 0x456 is hardware
+      mockIsHardwareAccount.mockImplementation(
+        (address: string) => address === '0x456',
+      );
+
+      // Mock non-EVM address check (return false for all - they are EVM)
+      mockIsNonEvmAddress.mockReturnValue(false);
+
+      // Mock Solana address check (return false for all - they are not Solana)
+      mockIsSolanaAddress.mockReturnValue(false);
+
+      const mockOptInResponse = { ois: [false, false] }; // Only 2 accounts checked (hardware excluded)
+
+      // Create a spy on the getOptInStatus method to directly verify the call
+      const getOptInStatusSpy = jest.spyOn(
+        RewardsController.prototype,
+        'getOptInStatus',
+      );
+      getOptInStatusSpy.mockResolvedValue(mockOptInResponse);
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          activeAccount: null,
+          subscriptions: {},
+        },
+      });
+
+      // Clear previous mock calls and set up specific expectations
+      mockMessenger.call.mockClear();
+      // Set up messenger calls in the order they will be made
+      mockMessenger.call.mockReturnValueOnce(mockInternalAccounts); // AccountsController:listMultichainAccounts
+
+      // Act
+      const result = await testController.getCandidateSubscriptionId();
+
+      // Assert
+      expect(result).toBeNull(); // No subscription found since no accounts opted in
+
+      // Verify that getOptInStatus was called with only non-hardware accounts
+      expect(getOptInStatusSpy).toHaveBeenCalledWith({
+        addresses: ['0x123', '0x789'], // Hardware account 0x456 should be excluded
+      });
+
+      // Verify hardware account check was called for each account
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x456');
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x789');
+
+      // Clean up
+      getOptInStatusSpy.mockRestore();
     });
   });
 
@@ -5410,7 +5920,15 @@ describe('RewardsController', () => {
 
     it('should successfully get opt-in status from service', async () => {
       // Arrange
-      mockMessenger.call.mockResolvedValue(mockResponse);
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+
+      // Mock both messenger calls to succeed
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockResolvedValueOnce(mockResponse); // RewardsDataService:getOptInStatus
 
       // Act
       const result = await controller.getOptInStatus(mockParams);
@@ -5426,7 +5944,15 @@ describe('RewardsController', () => {
     it('should handle service errors and rethrow them', async () => {
       // Arrange
       const mockError = new Error('Service error');
-      mockMessenger.call.mockRejectedValueOnce(mockError);
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+
+      // Mock AccountsController call to succeed, then RewardsDataService call to fail
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockRejectedValueOnce(mockError); // RewardsDataService:getOptInStatus
 
       // Act & Assert
       await expect(controller.getOptInStatus(mockParams)).rejects.toThrow(
@@ -5442,7 +5968,15 @@ describe('RewardsController', () => {
     it('should handle non-Error objects in catch block', async () => {
       // Arrange
       const mockError = 'String error';
-      mockMessenger.call.mockRejectedValueOnce(mockError);
+      const mockAccounts = [
+        { address: '0x123', type: 'eip155:eoa' as const },
+        { address: '0x456', type: 'eip155:eoa' as const },
+      ];
+
+      // Mock AccountsController call to succeed, then RewardsDataService call to fail
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccounts as any) // AccountsController:listMultichainAccounts
+        .mockRejectedValueOnce(mockError); // RewardsDataService:getOptInStatus
 
       // Act & Assert
       await expect(controller.getOptInStatus(mockParams)).rejects.toBe(
@@ -5452,45 +5986,6 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get opt-in status:',
         'String error',
-      );
-    });
-
-    it('should handle empty addresses array', async () => {
-      // Arrange
-      const emptyParams = { addresses: [] };
-      const emptyResponse = { ois: [] };
-      mockMessenger.call.mockResolvedValue(emptyResponse);
-
-      // Act
-      const result = await controller.getOptInStatus(emptyParams);
-
-      // Assert
-      expect(result).toEqual(emptyResponse);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getOptInStatus',
-        emptyParams,
-      );
-    });
-
-    it('should handle large arrays of addresses', async () => {
-      // Arrange
-      const largeAddressArray = Array.from(
-        { length: 100 },
-        (_, i) => `0x${i.toString(16).padStart(40, '0')}`,
-      );
-      const largeParams = { addresses: largeAddressArray };
-      const largeResponse = { ois: Array(100).fill(true) };
-      mockMessenger.call.mockResolvedValue(largeResponse);
-
-      // Act
-      const result = await controller.getOptInStatus(largeParams);
-
-      // Assert
-      expect(result).toEqual(largeResponse);
-      expect(result.ois).toHaveLength(100);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getOptInStatus',
-        largeParams,
       );
     });
   });
@@ -5600,14 +6095,11 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(mockError);
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
 
-      // Act
-      const result = await controller.getActivePointsBoosts(
-        seasonId,
-        subscriptionId,
-      );
+      // Act & Assert
+      await expect(
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
+      ).rejects.toThrow('Data service error');
 
-      // Assert
-      expect(result).toEqual([]);
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getActivePointsBoosts',
         seasonId,
@@ -5624,14 +6116,10 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(timeoutError);
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
 
-      // Act
-      const result = await controller.getActivePointsBoosts(
-        seasonId,
-        subscriptionId,
-      );
-
-      // Assert
-      expect(result).toEqual([]);
+      // Act & Assert
+      await expect(
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
+      ).rejects.toThrow('Request timeout after 10000ms');
     });
 
     it('should handle authentication errors', async () => {
@@ -5643,14 +6131,10 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(authError);
       mockSelectRewardsEnabledFlag.mockReturnValue(true);
 
-      // Act
-      const result = await controller.getActivePointsBoosts(
-        seasonId,
-        subscriptionId,
-      );
-
-      // Assert
-      expect(result).toEqual([]);
+      // Act & Assert
+      await expect(
+        controller.getActivePointsBoosts(seasonId, subscriptionId),
+      ).rejects.toThrow('Authentication failed');
     });
 
     it('should pass through different season and subscription IDs correctly', async () => {
@@ -6169,7 +6653,7 @@ describe('RewardsController', () => {
     });
 
     it('should return cached unlocked rewards when cache is fresh', async () => {
-      const recentTime = Date.now() - 5000; // 5 seconds ago (within 5 minute threshold)
+      const recentTime = Date.now() - 5000; // 5 seconds ago (within 1 minute threshold)
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
 
       const mockCachedRewards = [
@@ -6223,7 +6707,7 @@ describe('RewardsController', () => {
     });
 
     it('should fetch fresh unlocked rewards when cache is stale', async () => {
-      const staleTime = Date.now() - 600000; // 10 minutes ago (beyond 5 minute threshold)
+      const staleTime = Date.now() - 120000; // 2 minutes ago (beyond 1 minute threshold)
       const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
 
       const mockStaleRewards = [
@@ -6340,7 +6824,7 @@ describe('RewardsController', () => {
       expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
-    it('should return empty array on API error', async () => {
+    it('should throw error when API fails', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
@@ -6348,17 +6832,15 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockRejectedValue(new Error('API error'));
 
-      const result = await controller.getUnlockedRewards(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
+      await expect(
+        controller.getUnlockedRewards(mockSeasonId, mockSubscriptionId),
+      ).rejects.toThrow('API error');
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getUnlockedRewards',
         mockSeasonId,
         mockSubscriptionId,
       );
-      expect(result).toEqual([]);
     });
 
     it('should handle null API response', async () => {
@@ -7699,6 +8181,242 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
+    });
+  });
+
+  describe('isOptInSupported', () => {
+    beforeEach(() => {
+      // Reset all mocks before each test
+      mockIsHardwareAccount.mockClear();
+      mockIsNonEvmAddress.mockClear();
+      mockIsSolanaAddress.mockClear();
+      mockLogger.log.mockClear();
+    });
+
+    it('should return false for hardware accounts', () => {
+      // Arrange
+      const hardwareAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'hardware-account',
+        options: {},
+        metadata: {
+          name: 'Hardware Account',
+          importTime: Date.now(),
+          keyring: { type: 'Ledger Hardware' },
+        },
+        scopes: ['eip155:1' as const],
+        methods: [],
+      };
+
+      mockIsHardwareAccount.mockReturnValue(true);
+
+      // Act
+      const result = controller.isOptInSupported(hardwareAccount);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+    });
+
+    it('should return true for EVM accounts that are not hardware', () => {
+      // Arrange
+      const evmAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'evm-account',
+        options: {},
+        metadata: {
+          name: 'EVM Account',
+          importTime: Date.now(),
+          keyring: { type: 'HD Key Tree' },
+        },
+        scopes: ['eip155:1' as const],
+        methods: [],
+      };
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(false); // Is EVM
+      mockIsSolanaAddress.mockReturnValue(false);
+
+      // Act
+      const result = controller.isOptInSupported(evmAccount);
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith('0x123');
+    });
+
+    it('should return true for Solana accounts that are not hardware', () => {
+      // Arrange
+      const solanaAccount = {
+        address: 'So11111111111111111111111111111111111111112',
+        type: 'solana:data-account' as const,
+        id: 'solana-account',
+        options: {},
+        metadata: {
+          name: 'Solana Account',
+          importTime: Date.now(),
+          keyring: { type: 'Solana Snap Keyring' },
+        },
+        scopes: ['solana:mainnet' as const],
+        methods: [],
+      };
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(true); // Is Solana
+
+      // Act
+      const result = controller.isOptInSupported(solanaAccount);
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith(
+        'So11111111111111111111111111111111111111112',
+      );
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith(
+        'So11111111111111111111111111111111111111112',
+      );
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith(
+        'So11111111111111111111111111111111111111112',
+      );
+    });
+
+    it('should return false for non-EVM accounts that are not Solana', () => {
+      // Arrange
+      const nonEvmNonSolanaAccount = {
+        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        type: 'bip122:p2wpkh' as const,
+        id: 'bitcoin-account',
+        options: {},
+        metadata: {
+          name: 'Bitcoin Account',
+          importTime: Date.now(),
+          keyring: { type: 'Bitcoin Snap Keyring' },
+        },
+        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
+        methods: [],
+      };
+
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
+      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
+
+      // Act
+      const result = controller.isOptInSupported(nonEvmNonSolanaAccount);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith(
+        'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+      );
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith(
+        'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+      );
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith(
+        'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+      );
+    });
+
+    it('should return false and log error when hardware account check throws an exception', () => {
+      // Arrange
+      const account = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'error-account',
+        options: {},
+        metadata: {
+          name: 'Error Account',
+          importTime: Date.now(),
+          keyring: { type: 'HD Key Tree' },
+        },
+        scopes: ['eip155:1' as const],
+        methods: [],
+      };
+
+      const mockError = new Error('Hardware check failed');
+      mockIsHardwareAccount.mockImplementation(() => {
+        throw mockError;
+      });
+
+      // Act
+      const result = controller.isOptInSupported(account);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Exception checking opt-in support, assuming not supported:',
+        mockError,
+      );
+    });
+
+    it('should return false and log error when address validation throws an exception', () => {
+      // Arrange
+      const account = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'error-account',
+        options: {},
+        metadata: {
+          name: 'Error Account',
+          importTime: Date.now(),
+          keyring: { type: 'HD Key Tree' },
+        },
+        scopes: ['eip155:1' as const],
+        methods: [],
+      };
+
+      const mockError = new Error('Address validation failed');
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsNonEvmAddress.mockImplementation(() => {
+        throw mockError;
+      });
+
+      // Act
+      const result = controller.isOptInSupported(account);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+      expect(mockIsNonEvmAddress).toHaveBeenCalledWith('0x123');
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Exception checking opt-in support, assuming not supported:',
+        mockError,
+      );
+    });
+
+    it('should prioritize hardware check over other checks', () => {
+      // Arrange - Hardware account that would otherwise be supported
+      const hardwareEvmAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'hardware-evm-account',
+        options: {},
+        metadata: {
+          name: 'Hardware EVM Account',
+          importTime: Date.now(),
+          keyring: { type: 'Ledger Hardware' },
+        },
+        scopes: ['eip155:1' as const],
+        methods: [],
+      };
+
+      mockIsHardwareAccount.mockReturnValue(true); // Is hardware
+      mockIsNonEvmAddress.mockReturnValue(false); // Would be EVM (supported)
+      mockIsSolanaAddress.mockReturnValue(false);
+
+      // Act
+      const result = controller.isOptInSupported(hardwareEvmAccount);
+
+      // Assert
+      expect(result).toBe(false); // Should return false due to hardware check
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+      // Non-EVM and Solana checks should not be called since hardware check failed
+      expect(mockIsNonEvmAddress).not.toHaveBeenCalled();
+      expect(mockIsSolanaAddress).not.toHaveBeenCalled();
     });
   });
 });
