@@ -100,8 +100,9 @@ export class RPCBridgeAdapter
 
     return new BackgroundBridge({
       webview: null,
-      isRemoteConn: true,
       isMMSDK: true,
+      sdkVersion: 'v2',
+      isRemoteConn: true,
       channelId: this.conninfo.id,
       url: this.conninfo.metadata.dapp.url,
       remoteConnHost: this.conninfo.metadata.dapp.url,
