@@ -461,7 +461,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
         absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
     }
 
-    return `TP ${tpDisplay}, SL ${slDisplay}`;
+    return `${strings('perps.order.tp')} ${tpDisplay}, ${strings(
+      'perps.order.sl',
+    )} ${slDisplay}`;
   }, [
     currentPrice?.price,
     orderForm.takeProfitPrice,

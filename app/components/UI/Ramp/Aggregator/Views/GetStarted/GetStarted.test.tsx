@@ -8,6 +8,7 @@ import useRampNetwork from '../../hooks/useRampNetwork';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import useRegions from '../../hooks/useRegions';
+import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -39,13 +40,16 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   getStarted: false,
   setGetStarted: jest.fn(),
   sdkError: undefined,
-  selectedChainId: '1',
   selectedRegion: null,
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
   intent: undefined,
   setIntent: jest.fn(),
+  selectedAsset: {
+    id: 'mock-asset-id',
+    network: { chainId: '1' },
+  } as CryptoCurrency,
 };
 
 const mockUseRegionInitialValues: Partial<ReturnType<typeof useRegions>> = {
