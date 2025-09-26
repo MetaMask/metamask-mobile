@@ -1,5 +1,6 @@
-import React from 'react';
-import { FlatList, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { FlatList, View, BackHandler } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row';
 import { Hex } from '@metamask/utils';
@@ -12,7 +13,20 @@ interface SmartAccountNetworkListProps {
 
 const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
   const { network7702List, pending } = useEIP7702Networks(address);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.goBack();
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   if (pending || network7702List.length === 0) {
     return null;
