@@ -211,7 +211,8 @@ const PerpsTutorialCarousel: React.FC = () => {
   // Track tutorial viewed on mount
   useEffect(() => {
     if (!hasTrackedViewed.current) {
-      track(MetaMetricsEvents.PERPS_TUTORIAL_VIEWED, {
+      track(MetaMetricsEvents.PERPS_TUTORIAL, {
+        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.VIEWED,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
       });
@@ -264,7 +265,8 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track tutorial started when user moves to second screen
       if (newTab === 1 && !hasTrackedStarted.current) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_STARTED, {
+        track(MetaMetricsEvents.PERPS_TUTORIAL, {
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.STARTED,
           [PerpsEventProperties.SOURCE]:
             PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         });
@@ -294,7 +296,8 @@ const PerpsTutorialCarousel: React.FC = () => {
     if (isLastScreen) {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
-      track(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED, {
+      track(MetaMetricsEvents.PERPS_TUTORIAL, {
+        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.COMPLETED,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
@@ -349,7 +352,8 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Track tutorial started on first continue
       if (currentTab === 0 && !hasTrackedStarted.current) {
-        track(MetaMetricsEvents.PERPS_TUTORIAL_STARTED, {
+        track(MetaMetricsEvents.PERPS_TUTORIAL, {
+          [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.STARTED,
           [PerpsEventProperties.SOURCE]:
             PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         });
@@ -373,7 +377,8 @@ const PerpsTutorialCarousel: React.FC = () => {
     if (isLastScreen) {
       // Track tutorial completed when skipping from last screen
       const completionDuration = Date.now() - tutorialStartTime.current;
-      track(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED, {
+      track(MetaMetricsEvents.PERPS_TUTORIAL, {
+        [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.COMPLETED,
         [PerpsEventProperties.SOURCE]:
           PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
         [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,

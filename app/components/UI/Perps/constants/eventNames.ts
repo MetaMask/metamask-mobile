@@ -90,6 +90,7 @@ export const PerpsEventProperties = {
   SCREEN_POSITION: 'screen_position',
   TOTAL_SCREENS: 'total_screens',
   NAVIGATION_METHOD: 'navigation_method',
+  STATUS: 'status',
 } as const;
 
 /**
@@ -165,5 +166,15 @@ export const PerpsEventValues = {
     SWIPE: 'swipe',
     CONTINUE_BUTTON: 'continue_button',
     PROGRESS_DOT: 'progress_dot',
+  },
+  STATUS: {
+    VIEWED: 'viewed',
+    STARTED: 'started',
+    COMPLETED: 'completed',
+    INITIATED: 'initiated',
+    SUBMITTED: 'submitted',
+    EXECUTED: 'executed',
+    PARTIALLY_FILLED: 'partially_filled',
+    FAILED: 'failed',
   },
 } as const;

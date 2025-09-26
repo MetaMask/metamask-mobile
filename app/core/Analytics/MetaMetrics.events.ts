@@ -519,23 +519,14 @@ enum EVENT_NAME {
   // Perps Trading
   // Perps Events - Using exact dashboard names from requirements
   // Tutorial Flow
-  PERPS_TUTORIAL_VIEWED = 'Perp Tutorial Viewed',
-  PERPS_TUTORIAL_STARTED = 'Perp Tutorial Started',
-  PERPS_TUTORIAL_COMPLETED = 'Perp Tutorial Completed',
+  PERPS_TUTORIAL = 'Perp Tutorial',
   PERPS_TUTORIAL_CAROUSEL_NAVIGATED = 'Perp Tutorial Carousel Navigated',
 
-  // Account Funding Flow
-  PERPS_FUNDING_INPUT_VIEWED = 'Perp Funding Input Viewed',
-  PERPS_FUNDING_REVIEW_VIEWED = 'Perp Funding Review Viewed',
-
-  // Balance Management Flow
-  PERPS_BALANCE_MODAL_VIEWED = 'Perp Balance Modal Viewed',
+  // Account Funding Flow - removed events (handled by confirmation flow)
 
   // Account Withdrawal Flow
   PERPS_WITHDRAWAL_INPUT_VIEWED = 'Perp Withdrawal Input Viewed',
-  PERPS_WITHDRAWAL_INITIATED = 'Perp Withdrawal Initiated',
-  PERPS_WITHDRAWAL_COMPLETED = 'Perp Withdrawal Completed',
-  PERPS_WITHDRAWAL_FAILED = 'Perp Withdrawal Failed',
+  PERPS_WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
 
   // Pre-Trade Flow
   PERPS_MARKETS_VIEWED = 'Perp Markets Viewed',
@@ -551,21 +542,13 @@ enum EVENT_NAME {
   PERPS_ORDER_TYPE_SELECTED = 'Perp Order Type Selected',
   PERPS_LEVERAGE_SCREEN_VIEWED = 'Perp Leverage Screen Viewed',
   PERPS_LEVERAGE_CHANGED = 'Perp Leverage Changed',
-  PERPS_TRADE_TRANSACTION_INITIATED = 'Perp Trade Transaction Initiated',
-  PERPS_TRADE_TRANSACTION_SUBMITTED = 'Perp Trade Transaction Submitted',
-  PERPS_TRADE_TRANSACTION_EXECUTED = 'Perp Trade Transaction Executed',
-  PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED = 'Perp Trade Transaction Partially filled',
-  PERPS_TRADE_TRANSACTION_FAILED = 'Perp Trade Transaction Failed',
+  PERPS_TRADE_TRANSACTION = 'Perp Trade Transaction',
 
   // Close Position Flow
   PERPS_HOMESCREEN_TAB_VIEWED = 'Perp Homescreen Tab Viewed',
   PERPS_POSITION_CLOSE_SCREEN_VIEWED = 'Perp Position Close Screen Viewed',
-  PERPS_POSITION_CLOSE_INITIATED = 'Perp Position Close Initiated',
-  PERPS_POSITION_CLOSE_SUBMITTED = 'Perp Position Close Submitted',
   PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
-  PERPS_POSITION_CLOSE_EXECUTED = 'Perp Position Close Executed',
-  PERPS_POSITION_CLOSE_PARTIALLY_FILLED = 'Perp Position Close Partially filled',
-  PERPS_POSITION_CLOSE_FAILED = 'Perp Position Close Failed',
+  PERPS_POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
 
   // Risk Management Flow
   PERPS_STOP_LOSS_SET = 'Stop Loss Set',
@@ -1369,38 +1352,21 @@ const events = {
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
   // Perps Events - Mapped to dashboard requirements (49 events total)
-  // Tutorial Flow (4 events)
-  PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
-  PERPS_TUTORIAL_STARTED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_STARTED),
-  PERPS_TUTORIAL_COMPLETED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_COMPLETED),
+  // Tutorial Flow (1 consolidated event)
+  PERPS_TUTORIAL: generateOpt(EVENT_NAME.PERPS_TUTORIAL),
   PERPS_TUTORIAL_CAROUSEL_NAVIGATED: generateOpt(
     EVENT_NAME.PERPS_TUTORIAL_CAROUSEL_NAVIGATED,
   ),
 
-  // Account Funding Flow (2 events)
-  PERPS_FUNDING_INPUT_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_FUNDING_INPUT_VIEWED,
-  ),
-  PERPS_FUNDING_REVIEW_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_FUNDING_REVIEW_VIEWED,
-  ),
+  // Account Funding Flow - removed (handled by confirmation flow)
 
-  // Balance Management Flow (1 event)
-  PERPS_BALANCE_MODAL_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_BALANCE_MODAL_VIEWED,
-  ),
-
-  // Account Withdrawal Flow (4 events)
+  // Account Withdrawal Flow (1 consolidated + 1 existing event)
   PERPS_WITHDRAWAL_INPUT_VIEWED: generateOpt(
     EVENT_NAME.PERPS_WITHDRAWAL_INPUT_VIEWED,
   ),
-  PERPS_WITHDRAWAL_INITIATED: generateOpt(
-    EVENT_NAME.PERPS_WITHDRAWAL_INITIATED,
+  PERPS_WITHDRAWAL_TRANSACTION: generateOpt(
+    EVENT_NAME.PERPS_WITHDRAWAL_TRANSACTION,
   ),
-  PERPS_WITHDRAWAL_COMPLETED: generateOpt(
-    EVENT_NAME.PERPS_WITHDRAWAL_COMPLETED,
-  ),
-  PERPS_WITHDRAWAL_FAILED: generateOpt(EVENT_NAME.PERPS_WITHDRAWAL_FAILED),
 
   // Pre-Trade Flow (5 events)
   PERPS_MARKETS_VIEWED: generateOpt(EVENT_NAME.PERPS_MARKETS_VIEWED),
@@ -1426,21 +1392,7 @@ const events = {
     EVENT_NAME.PERPS_LEVERAGE_SCREEN_VIEWED,
   ),
   PERPS_LEVERAGE_CHANGED: generateOpt(EVENT_NAME.PERPS_LEVERAGE_CHANGED),
-  PERPS_TRADE_TRANSACTION_INITIATED: generateOpt(
-    EVENT_NAME.PERPS_TRADE_TRANSACTION_INITIATED,
-  ),
-  PERPS_TRADE_TRANSACTION_SUBMITTED: generateOpt(
-    EVENT_NAME.PERPS_TRADE_TRANSACTION_SUBMITTED,
-  ),
-  PERPS_TRADE_TRANSACTION_EXECUTED: generateOpt(
-    EVENT_NAME.PERPS_TRADE_TRANSACTION_EXECUTED,
-  ),
-  PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED: generateOpt(
-    EVENT_NAME.PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED,
-  ),
-  PERPS_TRADE_TRANSACTION_FAILED: generateOpt(
-    EVENT_NAME.PERPS_TRADE_TRANSACTION_FAILED,
-  ),
+  PERPS_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PERPS_TRADE_TRANSACTION),
 
   // Close Position Flow (8 events)
   PERPS_HOMESCREEN_TAB_VIEWED: generateOpt(
@@ -1452,20 +1404,8 @@ const events = {
   PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
   ),
-  PERPS_POSITION_CLOSE_INITIATED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_INITIATED,
-  ),
-  PERPS_POSITION_CLOSE_SUBMITTED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_SUBMITTED,
-  ),
-  PERPS_POSITION_CLOSE_EXECUTED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_EXECUTED,
-  ),
-  PERPS_POSITION_CLOSE_PARTIALLY_FILLED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_PARTIALLY_FILLED,
-  ),
-  PERPS_POSITION_CLOSE_FAILED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_FAILED,
+  PERPS_POSITION_CLOSE_TRANSACTION: generateOpt(
+    EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
   ),
 
   // Risk Management Flow (5 events)
