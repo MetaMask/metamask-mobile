@@ -8,7 +8,6 @@ import {
   WebSocketTransport,
 } from '@metamask/mobile-wallet-protocol-core';
 import { ConnectionRequest } from '../types/connection-request';
-import { PersistedConnection } from '../types/persisted-connection';
 import { KVStore } from '../store/kv-store';
 import { Metadata } from '../types/metadata';
 
@@ -31,21 +30,19 @@ export class Connection {
   }
 
   /**
-   * Creates a new connection from either a new request or persisted data.
-   *
-   * @param data - The data for the connection, either a `ConnectionRequest` or a `PersistedConnection`.
-   * @param keymanager - The key manager instance.
-   * @param relayURL - The URL of the relay server.
+   * Creates a new connection.
+   * @param connreq - The connection request.
+   * @param keymanager - The key manager.
+   * @param relayURL - The relay URL.
    * @returns The created connection.
    */
   public static async create(
-    data: ConnectionRequest | PersistedConnection,
+    connreq: ConnectionRequest,
     keymanager: IKeyManager,
     relayURL: string,
   ): Promise<Connection> {
-    const id = 'sessionRequest' in data ? data.sessionRequest.id : data.id;
-    const metadata = data.metadata;
-
+    const id = connreq.sessionRequest.id;
+    const metadata = connreq.metadata;
     const transport = await WebSocketTransport.create({
       url: relayURL,
       kvstore: new KVStore(`mwp/transport/${id}`),
@@ -65,14 +62,6 @@ export class Connection {
   public async connect(sessionRequest: SessionRequest): Promise<void> {
     await this.client.connect({ sessionRequest });
     console.warn(`[Connection:${this.id}] Connected to dApp.`);
-  }
-
-  /**
-   * Resumes a previously established session.
-   */
-  public async resume(): Promise<void> {
-    await this.client.resume(this.id);
-    console.warn(`[Connection:${this.id}] Resumed connection to dApp.`);
   }
 
   /**

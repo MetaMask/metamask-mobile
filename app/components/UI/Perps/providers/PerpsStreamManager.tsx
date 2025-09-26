@@ -11,7 +11,7 @@ import type {
   AccountState,
   PerpsMarketData,
 } from '../controllers/types';
-import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { PERFORMANCE_CONFIG, PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 
 // Generic subscription parameters
@@ -29,6 +29,8 @@ abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscription: (() => void) | null = null;
+  // Track account context to prevent stale data across account switches
+  protected accountAddress: string | null = null;
 
   protected notifySubscribers(updates: T) {
     this.subscribers.forEach((subscriber) => {
@@ -104,11 +106,12 @@ abstract class StreamChannel<T> {
     // Override in subclasses
   }
 
-  protected disconnect() {
+  public disconnect() {
     if (this.wsSubscription) {
       this.wsSubscription();
       this.wsSubscription = null;
     }
+    this.accountAddress = null;
   }
 
   protected getCachedData(): T | null {
@@ -117,14 +120,19 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
-    this.cache.clear();
-    // Disconnect existing WebSocket subscription to force reconnect with new account
+    // Disconnect the old WebSocket subscription to stop receiving old account data
     if (this.wsSubscription) {
       this.disconnect();
     }
-    // Notify subscribers immediately with cleared data (bypass throttling)
-    // Subclasses should override getClearedData() to provide appropriate empty state
-    const clearedData = this.getClearedData();
+
+    // Reset account context immediately
+    this.accountAddress = null;
+
+    // Clear the cache
+    this.cache.clear();
+
+    // Notify subscribers with cleared data to trigger loading state
+    // Using getClearedData() ensures type safety while maintaining loading semantics
     this.subscribers.forEach((subscriber) => {
       // Clear any pending updates and timers
       if (subscriber.timer) {
@@ -132,14 +140,12 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
-      // Notify immediately with cleared data
-      subscriber.callback(clearedData);
+      // Send cleared data to indicate "no data yet" (loading state)
+      subscriber.callback(this.getClearedData());
     });
-    // If we have active subscribers, reconnect with the new account
-    if (this.subscribers.size > 0) {
-      // Small delay to ensure old connection is fully closed
-      setTimeout(() => this.connect(), 100);
-    }
+
+    // If we have active subscribers, they'll trigger reconnect in their next render
+    // The connect() call will create a new WebSocket with the new account
   }
 
   protected abstract getClearedData(): T;
@@ -255,7 +261,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         // Filter to only requested symbols
         const filtered: Record<string, PriceUpdate> = {};
         params.symbols.forEach((symbol) => {
-          if (allPrices[symbol]) {
+          if (allPrices?.[symbol]) {
             filtered[symbol] = allPrices[symbol];
           }
         });
@@ -351,6 +357,15 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   protected connect() {
     if (this.wsSubscription) return;
 
+    // Check if controller is reinitializing - wait before attempting connection
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      setTimeout(
+        () => this.connect(),
+        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+      );
+      return;
+    }
+
     // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
@@ -420,6 +435,15 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
   protected connect() {
     if (this.wsSubscription) return;
+
+    // Check if controller is reinitializing - wait before attempting connection
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      setTimeout(
+        () => this.connect(),
+        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+      );
+      return;
+    }
 
     // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
@@ -515,6 +539,15 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
   protected connect() {
     if (this.wsSubscription) return;
+
+    // Check if controller is reinitializing - wait before attempting connection
+    if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
+      setTimeout(
+        () => this.connect(),
+        PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS,
+      );
+      return;
+    }
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState) => {
@@ -715,9 +748,22 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
    * Clear cache and reset fetch time
    */
   public clearCache(): void {
-    super.clearCache();
+    // Clear the cache
+    this.cache.clear();
     this.lastFetchTime = 0;
     this.fetchPromise = null;
+
+    // Notify subscribers with empty array (no market data) instead of null (loading)
+    this.subscribers.forEach((subscriber) => {
+      // Clear any pending updates and timers
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+      // Send empty array to indicate "no market data" rather than "loading"
+      subscriber.callback([]);
+    });
   }
 }
 

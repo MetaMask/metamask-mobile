@@ -13,10 +13,6 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
@@ -29,7 +25,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import {
   selectChainId,
@@ -39,8 +34,8 @@ import {
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { useParams } from '../../../util/navigation/navUtils';
 import {
-  getNetworkImageSource,
   isRemoveGlobalNetworkSelectorEnabled,
+  getNetworkImageSource,
 } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import TabBar from '../../Base/TabBar';
@@ -52,15 +47,18 @@ import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectio
 import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
 import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
-import {
-  NetworkType,
-  useNetworksByNamespace,
-} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
 import MultichainTransactionsView from '../MultichainTransactionsView';
 import TransactionsView from '../TransactionsView';
-import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -242,14 +240,6 @@ const ActivityView = () => {
     chainId: firstEnabledChainId,
   });
 
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-  const isGlobalNetworkSelectorRemoved =
-    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
-  const showUnifiedActivityList =
-    isGlobalNetworkSelectorRemoved && isMultichainAccountsState2Enabled;
-
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <View style={[styles.header, { marginTop: insets.top }]}>
@@ -298,23 +288,13 @@ const ActivityView = () => {
                   )}
                 </>
               }
-              isDisabled={isDisabled && !isMultichainAccountsState2Enabled}
-              onPress={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? showFilterControls
-                  : () => null
-              }
-              endIconName={
-                isEvmSelected || isMultichainAccountsState2Enabled
-                  ? IconName.ArrowDown
-                  : undefined
-              }
+              isDisabled={isDisabled}
+              onPress={isEvmSelected ? showFilterControls : () => null}
+              endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
               style={
-                isDisabled && !isMultichainAccountsState2Enabled
-                  ? styles.controlButtonDisabled
-                  : styles.controlButton
+                isDisabled ? styles.controlButtonDisabled : styles.controlButton
               }
-              disabled={isDisabled && !isMultichainAccountsState2Enabled}
+              disabled={isDisabled}
             />
           </View>
         )}
@@ -323,12 +303,7 @@ const ActivityView = () => {
           renderTabBar={renderTabBar}
           onChangeTab={({ i }) => setActiveTabIndex(i)}
         >
-          {showUnifiedActivityList ? (
-            <UnifiedTransactionsView
-              tabLabel={strings('transactions_view.title')}
-              chainId={currentChainId}
-            />
-          ) : selectedAddress && isNonEvmAddress(selectedAddress) ? (
+          {selectedAddress && isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView
               tabLabel={strings('transactions_view.title')}
               chainId={currentChainId}
@@ -336,6 +311,7 @@ const ActivityView = () => {
           ) : (
             <TransactionsView tabLabel={strings('transactions_view.title')} />
           )}
+
           <RampOrdersList
             tabLabel={strings('fiat_on_ramp_aggregator.orders')}
           />

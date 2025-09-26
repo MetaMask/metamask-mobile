@@ -128,7 +128,6 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
   selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
   selectIsSwapsLive: jest.fn().mockReturnValue(true),
-  selectIsSwapsEnabled: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
@@ -521,12 +520,6 @@ describe('WalletActions', () => {
     ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
-
-    // Import and mock selectIsSwapsEnabled to return false when can't sign
-    const { selectIsSwapsEnabled } = jest.requireMock(
-      '../../../core/redux/slices/bridge',
-    );
-    selectIsSwapsEnabled.mockReturnValue(false);
 
     const mockStateWithoutSigningAndStablecoinLendingEnabled: DeepPartial<RootState> =
       {

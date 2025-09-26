@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Image, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -34,20 +34,24 @@ import {
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
-import { selectPerpsEligibility } from '../../selectors/perpsController';
-import { useSelector } from 'react-redux';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
-const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding-carousel-light.riv');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-carousel-dark.riv');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+import Character from '../../../../../images/character_3x.png';
 import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
+import { createFontScaleHandler } from '../../utils/textUtils';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
-  INTRO = 'Intro_Perps_v03 2',
-  SHORT_LONG = 'Short_Long_v03',
-  LEVERAGE = 'Leverage_v03',
-  LIQUIDATION = 'Liquidation_v03',
-  CLOSE = 'Close_v03',
-  READY = 'Ready_v03',
+  SHORT_LONG = '01_Short_Long',
+  LEVERAGE = '02_Leverage',
+  LIQUIDATION = '03_Liquidation',
+  CLOSE = '04_Close',
+  READY = '05_Ready',
 }
 
 export interface TutorialScreen {
@@ -55,7 +59,9 @@ export interface TutorialScreen {
   title: string;
   description: string;
   subtitle?: string;
-  riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES;
+  footerText?: string;
+  content?: React.ReactNode;
+  riveArtboardName?: PERPS_RIVE_ARTBOARD_NAMES;
 }
 
 const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
@@ -65,7 +71,18 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
       title: strings('perps.tutorial.what_are_perps.title'),
       description: strings('perps.tutorial.what_are_perps.description'),
       subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
-      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.INTRO,
+      content: (
+        <Image
+          source={Character}
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{
+            width: '100%',
+            flex: 1,
+          }}
+          resizeMode="contain"
+          testID={PerpsTutorialSelectorsIDs.CHARACTER_IMAGE}
+        />
+      ),
     },
     {
       id: 'go_long_or_short',
@@ -98,6 +115,7 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
+    footerText: strings('perps.tutorial.ready_to_trade.footer_text'),
     riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
   };
 
@@ -115,6 +133,13 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
+
+  // Font scaling state
+  const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
+  const [descriptionFontSize, setDescriptionFontSize] = useState<number | null>(
+    null,
+  );
+  const [subtitleFontSize, setSubtitleFontSize] = useState<number | null>(null);
   const scrollableTabViewRef = useRef<
     ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
@@ -125,6 +150,8 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const isEligible = useSelector(selectPerpsEligibility);
+
+  const isDarkMode = useColorScheme() === 'dark';
 
   const tutorialScreens = useMemo(
     () => getTutorialScreens(isEligible),
@@ -143,7 +170,41 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const { styles } = useStyles(createStyles, {
     shouldShowSkipButton,
+    titleFontSize,
+    descriptionFontSize,
+    subtitleFontSize,
   });
+
+  // Create font scale handlers with height constraints for 160px headerSection
+  const handleTitleLayout = createFontScaleHandler({
+    maxHeight: 60,
+    currentFontSize: styles.title.fontSize || 24,
+    setter: setTitleFontSize,
+    minFontSize: 20,
+    currentValue: titleFontSize,
+  });
+
+  const handleDescriptionLayout = createFontScaleHandler({
+    maxHeight: 50,
+    currentFontSize: styles.description.fontSize || 16,
+    setter: setDescriptionFontSize,
+    minFontSize: 16,
+    currentValue: descriptionFontSize,
+  });
+
+  const handleSubtitleLayout = createFontScaleHandler({
+    maxHeight: 40,
+    currentFontSize: styles.subtitle.fontSize || 16,
+    setter: setSubtitleFontSize,
+    minFontSize: 16,
+    currentValue: subtitleFontSize,
+  });
+
+  const PerpsOnboardingAnimation = useMemo(
+    () =>
+      isDarkMode ? PerpsOnboardingAnimationDark : PerpsOnboardingAnimationLight,
+    [isDarkMode],
+  );
 
   // Track tutorial viewed on mount
   useEffect(() => {
@@ -157,7 +218,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     }
   }, [track]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(
     () => () => {
       if (continueDebounceRef.current) {
@@ -169,6 +230,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   );
 
   const handleTabChange = useCallback(
+    // The next tab to change to
     (obj: { i: number }) => {
       setCurrentTab(obj.i);
 
@@ -216,7 +278,7 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Mark tutorial as completed
       markTutorialCompleted();
 
-      // We need to enable Arbitrum for desposits to work
+      // We need to enable Arbitrum for deposits to work
       // Arbitrum One is already added for all users as a default network
       // For devs on testnet, Arbitrum Sepolia will be added/enabled
       await ensureArbitrumNetworkExists();
@@ -322,24 +384,23 @@ const PerpsTutorialCarousel: React.FC = () => {
       </View>
 
       {/* Tutorial Content */}
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.carouselWrapper}>
-          <ScrollableTabView
-            ref={scrollableTabViewRef}
-            renderTabBar={renderTabBar}
-            onChangeTab={handleTabChange}
-            initialPage={0}
-          >
-            {tutorialScreens.map((screen) => (
+      <View style={styles.carouselWrapper}>
+        <ScrollableTabView
+          ref={scrollableTabViewRef}
+          renderTabBar={renderTabBar}
+          onChangeTab={handleTabChange}
+          initialPage={0}
+        >
+          {tutorialScreens.map((screen) => (
+            <>
               <View key={screen.id} style={styles.screenContainer}>
-                <View style={styles.contentContainer}>
+                {/* Header Section - Fixed height for text content */}
+                <View style={styles.headerSection}>
                   <Text
                     variant={TextVariant.HeadingLG}
                     color={TextColor.Default}
                     style={styles.title}
+                    onLayout={handleTitleLayout}
                   >
                     {screen.title}
                   </Text>
@@ -347,6 +408,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                     style={styles.description}
+                    onLayout={handleDescriptionLayout}
                   >
                     {screen.description}
                   </Text>
@@ -355,35 +417,48 @@ const PerpsTutorialCarousel: React.FC = () => {
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
                       style={styles.subtitle}
+                      onLayout={handleSubtitleLayout}
                     >
                       {screen.subtitle}
                     </Text>
                   )}
-                  {/* Animation Container */}
-                  <View style={styles.animationContainer}>
+                </View>
+
+                {/* Content Section */}
+                <View style={styles.contentSection}>
+                  {screen?.content && screen.content}
+                  {screen?.riveArtboardName && (
                     <Rive
+                      key={screen.id}
+                      style={styles.animation}
                       artboardName={screen.riveArtboardName}
                       source={PerpsOnboardingAnimation}
-                      fit={Fit.Cover}
+                      fit={Fit.FitWidth}
                       alignment={Alignment.Center}
                       autoplay
                     />
-                  </View>
+                  )}
                 </View>
               </View>
-            ))}
-          </ScrollableTabView>
-        </View>
-      </ScrollView>
+              <View style={styles.footerTextContainer}>
+                {screen.footerText && (
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.footerText}
+                  >
+                    {screen.footerText}
+                  </Text>
+                )}
+              </View>
+            </>
+          ))}
+        </ScrollableTabView>
+      </View>
 
       {/* Footer */}
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.buttonRow}>
-          {isLastScreen && (
-            <Text variant={TextVariant.BodySM} style={styles.fundsInfoText}>
-              {strings('perps.tutorial.ready_to_trade.fund_text_helper')}
-            </Text>
-          )}
           <Button
             variant={ButtonVariants.Primary}
             label={buttonLabel}

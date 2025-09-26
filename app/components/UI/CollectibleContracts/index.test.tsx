@@ -14,8 +14,6 @@ import { PreferencesState } from '@metamask/preferences-controller';
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
 // eslint-disable-next-line import/no-namespace
 import * as networkSelectors from '../../../selectors/networkController';
-// eslint-disable-next-line import/no-namespace
-import * as nftSelectors from '../../../selectors/nftController';
 import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 
@@ -255,7 +253,6 @@ describe('CollectibleContracts', () => {
           },
           PreferencesController: {
             displayNftMedia: true,
-            isIpfsGatewayEnabled: true,
             tokenNetworkFilter: {
               '0x1': true,
             },
@@ -286,10 +283,6 @@ describe('CollectibleContracts', () => {
         'multichainCollectibleContractsByEnabledNetworksSelector',
       )
       .mockReturnValue({ '0x1': collectibleData });
-    // Mock the selector that the component actually uses when isRemoveGlobalNetworkSelectorEnabled is true
-    const spyOnForEvmAccount = jest
-      .spyOn(nftSelectors, 'multichainCollectibleForEvmAccount')
-      .mockReturnValue({ '0x1': collectibleData });
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);
@@ -319,7 +312,6 @@ describe('CollectibleContracts', () => {
 
     spyOnCollectibles.mockRestore();
     spyOnContracts.mockRestore();
-    spyOnForEvmAccount.mockRestore();
     spyOnUpdateNftMetadata.mockRestore();
   });
 
@@ -392,7 +384,6 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             useNftDetection: true,
             displayNftMedia: true,
-            isIpfsGatewayEnabled: true,
             tokenNetworkFilter: {
               '0x1': true,
             },
@@ -423,10 +414,6 @@ describe('CollectibleContracts', () => {
         'multichainCollectibleContractsByEnabledNetworksSelector',
       )
       .mockReturnValue({ '0x1': collectibleData });
-    // Mock the selector that the component actually uses when isRemoveGlobalNetworkSelectorEnabled is true
-    const spyOnForEvmAccount = jest
-      .spyOn(nftSelectors, 'multichainCollectibleForEvmAccount')
-      .mockReturnValue({ '0x1': collectibleData });
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);
@@ -456,7 +443,6 @@ describe('CollectibleContracts', () => {
 
     spyOnCollectibles.mockRestore();
     spyOnContracts.mockRestore();
-    spyOnForEvmAccount.mockRestore();
     spyOnUpdateNftMetadata.mockRestore();
   });
 
@@ -1314,10 +1300,6 @@ describe('CollectibleContracts', () => {
         allSelectors,
         'multichainCollectibleContractsByEnabledNetworksSelector',
       )
-      .mockReturnValue({ '0x1': collectibleData });
-    // Mock the selector that the component actually uses when isRemoveGlobalNetworkSelectorEnabled is true
-    jest
-      .spyOn(nftSelectors, 'multichainCollectibleForEvmAccount')
       .mockReturnValue({ '0x1': collectibleData });
 
     const { getByTestId } = renderWithProvider(<CollectibleContracts />, {

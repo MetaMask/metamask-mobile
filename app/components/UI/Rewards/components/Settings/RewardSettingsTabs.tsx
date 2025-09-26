@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, {
+  useCallback,
+  useRef,
+  useEffect,
+  useState,
+  useMemo,
+} from 'react';
 import { FlatList, ListRenderItem, View, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
@@ -49,6 +55,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     refresh: fetchOptInStatus,
   } = useRewardOptinSummary();
   const tw = useTailwind();
+  const unlinkedAccountsListRef = useRef<FlatList>(null);
 
   // Local state to track accounts that have been linked but not yet refetched from server
   const [locallyLinkedAccounts, setLocallyLinkedAccounts] = useState<
@@ -78,6 +85,37 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
       ),
     [unlinkedAccounts, locallyLinkedAccounts],
   );
+
+  // Scroll to current account in unlinked accounts list when tab becomes active
+  const scrollToCurrentAccountInUnlinkedList = useCallback(() => {
+    if (!selectedAccount || !computedUnlinkedAccounts.length) return;
+
+    const currentAccountIndex = computedUnlinkedAccounts.findIndex(
+      (account: InternalAccount) => account.address === selectedAccount.address,
+    );
+
+    if (currentAccountIndex >= 0 && unlinkedAccountsListRef.current) {
+      // Add small delay to ensure the list is rendered
+      setTimeout(() => {
+        unlinkedAccountsListRef.current?.scrollToIndex({
+          index: currentAccountIndex,
+          animated: true,
+          viewPosition: 0.5, // Center the item in the view
+        });
+      }, 100);
+    }
+  }, [selectedAccount, computedUnlinkedAccounts]);
+
+  // Scroll to current account when unlinked accounts change
+  useEffect(() => {
+    if (!isLoadingOptInSummary && !hasErrorOptInSummary) {
+      scrollToCurrentAccountInUnlinkedList();
+    }
+  }, [
+    isLoadingOptInSummary,
+    hasErrorOptInSummary,
+    scrollToCurrentAccountInUnlinkedList,
+  ]);
 
   // Handle link account press with double-press prevention
   const handleLinkAccountPress = useCallback(
@@ -167,18 +205,11 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   }) => renderAccountItem(account, true);
 
   if (isLoadingOptInSummary) {
-    // Create an array of unique identifiers for skeleton items
-    const skeletonItems = [
-      { id: 'account-skeleton-1' },
-      { id: 'account-skeleton-2' },
-      { id: 'account-skeleton-3' },
-    ];
-
     return (
       <Box twClassName="gap-3">
-        {skeletonItems.map((item) => (
+        {[...Array(3)].map((_, index) => (
           <Box
-            key={item.id}
+            key={index}
             twClassName="flex-row items-center gap-3 py-3 px-4 rounded-lg"
           >
             <Skeleton height={40} width={40} style={tw.style('rounded-full')} />
@@ -228,8 +259,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
             data={computedLinkedAccounts}
             keyExtractor={(item) => item.id}
             renderItem={renderLinkedAccountItem}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator
             contentContainerStyle={tw.style('gap-3 pt-4')}
           />
         ) : (
@@ -258,11 +288,14 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
         {computedUnlinkedAccounts.length > 0 ? (
           <Box twClassName="flex-1 relative">
             <FlatList
+              ref={unlinkedAccountsListRef}
               data={computedUnlinkedAccounts}
               keyExtractor={(item) => item.id}
               renderItem={renderUnlinkedAccountItem}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
+              showsVerticalScrollIndicator
+              onScrollToIndexFailed={() => {
+                // Do nothing
+              }}
               contentContainerStyle={tw.style('gap-3 pt-4')}
             />
 
@@ -283,7 +316,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
                     twClassName="text-primary text-center"
                   >
                     {strings('rewards.linking_account', {
-                      accountName: linkingAccount.address,
+                      accountName: linkingAccount.metadata.name,
                     })}
                   </Text>
                 </Box>

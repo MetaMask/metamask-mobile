@@ -313,6 +313,7 @@ export function snapKeyringBuilder(
 ) {
   const builder = (() =>
     new SnapKeyring({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger,
       callbacks: new SnapKeyringImpl(messenger, helpers),
       ///: BEGIN:ONLY_INCLUDE_IF(flask)

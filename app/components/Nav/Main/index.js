@@ -314,6 +314,24 @@ const Main = (props) => {
       ) {
         selectNetwork(chainId);
       }
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: `${networkName} `,
+            isBold: true,
+          },
+          { label: strings('toast.now_active') },
+        ],
+        networkImageSource: networkImage,
+      });
+
+      handleShowNetworkActiveToast(
+        isOnBridgeRoute,
+        toastRef,
+        networkName,
+        networkImage,
+      );
     }
     previousProviderConfig.current = !isEvmSelected
       ? { chainId }
@@ -469,6 +487,7 @@ const Main = (props) => {
           props.backUpSeedphraseVisible,
         )}
         <ProtectYourWalletModal navigation={props.navigation} />
+        <InfoNetworkModal />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
       </View>

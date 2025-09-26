@@ -88,11 +88,6 @@ const styleSheet = (params: { theme: Theme }) => {
     text: {
       color: colors.text.alternative,
     },
-
-    groupNameText: {
-      color: colors.text.alternative,
-      maxWidth: 150,
-    },
   });
 };
 

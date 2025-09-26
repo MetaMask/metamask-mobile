@@ -102,10 +102,6 @@ jest.mock('../NetworkManager', () => ({
   ],
 }));
 
-jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(() => () => null),
-}));
-
 const mockStore = configureMockStore();
 
 describe('DeFiPositionsControlBar', () => {

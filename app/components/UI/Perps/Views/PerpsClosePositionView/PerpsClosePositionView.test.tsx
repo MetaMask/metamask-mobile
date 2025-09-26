@@ -13,7 +13,6 @@ import {
   defaultPerpsClosePositionMock,
   defaultPerpsEventTrackingMock,
   defaultMinimumOrderAmountMock,
-  defaultPerpsRewardsMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -37,7 +36,6 @@ jest.mock('../../hooks', () => ({
   usePerpsClosePosition: jest.fn(),
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
-  usePerpsRewards: jest.fn(),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -129,7 +127,6 @@ describe('PerpsClosePositionView', () => {
   const usePerpsMarketDataMock =
     jest.requireMock('../../hooks').usePerpsMarketData;
   const usePerpsToastsMock = jest.requireMock('../../hooks').usePerpsToasts;
-  const usePerpsRewardsMock = jest.requireMock('../../hooks').usePerpsRewards;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -164,9 +161,6 @@ describe('PerpsClosePositionView', () => {
 
     // Setup usePerpsToasts mock
     usePerpsToastsMock.mockReturnValue(defaultPerpsToastsMock);
-
-    // Setup usePerpsRewards mock
-    usePerpsRewardsMock.mockReturnValue(defaultPerpsRewardsMock);
   });
 
   describe('Component Rendering', () => {

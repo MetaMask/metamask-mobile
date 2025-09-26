@@ -421,15 +421,7 @@ exports[`QuotesView should render quote screen 1`] = `
                       }
                     }
                   >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "off",
-                        }
-                      }
+                    <RCTSafeAreaView
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -1870,7 +1862,7 @@ exports[`QuotesView should render quote screen 1`] = `
                           <View />
                         </View>
                       </RCTScrollView>
-                    </RNCSafeAreaView>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

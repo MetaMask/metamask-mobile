@@ -6,17 +6,14 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { Mockttp } from 'mockttp';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import DeleteAccount from '../../pages/MultichainAccounts/DeleteAccount';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
@@ -27,7 +24,7 @@ const ACCOUNT_INDEX = 1;
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    remoteFeatureMultichainAccountsAccountDetailsV2(true),
+    remoteFeatureMultichainAccountsAccountDetails(false),
   );
 };
 
@@ -39,7 +36,6 @@ describe(
         {
           fixture: new FixtureBuilder()
             .withImportedAccountKeyringController()
-            .ensureMultichainIntroModalSuppressed()
             .build(),
           restartDevice: true,
           testSpecificMock,
@@ -50,15 +46,13 @@ describe(
           await WalletView.tapIdenticon();
 
           // Remove the imported account
-          await AccountListBottomSheet.tapAccountEllipsisButtonV2(
-            ACCOUNT_INDEX,
+          await AccountListBottomSheet.longPressAccountAtIndex(ACCOUNT_INDEX);
+          await AccountListBottomSheet.tapYesToRemoveImportedAccountAlertButton();
+          await Assertions.expectElementToNotBeVisible(
+            AccountListBottomSheet.accountTypeLabel,
           );
-          await AccountActionsBottomSheet.tapAccountDetails();
-          await AccountDetails.tapDeleteAccountLink();
-          await DeleteAccount.tapDeleteAccount();
 
           // Import account again
-          await WalletView.tapIdenticon();
           await AccountListBottomSheet.tapAddAccountButton();
           await AddAccountBottomSheet.tapImportAccount();
           await Assertions.expectElementToBeVisible(

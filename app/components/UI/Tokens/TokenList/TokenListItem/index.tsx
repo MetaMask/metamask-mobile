@@ -455,7 +455,7 @@ export const TokenListItem = React.memo(
           </View>
         </View>
         <ScamWarningIcon
-          asset={asset as TokenI & { chainId: string }}
+          asset={asset}
           setShowScamWarningModal={setShowScamWarningModal}
         />
       </AssetElement>

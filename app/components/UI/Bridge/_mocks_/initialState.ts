@@ -69,7 +69,6 @@ export const initialState = {
                 isActiveSrc: true,
                 isActiveDest: true,
                 isUnifiedUIEnabled: true,
-                isGaslessSwapEnabled: true,
               },
               [formatChainIdToCaip(optimismChainId)]: {
                 isActiveSrc: true,

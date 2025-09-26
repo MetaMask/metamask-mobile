@@ -45,7 +45,6 @@ import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { capitalize } from 'lodash';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
-import { discoverAccounts } from '../../../multichain-accounts/discovery';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -92,11 +91,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     const onOnboardingSuccess = async () => {
       // We're not running EVM discovery on its own if state 2 is enabled. The discovery
       // will be run on every account providers (EVM included) prior to that point.
-      if (isMultichainAccountsState2Enabled()) {
-        await discoverAccounts(
-          Engine.context.KeyringController.state.keyrings[0].metadata.id,
-        );
-      } else {
+      // See: Authentication.ts
+      if (!isMultichainAccountsState2Enabled()) {
         await importAdditionalAccounts();
       }
     };

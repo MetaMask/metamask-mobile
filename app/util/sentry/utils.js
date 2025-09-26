@@ -213,6 +213,9 @@ export const sentryStateMask = {
         isBackupAndSyncEnabled: true,
         isBackupAndSyncUpdateLoading: false,
         isAccountSyncingEnabled: true,
+        hasAccountSyncingSyncedAtLeastOnce: false,
+        isAccountSyncingReadyToBeDispatched: false,
+        isAccountSyncingInProgress: false,
       },
     },
   },
@@ -274,12 +277,7 @@ export const captureSentryFeedback = ({ sentryId, comments }) => {
 };
 
 function getProtocolFromURL(url) {
-  // Don't use URL api because it's slow in React Native
-  const colonIndex = url.indexOf(':');
-  if (colonIndex === -1) {
-    throw new Error('Invalid URL');
-  }
-  return url.substring(0, colonIndex + 1);
+  return new URL(url).protocol;
 }
 
 export function rewriteBreadcrumb(breadcrumb) {

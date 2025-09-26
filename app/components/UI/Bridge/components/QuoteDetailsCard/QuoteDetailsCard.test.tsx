@@ -1,4 +1,3 @@
-import React from 'react';
 import '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -11,28 +10,9 @@ import { createBridgeTestState } from '../../testUtils';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 
 jest.mock(
-  '../../../../../animations/rewards_icon_animations.riv',
-  () => 'mocked-riv-file',
+  '../../../../../images/metamask-rewards-points.svg',
+  () => 'MetamaskRewardsPointsSvg',
 );
-
-// Mock rive-react-native
-jest.mock('rive-react-native', () => {
-  const { View } = jest.requireActual('react-native');
-  const MockRive = () => <View testID={'mock-rive-animation'} />;
-
-  return {
-    __esModule: true,
-    ...jest.requireActual('rive-react-native'),
-    default: MockRive,
-  };
-});
-
-// Mock useRewardsIconAnimation hook
-jest.mock('../../hooks/useRewardsIconAnimation', () => ({
-  useRewardsIconAnimation: jest.fn(() => ({
-    riveRef: { current: { fireState: jest.fn() } },
-  })),
-}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -456,7 +436,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -464,8 +444,10 @@ describe('QuoteDetailsCard', () => {
 
       // Then the rewards row should be shown but without points value
       await waitFor(() => {
-        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
-        expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
       });
 
       // But no numeric value should be displayed
@@ -541,7 +523,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByTestId } = renderScreen(
+      const { UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -549,7 +531,9 @@ describe('QuoteDetailsCard', () => {
 
       // Then the MetaMask rewards points image should be displayed
       await waitFor(() => {
-        expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -574,7 +558,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -582,8 +566,10 @@ describe('QuoteDetailsCard', () => {
 
       // Then the rewards row should be shown but without points value
       await waitFor(() => {
-        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
-        expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
       });
       // Points value should not be displayed while loading
       expect(queryByText(/^\d+$/)).toBeNull();
@@ -607,7 +593,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByText, getByTestId } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -615,8 +601,10 @@ describe('QuoteDetailsCard', () => {
 
       // Then the rewards row should be shown
       await waitFor(() => {
-        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
-        expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
       });
 
       // When points are 0, we may show "0" or no value at all
@@ -672,7 +660,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByText, getByTestId } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -680,8 +668,10 @@ describe('QuoteDetailsCard', () => {
 
       // Then the rewards row should be displayed
       await waitFor(() => {
-        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
-        expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -703,7 +693,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText, getByTestId } = renderScreen(
+      const { queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -711,8 +701,10 @@ describe('QuoteDetailsCard', () => {
 
       // Then rewards row should be shown but without points value
       await waitFor(() => {
-        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
-        expect(getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
       });
       // No numeric value should be displayed
       expect(queryByText(/^\d+$/)).toBeNull();
@@ -754,7 +746,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { queryByText, getByText } = renderScreen(
+      const { queryByText } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -762,7 +754,7 @@ describe('QuoteDetailsCard', () => {
 
       // Rewards row should be shown
       await waitFor(() => {
-        expect(getByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
       });
 
       // But no points value should be displayed

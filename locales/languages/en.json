@@ -391,7 +391,7 @@
     "description_social_login_update" : "If you lose this password, you’ll lose access to your wallet on all devices. Store it somewhere safe,",
     "description_social_login_update_bold" : "MetaMask can't reset it.",
     "subtitle": "This password will unlock your MetaMask wallet only on this device.",
-    "password": "Create password",
+    "password": "Create new password",
     "confirm_password": "Confirm password",
     "create_button": "Create password",
     "import_with_seed_phrase": "Import with Secret Recovery Phrase",
@@ -404,7 +404,7 @@
     "show": "Show",
     "hide": "Hide",
     "seed_phrase": "Secret Recovery Phrase",
-    "must_be_at_least": "Must be at least {{number}} characters",
+    "must_be_at_least": "Password must have at least {{number}} characters",
     "remember_me": "Remember me",
     "security_alert_title": "Security Alert",
     "security_alert_message": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
@@ -462,7 +462,7 @@
   "import_from_seed": {
     "title": "Import a wallet",
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
-    "create_new_password": "Create password",
+    "create_new_password": "Create new password",
     "confirm_password": "Confirm password",
     "import_button": "IMPORT",
     "cancel_button": "Cancel",
@@ -491,7 +491,7 @@
     "srp": "Secret Recovery Phrase",
     "srp_placeholder": "Add a space between each word and make sure no one is watching.",
     "learn_more_link": "Learn more",
-    "import_create_password_cta": "Create password",
+    "create_password_cta": "Create password",
     "pass_flow": "Continue with Flow",
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "password_error": "Passwords don’t match. Try again.",
@@ -507,7 +507,6 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "trade": "Trade",
     "settings": "Settings",
     "rewards": "Rewards"
   },
@@ -660,7 +659,14 @@
       "bullet_2_description": "USDC is designed to stay stable, making it easier to plan, save, and spend.",
       "bullet_3_title": "Faster than banks",
       "bullet_3_description": "Send and receive in minutes, no waiting for bank hours or international delays.",
-      "button": "Get started"
+      "button": "Get started",
+      "title_musd": "Starting is easy with mUSD",
+      "bullet_1_title_musd": "Stable cryptocurrency",
+      "bullet_1_description_musd": "mUSD is a digital dollar that is pegged 1 to 1 with the US dollar.",
+      "bullet_2_title_musd": "Low volatility",
+      "bullet_2_description_musd": "mUSD is designed to stay stable, making it easier to plan, save, and spend.",
+      "bullet_3_title_musd": "Faster than banks",
+      "bullet_3_description_musd": "Send and receive in minutes, no waiting for bank hours or international delays."
     },
     "enter_email": {
       "navbar_title": "Verify your identity",
@@ -858,7 +864,7 @@
     "margin_used": "Margin Used",
     "gtm_content": {
       "title": "PERPS ARE HERE",
-      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
+      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "Not now",
       "try_now": "Get started"
     },
@@ -1003,7 +1009,6 @@
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
-      "estimated_points": "Est. Points",
       "market": "Market",
       "limit": "Limit",
       "open_orders": "Orders",
@@ -1167,6 +1172,7 @@
       "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
       "off": "Off",
       "current_price": "Current price",
+      "entry_price": "Entry price",
       "leverage": "Leverage",
       "margin": "Margin",
       "liquidation_price": "Liquidation price",
@@ -1351,8 +1357,7 @@
         "content": "Trading fees are charged when you open or close a position.",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee",
-        "total": "Total fees",
-        "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
+        "total": "Total fees"
       },
       "closing_fees": {
         "title": "Closing Fees",
@@ -1406,10 +1411,6 @@
         "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
         "view_orders_button": "View orders",
         "got_it_button": "Got it"
-      },
-      "points": {
-        "title": "Points",
-        "content": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps."
       }
     },
     "connection": {
@@ -1494,20 +1495,20 @@
       },
       "choose_leverage": {
         "title": "Choose your leverage",
-        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "Watch out for liquidation",
-        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+        "description": "You’ll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
       },
       "close_anytime": {
         "title": "Close any time",
-        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
       },
       "ready_to_trade": {
         "title": "Ready to trade?",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
-        "description": "Fund your perps account with any token and make your first trade in seconds."
+        "description": "Fund your perps account with any token and make your first trade in seconds.",
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
       },
       "got_it": "Got it"
     },
@@ -5341,10 +5342,9 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network Fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "Est. points",
+    "points": "Points",
     "points_tooltip": "Points",
-    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
-    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
+    "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5356,14 +5356,10 @@
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
     "swap_to": "Swap to",
-    "bridge_from": "Bridge from",
-    "swap_from": "Swap from",
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
     "fee_disclaimer": "Includes 0.875% MM fee",
-    "no_mm_fee": "No MM fee",
-    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
     "price_impact_info_title": "Price Impact",
@@ -5509,12 +5505,11 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
+      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
         "view_accounts_button": "View accounts",
-        "learn_more_button": "Learn more",
-        "setting_up_accounts": "Setting up your accounts"
+        "learn_more_button": "Learn more"
       },
       "learn_more": {
         "title": "Learn more",
@@ -5524,7 +5519,6 @@
       },
     "add_wallet": "Add wallet",
     "add_hardware_wallet": "Add a hardware wallet",
-    "syncing": "Syncing",
     "account_details": {
       "header_title": "Account Details",
       "account_name": "Account Name",
@@ -5750,7 +5744,7 @@
 
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
-      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
+      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
       "checking_opt_in": "Checking opt-in for accounts...",
@@ -5758,7 +5752,6 @@
       "intro_skip": "Not now",
 
       "step_confirm": "Next",
-      "step_skip": "Skip",
 
       "step1_title": "Earn points on every trade",
       "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
@@ -5774,28 +5767,23 @@
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
-      "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
       "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
-      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
-      "step4_legal_disclaimer_3":". We'll track onchain activity to reward you automatically –",
-      "step4_legal_disclaimer_4":"learn more"
-
+      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
+      "step4_legal_disclaimer_learn_more": "Learn more."
     },
 
     "settings": {
-      "title": "Rewards Settings",
-      "subtitle": "Accounts",
-      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Reward Settings",
+      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
- "tab_linked_accounts": "Linked ({{count}})",
-      "tab_unlinked_accounts": "Unlinked ({{count}})",
+      "tab_linked_accounts": "Linked Accounts ({{count}})",
+      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5832,32 +5820,7 @@
     "link_account": "Link account",
     "linking_account": "Linking...",
 
-    "ways_to_earn": {
-      "title": "Ways to earn",
-      "supported_networks": "Supported Networks",
-      "swap": {
-        "title": "Swap",
-        "sheet_title": "Swap tokens",
-        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
-        "points": "80 points per $100",
-        "cta_label": "Start a swap"
-      },
-      "perps": {
-        "title": "Perps",
-        "sheet_title": "Trade perps",
-        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-        "points": "10 points per $100",
-        "cta_label": "Start a trade"
-      },
-      "referrals": {
-        "title": "Referrals",
-        "points": "Get 20% from friends you refer"
-      }
-    },
     "referral": {
-      "referral_code": "Referral code",
-      "referral_link": "Referral link",
-      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "Refer a friend",
         "share_referral_subject": "Join MetaMask Rewards"
@@ -5866,28 +5829,6 @@
         "title": "Share your code to earn more",
         "description": "Your friends earn bonus points, and you get 20% of their rewards."
       }
-    },
-    "active_boosts": {
-      "title": "Active boosts",
-      "error": "Failed to load active boosts"
-    },
-    "season_1": "Season 1",
-    "upcoming_rewards": {
-      "title": "Upcoming rewards",
-      "points_needed": "{{points}} points",
-      "cta_label": "Got it",
-      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
-    },
-    "unlocked_rewards": {
-      "title": "Unlocked rewards",
-      "empty": "No rewards yet. \nEarn points and level up.",
-      "see_ways_to_earn": "See ways to earn",
-      "cta_label": "Claim now",
-      "cta_request_invite": "Request invite",
-      "claim_label": "Claim",
-      "claimed_label": "Claimed",
-      "reward_claimed": "Reward claimed",
-      "expired": "Expired"
     }
   },
   "time": {
@@ -5908,6 +5849,8 @@
     "summary_title": {
       "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
       "bridge_approval": "Approve {{approveSymbol}}",
+      "bridge_approval_loading": "Approve",
+      "bridge_loading": "Bridge",
       "default": "Transaction",
       "perps_deposit": "Add funds",
       "swap": "Swap tokens",

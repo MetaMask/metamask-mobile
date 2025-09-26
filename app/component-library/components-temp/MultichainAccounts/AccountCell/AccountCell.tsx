@@ -17,19 +17,18 @@ import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/
 import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../components/Avatars/Avatar/Avatar.types';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   avatarAccountType: AvatarAccountType;
   isSelected: boolean;
   hideMenu?: boolean;
-  startAccessory?: React.ReactNode;
 }
 
 const AccountCell = ({
@@ -37,13 +36,15 @@ const AccountCell = ({
   avatarAccountType,
   isSelected,
   hideMenu = false,
-  startAccessory,
 }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
-    navigate(...createAccountGroupDetailsNavigationDetails({ accountGroup }));
+    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS,
+      params: { accountGroup },
+    });
   }, [navigate, accountGroup]);
 
   const selectBalanceForGroup = useMemo(
@@ -78,7 +79,6 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      {startAccessory}
       <View style={styles.avatarWrapper}>
         <AvatarAccount
           accountAddress={evmAddress}
@@ -98,11 +98,10 @@ const AccountCell = ({
         >
           {accountGroup.metadata.name}
         </Text>
-        {!startAccessory && isSelected && (
+        {isSelected && (
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Md}
-            style={styles.checkIcon}
             color={TextColor.Primary}
           />
         )}

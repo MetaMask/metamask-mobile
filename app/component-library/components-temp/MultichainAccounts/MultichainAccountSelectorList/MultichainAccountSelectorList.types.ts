@@ -32,10 +32,6 @@ export interface MultichainAccountSelectorListProps
    * Reference to the FlashList component
    */
   listRef?: RefObject<FlashListRef<FlattenedMultichainAccountListItem>>;
-  /**
-   * Optional boolean to show checkbox
-   */
-  showCheckbox?: boolean;
 }
 
 /**

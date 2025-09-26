@@ -28,9 +28,7 @@ import {
   selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
-  selectIsGaslessSwapEnabled,
 } from '../../../../../core/redux/slices/bridge';
-import { RootState } from '../../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps)
@@ -128,7 +126,6 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   latestAtomicBalance?: BigNumber;
-  isSourceToken?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -151,16 +148,12 @@ export const TokenInputArea = forwardRef<
       onInputPress,
       onMaxPress,
       latestAtomicBalance,
-      isSourceToken,
     },
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
-    const isGaslessSwapEnabled = useSelector((state: RootState) =>
-      token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
-    );
 
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
@@ -191,12 +184,6 @@ export const TokenInputArea = forwardRef<
         params: {
           shouldGoToTokens: true,
         } as BridgeDestNetworkSelectorRouteParams,
-      });
-    };
-
-    const navigateToSourceTokenSelector = () => {
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       });
     };
 
@@ -258,15 +245,6 @@ export const TokenInputArea = forwardRef<
       token?.address === ethers.constants.AddressZero ||
       token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
 
-    let tokenButtonText = isUnifiedSwapsEnabled
-      ? 'bridge.swap_to'
-      : 'bridge.bridge_to';
-    if (isSourceToken) {
-      tokenButtonText = isUnifiedSwapsEnabled
-        ? 'bridge.swap_from'
-        : 'bridge.bridge_from';
-    }
-
     return (
       <Box>
         <Box style={styles.content} gap={4}>
@@ -315,12 +293,10 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings(tokenButtonText)}
-                onPress={
-                  isSourceToken
-                    ? navigateToSourceTokenSelector
-                    : navigateToDestNetworkSelector
-                }
+                label={strings(
+                  isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to',
+                )}
+                onPress={navigateToDestNetworkSelector}
               />
             )}
           </Box>
@@ -338,8 +314,7 @@ export const TokenInputArea = forwardRef<
                   tokenType === TokenInputAreaType.Source &&
                   tokenBalance &&
                   onMaxPress &&
-                  (!isNativeAsset ||
-                    (isNativeAsset && isGaslessSwapEnabled)) ? (
+                  !isNativeAsset ? (
                     <Box flexDirection={FlexDirection.Row} gap={4}>
                       <Text
                         color={
