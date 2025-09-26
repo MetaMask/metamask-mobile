@@ -1,7 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
@@ -336,7 +336,7 @@ describe('MultichainAccountsConnectedList', () => {
   });
 
   describe('Selected Account Visual Indicator', () => {
-    it('displays checkmark icon for the selected account', () => {
+    it('displays selected underlay for the selected account', () => {
       // Given a list of connected accounts with the first account selected
       const selectedAccountGroupId = MOCK_ACCOUNT_GROUP_1.id;
       const groups = [MOCK_ACCOUNT_GROUP_1, MOCK_ACCOUNT_GROUP_2];
@@ -350,7 +350,7 @@ describe('MultichainAccountsConnectedList', () => {
 
       const store = mockStore(state as unknown as Record<string, unknown>);
 
-      const { getByText, getByTestId } = render(
+      const { getByText, getAllByTestId, getAllByRole } = render(
         <Provider store={store}>
           <MultichainAccountsConnectedList {...DEFAULT_PROPS} />
         </Provider>,
@@ -361,8 +361,13 @@ describe('MultichainAccountsConnectedList', () => {
       expect(getByText('Account 1')).toBeTruthy();
       expect(getByText('Account 2')).toBeTruthy();
 
-      // Assert that the checkmark icon is present for the selected account
-      expect(getByTestId(AccountCellIds.CHECK_ICON)).toBeTruthy();
+      const cells = getAllByTestId(AccountCellIds.CONTAINER);
+      const selectedCell = cells.find((cell) =>
+        within(cell).queryByText('Account 1'),
+      );
+      expect(selectedCell).toBeTruthy();
+      const checkboxes = getAllByRole('checkbox');
+      expect(checkboxes.length).toBe(1);
     });
   });
 });
