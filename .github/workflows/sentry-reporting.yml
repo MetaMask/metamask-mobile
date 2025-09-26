@@ -64,13 +64,10 @@ jobs:
           echo "Job ended at: $END_TIME"
           echo "Job duration: $DURATION seconds"
           
-          # Convert to milliseconds for Sentry (Sentry expects millisecond timestamps)
-          START_TIME_MS=$((START_TIME * 1000))
-          END_TIME_MS=$((END_TIME * 1000))
-          
-          # Report performance transaction to Sentry
-          sentry-cli performance send-transaction \
-            --name "${JOB_NAME:-$JOB_ID}" \
+          # Report performance event to Sentry
+          sentry-cli send-event \
+            --message "GitHub Actions Job Performance: ${JOB_NAME:-$JOB_ID}" \
+            --level info \
             --tag workflow="$WORKFLOW" \
             --tag job="$JOB_ID" \
             --tag job_name="$JOB_NAME" \
@@ -80,5 +77,7 @@ jobs:
             --tag sha="$SHA" \
             --tag event_name="${{ github.event_name }}" \
             --tag actor="${{ github.actor }}" \
-            --start-time "$START_TIME_MS" \
-            --end-time "$END_TIME_MS"
+            --extra duration_seconds="$DURATION" \
+            --extra start_time="$START_TIME" \
+            --extra end_time="$END_TIME" \
+            --extra job_status="${{ job.status }}"
