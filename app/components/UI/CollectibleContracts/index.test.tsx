@@ -26,6 +26,7 @@ import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { SpinnerTestId } from './constants';
 
 // eslint-disable-next-line import/no-namespace
 import * as assetUtils from '../../../util/assets';
@@ -636,7 +637,7 @@ describe('CollectibleContracts', () => {
       state: mockState,
     });
 
-    const spinner = queryByTestId('spinner');
+    const spinner = queryByTestId(SpinnerTestId);
     expect(spinner).not.toBeNull();
   });
 
@@ -698,7 +699,7 @@ describe('CollectibleContracts', () => {
       state: mockState,
     });
 
-    const spinner = queryByTestId('spinner');
+    const spinner = queryByTestId(SpinnerTestId);
     expect(spinner).toBeNull();
   });
 
