@@ -477,6 +477,9 @@ jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
   startTransaction: jest.fn(),
+
+  // User feedback
+  lastEventId: jest.fn(),
 }));
 
 jest.mock('@react-native-firebase/messaging', () => {
