@@ -43,6 +43,7 @@ export const usePerpsClosePosition = (
       try {
         setIsClosing(true);
         setError(null);
+        setLastResult(undefined);
 
         DevLogger.log('usePerpsClosePosition: Closing position', {
           coin: position.coin,

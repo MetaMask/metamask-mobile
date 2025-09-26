@@ -75,18 +75,6 @@ const PerpsClosePositionView: React.FC = () => {
 
   const { track } = usePerpsEventTracking();
 
-  // Track position close screen viewed event on mount
-  usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
-    properties: {
-      [PerpsEventProperties.ASSET]: position.coin,
-      [PerpsEventProperties.DIRECTION]:
-        parseFloat(position.size) > 0
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
-    },
-  });
-
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Track screen load performance with unified hook (immediate measurement)

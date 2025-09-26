@@ -54,6 +54,7 @@ export function usePerpsOrderExecution(
       try {
         setIsPlacing(true);
         setError(undefined);
+        setLastResult(undefined);
 
         DevLogger.log(
           'usePerpsOrderExecution: Placing order',
