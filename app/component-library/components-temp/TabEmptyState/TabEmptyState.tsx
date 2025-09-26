@@ -30,33 +30,31 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Center}
     backgroundColor={BoxBackgroundColor.BackgroundDefault}
-    twClassName="max-w-56 p-4"
+    gap={3}
+    twClassName="max-w-64"
     style={style}
     {...props}
   >
-    {icon && <Box twClassName="mb-4">{icon}</Box>}
-
+    {icon}
     {description && (
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="text-center mb-2"
+        twClassName="text-center"
         {...descriptionProps}
       >
         {description}
       </Text>
     )}
-
     {actionButtonText && onAction && (
       <Button
-        variant={ButtonVariant.Tertiary}
+        variant={ButtonVariant.Secondary}
         onPress={onAction}
         {...actionButtonProps}
       >
         {actionButtonText}
       </Button>
     )}
-
     {children}
   </Box>
 );

@@ -19,7 +19,11 @@ class MockComponent extends Component<MockComponentProps> {
 
 describe('withFaviconAwareness', () => {
   it('passes the correct props to the child component', () => {
-    (useFavicon as jest.Mock).mockReturnValue({ uri: 'mockedUri' });
+    (useFavicon as jest.Mock).mockReturnValue({
+      faviconURI: { uri: 'mockedUri' },
+      isLoading: false,
+      isLoaded: true,
+    });
 
     const renderSpy = jest.spyOn(MockComponent.prototype, 'render');
 
@@ -35,8 +39,12 @@ describe('withFaviconAwareness', () => {
     renderSpy.mockRestore();
   });
 
-  it('passes an empty string as faviconSource if useFavicon returns null', () => {
-    (useFavicon as jest.Mock).mockReturnValue(null);
+  it('passes only url prop when faviconURI is empty', () => {
+    (useFavicon as jest.Mock).mockReturnValue({
+      faviconURI: {},
+      isLoading: false,
+      isLoaded: true,
+    });
 
     const renderSpy = jest.spyOn(MockComponent.prototype, 'render');
 

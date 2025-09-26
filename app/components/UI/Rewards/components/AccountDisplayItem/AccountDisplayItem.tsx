@@ -52,7 +52,6 @@ export interface AccountDisplayItemProps {
 const AccountDisplayItem: React.FC<AccountDisplayItemProps> = ({
   account,
   avatarSize = AvatarSize.Md,
-  isCurrentAccount = false,
   twClassName = '',
   textVariant = TextVariant.BodyMd,
   fontWeight = FontWeight.Medium,
@@ -68,11 +67,7 @@ const AccountDisplayItem: React.FC<AccountDisplayItemProps> = ({
 
   return (
     <Box
-      style={tw.style(
-        'flex-row items-center gap-3',
-        isCurrentAccount && 'bg-pressed rounded-lg',
-        twClassName,
-      )}
+      style={tw.style('flex-row items-center gap-3 h-12', twClassName)}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
     >

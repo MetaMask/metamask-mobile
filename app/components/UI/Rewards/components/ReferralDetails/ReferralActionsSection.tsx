@@ -17,6 +17,7 @@ const buildReferralUrl = (referralCode: string): string =>
 interface ReferralActionsSectionProps {
   referralCode?: string | null;
   referralCodeLoading: boolean;
+  referralCodeError: boolean;
   onCopyCode?: () => void;
   onCopyLink?: (link: string) => void;
   onShareLink?: (link: string) => void;
@@ -25,39 +26,49 @@ interface ReferralActionsSectionProps {
 const ReferralActionsSection: React.FC<ReferralActionsSectionProps> = ({
   referralCode = undefined,
   referralCodeLoading,
+  referralCodeError,
   onCopyCode,
   onCopyLink,
   onShareLink,
-}) => (
-  <Box twClassName="gap-4">
-    <CopyableField
-      label={strings('rewards.referral.referral_code')}
-      value={referralCode}
-      onCopy={onCopyCode}
-      valueLoading={referralCodeLoading}
-    />
+}) => {
+  // Show error banner when there's an error and not loading
+  if (referralCodeError && !referralCodeLoading && !referralCode) {
+    return null;
+  }
 
-    <CopyableField
-      label={strings('rewards.referral.referral_link')}
-      value={referralCode ? `${REFERRAL_LINK_PATH}${referralCode}` : undefined}
-      onCopy={() =>
-        referralCode ? onCopyLink?.(buildReferralUrl(referralCode)) : null
-      }
-      valueLoading={referralCodeLoading}
-    />
+  return (
+    <Box twClassName="gap-4">
+      <CopyableField
+        label={strings('rewards.referral.referral_code')}
+        value={referralCode}
+        onCopy={onCopyCode}
+        valueLoading={referralCodeLoading}
+      />
 
-    <Button
-      variant={ButtonVariant.Primary}
-      isFullWidth
-      size={ButtonSize.Lg}
-      onPress={() =>
-        referralCode ? onShareLink?.(buildReferralUrl(referralCode)) : null
-      }
-      disabled={!onShareLink || !referralCode || referralCodeLoading}
-    >
-      {strings('rewards.referral.actions.share_referral_link')}
-    </Button>
-  </Box>
-);
+      <CopyableField
+        label={strings('rewards.referral.referral_link')}
+        value={
+          referralCode ? `${REFERRAL_LINK_PATH}${referralCode}` : undefined
+        }
+        onCopy={() =>
+          referralCode ? onCopyLink?.(buildReferralUrl(referralCode)) : null
+        }
+        valueLoading={referralCodeLoading}
+      />
+
+      <Button
+        variant={ButtonVariant.Primary}
+        isFullWidth
+        size={ButtonSize.Lg}
+        onPress={() =>
+          referralCode ? onShareLink?.(buildReferralUrl(referralCode)) : null
+        }
+        disabled={!onShareLink || !referralCode || referralCodeLoading}
+      >
+        {strings('rewards.referral.actions.share_referral_link')}
+      </Button>
+    </Box>
+  );
+};
 
 export default ReferralActionsSection;
