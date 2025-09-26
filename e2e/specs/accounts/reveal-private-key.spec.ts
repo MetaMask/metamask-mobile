@@ -26,7 +26,7 @@ describe(RegressionAccounts('Account details private key'), () => {
     );
   };
 
-  it('is should copy to clipboard the correct private key for the first account in the account list ', async () => {
+  it('it should copy to clipboard the correct private key for the first account in the account list ', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -66,7 +66,7 @@ describe(RegressionAccounts('Account details private key'), () => {
     );
   });
 
-  it('should not reveal private key when the password is incorrect', async () => {
+  it('it should not reveal private key when the password is incorrect', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()

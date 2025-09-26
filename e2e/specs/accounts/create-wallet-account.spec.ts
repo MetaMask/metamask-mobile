@@ -5,7 +5,6 @@ import Assertions from '../../framework/Assertions';
 import { withMultichainAccountDetailsV2EnabledFixtures } from '../multichain-accounts/common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import AddressList from '../../pages/MultichainAccounts/AddressList';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { defaultGanacheOptions } from '../../framework/Constants';
 import { completeSrpQuiz } from '../multisrp/utils';
 
@@ -60,13 +59,6 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
         description: 'Wallet container should be visible',
       });
 
-      // Switch to Solana
-      await WalletView.tapNetworksButtonOnNavBar();
-      await NetworkListModal.changeNetworkTo('Solana');
-
-      // BUGBUG MUL-812
-      // After switching to Solana it changes to Account 1 but should be Account 3
-      /*
       await Assertions.expectElementToHaveText(
         WalletView.accountName,
         visibleAccounts[LAST],
@@ -74,7 +66,6 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
           description: `Expect selected account to be ${visibleAccounts[LAST]}`,
         },
       );
-      */
     });
   });
 });
