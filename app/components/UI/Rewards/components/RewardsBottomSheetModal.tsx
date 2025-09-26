@@ -151,18 +151,11 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     if (hasCancel) {
       // Two buttons side by side
       return (
-        <Box twClassName="w-full" flexDirection={BoxFlexDirection.Row}>
-          <Box twClassName="w-1/2 pr-2">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleCancel}
-              twClassName="w-full"
-            >
-              {cancelLabel}
-            </Button>
-          </Box>
-          <Box twClassName="w-1/2 pl-2">
+        <Box
+          twClassName="w-full gap-2 px-2"
+          flexDirection={BoxFlexDirection.Column}
+        >
+          <Box twClassName="w-full">
             <Button
               variant={confirmAction.variant || ButtonVariant.Primary}
               size={ButtonSize.Lg}
@@ -172,6 +165,17 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
               twClassName="w-full"
             >
               {confirmAction.label}
+            </Button>
+          </Box>
+
+          <Box twClassName="w-full">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={handleCancel}
+              twClassName="w-full"
+            >
+              {cancelLabel}
             </Button>
           </Box>
         </Box>

@@ -38,6 +38,34 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
+// Mock RewardsErrorBanner
+jest.mock('../../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      testID,
+    }: {
+      title: string;
+      description: string;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: testID || 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+      ),
+  };
+});
+
 // Mock Linking
 jest.mock('react-native', () => {
   const reactNative = jest.requireActual('react-native');
@@ -109,36 +137,6 @@ jest.mock(
   },
 );
 
-// Mock BannerAlert component
-jest.mock(
-  '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ({
-      severity,
-      description,
-      style,
-      testID,
-    }: {
-      severity: string;
-      description: string;
-      style: unknown;
-      testID: string;
-    }) => {
-      const { View, Text } = jest.requireActual('react-native');
-      return ReactActual.createElement(
-        View,
-        {
-          testID,
-          'data-severity': severity,
-          style,
-        },
-        ReactActual.createElement(Text, {}, description),
-      );
-    };
-  },
-);
-
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -168,6 +166,9 @@ jest.mock('@metamask/design-system-react-native', () => {
       HeadingLg: 'headingLg',
       BodyMd: 'bodyMd',
       BodySm: 'bodySm',
+    },
+    FontWeight: {
+      Bold: 'bold',
     },
     IconName: {
       Lock: 'lock',

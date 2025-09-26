@@ -15,12 +15,7 @@ import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import RewardItem from './RewardItem';
 import { useUnlockedRewards } from '../../../hooks/useUnlockedRewards';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button/Button.types';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { ActivityIndicator } from 'react-native';
 interface UnlockedRewardItemProps {
   reward: RewardDto;
@@ -127,19 +122,15 @@ const UnlockedRewards: React.FC = () => {
 
       {/* Show error banner if there's an error */}
       {hasError && !unlockedRewards?.length && !isLoading && (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
+        <RewardsErrorBanner
           title={strings('rewards.unlocked_rewards_error.error_fetching_title')}
           description={strings(
             'rewards.unlocked_rewards_error.error_fetching_description',
           )}
-          actionButtonProps={{
-            size: ButtonSize.Md,
-            style: tw.style('mt-2'),
-            onPress: fetchUnlockedRewards,
-            label: strings('rewards.unlocked_rewards_error.retry_button'),
-            variant: ButtonVariants.Primary,
-          }}
+          onConfirm={fetchUnlockedRewards}
+          confirmButtonLabel={strings(
+            'rewards.unlocked_rewards_error.retry_button',
+          )}
         />
       )}
 

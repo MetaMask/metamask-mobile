@@ -1472,7 +1472,7 @@ export class RewardsController extends BaseController<
         'RewardsController: Failed to validate referral code:',
         error instanceof Error ? error.message : String(error),
       );
-      return false;
+      throw error;
     }
   }
 

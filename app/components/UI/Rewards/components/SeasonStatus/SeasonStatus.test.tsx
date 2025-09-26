@@ -134,10 +134,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.point': 'Point',
       'rewards.to_level_up': 'to level up',
       'rewards.season_status_error.error_fetching_title':
-        'Error fetching season status',
+        "Season balance couldn't be loaded",
       'rewards.season_status_error.error_fetching_description':
-        'Unable to load season information. Please try again.',
-      'rewards.unlocked_rewards_error.retry_button': 'Retry',
+        'Check your connection and try again.',
+      'rewards.season_status_error.retry_button': 'Retry',
     };
     return translations[key] || key;
   }),
@@ -195,45 +195,58 @@ jest.mock('../../../../../component-library/components/Skeleton', () => ({
   },
 }));
 
-// Mock Banner component
-jest.mock('../../../../../component-library/components/Banners/Banner', () => {
+// Mock RewardsErrorBanner component
+jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  return ReactActual.forwardRef(
-    (
-      {
-        title,
-        description,
-        onClose,
-        testID,
-        ...props
-      }: {
-        title?: string;
-        description?: string;
-        onClose?: () => void;
-        testID?: string;
-      },
-      ref: unknown,
-    ) =>
-      ReactActual.createElement(
-        View,
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      (
         {
-          testID: testID || 'banner',
-          ref,
-          ...props,
+          title,
+          description,
+          onConfirm,
+          confirmButtonLabel,
+          testID,
+          ...props
+        }: {
+          title?: string;
+          description?: string;
+          onConfirm?: () => void;
+          confirmButtonLabel?: string;
+          testID?: string;
         },
-        [
-          ReactActual.createElement(Text, { key: 'title' }, title),
-          ReactActual.createElement(Text, { key: 'description' }, description),
-          onClose &&
+        ref: unknown,
+      ) =>
+        ReactActual.createElement(
+          View,
+          {
+            testID: testID || 'rewards-error-banner',
+            ref,
+            ...props,
+          },
+          [
+            ReactActual.createElement(Text, { key: 'title' }, title),
             ReactActual.createElement(
-              TouchableOpacity,
-              { key: 'close', onPress: onClose },
-              ReactActual.createElement(Text, {}, '×'),
+              Text,
+              { key: 'description' },
+              description,
             ),
-        ],
-      ),
-  );
+            onConfirm &&
+              ReactActual.createElement(
+                TouchableOpacity,
+                { key: 'confirm', onPress: onConfirm },
+                ReactActual.createElement(
+                  Text,
+                  {},
+                  confirmButtonLabel || 'Confirm',
+                ),
+              ),
+          ],
+        ),
+    ),
+  };
 });
 
 // Mock setSeasonStatusError action
@@ -749,12 +762,10 @@ describe('SeasonStatus', () => {
       mockSelectSeasonStatusError.mockReturnValue(null);
 
       // When: component renders
-      const { queryByText, getByText } = render(<SeasonStatus />);
+      const { queryByTestId, getByText } = render(<SeasonStatus />);
 
       // Then: error banner should not be displayed, normal content should be shown
-      expect(
-        queryByText('rewards.season_status_error.error_fetching_title'),
-      ).toBeNull();
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
       expect(getByText('Bronze')).toBeTruthy();
     });
 
@@ -766,13 +777,26 @@ describe('SeasonStatus', () => {
       );
 
       // When: component renders
-      const { getByText, queryByText } = render(<SeasonStatus />);
+      const { getByText, queryByTestId } = render(<SeasonStatus />);
 
       // Then: normal content should be displayed, not error banner
       expect(getByText('Bronze')).toBeTruthy();
-      expect(
-        queryByText('rewards.season_status_error.error_fetching_title'),
-      ).toBeNull();
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
+    });
+
+    it('should show error banner when seasonStatusError exists and no seasonStartDate', () => {
+      // Given: error state and no season start date
+      mockSelectSeasonStatusError.mockReturnValue('Network error');
+      mockSelectSeasonStartDate.mockReturnValue(null);
+
+      // When: component renders
+      const { getByTestId, getByText } = render(<SeasonStatus />);
+
+      // Then: error banner should be displayed
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
+      expect(getByText("Season balance couldn't be loaded")).toBeTruthy();
+      expect(getByText('Check your connection and try again.')).toBeTruthy();
+      expect(getByText('Retry')).toBeTruthy();
     });
   });
 });

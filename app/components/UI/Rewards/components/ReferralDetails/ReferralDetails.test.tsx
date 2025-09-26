@@ -53,6 +53,46 @@ jest.mock('./ReferralActionsSection', () => {
   };
 });
 
+// Mock RewardsErrorBanner
+jest.mock('../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      onConfirm,
+      confirmButtonLabel,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+        onConfirm &&
+          ReactActual.createElement(
+            TouchableOpacity,
+            { testID: 'error-retry-button', onPress: onConfirm },
+            ReactActual.createElement(
+              Text,
+              null,
+              confirmButtonLabel || 'Retry',
+            ),
+          ),
+      ),
+  };
+});
+
 // Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -66,13 +106,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.referral.actions.share_referral_subject': 'Join me on MetaMask!',
-      'rewards.season_status_error.error_fetching_title': 'Season Status Error',
+      'rewards.season_status_error.error_fetching_title':
+        "Season balance couldn't be loaded",
       'rewards.season_status_error.error_fetching_description':
-        'Unable to fetch season status',
+        'Check your connection and try again.',
       'rewards.referral_details_error.error_fetching_title':
-        'Referral Details Error',
+        "Referral details couldn't be loaded",
       'rewards.referral_details_error.error_fetching_description':
-        'Unable to fetch referral details',
+        'Check your connection and try again.',
       'rewards.referral_details_error.retry_button': 'Retry',
     };
     return translations[key] || key;
@@ -477,11 +518,12 @@ describe('ReferralDetails', () => {
       });
 
       // Act
-      const { getByText, queryByTestId } = renderComponent();
+      const { getByTestId, queryByTestId } = renderComponent();
 
       // Assert
-      expect(getByText('Season Status Error')).toBeTruthy();
-      expect(getByText('Unable to fetch season status')).toBeTruthy();
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
+      expect(getByTestId('error-title')).toBeTruthy();
+      expect(getByTestId('error-description')).toBeTruthy();
       // Other components should not be rendered
       expect(queryByTestId('referral-info-section')).toBeNull();
       expect(queryByTestId('referral-stats-section')).toBeNull();
@@ -503,10 +545,10 @@ describe('ReferralDetails', () => {
       });
 
       // Act
-      const { queryByText, getByTestId } = renderComponent();
+      const { queryByTestId, getByTestId } = renderComponent();
 
       // Assert
-      expect(queryByText('Season Status Error')).toBeNull();
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
       // Normal components should render
       expect(getByTestId('referral-info-section')).toBeTruthy();
     });
@@ -526,12 +568,13 @@ describe('ReferralDetails', () => {
       });
 
       // Act
-      const { getByText, queryByTestId } = renderComponent();
+      const { getByTestId, queryByTestId } = renderComponent();
 
       // Assert
-      expect(getByText('Referral Details Error')).toBeTruthy();
-      expect(getByText('Unable to fetch referral details')).toBeTruthy();
-      expect(getByText('Retry')).toBeTruthy();
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
+      expect(getByTestId('error-title')).toBeTruthy();
+      expect(getByTestId('error-description')).toBeTruthy();
+      expect(getByTestId('error-retry-button')).toBeTruthy();
       // Stats and actions sections should not be rendered
       expect(queryByTestId('referral-stats-section')).toBeNull();
       expect(queryByTestId('referral-actions-section')).toBeNull();
@@ -557,7 +600,7 @@ describe('ReferralDetails', () => {
       const { queryByText, getByTestId } = renderComponent();
 
       // Assert
-      expect(queryByText('Referral Details Error')).toBeNull();
+      expect(queryByText("Referral details couldn't be loaded")).toBeNull();
       // Normal components should render
       expect(getByTestId('referral-stats-section')).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
@@ -581,7 +624,7 @@ describe('ReferralDetails', () => {
       const { queryByText, getByTestId } = renderComponent();
 
       // Assert
-      expect(queryByText('Referral Details Error')).toBeNull();
+      expect(queryByText("Referral details couldn't be loaded")).toBeNull();
       // Normal components should render
       expect(getByTestId('referral-stats-section')).toBeTruthy();
       expect(getByTestId('referral-actions-section')).toBeTruthy();
@@ -607,8 +650,8 @@ describe('ReferralDetails', () => {
       });
 
       // Act
-      const { getByText } = renderComponent();
-      const retryButton = getByText('Retry');
+      const { getByTestId } = renderComponent();
+      const retryButton = getByTestId('error-retry-button');
 
       // Since this is a mocked component, we can't actually fire the event
       // but we can verify the function is available in the hook return
@@ -647,11 +690,12 @@ describe('ReferralDetails', () => {
       });
 
       // Act
-      const { getByText } = renderComponent();
+      const { getByTestId } = renderComponent();
 
       // Assert - Error message should be accessible
-      expect(getByText('Season Status Error')).toBeTruthy();
-      expect(getByText('Unable to fetch season status')).toBeTruthy();
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
+      expect(getByTestId('error-title')).toBeTruthy();
+      expect(getByTestId('error-description')).toBeTruthy();
     });
   });
 });

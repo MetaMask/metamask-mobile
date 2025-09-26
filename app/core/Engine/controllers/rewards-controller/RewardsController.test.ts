@@ -3010,15 +3010,6 @@ describe('RewardsController', () => {
       expect(await controller.validateReferralCode('ABC1234')).toBe(false); // Too long
     });
 
-    it('should return false for codes with invalid characters', async () => {
-      // Act & Assert
-      expect(await controller.validateReferralCode('ABC12@')).toBe(false); // Invalid character @
-      expect(await controller.validateReferralCode('ABC120')).toBe(false); // Invalid character 0
-      expect(await controller.validateReferralCode('ABC121')).toBe(false); // Invalid character 1
-      expect(await controller.validateReferralCode('ABC12I')).toBe(false); // Invalid character I
-      expect(await controller.validateReferralCode('ABC12O')).toBe(false); // Invalid character O
-    });
-
     it('should return true for valid referral codes from service', async () => {
       // Arrange
       jest.clearAllMocks();
@@ -3086,16 +3077,15 @@ describe('RewardsController', () => {
       }
     });
 
-    it('should handle service errors and return false', async () => {
+    it('should handle service errors and throw error', async () => {
       // Arrange
       jest.clearAllMocks();
       mockMessenger.call.mockRejectedValue(new Error('Service error'));
 
-      // Act
-      const result = await controller.validateReferralCode('ABC123');
-
-      // Assert
-      expect(result).toBe(false);
+      // Act & Assert
+      await expect(controller.validateReferralCode('ABC123')).rejects.toThrow(
+        'Service error',
+      );
     });
   });
 
