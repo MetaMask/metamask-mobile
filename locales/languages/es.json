@@ -866,12 +866,12 @@
     "margin_used": "Margen utilizado",
     "gtm_content": {
       "title": "LLEGARON LOS PERPS",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "Tokens largos o cortos con un apalancamiento de hasta 40 veces. Deposita fondos en tu cuenta con un solo clic.",
       "not_now": "Ahora no",
       "try_now": "Comenzar"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "Hoy",
+    "yesterday": "Ayer",
     "unrealized_pnl": "P&L no realizado",
     "withdraw": "Retirar",
     "refresh_balance": "Actualizar saldo",
@@ -1061,8 +1061,8 @@
       "take_profit": "Toma de ganancias",
       "stop_loss": "Límite de pérdidas",
       "tp_sl": "TG/LP",
-      "tp": "TP",
-      "sl": "SL",
+      "tp": "TG",
+      "sl": "LP",
       "button": {
         "long": "{{asset}} largo",
         "short": "{{asset}} corto"
@@ -1095,10 +1095,10 @@
         "current_price": "Precio actual",
         "liquidation_price": "Precio de liquidación",
         "liquidation_distance": "Distancia de liquidación",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "Se liquidará tu posición si el precio {{direction}} un {{percentage}}",
+        "drops": "cae",
+        "rises": "sube",
+        "set_leverage": "Establecer {{leverage}} veces"
       },
       "type": {
         "title": "Tipo de orden",
@@ -1183,7 +1183,7 @@
       "description": "Elige un porcentaje de ganancia o pérdida, o ingresa un precio de activación personalizado para cerrar tu posición automáticamente.",
       "off": "Parado",
       "current_price": "Precio actual",
-      "entry_price": "Entry price",
+      "entry_price": "Precio de entrada",
       "leverage": "Apalancamiento",
       "margin": "Margen",
       "liquidation_price": "Precio de liquidación",
@@ -1295,8 +1295,8 @@
         "error_title": "Error al cargar posiciones",
         "empty_title": "No hay posiciones abiertas",
         "empty_description": "Aún no tienes ninguna posición abierta.\nComienza a operar para ver tus posiciones aquí.",
-        "first_time_title": "Contratos perpetuos",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_title": "Perps",
+        "first_time_description": "Apuesta por los movimientos de precios con un apalancamiento de hasta 40 veces.",
         "start_trading": "Comenzar a operar",
         "start_new_trade": "Iniciar una nueva operación",
         "open_positions": "Posiciones abiertas",
@@ -1337,8 +1337,8 @@
       "countdown": "Cuenta regresiva",
       "long": "Posición larga",
       "short": "Posición corta",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "posición larga",
+      "short_lowercase": "posición corta",
       "add_funds": "Agregar fondos",
       "add_funds_to_start_trading_perps": "Agrega fondos para comenzar a operar con contratos perpetuos",
       "position": "Posición",
@@ -1446,9 +1446,9 @@
         "show_more": "Más"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "Minutos",
+        "hours": "Horas",
+        "days": "Días"
       }
     },
     "perps_markets": "Mercados de contratos perpetuos",
@@ -1464,7 +1464,7 @@
       "simulate_connection_error": "Simular error de conexión"
     },
     "transactions": {
-      "title": "Contratos perpetuos",
+      "title": "Perps",
       "tabs": {
         "trades": "Operaciones",
         "orders": "Órdenes",
@@ -1518,7 +1518,7 @@
       },
       "choose_leverage": {
         "title": "Elige tu apalancamiento",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "El apalancamiento amplifica tanto las ganancias como las pérdidas. Con un apalancamiento de 40 veces, una variación del 4 % en el precio equivale a una ganancia o pérdida sobre tu margen."
       },
       "watch_liquidation": {
         "title": "Cuidado con la liquidación",
@@ -1526,12 +1526,12 @@
       },
       "close_anytime": {
         "title": "Cierra en cualquier momento",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "Sal cuando quieras. Recuperarás tu margen, más ganancias o menos pérdidas."
       },
       "ready_to_trade": {
         "title": "¿Estás listo para operar?",
         "description": "Financia tu cuenta de contratos perpetuos con cualquier token y realiza tu primera operación en segundos.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask canjeará tus fondos a USDC en Arbitrum y los depositará en HyperEVM sin cargo adicional."
       },
       "got_it": "Entendido"
     },
@@ -1655,7 +1655,7 @@
     "collectible": "Coleccionable",
     "collectibles": "NFT",
     "defi": "DeFi",
-    "perps": "Contratos perpetuos",
+    "perps": "Perps",
     "predict": "Predictions",
     "transactions": "TRANSACCIONES",
     "no_collectibles": "¿No ve su NFT?",
@@ -2625,7 +2625,7 @@
     "portfolio_button": "Portfolio",
     "deposit_button": "Depositar",
     "earn_button": "Ganar",
-    "perps_button": "Contratos perpetuos",
+    "perps_button": "Perps",
     "predict_button": "Predictions",
     "add_collectible_button": "Agregar",
     "info": "Información",
@@ -5648,8 +5648,8 @@
       "reveal_recovery_phrase_with_index": "Revelar la frase de recuperación {{index}}"
     },
     "smart_account": {
-      "title": "Activar cuenta inteligente",
-      "description": "Puedes habilitar las funciones de cuenta inteligente en redes compatibles.",
+      "title": "Use smart account",
+      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
       "learn_more": "Conozca más"
     },
     "edit_account_name": {
@@ -5847,7 +5847,7 @@
       "to": "to",
       "type": {
         "swap": "Canjear",
-        "perps": "Contratos perpetuos",
+        "perps": "Perps",
         "referral": "Referral",
         "referral_action": "Referral action",
         "sign_up_bonus": "Sign up bonus",
@@ -5865,6 +5865,8 @@
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_account_type_title": "Account type not supported",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
@@ -5937,7 +5939,9 @@
     },
     "unlinked_account_info": {
       "title": "Account not earning points",
-      "description": "This account's activity is not being tracked for this season."
+      "title_optin_not_supported": "Account not supported",
+      "description": "This account's activity is not being tracked for this season.",
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
     "link_account": "Add account",
     "linking_account": "Adding...",
@@ -5956,12 +5960,12 @@
       },
       "perps": {
         "title": "Perps",
-        "description": "10 points per $100",
+        "description": "10 puntos cada $100",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "Opera con perps",
+          "points": "10 puntos cada $100",
+          "description": "Gana puntos en cada operación, incluidas aperturas y cierres, órdenes de límite de pérdidas y toma de ganancias, así como ajustes de margen.",
+          "cta_label": "Comienza a operar"
         }
       },
       "referrals": {
@@ -6034,5 +6038,10 @@
       "swap": "Canjear tokens",
       "swap_approval": "Approve tokens"
     }
+  },
+  "network_connection_banner": {
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
+    "update_rpc": "Update RPC"
   }
 }

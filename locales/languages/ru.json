@@ -866,12 +866,12 @@
     "margin_used": "Использованная маржа",
     "gtm_content": {
       "title": "ПЕРПЫ ЗДЕСЬ",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "Длинные или короткие позиции с кредитным плечом до 40x. Пополняйте счёт одним кликом.",
       "not_now": "Не сейчас",
       "try_now": "С чего начать"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "Сегодня",
+    "yesterday": "Вчера",
     "unrealized_pnl": "Нереализованные П/У",
     "withdraw": "Вывести средства",
     "refresh_balance": "Обновить баланс",
@@ -1061,8 +1061,8 @@
       "take_profit": "Тейк-профит",
       "stop_loss": "Стоп-лосс",
       "tp_sl": "ТП/СЛ",
-      "tp": "TP",
-      "sl": "SL",
+      "tp": "ТП",
+      "sl": "СЛ",
       "button": {
         "long": "Длинный(-ая/ое) {{asset}}",
         "short": "Короткий(-ая/ое) {{asset}}"
@@ -1095,10 +1095,10 @@
         "current_price": "Текущая цена",
         "liquidation_price": "Цена ликвидации",
         "liquidation_distance": "Расстояние ликвидации",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "Ваша позиция будет ликвидирована, если цена {{direction}} на {{percentage}}",
+        "drops": "упадет",
+        "rises": "вырастет",
+        "set_leverage": "Установить {{leverage}}x"
       },
       "type": {
         "title": "Тип ордера",
@@ -1183,7 +1183,7 @@
       "description": "Выберите процентный прирост или убыток или введите пользовательскую цену срабатывания для автоматического закрытия позиции.",
       "off": "Выкл.",
       "current_price": "Текущая цена",
-      "entry_price": "Entry price",
+      "entry_price": "Начальная цена",
       "leverage": "Кредитное плечо",
       "margin": "Маржа",
       "liquidation_price": "Цена ликвидации",
@@ -1296,7 +1296,7 @@
         "empty_title": "Нет открытых позиций",
         "empty_description": "У вас пока нет открытых позиций.\nНачните торговать, чтобы увидеть свои позиции здесь.",
         "first_time_title": "Бессрочные фьючерсы",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "Делайте ставки на движение цен с кредитным плечом до 40x.",
         "start_trading": "Начать торговать",
         "start_new_trade": "Создать новую сделку",
         "open_positions": "Открытые позиции",
@@ -1337,8 +1337,8 @@
       "countdown": "Обратный отсчет",
       "long": "Длинные",
       "short": "Короткие",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "длинные",
+      "short_lowercase": "короткие",
       "add_funds": "Внести средства",
       "add_funds_to_start_trading_perps": "Внесите средства, чтобы начать торговать бессрочными фьючерсами",
       "position": "Позиция",
@@ -1446,9 +1446,9 @@
         "show_more": "Еще"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "Минуты",
+        "hours": "Часы",
+        "days": "Дни"
       }
     },
     "perps_markets": "Рынки бессрочных фьючерсов",
@@ -1518,7 +1518,7 @@
       },
       "choose_leverage": {
         "title": "Выберите свое кредитное плечо",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "Кредитное плечо увеличивает как прибыль, так и убытки. При кредитном плече 40x изменение цены на 4% = 40% прибыли или убытка при вашей марже."
       },
       "watch_liquidation": {
         "title": "Берегитесь ликвидации",
@@ -1526,12 +1526,12 @@
       },
       "close_anytime": {
         "title": "Закрывайте в любое время",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "Выходите из позиции, когда захотите. Вы вернете себе маржу плюс прибыль или минус убытки."
       },
       "ready_to_trade": {
         "title": "Готовы к торговле?",
         "description": "Пополните свой счет бессрочных фьючерсов любыми токенами и совершите первую сделку за считанные секунды.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask обменяет ваши средства на USDC на Arbitrum и внесет их на HyperEVM без дополнительной комиссии."
       },
       "got_it": "Понятно"
     },
@@ -1655,7 +1655,7 @@
     "collectible": "Коллекционный актив",
     "collectibles": "NFT",
     "defi": "DeFi",
-    "perps": "Бессрочные фьючерсы",
+    "perps": "Перпы",
     "predict": "Predictions",
     "transactions": "ТРАНЗАКЦИИ",
     "no_collectibles": "Не видите свои NFT?",
@@ -5648,8 +5648,8 @@
       "reveal_recovery_phrase_with_index": "Показать фразу для восстановления {{index}}"
     },
     "smart_account": {
-      "title": "Включить смарт-счет",
-      "description": "Вы можете включить функции смарт–счета в поддерживаемых сетях.",
+      "title": "Use smart account",
+      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
       "learn_more": "Подробнее"
     },
     "edit_account_name": {
@@ -5865,6 +5865,8 @@
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_account_type_title": "Account type not supported",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
@@ -5937,7 +5939,9 @@
     },
     "unlinked_account_info": {
       "title": "Account not earning points",
-      "description": "This account's activity is not being tracked for this season."
+      "title_optin_not_supported": "Account not supported",
+      "description": "This account's activity is not being tracked for this season.",
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
     "link_account": "Add account",
     "linking_account": "Adding...",
@@ -5956,12 +5960,12 @@
       },
       "perps": {
         "title": "Перпы",
-        "description": "10 points per $100",
+        "description": "10 баллов за 100 $",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "Торгуйте перпами",
+          "points": "10 баллов за 100 $",
+          "description": "Зарабатывайте баллы за каждую сделку, включая открытие и закрытие, стоп-лосс и тейк-профит, а также корректировки маржи.",
+          "cta_label": "Открыть сделку"
         }
       },
       "referrals": {
@@ -6034,5 +6038,10 @@
       "swap": "Обменять токены",
       "swap_approval": "Approve tokens"
     }
+  },
+  "network_connection_banner": {
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
+    "update_rpc": "Update RPC"
   }
 }

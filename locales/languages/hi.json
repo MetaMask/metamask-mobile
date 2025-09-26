@@ -5648,8 +5648,8 @@
       "reveal_recovery_phrase_with_index": "रिकवरी फ्रेज़ दिखाएं {{index}}"
     },
     "smart_account": {
-      "title": "स्मार्ट अकाउंट चालू करें",
-      "description": "आप सपोर्टेड नेटवर्क पर स्मार्ट अकाउंट के फ़ीचर्स चालू कर सकते हैं।",
+      "title": "Use smart account",
+      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
       "learn_more": "ज़्यादा जानें"
     },
     "edit_account_name": {
@@ -5865,6 +5865,8 @@
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_account_type_title": "Account type not supported",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
@@ -5937,7 +5939,9 @@
     },
     "unlinked_account_info": {
       "title": "Account not earning points",
-      "description": "This account's activity is not being tracked for this season."
+      "title_optin_not_supported": "Account not supported",
+      "description": "This account's activity is not being tracked for this season.",
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
     "link_account": "Add account",
     "linking_account": "Adding...",
@@ -6034,5 +6038,10 @@
       "swap": "टोकन स्वैप करें",
       "swap_approval": "Approve tokens"
     }
+  },
+  "network_connection_banner": {
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
+    "update_rpc": "Update RPC"
   }
 }
