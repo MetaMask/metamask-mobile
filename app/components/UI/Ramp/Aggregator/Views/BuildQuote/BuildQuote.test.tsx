@@ -26,6 +26,7 @@ import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal/TokenSelectModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
 
 const mockSetActiveNetwork = jest.fn();
@@ -220,6 +221,7 @@ jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
 );
 
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
+  balance: '5.36385',
   balanceFiat: '$27.02',
   balanceBN: toTokenMinimalUnit('5.36385', 18) as BN4,
 };
@@ -244,8 +246,6 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
   selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
-  selectedChainId: '1',
-  selectedNetworkName: 'Ethereum',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   rampType: RampType.BUY,
@@ -300,6 +300,20 @@ jest.mock('../../../../../../util/trace', () => ({
     RampQuoteLoading: 'Ramp Quote Loading',
     LoadRampExperience: 'Load Ramp Experience',
   },
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../../selectors/accountsController'),
+}));
+
+jest.mock('../../../../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual(
+    '../../../../../../selectors/multichainAccounts/accounts',
+  ),
+}));
+
+jest.mock('../../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../../selectors/networkController'),
 }));
 
 describe('BuildQuote View', () => {
@@ -548,71 +562,14 @@ describe('BuildQuote View', () => {
       expect(mockGetCryptoCurrencies).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedAsset when selecting a crypto', async () => {
+    it('navigates to token select modal when pressing asset selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[1].name));
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(
-        mockCryptoCurrenciesData[1],
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createTokenSelectModalNavigationDetails({
+          tokens: mockCryptoCurrenciesData,
+        }),
       );
-    });
-
-    it('switches network and sets asset when selecting crypto from different chain', async () => {
-      const mockPolygonToken = {
-        ...mockCryptoCurrenciesData[0],
-        network: {
-          chainId: '137',
-          active: true,
-          chainName: 'Polygon',
-          shortName: 'Polygon',
-        },
-        name: 'Polygon Token',
-      };
-
-      mockUseCryptoCurrenciesValues = {
-        ...mockUseCryptoCurrenciesInitialValues,
-        cryptoCurrencies: [mockCryptoCurrenciesData[0], mockPolygonToken],
-      };
-
-      render(BuildQuote);
-
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      await act(async () => {
-        fireEvent.press(getByRoleButton('Polygon Token'));
-      });
-
-      expect(mockSetActiveNetwork).toHaveBeenCalled();
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockPolygonToken);
-    });
-
-    it('does not switch network when selecting crypto from same chain', async () => {
-      mockSetActiveNetwork.mockClear();
-
-      const mockEthereumToken = {
-        ...mockCryptoCurrenciesData[0],
-        network: {
-          chainId: '1',
-          active: true,
-          chainName: 'Ethereum',
-          shortName: 'ETH',
-        },
-        name: 'Ethereum Token',
-      };
-
-      mockUseCryptoCurrenciesValues = {
-        ...mockUseCryptoCurrenciesInitialValues,
-        cryptoCurrencies: [mockCryptoCurrenciesData[0], mockEthereumToken],
-      };
-
-      render(BuildQuote);
-
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      await act(async () => {
-        fireEvent.press(getByRoleButton('Ethereum Token'));
-      });
-
-      expect(mockSetActiveNetwork).not.toHaveBeenCalled();
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(mockEthereumToken);
     });
   });
 

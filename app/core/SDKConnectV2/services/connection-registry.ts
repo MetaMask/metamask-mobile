@@ -44,18 +44,18 @@ export class ConnectionRegistry {
   private async initialize(): Promise<void> {
     const persisted = await this.store.list().catch(() => []);
 
-    const promises = persisted.map(async (c) => {
+    const promises = persisted.map(async (connInfo) => {
       try {
         const conn = await Connection.create(
-          c,
+          connInfo,
           this.keymanager,
           this.RELAY_URL,
         );
         await conn.resume();
         this.connections.set(conn.id, conn);
-        logger.debug('Connection resumed', c.id);
+        logger.debug('Connection resumed', conn.id);
       } catch (error) {
-        logger.error('Failed to resume connection', c.id, error);
+        logger.error('Failed to resume connection', connInfo.id, error);
       }
     });
 
@@ -81,24 +81,24 @@ export class ConnectionRegistry {
     logger.debug('Handling connect deeplink:', url);
 
     let conn: Connection | undefined;
-    let conninfo: ConnectionInfo | undefined;
+    let connInfo: ConnectionInfo | undefined;
 
     try {
-      const connreq = this.parseConnectionRequest(url);
-      conninfo = this.toConnectionInfo(connreq);
-      this.hostapp.showConnectionLoading(conninfo);
-      conn = await Connection.create(conninfo, this.keymanager, this.RELAY_URL);
-      await conn.connect(connreq.sessionRequest);
+      const connReq = this.parseConnectionRequest(url);
+      connInfo = this.toConnectionInfo(connReq);
+      this.hostapp.showConnectionLoading(connInfo);
+      conn = await Connection.create(connInfo, this.keymanager, this.RELAY_URL);
+      await conn.connect(connReq.sessionRequest);
       this.connections.set(conn.id, conn);
-      await this.store.save(conninfo);
+      await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
-      logger.debug('Handled connect deeplink.', conninfo);
+      logger.debug('Handled connect deeplink.', connInfo);
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, url);
       this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
     } finally {
-      if (conninfo) this.hostapp.hideConnectionLoading(conninfo);
+      if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
   }
 
@@ -135,19 +135,19 @@ export class ConnectionRegistry {
       throw new Error('Payload too large (max 1MB).');
     }
 
-    const connreq: unknown = JSON.parse(payload);
+    const connReq: unknown = JSON.parse(payload);
 
-    if (!isConnectionRequest(connreq)) {
+    if (!isConnectionRequest(connReq)) {
       throw new Error('Invalid connection request structure.');
     }
 
-    return connreq;
+    return connReq;
   }
 
-  private toConnectionInfo(connreq: ConnectionRequest): ConnectionInfo {
+  private toConnectionInfo(connReq: ConnectionRequest): ConnectionInfo {
     return {
-      id: connreq.sessionRequest.id,
-      metadata: connreq.metadata,
+      id: connReq.sessionRequest.id,
+      metadata: connReq.metadata,
     };
   }
 

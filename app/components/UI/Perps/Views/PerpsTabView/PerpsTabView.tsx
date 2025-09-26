@@ -3,25 +3,29 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import {
+  PerpsPositionsViewSelectorsIDs,
+  PerpsTabViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import {
+  TouchablePerpsComponent,
+  useCoordinatedPress,
+} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -29,30 +33,17 @@ import {
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
-  usePerpsAccount,
-  usePerpsConnection,
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
-  usePerpsTrading,
-  usePerpsPerformance,
   usePerpsLivePositions,
+  usePerpsPerformance,
 } from '../../hooks';
-import { usePerpsLiveOrders } from '../../hooks/stream';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import PerpsCard from '../../components/PerpsCard';
-import styleSheet from './PerpsTabView.styles';
-import {
-  PerpsTabViewSelectorsIDs,
-  PerpsPositionsViewSelectorsIDs,
-} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import {
-  TouchablePerpsComponent,
-  useCoordinatedPress,
-} from '../../components/PressablePerpsComponent/PressablePerpsComponent';
+import styleSheet from './PerpsTabView.styles';
 
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { PerpsEmptyState } from '../PerpsEmptyState';
 
 interface PerpsTabViewProps {}
 
@@ -62,13 +53,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     useState(false);
 
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
-    'eip155:1',
-  );
-  const { getAccountState } = usePerpsTrading();
-  const { isConnected, isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
-  const cachedAccountState = usePerpsAccount();
+  const { account } = usePerpsLiveAccount();
 
   const hasTrackedHomescreen = useRef(false);
   const { startMeasure, endMeasure } = usePerpsPerformance();
@@ -86,8 +72,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
-  const firstTimeUserIconSize = 48 as unknown as IconSize;
-
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
@@ -97,23 +81,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
   }, [startMeasure]);
 
-  // Automatically load account state on mount and when network or account changes
-  useEffect(() => {
-    // Only load account state if we're connected, initialized, and have an EVM account
-    if (isConnected && isInitialized && selectedEvmAccount) {
-      // Fire and forget - errors are already handled in getAccountState
-      // and stored in the controller's state
-      getAccountState();
-    }
-  }, [getAccountState, isConnected, isInitialized, selectedEvmAccount]);
-
   // Track homescreen tab viewed - only once when positions and account are loaded
   useEffect(() => {
     if (
       !hasTrackedHomescreen.current &&
       !isInitialLoading &&
       positions &&
-      cachedAccountState?.totalBalance !== undefined
+      account?.totalBalance !== undefined
     ) {
       // Track position data loaded performance
       endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
@@ -128,20 +102,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
         })),
-        [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: parseFloat(
-          cachedAccountState.totalBalance,
-        ),
       });
 
       hasTrackedHomescreen.current = true;
     }
-  }, [
-    isInitialLoading,
-    positions,
-    cachedAccountState?.totalBalance,
-    track,
-    endMeasure,
-  ]);
+  }, [isInitialLoading, positions, account?.totalBalance, track, endMeasure]);
 
   const handleManageBalancePress = useCallback(() => {
     if (!isEligible) {
@@ -281,36 +246,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <View style={styles.contentContainer}>
             {!isInitialLoading && hasNoPositionsOrOrders ? (
               <View style={styles.firstTimeContent}>
-                <View style={styles.firstTimeContainer}>
-                  <Icon
-                    name={IconName.Details}
-                    color={IconColor.Muted}
-                    size={firstTimeUserIconSize}
-                    style={styles.firstTimeIcon}
-                  />
-                  <Text
-                    variant={TextVariant.HeadingMD}
-                    color={TextColor.Default}
-                    style={styles.firstTimeTitle}
-                  >
-                    {strings('perps.position.list.first_time_title')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    style={styles.firstTimeDescription}
-                  >
-                    {strings('perps.position.list.first_time_description')}
-                  </Text>
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    label={strings('perps.position.list.start_trading')}
-                    onPress={handleNewTrade}
-                    style={styles.startTradingButton}
-                    width={ButtonWidthTypes.Full}
-                  />
-                </View>
+                <PerpsEmptyState
+                  onStartTrading={handleNewTrade}
+                  testID="perps-empty-state"
+                />
               </View>
             ) : (
               <View style={styles.tradeInfoContainer}>
@@ -321,14 +260,22 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           </View>
         </View>
         {isEligibilityModalVisible && (
-          <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={() => setIsEligibilityModalVisible(false)}
-              contentKey={'geo_block'}
-              testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
-            />
-          </Modal>
+          // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+          <View>
+            <Modal
+              visible
+              transparent
+              animationType="none"
+              statusBarTranslucent
+            >
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={() => setIsEligibilityModalVisible(false)}
+                contentKey={'geo_block'}
+                testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
+              />
+            </Modal>
+          </View>
         )}
       </>
     </SafeAreaView>

@@ -22,9 +22,9 @@ export class Connection {
   public readonly client: WalletClient;
   public readonly bridge: IRPCBridgeAdapter;
 
-  private constructor(info: ConnectionInfo, client: WalletClient) {
-    this.id = info.id;
-    this.info = info;
+  private constructor(connInfo: ConnectionInfo, client: WalletClient) {
+    this.id = connInfo.id;
+    this.info = connInfo;
     this.client = client;
     this.bridge = new RPCBridgeAdapter(this.info);
 
@@ -42,26 +42,26 @@ export class Connection {
   /**
    * Creates a new connection from either a new request or persisted data.
    *
-   * @param conninfo - The connection information.
+   * @param connInfo - The connection information.
    * @param keymanager - The key manager instance.
    * @param relayURL - The URL of the relay server.
    * @returns The created connection.
    */
   public static async create(
-    conninfo: ConnectionInfo,
+    connInfo: ConnectionInfo,
     keymanager: IKeyManager,
     relayURL: string,
   ): Promise<Connection> {
     const transport = await WebSocketTransport.create({
       url: relayURL,
-      kvstore: new KVStore(`mwp/transport/${conninfo.id}`),
+      kvstore: new KVStore(`mwp/transport/${connInfo.id}`),
     });
     const sessionstore = new SessionStore(
-      new KVStore(`mwp/session-store/${conninfo.id}`),
+      new KVStore(`mwp/session-store/${connInfo.id}`),
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });
 
-    return new Connection(conninfo, client);
+    return new Connection(connInfo, client);
   }
 
   /**

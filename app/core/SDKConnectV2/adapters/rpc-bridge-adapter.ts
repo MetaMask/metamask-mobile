@@ -12,16 +12,16 @@ export class RPCBridgeAdapter
   extends EventEmitter
   implements IRPCBridgeAdapter
 {
-  private readonly conninfo: ConnectionInfo;
+  private readonly connInfo: ConnectionInfo;
   private client: BackgroundBridge | null = null;
   private messenger: BaseControllerMessenger | null = null;
   private initialized: Promise<void> | null = null;
   private processing = false;
   private queue: unknown[] = [];
 
-  constructor(conninfo: ConnectionInfo) {
+  constructor(connInfo: ConnectionInfo) {
     super();
-    this.conninfo = conninfo;
+    this.connInfo = connInfo;
     this.processQueue = this.processQueue.bind(this);
   }
 
@@ -96,15 +96,16 @@ export class RPCBridgeAdapter
    * Creates a new BackgroundBridge instance configured for our use case.
    */
   private createClient(): BackgroundBridge {
-    const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.conninfo.id}`;
+    const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.connInfo.id}`;
 
     return new BackgroundBridge({
       webview: null,
-      isRemoteConn: true,
       isMMSDK: true,
-      channelId: this.conninfo.id,
-      url: this.conninfo.metadata.dapp.url,
-      remoteConnHost: this.conninfo.metadata.dapp.url,
+      sdkVersion: 'v2',
+      isRemoteConn: true,
+      channelId: this.connInfo.id,
+      url: this.connInfo.metadata.dapp.url,
+      remoteConnHost: this.connInfo.metadata.dapp.url,
       sendMessage: (response: unknown) => {
         this.emit('response', response);
       },
@@ -115,13 +116,13 @@ export class RPCBridgeAdapter
       }) =>
         getRpcMethodMiddleware({
           hostname: middlewareHostname,
-          channelId: this.conninfo.id,
+          channelId: this.connInfo.id,
           getProviderState,
           isMMSDK: true,
-          url: { current: this.conninfo.metadata.dapp.url },
-          title: { current: this.conninfo.metadata.dapp.name },
+          url: { current: this.connInfo.metadata.dapp.url },
+          title: { current: this.connInfo.metadata.dapp.name },
           icon: {
-            current: this.conninfo.metadata.dapp.icon as ImageSourcePropType,
+            current: this.connInfo.metadata.dapp.icon as ImageSourcePropType,
           },
           navigation: null,
           isHomepage: () => false,
@@ -131,7 +132,7 @@ export class RPCBridgeAdapter
           analytics: {
             isRemoteConn: true,
             platform:
-              this.conninfo.metadata.sdk.platform ??
+              this.connInfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,
           },
           toggleUrlModal: () => null,
@@ -139,7 +140,7 @@ export class RPCBridgeAdapter
         }),
       isMainFrame: true,
       getApprovedHosts: () => ({
-        [this.conninfo.metadata.dapp.url]: true,
+        [this.connInfo.metadata.dapp.url]: true,
       }),
       isWalletConnect: false,
       wcRequestActions: undefined,

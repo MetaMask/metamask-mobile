@@ -29,6 +29,16 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
+// Mock React Native Linking specifically for this test to prevent NavigationContainer errors
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn().mockResolvedValue(true),
+  getInitialURL: jest.fn().mockResolvedValue(''),
+  sendIntent: jest.fn(),
+}));
+
 // Mock hooks
 jest.mock('../../hooks', () => ({
   useMinimumOrderAmount: jest.fn(),
@@ -442,16 +452,14 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - receiveAmount = (initialMargin + effectivePnL) - fees
-      // effectivePnL = (150 - 100) * 1 = 50
-      // effectiveMargin = 1000 + 50 = 1050
-      // receiveAmount = 1050 - 50 = 1000
+      // Assert - receiveAmount = initialMargin - fees (P&L is shown separately in UI)
+      // receiveAmount = 1000 - 50 = 950
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 1000 in the display (margin + P&L - fees)
-      expect(getByText(/1,000/)).toBeDefined();
+      // Look for 950 in the display (margin - fees, P&L shown separately)
+      expect(getByText('$950.00')).toBeDefined();
     });
 
     it('calculates receive amount correctly for partial close percentages', () => {
@@ -488,16 +496,14 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // For 100% close (default):
-      // effectivePnL = (75 - 100) * 2 = -50
-      // effectiveMargin = 2000 + (-50) = 1950
-      // receiveAmount = 1950 - 25 = 1925
+      // For 100% close (default) with new calculation:
+      // receiveAmount = initialMargin - fees = 2000 - 25 = 1975
       const receiveText = getByText(
         strings('perps.close_position.you_receive'),
       );
       expect(receiveText).toBeDefined();
-      // Look for 1925 in the display (effective margin - fees)
-      expect(getByText(/1,925/)).toBeDefined();
+      // Look for 1975 in the display (initial margin - fees)
+      expect(getByText(/1,975/)).toBeDefined();
     });
   });
 
@@ -1873,7 +1879,17 @@ describe('PerpsClosePositionView', () => {
         defaultPerpsPositionMock,
         '', // Empty string when closePercentage is 100
         'market',
-        undefined,
+        undefined, // limitPrice is undefined for market orders
+        {
+          totalFee: 45,
+          marketPrice: 3000,
+          receivedAmount: 1405,
+          realizedPnl: 150,
+          metamaskFeeRate: 0,
+          feeDiscountPercentage: undefined,
+          metamaskFee: 0,
+          estimatedPoints: undefined,
+        },
       );
     });
 
@@ -1944,6 +1960,16 @@ describe('PerpsClosePositionView', () => {
                   '',
                   orderType,
                   orderType === 'limit' ? limitPrice : undefined,
+                  {
+                    totalFee: 45,
+                    marketPrice: 3000,
+                    receivedAmount: 1405,
+                    realizedPnl: 150,
+                    metamaskFeeRate: 0,
+                    feeDiscountPercentage: undefined,
+                    metamaskFee: 0,
+                    estimatedPoints: undefined,
+                  },
                 );
               }}
             >
@@ -1965,6 +1991,14 @@ describe('PerpsClosePositionView', () => {
           '',
           'limit',
           '50000',
+          expect.objectContaining({
+            totalFee: expect.any(Number),
+            marketPrice: expect.any(Number),
+            receivedAmount: expect.any(Number),
+            realizedPnl: expect.any(Number),
+            metamaskFeeRate: expect.any(Number),
+            metamaskFee: expect.any(Number),
+          }),
         );
       });
     });

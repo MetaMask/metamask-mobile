@@ -79,7 +79,9 @@ describe(
             RowComponents.AccountNetwork,
           );
           await Assertions.expectElementToBeVisible(RowComponents.ApproveRow);
-          await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
+          await Assertions.expectElementToBeVisible(
+            RowComponents.NetworkAndOrigin,
+          );
           await Assertions.expectElementToBeVisible(
             RowComponents.GasFeesDetails,
           );

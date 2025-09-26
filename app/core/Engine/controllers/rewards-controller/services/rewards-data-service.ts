@@ -21,10 +21,12 @@ import type {
   OptOutDto,
   PointsBoostEnvelopeDto,
   RewardDto,
+  ClaimRewardDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
 import { successfulFetch } from '@metamask/controller-utils';
+import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from '../utils/rewards-api-url';
 
 const SERVICE_NAME = 'RewardsDataService';
 
@@ -118,6 +120,11 @@ export interface RewardsDataServiceGetUnlockedRewardsAction {
   handler: RewardsDataService['getUnlockedRewards'];
 }
 
+export interface RewardsDataServiceClaimRewardAction {
+  type: `${typeof SERVICE_NAME}:claimReward`;
+  handler: RewardsDataService['claimReward'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -134,7 +141,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
   | RewardsDataServiceGetActivePointsBoostsAction
-  | RewardsDataServiceGetUnlockedRewardsAction;
+  | RewardsDataServiceGetUnlockedRewardsAction
+  | RewardsDataServiceClaimRewardAction;
 
 export type RewardsDataServiceMessenger = RestrictedMessenger<
   typeof SERVICE_NAME,
@@ -156,6 +164,8 @@ export class RewardsDataService {
 
   readonly #locale: string;
 
+  readonly #rewardsApiUrl: string;
+
   constructor({
     messenger,
     fetch: fetchFunction,
@@ -171,6 +181,7 @@ export class RewardsDataService {
     this.#fetch = fetchFunction;
     this.#appType = appType;
     this.#locale = locale;
+    this.#rewardsApiUrl = this.getRewardsApiBaseUrl();
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -236,6 +247,19 @@ export class RewardsDataService {
       `${SERVICE_NAME}:getUnlockedRewards`,
       this.getUnlockedRewards.bind(this),
     );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:claimReward`,
+      this.claimReward.bind(this),
+    );
+  }
+
+  private getRewardsApiBaseUrl() {
+    // always using url from env var if set
+    if (process.env.REWARDS_API_URL) return process.env.REWARDS_API_URL;
+    // otherwise using default per-env url
+    return getDefaultRewardsApiBaseUrlForMetaMaskEnv(
+      process.env.METAMASK_ENVIRONMENT,
+    );
   }
 
   /**
@@ -283,7 +307,7 @@ export class RewardsDataService {
       headers['Accept-Language'] = this.#locale;
     }
 
-    const url = `${AppConstants.REWARDS_API_URL}${endpoint}`;
+    const url = `${this.#rewardsApiUrl}${endpoint}`;
 
     // Create AbortController for timeout handling
     const controller = new AbortController();
@@ -721,5 +745,31 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as RewardDto[];
+  }
+
+  /**
+   * Claim a reward.
+   * @param rewardId - The ID of the reward to claim.
+   * @param dto - The claim reward request body.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The claim reward DTO.
+   */
+  async claimReward(
+    rewardId: string,
+    subscriptionId: string,
+    dto?: ClaimRewardDto,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      `/wr/rewards/${rewardId}/claim`,
+      {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to claim reward: ${response.status}`);
+    }
   }
 }

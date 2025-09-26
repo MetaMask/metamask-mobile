@@ -37,6 +37,7 @@ import {
   selectIsSolanaSourced,
   selectBridgeViewMode,
   setBridgeViewMode,
+  selectNoFeeAssets,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -72,7 +73,9 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import ApprovalText from '../../components/ApprovalText';
-import { BigNumber } from 'bignumber.js';
+import { RootState } from '../../../../../reducers/index.ts';
+import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
+import { isNullOrUndefined } from '@metamask/utils';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -113,6 +116,9 @@ const BridgeView = () => {
   const isHardwareAddress = selectedAddress
     ? !!isHardwareAccount(selectedAddress)
     : false;
+  const noFeeDestAssets = useSelector((state: RootState) =>
+    selectNoFeeAssets(state, destToken?.chainId),
+  );
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -361,9 +367,17 @@ const BridgeView = () => {
       );
     }
 
-    const hasFee =
-      activeQuote &&
-      new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0);
+    // TODO: remove this once controller types are updated
+    // @ts-expect-error: controller types are not up to date yet
+    const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
+    const feePercentage = !isNullOrUndefined(quoteBpsFee)
+      ? quoteBpsFee / 100
+      : BRIDGE_MM_FEE_RATE;
+
+    const hasFee = activeQuote && feePercentage > 0;
+
+    const isNoFeeDestinationAsset =
+      destToken?.address && noFeeDestAssets?.includes(destToken.address);
 
     return (
       activeQuote &&
@@ -384,15 +398,6 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
-          {hasFee ? (
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.disclaimerText}
-            >
-              {strings('bridge.fee_disclaimer')}
-            </Text>
-          ) : null}
           <Button
             variant={ButtonVariants.Primary}
             label={getButtonLabel()}
@@ -407,6 +412,28 @@ const BridgeView = () => {
               !hasSufficientGas
             }
           />
+          {hasFee ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.fee_disclaimer', {
+                feePercentage,
+              })}
+            </Text>
+          ) : null}
+          {!hasFee && isNoFeeDestinationAsset ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.no_mm_fee_disclaimer', {
+                destTokenSymbol: destToken?.symbol,
+              })}
+            </Text>
+          ) : null}
           {activeQuote?.approval && sourceAmount && sourceToken && (
             <ApprovalText amount={sourceAmount} symbol={sourceToken.symbol} />
           )}
