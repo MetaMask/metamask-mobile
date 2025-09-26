@@ -865,12 +865,12 @@
     "margin_used": "Genutzte Margin",
     "gtm_content": {
       "title": "PERPS SIND DA",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "Gehen Sie Long- oder Short-Positionen mit bis zu 40-fachem Hebel ein. Finanzieren Sie Ihr Konto mit nur einem Klick.",
       "not_now": "Nicht jetzt",
       "try_now": "Erste Schritte"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "Heute",
+    "yesterday": "Gestern",
     "unrealized_pnl": "Nicht realisierte GuV",
     "withdraw": "Auszahlen",
     "refresh_balance": "Guthaben aktualisieren",
@@ -1094,10 +1094,10 @@
         "current_price": "Aktueller Preis",
         "liquidation_price": "Liquidationspreis",
         "liquidation_distance": "Liquidationsdistanz",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "Sie werden liquidiert, wenn der Preis {{direction}} um {{percentage}}",
+        "drops": "fällt",
+        "rises": "steigt",
+        "set_leverage": "{{leverage}}x festlegen"
       },
       "type": {
         "title": "Orderart",
@@ -1184,7 +1184,7 @@
       "updating": "Aktualisierung ...",
       "off": "Aus",
       "current_price": "Aktueller Preis",
-      "entry_price": "Entry price",
+      "entry_price": "Einstiegspreis",
       "leverage": "Hebel",
       "margin": "Margin",
       "liquidation_price": "Liquidationspreis",
@@ -1297,7 +1297,7 @@
         "empty_title": "Keine offenen Positionen",
         "empty_description": "Sie haben derzeit noch keine offenen Positionen.\nBeginnen Sie mit dem Trading, um Ihre Positionen hier einzusehen.",
         "first_time_title": "Perps",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "Setzen Sie mit einem bis zu 40-fachem Hebel auf Preisbewegungen.",
         "start_trading": "Mit dem Trading beginnen",
         "start_new_trade": "Einen neuen Trade starten",
         "open_positions": "Offene Positionen",
@@ -1338,8 +1338,8 @@
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "Long-Position",
+      "short_lowercase": "Short-Position",
       "add_funds": "Gelder hinzufügen",
       "add_funds_to_start_trading_perps": "Fügen Sie Gelder hinzu, um mit dem Trading von Perps zu beginnen",
       "position": "Position",
@@ -1447,9 +1447,9 @@
         "show_more": "Mehr"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "Minuten",
+        "hours": "Stunden",
+        "days": "Tage"
       }
     },
     "perps_markets": "Perps-Märkte",
@@ -1519,7 +1519,7 @@
       },
       "choose_leverage": {
         "title": "Ihren Hebel wählen",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "Der Hebel verstärkt Gewinne und Verluste gleichermaßen. Bei einem 40-fachen Hebel bedeutet eine Preisbewegung von 4 % einen Gewinn oder Verlust von 40 % auf Ihre Margin."
       },
       "watch_liquidation": {
         "title": "Achten Sie auf die Liquidation",
@@ -1527,12 +1527,12 @@
       },
       "close_anytime": {
         "title": "Schließen jederzeit möglich",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "Steigen Sie aus, wann immer Sie wollen. Sie erhalten Ihre Margin zurück, zuzüglich Gewinne oder abzüglich Verluste."
       },
       "ready_to_trade": {
         "title": "Bereit zum Handeln?",
         "description": "Zahlen Sie ein beliebiges Token auf Ihr Perps-Konto ein und führen Sie innerhalb von Sekunden Ihren ersten Trade durch.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask swappt Ihre Gelder auf Arbitrum in USDC und zahlt sie ohne zusätzliche Gebühr auf HyperEVM ein."
       },
       "got_it": "Verstanden"
     },
@@ -5649,8 +5649,8 @@
       "reveal_recovery_phrase_with_index": "Wiederherstellungsphrase {{index}} offenlegen"
     },
     "smart_account": {
-      "title": "Smart-Konto aktivieren",
-      "description": "Sie können Smart-Konto-Funktionen in unterstützten Netzwerken aktivieren.",
+      "title": "Use smart account",
+      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
       "learn_more": "Mehr erfahren"
     },
     "edit_account_name": {
@@ -5866,6 +5866,8 @@
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
       "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_account_type_title": "Account type not supported",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
       "not_supported_confirm_go_back": "Go back",
       "not_supported_confirm_retry": "Retry",
       "auth_fail_title": "Authentication Failed",
@@ -5938,7 +5940,9 @@
     },
     "unlinked_account_info": {
       "title": "Account not earning points",
-      "description": "This account's activity is not being tracked for this season."
+      "title_optin_not_supported": "Account not supported",
+      "description": "This account's activity is not being tracked for this season.",
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
     "link_account": "Add account",
     "linking_account": "Adding...",
@@ -5957,12 +5961,12 @@
       },
       "perps": {
         "title": "Perps",
-        "description": "10 points per $100",
+        "description": "10 Punkte pro 100 $",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "Perps handeln",
+          "points": "10 Punkte pro 100 $",
+          "description": "Verdienen Sie Punkte bei jedem Trade, einschließlich Eröffnungen und Schließungen, Stop-Loss- und Take-Profit-Orders sowie Margin-Anpassungen.",
+          "cta_label": "Einen Trade starten"
         }
       },
       "referrals": {
@@ -6036,5 +6040,10 @@
       "swap": "Tokens tauschen",
       "swap_approval": "Approve tokens"
     }
+  },
+  "network_connection_banner": {
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
+    "update_rpc": "Update RPC"
   }
 }
