@@ -394,7 +394,11 @@ const PerpsMarketListView = ({
                   ? strings('bottom_nav.rewards')
                   : strings('bottom_nav.settings')
               }
-              iconName={isRewardsEnabled ? IconName.Star : IconName.Setting}
+              iconName={
+                isRewardsEnabled
+                  ? IconName.MetamaskFoxOutline
+                  : IconName.Setting
+              }
               onPress={handleRewardsOrSettingsPress}
               isActive={false}
               testID={
