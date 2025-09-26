@@ -1279,7 +1279,6 @@
         "empty_title": "无未平仓头寸",
         "empty_description": "您目前没有任何未平仓头寸。\n开始交易后，即可在此处将查看您的头寸。",
         "first_time_title": "永续合约",
-        "first_time_description": "预测价格走势，使用最高 40 倍杠杆。",
         "start_trading": "开始交易",
         "start_new_trade": "开始新交易",
         "open_positions": "未平仓头寸",
@@ -1632,7 +1631,6 @@
     "buy_asset": "买入 {{asset}}",
     "no_tokens": "您没有任何代币！",
     "show_tokens_without_balance": "显示没有余额的代币",
-    "no_nfts_yet": "尚无 NFT",
     "nfts_autodetection_title": "NFT 检测",
     "nfts_autodetection_desc": "让 MetaMask 自动检测并显示您钱包中的 NFT。",
     "network_details_check": "网络详情检查",
@@ -1761,8 +1759,6 @@
   },
   "defi_positions": {
     "loading_positions": "正在加载去中心化金融持仓......",
-    "no_visible_positions": "找不到您要找的内容？",
-    "not_supported": "我们可能尚未支持您的协议。",
     "error_cannot_load_page": "我们无法加载该页面。",
     "error_visit_again": "请稍后再次尝试访问。",
     "single_token": "仅限 {{symbol}}",
@@ -2445,10 +2441,9 @@
     "disconnect_confirm": "断开连接",
     "cancel": "取消"
   },
-  "sdk_return_to_app_modal": {
-    "title": "返回应用程序",
-    "postNetworkSwitchTitle": "网络切换成功",
-    "description": "请返回应用程序继续使用其服务。"
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "返回应用程序",
+    "networkSwitchMethodLabel": "网络切换成功"
   },
   "sdk_feedback_modal": {
     "ok": "OK",

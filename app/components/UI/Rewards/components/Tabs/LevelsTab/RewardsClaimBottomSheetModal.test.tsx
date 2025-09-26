@@ -66,9 +66,10 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const React = jest.requireActual('react');
-    return React.forwardRef(({ children }: { children: React.ReactNode }) =>
-      React.createElement('View', { testID: 'bottom-sheet' }, children),
+    const ReactActual = jest.requireActual('react');
+    return ReactActual.forwardRef(
+      ({ children }: { children: React.ReactNode }) =>
+        ReactActual.createElement('View', { testID: 'bottom-sheet' }, children),
     );
   },
 );
@@ -77,7 +78,7 @@ jest.mock(
 jest.mock(
   '../../../../../../component-library/components/Form/TextField',
   () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     const TextFieldComponent = ({
       placeholder,
       onChangeText,
@@ -87,7 +88,7 @@ jest.mock(
       onChangeText: (text: string) => void;
       value: string;
     }) =>
-      React.createElement('TextInput', {
+      ReactActual.createElement('TextInput', {
         testID: 'text-field',
         placeholder,
         onChangeText,
@@ -112,7 +113,7 @@ jest.mock(
 jest.mock(
   '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert',
   () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     return ({
       severity,
       description,
@@ -125,14 +126,14 @@ jest.mock(
       testID: string;
     }) => {
       const { View, Text } = jest.requireActual('react-native');
-      return React.createElement(
+      return ReactActual.createElement(
         View,
         {
           testID,
           'data-severity': severity,
           style,
         },
-        React.createElement(Text, {}, description),
+        ReactActual.createElement(Text, {}, description),
       );
     };
   },
@@ -140,7 +141,7 @@ jest.mock(
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   const {
     View,
     Text: RNText,
@@ -182,32 +183,35 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: {
       children: React.ReactNode;
       [key: string]: unknown;
-    }) => React.createElement(View, props, children),
+    }) => ReactActual.createElement(View, props, children),
     Button: ({
       children,
       onPress,
       disabled,
+      isLoading,
       testID,
     }: {
       children: React.ReactNode;
       onPress: () => void;
       disabled: boolean;
+      isLoading?: boolean;
       testID: string;
     }) =>
-      React.createElement(
+      ReactActual.createElement(
         TouchableOpacity,
         {
           testID,
           onPress,
           disabled,
+          'data-loading': isLoading,
           accessibilityState: disabled ? { disabled: true } : undefined,
         },
-        React.createElement(RNText, {}, children),
+        ReactActual.createElement(RNText, {}, children),
       ),
     Text: ({ children, ...props }: { children: React.ReactNode }) =>
-      React.createElement(RNText, props, children),
+      ReactActual.createElement(RNText, props, children),
     Icon: ({ name, ...props }: { name: string }) =>
-      React.createElement(View, {
+      ReactActual.createElement(View, {
         testID: `icon-${name}`,
         ...props,
       }),
@@ -448,12 +452,117 @@ describe('RewardsClaimBottomSheetModal', () => {
   });
 
   describe('Loading and error states', () => {
-    it('should disable the button when claiming reward', () => {
+    it('should disable the button when claiming reward for POINTS_BOOST', () => {
       mockUseClaimRewardState.isClaimingReward = true;
 
       const { getByTestId } = render(
         <RewardsClaimBottomSheetModal route={routeWithPointsBoostReward} />,
       );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).toBeDisabled();
+
+      mockUseClaimRewardState.isClaimingReward = false;
+    });
+
+    it('should show loading state when claiming reward for POINTS_BOOST', () => {
+      mockUseClaimRewardState.isClaimingReward = true;
+
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithPointsBoostReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton.props['data-loading']).toBe(true);
+
+      mockUseClaimRewardState.isClaimingReward = false;
+    });
+
+    it('should disable the button when claiming reward for ALPHA_FOX_INVITE', () => {
+      mockUseClaimRewardState.isClaimingReward = true;
+
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).toBeDisabled();
+
+      mockUseClaimRewardState.isClaimingReward = false;
+    });
+
+    it('should show loading state when claiming reward for ALPHA_FOX_INVITE', () => {
+      mockUseClaimRewardState.isClaimingReward = true;
+
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton.props['data-loading']).toBe(true);
+
+      mockUseClaimRewardState.isClaimingReward = false;
+    });
+
+    it('should not show loading state when not claiming reward', () => {
+      mockUseClaimRewardState.isClaimingReward = false;
+
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithPointsBoostReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton.props['data-loading']).toBeFalsy();
+    });
+
+    it('should disable button when input is required but empty', () => {
+      mockUseClaimRewardState.isClaimingReward = false;
+
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
+      );
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).toBeDisabled();
+    });
+
+    it('should enable button when input is provided and not claiming', () => {
+      mockUseClaimRewardState.isClaimingReward = false;
+
+      const { getByTestId, getByPlaceholderText } = render(
+        <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
+      );
+
+      const inputField = getByPlaceholderText('Enter your Telegram handle');
+      fireEvent.changeText(inputField, '@user123');
+
+      const claimButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
+      );
+      expect(claimButton).not.toBeDisabled();
+    });
+
+    it('should disable button when claiming even with input provided', () => {
+      mockUseClaimRewardState.isClaimingReward = true;
+
+      const { getByTestId, getByPlaceholderText } = render(
+        <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
+      );
+
+      const inputField = getByPlaceholderText('Enter your Telegram handle');
+      fireEvent.changeText(inputField, '@user123');
 
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,

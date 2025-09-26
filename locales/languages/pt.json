@@ -1279,7 +1279,6 @@
         "empty_title": "Nenhuma posição aberta",
         "empty_description": "Você ainda não tem nenhuma posição aberta.\nComece a negociar para ver suas posições aqui.",
         "first_time_title": "Perps",
-        "first_time_description": "Preveja variações de preços com alavancagem de até 40x.",
         "start_trading": "Comece a negociar",
         "start_new_trade": "Iniciar uma nova negociação",
         "open_positions": "Posições abertas",
@@ -1632,7 +1631,6 @@
     "buy_asset": "Comprar {{asset}}",
     "no_tokens": "Você não tem nenhum token!",
     "show_tokens_without_balance": "Mostrar tokens sem saldo",
-    "no_nfts_yet": "Nenhum NFT até agora",
     "nfts_autodetection_title": "Detecção de NFTs",
     "nfts_autodetection_desc": "Permita que a MetaMask detecte e exiba automaticamente os NFTs em sua carteira.",
     "network_details_check": "A verificação dos dados da rede",
@@ -1761,8 +1759,6 @@
   },
   "defi_positions": {
     "loading_positions": "Carregando posições DeFi...",
-    "no_visible_positions": "Não consegue encontrar o que procura?",
-    "not_supported": "Talvez ainda não ofereçamos suporte ao seu protocolo.",
     "error_cannot_load_page": "Não foi possível carregar esta página.",
     "error_visit_again": "Tente visitar novamente mais tarde.",
     "single_token": "Apenas {{symbol}}",
@@ -2445,10 +2441,9 @@
     "disconnect_confirm": "Desconectar",
     "cancel": "Cancelar"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Voltar ao app",
-    "postNetworkSwitchTitle": "Troca de rede bem-sucedida",
-    "description": "Por favor, volte ao app para continuar usando os serviços relevantes."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Voltar ao app",
+    "networkSwitchMethodLabel": "Troca de rede bem-sucedida"
   },
   "sdk_feedback_modal": {
     "ok": "OK",

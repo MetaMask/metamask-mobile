@@ -385,7 +385,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1170,7 +1170,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={
@@ -1873,7 +1873,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                           "bottom": "additive",
                           "left": "additive",
                           "right": "additive",
-                          "top": "additive",
+                          "top": "off",
                         }
                       }
                       style={

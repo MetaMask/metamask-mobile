@@ -1279,7 +1279,6 @@
         "empty_title": "Нет открытых позиций",
         "empty_description": "У вас пока нет открытых позиций.\nНачните торговать, чтобы увидеть свои позиции здесь.",
         "first_time_title": "Бессрочные фьючерсы",
-        "first_time_description": "Прогнозируйте движение цен с кредитным плечом до 40x.",
         "start_trading": "Начать торговать",
         "start_new_trade": "Создать новую сделку",
         "open_positions": "Открытые позиции",
@@ -1632,7 +1631,6 @@
     "buy_asset": "Купить {{asset}}",
     "no_tokens": "У вас нет токенов!",
     "show_tokens_without_balance": "Показать токены без баланса",
-    "no_nfts_yet": "Пока нет NFT",
     "nfts_autodetection_title": "Определение NFT",
     "nfts_autodetection_desc": "Разрешите MetaMask автоматически определять и отображать NFT в вашем кошельке.",
     "network_details_check": "Проверка сведений о сети",
@@ -1761,8 +1759,6 @@
   },
   "defi_positions": {
     "loading_positions": "Загрузка позиций DeFi...",
-    "no_visible_positions": "Не можете найти то, что ищете?",
-    "not_supported": "Возможно, мы пока не поддерживаем ваш протокол.",
     "error_cannot_load_page": "Мы не смогли загрузить эту страницу.",
     "error_visit_again": "Попробуйте зайти еще раз позже.",
     "single_token": "Только {{symbol}}",
@@ -2445,10 +2441,9 @@
     "disconnect_confirm": "Отключиться",
     "cancel": "Отмена"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Назад в приложение",
-    "postNetworkSwitchTitle": "Сеть успешно изменена",
-    "description": "Вернитесь в приложение, чтобы продолжить пользоваться его услугами."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Назад в приложение",
+    "networkSwitchMethodLabel": "Сеть успешно изменена"
   },
   "sdk_feedback_modal": {
     "ok": "ОК",

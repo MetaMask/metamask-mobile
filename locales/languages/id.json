@@ -1279,7 +1279,6 @@
         "empty_title": "Tidak Ada Posisi Terbuka",
         "empty_description": "Anda belum memiliki posisi terbuka.\nMulai berdagang untuk melihat posisi Anda di sini.",
         "first_time_title": "Perp",
-        "first_time_description": "Prediksi pergerakan harga dengan leverage hingga 40x.",
         "start_trading": "Mulai berdagang",
         "start_new_trade": "Mulai perdagangan baru",
         "open_positions": "Posisi Terbuka",
@@ -1632,7 +1631,6 @@
     "buy_asset": "Beli {{asset}}",
     "no_tokens": "Anda tidak memiliki token!",
     "show_tokens_without_balance": "Tampilkan token tanpa saldo",
-    "no_nfts_yet": "Belum ada NFT",
     "nfts_autodetection_title": "Deteksi NFT",
     "nfts_autodetection_desc": "Izinkan MetaMask mendeteksi dan menampilkan NFT di dompet Anda secara otomatis.",
     "network_details_check": "Pemeriksaan detail jaringan",
@@ -1761,8 +1759,6 @@
   },
   "defi_positions": {
     "loading_positions": "Memuat posisi DeFi...",
-    "no_visible_positions": "Tidak dapat menemukan yang Anda cari?",
-    "not_supported": "Kami mungkin belum mendukung protokol Anda.",
     "error_cannot_load_page": "Kami tidak dapat memuat halaman ini.",
     "error_visit_again": "Coba kunjungi lagi nanti.",
     "single_token": "Hanya {{symbol}}",
@@ -2445,10 +2441,9 @@
     "disconnect_confirm": "Memutus koneksi",
     "cancel": "Batal"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Kembali ke aplikasi",
-    "postNetworkSwitchTitle": "Jaringan berhasil dialihkan",
-    "description": "Kembali ke aplikasi untuk terus menggunakan layanannya."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Kembali ke aplikasi",
+    "networkSwitchMethodLabel": "Jaringan berhasil dialihkan"
   },
   "sdk_feedback_modal": {
     "ok": "Oke",
