@@ -1764,7 +1764,6 @@ describe('AccountTreeController Selectors', () => {
       ]);
     });
 
-    // next test is the same as above but with one account with BtcAccount type
     it('handles groups with mixed account types correctly', () => {
       const walletId = 'keyring:test-wallet' as const;
       const groupId = `${walletId}/mixed` as const;
