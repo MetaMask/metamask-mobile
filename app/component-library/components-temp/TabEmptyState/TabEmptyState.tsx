@@ -23,7 +23,7 @@ export const TabEmptyState: React.FC<TabEmptyStateProps> = ({
   onAction,
   children,
   style,
-  twClassName,
+  twClassName = '',
   ...props
 }) => (
   <Box
