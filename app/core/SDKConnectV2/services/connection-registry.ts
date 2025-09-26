@@ -55,10 +55,10 @@ export class ConnectionRegistry {
 
     const persisted = await this.store.list().catch(() => []);
 
-    const promises = persisted.map(async (c) => {
+    const promises = persisted.map(async (connInfo) => {
       try {
         const conn = await Connection.create(
-          c,
+          connInfo,
           this.keymanager,
           this.RELAY_URL,
         );
@@ -66,7 +66,7 @@ export class ConnectionRegistry {
         this.connections.set(conn.id, conn);
       } catch (error) {
         console.error(
-          `[SDKConnectV2] Failed to resume connection ${c.id}.`,
+          `[SDKConnectV2] Failed to resume connection ${connInfo.id}.`,
           error,
         );
       }
@@ -93,16 +93,16 @@ export class ConnectionRegistry {
     let conn: Connection | undefined;
 
     try {
-      const connreq = this.parseConnectionRequest(url);
-      const conninfo = this.toConnectionInfo(connreq);
+      const connReq = this.parseConnectionRequest(url);
+      const connInfo = this.toConnectionInfo(connReq);
       this.hostapp.showLoading();
-      conn = await Connection.create(conninfo, this.keymanager, this.RELAY_URL);
-      await conn.connect(connreq.sessionRequest);
+      conn = await Connection.create(connInfo, this.keymanager, this.RELAY_URL);
+      await conn.connect(connReq.sessionRequest);
       this.connections.set(conn.id, conn);
-      await this.store.save(conninfo);
+      await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
       console.warn(
-        `[SDKConnectV2] Connection with ${connreq.metadata.dapp.name} successfully established.`,
+        `[SDKConnectV2] Connection with ${connReq.metadata.dapp.name} successfully established.`,
       );
     } catch (error) {
       console.error('[SDKConnectV2] Connection handshake failed:', error);
@@ -148,19 +148,19 @@ export class ConnectionRegistry {
       throw new Error('[SDKConnectV2] Payload too large (max 1MB).');
     }
 
-    const connreq: unknown = JSON.parse(payload);
+    const connReq: unknown = JSON.parse(payload);
 
-    if (!isConnectionRequest(connreq)) {
+    if (!isConnectionRequest(connReq)) {
       throw new Error('[SDKConnectV2] Invalid connection request structure.');
     }
 
-    return connreq;
+    return connReq;
   }
 
-  private toConnectionInfo(connreq: ConnectionRequest): ConnectionInfo {
+  private toConnectionInfo(connReq: ConnectionRequest): ConnectionInfo {
     return {
-      id: connreq.sessionRequest.id,
-      metadata: connreq.metadata,
+      id: connReq.sessionRequest.id,
+      metadata: connReq.metadata,
     };
   }
 

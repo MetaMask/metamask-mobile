@@ -35,33 +35,33 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     return Promise.resolve();
   }
 
-  syncConnectionList(connections: Connection[]): void {
-    const v2Sessions: SDKSessions = connections.reduce((acc, connection) => {
-      const connectionProps: ConnectionProps & { isV2: boolean } = {
-        id: connection.id,
+  syncConnectionList(conns: Connection[]): void {
+    const v2Sessions: SDKSessions = conns.reduce((acc, conn) => {
+      const props: ConnectionProps & { isV2: boolean } = {
+        id: conn.id,
         otherPublicKey: '',
-        origin: connection.info.metadata.dapp.url,
+        origin: conn.info.metadata.dapp.url,
         originatorInfo: {
-          title: connection.info.metadata.dapp.name,
-          url: connection.info.metadata.dapp.url,
-          icon: connection.info.metadata.dapp.icon,
-          dappId: connection.info.metadata.dapp.name,
-          apiVersion: connection.info.metadata.sdk.version,
-          platform: connection.info.metadata.sdk.platform,
+          title: conn.info.metadata.dapp.name,
+          url: conn.info.metadata.dapp.url,
+          icon: conn.info.metadata.dapp.icon,
+          dappId: conn.info.metadata.dapp.name,
+          apiVersion: conn.info.metadata.sdk.version,
+          platform: conn.info.metadata.sdk.platform,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };
-      acc[connection.id] = connectionProps;
+      acc[conn.id] = props;
       return acc;
     }, {} as SDKSessions);
 
     store.dispatch(setSdkV2Connections(v2Sessions));
   }
 
-  revokePermissions(connectionId: string): void {
-    const allAccountsForOrigin = getPermittedAccounts(connectionId);
+  revokePermissions(connId: string): void {
+    const allAccountsForOrigin = getPermittedAccounts(connId);
     if (allAccountsForOrigin.length > 0) {
-      removePermittedAccounts(connectionId, allAccountsForOrigin);
+      removePermittedAccounts(connId, allAccountsForOrigin);
     }
   }
 }
