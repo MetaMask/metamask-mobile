@@ -3655,6 +3655,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/fingerprint@npm:^0.15.0":
+  version: 0.15.1
+  resolution: "@expo/fingerprint@npm:0.15.1"
+  dependencies:
+    "@expo/spawn-async": ^1.7.2
+    arg: ^5.0.2
+    chalk: ^4.1.2
+    debug: ^4.3.4
+    getenv: ^2.0.0
+    glob: ^10.4.2
+    ignore: ^5.3.1
+    minimatch: ^9.0.0
+    p-limit: ^3.1.0
+    resolve-from: ^5.0.0
+    semver: ^7.6.0
+  bin:
+    fingerprint: bin/cli.js
+  checksum: 39788e3acd3c1c90479acad72288102a4013294c0d8fb202c7c21860297c8ab32ca291213229366fd900aa7cd13b66c967e9c01d2c172da4bfe023b069032034
+  languageName: node
+  linkType: hard
+
 "@expo/image-utils@npm:^0.6.5":
   version: 0.6.5
   resolution: "@expo/image-utils@npm:0.6.5"
@@ -3771,6 +3792,18 @@ __metadata:
     semver: ^7.6.0
     xml2js: 0.6.0
   checksum: 5c9d194e63cc4ec9ba3076179832ce928208e09846981cccc6f07e70742b1d7a29bf7594788543578ced75a42fbc0d4a624c4bd7af73e755d220170090f0b2e5
+  languageName: node
+  linkType: hard
+
+"@expo/repack-app@npm:^0.2.9":
+  version: 0.2.10
+  resolution: "@expo/repack-app@npm:0.2.10"
+  dependencies:
+    commander: ^13.1.0
+    picocolors: ^1.1.1
+  bin:
+    repack-app: bin/cli.js
+  checksum: ee6c6d089e5784ce60483db3f70a9268ae0faf6cf587086c31b645aa51a8dac98b1668756f490b53a194195c8182b0db6c17d03faf2b89b2a69e52717d57aacf
   languageName: node
   linkType: hard
 
@@ -28927,6 +28960,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"getenv@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "getenv@npm:2.0.0"
+  checksum: d5e4cd001952db17d546c8ae5961b68dd83d0a6c6027cc4c613cbe0f88ca835f661364a7eff32428953e7677af95fb0a35f035c98b661bef2fcabb5d7c711c86
+  languageName: node
+  linkType: hard
+
 "git-repo-info@npm:^2.1.1":
   version: 2.1.1
   resolution: "git-repo-info@npm:2.1.1"
@@ -33665,6 +33705,8 @@ __metadata:
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/contracts": ^5.7.0
     "@ethersproject/providers": ^5.7.2
+    "@expo/fingerprint": ^0.15.0
+    "@expo/repack-app": ^0.2.9
     "@img/sharp-darwin-arm64": ^0.34.3
     "@img/sharp-libvips-darwin-arm64": ^1.2.1
     "@img/sharp-libvips-linux-x64": ^1.2.1
@@ -34621,7 +34663,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.1, minimatch@npm:^9.0.4":
+"minimatch@npm:^9.0.0, minimatch@npm:^9.0.1, minimatch@npm:^9.0.4":
   version: 9.0.5
   resolution: "minimatch@npm:9.0.5"
   dependencies:

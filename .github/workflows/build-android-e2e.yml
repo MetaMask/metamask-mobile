@@ -60,7 +60,29 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --no-build-ios
 
+      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      - name: Generate current fingerprint
+        id: generate-fingerprint
+        run: |
+          FINGERPRINT=$(yarn -s fingerprint:generate)
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Current fingerprint: ${FINGERPRINT}"
+
+      - name: Check and restore cached APKs if Fingerprint is found
+        id: cache-restore
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          key: android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          restore-keys: |
+            android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
+            android-apk-
+
       - name: Build Android E2E APKs
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -102,6 +124,26 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      - name: Repack APK with JS updates using @expo/repack-app
+        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' }}
+        run: |
+          echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
+          # Use the optimized repack script which uses @expo/repack-app
+          yarn build:repack
+          echo "📦 Final APK size: $(du -h "android/app/build/outputs/apk/prod/release/app-prod-release.apk" | cut -f1)"
+
+
+      # Cache build artifacts with the pre-build fingerprint
+      - name: Cache build artifacts
+        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/app/build/outputs/apk/prod/release/app-prod-release.apk
+            android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+            android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          key: android-apk-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Upload Android APK
         id: upload-apk
