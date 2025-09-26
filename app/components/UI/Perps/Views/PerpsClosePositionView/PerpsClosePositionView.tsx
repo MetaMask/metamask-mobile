@@ -232,7 +232,9 @@ const PerpsClosePositionView: React.FC = () => {
       const unrealizedPnlPercent =
         initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
 
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.POSITION_CLOSE,
         [PerpsEventProperties.ASSET]: position.coin,
         [PerpsEventProperties.DIRECTION]: isLong
           ? PerpsEventValues.DIRECTION.LONG
@@ -277,7 +279,8 @@ const PerpsClosePositionView: React.FC = () => {
         ? ((effectivePnL * (closePercentage / 100)) / initialMargin) * 100
         : 0;
 
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION, {
+      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.DIRECTION]: isLong
         ? PerpsEventValues.DIRECTION.LONG
@@ -297,7 +300,8 @@ const PerpsClosePositionView: React.FC = () => {
     });
 
     // Track position close submitted
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED, {
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION, {
+      [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUBMITTED,
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.ORDER_TYPE]: orderType,
     });

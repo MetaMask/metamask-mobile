@@ -517,53 +517,14 @@ enum EVENT_NAME {
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
 
   // Perps Trading
-  // Perps Events - Using exact dashboard names from requirements
-  // Tutorial Flow
-  PERPS_TUTORIAL = 'Perp Tutorial',
+  // Perps Events - Consolidated
   PERPS_TUTORIAL_CAROUSEL_NAVIGATED = 'Perp Tutorial Carousel Navigated',
-
-  // Account Funding Flow - removed events (handled by confirmation flow)
-
-  // Account Withdrawal Flow
-  PERPS_WITHDRAWAL_INPUT_VIEWED = 'Perp Withdrawal Input Viewed',
   PERPS_WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
-
-  // Pre-Trade Flow
-  PERPS_MARKETS_VIEWED = 'Perp Markets Viewed',
-  PERPS_ASSET_SEARCH_BAR_CLICKED = 'Perp Asset Search Bar Clicked',
-  PERPS_ASSET_SCREEN_VIEWED = 'Perp Asset Screen Viewed',
-  PERPS_CHART_CANDLE_PERIODS_VIEWED = 'Perp Chart Candle Periods Viewed',
-  PERPS_CHART_INTERACTION = 'Perp Chart Interaction',
-  PERPS_CHART_TIME_SERIE_CHANGED = 'Perp Chart time serie changed',
-
-  // Trade Flow
-  PERPS_TRADING_SCREEN_VIEWED = 'Perp Trading Screen Viewed',
-  PERPS_ORDER_TYPE_VIEWED = 'Perp Order Type Viewed',
-  PERPS_ORDER_TYPE_SELECTED = 'Perp Order Type Selected',
-  PERPS_LEVERAGE_SCREEN_VIEWED = 'Perp Leverage Screen Viewed',
-  PERPS_LEVERAGE_CHANGED = 'Perp Leverage Changed',
   PERPS_TRADE_TRANSACTION = 'Perp Trade Transaction',
-
-  // Close Position Flow
-  PERPS_HOMESCREEN_TAB_VIEWED = 'Perp Homescreen Tab Viewed',
-  PERPS_POSITION_CLOSE_SCREEN_VIEWED = 'Perp Position Close Screen Viewed',
-  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED = 'Perp Position Close Order Type Changed',
   PERPS_POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
-
-  // Risk Management Flow
-  PERPS_STOP_LOSS_SET = 'Stop Loss Set',
-  PERPS_TAKE_PROFIT_SET = 'Take Profit Set',
-  PERPS_STOP_LOSS_EXECUTED = 'Stop Loss Executed',
-  PERPS_TAKE_PROFIT_EXECUTED = 'Take Profit Executed',
-  PERPS_ORDER_LIQUIDATED = 'Order liquidated',
-
-  // Error Management Flow
-  PERPS_WARNING_DISPLAYED = 'Warning displayed',
-  PERPS_ERROR_ENCOUNTERED = 'Error Encountered',
-
-  // Full Page Modal Events
-  PERPS_FULL_PAGE_MODAL_VIEWED = 'Perp Full page modal viewed',
-  PERPS_FULL_PAGE_MODAL_TAPPED = 'Perp Full page modal tapped',
+  PERPS_SCREEN_VIEWED = 'Perp Screen Viewed',
+  PERPS_UI_INTERACTION = 'Perp UI Interaction',
+  PERPS_RISK_MANAGEMENT = 'Perp Risk Management',
 
   // Card
   CARD_VIEWED = 'Card Viewed',
@@ -1351,75 +1312,20 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
-  // Perps Events - Mapped to dashboard requirements (49 events total)
-  // Tutorial Flow (1 consolidated event)
-  PERPS_TUTORIAL: generateOpt(EVENT_NAME.PERPS_TUTORIAL),
+  // Perps Events - Consolidated
   PERPS_TUTORIAL_CAROUSEL_NAVIGATED: generateOpt(
     EVENT_NAME.PERPS_TUTORIAL_CAROUSEL_NAVIGATED,
-  ),
-
-  // Account Funding Flow - removed (handled by confirmation flow)
-
-  // Account Withdrawal Flow (1 consolidated + 1 existing event)
-  PERPS_WITHDRAWAL_INPUT_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_WITHDRAWAL_INPUT_VIEWED,
   ),
   PERPS_WITHDRAWAL_TRANSACTION: generateOpt(
     EVENT_NAME.PERPS_WITHDRAWAL_TRANSACTION,
   ),
-
-  // Pre-Trade Flow (5 events)
-  PERPS_MARKETS_VIEWED: generateOpt(EVENT_NAME.PERPS_MARKETS_VIEWED),
-  PERPS_ASSET_SEARCH_BAR_CLICKED: generateOpt(
-    EVENT_NAME.PERPS_ASSET_SEARCH_BAR_CLICKED,
-  ),
-  PERPS_ASSET_SCREEN_VIEWED: generateOpt(EVENT_NAME.PERPS_ASSET_SCREEN_VIEWED),
-  PERPS_CHART_CANDLE_PERIODS_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_CHART_CANDLE_PERIODS_VIEWED,
-  ),
-  PERPS_CHART_INTERACTION: generateOpt(EVENT_NAME.PERPS_CHART_INTERACTION),
-  PERPS_CHART_TIME_SERIE_CHANGED: generateOpt(
-    EVENT_NAME.PERPS_CHART_TIME_SERIE_CHANGED,
-  ),
-
-  // Trade Flow (11 events)
-  PERPS_TRADING_SCREEN_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_TRADING_SCREEN_VIEWED,
-  ),
-  PERPS_ORDER_TYPE_VIEWED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_VIEWED),
-  PERPS_ORDER_TYPE_SELECTED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_SELECTED),
-  PERPS_LEVERAGE_SCREEN_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_LEVERAGE_SCREEN_VIEWED,
-  ),
-  PERPS_LEVERAGE_CHANGED: generateOpt(EVENT_NAME.PERPS_LEVERAGE_CHANGED),
   PERPS_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PERPS_TRADE_TRANSACTION),
-
-  // Close Position Flow (8 events)
-  PERPS_HOMESCREEN_TAB_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_HOMESCREEN_TAB_VIEWED,
-  ),
-  PERPS_POSITION_CLOSE_SCREEN_VIEWED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
-  ),
-  PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
-  ),
   PERPS_POSITION_CLOSE_TRANSACTION: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
   ),
-
-  // Risk Management Flow (5 events)
-  PERPS_STOP_LOSS_SET: generateOpt(EVENT_NAME.PERPS_STOP_LOSS_SET),
-  PERPS_TAKE_PROFIT_SET: generateOpt(EVENT_NAME.PERPS_TAKE_PROFIT_SET),
-  PERPS_STOP_LOSS_EXECUTED: generateOpt(EVENT_NAME.PERPS_STOP_LOSS_EXECUTED),
-  PERPS_TAKE_PROFIT_EXECUTED: generateOpt(
-    EVENT_NAME.PERPS_TAKE_PROFIT_EXECUTED,
-  ),
-  PERPS_ORDER_LIQUIDATED: generateOpt(EVENT_NAME.PERPS_ORDER_LIQUIDATED),
-
-  // Error Management Flow (2 events)
-  PERPS_WARNING_DISPLAYED: generateOpt(EVENT_NAME.PERPS_WARNING_DISPLAYED),
-  PERPS_ERROR_ENCOUNTERED: generateOpt(EVENT_NAME.PERPS_ERROR_ENCOUNTERED),
+  PERPS_SCREEN_VIEWED: generateOpt(EVENT_NAME.PERPS_SCREEN_VIEWED),
+  PERPS_UI_INTERACTION: generateOpt(EVENT_NAME.PERPS_UI_INTERACTION),
+  PERPS_RISK_MANAGEMENT: generateOpt(EVENT_NAME.PERPS_RISK_MANAGEMENT),
 
   // Asset Filter
   ASSET_FILTER_SELECTED: generateOpt(EVENT_NAME.ASSET_FILTER_SELECTED),

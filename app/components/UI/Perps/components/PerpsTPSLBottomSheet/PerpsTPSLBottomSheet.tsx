@@ -330,7 +330,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
     // Track stop loss and take profit set events
     if (parseStopLossPrice) {
-      track(MetaMetricsEvents.PERPS_STOP_LOSS_SET, {
+      track(MetaMetricsEvents.PERPS_RISK_MANAGEMENT, {
+        [PerpsEventProperties.ACTION_TYPE]:
+          PerpsEventValues.ACTION_TYPE.STOP_LOSS_SET,
         [PerpsEventProperties.ASSET]: asset,
         [PerpsEventProperties.DIRECTION]:
           actualDirection === 'long'
@@ -344,7 +346,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     }
 
     if (parseTakeProfitPrice) {
-      track(MetaMetricsEvents.PERPS_TAKE_PROFIT_SET, {
+      track(MetaMetricsEvents.PERPS_RISK_MANAGEMENT, {
+        [PerpsEventProperties.ACTION_TYPE]:
+          PerpsEventValues.ACTION_TYPE.TAKE_PROFIT_SET,
         [PerpsEventProperties.ASSET]: asset,
         [PerpsEventProperties.DIRECTION]:
           actualDirection === 'long'

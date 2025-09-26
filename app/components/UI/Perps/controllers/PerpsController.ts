@@ -777,9 +777,10 @@ export class PerpsController extends BaseController<
       // Track trade transaction initiated
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION_INITIATED,
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
         )
           .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
             [PerpsEventProperties.ASSET]: params.coin,
             [PerpsEventProperties.DIRECTION]: params.isBuy
               ? PerpsEventValues.DIRECTION.LONG
@@ -808,9 +809,10 @@ export class PerpsController extends BaseController<
       // Track trade transaction submitted
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED,
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
         )
           .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUBMITTED,
             [PerpsEventProperties.ASSET]: params.coin,
             [PerpsEventProperties.DIRECTION]: params.isBuy
               ? PerpsEventValues.DIRECTION.LONG
@@ -846,9 +848,10 @@ export class PerpsController extends BaseController<
         const completionDuration = performance.now() - startTime;
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED,
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
               [PerpsEventProperties.ASSET]: params.coin,
               [PerpsEventProperties.DIRECTION]: params.isBuy
                 ? PerpsEventValues.DIRECTION.LONG
@@ -899,9 +902,10 @@ export class PerpsController extends BaseController<
         const completionDuration = performance.now() - startTime;
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED,
+            MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: params.coin,
               [PerpsEventProperties.DIRECTION]: params.isBuy
                 ? PerpsEventValues.DIRECTION.LONG
@@ -946,9 +950,10 @@ export class PerpsController extends BaseController<
       const completionDuration = performance.now() - startTime;
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED,
+          MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
         )
           .addProperties({
+            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
             [PerpsEventProperties.ASSET]: params.coin,
             [PerpsEventProperties.DIRECTION]: params.isBuy
               ? PerpsEventValues.DIRECTION.LONG
@@ -1088,9 +1093,11 @@ export class PerpsController extends BaseController<
           // Track partially filled event
           MetaMetrics.getInstance().trackEvent(
             MetricsEventBuilder.createEventBuilder(
-              MetaMetricsEvents.PERPS_POSITION_CLOSE_PARTIALLY_FILLED,
+              MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
             )
               .addProperties({
+                [PerpsEventProperties.STATUS]:
+                  PerpsEventValues.STATUS.PARTIALLY_FILLED,
                 [PerpsEventProperties.ASSET]: position.coin,
                 [PerpsEventProperties.DIRECTION]: direction,
                 [PerpsEventProperties.OPEN_POSITION_SIZE]: Math.abs(
@@ -1130,9 +1137,10 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_EXECUTED,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.EXECUTED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_TYPE]: orderType,
@@ -1187,9 +1195,10 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_SIZE]:
@@ -1255,9 +1264,10 @@ export class PerpsController extends BaseController<
 
         MetaMetrics.getInstance().trackEvent(
           MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED,
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
           )
             .addProperties({
+              [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
               [PerpsEventProperties.ASSET]: position.coin,
               [PerpsEventProperties.DIRECTION]: direction,
               [PerpsEventProperties.ORDER_SIZE]:

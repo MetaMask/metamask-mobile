@@ -73,6 +73,7 @@ export const PerpsEventProperties = {
   // Other properties
   INPUT_METHOD: 'input_method', // camelCase per requirements
   ACTION_TYPE: 'action_type',
+  SETTING_TYPE: 'setting_type',
   FAILURE_REASON: 'failure_reason',
   WARNING_TYPE: 'warning_type',
   WARNING_MESSAGE: 'warning_message',
@@ -91,6 +92,7 @@ export const PerpsEventProperties = {
   TOTAL_SCREENS: 'total_screens',
   NAVIGATION_METHOD: 'navigation_method',
   STATUS: 'status',
+  SCREEN_TYPE: 'screen_type',
 } as const;
 
 /**
@@ -146,11 +148,20 @@ export const PerpsEventValues = {
     TAP: 'tap',
     ZOOM: 'zoom',
     SLIDE: 'slide',
-    CANDLE_PERIOD_CHANGE: 'candle_period_change',
+    SEARCH_CLICKED: 'search_clicked',
+    ORDER_TYPE_VIEWED: 'order_type_viewed',
+    ORDER_TYPE_SELECTED: 'order_type_selected',
+    SETTING_CHANGED: 'setting_changed',
+    TUTORIAL_STARTED: 'tutorial_started',
+    TUTORIAL_COMPLETED: 'tutorial_completed',
+    CANDLE_PERIOD_VIEWED: 'candle_period_viewed',
+    CANDLE_PERIOD_CHANGED: 'candle_period_changed',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
     SKIP: 'skip',
+    STOP_LOSS_SET: 'stop_loss_set',
+    TAKE_PROFIT_SET: 'take_profit_set',
   },
   NOTIFICATION_TYPE: {
     POSITION_LIQUIDATED: 'position_liquidated',
@@ -176,5 +187,17 @@ export const PerpsEventValues = {
     EXECUTED: 'executed',
     PARTIALLY_FILLED: 'partially_filled',
     FAILED: 'failed',
+  },
+  SCREEN_TYPE: {
+    MARKETS: 'markets',
+    ASSET_DETAILS: 'asset_details',
+    TRADING: 'trading',
+    HOMESCREEN: 'homescreen',
+    POSITION_CLOSE: 'position_close',
+    LEVERAGE: 'leverage',
+    TUTORIAL: 'tutorial',
+  },
+  SETTING_TYPE: {
+    LEVERAGE: 'leverage',
   },
 } as const;

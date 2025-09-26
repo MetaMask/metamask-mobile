@@ -279,6 +279,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     if (!hasTrackedTradingView.current) {
       const eventProps = {
         [PerpsEventProperties.TIMESTAMP]: Date.now(),
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.TRADING,
         [PerpsEventProperties.ASSET]: orderForm.asset,
         [PerpsEventProperties.DIRECTION]:
           orderForm.direction === 'long'
@@ -286,7 +288,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             : PerpsEventValues.DIRECTION.SHORT,
       };
 
-      track(MetaMetricsEvents.PERPS_TRADING_SCREEN_VIEWED, eventProps);
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, eventProps);
 
       hasTrackedTradingView.current = true;
     }
@@ -327,7 +329,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
       parseFloat(orderForm.amount) > 0 &&
       !hasTrackedOrderTypeView.current
     ) {
-      track(MetaMetricsEvents.PERPS_ORDER_TYPE_VIEWED, {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PerpsEventProperties.INTERACTION_TYPE]:
+          PerpsEventValues.INTERACTION_TYPE.ORDER_TYPE_VIEWED,
         [PerpsEventProperties.ASSET]: orderForm.asset,
         [PerpsEventProperties.DIRECTION]:
           orderForm.direction === 'long'
@@ -1257,7 +1261,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 : PerpsEventValues.INPUT_METHOD.PRESET;
           }
 
-          track(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED, eventProperties);
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            ...eventProperties,
+            [PerpsEventProperties.INTERACTION_TYPE]:
+              PerpsEventValues.INTERACTION_TYPE.SETTING_CHANGED,
+            [PerpsEventProperties.SETTING_TYPE]:
+              PerpsEventValues.SETTING_TYPE.LEVERAGE,
+          });
         }}
         leverage={orderForm.leverage}
         minLeverage={1}
