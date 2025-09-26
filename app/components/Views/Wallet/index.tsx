@@ -127,6 +127,7 @@ import Logger from '../../../util/Logger';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { Carousel } from '../../UI/Carousel';
 import { TokenI } from '../../UI/Tokens/types';
+import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
 import { cloneDeep } from 'lodash';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
@@ -1240,6 +1241,7 @@ const Wallet = ({
             />
           </View>
         ) : null}
+        <NetworkConnectionBanner />
         <>
           {isMultichainAccountsState2Enabled ? (
             <AccountGroupBalance />
