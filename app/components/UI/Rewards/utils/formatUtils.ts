@@ -11,6 +11,22 @@ import { getTimeDifferenceFromNow } from '../../../../util/date';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
 /**
+ * Formats a number to a string with locale-specific formatting.
+ * @param value - The number to format.
+ * @returns The formatted number as a string.
+ */
+export const formatNumber = (value: number | null): string => {
+  if (value === null || value === undefined) {
+    return '0';
+  }
+  try {
+    return getIntlNumberFormatter(I18n.locale).format(value);
+  } catch {
+    return String(value);
+  }
+};
+
+/**
  * Formats a timestamp for rewards date
  * @param timestamp - Unix timestamp in milliseconds
  * @returns Formatted date string with time
@@ -29,11 +45,19 @@ export const formatRewardsDate = (
 
 export const formatTimeRemaining = (endDate: Date): string | null => {
   const { days, hours, minutes } = getTimeDifferenceFromNow(endDate.getTime());
-  return hours <= 0
-    ? minutes <= 0
-      ? null
-      : `${minutes}m`
-    : `${days}d ${hours}h`;
+
+  // No time remaining
+  if (hours <= 0 && minutes <= 0) {
+    return null;
+  }
+
+  // Only minutes remaining
+  if (hours <= 0) {
+    return `${minutes}m`;
+  }
+
+  // Hours and days remaining
+  return `${days}d ${hours}h`;
 };
 
 export const PerpsEventType = {
@@ -81,7 +105,11 @@ const getPerpsEventDetails = (
     return undefined;
 
   const { amount, decimals, symbol } = payload.asset;
-  const formattedAmount = formatUnits(BigInt(amount), decimals);
+  const rawAmount = formatUnits(BigInt(amount), decimals);
+  // Limit to at most 2 decimal places without padding zeros
+  const formattedAmount = formatNumber(
+    parseFloat(Number(rawAmount).toFixed(3)),
+  );
 
   switch (payload.type) {
     case PerpsEventType.OPEN_POSITION:
@@ -112,25 +140,31 @@ const getSwapEventDetails = (payload: SwapEventPayload): string | undefined => {
     return undefined;
 
   const { amount, decimals, symbol } = payload.srcAsset;
-  const formattedAmount = formatUnits(BigInt(amount), decimals);
+  const rawAmount = formatUnits(BigInt(amount), decimals);
+  // Limit to at most 2 decimal places without padding zeros
+  const formattedAmount = formatNumber(
+    parseFloat(Number(rawAmount).toFixed(3)),
+  );
+  const destSymbol = payload.destAsset?.symbol;
 
-  return `${formattedAmount} ${symbol} to ${
-    payload.destAsset?.symbol || 'Unknown'
+  return `${formattedAmount} ${symbol}${
+    destSymbol ? ` ${strings('rewards.events.to')} ${destSymbol}` : ''
   }`;
 };
 
 /**
  * Formats an event details
  * @param event - The event
+ * @param accountName - Optional account name to display for bonus events
  * @returns The event details
  */
 export const getEventDetails = (
   event: PointsEventDto,
+  accountName: string | undefined,
 ): {
   title: string;
   details: string | undefined;
   icon: IconName;
-  badgeImageUri?: string;
 } => {
   switch (event.type) {
     case 'SWAP':
@@ -138,61 +172,43 @@ export const getEventDetails = (
         title: strings('rewards.events.type.swap'),
         details: getSwapEventDetails(event.payload as SwapEventPayload),
         icon: IconName.SwapVertical,
-        badgeImageUri: (event.payload as SwapEventPayload).srcAsset.iconUrl,
       };
     case 'PERPS':
       return {
         title: getPerpsEventTitle(event.payload as PerpsEventPayload),
         details: getPerpsEventDetails(event.payload as PerpsEventPayload),
         icon: IconName.Candlestick,
-        badgeImageUri: (event.payload as PerpsEventPayload).asset.iconUrl,
       };
     case 'REFERRAL':
       return {
         title: strings('rewards.events.type.referral_action'),
         details: undefined,
         icon: IconName.UserCircleAdd,
-        badgeImageUri: undefined,
       };
     case 'SIGN_UP_BONUS':
       return {
         title: strings('rewards.events.type.sign_up_bonus'),
-        details: undefined,
+        details: accountName,
         icon: IconName.Edit,
-        badgeImageUri: undefined,
       };
     case 'LOYALTY_BONUS':
       return {
         title: strings('rewards.events.type.loyalty_bonus'),
-        details: undefined, // TODO: Missing data
+        details: accountName,
         icon: IconName.ThumbUp,
-        badgeImageUri: undefined,
       };
     case 'ONE_TIME_BONUS':
       return {
         title: strings('rewards.events.type.one_time_bonus'),
         details: undefined,
         icon: IconName.Gift,
-        badgeImageUri: undefined,
       };
     default:
       return {
         title: strings('rewards.events.type.uncategorized_event'),
         details: undefined,
         icon: IconName.Star,
-        badgeImageUri: undefined,
       };
-  }
-};
-
-export const formatNumber = (value: number | null): string => {
-  if (value === null || value === undefined) {
-    return '0';
-  }
-  try {
-    return getIntlNumberFormatter(I18n.locale).format(value);
-  } catch (e) {
-    return String(value);
   }
 };
 
@@ -201,3 +217,53 @@ export const getIconName = (iconName: string): IconName =>
   Object.values(IconName).includes(iconName as IconName)
     ? (iconName as IconName)
     : IconName.Star;
+
+// Format Url for display
+export const formatUrl = (url: string): string => {
+  if (!url) {
+    return '';
+  }
+
+  // Clean up the input: trim whitespace and remove backticks
+  const cleanedUrl = url.trim().replace(/((^`)|(`$))/g, '');
+
+  try {
+    const urlObj = new URL(cleanedUrl);
+    // For http/https URLs, return just the hostname
+    if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
+      // Check if the original URL contains Unicode characters to preserve them
+      const originalHostMatch = cleanedUrl.match(/^https?:\/\/([^/?#]+)/);
+      if (originalHostMatch) {
+        const originalHost = originalHostMatch[1];
+        // If the original contains Unicode characters (non-ASCII), use it instead of punycode
+        if (
+          /[^\u0020-\u007E]/.test(originalHost) &&
+          !originalHost.includes('%')
+        ) {
+          return originalHost;
+        }
+      }
+      // For encoded URLs or ASCII domains, use the URL object's hostname which handles decoding
+      return urlObj.hostname;
+    }
+    // For other protocols (file:, mailto:, etc.), return the original URL
+    return cleanedUrl;
+  } catch {
+    // Fallback: manually strip protocol and query strings for http/https
+    if (cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')) {
+      let cleanUrl = cleanedUrl.replace(/^https?:\/\//, '');
+      const queryIndex = cleanUrl.indexOf('?');
+      if (queryIndex !== -1) {
+        cleanUrl = cleanUrl.substring(0, queryIndex);
+      }
+      return cleanUrl;
+    }
+    // For URLs without protocol, strip query parameters
+    const queryIndex = cleanedUrl.indexOf('?');
+    if (queryIndex !== -1) {
+      return cleanedUrl.substring(0, queryIndex);
+    }
+    // For non-http protocols or malformed URLs, return as-is
+    return cleanedUrl;
+  }
+};

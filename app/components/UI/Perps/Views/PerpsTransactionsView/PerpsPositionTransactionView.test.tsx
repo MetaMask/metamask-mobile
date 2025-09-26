@@ -55,6 +55,7 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
   selectHasCreatedSolanaMainnetAccount: jest.fn(),
   selectInternalAccounts: jest.fn(() => []),
+  selectCanSignTransactions: jest.fn(() => true),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({

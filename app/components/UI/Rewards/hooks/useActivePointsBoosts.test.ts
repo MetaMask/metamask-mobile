@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useFocusEffect } from '@react-navigation/native';
 import { useActivePointsBoosts } from './useActivePointsBoosts';
 import Engine from '../../../../core/Engine';
 import {
@@ -7,8 +8,6 @@ import {
   setActiveBoostsError,
 } from '../../../../reducers/rewards';
 import { useDispatch, useSelector } from 'react-redux';
-
-import Logger from '../../../../util/Logger';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -19,6 +18,8 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
   },
 }));
 
@@ -40,8 +41,21 @@ jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+// Mock the useInvalidateByRewardEvents hook
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: jest.fn(),
+}));
+
+// Mock React Navigation hooks
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 describe('useActivePointsBoosts', () => {
   const mockDispatch = jest.fn();
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
@@ -52,7 +66,6 @@ describe('useActivePointsBoosts', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
-  const mockLogger = Logger.log as jest.MockedFunction<typeof Logger.log>;
 
   const mockActiveBoosts = [
     {
@@ -75,8 +88,8 @@ describe('useActivePointsBoosts', () => {
       },
       boostBips: 500,
       seasonLong: false,
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-01-31'),
+      startDate: '2024-01-01',
+      endDate: '2024-01-31',
       backgroundColor: '#00FF00',
     },
   ];
@@ -96,11 +109,21 @@ describe('useActivePointsBoosts', () => {
       }
       return null;
     });
+
+    // Reset the mocked hooks
+    mockUseFocusEffect.mockClear();
   });
 
-  it('should return void', () => {
+  it('should return a fetch function', () => {
     const { result } = renderHook(() => useActivePointsBoosts());
-    expect(result.current).toBeUndefined();
+
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    expect(result.current).toEqual({
+      fetchActivePointsBoosts: expect.any(Function),
+    });
+    expect(typeof result.current.fetchActivePointsBoosts).toBe('function');
   });
 
   it('should skip fetch when seasonId is missing', () => {
@@ -118,15 +141,15 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Missing seasonId or subscriptionId',
-      {
-        seasonId: null,
-        subscriptionId: 'test-subscription-id',
-      },
-    );
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -145,15 +168,15 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Missing seasonId or subscriptionId',
-      {
-        seasonId: 'test-season-id',
-        subscriptionId: null,
-      },
-    );
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -162,10 +185,18 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getActivePointsBoosts',
       'test-season-id',
@@ -174,29 +205,32 @@ describe('useActivePointsBoosts', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setActiveBoosts(mockActiveBoosts),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });
 
-  it('should handle fetch error gracefully', async () => {
+  it('should handle fetch error gracefully and dispatch error state', async () => {
     const mockError = new Error('Network error');
     mockEngineCall.mockRejectedValue(mockError);
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getActivePointsBoosts',
       'test-season-id',
       'test-subscription-id',
-    );
-    expect(mockLogger).toHaveBeenCalledWith(
-      'useActivePointsBoosts: Failed to fetch active points boosts:',
-      'Network error',
     );
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(true));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
@@ -215,12 +249,19 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
-    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });
@@ -230,12 +271,19 @@ describe('useActivePointsBoosts', () => {
 
     renderHook(() => useActivePointsBoosts());
 
+    // Verify that the focus effect callback was registered
+    expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
+
+    // Execute the focus effect callback to trigger the fetch logic
+    const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+    focusCallback();
+
     // Wait for async operations
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(true));
-    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsError(false));
+    expect(mockDispatch).toHaveBeenCalledWith(setActiveBoosts([]));
     expect(mockDispatch).toHaveBeenCalledWith(setActiveBoostsLoading(false));
     // The hook doesn't log success messages, only errors and missing parameters
   });

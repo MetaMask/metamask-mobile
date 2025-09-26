@@ -194,6 +194,24 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "name": "Solana Devnet",
             "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501",
           },
+          "tron:2494104990": {
+            "chainId": "tron:2494104990",
+            "isEvm": false,
+            "name": "Tron Shasta",
+            "nativeCurrency": "tron:2494104990/slip44:195",
+          },
+          "tron:3448148188": {
+            "chainId": "tron:3448148188",
+            "isEvm": false,
+            "name": "Tron Nile",
+            "nativeCurrency": "tron:3448148188/slip44:195",
+          },
+          "tron:728126428": {
+            "chainId": "tron:728126428",
+            "isEvm": false,
+            "name": "Tron",
+            "nativeCurrency": "tron:728126428/slip44:195",
+          },
         },
         "networksWithTransactionActivity": {},
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
@@ -207,7 +225,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "blockExplorerUrls": [],
             "chainId": "0x1",
             "defaultRpcEndpointIndex": 0,
-            "name": "Ethereum Mainnet",
+            "name": "Ethereum",
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
@@ -240,7 +258,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             "blockExplorerUrls": [],
             "chainId": "0x2105",
             "defaultRpcEndpointIndex": 0,
-            "name": "Base Mainnet",
+            "name": "Base",
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
@@ -328,17 +346,28 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "bip122": {
             "bip122:000000000019d6689c085ae165831e93": true,
             "bip122:000000000933ea01ad0ee984209779ba": false,
+            "bip122:00000000da84f2bafbbc53dee25a72ae": false,
             "bip122:00000008819873e925422c1ff0f99f7c": false,
+            "bip122:regtest": false,
           },
           "eip155": {
             "0x1": true,
+            "0x18c6": false,
             "0x2105": true,
+            "0x279f": false,
+            "0xaa36a7": false,
+            "0xe705": false,
             "0xe708": true,
           },
           "solana": {
             "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
             "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
             "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false,
+          },
+          "tron": {
+            "tron:2494104990": false,
+            "tron:3448148188": false,
+            "tron:728126428": false,
           },
         },
       },
@@ -843,6 +872,24 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "name": "Solana Devnet",
             "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501",
           },
+          "tron:2494104990": {
+            "chainId": "tron:2494104990",
+            "isEvm": false,
+            "name": "Tron Shasta",
+            "nativeCurrency": "tron:2494104990/slip44:195",
+          },
+          "tron:3448148188": {
+            "chainId": "tron:3448148188",
+            "isEvm": false,
+            "name": "Tron Nile",
+            "nativeCurrency": "tron:3448148188/slip44:195",
+          },
+          "tron:728126428": {
+            "chainId": "tron:728126428",
+            "isEvm": false,
+            "name": "Tron",
+            "nativeCurrency": "tron:728126428/slip44:195",
+          },
         },
         "networksWithTransactionActivity": {},
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
@@ -856,7 +903,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "blockExplorerUrls": [],
             "chainId": "0x1",
             "defaultRpcEndpointIndex": 0,
-            "name": "Ethereum Mainnet",
+            "name": "Ethereum",
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
@@ -889,7 +936,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "blockExplorerUrls": [],
             "chainId": "0x2105",
             "defaultRpcEndpointIndex": 0,
-            "name": "Base Mainnet",
+            "name": "Base",
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
@@ -977,17 +1024,28 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "bip122": {
             "bip122:000000000019d6689c085ae165831e93": true,
             "bip122:000000000933ea01ad0ee984209779ba": false,
+            "bip122:00000000da84f2bafbbc53dee25a72ae": false,
             "bip122:00000008819873e925422c1ff0f99f7c": false,
+            "bip122:regtest": false,
           },
           "eip155": {
             "0x1": true,
+            "0x18c6": false,
             "0x2105": true,
+            "0x279f": false,
+            "0xaa36a7": false,
+            "0xe705": false,
             "0xe708": true,
           },
           "solana": {
             "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
             "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
             "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false,
+          },
+          "tron": {
+            "tron:2494104990": false,
+            "tron:3448148188": false,
+            "tron:728126428": false,
           },
         },
       },

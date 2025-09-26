@@ -6,15 +6,16 @@ import isUrl from 'is-url';
 import { isNumber } from 'lodash';
 import { ImageSourcePropType } from 'react-native';
 import AppConstants from '../../../app/core/AppConstants';
+import { timeoutFetch } from '../general';
 
 /**
  * Fetches the HTML source of the origin
  * @param url - the origin URL
- * @returns - the HTML source
+ * @returns - the HTML source or undefined if fetch failed
  */
 const fetchHtmlSource = async (url: URL) => {
   try {
-    const response = await fetch(url, { credentials: 'omit' });
+    const response = await timeoutFetch(url, { credentials: 'omit' });
     if (response?.ok) {
       return await response.text();
     }

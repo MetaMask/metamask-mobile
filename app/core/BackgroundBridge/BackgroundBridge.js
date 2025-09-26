@@ -71,6 +71,7 @@ import {
   getSessionScopes,
   KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
+import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
 import {
   makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
@@ -88,6 +89,7 @@ import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { isRelaySupported } from '../RPCMethods/transaction-relay';
 import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
+import { AccountTreeController } from '@metamask/account-tree-controller';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -479,6 +481,10 @@ export class BackgroundBridge extends EventEmitter {
         `${AccountsController.name}:selectedAccountChange`,
         this.handleSolanaAccountChangedFromSelectedAccountChanges,
       );
+      controllerMessenger.unsubscribe(
+        `${AccountTreeController.name}:selectedAccountGroupChange`,
+        this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
+      );
     }
 
     this.port.emit('disconnect', { name: this.port.name, data: null });
@@ -676,6 +682,10 @@ export class BackgroundBridge extends EventEmitter {
           PermissionController,
           origin,
         ),
+        updateCaveat: PermissionController.updateCaveat.bind(
+          PermissionController,
+          origin,
+        ),
         getSelectedNetworkClientId: () =>
           NetworkController.state.selectedNetworkClientId,
         revokePermissionForOrigin: PermissionController.revokePermission.bind(
@@ -812,6 +822,8 @@ export class BackgroundBridge extends EventEmitter {
               transactionMeta: { chainId },
               securityAlertId,
             }),
+          isAuxiliaryFundsSupported: (chainId) =>
+            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
         },
         Engine.controllerMessenger,
       ),
@@ -847,6 +859,8 @@ export class BackgroundBridge extends EventEmitter {
               {},
             );
           },
+          isAuxiliaryFundsSupported: (chainId) =>
+            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
         },
         Engine.controllerMessenger,
       ),
@@ -890,6 +904,11 @@ export class BackgroundBridge extends EventEmitter {
     controllerMessenger.subscribe(
       `${AccountsController.name}:selectedAccountChange`,
       this.handleSolanaAccountChangedFromSelectedAccountChanges,
+    );
+
+    controllerMessenger.subscribe(
+      `${AccountTreeController.name}:selectedAccountGroupChange`,
+      this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
     );
   }
 
@@ -1063,6 +1082,23 @@ export class BackgroundBridge extends EventEmitter {
     }
   };
 
+  handleSolanaAccountChangedFromSelectedAccountGroupChanges = () => {
+    const solanaAccount = this.getNonEvmAccountFromSelectedAccountGroup();
+    if (solanaAccount) {
+      this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
+    }
+  };
+
+  getNonEvmAccountFromSelectedAccountGroup() {
+    const controllerMessenger = Engine.controllerMessenger;
+
+    const [solanaAccount] = controllerMessenger.call(
+      `AccountTreeController:getAccountsFromSelectedAccountGroup`,
+      { type: SolAccountType.DataAccount },
+    );
+    return solanaAccount;
+  }
+
   sendNotificationEip1193(payload) {
     DevLogger.log(`BackgroundBridge::sendNotificationEip1193: `, payload);
     this.engine && this.engine.emit('notification', payload);
@@ -1194,6 +1230,16 @@ export class BackgroundBridge extends EventEmitter {
       sessionScopes[SolScope.Testnet];
 
     if (solanaAccountsChangedNotifications && solanaScope) {
+      const currentSolanaAccountFromSelectedAccountGroup =
+        this.getNonEvmAccountFromSelectedAccountGroup();
+
+      if (currentSolanaAccountFromSelectedAccountGroup) {
+        this._notifySolanaAccountChange([
+          currentSolanaAccountFromSelectedAccountGroup.address,
+        ]);
+        return;
+      }
+
       const { accounts } = solanaScope;
 
       const [accountIdToEmit] = sortMultichainAccountsByLastSelected(accounts);

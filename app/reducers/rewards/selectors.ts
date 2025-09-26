@@ -30,6 +30,9 @@ export const selectBalanceUpdatedAt = (state: RootState) =>
 export const selectSeasonStatusLoading = (state: RootState) =>
   state.rewards.seasonStatusLoading;
 
+export const selectSeasonStatusError = (state: RootState) =>
+  state.rewards.seasonStatusError;
+
 export const selectSeasonId = (state: RootState) => state.rewards.seasonId;
 
 export const selectSeasonName = (state: RootState) => state.rewards.seasonName;
@@ -55,8 +58,14 @@ export const selectOptinAllowedForGeo = (state: RootState) =>
 export const selectOptinAllowedForGeoLoading = (state: RootState) =>
   state.rewards.optinAllowedForGeoLoading;
 
+export const selectOptinAllowedForGeoError = (state: RootState) =>
+  state.rewards.optinAllowedForGeoError;
+
 export const selectReferralDetailsLoading = (state: RootState) =>
   state.rewards.referralDetailsLoading;
+
+export const selectReferralDetailsError = (state: RootState) =>
+  state.rewards.referralDetailsError;
 
 export const selectCandidateSubscriptionId = (state: RootState) =>
   state.rewards.candidateSubscriptionId;
@@ -78,6 +87,9 @@ export const selectUnlockedRewards = (state: RootState) =>
 
 export const selectUnlockedRewardLoading = (state: RootState) =>
   state.rewards.unlockedRewardLoading;
+
+export const selectUnlockedRewardError = (state: RootState) =>
+  state.rewards.unlockedRewardError;
 
 export const selectSeasonRewardById =
   (rewardId: string) => (state: RootState) =>
