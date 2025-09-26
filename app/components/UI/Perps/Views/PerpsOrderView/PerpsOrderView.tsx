@@ -728,6 +728,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         params: {
           market: navigationMarketData,
           isNavigationFromOrderSuccess: false,
+          initialTab: 'position',
         },
       });
 
