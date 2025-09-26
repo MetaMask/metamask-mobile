@@ -1279,7 +1279,6 @@
         "empty_title": "Không có vị thế đang mở",
         "empty_description": "Bạn chưa có bất kỳ vị thế nào đang mở.\nBắt đầu giao dịch để xem các vị thế của bạn tại đây.",
         "first_time_title": "Hợp đồng vĩnh cửu",
-        "first_time_description": "Dự đoán biến động giá với đòn bẩy lên đến 40x.",
         "start_trading": "Bắt đầu giao dịch",
         "start_new_trade": "Bắt đầu giao dịch mới",
         "open_positions": "Vị thế đang mở",
@@ -1761,8 +1760,6 @@
   },
   "defi_positions": {
     "loading_positions": "Đang tải vị thế DeFi...",
-    "no_visible_positions": "Không tìm thấy thứ bạn đang tìm?",
-    "not_supported": "Có thể chúng tôi chưa hỗ trợ giao thức của bạn.",
     "error_cannot_load_page": "Chúng tôi không thể tải trang này.",
     "error_visit_again": "Hãy thử truy cập lại sau.",
     "single_token": "Chỉ {{symbol}}",

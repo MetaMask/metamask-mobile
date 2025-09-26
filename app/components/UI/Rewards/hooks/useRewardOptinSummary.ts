@@ -57,7 +57,7 @@ export const useRewardOptinSummary = (
   // Fetch opt-in status for all accounts
   const fetchOptInStatus = useCallback(async (): Promise<void> => {
     if (!enabled || !accounts.length) {
-      setIsLoading(false);
+      setIsLoading(enabled);
       return;
     }
     if (isLoadingRef.current) {
@@ -67,7 +67,6 @@ export const useRewardOptinSummary = (
 
     try {
       setIsLoading(true);
-
       setHasError(false);
       const addresses = accounts.map((account) => account.address);
 
@@ -97,8 +96,6 @@ export const useRewardOptinSummary = (
     } catch (error) {
       Logger.log('useRewardOptinSummary: Failed to fetch opt-in status', error);
       setHasError(true);
-      setOptedInAccounts([]);
-      setCurrentAccountOptedIn(null);
     } finally {
       isLoadingRef.current = false;
       setIsLoading(false);

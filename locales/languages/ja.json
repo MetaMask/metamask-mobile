@@ -1279,7 +1279,6 @@
         "empty_title": "保有中のポジションはありません",
         "empty_description": "まだポジションはありません。\n取引を開始すると、こちらに表示されます。",
         "first_time_title": "パーペチュアル",
-        "first_time_description": "価格の変動を予想して、レバレッジは最大40倍。",
         "start_trading": "取引を開始",
         "start_new_trade": "新規取引を開始",
         "open_positions": "保有中のポジション",
@@ -1761,8 +1760,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFiポジションを読み込んでいます...",
-    "no_visible_positions": "お探しのものが見つかりませんか？",
-    "not_supported": "ご希望のプロトコルがまだサポートされていない可能性があります。",
     "error_cannot_load_page": "このページを読み込めませんでした。",
     "error_visit_again": "後でまたアクセスしてみてください。",
     "single_token": "{{symbol}}のみ",

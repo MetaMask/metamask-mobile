@@ -1279,7 +1279,6 @@
         "empty_title": "कोइ खुला पोजीशन नहीं",
         "empty_description": "आपके पास अभी तक कोई भी खुला पोजीशन नहीं है।\nयहां अपनी पोजीशन्स देखने के लिए ट्रेडिंग शुरू करें।",
         "first_time_title": "पर्प्स",
-        "first_time_description": "अनुमानित प्राइस 40x तक के लीवरेज के साथ उतार-चढ़ाव करती है।",
         "start_trading": "ट्रेडिंग शुरू करें",
         "start_new_trade": "एक नया ट्रेड शुरू करें",
         "open_positions": "खुले पोजीशन्स",
@@ -1761,8 +1760,6 @@
   },
   "defi_positions": {
     "loading_positions": "DeFi पोजीशंस लोड हो रही है...",
-    "no_visible_positions": "आप जो खोज रहे हैं वह आपको नहीं मिल रहा?",
-    "not_supported": "हम अभी आपके प्रोटोकॉल को सपोर्ट नहीं कर सकते।",
     "error_cannot_load_page": "हम यह पेज लोड नहीं कर सके।",
     "error_visit_again": "बाद में फिर से आने का प्रयास करें।",
     "single_token": "केवल {{symbol}}",

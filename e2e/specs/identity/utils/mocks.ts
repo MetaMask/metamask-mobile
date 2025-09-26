@@ -168,7 +168,7 @@ export const setupAccountMockedBalances = async (
         return url.includes(INFURA_URL);
       })
       .withJsonBodyIncluding({
-        method: 'eth_getBalance',
+        method: 'eth_getTransactionCount',
         params: [account.toLowerCase()],
       })
       .thenCallback(() => ({
