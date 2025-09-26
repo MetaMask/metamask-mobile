@@ -696,12 +696,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           metamaskFeeRate: feeResults.metamaskFeeRate
             ? Number(feeResults.metamaskFeeRate)
             : undefined,
-          feeDiscountPercentage: feeResults.feeDiscountPercentage
-            ? Number(feeResults.feeDiscountPercentage)
-            : undefined,
-          estimatedPoints: feeResults.estimatedPoints
-            ? Number(feeResults.estimatedPoints)
-            : undefined,
         },
       };
 
@@ -764,8 +758,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     feeResults.totalFee,
     feeResults.metamaskFee,
     feeResults.metamaskFeeRate,
-    feeResults.feeDiscountPercentage,
-    feeResults.estimatedPoints,
     currentPrice?.price,
   ]);
 

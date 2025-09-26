@@ -309,9 +309,7 @@ const PerpsClosePositionView: React.FC = () => {
         receivedAmount: receiveAmount,
         realizedPnl: effectivePnL * (closePercentage / 100),
         metamaskFeeRate: feeResults.metamaskFeeRate,
-        feeDiscountPercentage: feeResults.feeDiscountPercentage,
         metamaskFee: feeResults.metamaskFee,
-        estimatedPoints: feeResults.estimatedPoints,
       },
     );
   };
