@@ -402,6 +402,17 @@ export class Engine {
         ChainId['base-mainnet']
       ].rpcEndpoints[0].failoverUrls =
         getFailoverUrlsForInfuraNetwork('base-mainnet');
+
+      // Update default popular network names
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId.mainnet
+      ].name = 'Ethereum';
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['linea-mainnet']
+      ].name = 'Linea';
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['base-mainnet']
+      ].name = 'Base';
     }
 
     const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
