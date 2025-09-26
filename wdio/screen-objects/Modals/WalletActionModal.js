@@ -1,7 +1,7 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 
 class WalletActionModal extends AppwrightGestures {

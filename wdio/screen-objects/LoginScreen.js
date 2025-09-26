@@ -1,7 +1,7 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
-import AppwrightGestures from '../../appwright/utils/AppwrightGestures.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
 import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
 import { expect as appwrightExpect } from 'appwright';
 
