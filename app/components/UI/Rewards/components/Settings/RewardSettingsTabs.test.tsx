@@ -35,18 +35,60 @@ const mockUseRewardOptinSummary = jest.fn();
 const mockUseLinkAccount = jest.fn();
 
 jest.mock('../../hooks/useRewardOptinSummary', () => ({
-  useRewardOptinSummary: () => mockUseRewardOptinSummary(),
+  useRewardOptinSummary: jest.fn(() => mockUseRewardOptinSummary()),
 }));
 
 jest.mock('../../hooks/useLinkAccount', () => ({
-  useLinkAccount: () => mockUseLinkAccount(),
+  useLinkAccount: jest.fn(() => mockUseLinkAccount()),
 }));
+
+// Mock RewardsErrorBanner
+jest.mock('../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      onConfirm,
+      confirmButtonLabel,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+        onConfirm &&
+          ReactActual.createElement(
+            TouchableOpacity,
+            { testID: 'error-retry-button', onPress: onConfirm },
+            ReactActual.createElement(
+              Text,
+              null,
+              confirmButtonLabel || 'Retry',
+            ),
+          ),
+      ),
+  };
+});
 
 // Mock selectors
 const mockSelectSelectedInternalAccount = jest.fn();
+const mockSelectInternalAccounts = jest.fn();
 jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: (state: unknown) =>
     mockSelectSelectedInternalAccount(state),
+  selectInternalAccounts: (state: unknown) => mockSelectInternalAccounts(state),
 }));
 
 // Mock useTailwind
@@ -318,15 +360,17 @@ describe('RewardSettingsTabs', () => {
 
     // Default mock values
     mockSelectSelectedInternalAccount.mockReturnValue(mockAccount1);
+    mockSelectInternalAccounts.mockReturnValue([mockAccount1, mockAccount2]);
     mockUseRewardOptinSummary.mockReturnValue({
       linkedAccounts: [],
       unlinkedAccounts: [],
       isLoading: false,
       hasError: false,
       refresh: jest.fn(),
+      currentAccountOptedIn: false,
     });
     mockUseLinkAccount.mockReturnValue({
-      linkAccount: jest.fn(),
+      linkAccount: jest.fn().mockResolvedValue(true),
       isLoading: false,
     });
   });
@@ -357,6 +401,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: true,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getAllByTestId } = renderWithProvider(
@@ -374,6 +419,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: true,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getAllByTestId } = renderWithProvider(
@@ -392,6 +438,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: true,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { queryByTestId } = renderWithProvider(
@@ -412,16 +459,23 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: true,
         refresh: mockRefresh,
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
         <RewardSettingsTabs initialTabIndex={0} />,
       );
 
-      expect(getByTestId('banner')).toBeTruthy();
-      expect(getByText('mocked_rewards.settings.error_title')).toBeTruthy();
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
       expect(
-        getByText('mocked_rewards.settings.error_description'),
+        getByText(
+          'mocked_rewards.accounts_opt_in_state_error.error_fetching_title',
+        ),
+      ).toBeTruthy();
+      expect(
+        getByText(
+          'mocked_rewards.accounts_opt_in_state_error.error_fetching_description',
+        ),
       ).toBeTruthy();
     });
 
@@ -433,13 +487,14 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: true,
         refresh: mockRefresh,
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId } = renderWithProvider(
         <RewardSettingsTabs initialTabIndex={0} />,
       );
 
-      const retryButton = getByTestId('banner-action-button');
+      const retryButton = getByTestId('error-retry-button');
       fireEvent.press(retryButton);
       expect(mockRefresh).toHaveBeenCalled();
     });
@@ -452,6 +507,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: true,
         hasError: true,
         refresh: mockRefresh,
+        currentAccountOptedIn: false,
       });
 
       const { queryByTestId, getAllByTestId } = renderWithProvider(
@@ -459,7 +515,7 @@ describe('RewardSettingsTabs', () => {
       );
 
       // Should show skeletons instead of error banner when loading
-      expect(queryByTestId('banner')).toBeNull();
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
       expect(getAllByTestId('skeleton').length).toBeGreaterThan(0);
     });
   });
@@ -472,6 +528,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -489,6 +546,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -507,6 +565,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -526,6 +585,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId, getAllByText } = renderWithProvider(
@@ -548,6 +608,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -576,6 +637,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -602,6 +664,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -634,6 +697,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getAllByText } = renderWithProvider(
@@ -666,6 +730,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText, getAllByText } = renderWithProvider(
@@ -699,6 +764,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -723,6 +789,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getAllByText } = renderWithProvider(
@@ -757,6 +824,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText, getAllByText } = renderWithProvider(
@@ -787,6 +855,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       expect(() =>
@@ -802,6 +871,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       expect(() =>
@@ -821,6 +891,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -846,6 +917,7 @@ describe('RewardSettingsTabs', () => {
         isLoading: false,
         hasError: false,
         refresh: jest.fn(),
+        currentAccountOptedIn: false,
       });
 
       const { getByTestId } = renderWithProvider(
