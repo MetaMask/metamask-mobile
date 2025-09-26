@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 
@@ -60,7 +60,7 @@ const OnboardingAnimation = ({
   startOnboardingAnimation: boolean;
   setStartFoxAnimation: (value: boolean) => void;
 }) => {
-  const logoRef = React.createRef<RiveRef>();
+  const logoRef = useRef<RiveRef>(null);
   const logoPosition = useMemo(() => new Animated.Value(0), []);
   const buttonsOpacity = useMemo(() => new Animated.Value(isE2E ? 1 : 0), []);
 
