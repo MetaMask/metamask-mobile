@@ -28,8 +28,7 @@ import { formatNumber } from '../../../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import RewardItem from './RewardItem';
 import RewardsThemeImageComponent from '../../ThemeImageComponent';
-import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
 
 interface TierAccordionProps {
@@ -282,8 +281,7 @@ const UpcomingRewards: React.FC = () => {
 
       {/* Show error banner if there's an error */}
       {hasError && !seasonStartDate && !isLoading && (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
+        <RewardsErrorBanner
           title={strings('rewards.upcoming_rewards_error.error_fetching_title')}
           description={strings(
             'rewards.upcoming_rewards_error.error_fetching_description',
