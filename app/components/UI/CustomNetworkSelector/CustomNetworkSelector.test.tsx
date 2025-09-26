@@ -39,6 +39,7 @@ jest.mock('@metamask/utils', () => ({
     Eip155: 'eip155',
     Solana: 'solana',
     Bip122: 'bip122',
+    Tron: 'tron',
   },
 }));
 

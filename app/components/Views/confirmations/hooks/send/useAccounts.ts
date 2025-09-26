@@ -11,6 +11,9 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import {
   isBtcAccount,
   isSolanaAccount,
+  /// BEGIN:ONLY_INCLUDE_IF(tron)
+  isTronAccount,
+  /// END:ONLY_INCLUDE_IF
 } from '../../../../../core/Multichain/utils';
 import { type RecipientType } from '../../components/UI/recipient';
 import { useSendContext } from '../../context/send-context';
@@ -20,7 +23,14 @@ export const useAccounts = (): RecipientType[] => {
   const multichainWallets = useSelector(selectWallets);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const { from } = useSendContext();
-  const { isEvmSendType, isSolanaSendType, isBitcoinSendType } = useSendType();
+  const {
+    isEvmSendType,
+    isSolanaSendType,
+    isBitcoinSendType,
+    /// BEGIN:ONLY_INCLUDE_IF(tron)
+    isTronSendType,
+    /// END:ONLY_INCLUDE_IF
+  } = useSendType();
 
   const isAccountCompatible = useMemo(
     () => (accountId: string) => {
@@ -43,13 +53,23 @@ export const useAccounts = (): RecipientType[] => {
         return isBtcAccount(account);
       }
       /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(tron)
+      if (isTronSendType) {
+        return isTronAccount(account);
+      }
+      /// END:ONLY_INCLUDE_IF
       return false;
     },
     [
       internalAccountsById,
       isEvmSendType,
       isSolanaSendType,
+      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       isBitcoinSendType,
+      /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(tron)
+      isTronSendType,
+      /// END:ONLY_INCLUDE_IF
       from,
     ],
   );
