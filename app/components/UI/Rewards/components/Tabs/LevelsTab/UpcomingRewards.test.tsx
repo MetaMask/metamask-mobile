@@ -37,6 +37,26 @@ jest.mock('../../../../../../selectors/rewards', () => ({
   selectRewardsActiveAccountAddress: jest.fn(),
 }));
 
+// Mock RewardsErrorBanner
+jest.mock('../../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ title, description }: { title: string; description: string }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+      ),
+  };
+});
+
 import {
   selectSeasonTiers,
   selectCurrentTier,
@@ -268,15 +288,13 @@ describe('UpcomingRewards', () => {
         return [];
       });
 
-      const { getByText } = render(<UpcomingRewards />);
+      const { getByText, getByTestId } = render(<UpcomingRewards />);
 
       // Should show section header
       expect(getByText('rewards.upcoming_rewards.title')).toBeTruthy();
 
-      // Should show error message
-      expect(
-        getByText('rewards.upcoming_rewards_error.error_fetching_title'),
-      ).toBeTruthy();
+      // Should show error banner
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
     });
 
     it('should show skeleton when loading or seasonStartDate is null', () => {
@@ -305,15 +323,13 @@ describe('UpcomingRewards', () => {
         return [];
       });
 
-      const { getByText, queryByText } = render(<UpcomingRewards />);
+      const { getByText, queryByTestId } = render(<UpcomingRewards />);
 
       // Should show section header
       expect(getByText('rewards.upcoming_rewards.title')).toBeTruthy();
 
-      // Should NOT show error message when seasonStartDate exists
-      expect(
-        queryByText('rewards.upcoming_rewards_error.error_fetching_title'),
-      ).toBeNull();
+      // Should NOT show error banner when seasonStartDate exists
+      expect(queryByTestId('rewards-error-banner')).toBeNull();
     });
   });
 
