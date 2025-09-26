@@ -227,50 +227,64 @@ jest.mock(
     },
 );
 
-// Mock Banner
-jest.mock('../../../../../component-library/components/Banners/Banner', () => {
+// Mock RewardsInfoBanner
+jest.mock('../RewardsInfoBanner', () => {
   const ReactForBanner = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
 
-  const Banner = ({
-    title,
-    description,
-    actionButtonProps,
-  }: {
-    title: string;
-    description: string;
-    actionButtonProps?: { label: string; onPress: () => void };
-  }) =>
-    ReactForBanner.createElement(
-      View,
-      { testID: 'banner' },
-      ReactForBanner.createElement(Text, { testID: 'banner-title' }, title),
-      ReactForBanner.createElement(
-        Text,
-        { testID: 'banner-description' },
-        description,
-      ),
-      actionButtonProps &&
-        ReactForBanner.createElement(
-          TouchableOpacity,
-          {
-            onPress: actionButtonProps.onPress,
-            testID: 'banner-action-button',
-          },
-          ReactForBanner.createElement(Text, {}, actionButtonProps.label),
-        ),
-    );
-
   return {
     __esModule: true,
-    default: Banner,
-    BannerVariant: {
-      Alert: 'Alert',
-    },
-    BannerAlertSeverity: {
-      Error: 'Error',
-      Info: 'Info',
-    },
+    default: ({
+      title,
+      description,
+      onDismiss,
+      onConfirm,
+      confirmButtonLabel,
+      onConfirmLoading,
+      testID,
+    }: {
+      title: string | React.ReactNode;
+      description: string;
+      onDismiss?: () => void;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+      onConfirmLoading?: boolean;
+      testID?: string;
+    }) =>
+      ReactForBanner.createElement(
+        View,
+        { testID: testID || 'rewards-info-banner' },
+        ReactForBanner.createElement(
+          Text,
+          { testID: 'info-banner-title' },
+          typeof title === 'string' ? title : 'Complex Title',
+        ),
+        ReactForBanner.createElement(
+          Text,
+          { testID: 'info-banner-description' },
+          description,
+        ),
+        onDismiss &&
+          ReactForBanner.createElement(
+            TouchableOpacity,
+            { testID: 'info-banner-dismiss-button', onPress: onDismiss },
+            ReactForBanner.createElement(Text, {}, 'Dismiss'),
+          ),
+        onConfirm &&
+          ReactForBanner.createElement(
+            TouchableOpacity,
+            {
+              testID: 'info-banner-confirm-button',
+              onPress: onConfirm,
+              disabled: onConfirmLoading,
+            },
+            ReactForBanner.createElement(
+              Text,
+              {},
+              confirmButtonLabel || 'Confirm',
+            ),
+          ),
+      ),
   };
 });
 

@@ -7,6 +7,12 @@ import {
   RewardDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
+import { CaipAccountId } from '@metamask/utils';
+
+export interface AccountOptInBannerInfoStatus {
+  caipAccountId: CaipAccountId;
+  hide: boolean;
+}
 
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels';
@@ -49,6 +55,7 @@ export interface RewardsState {
   optinAllowedForGeoError: boolean;
 
   // UI preferences
+  hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
   hideUnlinkedAccountsBanner: boolean;
 
   // Points Boost state
@@ -93,6 +100,7 @@ export const initialState: RewardsState = {
   optinAllowedForGeoLoading: false,
   optinAllowedForGeoError: false,
   hideUnlinkedAccountsBanner: false,
+  hideCurrentAccountNotOptedInBanner: [],
 
   activeBoosts: null,
   activeBoostsLoading: false,
@@ -244,6 +252,27 @@ const rewardsSlice = createSlice({
       state.hideUnlinkedAccountsBanner = action.payload;
     },
 
+    setHideCurrentAccountNotOptedInBanner: (
+      state,
+      action: PayloadAction<{ accountId: CaipAccountId; hide: boolean }>,
+    ) => {
+      const existingIndex = state.hideCurrentAccountNotOptedInBanner.findIndex(
+        (item) => item.caipAccountId === action.payload.accountId,
+      );
+
+      if (existingIndex !== -1) {
+        // Update existing entry
+        state.hideCurrentAccountNotOptedInBanner[existingIndex].hide =
+          action.payload.hide;
+      } else {
+        // Add new entry
+        state.hideCurrentAccountNotOptedInBanner.push({
+          caipAccountId: action.payload.accountId,
+          hide: action.payload.hide,
+        });
+      }
+    },
+
     setActiveBoosts: (
       state,
       action: PayloadAction<PointsBoostDto[] | null>,
@@ -283,6 +312,8 @@ const rewardsSlice = createSlice({
           // Restore only a few persistent state
           hideUnlinkedAccountsBanner:
             action.payload.rewards.hideUnlinkedAccountsBanner,
+          hideCurrentAccountNotOptedInBanner:
+            action.payload.rewards.hideCurrentAccountNotOptedInBanner,
         };
       }
       return state;
@@ -306,6 +337,7 @@ export const {
   setGeoRewardsMetadataLoading,
   setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
+  setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,
   setActiveBoostsLoading,
   setActiveBoostsError,
