@@ -55,6 +55,7 @@ import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import {
   trace,
@@ -280,7 +281,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
     // Track vault corruption handling attempt
-    track(MetaMetricsEvents.VAULT_CORRUPTION_DETECTED, {
+    trackVaultCorruption('vault_corruption_handling', {
       error_type: 'vault_corruption_handling',
       context: 'vault_corruption_recovery_attempt',
       oauth_login: isComingFromOauthOnboarding,
@@ -322,9 +323,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       }
     } catch (e: unknown) {
       // Track vault corruption handling failure
-      track(MetaMetricsEvents.VAULT_CORRUPTION_DETECTED, {
+      trackVaultCorruption((e as Error).message, {
         error_type: 'vault_corruption_handling_failed',
-        error_message: (e as Error).message,
         context: 'vault_corruption_recovery_failed',
         oauth_login: isComingFromOauthOnboarding,
       });
@@ -567,12 +567,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       containsErrorMessage(loginError, VAULT_ERROR) ||
       containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
     ) {
-      // Track vault corruption detected to Segment
-      track(MetaMetricsEvents.VAULT_CORRUPTION_DETECTED, {
+      // Track vault corruption detected
+      trackVaultCorruption(loginErrorMessage, {
         error_type: containsErrorMessage(loginError, VAULT_ERROR)
           ? 'vault_error'
           : 'json_parse_error',
-        error_message: loginErrorMessage,
         context: 'login_authentication',
         oauth_login: isComingFromOauthOnboarding,
       });
