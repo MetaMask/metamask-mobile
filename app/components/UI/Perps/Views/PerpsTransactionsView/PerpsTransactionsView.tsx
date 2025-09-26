@@ -45,7 +45,7 @@ import {
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { getUserFundingsListTimePeriod } from '../../utils/transactionUtils';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
@@ -60,10 +60,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
 
-  // Track screen load performance
-  usePerpsScreenTracking({
-    screenName: PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
-    dependencies: [flatListData.length > 0],
+  // Track screen load performance with new unified hook
+  usePerpsMeasurement({
+    measurementName: PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
+    conditions: [flatListData.length > 0],
   });
 
   const { isConnected } = usePerpsConnection();

@@ -485,6 +485,9 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Perps', {
       screen: 'PerpsMarketListView',
+      params: {
+        source: 'mainActionButton',
+      },
     });
   });
 

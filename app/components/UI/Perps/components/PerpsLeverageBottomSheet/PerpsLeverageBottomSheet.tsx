@@ -1,4 +1,5 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import React, {
   memo,
   useCallback,
@@ -19,7 +20,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -35,6 +35,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
@@ -47,25 +48,22 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  getLeverageRiskLevel,
+  LEVERAGE_COLORS,
+} from '../../constants/leverageColors';
+import {
+  LEVERAGE_SLIDER_CONFIG,
+  PERFORMANCE_CONFIG,
+} from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
   formatPerpsFiat,
   formatPrice,
   PRICE_RANGES_DETAILED_VIEW,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
-import {
-  LEVERAGE_COLORS,
-  getLeverageRiskLevel,
-} from '../../constants/leverageColors';
-import {
-  LEVERAGE_SLIDER_CONFIG,
-  PERFORMANCE_CONFIG,
-} from '../../constants/perpsConfig';
-import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -342,8 +340,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [draggingLeverage, setDraggingLeverage] = useState(initialLeverage);
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
-  const { track } = usePerpsEventTracking();
-  const hasTrackedLeverageView = useRef(false);
 
   // Dynamically calculate liquidation price based on tempLeverage
   // Use limit price for limit orders, market price for market orders
@@ -391,37 +387,30 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     ? theoreticalLiquidationPrice
     : parseFloat(apiLiquidationPrice) || theoreticalLiquidationPrice;
 
-  // Track screen load performance
-  usePerpsScreenTracking({
-    screenName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
-    dependencies: [isVisible],
-  });
-
   useEffect(() => {
     if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
     } else {
       // Reset all state when the bottom sheet is closed
-      hasTrackedLeverageView.current = false;
       setTempLeverage(initialLeverage);
       setDraggingLeverage(initialLeverage);
       setIsDragging(false);
     }
   }, [isVisible, initialLeverage]);
 
-  // Track leverage screen viewed event - separate concern
-  useEffect(() => {
-    if (isVisible && !hasTrackedLeverageView.current) {
-      track(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED, {
-        [PerpsEventProperties.ASSET]: asset,
-        [PerpsEventProperties.DIRECTION]:
-          direction === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-      });
-      hasTrackedLeverageView.current = true;
-    }
-  }, [isVisible, direction, asset, track]);
+  // Track leverage screen viewed event - declarative
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED,
+    conditions: [isVisible],
+    resetConditions: [!isVisible], // Auto-reset when modal closes
+    properties: {
+      [PerpsEventProperties.ASSET]: asset,
+      [PerpsEventProperties.DIRECTION]:
+        direction === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+    },
+  });
 
   const handleConfirm = () => {
     DevLogger.log(
