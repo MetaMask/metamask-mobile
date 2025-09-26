@@ -99,7 +99,14 @@ interface BridgeTokenSelectorBaseProps {
   }: {
     item: BridgeToken | null;
   }) => React.JSX.Element;
-  tokensList: BridgeToken[];
+  /**
+   * All tokens that we can search through
+   */
+  allTokens: BridgeToken[];
+  tokensToRender: BridgeToken[];
+  /**
+   * Tokens to render, a subset of allTokens to improve rendering performance
+   */
   pending?: boolean;
   chainIdToFetchMetadata?: Hex | CaipChainId;
   title?: string;
@@ -111,7 +118,8 @@ export const BridgeTokenSelectorBase: React.FC<
 > = ({
   networksBar,
   renderTokenItem,
-  tokensList,
+  allTokens,
+  tokensToRender,
   pending,
   chainIdToFetchMetadata: chainId,
   title,
@@ -124,7 +132,7 @@ export const BridgeTokenSelectorBase: React.FC<
     searchResults,
     debouncedSearchString,
   } = useTokenSearch({
-    tokens: tokensList || [],
+    tokens: allTokens || [],
   });
 
   const {
@@ -136,9 +144,9 @@ export const BridgeTokenSelectorBase: React.FC<
     chainId,
   );
 
-  const tokensToRender = useMemo(() => {
+  const tokensToRenderWithSearch = useMemo(() => {
     if (!searchString) {
-      return tokensList;
+      return tokensToRender;
     }
 
     if (searchResults.length > 0) {
@@ -146,7 +154,7 @@ export const BridgeTokenSelectorBase: React.FC<
     }
 
     return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
-  }, [searchString, searchResults, tokensList, unlistedAssetMetadata]);
+  }, [searchString, searchResults, tokensToRender, unlistedAssetMetadata]);
 
   const keyExtractor = useCallback(
     (token: BridgeToken | null, index: number) =>
@@ -180,19 +188,20 @@ export const BridgeTokenSelectorBase: React.FC<
   };
 
   const shouldRenderOverallLoading = useMemo(
-    () => (pending && tokensList?.length === 0) || unlistedAssetMetadataPending,
-    [pending, unlistedAssetMetadataPending, tokensList],
+    () => (pending && allTokens?.length === 0) || unlistedAssetMetadataPending,
+    [pending, unlistedAssetMetadataPending, allTokens],
   );
 
   // We show the tokens with balance immediately, but we need to wait for the top tokens to load
   // So we show a few skeletons for the top tokens
-  const tokensToRenderWithSkeletons: (BridgeToken | null)[] = useMemo(() => {
-    if (pending && tokensToRender?.length > 0) {
-      return [...tokensToRender, ...Array(4).fill(null)];
-    }
+  const tokensToRenderWithSearchAndSkeletons: (BridgeToken | null)[] =
+    useMemo(() => {
+      if (pending && tokensToRenderWithSearch?.length > 0) {
+        return [...tokensToRenderWithSearch, ...Array(4).fill(null)];
+      }
 
-    return tokensToRender;
-  }, [pending, tokensToRender]);
+      return tokensToRenderWithSearch;
+    }, [pending, tokensToRenderWithSearch]);
 
   return (
     <BottomSheet ref={sheetRef} isFullscreen>
@@ -218,7 +227,9 @@ export const BridgeTokenSelectorBase: React.FC<
 
       <ListComponent
         key={scrollResetKey}
-        data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
+        data={
+          shouldRenderOverallLoading ? [] : tokensToRenderWithSearchAndSkeletons
+        }
         renderItem={renderTokenItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={
