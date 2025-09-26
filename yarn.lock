@@ -8137,15 +8137,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "@metamask/remote-feature-flag-controller@npm:1.6.0"
+"@metamask/remote-feature-flag-controller@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "@metamask/remote-feature-flag-controller@npm:1.7.0"
   dependencies:
-    "@metamask/base-controller": ^8.0.0
-    "@metamask/controller-utils": ^11.5.0
-    "@metamask/utils": ^11.2.0
+    "@metamask/base-controller": ^8.0.1
+    "@metamask/controller-utils": ^11.11.0
+    "@metamask/utils": ^11.4.2
     uuid: ^8.3.2
-  checksum: 07dfbfaa013c9fb8ab929904303c4abda97a02935bc58802b0909d415895960e83e32da9996d1c69e42b65e7bd213b326f775681bc4dfabfc40aaf660a8c143a
+  checksum: 32145fb4eb37a2a3ae815273ad53933d263dbffd75f7e39fc6c279b18a945532367347614f6be48f7b5d7f494270c91b76b39db9eddc4de6c0dbd7cbfb4e5f20
   languageName: node
   linkType: hard
 
@@ -33752,7 +33752,7 @@ __metadata:
     "@metamask/react-native-payments": ^2.0.0
     "@metamask/react-native-search-api": 1.0.1
     "@metamask/react-native-webview": ^14.5.0
-    "@metamask/remote-feature-flag-controller": ^1.6.0
+    "@metamask/remote-feature-flag-controller": ^1.7.0
     "@metamask/rpc-errors": ^7.0.2
     "@metamask/scure-bip39": ^2.1.0
     "@metamask/sdk-analytics": 0.0.5

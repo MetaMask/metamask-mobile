@@ -17,7 +17,7 @@ jobs:
     continue-on-error: true
 
     env:
-      METAMASK_ENVIRONMENT: 'local'
+      METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
