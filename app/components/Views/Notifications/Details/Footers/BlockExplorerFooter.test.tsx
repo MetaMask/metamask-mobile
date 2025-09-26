@@ -5,10 +5,8 @@ import { useSelector } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BlockExplorerFooter from './BlockExplorerFooter';
-import {
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../components/hooks/useMetrics';
+import mockUseMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
 import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
 import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
@@ -25,23 +23,9 @@ jest.mock('../../../../../util/notifications', () => ({
   getBlockExplorerByChainId: jest.fn(),
 }));
 
-jest.mock('../../../../../components/hooks/useMetrics');
-
-const trackEventMock = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: trackEventMock,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mock('../../../../../components/hooks/useMetrics/useMetrics');
+const { trackEvent } = mockUseMetrics();
+const trackEventMock = jest.mocked(trackEvent);
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),

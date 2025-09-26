@@ -71,7 +71,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   useEffect(() => {
     if (!isBasicFunctionalityEnabled) {
-      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+      if (isSeedlessOnboardingLoginFlow) {
         enableSocialLogin(false);
       } else {
         enable(false);
@@ -112,7 +112,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+      if (isSeedlessOnboardingLoginFlow) {
         await enableSocialLogin(true);
       } else {
         await enable();
@@ -133,7 +133,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         );
       });
     } else {
-      if (isSeedlessOnboardingLoginFlow && enableSocialLogin) {
+      if (isSeedlessOnboardingLoginFlow) {
         await enableSocialLogin(false);
       } else {
         await enable(false);

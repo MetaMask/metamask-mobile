@@ -5,7 +5,6 @@ import { ModalFieldType } from '../../../../../util/notifications';
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import { createMockNotificationEthReceived } from '@metamask/notification-services-controller/notification-services/mocks';
 import NetworkFeeFieldSkeleton from './Skeletons/NetworkFeeField';
-import { useMetrics } from '../../../../hooks/useMetrics';
 
 jest.mock('../../../../../util/notifications/methods/common', () => ({
   getNetworkFees: () =>
@@ -20,7 +19,8 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
       transactionFeeInUsd: '0',
     }),
 }));
-jest.mock('../../../../hooks/useMetrics');
+jest.mock('../../../../hooks/useMetrics/useMetrics');
+
 const MOCK_NOTIFICATION = processNotification(
   createMockNotificationEthReceived(),
 );
@@ -30,23 +30,9 @@ jest.mock('./NetworkFeeField');
 describe('NetworkFeeField', () => {
   const setIsCollapsed = jest.fn();
   const isCollapsed = false;
-  const mockTrackEvent = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: jest.fn(),
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
-    });
   });
 
   it('renders correctly when type has "ModalField-NetworkFee"', () => {
