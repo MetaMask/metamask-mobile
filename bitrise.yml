@@ -1687,6 +1687,7 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
+      - code_setup
       - install_applesimutils
       - prep_environment
     after_run:
