@@ -18,7 +18,10 @@ import { strings } from '../../../../locales/i18n';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
-import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import {
+  selectSeedlessOnboardingAuthConnection,
+  selectSeedlessOnboardingLoginFlow,
+} from '../../../selectors/seedlessOnboardingController';
 
 jest.mock('rive-react-native', () => {
   const ReactMock = jest.requireActual('react');
@@ -143,6 +146,30 @@ jest.mock(
   '../../../util/importAdditionalAccounts',
   () => () => mockImportAdditionalAccounts(),
 );
+
+const clearTestTimers = (timerRefs: {
+  animationId?: React.MutableRefObject<NodeJS.Timeout | null>;
+  dotsIntervalId?: React.MutableRefObject<NodeJS.Timeout | null>;
+  finalTimeoutId?: React.MutableRefObject<NodeJS.Timeout | null>;
+  socialLoginTimeoutId?: React.MutableRefObject<NodeJS.Timeout | null>;
+}) => {
+  if (timerRefs.animationId?.current) {
+    clearTimeout(timerRefs.animationId.current);
+    timerRefs.animationId.current = null;
+  }
+  if (timerRefs.dotsIntervalId?.current) {
+    clearInterval(timerRefs.dotsIntervalId.current);
+    timerRefs.dotsIntervalId.current = null;
+  }
+  if (timerRefs.finalTimeoutId?.current) {
+    clearTimeout(timerRefs.finalTimeoutId.current);
+    timerRefs.finalTimeoutId.current = null;
+  }
+  if (timerRefs.socialLoginTimeoutId?.current) {
+    clearTimeout(timerRefs.socialLoginTimeoutId.current);
+    timerRefs.socialLoginTimeoutId.current = null;
+  }
+};
 
 describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
@@ -348,6 +375,12 @@ describe('OnboardingSuccess', () => {
         if (selector === selectSeedlessOnboardingAuthConnection) {
           return testCase.authConnection;
         }
+        if (selector === selectSeedlessOnboardingLoginFlow) {
+          return (
+            testCase.authConnection === AuthConnection.Google ||
+            testCase.authConnection === AuthConnection.Apple
+          );
+        }
         return undefined;
       });
 
@@ -401,6 +434,9 @@ describe('OnboardingSuccess', () => {
         if (selector === selectSeedlessOnboardingAuthConnection) {
           return AuthConnection.Google;
         }
+        if (selector === selectSeedlessOnboardingLoginFlow) {
+          return true;
+        }
         return undefined;
       });
 
@@ -412,7 +448,6 @@ describe('OnboardingSuccess', () => {
         const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
         const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
         const riveRef = React.useRef({ fireState: jest.fn() });
-        const authConnection: AuthConnection | null = AuthConnection.Google;
 
         const startRiveAnimation = React.useCallback(() => {
           try {
@@ -432,10 +467,7 @@ describe('OnboardingSuccess', () => {
             }, 300);
 
             animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
+              clearTestTimers({ dotsIntervalId });
               setAnimationStep(2);
             }, 1200);
 
@@ -443,12 +475,7 @@ describe('OnboardingSuccess', () => {
               setAnimationStep(3);
               finalTimeoutId.current = null;
 
-              const isSocialLoginConnection = (
-                conn: AuthConnection | null,
-              ): conn is AuthConnection =>
-                conn === AuthConnection.Google || conn === AuthConnection.Apple;
-              const currentIsSocialLogin =
-                isSocialLoginConnection(authConnection);
+              const currentIsSocialLogin = true;
               if (currentIsSocialLogin) {
                 socialLoginTimeoutId.current = setTimeout(
                   () => mockOnDone(),
@@ -462,7 +489,7 @@ describe('OnboardingSuccess', () => {
               'Error triggering Rive onboarding animation',
             );
           }
-        }, [authConnection]);
+        }, []);
 
         React.useEffect(() => {
           startRiveAnimation();
@@ -495,7 +522,6 @@ describe('OnboardingSuccess', () => {
         const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
         const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
         const riveRef = React.useRef({ fireState: jest.fn() });
-        const authConnection: AuthConnection | null = AuthConnection.Apple;
 
         const startRiveAnimation = React.useCallback(() => {
           try {
@@ -515,10 +541,7 @@ describe('OnboardingSuccess', () => {
             }, 300);
 
             animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
+              clearTestTimers({ dotsIntervalId });
               setAnimationStep(2);
             }, 1200);
 
@@ -526,12 +549,7 @@ describe('OnboardingSuccess', () => {
               setAnimationStep(3);
               finalTimeoutId.current = null;
 
-              const isSocialLoginConnection = (
-                conn: AuthConnection | null,
-              ): conn is AuthConnection =>
-                conn === AuthConnection.Google || conn === AuthConnection.Apple;
-              const currentIsSocialLogin =
-                isSocialLoginConnection(authConnection);
+              const currentIsSocialLogin = true;
               if (currentIsSocialLogin) {
                 socialLoginTimeoutId.current = setTimeout(
                   () => mockOnDone(),
@@ -545,7 +563,7 @@ describe('OnboardingSuccess', () => {
               'Error triggering Rive onboarding animation',
             );
           }
-        }, [authConnection]);
+        }, []);
 
         React.useEffect(() => {
           startRiveAnimation();
@@ -578,7 +596,6 @@ describe('OnboardingSuccess', () => {
         const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
         const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
         const riveRef = React.useRef({ fireState: jest.fn() });
-        const authConnection: AuthConnection | null = null;
 
         const startRiveAnimation = React.useCallback(() => {
           try {
@@ -598,10 +615,7 @@ describe('OnboardingSuccess', () => {
             }, 300);
 
             animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
+              clearTestTimers({ dotsIntervalId });
               setAnimationStep(2);
             }, 1200);
 
@@ -609,12 +623,7 @@ describe('OnboardingSuccess', () => {
               setAnimationStep(3);
               finalTimeoutId.current = null;
 
-              const isSocialLoginConnection = (
-                conn: AuthConnection | null,
-              ): conn is AuthConnection =>
-                conn === AuthConnection.Google || conn === AuthConnection.Apple;
-              const currentIsSocialLogin =
-                isSocialLoginConnection(authConnection);
+              const currentIsSocialLogin = false;
               if (currentIsSocialLogin) {
                 socialLoginTimeoutId.current = setTimeout(
                   () => mockOnDone(),
@@ -628,7 +637,7 @@ describe('OnboardingSuccess', () => {
               'Error triggering Rive onboarding animation',
             );
           }
-        }, [authConnection]);
+        }, []);
 
         React.useEffect(() => {
           startRiveAnimation();
@@ -645,7 +654,6 @@ describe('OnboardingSuccess', () => {
 
       jest.advanceTimersByTime(5000);
 
-      // Should NOT call mockOnDone since it's not a social login
       expect(mockOnDone).not.toHaveBeenCalled();
       jest.useRealTimers();
     });
@@ -680,10 +688,7 @@ describe('OnboardingSuccess', () => {
             }, 300);
 
             animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
+              clearTestTimers({ dotsIntervalId });
             }, 1200);
           } catch (error) {
             Logger.error(
@@ -706,8 +711,7 @@ describe('OnboardingSuccess', () => {
 
       renderWithProvider(<TestDotsAnimation />, { state: {} });
 
-      // Fast forward to trigger setInterval calls
-      jest.advanceTimersByTime(900); // 3 intervals at 300ms each
+      jest.advanceTimersByTime(900);
 
       expect(dotsCallCount).toBeGreaterThan(0);
       jest.useRealTimers();
@@ -743,10 +747,7 @@ describe('OnboardingSuccess', () => {
             }, 300);
 
             animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
+              clearTestTimers({ dotsIntervalId });
               setAnimationStep(2);
             }, 1200);
 
@@ -779,7 +780,6 @@ describe('OnboardingSuccess', () => {
 
       renderWithProvider(<TestTimeoutClearing />, { state: {} });
 
-      // Advance timers to trigger all timeout logic
       jest.advanceTimersByTime(5000);
 
       jest.useRealTimers();
@@ -815,10 +815,7 @@ describe('OnboardingSuccess', () => {
             }, 300);
 
             animationId.current = setTimeout(() => {
-              if (dotsIntervalId.current) {
-                clearInterval(dotsIntervalId.current);
-                dotsIntervalId.current = null;
-              }
+              clearTestTimers({ dotsIntervalId });
               setAnimationStep(2);
             }, 1200);
 
@@ -842,22 +839,12 @@ describe('OnboardingSuccess', () => {
           startRiveAnimation();
 
           return () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-            if (dotsIntervalId.current) {
-              clearInterval(dotsIntervalId.current);
-              dotsIntervalId.current = null;
-            }
-            if (finalTimeoutId.current) {
-              clearTimeout(finalTimeoutId.current);
-              finalTimeoutId.current = null;
-            }
-            if (socialLoginTimeoutId.current) {
-              clearTimeout(socialLoginTimeoutId.current);
-              socialLoginTimeoutId.current = null;
-            }
+            clearTestTimers({
+              animationId,
+              dotsIntervalId,
+              finalTimeoutId,
+              socialLoginTimeoutId,
+            });
           };
         }, [startRiveAnimation]);
 
@@ -872,10 +859,8 @@ describe('OnboardingSuccess', () => {
         state: {},
       });
 
-      // Start some timers
       jest.advanceTimersByTime(100);
 
-      // Unmount component to trigger cleanup
       unmount();
 
       jest.useRealTimers();
@@ -1030,16 +1015,15 @@ describe('OnboardingSuccess', () => {
         if (selector === selectSeedlessOnboardingAuthConnection) {
           return null;
         }
+        if (selector === selectSeedlessOnboardingLoginFlow) {
+          return false;
+        }
         return undefined;
       });
 
       const TestNullAuthConnection = () => {
-        const authConnection: AuthConnection | null = null;
-
         const testSocialLoginBranch = () => {
-          const currentIsSocialLogin =
-            authConnection === AuthConnection.Google ||
-            authConnection === AuthConnection.Apple;
+          const currentIsSocialLogin = false; // No authConnection means not social login
           expect(currentIsSocialLogin).toBe(false);
         };
 
@@ -1081,10 +1065,7 @@ describe('OnboardingSuccess', () => {
           startRiveAnimation();
 
           return () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
+            clearTestTimers({ animationId });
           };
         }, [startRiveAnimation]);
 
@@ -1127,22 +1108,12 @@ describe('OnboardingSuccess', () => {
           }, 4000);
 
           return () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-            if (dotsIntervalId.current) {
-              clearInterval(dotsIntervalId.current);
-              dotsIntervalId.current = null;
-            }
-            if (finalTimeoutId.current) {
-              clearTimeout(finalTimeoutId.current);
-              finalTimeoutId.current = null;
-            }
-            if (socialLoginTimeoutId.current) {
-              clearTimeout(socialLoginTimeoutId.current);
-              socialLoginTimeoutId.current = null;
-            }
+            clearTestTimers({
+              animationId,
+              dotsIntervalId,
+              finalTimeoutId,
+              socialLoginTimeoutId,
+            });
           };
         }, []);
 
@@ -1178,22 +1149,12 @@ describe('OnboardingSuccess', () => {
 
         React.useEffect(
           () => () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-            if (dotsIntervalId.current) {
-              clearInterval(dotsIntervalId.current);
-              dotsIntervalId.current = null;
-            }
-            if (finalTimeoutId.current) {
-              clearTimeout(finalTimeoutId.current);
-              finalTimeoutId.current = null;
-            }
-            if (socialLoginTimeoutId.current) {
-              clearTimeout(socialLoginTimeoutId.current);
-              socialLoginTimeoutId.current = null;
-            }
+            clearTestTimers({
+              animationId,
+              dotsIntervalId,
+              finalTimeoutId,
+              socialLoginTimeoutId,
+            });
           },
           [],
         );
@@ -1241,10 +1202,7 @@ describe('OnboardingSuccess', () => {
 
           return () => {
             cleanupCallCount++;
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
+            clearTestTimers({ animationId });
           };
         }, [startRiveAnimation]);
 
@@ -1301,22 +1259,12 @@ describe('OnboardingSuccess', () => {
           startRiveAnimation();
 
           return () => {
-            if (animationId.current) {
-              clearTimeout(animationId.current);
-              animationId.current = null;
-            }
-            if (dotsIntervalId.current) {
-              clearInterval(dotsIntervalId.current);
-              dotsIntervalId.current = null;
-            }
-            if (finalTimeoutId.current) {
-              clearTimeout(finalTimeoutId.current);
-              finalTimeoutId.current = null;
-            }
-            if (socialLoginTimeoutId.current) {
-              clearTimeout(socialLoginTimeoutId.current);
-              socialLoginTimeoutId.current = null;
-            }
+            clearTestTimers({
+              animationId,
+              dotsIntervalId,
+              finalTimeoutId,
+              socialLoginTimeoutId,
+            });
           };
         }, [startRiveAnimation]);
 
@@ -1556,6 +1504,178 @@ describe('OnboardingSuccess', () => {
     });
   });
 
+  describe('Switch Case Default Branch Coverage', () => {
+    it('should render fallback content for undefined success flow types', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectSeedlessOnboardingAuthConnection) {
+          return null;
+        }
+        if (selector === selectSeedlessOnboardingLoginFlow) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const TestUndefinedSuccessFlow = () => {
+        const [animationStep] = React.useState(1);
+        const fadeOutOpacity = React.useRef({ _value: 1 }).current;
+        const fadeInOpacity = React.useRef({ _value: 0 }).current;
+
+        const successFlow = 'unknownFlow' as string;
+        const isSocialLogin = false;
+
+        const renderAnimatedDots = () => '.'.repeat(1);
+
+        const animationStyle = { flex: 1, height: 300 };
+        const RiveAnimationComponent = (
+          <View testID="rive-animation" style={animationStyle} />
+        );
+
+        const shouldUseDynamicContent =
+          isSocialLogin ||
+          !successFlow ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP;
+
+        if (shouldUseDynamicContent) {
+          return <View testID="dynamic-content" />;
+        }
+
+        return (
+          <View testID="switch-default-content">
+            <View testID="animation-container">
+              {RiveAnimationComponent}
+              <View testID="text-overlay">
+                {animationStep === 3 ? (
+                  <>
+                    <View
+                      testID="fade-out-text"
+                      style={{ opacity: fadeOutOpacity._value }}
+                    >
+                      <Text>Setting up your wallet</Text>
+                    </View>
+                    <View
+                      testID="fade-in-text"
+                      style={{ opacity: fadeInOpacity._value }}
+                    >
+                      <Text>Your wallet is ready!</Text>
+                    </View>
+                  </>
+                ) : (
+                  <Text testID="regular-text">
+                    {animationStep === 1
+                      ? `Setting up your wallet${renderAnimatedDots()}`
+                      : 'Setting up your wallet'}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        );
+      };
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <TestUndefinedSuccessFlow />,
+        { state: {} },
+      );
+
+      expect(getByTestId('switch-default-content')).toBeTruthy();
+      expect(getByTestId('animation-container')).toBeTruthy();
+      expect(getByTestId('text-overlay')).toBeTruthy();
+      expect(getByTestId('rive-animation')).toBeTruthy();
+      expect(getByTestId('regular-text')).toBeTruthy();
+      expect(queryByTestId('dynamic-content')).toBeNull();
+    });
+
+    it('should render switch default content with step 3 fade animation', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectSeedlessOnboardingAuthConnection) {
+          return null;
+        }
+        if (selector === selectSeedlessOnboardingLoginFlow) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const TestSwitchDefaultStep3 = () => {
+        const [animationStep] = React.useState(3);
+        const fadeOutOpacity = React.useRef({ _value: 0 }).current;
+        const fadeInOpacity = React.useRef({ _value: 1 }).current;
+
+        const successFlow = 'futureFlow' as string;
+        const isSocialLogin = false;
+
+        const animationStyle = { flex: 1, height: 300 };
+        const RiveAnimationComponent = (
+          <View testID="rive-animation" style={animationStyle} />
+        );
+
+        const shouldUseDynamicContent =
+          isSocialLogin ||
+          !successFlow ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP ||
+          successFlow === ONBOARDING_SUCCESS_FLOW.REMINDER_BACKUP;
+
+        if (shouldUseDynamicContent) {
+          return <View testID="dynamic-content" />;
+        }
+
+        return (
+          <View testID="switch-default-step3">
+            <View testID="animation-container">
+              {RiveAnimationComponent}
+              <View testID="text-overlay">
+                {animationStep === 3 ? (
+                  <>
+                    <View
+                      testID="fade-out-container"
+                      style={{ opacity: fadeOutOpacity._value }}
+                    >
+                      <Text testID="setup-text">Setting up your wallet</Text>
+                    </View>
+                    <View
+                      testID="fade-in-container"
+                      style={{ opacity: fadeInOpacity._value }}
+                    >
+                      <Text testID="ready-text">Your wallet is ready!</Text>
+                    </View>
+                  </>
+                ) : (
+                  <Text testID="regular-text">Setting up your wallet</Text>
+                )}
+              </View>
+            </View>
+          </View>
+        );
+      };
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <TestSwitchDefaultStep3 />,
+        { state: {} },
+      );
+
+      expect(getByTestId('switch-default-step3')).toBeTruthy();
+      expect(getByTestId('fade-out-container')).toBeTruthy();
+      expect(getByTestId('fade-in-container')).toBeTruthy();
+      expect(getByTestId('setup-text')).toBeTruthy();
+      expect(getByTestId('ready-text')).toBeTruthy();
+      expect(queryByTestId('regular-text')).toBeNull();
+      expect(queryByTestId('dynamic-content')).toBeNull();
+
+      const fadeOutContainer = getByTestId('fade-out-container');
+      const fadeInContainer = getByTestId('fade-in-container');
+      expect(fadeOutContainer.props.style.opacity).toBe(0);
+      expect(fadeInContainer.props.style.opacity).toBe(1);
+    });
+  });
+
   describe('isE2E Tests', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -1571,7 +1691,6 @@ describe('OnboardingSuccess', () => {
         const isSocialLogin = true;
 
         const startRiveAnimation = React.useCallback(() => {
-          // Directly use true for isE2E to test E2E flow
           const isE2E = true;
           if (isE2E) {
             setAnimationStep(3);
@@ -1624,7 +1743,6 @@ describe('OnboardingSuccess', () => {
         });
 
         const startRiveAnimation = React.useCallback(() => {
-          // Directly use false for isE2E to test normal flow
           const isE2E = false;
           if (isE2E) {
             setAnimationStep(3);

@@ -31,8 +31,7 @@ import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboardi
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import createStyles from './index.styles';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-commonjs, @typescript-eslint/no-var-requires
-const OnboardingLoaderAnimation = require('../../../animations/onboarding_loader.riv');
+import OnboardingLoaderAnimation from '../../../animations/onboarding_loader.riv';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Logger from '../../../util/Logger';
 import { isE2E } from '../../../util/test/utils';
@@ -40,12 +39,35 @@ import { isE2E } from '../../../util/test/utils';
 import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
-import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { useDispatch, useSelector } from 'react-redux';
-import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
+
+const clearTimers = (timerRefs: {
+  animationId?: React.MutableRefObject<NodeJS.Timeout | null>;
+  dotsIntervalId?: React.MutableRefObject<NodeJS.Timeout | null>;
+  finalTimeoutId?: React.MutableRefObject<NodeJS.Timeout | null>;
+  socialLoginTimeoutId?: React.MutableRefObject<NodeJS.Timeout | null>;
+}) => {
+  if (timerRefs.animationId?.current) {
+    clearTimeout(timerRefs.animationId.current);
+    timerRefs.animationId.current = null;
+  }
+  if (timerRefs.dotsIntervalId?.current) {
+    clearInterval(timerRefs.dotsIntervalId.current);
+    timerRefs.dotsIntervalId.current = null;
+  }
+  if (timerRefs.finalTimeoutId?.current) {
+    clearTimeout(timerRefs.finalTimeoutId.current);
+    timerRefs.finalTimeoutId.current = null;
+  }
+  if (timerRefs.socialLoginTimeoutId?.current) {
+    clearTimeout(timerRefs.socialLoginTimeoutId.current);
+    timerRefs.socialLoginTimeoutId.current = null;
+  }
+};
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -67,11 +89,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const isDarkMode = themeAppearance === 'dark';
   const styles = createStyles(colors, isDarkMode);
 
-  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
-
-  const isSocialLogin =
-    authConnection === AuthConnection.Google ||
-    authConnection === AuthConnection.Apple;
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   const riveRef = useRef<RiveRef>(null);
   const [animationStep, setAnimationStep] = useState(1);
@@ -146,30 +164,22 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       }, 500);
 
       animationId.current = setTimeout(() => {
-        if (dotsIntervalId.current) {
-          clearInterval(dotsIntervalId.current);
-          dotsIntervalId.current = null;
-        }
+        clearTimers({ dotsIntervalId });
         setAnimationStep(2);
       }, 2000);
 
       finalTimeoutId.current = setTimeout(() => {
         setAnimationStep(3);
-
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (riveRef.current) {
-              riveRef.current.fireState('OnboardingLoader', 'End');
-              startFadeTransition();
-            }
-          });
-        });
+        setTimeout(() => {
+          if (riveRef.current) {
+            riveRef.current.fireState('OnboardingLoader', 'End');
+            startFadeTransition();
+          }
+        }, 50);
 
         finalTimeoutId.current = null;
 
-        const currentIsSocialLogin =
-          authConnection === AuthConnection.Google ||
-          authConnection === AuthConnection.Apple;
+        const currentIsSocialLogin = isSocialLogin;
         if (currentIsSocialLogin) {
           socialLoginTimeoutId.current = setTimeout(() => onDone(), 1000);
         }
@@ -204,22 +214,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
     return () => {
       // Clear all timers
-      if (animationId.current) {
-        clearTimeout(animationId.current);
-        animationId.current = null;
-      }
-      if (dotsIntervalId.current) {
-        clearInterval(dotsIntervalId.current);
-        dotsIntervalId.current = null;
-      }
-      if (finalTimeoutId.current) {
-        clearTimeout(finalTimeoutId.current);
-        finalTimeoutId.current = null;
-      }
-      if (socialLoginTimeoutId.current) {
-        clearTimeout(socialLoginTimeoutId.current);
-        socialLoginTimeoutId.current = null;
-      }
+      clearTimers({
+        animationId,
+        dotsIntervalId,
+        finalTimeoutId,
+        socialLoginTimeoutId,
+      });
     };
   }, [startRiveAnimation]);
 
@@ -309,7 +309,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             <View style={styles.textOverlay}>
               {animationStep === 3 ? (
                 <>
-                  {/* Fade out: Setup text */}
                   <Animated.View
                     style={[
                       styles.fadeOutContainer,
@@ -324,7 +323,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
                       {strings('onboarding_success.setting_up_wallet')}
                     </Text>
                   </Animated.View>
-                  {/* Fade in: Ready text */}
                   <Animated.View
                     style={[styles.fadeInContainer, { opacity: fadeInOpacity }]}
                   >
