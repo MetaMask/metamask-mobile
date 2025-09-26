@@ -213,6 +213,10 @@ const PerpsClosePositionView: React.FC = () => {
   // Track position close screen viewed event
   useEffect(() => {
     if (!hasTrackedCloseView.current) {
+      // Calculate unrealized PnL percentage
+      const unrealizedPnlPercent =
+        initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
+
       track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
         [PerpsEventProperties.ASSET]: position.coin,
         [PerpsEventProperties.DIRECTION]: isLong
@@ -220,10 +224,22 @@ const PerpsClosePositionView: React.FC = () => {
           : PerpsEventValues.DIRECTION.SHORT,
         [PerpsEventProperties.POSITION_SIZE]: absSize,
         [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+        [PerpsEventProperties.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+        [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
       });
       hasTrackedCloseView.current = true;
     }
-  }, [position.coin, isLong, absSize, pnl, track]);
+  }, [
+    position.coin,
+    isLong,
+    absSize,
+    pnl,
+    initialMargin,
+    receiveAmount,
+    track,
+  ]);
 
   // Initialize USD values when price data is available (only once, not on price updates)
   useEffect(() => {
@@ -241,6 +257,11 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleConfirm = async () => {
     // Track position close initiated
+    const pnlPercent =
+      initialMargin > 0
+        ? ((effectivePnL * (closePercentage / 100)) / initialMargin) * 100
+        : 0;
+
     track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
       [PerpsEventProperties.ASSET]: position.coin,
       [PerpsEventProperties.DIRECTION]: isLong
@@ -251,6 +272,13 @@ const PerpsClosePositionView: React.FC = () => {
       [PerpsEventProperties.CLOSE_VALUE]: closingValue,
       [PerpsEventProperties.PNL_DOLLAR]: effectivePnL * (closePercentage / 100),
       [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+      [PerpsEventProperties.OPEN_POSITION_SIZE]: absSize,
+      [PerpsEventProperties.ORDER_SIZE]: parseFloat(closeAmount),
+      [PerpsEventProperties.PNL_PERCENT]: pnlPercent,
+      [PerpsEventProperties.FEE]: feeResults.totalFee,
+      [PerpsEventProperties.ASSET_PRICE]: currentPrice,
+      [PerpsEventProperties.LIMIT_PRICE]:
+        orderType === 'limit' ? parseFloat(limitPrice) || null : null,
     });
 
     // Track position close submitted
@@ -275,7 +303,14 @@ const PerpsClosePositionView: React.FC = () => {
       sizeToClose || '',
       orderType,
       orderType === 'limit' ? limitPrice : undefined,
-      feeResults,
+      {
+        totalFee: feeResults.totalFee,
+        marketPrice: currentPrice,
+        receivedAmount: receiveAmount,
+        realizedPnl: effectivePnL * (closePercentage / 100),
+        metamaskFeeRate: feeResults.metamaskFeeRate,
+        metamaskFee: feeResults.metamaskFee,
+      },
     );
   };
 
@@ -376,6 +411,10 @@ const PerpsClosePositionView: React.FC = () => {
   const handleDonePress = () => {
     setIsInputFocused(false);
     setIsUserInputActive(false);
+  };
+
+  const handleSliderChange = (value: number) => {
+    setClosePercentage(value);
   };
 
   // Tooltip handlers
@@ -548,7 +587,7 @@ const PerpsClosePositionView: React.FC = () => {
           <View style={styles.sliderSection}>
             <PerpsSlider
               value={closePercentage}
-              onValueChange={setClosePercentage}
+              onValueChange={handleSliderChange}
               minimumValue={0}
               maximumValue={100}
               step={1}
