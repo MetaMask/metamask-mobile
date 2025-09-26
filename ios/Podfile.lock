@@ -2688,7 +2688,7 @@ PODS:
     - Yoga
   - RNSensors (5.3.0):
     - React
-  - RNSentry (6.10.0):
+  - RNSentry (6.15.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2709,7 +2709,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Sentry/HybridSDK (= 8.48.0)
+    - Sentry/HybridSDK (= 8.52.1)
     - Yoga
   - RNShare (7.3.7):
     - React-Core
@@ -2788,7 +2788,7 @@ PODS:
   - segment-analytics-react-native (2.20.3):
     - React-Core
     - sovran-react-native
-  - Sentry/HybridSDK (8.48.0)
+  - Sentry/HybridSDK (8.52.1)
   - SocketRocket (0.7.1)
   - sovran-react-native (1.0.4):
     - React-Core
@@ -3450,7 +3450,7 @@ SPEC CHECKSUMS:
   RNReanimated: 1940e2891efbdf495b4e2096c7e1394729dbbe64
   RNScreens: 547f6ce145ca702d364dfef0b90fc1dfa29a7e4c
   RNSensors: 4690be00931bc60be7c7bd457701edefaff965e3
-  RNSentry: ac7beae04304d95491a512b5abf6926d4501c73c
+  RNSentry: ac378c5d235ecca7b574e09d9b293bb54217702d
   RNShare: d03cdc71e750246a48b81dcd62bd792bf57a758e
   RNSVG: 3a1cce2e940268a7d3554e3cf2bbd2195871f4fe
   RNVectorIcons: 3bf5f38dcb1aaf587c4101e9f3fcad5c8f5a88b2
@@ -3458,7 +3458,7 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: 00310d246aab3232ce77f1d8f0076f8c4b021d90
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   segment-analytics-react-native: 6f98edf18246782ee7428c5380c6519a3d2acf5e
-  Sentry: 1ca8405451040482877dcd344dfa3ef80b646631
+  Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
   VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
