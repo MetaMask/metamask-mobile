@@ -68,6 +68,19 @@ export const useConfirmActions = () => {
     );
   }, [selectedGasFeeToken, transactionMetadata]);
 
+  const handleGasless7702 = useCallback(() => {
+    if (!selectedGasFeeToken || !transactionMetadata?.txParams) {
+      return;
+    }
+    const updatedTransactionMeta = cloneDeep(transactionMetadata);
+    updatedTransactionMeta.isExternalSign = true;
+
+    updateTransaction(
+      updatedTransactionMeta,
+      'Mobile:UseConfirmActions - gasless 7702 isExternalSign property updated',
+    );
+  }, [selectedGasFeeToken, transactionMetadata]);
+
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
       await cancelQRScanRequestIfPresent();
@@ -100,6 +113,8 @@ export const useConfirmActions = () => {
   const onConfirm = useCallback(async () => {
     if (shouldUseSmartTransaction) {
       handleSmartTransaction();
+    } else if (selectedGasFeeToken) {
+      handleGasless7702();
     }
 
     if (ledgerSigningInProgress) {
@@ -131,6 +146,7 @@ export const useConfirmActions = () => {
     }
   }, [
     captureSignatureMetrics,
+    handleGasless7702,
     handleSmartTransaction,
     isQRSigningInProgress,
     isSignatureReq,
@@ -140,6 +156,7 @@ export const useConfirmActions = () => {
     onRequestConfirm,
     onTransactionConfirm,
     openLedgerSignModal,
+    selectedGasFeeToken,
     setScannerVisible,
     shouldUseSmartTransaction,
   ]);

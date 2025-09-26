@@ -252,4 +252,64 @@ describe('useConfirmAction', () => {
       'Mobile:UseConfirmActions - batchTransactions and gas properties updated',
     );
   });
+
+  it('calls updateTransaction with isExternalSign when handleGasless7702 is triggered', async () => {
+    jest
+      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(false);
+
+    const mockGasFeeToken = {
+      transferTransaction: { id: 'mock-tx' },
+      gas: '0x5208',
+      maxFeePerGas: '0x10',
+      maxPriorityFeePerGas: '0x5',
+    } as unknown as ReturnType<typeof GasFeeTokenHook.useSelectedGasFeeToken>;
+    jest
+      .spyOn(GasFeeTokenHook, 'useSelectedGasFeeToken')
+      .mockReturnValue(mockGasFeeToken);
+
+    const updateTransactionSpy = jest.spyOn(
+      TransactionController,
+      'updateTransaction',
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    await result.current.onConfirm();
+    await flushPromises();
+
+    expect(updateTransactionSpy).toHaveBeenCalledTimes(1);
+    expect(updateTransactionSpy.mock.calls[0][0]).toMatchObject({
+      isExternalSign: true,
+    });
+    expect(updateTransactionSpy.mock.calls[0][1]).toContain(
+      'Mobile:UseConfirmActions - gasless 7702 isExternalSign property updated',
+    );
+  });
+
+  it('does not call updateTransaction if no selectedGasFeeToken', async () => {
+    jest
+      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(false);
+
+    jest
+      .spyOn(GasFeeTokenHook, 'useSelectedGasFeeToken')
+      .mockReturnValue(undefined);
+
+    const updateTransactionSpy = jest.spyOn(
+      TransactionController,
+      'updateTransaction',
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    await result.current.onConfirm();
+    await flushPromises();
+
+    expect(updateTransactionSpy).not.toHaveBeenCalled();
+  });
 });
