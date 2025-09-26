@@ -1,6 +1,6 @@
 import { Hex } from '@metamask/utils';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -31,6 +31,7 @@ export const useToAddressValidation = () => {
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
+  const prevAddressValidated = useRef<string>();
 
   const validateToAddress = useCallback(
     async (toAddress?: string) => {
@@ -77,6 +78,10 @@ export const useToAddressValidation = () => {
   );
 
   useEffect(() => {
+    if (prevAddressValidated.current === to) {
+      return;
+    }
+
     let cancel = false;
 
     (async () => {
@@ -84,6 +89,7 @@ export const useToAddressValidation = () => {
       const result = await validateToAddress(to);
 
       if (!cancel) {
+        prevAddressValidated.current = to;
         setResult({ ...result, toAddressValidated: to });
         setLoading(false);
       }
