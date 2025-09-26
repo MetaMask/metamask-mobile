@@ -787,275 +787,259 @@ describe('Engine', () => {
     expect(networkState.networkConfigurationsByChainId['0x2105'].name).toBe(
       'Base Mainnet',
     );
-    describe('lookupEnabledNetworks', () => {
-      it('should lookup all enabled networks successfully', async () => {
-        const engine = Engine.init(backgroundState);
-        const mockNetworkClientId1 = 'network-client-1';
-        const mockNetworkClientId2 = 'network-client-2';
+  });
 
-        jest
-          .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-          .mockReturnValue({
-            enabledNetworkMap: {
-              [KnownCaipNamespace.Eip155]: {
-                '0x1': true,
-                '0x89': true,
-                '0x38': false,
-              },
+  describe('lookupEnabledNetworks', () => {
+    it('should lookup all enabled networks successfully', async () => {
+      const engine = Engine.init(backgroundState);
+      const mockNetworkClientId1 = 'network-client-1';
+      const mockNetworkClientId2 = 'network-client-2';
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': false,
             },
-          });
+          },
+        });
 
-        const findNetworkClientIdByChainIdSpy = jest
-          .spyOn(
-            engine.context.NetworkController,
-            'findNetworkClientIdByChainId',
-          )
-          .mockReturnValueOnce(mockNetworkClientId1)
-          .mockReturnValueOnce(mockNetworkClientId2);
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(mockNetworkClientId1)
+        .mockReturnValueOnce(mockNetworkClientId2);
 
-        const lookupNetworkSpy = jest
-          .spyOn(engine.context.NetworkController, 'lookupNetwork')
-          .mockImplementation(() => Promise.resolve());
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockImplementation(() => Promise.resolve());
 
-        await engine.lookupEnabledNetworks();
+      await engine.lookupEnabledNetworks();
 
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
 
-        expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId1);
-        expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId2);
-        expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
-      });
+      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId1);
+      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId2);
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
+    });
 
-      it('should only lookup enabled networks and skip disabled ones', async () => {
-        const engine = Engine.init(backgroundState);
-        const mockNetworkClientId1 = 'network-client-1';
-        const mockNetworkClientId2 = 'network-client-2';
+    it('should only lookup enabled networks and skip disabled ones', async () => {
+      const engine = Engine.init(backgroundState);
+      const mockNetworkClientId1 = 'network-client-1';
+      const mockNetworkClientId2 = 'network-client-2';
 
-        const findNetworkClientIdByChainIdSpy = jest
-          .spyOn(
-            engine.context.NetworkController,
-            'findNetworkClientIdByChainId',
-          )
-          .mockReturnValueOnce(mockNetworkClientId1)
-          .mockReturnValueOnce(mockNetworkClientId2);
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(mockNetworkClientId1)
+        .mockReturnValueOnce(mockNetworkClientId2);
 
-        jest
-          .spyOn(engine.context.NetworkController, 'lookupNetwork')
-          .mockImplementation(() => Promise.resolve());
+      jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockImplementation(() => Promise.resolve());
 
-        jest
-          .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-          .mockReturnValue({
-            enabledNetworkMap: {
-              [KnownCaipNamespace.Eip155]: {
-                '0x1': true,
-                '0x89': true,
-                '0x38': false,
-              },
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': false,
             },
-          });
+          },
+        });
 
-        await engine.lookupEnabledNetworks();
+      await engine.lookupEnabledNetworks();
 
-        // Should only call for enabled networks (0x1 and 0x89), not for disabled (0x38)
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
-        expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalledWith(
-          '0x38',
-        );
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-      });
+      // Should only call for enabled networks (0x1 and 0x89), not for disabled (0x38)
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
+      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalledWith('0x38');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
+    });
 
-      it('should handle empty enabled networks list', async () => {
-        const engine = Engine.init(backgroundState);
+    it('should handle empty enabled networks list', async () => {
+      const engine = Engine.init(backgroundState);
 
-        const findNetworkClientIdByChainIdSpy = jest.spyOn(
-          engine.context.NetworkController,
-          'findNetworkClientIdByChainId',
-        );
+      const findNetworkClientIdByChainIdSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'findNetworkClientIdByChainId',
+      );
 
-        const lookupNetworkSpy = jest.spyOn(
-          engine.context.NetworkController,
-          'lookupNetwork',
-        );
+      const lookupNetworkSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'lookupNetwork',
+      );
 
-        jest
-          .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-          .mockReturnValue({
-            enabledNetworkMap: {
-              [KnownCaipNamespace.Eip155]: {},
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {},
+          },
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
+      expect(lookupNetworkSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle undefined enabledNetworkMap', async () => {
+      const engine = Engine.init(backgroundState);
+
+      const findNetworkClientIdByChainIdSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'findNetworkClientIdByChainId',
+      );
+
+      const lookupNetworkSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'lookupNetwork',
+      );
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: undefined as unknown as Record<
+            string,
+            Record<string, boolean>
+          >,
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
+      expect(lookupNetworkSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle undefined Eip155 namespace in enabledNetworkMap', async () => {
+      const engine = Engine.init(backgroundState);
+
+      const findNetworkClientIdByChainIdSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'findNetworkClientIdByChainId',
+      );
+
+      const lookupNetworkSpy = jest.spyOn(
+        engine.context.NetworkController,
+        'lookupNetwork',
+      );
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {},
+        });
+
+      await engine.lookupEnabledNetworks();
+
+      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
+      expect(lookupNetworkSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle network lookup failures gracefully', async () => {
+      const engine = Engine.init(backgroundState);
+      const mockNetworkClientId1 = 'network-client-1';
+      const mockNetworkClientId2 = 'network-client-2';
+
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(mockNetworkClientId1)
+        .mockReturnValueOnce(mockNetworkClientId2);
+
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockRejectedValueOnce(new Error('Network lookup failed'))
+        .mockImplementation(() => Promise.resolve());
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': false,
             },
-          });
+          },
+        });
 
-        await engine.lookupEnabledNetworks();
+      await engine.lookupEnabledNetworks();
 
-        expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-        expect(lookupNetworkSpy).not.toHaveBeenCalled();
-      });
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
+    });
 
-      it('should handle undefined enabledNetworkMap', async () => {
-        const engine = Engine.init(backgroundState);
+    it('should handle findNetworkClientIdByChainId returning undefined', async () => {
+      const engine = Engine.init(backgroundState);
 
-        const findNetworkClientIdByChainIdSpy = jest.spyOn(
-          engine.context.NetworkController,
-          'findNetworkClientIdByChainId',
-        );
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(undefined as unknown as string)
+        .mockReturnValueOnce('network-client-2');
 
-        const lookupNetworkSpy = jest.spyOn(
-          engine.context.NetworkController,
-          'lookupNetwork',
-        );
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockImplementation(() => Promise.resolve());
 
-        jest
-          .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-          .mockReturnValue({
-            enabledNetworkMap: undefined as unknown as Record<
-              string,
-              Record<string, boolean>
-            >,
-          });
-
-        await engine.lookupEnabledNetworks();
-
-        expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-        expect(lookupNetworkSpy).not.toHaveBeenCalled();
-      });
-
-      it('should handle undefined Eip155 namespace in enabledNetworkMap', async () => {
-        const engine = Engine.init(backgroundState);
-
-        const findNetworkClientIdByChainIdSpy = jest.spyOn(
-          engine.context.NetworkController,
-          'findNetworkClientIdByChainId',
-        );
-
-        const lookupNetworkSpy = jest.spyOn(
-          engine.context.NetworkController,
-          'lookupNetwork',
-        );
-
-        jest
-          .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-          .mockReturnValue({
-            enabledNetworkMap: {},
-          });
-
-        await engine.lookupEnabledNetworks();
-
-        expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-        expect(lookupNetworkSpy).not.toHaveBeenCalled();
-      });
-
-      it('should handle network lookup failures gracefully', async () => {
-        const engine = Engine.init(backgroundState);
-        const mockNetworkClientId1 = 'network-client-1';
-        const mockNetworkClientId2 = 'network-client-2';
-
-        const findNetworkClientIdByChainIdSpy = jest
-          .spyOn(
-            engine.context.NetworkController,
-            'findNetworkClientIdByChainId',
-          )
-          .mockReturnValueOnce(mockNetworkClientId1)
-          .mockReturnValueOnce(mockNetworkClientId2);
-
-        const lookupNetworkSpy = jest
-          .spyOn(engine.context.NetworkController, 'lookupNetwork')
-          .mockRejectedValueOnce(new Error('Network lookup failed'))
-          .mockImplementation(() => Promise.resolve());
-
-        jest
-          .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-          .mockReturnValue({
-            enabledNetworkMap: {
-              [KnownCaipNamespace.Eip155]: {
-                '0x1': true,
-                '0x89': true,
-                '0x38': false,
-              },
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': false,
             },
-          });
+          },
+        });
 
-        await engine.lookupEnabledNetworks();
+      await engine.lookupEnabledNetworks();
 
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-        expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
-      });
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
+      expect(lookupNetworkSpy).toHaveBeenCalledWith('network-client-2');
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(1);
+    });
 
-      it('should handle findNetworkClientIdByChainId returning undefined', async () => {
-        const engine = Engine.init(backgroundState);
+    it('should handle mixed success and failure scenarios', async () => {
+      const engine = Engine.init(backgroundState);
+      const mockNetworkClientId1 = 'network-client-1';
+      const mockNetworkClientId2 = 'network-client-2';
+      const mockNetworkClientId3 = 'network-client-3';
 
-        const findNetworkClientIdByChainIdSpy = jest
-          .spyOn(
-            engine.context.NetworkController,
-            'findNetworkClientIdByChainId',
-          )
-          .mockReturnValueOnce(undefined as unknown as string)
-          .mockReturnValueOnce('network-client-2');
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockReturnValueOnce(mockNetworkClientId1)
+        .mockReturnValueOnce(mockNetworkClientId2)
+        .mockReturnValueOnce(mockNetworkClientId3);
 
-        const lookupNetworkSpy = jest
-          .spyOn(engine.context.NetworkController, 'lookupNetwork')
-          .mockImplementation(() => Promise.resolve());
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('Network 2 failed'))
+        .mockImplementation(() => Promise.resolve());
 
-        jest
-          .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-          .mockReturnValue({
-            enabledNetworkMap: {
-              [KnownCaipNamespace.Eip155]: {
-                '0x1': true,
-                '0x89': true,
-                '0x38': false,
-              },
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true,
+              '0x89': true,
+              '0xa': true,
             },
-          });
+          },
+        });
 
-        await engine.lookupEnabledNetworks();
+      await engine.lookupEnabledNetworks();
 
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-        expect(lookupNetworkSpy).toHaveBeenCalledWith('network-client-2');
-        expect(lookupNetworkSpy).toHaveBeenCalledTimes(1);
-      });
-
-      it('should handle mixed success and failure scenarios', async () => {
-        const engine = Engine.init(backgroundState);
-        const mockNetworkClientId1 = 'network-client-1';
-        const mockNetworkClientId2 = 'network-client-2';
-        const mockNetworkClientId3 = 'network-client-3';
-
-        const findNetworkClientIdByChainIdSpy = jest
-          .spyOn(
-            engine.context.NetworkController,
-            'findNetworkClientIdByChainId',
-          )
-          .mockReturnValueOnce(mockNetworkClientId1)
-          .mockReturnValueOnce(mockNetworkClientId2)
-          .mockReturnValueOnce(mockNetworkClientId3);
-
-        const lookupNetworkSpy = jest
-          .spyOn(engine.context.NetworkController, 'lookupNetwork')
-          .mockResolvedValueOnce(undefined)
-          .mockRejectedValueOnce(new Error('Network 2 failed'))
-          .mockImplementation(() => Promise.resolve());
-
-        jest
-          .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-          .mockReturnValue({
-            enabledNetworkMap: {
-              [KnownCaipNamespace.Eip155]: {
-                '0x1': true,
-                '0x89': true,
-                '0xa': true,
-              },
-            },
-          });
-
-        await engine.lookupEnabledNetworks();
-
-        expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
-        expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
-      });
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
     });
   });
 });
