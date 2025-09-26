@@ -156,8 +156,9 @@ export const usePredictProxyWallet = () => {
 
       console.log('owners', owners);
       const safeTx = createAllowancesSafeTransaction();
+      console.warn('safeTx', JSON.stringify(safeTx, null, 2));
       const callData = await getSafeTransactionCallData({
-        signMessage: (params) => KeyringController.signMessage(params),
+        signMessage: (params) => KeyringController.signPersonalMessage(params),
         signerAddress: selectedInternalAccountAddress as string,
         safeAddress: proxyAddress as string,
         txn: safeTx,

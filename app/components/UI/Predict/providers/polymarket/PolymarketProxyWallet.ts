@@ -271,13 +271,25 @@ function abiEncodePacked(...params: { type: string; value: any }[]): string {
   );
 }
 
-export const encodeMultisend = ({
-  transactions,
-}: {
-  transactions: string;
-}): Hex =>
+function getHexDataLength(hexData: string): number {
+  return Math.ceil(
+    (hexData.startsWith('0x') ? hexData.length - 2 : hexData.length) / 2,
+  );
+}
+
+export const encodeMultisend = ({ txns }: { txns: SafeTransaction[] }): Hex =>
   new Interface(multisendAbi).encodeFunctionData('multiSend', [
-    transactions,
+    joinHexData(
+      txns.map((tx) =>
+        abiEncodePacked(
+          { type: 'uint8', value: tx.operation },
+          { type: 'address', value: tx.to },
+          { type: 'uint256', value: tx.value },
+          { type: 'uint256', value: getHexDataLength(tx.data) },
+          { type: 'bytes', value: tx.data },
+        ),
+      ),
+    ),
   ]) as Hex;
 
 /**
@@ -397,8 +409,7 @@ export const getCreateSafeCreateTypedData = async () => {
 export const createSafeMultisendTransaction = (
   txns: SafeTransaction[],
 ): SafeTransaction => {
-  const packedTransactions = packMultisendTransactions(txns);
-  const data = encodeMultisend({ transactions: packedTransactions });
+  const data = encodeMultisend({ txns });
 
   return {
     to: SAFE_MULTISEND_ADDRESS,
@@ -444,7 +455,7 @@ export const createAllowancesSafeTransaction = () => {
     });
   }
 
-  const safeTxn = aggregateTransaction(safeTxns.slice(0, 1));
+  const safeTxn = aggregateTransaction(safeTxns);
 
   return safeTxn;
 };
@@ -521,7 +532,7 @@ export const getTransactionHash = async ({
         gasPrice,
         gasToken,
         refundReceiver,
-        nonce,
+        BigInt(nonce),
       ]),
     },
   ]);

@@ -19,6 +19,7 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictNotifications } from '../../hooks/usePredictNotifications';
 import { PredictPosition as PredictPositionType } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
+import PredictOnboarding from '../../components/PredictOnboarding/PredictOnboarding';
 
 interface PredictTabViewProps {}
 
