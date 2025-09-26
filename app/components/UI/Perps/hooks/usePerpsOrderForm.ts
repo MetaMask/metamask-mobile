@@ -72,7 +72,7 @@ export function usePerpsOrderForm(
   const initialAmountValue = useMemo(
     () =>
       initialAmount ||
-      (maxPossibleAmount > 0 && maxPossibleAmount < defaultAmount
+      (maxPossibleAmount < defaultAmount
         ? maxPossibleAmount.toString()
         : defaultAmount.toString()),
     [initialAmount, maxPossibleAmount, defaultAmount],

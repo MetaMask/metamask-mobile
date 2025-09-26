@@ -584,7 +584,7 @@ const PerpsClosePositionView: React.FC = () => {
               testID={PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON}
             >
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {strings('perps.points')}
+                {strings('perps.estimated_points')}
               </Text>
               <Icon
                 name={IconName.Info}

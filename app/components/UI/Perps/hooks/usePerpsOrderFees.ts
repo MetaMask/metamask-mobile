@@ -501,16 +501,13 @@ export function usePerpsOrderFees({
         let pointsResult: { points?: number; bonusBips?: number } = {};
         if (selectedAddress && parseFloat(amount) > 0) {
           // Use actual fee amount from provider if available, fallback to calculated amount
-          const actualFeeUSD =
-            coreFeesResult.feeAmount ?? parseFloat(amount) * adjustedRate;
+          const actualFeeUSD = parseFloat(amount) * adjustedRate;
           DevLogger.log('Rewards: Calculating points with discounted fee', {
             originalRate: coreFeesResult.metamaskFeeRate,
             discountPercentage,
             adjustedRate,
             amount: parseFloat(amount),
             actualFeeUSD,
-            providerFeeAmount: coreFeesResult.feeAmount,
-            isClosing,
           });
 
           pointsResult = await handlePointsEstimation(
