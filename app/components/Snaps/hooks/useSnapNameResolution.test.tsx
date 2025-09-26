@@ -244,7 +244,7 @@ describe('useSnapNameResolution', () => {
     ]);
   });
 
-  it('retuen undefined if no snap if found for chainId', async () => {
+  it('returns undefined if no snap is available for the given chain ID', async () => {
     const { result } = renderHookWithProvider(
       () => useSnapNameResolution(),
       mockState,
