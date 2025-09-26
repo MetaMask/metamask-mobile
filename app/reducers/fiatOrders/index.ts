@@ -6,9 +6,9 @@ import type {
   DepositCryptoCurrency,
   DepositPaymentMethod,
 } from '@consensys/native-ramps-sdk';
+import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
-import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
