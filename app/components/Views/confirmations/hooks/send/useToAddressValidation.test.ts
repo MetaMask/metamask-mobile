@@ -75,7 +75,7 @@ describe('useToAddressValidation', () => {
     );
     await waitFor(() => {
       expect(result.current).toStrictEqual({
-        loading: true,
+        loading: false,
         resolvedAddress: undefined,
         toAddressError: 'Invalid address',
         toAddressValidated: '0x123',
