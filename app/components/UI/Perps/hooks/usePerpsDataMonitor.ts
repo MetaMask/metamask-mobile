@@ -2,13 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { Position } from '../controllers/types';
 import { usePerpsLiveOrders, usePerpsLivePositions } from './stream';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface DataMonitorParams {
   /** Asset symbol */
   asset: string;
-  /** What to monitor for changes */
-  monitor: 'orders' | 'positions' | 'both';
-  /** How long to monitor in milliseconds (default: 10000ms) */
+  /** What to monitor for changes (default: 'both') */
+  monitor?: 'orders' | 'positions' | 'both';
+  /** How long to monitor in milliseconds (default: DEFAULT_MONITORING_TIMEOUT_MS) */
   timeoutMs?: number;
   /** Callback when monitoring detects data changes */
   onDataDetected: (params: {
@@ -18,15 +19,21 @@ export interface DataMonitorParams {
   }) => void;
 }
 
-interface PendingMonitorParams extends DataMonitorParams {}
-
-interface UsePerpsDataMonitorReturn {
-  /** Function to start monitoring for data changes */
-  startMonitoring: (params: DataMonitorParams) => void;
-  /** Whether we're currently monitoring for data changes */
-  isMonitoring: boolean;
-  /** Cancel any pending monitoring */
-  cancelMonitoring: () => void;
+export interface UsePerpsDataMonitorParams {
+  /** Asset symbol (required when enabled) */
+  asset?: string;
+  /** What to monitor for changes (default: 'both') */
+  monitor?: 'orders' | 'positions' | 'both';
+  /** How long to monitor in milliseconds (default: DEFAULT_MONITORING_TIMEOUT_MS) */
+  timeoutMs?: number;
+  /** Callback when monitoring detects data changes */
+  onDataDetected?: (params: {
+    detectedData: 'positions' | 'orders';
+    asset: string;
+    reason: string;
+  }) => void;
+  /** Whether monitoring is enabled - when false, no monitoring occurs */
+  enabled?: boolean;
 }
 
 /**
@@ -35,15 +42,30 @@ interface UsePerpsDataMonitorReturn {
  * This hook solves the race condition where actions happen immediately but
  * before the orders/positions data has been updated from the server.
  *
- * Monitors specified data type for changes, then calls back with results:
- * - monitor: 'orders' → waits for new orders
- * - monitor: 'positions' → waits for position changes
- * - monitor: 'both' → waits for either, calls back with whichever changes first
+ * Uses a declarative API - monitoring starts automatically when enabled=true
+ * with valid parameters, and stops when enabled=false or params change.
+ *
+ * @param params - Monitoring parameters
+ * @param params.asset - Asset symbol to monitor (required when enabled)
+ * @param params.monitor - What to monitor: 'orders' | 'positions' | 'both' (default: 'both')
+ * @param params.timeoutMs - Timeout in milliseconds (default: DEFAULT_MONITORING_TIMEOUT_MS)
+ * @param params.onDataDetected - Callback when changes are detected
+ * @param params.enabled - Whether monitoring is active
+ * @returns void - this hook manages side effects declaratively
  */
-export function usePerpsDataMonitor(): UsePerpsDataMonitorReturn {
-  // State to track pending monitoring
-  const [pendingMonitor, setPendingMonitor] =
-    useState<PendingMonitorParams | null>(null);
+export function usePerpsDataMonitor(
+  params: UsePerpsDataMonitorParams = {},
+): void {
+  const {
+    asset,
+    monitor = 'both',
+    timeoutMs = PERPS_CONSTANTS.DEFAULT_MONITORING_TIMEOUT_MS,
+    onDataDetected,
+    enabled = false,
+  } = params;
+
+  // State to track if monitoring is currently active
+  const [isMonitoring, setIsMonitoring] = useState<boolean>(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // State to track positions and orders before order placement (for change detection)
@@ -72,11 +94,13 @@ export function usePerpsDataMonitor(): UsePerpsDataMonitorReturn {
 
   // Helper function to detect position changes for the specific asset
   const hasPositionChangedForAsset = useCallback(
-    (asset: string): boolean => {
+    (targetAsset: string): boolean => {
       if (!initialPositions || !positions) return false;
 
-      const initialPosition = initialPositions.find((p) => p.coin === asset);
-      const currentPosition = positions.find((p) => p.coin === asset);
+      const initialPosition = initialPositions.find(
+        (p) => p.coin === targetAsset,
+      );
+      const currentPosition = positions.find((p) => p.coin === targetAsset);
 
       // New position created (no position before, now has position)
       if (!initialPosition && currentPosition) return true;
@@ -99,20 +123,115 @@ export function usePerpsDataMonitor(): UsePerpsDataMonitorReturn {
     [initialPositions, positions],
   );
 
-  // Watch for data updates and trigger callback when ready
+  // Auto-start monitoring when enabled becomes true with valid parameters
   useEffect(() => {
-    if (!pendingMonitor || isLoadingOrders || isLoadingPositions) {
+    const shouldStartMonitoring =
+      enabled &&
+      asset &&
+      onDataDetected &&
+      !isLoadingOrders &&
+      !isLoadingPositions;
+
+    if (shouldStartMonitoring) {
+      // If already monitoring, restart with new parameters
+      if (isMonitoring) {
+        DevLogger.log(
+          'usePerpsDataMonitor: Restarting monitoring with new parameters',
+        );
+        setIsMonitoring(false);
+        setInitialPositions(null);
+        setInitialOrderCount(0);
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+      }
+
+      DevLogger.log(
+        'usePerpsDataMonitor: Starting to monitor for data changes',
+        {
+          asset,
+          monitor,
+          timeoutMs,
+        },
+      );
+
+      // Capture current positions and order count as initial state for change detection
+      setInitialPositions(positions || []);
+      const currentAssetOrders = (orders || []).filter(
+        (order) => order.symbol === asset,
+      );
+      setInitialOrderCount(currentAssetOrders.length);
+      setIsMonitoring(true);
+
+      // Set a timeout fallback in case data never loads
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        DevLogger.log(
+          'usePerpsDataMonitor: Timeout reached, stopping monitoring',
+          {
+            asset,
+            monitor,
+            timeoutMs,
+          },
+        );
+
+        // Clean up on timeout - no callback since no data was detected
+        setIsMonitoring(false);
+        setInitialPositions(null);
+        setInitialOrderCount(0);
+        timeoutRef.current = null;
+      }, timeoutMs);
+    } else if (!enabled && isMonitoring) {
+      // Stop monitoring when enabled becomes false
+      DevLogger.log('usePerpsDataMonitor: Stopping monitoring (disabled)');
+      setIsMonitoring(false);
+      setInitialPositions(null);
+      setInitialOrderCount(0);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    }
+  }, [
+    enabled,
+    asset,
+    monitor,
+    onDataDetected,
+    timeoutMs,
+    isLoadingOrders,
+    isLoadingPositions,
+    isMonitoring,
+    orders,
+    positions,
+  ]);
+
+  // Watch for data updates and trigger callback when monitoring is active
+  useEffect(() => {
+    if (
+      !isMonitoring ||
+      !asset ||
+      !monitor ||
+      !onDataDetected ||
+      isLoadingOrders ||
+      isLoadingPositions
+    ) {
       return;
     }
-
-    const { asset, monitor, onDataDetected } = pendingMonitor;
 
     let shouldNotify = false;
     let detectedData: 'orders' | 'positions' | undefined;
     let reason = '';
 
     // Check for new orders if monitoring orders or both
-    if ((monitor === 'orders' || monitor === 'both') && !shouldNotify) {
+    if (
+      (monitor === 'orders' || monitor === 'both') &&
+      !shouldNotify &&
+      orders
+    ) {
       const currentAssetOrders = orders.filter(
         (order) => order.symbol === asset,
       );
@@ -148,8 +267,8 @@ export function usePerpsDataMonitor(): UsePerpsDataMonitorReturn {
       // Always use callback - no fallback navigation
       onDataDetected({ detectedData, asset, reason });
 
-      // Clear pending monitoring
-      setPendingMonitor(null);
+      // Clear monitoring state
+      setIsMonitoring(false);
       setInitialPositions(null);
       setInitialOrderCount(0);
       if (timeoutRef.current) {
@@ -163,12 +282,15 @@ export function usePerpsDataMonitor(): UsePerpsDataMonitorReturn {
     DevLogger.log('usePerpsDataMonitor: Still waiting for data changes', {
       asset,
       monitor,
-      hasOrders: orders.length > 0,
+      hasOrders: orders ? orders.length > 0 : false,
       hasPositions: positions?.length > 0,
       hasInitialPositions: !!initialPositions,
     });
   }, [
-    pendingMonitor,
+    isMonitoring,
+    asset,
+    monitor,
+    onDataDetected,
     orders,
     positions,
     initialPositions,
@@ -178,61 +300,5 @@ export function usePerpsDataMonitor(): UsePerpsDataMonitorReturn {
     hasPositionChangedForAsset,
   ]);
 
-  const startMonitoring = useCallback((params: DataMonitorParams) => {
-    const timeoutMs = params.timeoutMs ?? 10000; // Default 10 seconds
-
-    DevLogger.log('usePerpsDataMonitor: Starting to monitor for data changes', {
-      asset: params.asset,
-      monitor: params.monitor,
-      timeoutMs,
-    });
-
-    // Capture current positions and order count as initial state for change detection
-    setInitialPositions(positions || []);
-    const currentAssetOrders = orders.filter(
-      (order) => order.symbol === params.asset,
-    );
-    setInitialOrderCount(currentAssetOrders.length);
-    setPendingMonitor(params);
-
-    // Set a timeout fallback (10 seconds) in case data never loads
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      DevLogger.log(
-        'usePerpsDataMonitor: Timeout reached, stopping monitoring',
-        {
-          asset: params.asset,
-          monitor: params.monitor,
-          timeoutMs,
-        },
-      );
-
-      // Clean up on timeout - no callback since no data was detected
-      setPendingMonitor(null);
-      setInitialPositions(null);
-      setInitialOrderCount(0);
-      timeoutRef.current = null;
-    }, timeoutMs);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const cancelMonitoring = useCallback(() => {
-    DevLogger.log('usePerpsDataMonitor: Cancelling data monitoring');
-    setPendingMonitor(null);
-    setInitialPositions(null);
-    setInitialOrderCount(0);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  }, []);
-
-  return {
-    startMonitoring,
-    isMonitoring: pendingMonitor !== null,
-    cancelMonitoring,
-  };
+  // Hook returns void - all side effects are managed internally
 }

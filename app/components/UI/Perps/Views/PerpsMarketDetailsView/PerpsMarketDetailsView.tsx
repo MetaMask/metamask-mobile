@@ -138,9 +138,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
 
-  // Handle data-driven monitoring when coming from order success
-  const { startMonitoring, cancelMonitoring } = usePerpsDataMonitor();
-
   // Callback to handle data detection from monitoring hook
   const handleDataDetected = useCallback(
     ({
@@ -156,28 +153,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [],
   );
 
-  // Start monitoring if we have monitoring intent from navigation params
-  useEffect(() => {
-    if (
+  // Handle data-driven monitoring when coming from order success (declarative API)
+  usePerpsDataMonitor({
+    asset: monitoringIntent?.asset,
+    monitor: monitoringIntent?.monitor,
+    timeoutMs: monitoringIntent?.timeoutMs,
+    onDataDetected: handleDataDetected,
+    enabled: !!(
       monitoringIntent &&
       market &&
       monitoringIntent.asset &&
       monitoringIntent.monitor
-    ) {
-      startMonitoring({
-        asset: monitoringIntent.asset,
-        monitor: monitoringIntent.monitor,
-        timeoutMs: monitoringIntent.timeoutMs,
-        onDataDetected: handleDataDetected,
-      });
-    }
-
-    // Cleanup function to cancel monitoring when component unmounts
-    return () => {
-      cancelMonitoring();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [monitoringIntent, market]);
+    ),
+  });
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({});
   // Filter orders for the current market

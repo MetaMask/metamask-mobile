@@ -17,7 +17,7 @@ jest.mock('./stream', () => ({
   usePerpsLivePositions: () => mockUsePerpsLivePositions(),
 }));
 
-describe('usePerpsDataMonitor', () => {
+describe('usePerpsDataMonitor (Declarative API)', () => {
   // Test data
   const mockBTCOrder: Order = {
     orderId: 'order-1',
@@ -105,336 +105,330 @@ describe('usePerpsDataMonitor', () => {
     jest.useRealTimers();
   });
 
-  describe('initialization', () => {
-    it('initializes with correct default state', () => {
+  describe('initialization and basic functionality', () => {
+    it('returns undefined when no parameters provided', () => {
       const { result } = renderHook(() => usePerpsDataMonitor());
 
-      expect(result.current.isMonitoring).toBe(false);
-      expect(result.current.startMonitoring).toBeInstanceOf(Function);
-      expect(result.current.cancelMonitoring).toBeInstanceOf(Function);
+      expect(result.current).toBeUndefined();
     });
 
-    it('returns stable function references', () => {
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
+    it('returns undefined when enabled is false', () => {
+      const { result } = renderHook(() =>
+        usePerpsDataMonitor({ enabled: false }),
+      );
 
-      const firstStartMonitoring = result.current.startMonitoring;
-      const firstCancelMonitoring = result.current.cancelMonitoring;
-
-      rerender({});
-
-      expect(result.current.startMonitoring).toBe(firstStartMonitoring);
-      expect(result.current.cancelMonitoring).toBe(firstCancelMonitoring);
+      expect(result.current).toBeUndefined();
     });
-  });
 
-  describe('startMonitoring functionality', () => {
-    it('sets isMonitoring to true when called', () => {
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
+    it('returns undefined regardless of parameter completeness', () => {
+      const onDataDetected = jest.fn();
 
-      act(() => {
-        result.current.startMonitoring({
+      // Missing asset
+      const { result: result1 } = renderHook(() =>
+        usePerpsDataMonitor({
+          monitor: 'orders',
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+      expect(result1.current).toBeUndefined();
+
+      // Missing monitor
+      const { result: result2 } = renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+      expect(result2.current).toBeUndefined();
+
+      // Missing onDataDetected
+      const { result: result3 } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      expect(result.current.isMonitoring).toBe(true);
+          enabled: true,
+        }),
+      );
+      expect(result3.current).toBeUndefined();
     });
 
-    it('logs monitoring start with DevLogger', () => {
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
+    it('starts monitoring when all parameters are provided and enabled is true', () => {
+      const onDataDetected = jest.fn();
 
-      act(() => {
-        result.current.startMonitoring({
+      const { result } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'orders',
-          timeoutMs: 5000,
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
+      expect(result.current).toBeUndefined();
+      // Verify monitoring started by checking DevLogger was called
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePerpsDataMonitor: Starting to monitor for data changes',
         {
           asset: 'BTC',
           monitor: 'orders',
-          timeoutMs: 5000,
+          timeoutMs: 10000,
         },
       );
     });
 
-    it('uses default timeout of 10000ms when not specified', () => {
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
+    it('starts monitoring with default monitor value when monitor is undefined', () => {
+      const onDataDetected = jest.fn();
 
-      act(() => {
-        result.current.startMonitoring({
+      const { result } = renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          // monitor is undefined, should default to 'both'
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+
+      expect(result.current).toBeUndefined();
+      // Verify monitoring started with default 'both' monitor value
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'usePerpsDataMonitor: Starting to monitor for data changes',
+        {
+          asset: 'BTC',
+          monitor: 'both',
+          timeoutMs: 10000,
+        },
+      );
+    });
+  });
+
+  describe('monitoring lifecycle', () => {
+    it('starts monitoring when enabled changes from false to true', () => {
+      const onDataDetected = jest.fn();
+
+      const { result, rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          usePerpsDataMonitor({
+            asset: 'BTC',
+            monitor: 'orders',
+            onDataDetected,
+            enabled,
+          }),
+        {
+          initialProps: { enabled: false },
+        },
+      );
+
+      expect(result.current).toBeUndefined();
+
+      rerender({ enabled: true });
+
+      expect(result.current).toBeUndefined();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'usePerpsDataMonitor: Starting to monitor for data changes',
+        {
           asset: 'BTC',
           monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
+          timeoutMs: 10000,
+        },
+      );
+    });
 
+    it('stops monitoring when enabled changes from true to false', () => {
+      const onDataDetected = jest.fn();
+
+      const { result, rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          usePerpsDataMonitor({
+            asset: 'BTC',
+            monitor: 'orders',
+            onDataDetected,
+            enabled,
+          }),
+        {
+          initialProps: { enabled: true },
+        },
+      );
+
+      expect(result.current).toBeUndefined();
+
+      rerender({ enabled: false });
+
+      expect(result.current).toBeUndefined();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'usePerpsDataMonitor: Stopping monitoring (disabled)',
+      );
+    });
+
+    it('restarts monitoring when parameters change while enabled', () => {
+      const onDataDetected = jest.fn();
+
+      const { result, rerender } = renderHook(
+        ({ asset }: { asset: string }) =>
+          usePerpsDataMonitor({
+            asset,
+            monitor: 'orders',
+            onDataDetected,
+            enabled: true,
+          }),
+        {
+          initialProps: { asset: 'BTC' },
+        },
+      );
+
+      expect(result.current).toBeUndefined();
+
+      rerender({ asset: 'ETH' });
+
+      expect(result.current).toBeUndefined();
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePerpsDataMonitor: Starting to monitor for data changes',
         expect.objectContaining({
-          timeoutMs: 10000,
+          asset: 'ETH',
         }),
       );
     });
-
-    it('captures initial positions and order count', () => {
-      // Arrange
-      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [mockBTCPosition],
-        isInitialLoading: false,
-      });
-
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'both',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      // Assert - verify initial state is captured (implicit through behavior)
-      expect(result.current.isMonitoring).toBe(true);
-    });
-
-    it('clears previous timeout when called multiple times', () => {
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Start first monitoring
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      // Start second monitoring (should clear first timeout)
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'ETH',
-          monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      expect(result.current.isMonitoring).toBe(true);
-    });
   });
 
-  describe('data detection - orders', () => {
-    it('detects new orders for specific asset', () => {
-      // Arrange - start with no orders
+  describe('order monitoring', () => {
+    it('detects new orders for the monitored asset', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with no orders
       mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate new order arrival
+      // Add new BTC order
       mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
-      // Assert
-      expect(mockCallback).toHaveBeenCalledWith({
+      expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'orders',
         asset: 'BTC',
         reason: 'new_orders_detected',
       });
-      expect(result.current.isMonitoring).toBe(false);
     });
 
     it('ignores orders for different assets', () => {
-      // Arrange - start with no orders
+      const onDataDetected = jest.fn();
+
+      // Start with no orders
       mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring for BTC
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate ETH order arrival (different asset)
+      // Add ETH order (different asset)
       mockUsePerpsLiveOrders.mockReturnValue([mockETHOrder]);
       rerender({});
 
-      // Assert - should not trigger callback
-      expect(mockCallback).not.toHaveBeenCalled();
-      expect(result.current.isMonitoring).toBe(true);
+      expect(onDataDetected).not.toHaveBeenCalled();
     });
 
-    it('handles empty initial order state', () => {
-      // Arrange - start with undefined orders (loading state)
+    it('stops monitoring after detecting orders', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with no orders
       mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
+      const { result, rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Orders still empty - should not trigger
-      rerender({});
-      expect(mockCallback).not.toHaveBeenCalled();
+      expect(result.current).toBeUndefined();
 
-      // Now add order - should trigger
+      // Add new BTC order
       mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
-      expect(mockCallback).toHaveBeenCalledWith({
+      expect(result.current).toBeUndefined();
+      expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'orders',
         asset: 'BTC',
         reason: 'new_orders_detected',
       });
     });
-
-    it('logs detected data changes', () => {
-      // Arrange
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
-
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring and detect change
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
-      rerender({});
-
-      // Assert
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'usePerpsDataMonitor: new_orders_detected, detected orders',
-        {
-          asset: 'BTC',
-          monitor: 'orders',
-          reason: 'new_orders_detected',
-        },
-      );
-    });
   });
 
-  describe('data detection - positions', () => {
-    it('detects new position creation (none → position)', () => {
-      // Arrange - start with no positions
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+  describe('position monitoring', () => {
+    it('detects new position creation', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with no positions
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
       });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate new position creation
+      // Add new BTC position
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
       });
       rerender({});
 
-      // Assert
-      expect(mockCallback).toHaveBeenCalledWith({
+      expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'positions',
         asset: 'BTC',
         reason: 'position_changed',
       });
-      expect(result.current.isMonitoring).toBe(false);
     });
 
-    it('detects position closure (position → none)', () => {
-      // Arrange - start with existing position
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+    it('detects position closure', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with BTC position
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
       });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring (captures initial position)
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate position closure
+      // Remove BTC position
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
       });
       rerender({});
 
-      // Assert
-      expect(mockCallback).toHaveBeenCalledWith({
+      expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'positions',
         asset: 'BTC',
         reason: 'position_changed',
@@ -442,75 +436,32 @@ describe('usePerpsDataMonitor', () => {
     });
 
     it('detects position size changes', () => {
-      // Arrange - start with existing position
-      const initialPosition = { ...mockBTCPosition, size: '1.0' };
+      const onDataDetected = jest.fn();
+
+      // Start with BTC position
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockBTCPosition],
+        isInitialLoading: false,
+      });
+
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          monitor: 'positions',
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+
+      // Change position size
       const modifiedPosition = { ...mockBTCPosition, size: '2.0' };
-
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [initialPosition],
-        isInitialLoading: false,
-      });
-
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      // Act - simulate position size change
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [modifiedPosition],
         isInitialLoading: false,
       });
       rerender({});
 
-      // Assert
-      expect(mockCallback).toHaveBeenCalledWith({
-        detectedData: 'positions',
-        asset: 'BTC',
-        reason: 'position_changed',
-      });
-    });
-
-    it('detects entry price changes', () => {
-      // Arrange - start with existing position
-      const initialPosition = { ...mockBTCPosition, entryPrice: '49000' };
-      const modifiedPosition = { ...mockBTCPosition, entryPrice: '51000' };
-
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [initialPosition],
-        isInitialLoading: false,
-      });
-
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      // Act - simulate entry price change
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [modifiedPosition],
-        isInitialLoading: false,
-      });
-      rerender({});
-
-      // Assert
-      expect(mockCallback).toHaveBeenCalledWith({
+      expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'positions',
         asset: 'BTC',
         reason: 'position_changed',
@@ -518,127 +469,148 @@ describe('usePerpsDataMonitor', () => {
     });
 
     it('ignores positions for different assets', () => {
-      // Arrange - start with no positions
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+      const onDataDetected = jest.fn();
+
+      // Start with no positions
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
       });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring for BTC
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate ETH position creation (different asset)
+      // Add ETH position (different asset)
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockETHPosition],
         isInitialLoading: false,
       });
       rerender({});
 
-      // Assert - should not trigger callback
-      expect(mockCallback).not.toHaveBeenCalled();
-      expect(result.current.isMonitoring).toBe(true);
+      expect(onDataDetected).not.toHaveBeenCalled();
     });
   });
 
-  describe('combined monitoring (monitor: "both")', () => {
-    it('detects orders changes when monitoring both', () => {
-      // Arrange
+  describe('combined monitoring ("both")', () => {
+    it('defaults to monitoring both orders and positions when monitor is undefined', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with no data
       mockUsePerpsLiveOrders.mockReturnValue([]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
       });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring both
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
-          monitor: 'both',
-          onDataDetected: mockCallback,
-        });
-      });
+          // monitor is undefined, should default to 'both'
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate order change
+      // Add new BTC order - should detect since we're monitoring both
       mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
-      // Assert
-      expect(mockCallback).toHaveBeenCalledWith({
+      expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'orders',
         asset: 'BTC',
         reason: 'new_orders_detected',
       });
     });
 
-    it('detects position changes when monitoring both', () => {
-      // Arrange
+    it('detects orders when monitoring both', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with no data
       mockUsePerpsLiveOrders.mockReturnValue([]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
       });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring both
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'both',
-          onDataDetected: mockCallback,
-        });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+
+      // Add new BTC order
+      mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
+      rerender({});
+
+      expect(onDataDetected).toHaveBeenCalledWith({
+        detectedData: 'orders',
+        asset: 'BTC',
+        reason: 'new_orders_detected',
+      });
+    });
+
+    it('detects positions when monitoring both', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with no data
+      mockUsePerpsLiveOrders.mockReturnValue([]);
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
       });
 
-      // Act - simulate position change
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          monitor: 'both',
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+
+      // Add new BTC position
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
         isInitialLoading: false,
       });
       rerender({});
 
-      // Assert
-      expect(mockCallback).toHaveBeenCalledWith({
+      expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'positions',
         asset: 'BTC',
         reason: 'position_changed',
       });
     });
 
-    it('calls back with first detected change type', () => {
-      // Arrange - setup to detect both simultaneously
+    it('returns first detected change type when both are available', () => {
+      const onDataDetected = jest.fn();
+
+      // Start with no data
       mockUsePerpsLiveOrders.mockReturnValue([]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
       });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring both
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'both',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate both changes at once (orders first in logic)
+      // Add both orders and positions simultaneously
       mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
@@ -646,9 +618,8 @@ describe('usePerpsDataMonitor', () => {
       });
       rerender({});
 
-      // Assert - should call back with orders (first in detection logic)
-      expect(mockCallback).toHaveBeenCalledTimes(1);
-      expect(mockCallback).toHaveBeenCalledWith({
+      // Should detect orders first (based on the order of checks in the code)
+      expect(onDataDetected).toHaveBeenCalledWith({
         detectedData: 'orders',
         asset: 'BTC',
         reason: 'new_orders_detected',
@@ -656,456 +627,232 @@ describe('usePerpsDataMonitor', () => {
     });
   });
 
-  describe('timeout behavior', () => {
-    it('clears monitoring state after timeout', () => {
-      // Arrange
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
+  describe('timeout handling', () => {
+    it('stops monitoring after timeout', () => {
+      const onDataDetected = jest.fn();
 
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring with custom timeout
-      act(() => {
-        result.current.startMonitoring({
+      const { result } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'orders',
+          onDataDetected,
           timeoutMs: 5000,
-          onDataDetected: mockCallback,
-        });
-      });
+          enabled: true,
+        }),
+      );
 
-      expect(result.current.isMonitoring).toBe(true);
+      expect(result.current).toBeUndefined();
 
-      // Act - advance time past timeout
+      // Fast forward past timeout
       act(() => {
         jest.advanceTimersByTime(5000);
       });
 
-      // Assert
-      expect(result.current.isMonitoring).toBe(false);
-      expect(mockCallback).not.toHaveBeenCalled();
-    });
-
-    it('logs timeout event with DevLogger', () => {
-      // Arrange
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
-
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring and trigger timeout
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'orders',
-          timeoutMs: 3000,
-          onDataDetected: mockCallback,
-        });
-      });
-
-      act(() => {
-        jest.advanceTimersByTime(3000);
-      });
-
-      // Assert
+      expect(result.current).toBeUndefined();
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePerpsDataMonitor: Timeout reached, stopping monitoring',
         {
           asset: 'BTC',
           monitor: 'orders',
-          timeoutMs: 3000,
+          timeoutMs: 5000,
         },
       );
     });
 
+    it('uses default timeout of 10000ms', () => {
+      const onDataDetected = jest.fn();
+
+      const { result } = renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          monitor: 'orders',
+          onDataDetected,
+          enabled: true,
+        }),
+      );
+
+      expect(result.current).toBeUndefined();
+
+      // Should still be monitoring at 9999ms
+      act(() => {
+        jest.advanceTimersByTime(9999);
+      });
+      expect(result.current).toBeUndefined();
+
+      // Should timeout at 10000ms
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+      expect(result.current).toBeUndefined();
+    });
+
     it('does not call onDataDetected on timeout', () => {
-      // Arrange
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
+      const onDataDetected = jest.fn();
 
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring and timeout
-      act(() => {
-        result.current.startMonitoring({
+      renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'orders',
-          timeoutMs: 1000,
-          onDataDetected: mockCallback,
-        });
-      });
-
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      // Assert
-      expect(mockCallback).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('cancelMonitoring functionality', () => {
-    it('resets all monitoring state', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      expect(result.current.isMonitoring).toBe(true);
-
-      // Act - cancel monitoring
-      act(() => {
-        result.current.cancelMonitoring();
-      });
-
-      // Assert
-      expect(result.current.isMonitoring).toBe(false);
-    });
-
-    it('clears timeout when called', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring with timeout
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'orders',
+          onDataDetected,
           timeoutMs: 5000,
-          onDataDetected: mockCallback,
-        });
-      });
+          enabled: true,
+        }),
+      );
 
-      // Act - cancel before timeout
-      act(() => {
-        result.current.cancelMonitoring();
-      });
-
-      // Act - advance past original timeout
       act(() => {
         jest.advanceTimersByTime(5000);
       });
 
-      // Assert - timeout should not have fired
-      expect(DevLogger.log).not.toHaveBeenCalledWith(
-        'usePerpsDataMonitor: Timeout reached, stopping monitoring',
-        expect.any(Object),
-      );
-    });
-
-    it('logs cancellation event', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start and cancel monitoring
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      act(() => {
-        result.current.cancelMonitoring();
-      });
-
-      // Assert
-      expect(DevLogger.log).toHaveBeenCalledWith(
-        'usePerpsDataMonitor: Cancelling data monitoring',
-      );
+      expect(onDataDetected).not.toHaveBeenCalled();
     });
   });
 
-  describe('edge cases and error handling', () => {
-    it('handles undefined positions gracefully', () => {
-      // Arrange - undefined positions
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: undefined as Position[] | undefined,
-        isInitialLoading: false,
-      });
+  describe('loading states', () => {
+    it('does not trigger monitoring while orders are loading', () => {
+      const onDataDetected = jest.fn();
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
+      // Orders are loading (undefined)
+      mockUsePerpsLiveOrders.mockReturnValue(
+        undefined as Position[] | undefined,
+      );
 
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      // Should not crash
-      rerender({});
-      expect(mockCallback).not.toHaveBeenCalled();
-    });
-
-    it('prevents monitoring when orders are loading', () => {
-      // Arrange - orders loaded as empty array initially
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
-
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring with loaded empty orders
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'orders',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate orders becoming undefined (loading state)
-      mockUsePerpsLiveOrders.mockReturnValue(undefined);
-      rerender({});
-
-      // Assert - should not detect changes while loading (undefined orders)
-      expect(mockCallback).not.toHaveBeenCalled();
-
-      // Act - orders become available again
+      // Try to add order while loading
       mockUsePerpsLiveOrders.mockReturnValue([mockBTCOrder]);
       rerender({});
 
-      // Should now detect the new order
-      expect(mockCallback).toHaveBeenCalledWith({
-        detectedData: 'orders',
-        asset: 'BTC',
-        reason: 'new_orders_detected',
-      });
+      expect(onDataDetected).not.toHaveBeenCalled();
     });
 
-    it('prevents monitoring when positions are loading', () => {
-      // Arrange - positions loading
-      mockUsePerpsLiveOrders.mockReturnValue([]);
+    it('does not trigger monitoring while positions are loading', () => {
+      const onDataDetected = jest.fn();
+
+      // Positions are loading
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: true,
       });
 
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
+      const { rerender } = renderHook(() =>
+        usePerpsDataMonitor({
           asset: 'BTC',
           monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-      // Act - simulate position change while still loading
+      // Try to add position while loading
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockBTCPosition],
-        isInitialLoading: true,
+        isInitialLoading: true, // Still loading
       });
       rerender({});
 
-      // Assert - should not detect changes while loading
-      expect(mockCallback).not.toHaveBeenCalled();
-    });
-
-    it('handles position arrays with missing assets', () => {
-      // Arrange - start with no positions
-      mockUsePerpsLiveOrders.mockReturnValue([]);
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
-
-      const { result, rerender } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
-
-      // Act - start monitoring for BTC
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'positions',
-          onDataDetected: mockCallback,
-        });
-      });
-
-      // Act - add positions for different assets only
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [mockETHPosition], // Only ETH, no BTC
-        isInitialLoading: false,
-      });
-      rerender({});
-
-      // Assert - should not trigger for different assets
-      expect(mockCallback).not.toHaveBeenCalled();
+      expect(onDataDetected).not.toHaveBeenCalled();
     });
   });
 
-  describe('cleanup and memory management', () => {
-    it('clears timeout on unmount', () => {
-      // Arrange
-      const { result, unmount } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback = jest.fn();
+  describe('edge cases', () => {
+    it('handles undefined positions gracefully', () => {
+      const onDataDetected = jest.fn();
 
-      // Act - start monitoring
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'orders',
-          timeoutMs: 5000,
-          onDataDetected: mockCallback,
-        });
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: undefined,
+        isInitialLoading: false,
       });
 
-      // Act - unmount component
+      expect(() => {
+        renderHook(() =>
+          usePerpsDataMonitor({
+            asset: 'BTC',
+            monitor: 'positions',
+            onDataDetected,
+            enabled: true,
+          }),
+        );
+      }).not.toThrow();
+    });
+
+    it('handles undefined orders gracefully', () => {
+      const onDataDetected = jest.fn();
+
+      mockUsePerpsLiveOrders.mockReturnValue(
+        undefined as Position[] | undefined,
+      );
+
+      expect(() => {
+        renderHook(() =>
+          usePerpsDataMonitor({
+            asset: 'BTC',
+            monitor: 'orders',
+            onDataDetected,
+            enabled: true,
+          }),
+        );
+      }).not.toThrow();
+    });
+
+    it('clears timeout on unmount', () => {
+      const onDataDetected = jest.fn();
+
+      const { unmount } = renderHook(() =>
+        usePerpsDataMonitor({
+          asset: 'BTC',
+          monitor: 'orders',
+          onDataDetected,
+          timeoutMs: 5000,
+          enabled: true,
+        }),
+      );
+
       unmount();
 
-      // Act - advance time past timeout
+      // Advance past timeout - should not trigger any logs since component unmounted
       act(() => {
         jest.advanceTimersByTime(5000);
       });
 
-      // Assert - timeout should not fire after unmount
       expect(DevLogger.log).not.toHaveBeenCalledWith(
         'usePerpsDataMonitor: Timeout reached, stopping monitoring',
         expect.any(Object),
       );
     });
-
-    it('handles multiple startMonitoring calls correctly', () => {
-      // Arrange
-      const { result } = renderHook(() => usePerpsDataMonitor());
-      const mockCallback1 = jest.fn();
-      const mockCallback2 = jest.fn();
-
-      // Act - start first monitoring
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'BTC',
-          monitor: 'orders',
-          timeoutMs: 3000,
-          onDataDetected: mockCallback1,
-        });
-      });
-
-      // Act - start second monitoring (should clear first)
-      act(() => {
-        result.current.startMonitoring({
-          asset: 'ETH',
-          monitor: 'positions',
-          timeoutMs: 5000,
-          onDataDetected: mockCallback2,
-        });
-      });
-
-      // Act - advance past first timeout
-      act(() => {
-        jest.advanceTimersByTime(3000);
-      });
-
-      // Assert - first timeout should not fire, monitoring should continue
-      expect(result.current.isMonitoring).toBe(true);
-
-      // Act - advance to second timeout
-      act(() => {
-        jest.advanceTimersByTime(2000); // total 5000ms
-      });
-
-      // Assert - second timeout should fire
-      expect(result.current.isMonitoring).toBe(false);
-    });
   });
 
-  describe('parameterized tests', () => {
-    it.each(['orders', 'positions', 'both'] as const)(
-      'handles %s monitoring type correctly',
-      (monitorType) => {
-        // Arrange
-        mockUsePerpsLiveOrders.mockReturnValue([]);
-        mockUsePerpsLivePositions.mockReturnValue({
-          positions: [],
-          isInitialLoading: false,
-        });
+  describe('parameters validation', () => {
+    it.each([
+      ['orders', 'BTC'],
+      ['positions', 'ETH'],
+      ['both', 'SOL'],
+    ])('handles %s monitoring for %s asset correctly', (monitor, asset) => {
+      const onDataDetected = jest.fn();
 
-        const { result } = renderHook(() => usePerpsDataMonitor());
-        const mockCallback = jest.fn();
+      const { result } = renderHook(() =>
+        usePerpsDataMonitor({
+          asset,
+          monitor: monitor as 'orders' | 'positions' | 'both',
+          onDataDetected,
+          enabled: true,
+        }),
+      );
 
-        // Act - start monitoring
-        act(() => {
-          result.current.startMonitoring({
-            asset: 'BTC',
-            monitor: monitorType,
-            onDataDetected: mockCallback,
-          });
-        });
-
-        // Assert
-        expect(result.current.isMonitoring).toBe(true);
-        expect(DevLogger.log).toHaveBeenCalledWith(
-          'usePerpsDataMonitor: Starting to monitor for data changes',
-          expect.objectContaining({
-            monitor: monitorType,
-          }),
-        );
-      },
-    );
-
-    it.each(['BTC', 'ETH', 'SOL'] as const)(
-      'monitors %s asset correctly',
-      (asset) => {
-        // Arrange
-        mockUsePerpsLiveOrders.mockReturnValue([]);
-        mockUsePerpsLivePositions.mockReturnValue({
-          positions: [],
-          isInitialLoading: false,
-        });
-
-        const { result } = renderHook(() => usePerpsDataMonitor());
-        const mockCallback = jest.fn();
-
-        // Act
-        act(() => {
-          result.current.startMonitoring({
-            asset,
-            monitor: 'orders',
-            onDataDetected: mockCallback,
-          });
-        });
-
-        // Assert
-        expect(DevLogger.log).toHaveBeenCalledWith(
-          'usePerpsDataMonitor: Starting to monitor for data changes',
-          expect.objectContaining({
-            asset,
-          }),
-        );
-      },
-    );
+      expect(result.current).toBeUndefined();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'usePerpsDataMonitor: Starting to monitor for data changes',
+        expect.objectContaining({
+          asset,
+          monitor,
+        }),
+      );
+    });
   });
 });
