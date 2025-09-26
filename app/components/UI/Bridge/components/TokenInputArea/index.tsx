@@ -41,6 +41,7 @@ import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
+import { parseLocaleNumber } from '../../../../../util/number';
 
 const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
@@ -229,7 +230,8 @@ export const TokenInputArea = forwardRef<
     });
 
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-    const parsedTokenBalance = parseFloat(tokenBalance || '0');
+    const parsedLocaleTokenBalance = parseLocaleNumber(tokenBalance || '0');
+    const parsedTokenBalance = parseFloat(parsedLocaleTokenBalance);
     const roundedTokenBalance =
       Math.floor(parsedTokenBalance * 100000) / 100000;
     const formattedBalance =

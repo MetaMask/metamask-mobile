@@ -421,6 +421,65 @@ export const dotAndCommaDecimalFormatter = (value) => {
 };
 
 /**
+ * Parses a locale-formatted number string to a clean decimal format.
+ * Handles international number formats with thousands separators and decimal separators.
+ *
+ * Supported formats:
+ * - English: "1,234.56" → "1234.56"
+ * - German: "1.234,56" → "1234.56"
+ * - French: "1 234,56" → "1234.56"
+ * - Swiss: "1'234.56" → "1234.56"
+ * - Others: removes all non-digit characters except the last decimal separator
+ *
+ * @param {string|number} value - The locale-formatted number string
+ * @returns {string} Clean decimal string suitable for parsing (e.g., "1234.56")
+ */
+export const parseLocaleNumber = (value) => {
+  if (value === null || value === undefined) {
+    return '0';
+  }
+
+  const valueStr = String(value).trim();
+
+  if (valueStr === '' || valueStr === '0') {
+    return '0';
+  }
+
+  // Find the last occurrence of comma or period - this is likely the decimal separator
+  const lastCommaIndex = valueStr.lastIndexOf(',');
+  const lastPeriodIndex = valueStr.lastIndexOf('.');
+
+  // Determine which is the decimal separator based on position
+  if (lastCommaIndex > lastPeriodIndex) {
+    // Comma is the decimal separator (e.g., "1.234,56")
+    const integerPart = valueStr
+      .substring(0, lastCommaIndex)
+      .replace(/[^0-9]/g, '');
+    const decimalPart = valueStr
+      .substring(lastCommaIndex + 1)
+      .replace(/[^0-9]/g, '');
+    return decimalPart
+      ? `${integerPart || '0'}.${decimalPart}`
+      : integerPart || '0';
+  } else if (lastPeriodIndex >= 0) {
+    // Period is the decimal separator (e.g., "1,234.56")
+    const integerPart = valueStr
+      .substring(0, lastPeriodIndex)
+      .replace(/[^0-9]/g, '');
+    const decimalPart = valueStr
+      .substring(lastPeriodIndex + 1)
+      .replace(/[^0-9]/g, '');
+    return decimalPart
+      ? `${integerPart || '0'}.${decimalPart}`
+      : integerPart || '0';
+  }
+    // No decimal separator - just clean integer
+    const cleanInteger = valueStr.replace(/[^0-9]/g, '');
+    return cleanInteger || '0';
+
+};
+
+/**
  * Determines whether the given number is going to be
  * displalyed in scientific notation after being converted to a string.
  *

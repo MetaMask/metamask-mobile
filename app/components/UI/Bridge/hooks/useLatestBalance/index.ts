@@ -5,6 +5,7 @@ import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
+import { parseLocaleNumber } from '../../../../../util/number';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectSelectedInternalAccount,
@@ -152,7 +153,10 @@ export const useLatestBalance = (token: {
       if (displayBalance && token.decimals) {
         setBalance({
           displayBalance,
-          atomicBalance: parseUnits(displayBalance, token.decimals),
+          atomicBalance: parseUnits(
+            parseLocaleNumber(displayBalance),
+            token.decimals,
+          ),
         });
       }
     }
@@ -184,7 +188,7 @@ export const useLatestBalance = (token: {
   const cachedBalance = {
     displayBalance: token.balance,
     atomicBalance: token.balance
-      ? parseUnits(token.balance, token.decimals)
+      ? parseUnits(parseLocaleNumber(token.balance), token.decimals)
       : undefined,
   };
 
