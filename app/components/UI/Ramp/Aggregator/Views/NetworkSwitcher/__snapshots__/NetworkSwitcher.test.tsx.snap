@@ -1559,7 +1559,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -2614,7 +2614,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -3669,7 +3669,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -4724,7 +4724,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
