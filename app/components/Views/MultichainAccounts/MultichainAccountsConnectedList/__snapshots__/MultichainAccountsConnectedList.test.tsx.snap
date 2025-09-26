@@ -134,6 +134,8 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           },
                           {
                             "gap": 16,
+                            "paddingBottom": 2,
+                            "paddingTop": 2,
                           },
                         ]
                       }
@@ -344,6 +346,8 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           },
                           {
                             "gap": 16,
+                            "paddingBottom": 2,
+                            "paddingTop": 2,
                           },
                         ]
                       }
