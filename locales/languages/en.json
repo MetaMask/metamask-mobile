@@ -5971,7 +5971,7 @@
       "title": "Account not earning points",
       "title_optin_not_supported": "Account not supported",
       "description": "This account's activity is not being tracked for this season.",
-      "description_optin_not_supported": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program."
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
 
     "link_account": "Add account",
