@@ -102,6 +102,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                     "width": "100%",
                   }
                 }
+                testID="list-item-select"
               >
                 <View
                   accessibilityRole="none"
@@ -311,6 +312,7 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                     "width": "100%",
                   }
                 }
+                testID="list-item-select"
               >
                 <View
                   accessibilityRole="none"
