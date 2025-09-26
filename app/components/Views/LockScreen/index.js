@@ -81,10 +81,8 @@ class LockScreen extends PureComponent {
       this.lock();
 
       if (error?.message) {
-        const errorMessage = error.message;
-
         // Track vault corruption with enabled state checking
-        trackVaultCorruption(errorMessage, {
+        trackVaultCorruption(error.message, {
           error_type: 'lockscreen_authentication_failure',
           context: 'lockscreen_unlock_failed',
         });
