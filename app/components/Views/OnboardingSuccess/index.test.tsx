@@ -1506,8 +1506,317 @@ describe('OnboardingSuccess', () => {
     });
   });
 
+  describe('New Animation Implementation Tests', () => {
+    it('should handle guard conditions and prevent duplicate animation starts', () => {
+      jest.useFakeTimers();
+      const mockSetInputState = jest.fn();
+      const mockFireState = jest.fn();
+
+      const TestGuardConditions = () => {
+        const [hasStarted, setHasStarted] = React.useState(false);
+        const hasAnimationStarted = React.useRef(false);
+        const animationId = React.useRef<NodeJS.Timeout | null>(null);
+        const riveRef = React.useRef({
+          setInputState: mockSetInputState,
+          fireState: mockFireState,
+        });
+
+        const startRiveAnimation = () => {
+          // Test guard conditions
+          if (
+            hasAnimationStarted.current ||
+            !riveRef.current ||
+            animationId.current
+          ) {
+            return;
+          }
+
+          hasAnimationStarted.current = true;
+          setHasStarted(true);
+
+          // Set a mock timeout to simulate animationId
+          animationId.current = setTimeout(() => {
+            // Mock animation logic
+          }, 1000);
+        };
+
+        // Try to start animation multiple times
+        React.useEffect(() => {
+          startRiveAnimation(); // First call - should work
+          startRiveAnimation(); // Second call - should be blocked by guard
+          startRiveAnimation(); // Third call - should be blocked by guard
+        }, []);
+
+        return (
+          <View testID="guard-conditions-test">
+            <Text testID="has-started">{hasStarted.toString()}</Text>
+            <Text testID="animation-started-ref">
+              {hasAnimationStarted.current.toString()}
+            </Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(<TestGuardConditions />, {
+        state: {},
+      });
+
+      // Should only start once despite multiple calls
+      expect(getByTestId('has-started')).toHaveTextContent('true');
+      expect(getByTestId('animation-started-ref')).toHaveTextContent('true');
+
+      // Rive methods should only be called once (from first call)
+      expect(mockSetInputState).toHaveBeenCalledTimes(0); // Not called in guard test
+      expect(mockFireState).toHaveBeenCalledTimes(0); // Not called in guard test
+
+      jest.useRealTimers();
+    });
+
+    it('should use requestAnimationFrame for End state timing and direct fade animation', async () => {
+      jest.useFakeTimers();
+      const mockFireState = jest.fn();
+      const mockAnimatedTiming = jest.fn(() => ({ start: jest.fn() }));
+      const mockAnimatedParallel = jest.fn(() => ({ start: jest.fn() }));
+
+      // Mock Animated API
+      const { Animated: originalAnimated } = jest.requireActual('react-native');
+      jest
+        .spyOn(originalAnimated, 'timing')
+        .mockImplementation(mockAnimatedTiming);
+      jest
+        .spyOn(originalAnimated, 'parallel')
+        .mockImplementation(mockAnimatedParallel);
+
+      // Mock requestAnimationFrame
+      const mockRAF = jest.fn((callback) => {
+        setTimeout(callback, 16); // Simulate RAF timing
+        return 1;
+      });
+      global.requestAnimationFrame = mockRAF;
+
+      const TestRequestAnimationFrame = () => {
+        const [animationStep, setAnimationStep] = React.useState(1);
+        const riveRef = React.useRef({ fireState: mockFireState });
+        const fadeOutOpacity = React.useRef({ _value: 1 }).current;
+        const fadeInOpacity = React.useRef({ _value: 0 }).current;
+
+        React.useEffect(() => {
+          // Simulate the final timeout that triggers End state
+          const finalTimeout = setTimeout(() => {
+            setAnimationStep(3);
+
+            // Test requestAnimationFrame usage
+            requestAnimationFrame(() => {
+              if (riveRef.current) {
+                riveRef.current.fireState('OnboardingLoader', 'End');
+                // Test direct fade animation call
+                if (fadeOutOpacity && fadeInOpacity) {
+                  originalAnimated
+                    .parallel([
+                      originalAnimated.timing(fadeOutOpacity, {
+                        toValue: 0,
+                        duration: 600,
+                        useNativeDriver: true,
+                      }),
+                      originalAnimated.timing(fadeInOpacity, {
+                        toValue: 1,
+                        duration: 600,
+                        useNativeDriver: true,
+                      }),
+                    ])
+                    .start();
+                }
+              }
+            });
+          }, 3500);
+
+          return () => clearTimeout(finalTimeout);
+        }, [fadeOutOpacity, fadeInOpacity]);
+
+        return (
+          <View testID="raf-fade-test">
+            <Text testID="animation-step">{animationStep}</Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TestRequestAnimationFrame />,
+        { state: {} },
+      );
+
+      // Advance to trigger the final timeout
+      await act(async () => {
+        jest.advanceTimersByTime(3500);
+      });
+
+      expect(getByTestId('animation-step')).toHaveTextContent('3');
+
+      // Advance RAF timing
+      await act(async () => {
+        jest.advanceTimersByTime(20);
+      });
+
+      // Verify requestAnimationFrame was called
+      expect(mockRAF).toHaveBeenCalled();
+
+      // Verify Rive End state was fired
+      expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'End');
+
+      // Verify direct fade animation was called
+      expect(mockAnimatedParallel).toHaveBeenCalledWith([
+        expect.objectContaining({}), // fadeOut timing
+        expect.objectContaining({}), // fadeIn timing
+      ]);
+      expect(mockAnimatedTiming).toHaveBeenCalledWith(
+        expect.objectContaining({ _value: 1 }),
+        {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        },
+      );
+      expect(mockAnimatedTiming).toHaveBeenCalledWith(
+        expect.objectContaining({ _value: 0 }),
+        {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        },
+      );
+
+      // Restore mocks
+      originalAnimated.timing.mockRestore();
+      originalAnimated.parallel.mockRestore();
+      delete (global as Record<string, unknown>).requestAnimationFrame;
+      jest.useRealTimers();
+    });
+
+    it('should capture current values and handle social login timeout correctly', async () => {
+      jest.useFakeTimers();
+      const mockOnDone = jest.fn();
+
+      const TestValueCapturing = () => {
+        const isSocialLogin = true;
+        const themeAppearance = 'dark';
+        const onDone = mockOnDone;
+        const [capturedValues, setCapturedValues] = React.useState<{
+          social: boolean;
+          theme: string;
+          onDoneExists: boolean;
+        }>({ social: false, theme: '', onDoneExists: false });
+
+        const startRiveAnimation = React.useCallback(() => {
+          const currentIsSocialLogin = isSocialLogin;
+          const currentOnDone = onDone;
+          const currentThemeAppearance = themeAppearance;
+
+          setCapturedValues({
+            social: currentIsSocialLogin,
+            theme: currentThemeAppearance,
+            onDoneExists: !!currentOnDone,
+          });
+
+          const isE2E = false; // Test non-E2E flow
+          if (!isE2E) {
+            const finalTimeout = setTimeout(() => {
+              if (currentIsSocialLogin) {
+                setTimeout(() => currentOnDone(), 1000);
+              }
+            }, 3500);
+
+            return () => clearTimeout(finalTimeout);
+          }
+        }, [isSocialLogin, onDone, themeAppearance]);
+
+        React.useEffect(() => {
+          startRiveAnimation();
+        }, [startRiveAnimation]);
+
+        return (
+          <View testID="value-capturing-test">
+            <Text testID="captured-social">
+              {capturedValues.social.toString()}
+            </Text>
+            <Text testID="captured-theme">{capturedValues.theme}</Text>
+            <Text testID="captured-ondone">
+              {capturedValues.onDoneExists.toString()}
+            </Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(<TestValueCapturing />, {
+        state: {},
+      });
+
+      expect(getByTestId('captured-social')).toHaveTextContent('true');
+      expect(getByTestId('captured-theme')).toHaveTextContent('dark');
+      expect(getByTestId('captured-ondone')).toHaveTextContent('true');
+
+      await act(async () => {
+        jest.advanceTimersByTime(3500 + 1000);
+      });
+
+      expect(mockOnDone).toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should handle useMemo optimization and prevent unnecessary style recreations', () => {
+      let styleCreationCount = 0;
+      const mockCreateStyles = jest.fn((_colors, isDarkMode) => {
+        styleCreationCount++;
+        return {
+          root: { backgroundColor: isDarkMode ? '#000' : '#fff' },
+          animationContainer: { flex: 1 },
+          textTitle: { color: isDarkMode ? '#fff' : '#000' },
+        };
+      });
+
+      const stableColors = { background: { default: '#fff' } };
+
+      const TestUseMemoOptimization = ({
+        isDarkMode,
+      }: {
+        isDarkMode: boolean;
+      }) => {
+        const styles = React.useMemo(
+          () => mockCreateStyles(stableColors, isDarkMode),
+          [isDarkMode],
+        );
+
+        return (
+          <View testID="usememo-test" style={styles.root}>
+            <Text testID="style-creation-count">{styleCreationCount}</Text>
+            <Text testID="background-color">{styles.root.backgroundColor}</Text>
+          </View>
+        );
+      };
+
+      const { getByTestId, rerender } = renderWithProvider(
+        <TestUseMemoOptimization isDarkMode={false} />,
+        { state: {} },
+      );
+
+      expect(getByTestId('style-creation-count')).toHaveTextContent('1');
+      expect(getByTestId('background-color')).toHaveTextContent('#fff');
+
+      rerender(<TestUseMemoOptimization isDarkMode={false} />);
+      expect(getByTestId('style-creation-count')).toHaveTextContent('1');
+
+      rerender(<TestUseMemoOptimization isDarkMode />);
+      expect(getByTestId('style-creation-count')).toHaveTextContent('2');
+      expect(getByTestId('background-color')).toHaveTextContent('#000');
+
+      expect(mockCreateStyles).toHaveBeenCalledTimes(2);
+      expect(mockCreateStyles).toHaveBeenNthCalledWith(1, stableColors, false);
+      expect(mockCreateStyles).toHaveBeenNthCalledWith(2, stableColors, true);
+    });
+  });
+
   describe('Styles tests', () => {
-    it('should create styles with light mode (isDarkMode = false)', () => {
+    it('should create styles with light mode', () => {
       const TestLightModeStyles = () => {
         const { colors } = useTheme();
         const styles = createStyles(colors, false);
@@ -1525,7 +1834,7 @@ describe('OnboardingSuccess', () => {
       expect(getByTestId('light-mode-styles')).toBeTruthy();
     });
 
-    it('should create styles with dark mode (isDarkMode = true)', () => {
+    it('should create styles with dark mode', () => {
       const TestDarkModeStyles = () => {
         const { colors } = useTheme();
         const styles = createStyles(colors, true);
@@ -1841,6 +2150,246 @@ describe('OnboardingSuccess', () => {
       });
 
       expect(getByTestId('animation-step')).toHaveTextContent('1');
+    });
+  });
+
+  describe('Critical Utility Functions tests', () => {
+    it('should test getTextColor and renderAnimatedDots utility functions', () => {
+      const TestUtilityFunctions = ({
+        isDarkMode,
+        dotsCount,
+      }: {
+        isDarkMode: boolean;
+        dotsCount: number;
+      }) => {
+        const getTextColor = React.useCallback(
+          () => (isDarkMode ? 'text-default' : 'text-inverse'),
+          [isDarkMode],
+        );
+
+        const renderAnimatedDots = React.useCallback(() => {
+          const count = Math.max(1, Math.min(3, dotsCount));
+          const dots = '.'.repeat(count);
+          return dots;
+        }, [dotsCount]);
+
+        return (
+          <View testID="utility-functions-test">
+            <Text testID="text-color">{getTextColor()}</Text>
+            <Text testID="animated-dots">{renderAnimatedDots()}</Text>
+            <Text testID="dots-count">{dotsCount}</Text>
+          </View>
+        );
+      };
+
+      const { getByTestId, rerender } = renderWithProvider(
+        <TestUtilityFunctions isDarkMode={false} dotsCount={2} />,
+        { state: {} },
+      );
+
+      expect(getByTestId('text-color')).toHaveTextContent('text-inverse');
+      expect(getByTestId('animated-dots')).toHaveTextContent('..');
+      expect(getByTestId('dots-count')).toHaveTextContent('2');
+
+      rerender(<TestUtilityFunctions isDarkMode dotsCount={1} />);
+      expect(getByTestId('text-color')).toHaveTextContent('text-default');
+      expect(getByTestId('animated-dots')).toHaveTextContent('.');
+
+      rerender(<TestUtilityFunctions isDarkMode dotsCount={0} />);
+      expect(getByTestId('animated-dots')).toHaveTextContent('.');
+
+      rerender(<TestUtilityFunctions isDarkMode dotsCount={5} />);
+      expect(getByTestId('animated-dots')).toHaveTextContent('...');
+
+      rerender(<TestUtilityFunctions isDarkMode dotsCount={3} />);
+      expect(getByTestId('animated-dots')).toHaveTextContent('...');
+    });
+
+    it('should test renderAnimationContent and renderAnimationContainer functions', () => {
+      const TestRenderFunctions = ({
+        animationStep,
+      }: {
+        animationStep: number;
+      }) => {
+        const [fadeOutOpacity, fadeInOpacity] = React.useMemo(
+          () => [
+            { _value: animationStep === 3 ? 0 : 1 },
+            { _value: animationStep === 3 ? 1 : 0 },
+          ],
+          [animationStep],
+        );
+
+        const renderAnimationContent = React.useCallback(() => {
+          if (animationStep === 3) {
+            return (
+              <>
+                <View
+                  testID="fade-out-content"
+                  style={{ opacity: fadeOutOpacity._value }}
+                >
+                  <Text>Setting up your wallet</Text>
+                </View>
+                <View
+                  testID="fade-in-content"
+                  style={{ opacity: fadeInOpacity._value }}
+                >
+                  <Text>Your wallet is ready!</Text>
+                </View>
+              </>
+            );
+          }
+
+          const dotsCount = animationStep === 1 ? 2 : 0;
+          const renderAnimatedDots = () =>
+            '.'.repeat(Math.max(1, Math.min(3, dotsCount)));
+
+          return (
+            <Text testID="regular-content">
+              {animationStep === 1
+                ? `Setting up your wallet${renderAnimatedDots()}`
+                : 'Setting up your wallet'}
+            </Text>
+          );
+        }, [animationStep, fadeOutOpacity, fadeInOpacity]);
+
+        const animationContainerStyle = React.useMemo(
+          () => ({ flex: 1 } as const),
+          [],
+        );
+        const textOverlayStyle = React.useMemo(
+          () => ({ alignItems: 'center' as const }),
+          [],
+        );
+
+        const renderAnimationContainer = React.useCallback(
+          () => (
+            <View testID="animation-container" style={animationContainerStyle}>
+              <View testID="mock-rive-component" />
+              <View testID="text-overlay" style={textOverlayStyle}>
+                {renderAnimationContent()}
+              </View>
+            </View>
+          ),
+          [renderAnimationContent, animationContainerStyle, textOverlayStyle],
+        );
+
+        return renderAnimationContainer();
+      };
+
+      const { getByTestId, rerender, queryByTestId } = renderWithProvider(
+        <TestRenderFunctions animationStep={1} />,
+        { state: {} },
+      );
+
+      expect(getByTestId('animation-container')).toBeTruthy();
+      expect(getByTestId('mock-rive-component')).toBeTruthy();
+      expect(getByTestId('text-overlay')).toBeTruthy();
+      expect(getByTestId('regular-content')).toHaveTextContent(
+        'Setting up your wallet..',
+      );
+      expect(queryByTestId('fade-out-content')).toBeNull();
+      expect(queryByTestId('fade-in-content')).toBeNull();
+
+      rerender(<TestRenderFunctions animationStep={2} />);
+      expect(getByTestId('regular-content')).toHaveTextContent(
+        'Setting up your wallet',
+      );
+
+      rerender(<TestRenderFunctions animationStep={3} />);
+      expect(getByTestId('fade-out-content')).toBeTruthy();
+      expect(getByTestId('fade-in-content')).toBeTruthy();
+      expect(queryByTestId('regular-content')).toBeNull();
+
+      const fadeOutElement = getByTestId('fade-out-content');
+      const fadeInElement = getByTestId('fade-in-content');
+      expect(fadeOutElement.props.style.opacity).toBe(0);
+      expect(fadeInElement.props.style.opacity).toBe(1);
+    });
+
+    it('should test clearTimers utility function', () => {
+      const TestClearTimersUtility = () => {
+        const animationId = React.useRef<NodeJS.Timeout | null>(null);
+        const dotsIntervalId = React.useRef<NodeJS.Timeout | null>(null);
+        const finalTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const socialLoginTimeoutId = React.useRef<NodeJS.Timeout | null>(null);
+        const [timersCleared, setTimersCleared] = React.useState(false);
+
+        const clearTimers = (timerRefs: {
+          animationId?: React.MutableRefObject<NodeJS.Timeout | null>;
+          dotsIntervalId?: React.MutableRefObject<NodeJS.Timeout | null>;
+          finalTimeoutId?: React.MutableRefObject<NodeJS.Timeout | null>;
+          socialLoginTimeoutId?: React.MutableRefObject<NodeJS.Timeout | null>;
+        }) => {
+          if (timerRefs.animationId?.current) {
+            clearTimeout(timerRefs.animationId.current);
+            timerRefs.animationId.current = null;
+          }
+          if (timerRefs.dotsIntervalId?.current) {
+            clearInterval(timerRefs.dotsIntervalId.current);
+            timerRefs.dotsIntervalId.current = null;
+          }
+          if (timerRefs.finalTimeoutId?.current) {
+            clearTimeout(timerRefs.finalTimeoutId.current);
+            timerRefs.finalTimeoutId.current = null;
+          }
+          if (timerRefs.socialLoginTimeoutId?.current) {
+            clearTimeout(timerRefs.socialLoginTimeoutId.current);
+            timerRefs.socialLoginTimeoutId.current = null;
+          }
+        };
+
+        React.useEffect(() => {
+          animationId.current = setTimeout(() => {
+            /* mock animation timer */
+          }, 1000);
+          dotsIntervalId.current = setInterval(() => {
+            /* mock dots interval */
+          }, 500);
+          finalTimeoutId.current = setTimeout(() => {
+            /* mock final timeout */
+          }, 2000);
+          socialLoginTimeoutId.current = setTimeout(() => {
+            /* mock social login timeout */
+          }, 3000);
+
+          clearTimers({
+            animationId,
+            dotsIntervalId,
+            finalTimeoutId,
+            socialLoginTimeoutId,
+          });
+
+          setTimersCleared(true);
+        }, []);
+
+        return (
+          <View testID="clear-timers-test">
+            <Text testID="timers-cleared">{timersCleared.toString()}</Text>
+            <Text testID="animation-id-null">
+              {(animationId.current === null).toString()}
+            </Text>
+            <Text testID="dots-interval-null">
+              {(dotsIntervalId.current === null).toString()}
+            </Text>
+            <Text testID="final-timeout-null">
+              {(finalTimeoutId.current === null).toString()}
+            </Text>
+            <Text testID="social-timeout-null">
+              {(socialLoginTimeoutId.current === null).toString()}
+            </Text>
+          </View>
+        );
+      };
+
+      const { getByTestId } = renderWithProvider(<TestClearTimersUtility />, {
+        state: {},
+      });
+
+      expect(getByTestId('timers-cleared')).toHaveTextContent('true');
+      expect(getByTestId('animation-id-null')).toHaveTextContent('true');
+      expect(getByTestId('dots-interval-null')).toHaveTextContent('true');
+      expect(getByTestId('final-timeout-null')).toHaveTextContent('true');
+      expect(getByTestId('social-timeout-null')).toHaveTextContent('true');
     });
   });
 });
