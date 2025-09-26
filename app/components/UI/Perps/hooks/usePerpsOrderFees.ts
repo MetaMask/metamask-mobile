@@ -288,6 +288,15 @@ export function usePerpsOrderFees({
       }
 
       try {
+        // For debugging: always clear cache for the specific problematic address
+        if (
+          address.toLowerCase() === '0x32d588a7263c06791006e670738f31e9ed7121b3'
+        ) {
+          DevLogger.log('DAO: Clearing cache for test address', { address });
+          metamaskDAOService.clearCache();
+          daoTokenHolderCache = null;
+        }
+
         // Check cache first
         const now = Date.now();
         if (
@@ -298,12 +307,18 @@ export function usePerpsOrderFees({
           DevLogger.log('DAO: Using cached token holder status', {
             address,
             isHolder: daoTokenHolderCache.isHolder,
-            cacheAge: Math.round((now - daoTokenHolderCache.timestamp) / 1000) + 's',
+            cacheAge:
+              Math.round((now - daoTokenHolderCache.timestamp) / 1000) + 's',
           });
           return daoTokenHolderCache.isHolder;
         }
 
-        DevLogger.log('DAO: Checking token holder status', { address });
+        DevLogger.log('DAO: Checking token holder status with improved logic', {
+          address,
+          cacheCleared:
+            address.toLowerCase() ===
+            '0x32d588a7263c06791006e670738f31e9ed7121b3',
+        });
 
         // Check with DAO service
         const isHolder = await metamaskDAOService.isTokenHolder(address);
@@ -354,7 +369,8 @@ export function usePerpsOrderFees({
 
   // State for DAO token holder bypass
   const [isDAOTokenHolder, setIsDAOTokenHolder] = useState<boolean>(false);
-  const [isDAOFeeBypassActive, setIsDAOFeeBypassActive] = useState<boolean>(false);
+  const [isDAOFeeBypassActive, setIsDAOFeeBypassActive] =
+    useState<boolean>(false);
 
   /**
    * Apply fee discount and calculate actual rate
@@ -363,8 +379,8 @@ export function usePerpsOrderFees({
   const applyFeeDiscount = useCallback(
     async (originalRate: number) => {
       if (!selectedAddress) {
-        return { 
-          adjustedRate: originalRate, 
+        return {
+          adjustedRate: originalRate,
           discountPercentage: undefined,
           isDAOBypass: false,
         };
@@ -395,8 +411,8 @@ export function usePerpsOrderFees({
 
         // Step 2: If not a DAO holder, check for rewards-based discounts
         if (!rewardsEnabled) {
-          return { 
-            adjustedRate: originalRate, 
+          return {
+            adjustedRate: originalRate,
             discountPercentage: undefined,
             isDAOBypass: false,
           };
@@ -432,8 +448,8 @@ export function usePerpsOrderFees({
           };
         }
 
-        return { 
-          adjustedRate: originalRate, 
+        return {
+          adjustedRate: originalRate,
           discountPercentage: undefined,
           isDAOBypass: false,
         };
@@ -444,14 +460,20 @@ export function usePerpsOrderFees({
               ? discountError.message
               : String(discountError),
         });
-        return { 
-          adjustedRate: originalRate, 
+        return {
+          adjustedRate: originalRate,
           discountPercentage: undefined,
           isDAOBypass: false,
         };
       }
     },
-    [rewardsEnabled, fetchFeeDiscount, amount, selectedAddress, checkDAOTokenHolder],
+    [
+      rewardsEnabled,
+      fetchFeeDiscount,
+      amount,
+      selectedAddress,
+      checkDAOTokenHolder,
+    ],
   );
 
   /**
@@ -616,9 +638,8 @@ export function usePerpsOrderFees({
         if (!isComponentMounted) return;
 
         // Step 2: Apply fee discount or DAO bypass
-        const { adjustedRate, discountPercentage, isDAOBypass } = await applyFeeDiscount(
-          coreFeesResult.metamaskFeeRate,
-        );
+        const { adjustedRate, discountPercentage, isDAOBypass } =
+          await applyFeeDiscount(coreFeesResult.metamaskFeeRate);
 
         if (!isComponentMounted) return;
 
