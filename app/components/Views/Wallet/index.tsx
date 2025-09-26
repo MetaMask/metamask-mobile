@@ -1103,7 +1103,7 @@ const Wallet = ({
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
-      } else {
+      } else if (tabLabel === strings('wallet.collectibles')) {
         // Return early if no address selected
         if (!selectedAddress) return;
 
