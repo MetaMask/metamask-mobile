@@ -6,6 +6,9 @@ import { ControllerInitFunction } from '../../types';
 /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { BitcoinAccountProvider } from './providers/BitcoinAccountProvider';
 /// END:ONLY_INCLUDE_IF
+/// BEGIN:ONLY_INCLUDE_IF(tron)
+import { TronAccountProvider } from './providers/TronAccountProvider';
+/// END:ONLY_INCLUDE_IF
 
 /**
  * Initialize the multichain account service.
@@ -20,9 +23,14 @@ export const multichainAccountServiceInit: ControllerInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
-    /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
-    providers: [new BitcoinAccountProvider(controllerMessenger)],
-    /// END:ONLY_INCLUDE_IF
+    providers: [
+      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      new BitcoinAccountProvider(controllerMessenger),
+      /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(tron)
+      new TronAccountProvider(controllerMessenger),
+      /// END:ONLY_INCLUDE_IF
+    ].filter(Boolean),
   });
 
   return { controller, memStateKey: null, persistedStateKey: null };

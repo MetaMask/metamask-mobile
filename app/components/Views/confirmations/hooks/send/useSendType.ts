@@ -8,7 +8,12 @@ import {
 import { useMemo } from 'react';
 
 import { useSendContext } from '../../context/send-context';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
+import {
+  isNonEvmChainId,
+  /// BEGIN:ONLY_INCLUDE_IF(tron)
+  isTronChainId,
+  /// END:ONLY_INCLUDE_IF
+} from '../../../../../core/Multichain/utils';
 
 export const useSendType = () => {
   const { asset } = useSendContext();
@@ -33,6 +38,13 @@ export const useSendType = () => {
   );
   /// END:ONLY_INCLUDE_IF
 
+  /// BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTronSendType = useMemo(
+    () => (asset?.chainId ? isTronChainId(asset.chainId) : undefined),
+    [asset?.chainId],
+  );
+  /// END:ONLY_INCLUDE_IF
+
   const assetIsNative =
     asset && 'isNative' in asset ? Boolean(asset.isNative) : undefined;
 
@@ -46,6 +58,9 @@ export const useSendType = () => {
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       isBitcoinSendType,
       /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(tron)
+      isTronSendType,
+      /// END:ONLY_INCLUDE_IF
     }),
     [
       isEvmSendType,
@@ -54,6 +69,9 @@ export const useSendType = () => {
       isSolanaSendType,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       isBitcoinSendType,
+      /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(tron)
+      isTronSendType,
       /// END:ONLY_INCLUDE_IF
     ],
   );
