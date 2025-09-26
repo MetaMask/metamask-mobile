@@ -177,6 +177,42 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     },
   },
   {
+    orderType: 'BUY',
+    state: FIAT_ORDER_STATES.PENDING,
+    provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+    cryptocurrency: 'ETH',
+    currency: 'USD',
+    network: '',
+    data: {
+      cryptoCurrency: {
+        decimals: 18,
+        name: 'Ethereum',
+        symbol: 'ETH',
+      },
+      provider: {
+        name: 'Test Provider',
+      },
+    },
+  },
+  {
+    orderType: 'BUY',
+    state: FIAT_ORDER_STATES.PENDING,
+    provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+    cryptocurrency: 'ETH',
+    currency: 'USD',
+    network: 'wrong order network',
+    data: {
+      cryptoCurrency: {
+        decimals: 18,
+        name: 'Ethereum',
+        symbol: 'ETH',
+      },
+      provider: {
+        name: 'Test Provider',
+      },
+    },
+  },
+  {
     orderType: 'DEPOSIT' as DepositOrderType,
     state: FIAT_ORDER_STATES.PENDING,
     provider: FIAT_ORDER_PROVIDERS.DEPOSIT,

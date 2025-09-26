@@ -92,7 +92,7 @@ describe('useConfirmAction', () => {
     );
     const mockSetScannerVisible = jest.fn().mockResolvedValue(undefined);
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isQRSigningInProgress: true,
+      isSigningQRObject: true,
       setScannerVisible: mockSetScannerVisible,
     } as unknown as QRHardwareHook.QRHardwareContextType);
     const { result } = renderHookWithProvider(() => useConfirmActions(), {

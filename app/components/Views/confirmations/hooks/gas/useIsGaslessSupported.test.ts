@@ -82,34 +82,42 @@ describe('useIsGaslessSupported', () => {
     });
   });
 
-  it('returns isSupported and isSmartTransaction as false when smart transactions are disabled', () => {
+  it('returns isSupported and isSmartTransaction as false when smart transactions are disabled', async () => {
     const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
       state: transferTransactionStateMock,
     });
-    expect(result.current).toEqual({
-      isSupported: false,
-      isSmartTransaction: false,
-    });
+    await waitFor(() =>
+      expect(result.current).toEqual({
+        isSupported: false,
+        isSmartTransaction: false,
+      }),
+    );
   });
-  it('returns isSupported and isSmartTransaction as false when chainId is undefined', () => {
+
+  it('returns isSupported and isSmartTransaction as false when chainId is undefined', async () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
     const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
       state: transferTransactionStateMock,
     });
-    expect(result.current).toEqual({
-      isSupported: false,
-      isSmartTransaction: false,
-    });
+    await waitFor(() =>
+      expect(result.current).toEqual({
+        isSupported: false,
+        isSmartTransaction: false,
+      }),
+    );
   });
-  it('returns isSupported and isSmartTransaction as false when transactionMeta is null', () => {
+
+  it('returns isSupported and isSmartTransaction as false when transactionMeta is null', async () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
     const { result } = renderHookWithProvider(() => useIsGaslessSupported(), {
       state: transferTransactionStateMock,
     });
-    expect(result.current).toEqual({
-      isSupported: false,
-      isSmartTransaction: false,
-    });
+    await waitFor(() =>
+      expect(result.current).toEqual({
+        isSupported: false,
+        isSmartTransaction: false,
+      }),
+    );
   });
 
   it('returns isSupported true and isSmartTransaction: false when EIP-7702 conditions met', async () => {

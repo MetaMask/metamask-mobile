@@ -172,6 +172,8 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
@@ -251,6 +253,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       (isEvmSelected || isMultichainAccountsState2Enabled),
     [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useMemo(
+    () => isPredictFlagEnabled && isEvmSelected,
+    [isPredictFlagEnabled, isEvmSelected],
+  );
 
   const {
     navigation,
@@ -291,6 +298,15 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const predictTabProps = useMemo(
+    () => ({
+      key: 'predict-tab',
+      tabLabel: strings('wallet.predict'),
       navigation,
     }),
     [navigation],
@@ -391,6 +407,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
+    if (isPredictEnabled) {
+      tabs.push(
+        <PredictTabView {...predictTabProps} key={predictTabProps.key} />,
+      );
+    }
+
     if (defiEnabled && !enabledNetworksIsSolana) {
       tabs.push(
         <DeFiPositionsList
@@ -415,6 +437,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsEnabled,
     perpsTabProps,
     isPerpsTabVisible,
+    isPredictEnabled,
+    predictTabProps,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
@@ -694,9 +718,12 @@ const Wallet = ({
   const { selectNetwork } = useNetworkSelection({
     networks: allNetworks,
   });
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
+    // do not prompt for social login flow
     if (
+      !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
       isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
@@ -706,6 +733,7 @@ const Wallet = ({
       });
     }
   }, [
+    isSocialLogin,
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
@@ -734,7 +762,6 @@ const Wallet = ({
   }, [addTraitsToUser, hdKeyrings.length]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
     if (isConnectionRemoved && isSocialLogin) {

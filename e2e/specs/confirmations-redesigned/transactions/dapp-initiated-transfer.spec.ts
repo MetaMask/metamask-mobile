@@ -1,4 +1,4 @@
-import { SmokeConfirmationsRedesigned } from '../../../tags';
+import { RegressionConfirmationsRedesigned } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -47,7 +47,7 @@ const expectedEventNames = [
   expectedEvents.TRANSACTION_FINALIZED,
 ];
 
-describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
+describe(RegressionConfirmationsRedesigned('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockPostRequest(
       mockServer,

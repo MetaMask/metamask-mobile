@@ -1279,7 +1279,6 @@
         "empty_title": "Walang Bukas na Posisyon",
         "empty_description": "Wala ka pang anumang bukas na posisyon.\nSimulang mag-trade para makita ang iyong mga posisyon dito.",
         "first_time_title": "Perps",
-        "first_time_description": "Hulaan ang paggalaw ng presyo na may hanggang 40x leverage.",
         "start_trading": "Simulang mag-trade",
         "start_new_trade": "Magsimula ng bagong trade",
         "open_positions": "Mga Bukas na Posisyon",
@@ -1761,8 +1760,6 @@
   },
   "defi_positions": {
     "loading_positions": "Inilo-load ang mga posisyon sa DeFi...",
-    "no_visible_positions": "Hindi makita ang hinahanap mo?",
-    "not_supported": "Baka hindi pa namin sinusuportahan ang iyong protocol.",
     "error_cannot_load_page": "Hindi namin ma-load ang page na ito.",
     "error_visit_again": "Subukang bisitahin muli mamaya.",
     "single_token": "{{symbol}} lang",
@@ -2445,10 +2442,9 @@
     "disconnect_confirm": "Idiskonekta",
     "cancel": "Kanselahin"
   },
-  "sdk_return_to_app_modal": {
-    "title": "Bumalik sa app",
-    "postNetworkSwitchTitle": "Matagumpay na nakalipat sa network",
-    "description": "Bumalik sa app para magpatuloy sa paggamit ng kanilang mga serbisyo."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Bumalik sa app",
+    "networkSwitchMethodLabel": "Matagumpay na nakalipat sa network"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
