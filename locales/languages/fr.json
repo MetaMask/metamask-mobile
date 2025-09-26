@@ -1631,7 +1631,6 @@
     "buy_asset": "Achetez {{asset}}",
     "no_tokens": "Vous n’avez aucun jeton !",
     "show_tokens_without_balance": "Afficher les jetons sans solde",
-    "no_nfts_yet": "Aucun NFT pour le moment",
     "nfts_autodetection_title": "Détection de NFT",
     "nfts_autodetection_desc": "Laissez MetaMask détecter et afficher automatiquement les NFT dans votre portefeuille.",
     "network_details_check": "Vérification des détails du réseau",
