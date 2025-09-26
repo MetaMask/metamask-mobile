@@ -37,10 +37,15 @@ export const usePointsEvents = (
   const [error, setError] = useState<string | null>(null);
 
   const fetchPointsEvents = useCallback(
-    async (
-      isInitial: boolean,
-      currentCursor: string | null = null,
-    ): Promise<void> => {
+    async ({
+      isInitial,
+      currentCursor = null,
+      forceFresh = false,
+    }: {
+      isInitial: boolean;
+      currentCursor?: string | null;
+      forceFresh?: boolean;
+    }) => {
       if (isLoadingRef.current) {
         return;
       }
@@ -60,6 +65,7 @@ export const usePointsEvents = (
             seasonId,
             subscriptionId,
             cursor: currentCursor,
+            forceFresh,
           },
         );
 
@@ -98,7 +104,10 @@ export const usePointsEvents = (
 
   const loadMore = useCallback(() => {
     if (!isLoadingMore && hasMore && cursor) {
-      fetchPointsEvents(false, cursor);
+      fetchPointsEvents({
+        isInitial: false,
+        currentCursor: cursor,
+      });
     }
   }, [isLoadingMore, hasMore, cursor, fetchPointsEvents]);
 
@@ -106,19 +115,26 @@ export const usePointsEvents = (
     setIsRefreshing(true);
     setCursor(null);
     setHasMore(true);
-    await fetchPointsEvents(true);
+    await fetchPointsEvents({
+      isInitial: true,
+      forceFresh: true,
+    });
     setIsRefreshing(false);
   }, [fetchPointsEvents]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchPointsEvents(true);
+      fetchPointsEvents({ isInitial: true });
     }, [fetchPointsEvents]),
   );
 
   // Listen for reward claimed events to trigger refetch
   useInvalidateByRewardEvents(
-    ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+    [
+      'RewardsController:accountLinked',
+      'RewardsController:rewardClaimed',
+      'RewardsController:pointsEventsUpdated',
+    ],
     refresh,
   );
 

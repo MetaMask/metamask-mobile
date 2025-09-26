@@ -185,6 +185,7 @@ describe('usePointsEvents', () => {
           seasonId: 'season-1',
           subscriptionId: 'sub-1',
           cursor: null,
+          forceFresh: false,
         },
       );
 
@@ -363,6 +364,7 @@ describe('usePointsEvents', () => {
           seasonId: 'season-1',
           subscriptionId: 'sub-1',
           cursor: 'next-cursor',
+          forceFresh: false,
         },
       );
 
@@ -521,6 +523,7 @@ describe('usePointsEvents', () => {
           seasonId: 'season-1',
           subscriptionId: 'sub-1',
           cursor: null,
+          forceFresh: true,
         },
       );
 
@@ -620,7 +623,11 @@ describe('usePointsEvents', () => {
 
       // Verify subscription to events
       expect(mockUseInvalidateByRewardEvents).toHaveBeenCalledWith(
-        ['RewardsController:accountLinked', 'RewardsController:rewardClaimed'],
+        [
+          'RewardsController:accountLinked',
+          'RewardsController:rewardClaimed',
+          'RewardsController:pointsEventsUpdated',
+        ],
         expect.any(Function),
       );
     });
