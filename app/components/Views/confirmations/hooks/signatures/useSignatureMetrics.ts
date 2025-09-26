@@ -1,4 +1,5 @@
 import type { Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 import { DecodingData } from '@metamask/signature-controller';
 import { SecurityAlertResponse } from '@metamask/transaction-controller';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -70,8 +71,13 @@ export const useSignatureMetrics = () => {
   const isSimulationEnabled = useTypedSignSimulationEnabled();
   const { securityAlertResponse } = useSecurityAlertResponse();
 
-  const { chainId, decodingData, decodingLoading, messageParams, type, id } =
+  const { chainId: rawChainId, decodingData, decodingLoading, messageParams, type, id } =
     signatureRequest ?? {};
+  
+  // Convert chainId to hex string if it's a number (common in V3/V4 typed signatures)
+  const chainId = rawChainId && typeof rawChainId === 'number' 
+    ? toHex(rawChainId) 
+    : rawChainId;
   const { primaryType } =
     parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
 
