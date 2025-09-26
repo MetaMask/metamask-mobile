@@ -79,7 +79,7 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import parseRampIntent from '../Ramp/Aggregator/utils/parseRampIntent';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -242,22 +242,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onBuy = () => {
-    let assetId;
+    let assetId: string | undefined;
     try {
       if (isCaipAssetType(asset.address)) {
         assetId = asset.address;
       } else {
-        const caipChainId = toEvmCaipChainId(asset.chainId as Hex);
-        let assetReference;
-        if (asset.isNative) {
-          // TODO: replace slip44 with the actual slip44 value for the chain
-          assetReference = 'slip44:.';
-        } else {
-          assetReference = `erc20:${safeToChecksumAddress(
-            asset.address as string,
-          )}`;
-        }
-        assetId = `${caipChainId}/${assetReference}`;
+        assetId = parseRampIntent({
+          chainId: getDecimalChainId(chainId),
+          address: asset.address,
+        })?.assetId;
       }
     } catch {
       assetId = undefined;
