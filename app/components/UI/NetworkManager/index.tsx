@@ -6,8 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import ScrollableTabView, {
   ChangeTabProperties,
-} from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+} from '@tommasini/react-native-scrollable-tab-view';
+import DefaultTabBar from '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 import { CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 
@@ -46,6 +46,7 @@ import {
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
 // internal dependencies
 import createStyles from './index.styles';
@@ -170,7 +171,7 @@ const NetworkManager = () => {
   );
 
   const onChangeTab = useCallback(
-    (obj: ChangeTabProperties) => {
+    (obj: typeof ChangeTabProperties) => {
       const isDefaultTab = obj.ref.props.tabLabel === strings('wallet.default');
       const eventType = isDefaultTab
         ? MetaMetricsEvents.ASSET_FILTER_SELECTED
@@ -303,7 +304,12 @@ const NetworkManager = () => {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} style={containerStyle} shouldNavigateBack>
+    <BottomSheet
+      testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_MANAGER_BOTTOM_SHEET}
+      ref={sheetRef}
+      style={containerStyle}
+      shouldNavigateBack
+    >
       <View style={styles.sheet}>
         <Text
           variant={TextVariant.HeadingMD}

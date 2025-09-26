@@ -118,6 +118,7 @@ jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {
     CARD_ADD_FUNDS_CLICKED: 'card_add_funds_clicked',
+    CARD_HOME_VIEWED: 'card_home_viewed',
   },
 }));
 
@@ -343,36 +344,32 @@ describe('CardHome Component', () => {
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrivacyMode) {
-        return false;
+      // Guard against unexpected undefined/null selector
+      if (!selector) {
+        return [];
       }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectChainId) {
-        return '0xe708'; // Linea chain ID
-      }
-      if (selector === selectCardholderAccounts) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectSelectedInternalAccount')) {
+
+      // Direct identity checks first (more robust than string matching)
+      if (selector === selectPrivacyMode) return false;
+      if (selector === selectDepositActiveFlag) return true;
+      if (selector === selectDepositMinimumVersionFlag) return '0.9.0';
+      if (selector === selectChainId) return '0xe708'; // Linea chain ID
+      if (selector === selectCardholderAccounts) return [mockCurrentAddress];
+
+      // Fallback to string inspection (Jest wraps anonymous selector fns sometimes)
+      const selectorString =
+        typeof selector === 'function' ? selector.toString() : '';
+      if (selectorString.includes('selectSelectedInternalAccount'))
         return mockSelectedInternalAccount;
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0xe708'; // Linea chain ID - fallback for string matching
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress]; // fallback for string matching
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
+      if (selectorString.includes('selectChainId')) return '0xe708';
+      if (selectorString.includes('selectCardholderAccounts'))
+        return [mockCurrentAddress];
+      if (selectorString.includes('selectEvmTokens'))
         return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
+      if (selectorString.includes('selectEvmTokenFiatBalances'))
         return ['1000.00'];
-      }
+
+      // Default safe fallback
       return [];
     });
   });
@@ -391,36 +388,25 @@ describe('CardHome Component', () => {
   it('renders correctly with privacy mode enabled', async () => {
     // Temporarily override privacy mode for this test
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrivacyMode) {
-        return true; // Enable privacy mode for this test
-      }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectChainId) {
-        return '0xe708'; // Linea chain ID
-      }
-      if (selector === selectCardholderAccounts) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectSelectedInternalAccount')) {
+      if (!selector) return [];
+
+      if (selector === selectPrivacyMode) return true; // Enable privacy mode for this test
+      if (selector === selectDepositActiveFlag) return true;
+      if (selector === selectDepositMinimumVersionFlag) return '0.9.0';
+      if (selector === selectChainId) return '0xe708';
+      if (selector === selectCardholderAccounts) return [mockCurrentAddress];
+
+      const selectorString =
+        typeof selector === 'function' ? selector.toString() : '';
+      if (selectorString.includes('selectSelectedInternalAccount'))
         return mockSelectedInternalAccount;
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0xe708'; // Linea chain ID - fallback
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
+      if (selectorString.includes('selectChainId')) return '0xe708';
+      if (selectorString.includes('selectCardholderAccounts'))
         return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
+      if (selectorString.includes('selectEvmTokens'))
         return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
-        return ['$1,000.00']; // Return as array, not object
-      }
+      if (selectorString.includes('selectEvmTokenFiatBalances'))
+        return ['$1,000.00'];
       return [];
     });
 
@@ -758,5 +744,88 @@ describe('CardHome Component', () => {
     expect(screen.getByTestId('balance-test-id')).toHaveTextContent(
       '1000 USDC',
     );
+  });
+
+  it('fires CARD_HOME_VIEWED once after both balances valid (fiat + main)', async () => {
+    // Arrange: fiat and main are valid and token exists by default from beforeEach
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    // Trigger a re-render via UI interaction (privacy toggle) and ensure no re-fire
+    mockTrackEvent.mockClear();
+    const toggle = screen.getByTestId(CardHomeSelectors.PRIVACY_TOGGLE_BUTTON);
+    fireEvent.press(toggle);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('fires CARD_HOME_VIEWED once when only mainBalance is valid (fiat undefined)', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: undefined as unknown as string,
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: '1000 USDC',
+      secondaryBalance: '1000 USDC',
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    // No additional calls after stabilization
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires CARD_HOME_VIEWED once when only fiat balance is valid (main undefined)', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: '$1,000.00',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: undefined as unknown as string,
+      secondaryBalance: '$1,000.00',
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    // Ensure no re-fire
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire when only loading sentinels present', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: 'tokenBalanceLoading',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: 'TOKENBALANCELOADING',
+      secondaryBalance: 'loading',
+    });
+
+    render();
+
+    // Give time for any effects
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not fire when fiat is TOKEN_RATE_UNDEFINED and main is undefined', async () => {
+    mockUseAssetBalance.mockReturnValue({
+      balanceFiat: 'tokenRateUndefined',
+      asset: { symbol: 'USDC', image: 'usdc-image-url' },
+      mainBalance: undefined as unknown as string,
+      secondaryBalance: 'n/a',
+    });
+
+    render();
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

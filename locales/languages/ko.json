@@ -43,8 +43,8 @@
       "message": "이전 트랜잭션이 아직 서명 중 또는 제출 중입니다."
     },
     "signed_or_submitted_perps_deposit": {
-      "title": "Deposit in progress",
-      "message": "You already have a deposit in progress. You'll need to wait for it to go through before depositing again."
+      "title": "입금이 진행 중입니다",
+      "message": "입금 처리 중입니다. 완료 후 다시 입금해 주세요."
     },
     "pending_transaction": {
       "title": "보류 중인 트랜잭션",
@@ -63,7 +63,7 @@
     },
     "insufficient_pay_token_balance_fees": {
       "message": "Insufficient {{symbol}} to cover fees. Add less funds or select a different token to continue.",
-      "title": "Insufficient funds"
+      "title": "자금 부족"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient {{ticker}} to cover fees. Select a token on a different network to continue."
@@ -72,8 +72,8 @@
       "message": "현재, 이 결제 경로를 이용할 수 없습니다. 금액이나 네트워크, 토큰을 변경해 보세요. 최적의 옵션을 찾아드리겠습니다."
     },
     "perps_hardware_account": {
-      "title": "Wallet not supported",
-      "message": "Perps doesn't support hardware wallets.\nSwitch accounts to continue funding."
+      "title": "지원되지 않는 지갑",
+      "message": "무기한 선물은 하드웨어 지갑을 지원하지 않습니다.\n펀딩을 계속하려면 계정을 전환하세요."
     }
   },
   "blockaid_banner": {
@@ -857,10 +857,10 @@
     "available_balance": "사용 가능한 잔액",
     "margin_used": "사용된 마진",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
-      "title_description": "Long or short tokens with up to 40x leverage. Fund your account with any EVM token in one click.",
+      "title": "이제 무기한 선물을 지원합니다",
+      "title_description": "최대 40배 레버리지로 토큰을 롱 또는 숏하세요. 한 번의 클릭으로 모든 EVM 토큰으로 계정에 자금을 조달하세요.",
       "not_now": "나중에",
-      "try_now": "Get started"
+      "try_now": "시작하기"
     },
     "unrealized_pnl": "미실현 손익",
     "withdraw": "출금",
@@ -936,16 +936,16 @@
         "view_balance": "잔액 보기",
         "view_transaction": "트랜잭션 보기"
       },
-      "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
-      "funds_are_ready_to_trade": "Funds are ready to trade",
-      "error_toast": "Transaction failed",
-      "error_generic": "Funds have been returned to you",
-      "in_progress": "Adding funds to Perps",
-      "estimated_processing_time": "Est. {{time}}",
-      "funds_available_momentarily": "Funds will be available momentarily",
-      "your_funds_are_available_to_trade": "Your funds are available to trade",
-      "track": "Track"
+      "success_toast": "무기한 선물 계정에 자금이 조달되었습니다",
+      "success_message": "{{amount}} 거래 가능",
+      "funds_are_ready_to_trade": "거래 준비 완료",
+      "error_toast": "트랜잭션 실패",
+      "error_generic": "자금이 반환되었습니다",
+      "in_progress": "무기한 선물에 자금 추가 중",
+      "estimated_processing_time": "예상 시간: {{time}}",
+      "funds_available_momentarily": "자금을 곧 사용할 수 있습니다",
+      "your_funds_are_available_to_trade": "자금을 거래에 사용할 수 있습니다",
+      "track": "조회"
     },
     "withdrawal": {
       "title": "출금",
@@ -958,7 +958,7 @@
       "amount_too_low": "수수료를 충당하려면 금액이 ${{minAmount}}보다 커야 합니다",
       "confirm": "출금 컨펌",
       "processing_title": "출금 시작",
-      "eta_will_be_shared_shortly": "ETA will be shared shortly",
+      "eta_will_be_shared_shortly": "예상 도착 시간이 곧 공유됩니다",
       "success_title": "출금 성공",
       "success_description": "Hyperliquid에서 {{amount}} USDC가 출금되었습니다",
       "network_fee": "네트워크 수수료",
@@ -971,8 +971,8 @@
       "wait_time_message": "자금이 5분 이내에 입금될 예정입니다",
       "submitting": "제출 중...",
       "error": "출금 실패",
-      "success_toast": "Withdrawal confirmed",
-      "success_toast_description": "You'll receive {{amount}} {{symbol}} on {{networkName}} within 5 minutes",
+      "success_toast": "출금 컨펌 완료",
+      "success_toast_description": "5분 이내에 {{networkName}}에서 {{amount}} {{symbol}}을 받게 됩니다",
       "bridge_info": "HyperLiquid 밸리데이터가 출금을 처리하고 있습니다",
       "error_generic": "출금 중 오류가 발생했습니다",
       "invalid_amount": "유효한 금액을 입력해 주세요",
@@ -1003,6 +1003,7 @@
       "trigger_price": "트리거 가격",
       "liquidation_price": "청산 가격",
       "fees": "수수료",
+      "estimated_points": "예상 포인트",
       "market": "시장",
       "limit": "한도",
       "open_orders": "주문",
@@ -1021,7 +1022,7 @@
         "failed": "주문 검증 실패",
         "amount_required": "주문 금액은 0보다 커야 합니다",
         "minimum_amount": "최소 주문 금액은 ${{amount}}입니다",
-        "insufficient_funds": "Insufficient funds",
+        "insufficient_funds": "자금 부족",
         "insufficient_balance": "잔액이 부족합니다. 필요: ${{required}}, 사용 가능: ${{available}}",
         "invalid_leverage": "레버리지는 {{min}}x~{{max}}x 사이여야 합니다",
         "high_leverage_warning": "레버리지가 높을수록 청산 위험이 증가합니다",
@@ -1029,10 +1030,10 @@
         "invalid_stop_loss": "{{positionType}} 포지션의 경우 손절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
         "liquidation_warning": "포지션이 청산 가격에 가까워졌습니다",
         "limit_price_required": "지정가 주문을 위해 지정가를 설정해 주세요",
-        "please_set_a_limit_price": "Please set a limit price",
-        "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
+        "please_set_a_limit_price": "지정가를 설정해 주세요",
+        "limit_price_must_be_set_before_configuring_tpsl": "익절/손절 구성 전에 지정가를 설정해야 합니다",
         "only_hyperliquid_usdc": "현재 Hyperliquid 결제는 USDC만 지원됩니다",
-        "limit_price_far_warning": "Limit price is far from current market price"
+        "limit_price_far_warning": "지정가가 현재 시장 가격과 거리가 멉니다"
       },
       "error": {
         "placement_failed": "주문 실패",
@@ -1072,8 +1073,8 @@
         "ask_price": "매도 호가",
         "bid_price": "매수 호가",
         "difference_from_market": "시장가 대비 차이:",
-        "limit_price_above": "Limit price is above current price",
-        "limit_price_below": "Limit price is below current price"
+        "limit_price_above": "지정가가 현재 가격보다 높습니다",
+        "limit_price_below": "지정가가 현재 가격보다 낮습니다"
       },
       "leverage_modal": {
         "title": "레버리지",
@@ -1107,35 +1108,38 @@
       },
       "submitted": "주문 제출 완료",
       "confirmed": "주문 컨펌 완료",
-      "cancelling_order": "Cancelling order",
+      "cancelling_order": "주문 취소 중",
       "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "cancelling_order_in_progress": "{{detailedOrderType}} 주문 취소 중",
       "order_cancelled": "주문 취소됨",
-      "failed_to_cancel_order": "Failed to cancel order",
-      "funds_have_been_returned_to_you": "Funds have been returned to you",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "close_order_still_active": "Close order still active",
-      "order_submitted": "Order submitted",
-      "order_filled": "Order filled",
-      "order_placed": "Order placed",
+      "failed_to_cancel_order": "주문 취소 실패",
+      "order_still_active": "주문이 여전히 유효합니다",
+      "funds_have_been_returned_to_you": "자금이 반환되었습니다",
+      "funds_are_available_to_trade": "자금을 거래에 사용할 수 있습니다",
+      "close_order_still_active": "종료 주문이 여전히 유효합니다",
+      "order_submitted": "주문 제출됨",
+      "order_filled": "주문 체결 완료",
+      "order_placed": "주문 접수 완료",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "order_failed": "주문 실패",
-      "your_funds_have_been_returned_to_you": "Your funds have been returned to you"
+      "your_funds_have_been_returned_to_you": "자금이 반환되었습니다",
+      "order_cancelled_success": "{{detailedOrderType}} 주문 취소 완료"
     },
     "close_position": {
       "title": "포지션 종료",
       "button": "포지션 종료",
       "closing": "포지션 종료 중...",
-      "position_close_order_placed": "Placed order to close position",
-      "partially_closing_position": "Partially closing position",
-      "partial_close_submitted": "Partial close submitted",
-      "position_partially_closed": "Position partially closed",
+      "position_close_order_placed": "포지션 종료 주문 접수 완료",
+      "partially_closing_position": "포지션 부분 종료 중",
+      "partial_close_submitted": "부분 종료 제출 완료",
+      "position_partially_closed": "포지션이 부분적으로 종료되었습니다",
       "closing_position": "포지션 종료 중",
-      "limit_close_order_cancelled": "Limit close order cancelled",
+      "limit_close_order_cancelled": "지정가 종료 주문 취소 완료",
       "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
-      "your_funds_will_be_available_momentarily": "Your funds will be available momentarily",
+      "your_funds_will_be_available_momentarily": "자금을 곧 사용할 수 있습니다",
       "cancel": "취소",
       "margin": "증거금",
-      "includes_pnl": "includes P&L",
+      "includes_pnl": "손익 포함",
       "pnl": "손익",
       "estimated_pnl": "예상 손익",
       "fees": "수수료",
@@ -1144,23 +1148,23 @@
       "select_amount": "종료할 금액 선택",
       "error_unknown": "포지션 종료에 실패했습니다",
       "success_title": "포지션을 종료했습니다",
-      "position_closed": "Position closed",
-      "funds_are_available_to_trade": "Funds are available to trade",
-      "error_title": "포지션 종료 실패",
+      "position_closed": "포지션 종료 완료",
+      "funds_are_available_to_trade": "자금을 거래에 사용할 수 있습니다",
+      "failed_to_close_position": "포지션 종료 실패",
+      "failed_to_partially_close_position": "포지션 부분 종료 실패",
+      "your_position_is_still_active": "포지션이 여전히 유효합니다",
       "fox_points_earned": "{{points}} Fox 포인트 획득!",
       "minimum_remaining_warning": "남은 포지션은 최소 ${{minimum}} 이상이어야 합니다. 현재: ${{remaining}}",
       "minimum_remaining_error": "부분 종료 불가: 남은 포지션(${{remaining}})이 최소 주문 수량(${{minimum}})보다 작습니다. 대신 전체 포지션을 청산하세요.",
       "must_close_full_below_minimum": "포지션 값이 $10 미만입니다. 전체 포지션을 종료해야 합니다.",
       "negative_receive_amount": "수수료가 포지션 값을 초과합니다",
       "no_amount_selected": "종료할 금액을 선택하세요",
-      "order_type_reverted_to_market_order": "Changed to market order",
-      "you_need_set_price_limit_order": "You need to set a price for a limit order."
+      "order_type_reverted_to_market_order": "시장가 주문으로 변경 완료",
+      "you_need_set_price_limit_order": "지정가 주문 시에는 가격을 설정해야 합니다."
     },
     "tpsl": {
       "title": "익절 및 손절",
       "description": "자동으로 포지션을 종료하려면 이익 또는 손실 퍼센트를 선택하거나 사용자 지정 가격을 입력하세요.",
-      "set": "설정",
-      "updating": "업데이트 중...",
       "off": "비활성화",
       "current_price": "현재가",
       "leverage": "레버리지",
@@ -1176,12 +1180,13 @@
       "profit_roe_placeholder": "% 이익",
       "loss_roe_placeholder": "% 손실",
       "usd_label": "($)",
-      "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
-      "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
-      "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
-      "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
-      "above": "above",
-      "below": "below"
+      "take_profit_invalid_price": "익절은 {{direction}} {{priceType}} 가격이어야 합니다",
+      "stop_loss_invalid_price": "손절은 {{direction}} {{priceType}} 가격이어야 합니다",
+      "stop_loss_beyond_liquidation_error": "손절은 {{direction}} 청산 가격이어야 합니다",
+      "stop_loss_order_view_warning": "손절이 {{direction}} 청산 가격입니다",
+      "above": " 이상",
+      "below": " 미만",
+      "done": "Done"
     },
     "token_selector": {
       "no_tokens": "사용 가능한 토큰이 없습니다"
@@ -1235,7 +1240,7 @@
       "connectionRequired": "usePerpsConnection은 PerpsConnectionProvider 내에서 사용되어야 합니다",
       "assetMappingFailed": "자산 매핑 구축에 실패했습니다",
       "depositFailed": "예치 실패",
-      "orderLeverageReductionFailed": "You cannot reduce your leverage",
+      "orderLeverageReductionFailed": "레버리지를 줄일 수 없습니다",
       "connectionFailed": {
         "title": "무기한 선물이 일시적으로 중단되었습니다",
         "description": "곧 다시 온라인으로 이용할 수 있도록 작업 중입니다.",
@@ -1265,8 +1270,8 @@
         "not_set": "설정되지 않음",
         "edit_tpsl": "TP/SL 편집",
         "close_position": "포지션 종료",
-        "tpsl_count_multiple": "{{count}} orders",
-        "tpsl_count_single": "{{count}} order"
+        "tpsl_count_multiple": "{{count}}개 주문",
+        "tpsl_count_single": "{{count}}개 주문"
       },
       "list": {
         "loading": "포지션 불러오는 중...",
@@ -1274,7 +1279,6 @@
         "empty_title": "열린 포지션 없음",
         "empty_description": "아직 열린 포지션이 없습니다.\n거래를 시작한 후 여기서 포지션을 확인하세요.",
         "first_time_title": "무기한 선물",
-        "first_time_description": "최대 40배 레버리지로 가격 변동을 예측하세요.",
         "start_trading": "거래 시작",
         "start_new_trade": "새 거래 시작",
         "open_positions": "열린 포지션",
@@ -1295,7 +1299,7 @@
       },
       "tpsl": {
         "update_success": "익절/손절이 업데이트되었습니다",
-        "update_failed": "Failed to update TP/SL"
+        "update_failed": "익절/손절 업데이트 실패"
       }
     },
     "markets": {
@@ -1306,7 +1310,7 @@
         "title": "시장 상세 정보",
         "error_message": "시장 데이터를 찾을 수 없습니다. 뒤로 가서 다시 시도해 보세요."
       },
-      "statistics": "Overview",
+      "statistics": "개요",
       "24hr_high": "24시간 최고가",
       "24hr_low": "24시간 최저가",
       "24h_volume": "24시간 거래량",
@@ -1315,7 +1319,7 @@
       "countdown": "카운트다운",
       "long": "롱",
       "short": "숏",
-      "add_funds": "Add funds",
+      "add_funds": "자금 추가",
       "add_funds_to_start_trading_perps": "무기한 선물 거래를 시작하려면 자금을 추가하세요",
       "position": "포지션",
       "orders": "주문"
@@ -1346,7 +1350,8 @@
         "content": "거래 수수료는 포지션을 시작하거나 종료할 때 부과됩니다.",
         "metamask_fee": "MetaMask 수수료",
         "provider_fee": "공급자 수수료",
-        "total": "총 수수료"
+        "total": "총 수수료",
+        "discount_message": "MetaMask 보상으로 {{percentage}}%를 절약하고 있습니다."
       },
       "closing_fees": {
         "title": "종료 수수료",
@@ -1375,19 +1380,19 @@
       },
       "receive": {
         "title": "받기",
-        "content": "The amount of USDC you'll receive in your wallet after withdrawal. You'll receive USDC on the Arbitrum network."
+        "content": "출금 후 지갑으로 전송될 USDC입니다. USDC는 Arbitrum 네트워크에서 받게 됩니다."
       },
       "withdrawal_fees": {
         "title": "공급자 수수료",
-        "content": "A flat fee charged by the provider on each withdrawal."
+        "content": "출금 시 제공업체가 부과하는 고정 수수료입니다."
       },
       "tp_sl": {
         "title": "익절 및 손절",
         "content": "익절(TP)은 목표 수익에 도달했을 때 포지션을 자동으로 종료하는 기능입니다. 손절(SL)은 가격이 사용자에게 불리하게 움직일 경우 포지션을 종료하여 손실을 제한하는 기능입니다."
       },
       "close_position_you_receive": {
-        "title": "Receive amount",
-        "content": "Your receive amount is estimated and may change slightly due to slippage."
+        "title": "받는 금액",
+        "content": "받는 금액은 추정치이며 슬리피지로 인해 약간 변경될 수 있습니다."
       },
       "notifications": {
         "title": "알림 켜기",
@@ -1396,10 +1401,14 @@
       },
       "got_it_button": "확인",
       "tpsl_count_warning": {
-        "title": "Multiple TP/SL orders are active",
-        "content": "To set TP/SL for the whole position, cancel your existing TP/SL orders first.",
-        "view_orders_button": "View orders",
-        "got_it_button": "Got it"
+        "title": "여러 익절/손절 주문이 진행 중입니다",
+        "content": "전체 포지션에 대해 익절/손절을 설정하려면 먼저 기존 익절/손절 주문을 취소하세요.",
+        "view_orders_button": "주문 보기",
+        "got_it_button": "확인"
+      },
+      "points": {
+        "title": "포인트",
+        "content": "포인트는 스왑, 브릿지, 무기한 선물 거래 등의 트랜잭션을 완료할 때마다 적립되며, 이를 통해 MetaMask 보상을 획득할 수 있습니다."
       }
     },
     "connection": {
@@ -1408,7 +1417,7 @@
       "retry_connection": "연결 재시도",
       "retrying_connection": "연결 중...",
       "connecting_to_perps": "무기한 선물에 연결 중",
-      "timeout_title": "Connection taking longer than expected"
+      "timeout_title": "예상보다 연결 시간이 오래 걸립니다"
     },
     "chart": {
       "no_data": "사용 가능한 차트 데이터가 없습니다",
@@ -1435,14 +1444,14 @@
         "trades": "거래하기",
         "orders": "주문",
         "funding": "펀딩",
-        "funding_description": "Funding history is a summary of the fees you have paid or received, as determined by the funding rates on your open positions."
+        "funding_description": "펀딩 기록은 보유 중인 포지션의 펀딩 비율에 따라 지불했거나 받은 수수료의 요약입니다."
       },
       "not_found": "트랜잭션을 찾을 수 없습니다",
       "position": {
         "date": "날짜",
         "size": "규모",
         "entry_price": "진입 가격",
-        "close_price": "Close price",
+        "close_price": "종료 가격",
         "points": "포인트",
         "fees": "총 수수료",
         "pnl": "순손익"
@@ -1467,7 +1476,7 @@
         "history_will_appear": "회원님의 거래 내역이 여기에 표시됩니다"
       }
     },
-    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risk. Market data provided by Hyperliquid. Price chart powered by",
+    "risk_disclaimer": "무기한 선물 거래는 위험하며, 예고 없이 갑작스럽게 증거금을 전부 잃을 수도 있습니다. 거래는 전적으로 회원님의 책임하에 이루어집니다. 시장 데이터는 Hyperliquid에서 제공됩니다. 가격 차트 제공:",
     "tutorial": {
       "continue": "계속",
       "skip": "건너뛰기",
@@ -1479,7 +1488,7 @@
       },
       "go_long_or_short": {
         "title": "토큰에 대해 롱 또는 숏 포지션을 설정",
-        "description": "Pick a token to long or short, then set your order size.",
+        "description": "롱 또는 숏할 토큰을 선택한 다음 주문 규모를 설정하세요.",
         "subtitle": "가격이 오르면 롱 포지션으로 수익을, 가격이 내리면 숏 포지션으로 수익을 얻습니다."
       },
       "choose_leverage": {
@@ -1496,11 +1505,17 @@
       },
       "ready_to_trade": {
         "title": "거래할 준비가 되셨나요?",
-        "fund_text_helper": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee.",
+        "fund_text_helper": "MetaMask가 자금을 Arbitrum의 USDC로 스왑하고 추가 수수료 없이 HyperEVM에 입금합니다.",
         "description": "원하는 토큰으로 무기한 선물 계정에 입금하고, 바로 첫 거래를 시작하세요."
       },
       "got_it": "확인"
-    }
+    },
+    "points": "포인트",
+    "unable_to_load": "불러올 수 없음",
+    "points_error": "지금 포인트를 불러올 수 없습니다",
+    "points_error_content": "걱정하지 마세요. 여전히 보상이 적립되고 있습니다. 곧 계정에 표시되거나 나중에 보상 탭에서 확인할 수 있습니다.",
+    "tp_on_chart": "차트 상 익절",
+    "sl_on_chart": "차트 상 손절"
   },
   "receive": {
     "title": "받기"
@@ -1745,8 +1760,6 @@
   },
   "defi_positions": {
     "loading_positions": "디파이 포지션 로드 중...",
-    "no_visible_positions": "찾으시는 것이 없나요?",
-    "not_supported": "아직 해당 프로토콜을 지원하지 않을 수도 있습니다.",
     "error_cannot_load_page": "페이지를 로드할 수 없습니다.",
     "error_visit_again": "나중에 다시 방문해 주세요.",
     "single_token": "{{symbol}} 전용",
@@ -2429,10 +2442,9 @@
     "disconnect_confirm": "연결 해제",
     "cancel": "취소"
   },
-  "sdk_return_to_app_modal": {
-    "title": "앱으로 돌아가기",
-    "postNetworkSwitchTitle": "네트워크 전환 성공",
-    "description": "서비스를 계속 이용하려면 앱으로 돌아가세요."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "앱으로 돌아가기",
+    "networkSwitchMethodLabel": "네트워크 전환 성공"
   },
   "sdk_feedback_modal": {
     "ok": "확인",
@@ -3729,7 +3741,7 @@
     "list": {
       "0": "모두",
       "1": "지갑",
-      "2": "공지"
+      "2": "Announcement"
     },
     "copied_to_clipboard": "클립보드에 복사되었습니다",
     "address_copied_to_clipboard": "주소가 클립보드에 복사되었습니다",
@@ -4948,7 +4960,7 @@
     "earn_eth_rewards": "ETH 보상 획득.",
     "earn_eth_rewards_description": "스테이킹하는 즉시 적립을 시작하세요. 보상은 복리로 자동 적립됩니다.",
     "flexible_unstaking": "유연한 언스테이킹.",
-    "flexible_unstaking_description": "언제든지 언스테이킹할 수 있습니다. 보통 3일 이내에 처리되지만, 최대 44일까지 소요될 수 있습니다.",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 44 days to process.",
     "disclaimer": "스테이킹은 보상을 보장하지 않으며 자금 손실 등의 위험이 있습니다.",
     "learn_more": "더 보기",
     "got_it": "컨펌",
@@ -4984,7 +4996,7 @@
       "geo_blocked": "언스테이킹 또는 스테이킹이 허용되지 않는 지역에 거주하고 있습니다.",
       "approximately": "대략"
     },
-    "unstake_input_banner_description": "평균적으로 언스테이킹한 ETH를 받는 데는 3일 미만이 소요되지만, 최대 44일이 걸릴 수도 있습니다.",
+    "unstake_input_banner_description": "On average, it takes less than 3 days for the unstaked ETH to be claimable, but can take up to 44 days.",
     "max": "최대",
     "staking_from": "스테이킹 출처:",
     "advanced_details": "고급 세부 정보",
@@ -5008,7 +5020,7 @@
       }
     },
     "use_max": "최대 사용",
-    "estimated_unstaking_time": "1~44일",
+    "estimated_unstaking_time": "1 to 44 days",
     "proceed_anyway": "계속 진행",
     "gas_cost_impact": "가스 비용 영향",
     "select_a_token_to_deposit": "예치할 토큰 선택",
@@ -5115,7 +5127,7 @@
     },
     "unstaking_time": {
       "title": "언스테이킹 시간",
-      "tooltip": "보통 ETH 언스테이킹은 3일 이내에 처리되지만, 최대 11일까지 걸릴 수도 있습니다. 정확한 기간은 언스테이킹 금액과 ETH 스테이킹 활동에 따라 달라집니다."
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 44 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
   },
   "confirm": {
@@ -5177,7 +5189,7 @@
     },
     "tooltip": {
       "perps_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC on HyperEVM, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "무기한 선물에서 사용하는 네트워크인 HyperEVM에서 토큰을 USDC로 스왑합니다. 스왑 제공업체가 수수료를 부과할 수 있지만 MetaMask에서 부과하는 수수료는 없습니다."
       },
       "title": {
         "transaction_fee": "수수료"
@@ -5325,9 +5337,10 @@
     "quote_info_title": "비율",
     "network_fee_info_title": "네트워크 수수료",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
-    "points": "포인트",
+    "points": "Est. points",
     "points_tooltip": "포인트",
-    "points_tooltip_content": "이 거래로 적립될 MetaMask 보상 포인트 예상치입니다. 포인트가 보상 잔액에 반영되려면 최대 1시간 정도 소요됩니다",
+    "points_tooltip_content_1": "Points are how you earn MetaMask Rewards for completing transactions, like when you swap, bridge, or trade perps.",
+    "points_tooltip_content_2": "Keep in mind this value is an estimate and will be finalized once the transaction is complete. Points can take up to 1 hour to be confirmed in your Rewards balance.",
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
@@ -5339,10 +5352,14 @@
     "select_amount": "금액 선택",
     "bridge_to": "브릿지 대상:",
     "swap_to": "스왑 대상:",
+    "bridge_from": "Bridge from",
+    "swap_from": "Swap from",
     "title": "브릿지",
     "submitting_transaction": "제출 중",
     "fetching_quote": "견적 가져오기",
     "fee_disclaimer": "MetaMask 수수료 0.875% 포함",
+    "no_mm_fee": "No MM fee",
+    "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "하드웨어 지갑은 아직 지원되지 않습니다. 핫월렛을 사용하여 계속하세요.",
     "hardware_wallet_not_supported_solana": "솔라나는 아직 하드웨어 지갑이 지원하지 않습니다. 계속하려면 핫월렛을 사용하세요.",
     "price_impact_info_title": "가격 영향",
@@ -5486,11 +5503,12 @@
     "intro": {
       "title": "Introducing multichain accounts",
       "section_1_title": "What are multichain accounts?",
-      "section_1_description": "One account, addresses on multiple networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
+      "section_1_description": "One account, addresses on all the networks MetaMask supports. So now you can use Ethereum, Solana, and more without switching accounts.",
       "section_2_title": "Same address, more networks",
-      "section_2_description": "We’ve merged your accounts. You can keep using MetaMask the same way as before. Your funds are safe and unchanged.",
+      "section_2_description": "We've merged your accounts, so keep using MetaMask the same as before. Your funds are safe and unchanged.",
       "view_accounts_button": "View accounts",
-      "learn_more_button": "Learn more"
+      "learn_more_button": "Learn more",
+      "setting_up_accounts": "Setting up your accounts"
     },
     "learn_more": {
       "title": "Learn more",
@@ -5500,6 +5518,7 @@
     },
     "add_wallet": "지갑 추가",
     "add_hardware_wallet": "하드웨어 지갑 추가",
+    "syncing": "Syncing",
     "account_details": {
       "header_title": "계정 상세 내역",
       "account_name": "계정 이름",
@@ -5718,17 +5737,18 @@
       "not_supported_confirm": "컨펌",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
-      "intro_description": "Earn points for your your activity. \nAdvance through levels to unlock rewards.",
+      "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
       "checking_opt_in": "Checking opt-in for accounts...",
       "redirecting_to_dashboard": "Redirecting to dashboard...",
       "intro_skip": "나중에",
       "step_confirm": "다음",
+      "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
-      "step1_description": "Every swap and perps trade you make in MetaMask gets you closer to rewards. Link your accounts and watch your points add up.",
+      "step1_description": "MetaMask에서 스왑과 무기한 선물 거래를 할 때마다 보상 적립에 한 걸음 더 가까워집니다. 계정을 연결하고 포인트가 쌓이는 것을 확인하세요.",
       "step2_title": "Level up for bigger perks",
-      "step2_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
+      "step2_description": "포인트 마일스톤을 달성하면 무기한 선물 수수료 50% 할인, 독점 토큰, 무료 MetaMask 메탈 카드와 같은 특전을 받을 수 있습니다.",
       "step3_title": "Exclusive seasonal rewards",
       "step3_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
       "step4_title": "You'll earn 250 points when you sign up!",
@@ -5736,22 +5756,26 @@
       "step4_title_referral_validating": "Validating referral code...",
       "step4_referral_bonus_description": "Use a referral code to earn 250 points",
       "step4_referral_input_placeholder": "Referral code (optional)",
+      "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
       "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Linking additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
-      "step4_legal_disclaimer_learn_more": "자세히 알아보세요."
+      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
+      "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
+      "step4_legal_disclaimer_4": "learn more"
     },
     "settings": {
-      "title": "Reward Settings",
-      "subtitle": "Connect multiple accounts to combine your points and unlock rewards faster.",
+      "title": "Rewards Settings",
+      "subtitle": "Accounts",
+      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
       "error_title": "Unable to Load Linked Accounts",
       "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
       "error_retry": "Retry",
-      "tab_linked_accounts": "Linked Accounts ({{count}})",
-      "tab_unlinked_accounts": "Unlinked Accounts ({{count}})",
+      "tab_linked_accounts": "Linked ({{count}})",
+      "tab_unlinked_accounts": "Unlinked ({{count}})",
       "no_linked_accounts": "No linked accounts",
       "all_accounts_linked_title": "All accounts are linked",
       "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
@@ -5794,11 +5818,11 @@
         "cta_label": "Start a swap"
       },
       "perps": {
-        "title": "Perps",
-        "sheet_title": "Trade perps",
-        "sheet_description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-        "points": "10 points per $100",
-        "cta_label": "Start a trade"
+        "title": "무기한 선물",
+        "sheet_title": "무기한 선물 거래하기",
+        "sheet_description": "시작과 종료, 손절과 익절 주문, 증거금 조정을 포함한 모든 거래에서 포인트를 획득하세요.",
+        "points": "$100당 10포인트",
+        "cta_label": "거래 시작"
       },
       "referrals": {
         "title": "Referrals",
@@ -5806,6 +5830,8 @@
       }
     },
     "referral": {
+      "referral_code": "Referral code",
+      "referral_link": "Referral link",
       "actions": {
         "share_referral_link": "친구 추천",
         "share_referral_subject": "MetaMask 보상 프로그램 가입"
@@ -5815,8 +5841,28 @@
         "description": "친구는 보너스 포인트를 받고, 회원님은 친구가 받는 보상의 20%를 받습니다."
       }
     },
-    "active_boosts_title": "Active Boosts",
-    "season_1": "Season 1"
+    "active_boosts": {
+      "title": "Active boosts",
+      "error": "Failed to load active boosts"
+    },
+    "season_1": "Season 1",
+    "upcoming_rewards": {
+      "title": "Upcoming rewards",
+      "points_needed": "{{points}} points",
+      "cta_label": "Got it",
+      "alpha_fox_invite_input_placeholder": "Your Telegram handle"
+    },
+    "unlocked_rewards": {
+      "title": "Unlocked rewards",
+      "empty": "No rewards yet. \nEarn points and level up.",
+      "see_ways_to_earn": "See ways to earn",
+      "cta_label": "Claim now",
+      "cta_request_invite": "Request invite",
+      "claim_label": "Claim",
+      "claimed_label": "Claimed",
+      "reward_claimed": "Reward claimed",
+      "expired": "Expired"
+    }
   },
   "time": {
     "minutes_format": "{{count}}분",

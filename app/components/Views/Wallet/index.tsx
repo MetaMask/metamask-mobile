@@ -1,3 +1,4 @@
+import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -91,6 +92,7 @@ import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
 } from '../../../selectors/tokensController';
+import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
@@ -170,6 +172,8 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
@@ -178,6 +182,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import NftGrid from '../../UI/NftGrid';
 
 const createStyles = ({ colors }: Theme) =>
@@ -250,6 +255,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       (isEvmSelected || isMultichainAccountsState2Enabled),
     [isPerpsFlagEnabled, isEvmSelected, isMultichainAccountsState2Enabled],
   );
+  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useMemo(
+    () => isPredictFlagEnabled && isEvmSelected,
+    [isPredictFlagEnabled, isEvmSelected],
+  );
 
   const {
     navigation,
@@ -291,6 +301,15 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const predictTabProps = useMemo(
+    () => ({
+      key: 'predict-tab',
+      tabLabel: strings('wallet.predict'),
       navigation,
     }),
     [navigation],
@@ -391,6 +410,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
+    if (isPredictEnabled) {
+      tabs.push(
+        <PredictTabView {...predictTabProps} key={predictTabProps.key} />,
+      );
+    }
+
     if (enabledNetworksIsSolana) {
       return tabs;
     }
@@ -418,6 +443,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsEnabled,
     perpsTabProps,
     isPerpsTabVisible,
+    isPredictEnabled,
+    predictTabProps,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,
@@ -488,6 +515,8 @@ const Wallet = ({
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
+  const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
+
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
@@ -545,10 +574,21 @@ const Wallet = ({
     isBridgeAllowed(chainId);
 
   const onReceive = useCallback(() => {
-    navigate(Routes.QR_TAB_SWITCHER, {
-      initialScreen: QRTabSwitcherScreens.Receive,
-    });
-  }, [navigate]);
+    if (isMultichainAccountsState2Enabled) {
+      navigate(
+        ...createAddressListNavigationDetails({
+          groupId: selectedAccountGroupId as AccountGroupId,
+          title: `${strings(
+            'multichain_accounts.address_list.receiving_address',
+          )}`,
+        }),
+      );
+    } else {
+      navigate(Routes.QR_TAB_SWITCHER, {
+        initialScreen: QRTabSwitcherScreens.Receive,
+      });
+    }
+  }, [isMultichainAccountsState2Enabled, navigate, selectedAccountGroupId]);
 
   const onSend = useCallback(async () => {
     try {
@@ -687,9 +727,12 @@ const Wallet = ({
   const { selectNetwork } = useNetworkSelection({
     networks: allNetworks,
   });
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
+    // do not prompt for social login flow
     if (
+      !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
       isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
@@ -699,6 +742,7 @@ const Wallet = ({
       });
     }
   }, [
+    isSocialLogin,
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
@@ -727,7 +771,6 @@ const Wallet = ({
   }, [addTraitsToUser, hdKeyrings.length]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
     if (isConnectionRemoved && isSocialLogin) {
