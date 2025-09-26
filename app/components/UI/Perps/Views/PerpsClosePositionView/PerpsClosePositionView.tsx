@@ -153,8 +153,8 @@ const PerpsClosePositionView: React.FC = () => {
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
   const positionValue = useMemo(
-    () => Math.round(absSize * effectivePrice * 100) / 100, // Round to 2 decimal places
-    [absSize, effectivePrice],
+    () => absSize * effectivePrice,
+    [absSize, effectivePrice], // Round to 2 decimal places
   );
 
   // Calculate P&L based on effective price (limit price for limit orders)
@@ -177,7 +177,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate fees using the unified fee hook
   const closingValue = useMemo(
-    () => Math.round(positionValue * (closePercentage / 100) * 100) / 100, // Round to 2 decimal places
+    () => positionValue * (closePercentage / 100), // Round to 2 decimal places
     [positionValue, closePercentage],
   );
   const closingValueString = useMemo(
@@ -192,9 +192,6 @@ const PerpsClosePositionView: React.FC = () => {
     isClosing: true, // This is a position closing operation
   });
 
-  // Memoize feeResults with deep equality to prevent re-renders when only reference changes
-  const stableFeeResults = useMemo(() => feeResults, [feeResults]);
-
   // Simple boolean calculation for rewards state
   const hasValidAmount = useMemo(
     () => closePercentage > 0 && closingValue > 0,
@@ -203,16 +200,16 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
-    feeResults: stableFeeResults,
+    feeResults,
     hasValidAmount,
-    isFeesLoading: stableFeeResults.isLoadingMetamaskFee,
+    isFeesLoading: feeResults.isLoadingMetamaskFee,
     orderAmount: closingValueString,
   });
 
   // Calculate what user will receive (initial margin - fees)
   // P&L is already shown separately in the margin section as "includes P&L"
   const receiveAmount =
-    (closePercentage / 100) * initialMargin - stableFeeResults.totalFee;
+    (closePercentage / 100) * initialMargin - feeResults.totalFee;
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
