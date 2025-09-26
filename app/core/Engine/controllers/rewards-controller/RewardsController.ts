@@ -329,6 +329,10 @@ export class RewardsController extends BaseController<
       'RewardsController:claimReward',
       this.claimReward.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:isOptInSupported',
+      this.isOptInSupported.bind(this),
+    );
   }
 
   /**
@@ -503,9 +507,12 @@ export class RewardsController extends BaseController<
   /**
    * Check if silent authentication should be skipped
    */
-  #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
-    // Skip for hardware
-    if (isHardwareAccount(address)) return true;
+  #shouldSkipSilentAuth(
+    account: CaipAccountId,
+    internalAccount: InternalAccount,
+  ): boolean {
+    // Skip if opt-in is not supported (e.g., hardware wallets, unsupported account types)
+    if (!this.isOptInSupported(internalAccount)) return true;
 
     const now = Date.now();
 
@@ -518,6 +525,43 @@ export class RewardsController extends BaseController<
     }
 
     return false;
+  }
+
+  /**
+   * Check if an internal account supports opt-in for rewards
+   * @param account - The internal account to check
+   * @returns boolean - True if the account supports opt-in, false otherwise
+   */
+  isOptInSupported(account: InternalAccount): boolean {
+    try {
+      // Try to check if it's a hardware wallet
+      const isHardware = isHardwareAccount(account.address);
+      // If it's a hardware wallet, opt-in is not supported
+      if (isHardware) {
+        return false;
+      }
+
+      // Check if it's an EVM address (not non-EVM)
+      if (!isNonEvmAddress(account.address)) {
+        return true;
+      }
+
+      // Check if it's a Solana address
+      if (isSolanaAddress(account.address)) {
+        return true;
+      }
+
+      // If it's neither Solana nor EVM, opt-in is not supported
+      return false;
+    } catch (error) {
+      // If there's an exception (e.g., checking hardware wallet status fails),
+      // assume opt-in is not supported
+      Logger.log(
+        'RewardsController: Exception checking opt-in support, assuming not supported:',
+        error,
+      );
+      return false;
+    }
   }
 
   convertInternalAccountToCaipAccountId(
@@ -556,7 +600,7 @@ export class RewardsController extends BaseController<
       this.convertInternalAccountToCaipAccountId(internalAccount);
 
     const shouldSkip = account
-      ? this.#shouldSkipSilentAuth(account, internalAccount.address)
+      ? this.#shouldSkipSilentAuth(account, internalAccount)
       : false;
 
     if (shouldSkip) {
@@ -1503,12 +1547,16 @@ export class RewardsController extends BaseController<
         'AccountsController:listMultichainAccounts',
       );
 
-      if (!allAccounts || allAccounts.length === 0) {
+      // Extract addresses from internal accounts using isOptInSupported
+      const supportedAccounts: InternalAccount[] =
+        allAccounts?.filter((account: InternalAccount) =>
+          this.isOptInSupported(account),
+        ) || [];
+      if (!supportedAccounts || supportedAccounts.length === 0) {
         return null;
       }
 
-      // Extract addresses from internal accounts
-      const addresses = allAccounts.map(
+      const addresses = supportedAccounts.map(
         (account: InternalAccount) => account.address,
       );
 
@@ -1532,9 +1580,9 @@ export class RewardsController extends BaseController<
         optInStatusResponse.ois.length,
       );
       let silentAuthAttempts = 0;
-      for (let i = 0; i < allAccounts.length; i++) {
+      for (let i = 0; i < supportedAccounts.length; i++) {
         if (silentAuthAttempts > maxSilentAuthAttempts) break;
-        const account = allAccounts[i];
+        const account = supportedAccounts[i];
         if (!account || optInStatusResponse.ois[i] === false) continue;
         try {
           silentAuthAttempts++;
