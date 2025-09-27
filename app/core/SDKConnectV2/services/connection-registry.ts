@@ -9,6 +9,7 @@ import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
 import logger from './logger';
+import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -63,6 +64,15 @@ export class ConnectionRegistry {
   }
 
   /**
+   * Returns true if the deeplink is a connect deeplink
+   * @param url - The url to check
+   * @returns - True if the deeplink is a connect deeplink
+   */
+  public isConnectDeeplink(url: string | null): url is string {
+    return !!url && url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`);
+  }
+
+  /**
    * The primary entry point for handling a new connection from a deeplink.
    * @param url The full deeplink URL that triggered the connection.
    *
@@ -75,6 +85,7 @@ export class ConnectionRegistry {
    * 6. Hide loading indicator
    */
   public async handleConnectDeeplink(url: string): Promise<void> {
+    await this.ready;
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
 
@@ -154,7 +165,8 @@ export class ConnectionRegistry {
   /**
    * Sets up the listener for app state lifecycle events to handle reconnection.
    */
-  private setupAppStateListener(): void {
+  private async setupAppStateListener(): Promise<void> {
+    await this.ready;
     let isColdStart = true;
 
     AppState.addEventListener(
@@ -170,9 +182,7 @@ export class ConnectionRegistry {
           return;
         }
 
-        // For all subsequent 'active' events, we reconnect, but only after
-        // the initial setup is guaranteed to be complete to avoid race conditions.
-        this.ready.then(() => this.reconnectAll());
+        this.reconnectAll();
       },
     );
   }
