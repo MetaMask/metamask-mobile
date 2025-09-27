@@ -1517,7 +1517,7 @@
       },
       "choose_leverage": {
         "title": "Elige tu apalancamiento",
-        "description": "El apalancamiento amplifica tanto las ganancias como las pérdidas. Con un apalancamiento de 40 veces, una variación del 4 % en el precio equivale a una ganancia o pérdida sobre tu margen."
+        "description": "El apalancamiento amplifica tanto las ganancias como las pérdidas. Con un apalancamiento de 40 veces, una variación del 1 % en el precio equivale a una ganancia o pérdida sobre tu margen."
       },
       "watch_liquidation": {
         "title": "Cuidado con la liquidación",
