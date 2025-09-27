@@ -1,6 +1,5 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
@@ -42,14 +41,10 @@ export const InfoSectionOriginAndDetails = () => {
   const spender = parsedData.message?.spender;
   const verifyingContract = parsedData.domain?.verifyingContract;
   
-  // Convert chainId to hex string if it's a number (common in V3/V4 typed signatures)
-  const rawChainId = signatureRequest?.chainId;
-  const chainId = rawChainId && typeof rawChainId === 'number' 
-    ? toHex(rawChainId) 
-    : rawChainId as Hex | undefined;
+  const chainId = signatureRequest?.chainId;
     
   const networkConfiguration = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, chainId),
+    selectNetworkConfigurationByChainId(state, chainId as Hex),
   );
   const networkImage = getNetworkImageSource({ chainId: chainId as Hex });
 
@@ -62,7 +57,7 @@ export const InfoSectionOriginAndDetails = () => {
       {isPermit && spender && (
         <>
           <InfoRow label={strings('confirm.label.spender')}>
-            <InfoRowAddress address={spender} chainId={chainId} />
+            <InfoRowAddress address={spender} chainId={chainId as Hex} />
           </InfoRow>
           <View style={styles.dividerContainer}>
             <InfoRowDivider />
@@ -89,7 +84,7 @@ export const InfoSectionOriginAndDetails = () => {
       </InfoRow>
       {isValidAddress(verifyingContract) && (
         <InfoRow label={strings('confirm.label.interacting_with')}>
-          <InfoRowAddress address={verifyingContract} chainId={chainId} />
+          <InfoRowAddress address={verifyingContract} chainId={chainId as Hex} />
         </InfoRow>
       )}
     </InfoSection>

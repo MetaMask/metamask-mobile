@@ -28,7 +28,6 @@ import { getBlockaidMetricsParams } from '../../../../../../util/blockaid';
 import createExternalSignModelNav from '../../../../../../util/hardwareWallet/signatureUtils';
 import { getDecimalChainId } from '../../../../../../util/networks';
 import { selectSignatureRequestById } from '../../../../../../selectors/signatureController';
-import { toHex } from '@metamask/controller-utils';
 import { selectProviderTypeByChainId } from '../../../../../../selectors/networkController';
 import { RootState } from '../../../../../../reducers';
 import { Hex } from '@metamask/utils';
@@ -76,12 +75,7 @@ const PersonalSign = ({
     selectSignatureRequestById(state, messageParams.metamaskId),
   );
 
-  const { chainId: rawChainId } = signatureRequest ?? {};
-  
-  // Convert chainId to hex string if it's a number (common in V3/V4 typed signatures)
-  const chainId = rawChainId && typeof rawChainId === 'number' 
-    ? toHex(rawChainId) 
-    : rawChainId as Hex | undefined;
+  const { chainId } = signatureRequest ?? {};
 
   const networkType = useSelector((state: RootState) =>
     selectProviderTypeByChainId(state, chainId as Hex),
