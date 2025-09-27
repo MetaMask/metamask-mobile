@@ -46,6 +46,7 @@ import {
 import { base58 } from 'ethers/lib/utils';
 import { isNonEvmAddress } from '../../../Multichain/utils';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
+import { InvalidTimestampError } from './services/rewards-data-service';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -644,9 +645,11 @@ export class RewardsController extends BaseController<
 
     try {
       // Generate timestamp and sign the message
-      const timestamp = Math.floor(Date.now() / 1000);
-
+      let timestamp = Math.floor(Date.now() / 1000);
       let signature;
+      let retryAttempt = 0;
+      const MAX_RETRY_ATTEMPTS = 1;
+
       try {
         signature = await this.#signRewardsMessage(internalAccount, timestamp);
       } catch (signError) {
@@ -673,13 +676,43 @@ export class RewardsController extends BaseController<
         throw signError;
       }
 
-      const loginResponse: LoginResponseDto = await this.messagingSystem.call(
-        'RewardsDataService:login',
-        {
-          account: internalAccount.address,
-          timestamp,
-          signature,
-        },
+      // Function to execute the login call with retry logic
+      const executeLogin = async (
+        ts: number,
+        sig: string,
+      ): Promise<LoginResponseDto> => {
+        try {
+          return await this.messagingSystem.call('RewardsDataService:login', {
+            account: internalAccount.address,
+            timestamp: ts,
+            signature: sig,
+          });
+        } catch (error) {
+          // Check if it's an InvalidTimestampError and we haven't exceeded retry attempts
+          if (
+            error instanceof InvalidTimestampError &&
+            retryAttempt < MAX_RETRY_ATTEMPTS
+          ) {
+            retryAttempt++;
+            Logger.log(
+              'RewardsController: Retrying silent auth with server timestamp',
+              { originalTimestamp: ts, newTimestamp: error.timestamp },
+            );
+            // Use the timestamp from the error for retry
+            timestamp = error.timestamp;
+            signature = await this.#signRewardsMessage(
+              internalAccount,
+              timestamp,
+            );
+            return executeLogin(timestamp, signature);
+          }
+          throw error;
+        }
+      };
+
+      const loginResponse: LoginResponseDto = await executeLogin(
+        timestamp,
+        signature,
       );
 
       // Update state with successful authentication
@@ -1666,20 +1699,51 @@ export class RewardsController extends BaseController<
 
     try {
       // Generate timestamp and sign the message for mobile join
-      const timestamp = Math.floor(Date.now() / 1000);
-      const signature = await this.#signRewardsMessage(account, timestamp);
+      let timestamp = Math.floor(Date.now()) / 1000;
+      let signature = await this.#signRewardsMessage(account, timestamp);
+      let retryAttempt = 0;
+      const MAX_RETRY_ATTEMPTS = 1;
 
-      // Call mobile join via messenger
-      const updatedSubscription: SubscriptionDto =
-        await this.messagingSystem.call(
-          'RewardsDataService:mobileJoin',
-          {
-            account: account.address,
-            timestamp,
-            signature: signature as `0x${string}`,
-          },
-          candidateSubscriptionId,
-        );
+      // Function to execute the mobile join call
+      const executeMobileJoin = async (
+        ts: number,
+        sig: string,
+      ): Promise<SubscriptionDto> => {
+        try {
+          return await this.messagingSystem.call(
+            'RewardsDataService:mobileJoin',
+            {
+              account: account.address,
+              timestamp: ts,
+              signature: sig as `0x${string}`,
+            },
+            candidateSubscriptionId,
+          );
+        } catch (error) {
+          // Check if it's an InvalidTimestampError and we haven't exceeded retry attempts
+          if (
+            error instanceof InvalidTimestampError &&
+            retryAttempt < MAX_RETRY_ATTEMPTS
+          ) {
+            retryAttempt++;
+            Logger.log('RewardsController: Retrying with server timestamp', {
+              originalTimestamp: ts,
+              newTimestamp: error.timestamp,
+            });
+            // Use the timestamp from the error for retry
+            timestamp = error.timestamp;
+            signature = await this.#signRewardsMessage(account, timestamp);
+            return executeMobileJoin(timestamp, signature);
+          }
+          throw error;
+        }
+      };
+
+      // Call mobile join via messenger with retry logic
+      const updatedSubscription: SubscriptionDto = await executeMobileJoin(
+        timestamp,
+        signature,
+      );
 
       // Update store with accounts and subscriptions (but not activeAccount)
       this.update((state: RewardsControllerState) => {
