@@ -57,6 +57,7 @@ jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
+    ...jest.requireActual('../../../../../core/Engine').context,
     SwapsController: {
       fetchTopAssetsWithCache: jest.fn().mockReturnValue([
         {
