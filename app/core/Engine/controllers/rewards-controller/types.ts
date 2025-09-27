@@ -152,6 +152,7 @@ export interface GetPointsEventsDto {
   seasonId: string;
   subscriptionId: string;
   cursor: string | null;
+  forceFresh?: boolean;
 }
 
 /**
@@ -552,6 +553,24 @@ export type UnlockedRewardsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PaginatedPointsEventsDtoState = {
+  has_more: boolean;
+  cursor: string | null;
+  total_results: number;
+  results: {
+    id: string;
+    timestamp: string;
+    value: number;
+    bonus: { bips?: number | null; bonuses?: string[] | null } | null;
+    accountAddress: string | null;
+    type: string;
+    updatedAt: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: any;
+  }[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsAccountState = {
   account: CaipAccountId;
   hasOptedIn?: boolean;
@@ -574,6 +593,7 @@ export type RewardsControllerState = {
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
+  pointsEvents: { [compositeId: string]: PaginatedPointsEventsDtoState };
 };
 
 /**
@@ -616,6 +636,19 @@ export interface RewardsControllerBalanceUpdatedEvent {
 }
 
 /**
+ * Event emitted when points events should be invalidated
+ */
+export interface RewardsControllerPointsEventsUpdatedEvent {
+  type: 'RewardsController:pointsEventsUpdated';
+  payload: [
+    {
+      seasonId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -625,7 +658,8 @@ export type RewardsControllerEvents =
     }
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
-  | RewardsControllerBalanceUpdatedEvent;
+  | RewardsControllerBalanceUpdatedEvent
+  | RewardsControllerPointsEventsUpdatedEvent;
 
 /**
  * Patch type for state changes
