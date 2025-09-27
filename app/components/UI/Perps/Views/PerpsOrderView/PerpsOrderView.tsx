@@ -1075,6 +1075,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY
               }
               variant={TextVariant.BodySM}
+              isDAOTokenHolder={rewardsState.isDAOTokenHolder}
+              isDAOFeeBypassActive={rewardsState.isDAOFeeBypassActive}
             />
           </View>
 
