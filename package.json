@@ -177,7 +177,8 @@
     "@ethereumjs/tx": "^5.4.0",
     "cipher-base": "1.0.5",
     "sha.js": "2.4.12",
-    "appwright/form-data": "4.0.4"
+    "appwright/form-data": "4.0.4",
+    "@metamask/assets-controllers@^77.0.0": "patch:@metamask/assets-controllers@npm%3A77.0.0#./.yarn/patches/@metamask-assets-controllers-npm-77.0.0-ea287cefc3.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",

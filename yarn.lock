@@ -6739,7 +6739,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^77.0.0":
+"@metamask/assets-controllers@npm:77.0.0":
   version: 77.0.0
   resolution: "@metamask/assets-controllers@npm:77.0.0"
   dependencies:
@@ -6786,6 +6786,56 @@ __metadata:
     "@metamask/transaction-controller": ^60.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
   checksum: 4efb072819a150ec4b4b9b878c8a7495c9a2eac4c0e039616bba51709a47b7481a8d67daebf7197034ea4b0dbfaf6f7a6b2e12808b6d82610371e7bc6cc886a6
+  languageName: node
+  linkType: hard
+
+"@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A77.0.0#./.yarn/patches/@metamask-assets-controllers-npm-77.0.0-ea287cefc3.patch::locator=metamask%40workspace%3A.":
+  version: 77.0.0
+  resolution: "@metamask/assets-controllers@patch:@metamask/assets-controllers@npm%3A77.0.0#./.yarn/patches/@metamask-assets-controllers-npm-77.0.0-ea287cefc3.patch::version=77.0.0&hash=b4def9&locator=metamask%40workspace%3A."
+  dependencies:
+    "@ethereumjs/util": ^9.1.0
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/address": ^5.7.0
+    "@ethersproject/bignumber": ^5.7.0
+    "@ethersproject/contracts": ^5.7.0
+    "@ethersproject/providers": ^5.7.0
+    "@metamask/abi-utils": ^2.0.3
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/contract-metadata": ^2.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/eth-query": ^4.0.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/metamask-eth-abis": ^3.1.1
+    "@metamask/polling-controller": ^14.0.0
+    "@metamask/rpc-errors": ^7.0.2
+    "@metamask/snaps-sdk": ^9.0.0
+    "@metamask/snaps-utils": ^11.0.0
+    "@metamask/utils": ^11.8.0
+    "@types/bn.js": ^5.1.5
+    "@types/uuid": ^8.3.0
+    async-mutex: ^0.5.0
+    bitcoin-address-validation: ^2.2.3
+    bn.js: ^5.2.1
+    immer: ^9.0.6
+    lodash: ^4.17.21
+    multiformats: ^13.1.0
+    reselect: ^5.1.1
+    single-call-balance-checker-abi: ^1.0.0
+    uuid: ^8.3.2
+  peerDependencies:
+    "@metamask/account-tree-controller": ^1.0.0
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/approval-controller": ^7.0.0
+    "@metamask/keyring-controller": ^23.0.0
+    "@metamask/network-controller": ^24.0.0
+    "@metamask/permission-controller": ^11.0.0
+    "@metamask/phishing-controller": ^14.0.0
+    "@metamask/preferences-controller": ^20.0.0
+    "@metamask/providers": ^22.0.0
+    "@metamask/snaps-controllers": ^14.0.0
+    "@metamask/transaction-controller": ^60.0.0
+    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
+  checksum: bae58889b8e21aa3d75ed71ed2d1aeff151b7756689178b55884b245b7c07dd5893c24cbf1f410a3a2e69203698acc122de27cc183b9593a306b436ac6e88b8f
   languageName: node
   linkType: hard
 
