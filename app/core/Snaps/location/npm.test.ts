@@ -31,7 +31,7 @@ jest.mock('react-native-blob-util', () => ({
 }));
 
 describe('NpmLocation', () => {
-  // This test is heavily mocked and not necesarily a good indicator that everything works E2E.
+  // This test is heavily mocked and not necessarily a good indicator that everything works E2E.
   it('fetches and unpacks tarballs', async () => {
     const location = new NpmLocation(new URL('npm:@metamask/example-snap'));
     const manifest = await location.fetch('snap.manifest.json');
