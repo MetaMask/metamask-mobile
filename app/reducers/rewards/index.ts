@@ -7,6 +7,12 @@ import {
   RewardDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
+import { CaipAccountId } from '@metamask/utils';
+
+export interface AccountOptInBannerInfoStatus {
+  caipAccountId: CaipAccountId;
+  hide: boolean;
+}
 
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels';
@@ -22,6 +28,7 @@ export interface RewardsState {
 
   // Subscription Referral state
   referralDetailsLoading: boolean;
+  referralDetailsError: boolean;
   referralCode: string | null;
   refereeCount: number;
 
@@ -43,20 +50,23 @@ export interface RewardsState {
 
   // Geolocation state
   geoLocation: string | null;
-  optinAllowedForGeo: boolean;
+  optinAllowedForGeo: boolean | null;
   optinAllowedForGeoLoading: boolean;
+  optinAllowedForGeoError: boolean;
 
   // UI preferences
+  hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
   hideUnlinkedAccountsBanner: boolean;
 
   // Points Boost state
-  activeBoosts: PointsBoostDto[];
+  activeBoosts: PointsBoostDto[] | null;
   activeBoostsLoading: boolean;
   activeBoostsError: boolean;
 
   // Unlocked Rewards state
-  unlockedRewards: RewardDto[];
+  unlockedRewards: RewardDto[] | null;
   unlockedRewardLoading: boolean;
+  unlockedRewardError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -71,6 +81,7 @@ export const initialState: RewardsState = {
   seasonTiers: [],
 
   referralDetailsLoading: false,
+  referralDetailsError: false,
   referralCode: null,
   refereeCount: 0,
 
@@ -85,16 +96,19 @@ export const initialState: RewardsState = {
   onboardingActiveStep: OnboardingStep.INTRO,
   candidateSubscriptionId: 'pending',
   geoLocation: null,
-  optinAllowedForGeo: false,
+  optinAllowedForGeo: null,
   optinAllowedForGeoLoading: false,
+  optinAllowedForGeoError: false,
   hideUnlinkedAccountsBanner: false,
+  hideCurrentAccountNotOptedInBanner: [],
 
-  activeBoosts: [],
+  activeBoosts: null,
   activeBoostsLoading: false,
   activeBoostsError: false,
 
-  unlockedRewards: [],
+  unlockedRewards: null,
   unlockedRewardLoading: false,
+  unlockedRewardError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -177,6 +191,10 @@ const rewardsSlice = createSlice({
       state.referralDetailsLoading = action.payload;
     },
 
+    setReferralDetailsError: (state, action: PayloadAction<boolean>) => {
+      state.referralDetailsError = action.payload;
+    },
+
     setSeasonStatusLoading: (state, action: PayloadAction<boolean>) => {
       if (action.payload && state.seasonStartDate) {
         return;
@@ -217,7 +235,7 @@ const rewardsSlice = createSlice({
         state.optinAllowedForGeoLoading = false;
       } else {
         state.geoLocation = null;
-        state.optinAllowedForGeo = false;
+        state.optinAllowedForGeo = null;
         state.optinAllowedForGeoLoading = false;
       }
     },
@@ -226,16 +244,44 @@ const rewardsSlice = createSlice({
       state.optinAllowedForGeoLoading = action.payload;
     },
 
+    setGeoRewardsMetadataError: (state, action: PayloadAction<boolean>) => {
+      state.optinAllowedForGeoError = action.payload;
+    },
+
     setHideUnlinkedAccountsBanner: (state, action: PayloadAction<boolean>) => {
       state.hideUnlinkedAccountsBanner = action.payload;
     },
 
-    setActiveBoosts: (state, action: PayloadAction<PointsBoostDto[]>) => {
+    setHideCurrentAccountNotOptedInBanner: (
+      state,
+      action: PayloadAction<{ accountId: CaipAccountId; hide: boolean }>,
+    ) => {
+      const existingIndex = state.hideCurrentAccountNotOptedInBanner.findIndex(
+        (item) => item.caipAccountId === action.payload.accountId,
+      );
+
+      if (existingIndex !== -1) {
+        // Update existing entry
+        state.hideCurrentAccountNotOptedInBanner[existingIndex].hide =
+          action.payload.hide;
+      } else {
+        // Add new entry
+        state.hideCurrentAccountNotOptedInBanner.push({
+          caipAccountId: action.payload.accountId,
+          hide: action.payload.hide,
+        });
+      }
+    },
+
+    setActiveBoosts: (
+      state,
+      action: PayloadAction<PointsBoostDto[] | null>,
+    ) => {
       state.activeBoosts = action.payload;
       state.activeBoostsError = false; // Reset error when successful
     },
     setActiveBoostsLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.activeBoosts.length > 0) {
+      if (action.payload && state.activeBoosts?.length) {
         return;
       }
       state.activeBoostsLoading = action.payload;
@@ -243,14 +289,18 @@ const rewardsSlice = createSlice({
     setActiveBoostsError: (state, action: PayloadAction<boolean>) => {
       state.activeBoostsError = action.payload;
     },
-    setUnlockedRewards: (state, action: PayloadAction<RewardDto[]>) => {
+    setUnlockedRewards: (state, action: PayloadAction<RewardDto[] | null>) => {
       state.unlockedRewards = action.payload;
+      state.unlockedRewardError = false; // Reset error when successful
     },
     setUnlockedRewardLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.unlockedRewards.length > 0) {
+      if (action.payload && state.unlockedRewards?.length) {
         return;
       }
       state.unlockedRewardLoading = action.payload;
+    },
+    setUnlockedRewardError: (state, action: PayloadAction<boolean>) => {
+      state.unlockedRewardError = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -262,6 +312,8 @@ const rewardsSlice = createSlice({
           // Restore only a few persistent state
           hideUnlinkedAccountsBanner:
             action.payload.rewards.hideUnlinkedAccountsBanner,
+          hideCurrentAccountNotOptedInBanner:
+            action.payload.rewards.hideCurrentAccountNotOptedInBanner,
         };
       }
       return state;
@@ -273,6 +325,7 @@ export const {
   setActiveTab,
   setSeasonStatus,
   setReferralDetails,
+  setReferralDetailsError,
   setSeasonStatusLoading,
   setSeasonStatusError,
   setReferralDetailsLoading,
@@ -282,12 +335,15 @@ export const {
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
+  setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
+  setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,
   setActiveBoostsLoading,
   setActiveBoostsError,
   setUnlockedRewards,
   setUnlockedRewardLoading,
+  setUnlockedRewardError,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

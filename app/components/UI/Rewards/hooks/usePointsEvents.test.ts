@@ -95,6 +95,20 @@ describe('usePointsEvents', () => {
   });
 
   describe('initialization', () => {
+    it('should return refresh and loadMore functions', () => {
+      const { result } = renderHook(() =>
+        usePointsEvents({
+          seasonId: 'season-1',
+          subscriptionId: 'sub-1',
+        }),
+      );
+
+      expect(result.current.refresh).toBeDefined();
+      expect(typeof result.current.refresh).toBe('function');
+      expect(result.current.loadMore).toBeDefined();
+      expect(typeof result.current.loadMore).toBe('function');
+    });
+
     it('should initialize with empty data and not fetch when seasonId is undefined', async () => {
       const { result } = renderHook(() =>
         usePointsEvents({
@@ -110,7 +124,7 @@ describe('usePointsEvents', () => {
       const focusCallback = mockUseFocusEffect.mock.calls[0][0];
       focusCallback();
 
-      expect(result.current.pointsEvents).toEqual([]);
+      expect(result.current.pointsEvents).toEqual(null);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasMore).toBe(true);
       expect(result.current.error).toBeNull();
@@ -132,7 +146,7 @@ describe('usePointsEvents', () => {
       const focusCallback = mockUseFocusEffect.mock.calls[0][0];
       focusCallback();
 
-      expect(result.current.pointsEvents).toEqual([]);
+      expect(result.current.pointsEvents).toEqual(null);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasMore).toBe(true);
       expect(result.current.error).toBeNull();
@@ -149,6 +163,7 @@ describe('usePointsEvents', () => {
 
       // Initial state should show loading
       expect(result.current.isLoading).toBe(true);
+      expect(result.current.error).toBeNull();
 
       // Verify that the focus effect callback was registered
       expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
@@ -177,11 +192,38 @@ describe('usePointsEvents', () => {
       expect(result.current.pointsEvents).toEqual([mockPointsEvent]);
       expect(result.current.hasMore).toBe(true);
       expect(result.current.error).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should set loading to true at start and false after successful completion', async () => {
+      const { result } = renderHook(() =>
+        usePointsEvents({
+          seasonId: 'season-1',
+          subscriptionId: 'sub-1',
+        }),
+      );
+
+      // Should start with loading true
+      expect(result.current.isLoading).toBe(true);
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Wait for the data to load
+      await waitFor(
+        () => expect(result.current.isLoading).toBe(false),
+        waitForOptions,
+      );
+
+      // Should end with loading false and no error
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
     });
   });
 
   describe('error handling', () => {
-    it('should handle fetch errors', async () => {
+    it('should handle fetch errors and manage loading state', async () => {
       const fetchError = new Error('Failed to fetch');
       mockCall.mockRejectedValueOnce(fetchError);
 
@@ -191,6 +233,10 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
+
+      // Initial state should show loading
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.error).toBeNull();
 
       // Verify that the focus effect callback was registered
       expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
@@ -210,7 +256,7 @@ describe('usePointsEvents', () => {
       expect(result.current.pointsEvents).toEqual([]);
     });
 
-    it('should handle unknown errors', async () => {
+    it('should handle unknown errors and manage loading state', async () => {
       mockCall.mockRejectedValueOnce({});
 
       const { result } = renderHook(() =>
@@ -219,6 +265,10 @@ describe('usePointsEvents', () => {
           subscriptionId: 'sub-1',
         }),
       );
+
+      // Initial state should show loading
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.error).toBeNull();
 
       // Verify that the focus effect callback was registered
       expect(mockUseFocusEffect).toHaveBeenCalledWith(expect.any(Function));
@@ -236,6 +286,34 @@ describe('usePointsEvents', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Unknown error occurred');
       expect(result.current.pointsEvents).toEqual([]);
+    });
+
+    it('should set loading to true at start and false after error', async () => {
+      const fetchError = new Error('Network error');
+      mockCall.mockRejectedValueOnce(fetchError);
+
+      const { result } = renderHook(() =>
+        usePointsEvents({
+          seasonId: 'season-1',
+          subscriptionId: 'sub-1',
+        }),
+      );
+
+      // Should start with loading true
+      expect(result.current.isLoading).toBe(true);
+
+      // Execute the focus effect callback to trigger the fetch logic
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+
+      // Wait for the error to be set
+      await waitFor(
+        () => expect(result.current.error).not.toBeNull(),
+        waitForOptions,
+      );
+
+      // Should end with loading false
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -397,7 +475,7 @@ describe('usePointsEvents', () => {
   });
 
   describe('refresh functionality', () => {
-    it('should refresh data when refresh is called', async () => {
+    it('should refresh data when refresh is called and manage refreshing state', async () => {
       const { result } = renderHook(() =>
         usePointsEvents({
           seasonId: 'season-1',
@@ -428,6 +506,7 @@ describe('usePointsEvents', () => {
 
       // Verify refreshing state
       expect(result.current.isRefreshing).toBe(true);
+      expect(result.current.error).toBeNull();
 
       // Wait for refresh to complete
       await waitFor(
@@ -444,9 +523,12 @@ describe('usePointsEvents', () => {
           cursor: null,
         },
       );
+
+      // Verify refreshing state is false after completion
+      expect(result.current.isRefreshing).toBe(false);
     });
 
-    it('should handle refresh errors', async () => {
+    it('should handle refresh errors and manage refreshing state', async () => {
       const { result } = renderHook(() =>
         usePointsEvents({
           seasonId: 'season-1',
@@ -475,14 +557,52 @@ describe('usePointsEvents', () => {
         result.current.refresh();
       });
 
+      // Verify refreshing state starts as true
+      expect(result.current.isRefreshing).toBe(true);
+
       // Wait for refresh to complete
       await waitFor(
         () => expect(result.current.isRefreshing).toBe(false),
         waitForOptions,
       );
 
-      // Verify error was set
+      // Verify error was set and refreshing state is false
       expect(result.current.error).toBe('Failed to refresh');
+      expect(result.current.isRefreshing).toBe(false);
+    });
+
+    it('should set isRefreshing to true at start and false after completion', async () => {
+      const { result } = renderHook(() =>
+        usePointsEvents({
+          seasonId: 'season-1',
+          subscriptionId: 'sub-1',
+        }),
+      );
+
+      // Wait for initial load
+      const focusCallback = mockUseFocusEffect.mock.calls[0][0];
+      focusCallback();
+      await waitFor(
+        () => expect(result.current.isLoading).toBe(false),
+        waitForOptions,
+      );
+
+      // Call refresh
+      act(() => {
+        result.current.refresh();
+      });
+
+      // Should start with isRefreshing true
+      expect(result.current.isRefreshing).toBe(true);
+
+      // Wait for refresh to complete
+      await waitFor(
+        () => expect(result.current.isRefreshing).toBe(false),
+        waitForOptions,
+      );
+
+      // Should end with isRefreshing false
+      expect(result.current.isRefreshing).toBe(false);
     });
   });
 

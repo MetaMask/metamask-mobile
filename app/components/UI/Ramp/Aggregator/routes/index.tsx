@@ -11,6 +11,8 @@ import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import { colors } from '../../../../../styles/common';
+import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
+
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
 
@@ -66,6 +68,10 @@ const RampModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
       component={TokenSelectModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}
+      component={IncompatibleAccountTokenModal}
     />
   </ModalsStack.Navigator>
 );
