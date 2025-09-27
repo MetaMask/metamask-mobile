@@ -866,12 +866,12 @@
     "margin_used": "Margin yang Digunakan",
     "gtm_content": {
       "title": "PERP TELAH HADIR",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "Posisi long atau short dengan leverage hingga 40x. Danai akun Anda dalam satu klik.",
       "not_now": "Tidak sekarang",
       "try_now": "Mulai"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "Hari ini",
+    "yesterday": "Kemarin",
     "unrealized_pnl": "PnL Belum Terealisasi",
     "withdraw": "Tarik",
     "refresh_balance": "Segarkan Saldo",
@@ -1095,10 +1095,10 @@
         "current_price": "Harga saat ini",
         "liquidation_price": "Harga Likuidasi",
         "liquidation_distance": "Jarak Likuidasi",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "Anda akan dilikuidasi jika harga {{direction}} sebesar {{percentage}}",
+        "drops": "turun",
+        "rises": "naik",
+        "set_leverage": "Atur {{leverage}}x"
       },
       "type": {
         "title": "Jenis Order",
@@ -1183,7 +1183,7 @@
       "description": "Pilih persentase profit atau loss, atau masukkan harga pemicu khusus untuk menutup posisi secara otomatis.",
       "off": "Mati",
       "current_price": "Harga saat ini",
-      "entry_price": "Entry price",
+      "entry_price": "Harga masuk",
       "leverage": "Leverage",
       "margin": "Margin",
       "liquidation_price": "Harga likuidasi",
@@ -1296,7 +1296,7 @@
         "empty_title": "Tidak Ada Posisi Terbuka",
         "empty_description": "Anda belum memiliki posisi terbuka.\nMulai berdagang untuk melihat posisi Anda di sini.",
         "first_time_title": "Perp",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "Bertaruh pada pergerakan harga dengan leverage hingga 40x.",
         "start_trading": "Mulai berdagang",
         "start_new_trade": "Mulai perdagangan baru",
         "open_positions": "Posisi Terbuka",
@@ -1446,9 +1446,9 @@
         "show_more": "Selengkapnya"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "Menit",
+        "hours": "Jam",
+        "days": "Hari"
       }
     },
     "perps_markets": "Pasar perp",
@@ -1518,7 +1518,7 @@
       },
       "choose_leverage": {
         "title": "Pilih leverage",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "Leverage mengamplifikasi keuntungan dan kerugian. Dengan leverage 40x, pergerakan harga 4% setara dengan keuntungan atau kerugian 40% pada margin Anda."
       },
       "watch_liquidation": {
         "title": "Waspadai likuidasi",
@@ -1526,12 +1526,12 @@
       },
       "close_anytime": {
         "title": "Tutup setiap saat",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "Keluar setiap saat Anda mau. Anda akan mendapatkan kembali margin, plus profit atau minus loss."
       },
       "ready_to_trade": {
         "title": "Siap untuk berdagang?",
         "description": "Danai akun perp Anda dengan token apa pun dan lakukan perdagangan pertama dalam hitungan detik.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask akan menukar dana Anda ke USDC di Arbitrum, dan mendepositkan ke HyperEVM tanpa biaya tambahan."
       },
       "got_it": "Mengerti"
     },
@@ -5960,12 +5960,12 @@
       },
       "perps": {
         "title": "Perp",
-        "description": "10 points per $100",
+        "description": "10 poin per $100",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "Perdagangkan perp",
+          "points": "10 poin per $100",
+          "description": "Dapatkan poin pada setiap perdagangan, termasuk pembukaan dan penutupan, order stop loss dan take profit, serta penyesuaian margin.",
+          "cta_label": "Mulai perdagangan"
         }
       },
       "referrals": {
