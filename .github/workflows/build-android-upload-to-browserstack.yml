@@ -71,7 +71,7 @@ jobs:
 
   build-android-dual:
     name: Build Android Dual Versions
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-test
     needs: [check-builds-needed]
     env:
       GRADLE_USER_HOME: /home/runner/_work/.gradle
