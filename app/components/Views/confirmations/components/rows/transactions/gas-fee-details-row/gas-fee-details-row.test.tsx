@@ -31,6 +31,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
 jest.mock('../../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../../hooks/alerts/useInsufficientBalanceAlert');
+jest.mock('../../../../hooks/tokens/useTokenWithBalance');
 
 const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   amount: toHex(10000),

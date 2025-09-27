@@ -49,6 +49,8 @@ jest.mock('../../../hooks/gas/useGasFeeToken', () => ({
   useSelectedGasFeeToken: jest.fn(),
 }));
 
+jest.mock('../../../hooks/tokens/useTokenWithBalance');
+
 jest.mock('../../../hooks/gas/useIsGaslessSupported', () => ({
   useIsGaslessSupported: jest.fn().mockReturnValue({
     isSupported: false,
