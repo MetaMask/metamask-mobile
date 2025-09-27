@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -229,27 +229,33 @@ export const BridgeTokenSelectorBase: React.FC<
         />
       </Box>
 
-      <ListComponent
-        key={scrollResetKey}
-        data={
-          shouldRenderOverallLoading ? [] : tokensToRenderWithSearchAndSkeletons
-        }
-        renderItem={renderTokenItem}
-        keyExtractor={keyExtractor}
-        ListEmptyComponent={
-          debouncedSearchString && !shouldRenderOverallLoading
-            ? renderEmptyList
-            : LoadingSkeleton
-        }
-        showsVerticalScrollIndicator
-        showsHorizontalScrollIndicator={false}
-        bounces
-        scrollEnabled
-        removeClippedSubviews
-        maxToRenderPerBatch={20}
-        windowSize={10}
-        initialNumToRender={20}
-      />
+      {/* Need this extra View to fix tokens not being reliably pressable on Android hardware, no idea why */}
+      <View>
+        <ListComponent
+          key={scrollResetKey}
+          data={
+            shouldRenderOverallLoading
+              ? []
+              : tokensToRenderWithSearchAndSkeletons
+          }
+          renderItem={renderTokenItem}
+          keyExtractor={keyExtractor}
+          ListEmptyComponent={
+            debouncedSearchString && !shouldRenderOverallLoading
+              ? renderEmptyList
+              : LoadingSkeleton
+          }
+          showsVerticalScrollIndicator
+          showsHorizontalScrollIndicator={false}
+          bounces
+          scrollEnabled
+          removeClippedSubviews
+          maxToRenderPerBatch={20}
+          windowSize={10}
+          initialNumToRender={20}
+          keyboardShouldPersistTaps="always"
+        />
+      </View>
     </BottomSheet>
   );
 };
