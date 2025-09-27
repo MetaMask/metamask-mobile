@@ -54,6 +54,22 @@ jest.mock('./utils/solana-snap', () => ({
     .fn()
     .mockResolvedValue({ signature: 'solanaSignature123' }),
 }));
+jest.mock('./services/rewards-data-service', () => {
+  const actual = jest.requireActual('./services/rewards-data-service');
+  return {
+    RewardsDataService: jest.fn().mockImplementation(() => ({
+      getJwt: jest.fn(),
+      linkAccount: jest.fn(),
+      getReferralCode: jest.fn(),
+      getSeasonStatus: jest.fn(),
+      getReferralDetails: jest.fn(),
+      optIn: jest.fn(),
+      validateReferralCode: jest.fn(),
+      claimReward: jest.fn(),
+    })),
+    InvalidTimestampError: actual.InvalidTimestampError,
+  };
+});
 // Mock base58 decode from ethers
 jest.mock('ethers/lib/utils', () => ({
   ...jest.requireActual('ethers/lib/utils'),
@@ -76,6 +92,10 @@ import {
   removeSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import { signSolanaRewardsMessage } from './utils/solana-snap';
+import {
+  InvalidTimestampError,
+  RewardsDataService,
+} from './services/rewards-data-service';
 
 // Type the mocked modules
 const mockSelectRewardsEnabledFlag =
@@ -104,6 +124,7 @@ const mockSignSolanaRewardsMessage =
   signSolanaRewardsMessage as jest.MockedFunction<
     typeof signSolanaRewardsMessage
   >;
+const mockRewardsDataService = new (RewardsDataService as jest.Mock)();
 
 // Test constants - CAIP-10 format addresses
 const CAIP_ACCOUNT_1: CaipAccountId = 'eip155:1:0x123' as CaipAccountId;
@@ -5351,6 +5372,59 @@ describe('RewardsController', () => {
       }
     });
 
+    it('should handle InvalidTimestampError and retry with server timestamp', async () => {
+      // Arrange
+      const mockError = new InvalidTimestampError(
+        'Invalid timestamp',
+        1234567890,
+      );
+
+      // Set up controller with a candidate subscription ID
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Mock getCandidateSubscriptionId to return a valid ID
+      jest
+        .spyOn(testController, 'getCandidateSubscriptionId')
+        .mockResolvedValue('test-subscription-id');
+
+      // Mock the messenger call
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:mobileJoin') {
+          // Simulate error for mobileJoin
+          return Promise.reject(mockError);
+        } else if (method === 'AccountsController:listMultichainAccounts') {
+          return Promise.resolve([mockInternalAccount]);
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      try {
+        await testController.linkAccountToSubscriptionCandidate(
+          mockInternalAccount,
+        );
+        fail('Expected function to throw an error');
+      } catch (error) {
+        // Assert
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:mobileJoin',
+          expect.anything(),
+          'test-subscription-id',
+        );
+
+        // Verify the error was logged
+        expect(mockLogger.log).toHaveBeenCalledWith(
+          'RewardsController: Failed to link account to subscription',
+          'eip155:1:0x123',
+          'test-subscription-id',
+          expect.any(Error),
+        );
+      }
+    });
+
     it('should return true if account already has subscription', async () => {
       // Arrange
       const testController = new RewardsController({
@@ -8417,6 +8491,136 @@ describe('RewardsController', () => {
       // Non-EVM and Solana checks should not be called since hardware check failed
       expect(mockIsNonEvmAddress).not.toHaveBeenCalled();
       expect(mockIsSolanaAddress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Silent Authentication Flow', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    let subscribeCallback: (() => void) | undefined;
+
+    const mockInternalAccount: InternalAccount = {
+      id: 'mock-id',
+      address: '0x123',
+      options: {},
+      methods: [],
+      type: 'eip155:eoa',
+      metadata: {
+        name: 'mock-account',
+        keyring: {
+          type: 'HD Key Tree',
+        },
+        importTime: 0,
+      },
+      scopes: [],
+    };
+
+    let originalDateNow: () => number;
+
+    beforeEach(() => {
+      mockMessenger = {
+        call: jest.fn(),
+        subscribe: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        publish: jest.fn(),
+        unsubscribe: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+      // Mock Date.now to return a consistent timestamp
+      originalDateNow = Date.now;
+      Date.now = jest.fn().mockReturnValue(1000000);
+
+      // Mock RewardsDataService:login to route through our mockRewardsDataService.getJwt
+      mockMessenger.call.mockImplementation(((...args: any[]) => {
+        const [method, payload] = args;
+        if (method === 'AccountsController:getSelectedMultichainAccount') {
+          return Promise.resolve(mockInternalAccount);
+        }
+        if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xmockSignature');
+        }
+        if (method === 'RewardsDataService:login') {
+          // Mimic the controller calling into data service; delegate to getJwt
+          const { timestamp, signature } = payload || {};
+          // Make sure to pass the account address correctly
+          return mockRewardsDataService
+            .getJwt(signature, timestamp, mockInternalAccount.address)
+            .then((jwt: string) => ({
+              subscription: { id: 'sub-123' },
+              sessionId: jwt,
+            }));
+        }
+        return Promise.resolve(undefined);
+      }) as any);
+
+      new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      // Find the callback function for the 'AccountsController:selectedAccountChange' event
+      subscribeCallback = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      )?.[1] as () => void;
+    });
+
+    afterEach(() => {
+      // Restore original Date.now
+      Date.now = originalDateNow;
+    });
+
+    it('should retry silent auth with server timestamp on InvalidTimestampError', async () => {
+      // Import the actual InvalidTimestampError
+      const { InvalidTimestampError } = jest.requireActual(
+        './services/rewards-data-service',
+      );
+      const mockError = new InvalidTimestampError('Invalid timestamp', 12345);
+      const mockJwt = 'mock-jwt';
+
+      // Clear previous calls
+      mockRewardsDataService.getJwt.mockClear();
+
+      // First call fails with timestamp error, second call succeeds
+      mockRewardsDataService.getJwt
+        .mockImplementationOnce(() => Promise.reject(mockError))
+        .mockImplementationOnce(() => Promise.resolve(mockJwt));
+
+      // Trigger the silent auth flow
+      subscribeCallback?.();
+
+      // Let the event loop run to allow promises to resolve
+      await new Promise(process.nextTick);
+
+      expect(mockRewardsDataService.getJwt).toHaveBeenCalledTimes(2);
+      expect(mockRewardsDataService.getJwt).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Number),
+        mockInternalAccount.address,
+      );
+      expect(mockRewardsDataService.getJwt).toHaveBeenCalledWith(
+        expect.any(String),
+        mockError.timestamp,
+        mockInternalAccount.address,
+      );
+    });
+
+    it('should not retry silent auth if error is not InvalidTimestampError', async () => {
+      const mockError = new Error('Some other error');
+
+      // Clear previous calls
+      mockRewardsDataService.getJwt.mockClear();
+      // Mock to reject with a non-InvalidTimestampError
+      mockRewardsDataService.getJwt.mockRejectedValueOnce(mockError);
+
+      // Trigger the silent auth flow
+      subscribeCallback?.();
+
+      // Let the event loop run
+      await new Promise(process.nextTick);
+
+      expect(mockRewardsDataService.getJwt).toHaveBeenCalledTimes(1);
     });
   });
 });
