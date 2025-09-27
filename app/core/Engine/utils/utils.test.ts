@@ -70,6 +70,7 @@ import { RewardsController } from '../controllers/rewards-controller/RewardsCont
 import { predictControllerInit } from '../controllers/predict-controller';
 import { PredictController } from '../../../components/UI/Predict/controllers/PredictController';
 import { GatorPermissionsController } from '@metamask/gator-permissions-controller';
+import { DelegationControllerInit } from '../controllers/delegation/delegation-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/rewards-controller');
@@ -176,6 +177,7 @@ describe('initModularizedControllers', () => {
   const mockGatorPermissionsControllerInit = jest.mocked(
     GatorPermissionsControllerInit,
   );
+  const mockDelegationControllerInit = jest.mocked(DelegationControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -219,6 +221,7 @@ describe('initModularizedControllers', () => {
           RewardsController: mockRewardsControllerInit,
           PredictController: mockPredictControllerInit,
           GatorPermissionsController: mockGatorPermissionsControllerInit,
+          DelegationController: mockDelegationControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),

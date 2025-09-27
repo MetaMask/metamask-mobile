@@ -58,6 +58,9 @@
       }
     }
   },
+  "DelegationController": {
+    "delegations": {}
+  },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },

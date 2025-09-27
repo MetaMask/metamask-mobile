@@ -44,6 +44,10 @@ import { getBridgeStatusControllerMessenger } from './bridge-status-controller-m
 import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger/multichain-account-service-messenger';
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
+import {
+  getDelegationControllerInitMessenger,
+  getDelegationControllerMessenger,
+} from './delegation/delegation-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -175,5 +179,9 @@ export const CONTROLLER_MESSENGERS = {
   GatorPermissionsController: {
     getMessenger: getGatorPermissionsControllerMessenger,
     getInitMessenger: noop,
+  },
+  DelegationController: {
+    getMessenger: getDelegationControllerMessenger,
+    getInitMessenger: getDelegationControllerInitMessenger,
   },
 } as const;

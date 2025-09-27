@@ -324,6 +324,12 @@ import {
   GatorPermissionsController,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
+import { DelegationController } from '@metamask/delegation-controller';
+import {
+  DelegationControllerActions,
+  DelegationControllerEvents,
+  DelegationControllerState,
+} from '@metamask/delegation-controller/dist/types.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -424,7 +430,8 @@ type GlobalActions =
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
-  | ErrorReportingServiceActions;
+  | ErrorReportingServiceActions
+  | DelegationControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -484,7 +491,8 @@ type GlobalEvents =
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
-  | AccountTreeControllerEvents;
+  | AccountTreeControllerEvents
+  | DelegationControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -569,6 +577,7 @@ export type Controllers = {
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
   GatorPermissionsController: GatorPermissionsController;
+  DelegationController: DelegationController;
 };
 
 /**
@@ -640,6 +649,7 @@ export type EngineState = {
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   GatorPermissionsController: GatorPermissionsControllerState;
+  DelegationController: DelegationControllerState;
 };
 
 /** Controller names */
@@ -704,7 +714,8 @@ export type ControllersToInitialize =
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
   | 'RewardsController'
-  | 'GatorPermissionsController';
+  | 'GatorPermissionsController'
+  | 'DelegationController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
