@@ -267,7 +267,7 @@ describe('TokenListControlBar', () => {
 
         const { getByTestId } = renderComponent();
 
-        const filterButton = getByTestId('token-network-filter');
+        const filterButton = getByTestId('tokens-network-filter');
         fireEvent.press(filterButton);
 
         expect(mockNavigate).toHaveBeenCalledWith('NetworkManager', {});
@@ -343,7 +343,7 @@ describe('TokenListControlBar', () => {
 
         const { getByTestId } = renderComponent();
 
-        const filterButton = getByTestId('token-network-filter');
+        const filterButton = getByTestId('tokens-network-filter');
         fireEvent.press(filterButton);
 
         expect(mockNavigate).toHaveBeenCalledWith('TokenFilter', {});
@@ -408,7 +408,7 @@ describe('TokenListControlBar', () => {
       mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
 
       const { getByTestId } = renderComponent();
-      const filterButton = getByTestId('token-network-filter');
+      const filterButton = getByTestId('tokens-network-filter');
 
       expect(filterButton.props.disabled).toBe(true);
     });

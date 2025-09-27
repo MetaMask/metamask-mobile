@@ -1145,7 +1145,7 @@ describe('CollectibleContracts', () => {
       },
     );
 
-    const filterControlersButton = getByTestId('token-network-filter');
+    const filterControlersButton = getByTestId('collectibles-network-filter');
     fireEvent.press(filterControlersButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
@@ -1211,7 +1211,7 @@ describe('CollectibleContracts', () => {
       },
     );
 
-    const filterControlersButton = getByTestId('token-network-filter');
+    const filterControlersButton = getByTestId('collectibles-network-filter');
     fireEvent.press(filterControlersButton);
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
