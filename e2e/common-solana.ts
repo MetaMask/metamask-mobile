@@ -50,13 +50,8 @@ export async function withSolanaAccountEnabled(
       // Create Solana accounts through the wallet view
       for (let i = 0; i < numberOfAccounts; i++) {
         await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapAddSolanaAccount();
-        await AddNewHdAccountComponent.tapConfirm();
-        await Assertions.expectElementToHaveText(
-          WalletView.accountName,
-          `Solana Account ${i + 1}`,
-        );
+        await AccountListBottomSheet.tapAddAccountButtonV2();
+        await AccountListBottomSheet.tapAccountByNameV2(`Account ${i + 1}`);
       }
 
       await test();

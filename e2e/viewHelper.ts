@@ -159,9 +159,7 @@ export const importWalletWithRecoveryPhrase = async ({
 
   await OnboardingView.tapHaveAnExistingWallet();
 
-  if (SEEDLESS_ONBOARDING_ENABLED) {
-    await OnboardingSheet.tapImportSeedButton();
-  }
+
   // should import wallet with secret recovery phrase
   await ImportWalletView.enterSecretRecoveryPhrase(
     seedPhrase ?? validAccount.seedPhrase,

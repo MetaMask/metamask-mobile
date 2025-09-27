@@ -31,19 +31,10 @@ class OnboardingView {
   async tapHaveAnExistingWallet() {
     await Utilities.executeWithRetry(
       async () => {
-        if (SEEDLESS_ONBOARDING_ENABLED) {
-          await Gestures.waitAndTap(this.existingWalletButton, {
-            elemDescription: 'Onboarding Have an Existing Wallet Button',
-          });
-          await Utilities.waitForElementToBeVisible(
-            OnboardingSheet.importSeedButton,
-          );
-        } else {
-          await Gestures.waitAndTap(this.existingWalletButton, {
-            elemDescription: 'Onboarding Have an Existing Wallet Button',
-            waitForElementToDisappear: true,
-          });
-        }
+        await Gestures.waitAndTap(this.existingWalletButton, {
+          elemDescription: 'Onboarding Have an Existing Wallet Button',
+          waitForElementToDisappear: true,
+        });
       },
       {
         timeout: BASE_DEFAULTS.timeout,
