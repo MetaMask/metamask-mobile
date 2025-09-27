@@ -35,6 +35,15 @@ jest.mock('../../../../../component-library/hooks', () => ({
       button: {
         width: '100%',
       },
+      screen: {
+        flex: 1,
+      },
+      scrollView: {
+        flex: 1,
+      },
+      buttonContainer: {
+        flexDirection: 'row',
+      },
     },
   })),
 }));
@@ -54,16 +63,34 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
+jest.mock('react-native-safe-area-context', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    SafeAreaView: ({
+      children,
+      style,
+      testID,
+    }: {
+      children: React.ReactNode;
+      style?: React.ComponentProps<typeof View>['style'];
+      testID?: string;
+    }) => (
+      <View style={style} testID={testID}>
+        {children}
+      </View>
+    ),
+    useSafeAreaInsets: jest.fn(() => ({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
-
-jest.mock('../../../../Base/ScreenView', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockScreenView({ children }: { children: React.ReactNode }) {
-    return <View testID="screen-view">{children}</View>;
-  };
-});
 
 jest.mock('../../../Navbar', () => ({
   getNavigationOptionsTitle: jest.fn(() => ({})),
@@ -363,10 +390,12 @@ describe('PredictMarketDetails', () => {
   });
 
   describe('Component Integration', () => {
-    it('integrates with ScreenView component', () => {
+    it('renders the SafeAreaView container', () => {
       setupPredictMarketDetailsTest();
 
-      expect(screen.getByTestId('screen-view')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-market-details-screen'),
+      ).toBeOnTheScreen();
     });
 
     it('integrates with internationalization', () => {
