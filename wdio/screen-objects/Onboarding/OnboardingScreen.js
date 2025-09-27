@@ -14,20 +14,6 @@ class OnBoardingScreen {
     this._device = device;
   }
 
-  get title() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId(OnboardingSelectorIDs.SCREEN_TITLE);
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.SCREEN_TITLE);
-    }
-  }
-
-  get description() {
-    return Selectors.getXpathElementByResourceId(
-      OnboardingSelectorIDs.SCREEN_DESCRIPTION,
-    );
-  }
-
   get createNewWalletButton() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(
@@ -45,15 +31,6 @@ class OnBoardingScreen {
       );
     } else {
       return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
-    }
-  }
-
-  async isScreenTitleVisible() {
-    if (!this._device) {
-      await expect(this.title).toBeDisplayed();
-    } else {
-      const element = await this.title;
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
   }
 
