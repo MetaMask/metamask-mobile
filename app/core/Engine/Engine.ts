@@ -117,7 +117,7 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
-import { Hex, Json } from '@metamask/utils';
+import { Hex, Json, KnownCaipNamespace } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -2282,6 +2282,30 @@ export class Engine {
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
   }
+
+  /**
+   * Gathers metadata (primarily connectivity status) about the enabled networks and persists it to state.
+   */
+  async lookupEnabledNetworks(): Promise<void> {
+    const { NetworkController, NetworkEnablementController } = this.context;
+
+    const chainIds = Object.entries(
+      NetworkEnablementController.state?.enabledNetworkMap?.[
+        KnownCaipNamespace.Eip155
+      ] ?? {},
+    )
+      .filter(([, isEnabled]) => isEnabled)
+      .map(([networkChainId]) => networkChainId as Hex);
+
+    await Promise.allSettled(
+      chainIds
+        .map((chainId) =>
+          NetworkController.findNetworkClientIdByChainId(chainId as Hex),
+        )
+        .filter((id): id is string => !!id)
+        .map((id) => NetworkController.lookupNetwork(id)),
+    );
+  }
 }
 
 /**
@@ -2495,6 +2519,11 @@ export default {
   getQrKeyringScanner: () => {
     assertEngineExists(instance);
     return instance.qrKeyringScanner;
+  },
+
+  lookupEnabledNetworks: () => {
+    assertEngineExists(instance);
+    instance.lookupEnabledNetworks();
   },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
