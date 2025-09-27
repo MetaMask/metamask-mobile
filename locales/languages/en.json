@@ -1702,7 +1702,6 @@
     "buy_asset": "Buy {{asset}}",
     "no_tokens": "You don't have any tokens!",
     "show_tokens_without_balance": "Show tokens without balance",
-    "no_nfts_yet": "No NFTs yet",
     "nfts_autodetection_title": "NFT detection",
     "nfts_autodetection_desc": "Let MetaMask automatically detect and display NFTs in your wallet.",
     "network_details_check": "Network details check",
@@ -1722,6 +1721,8 @@
     "nfts_autodetection_cta": "Turn on NFT detection in Settings",
     "learn_more": "Learn more",
     "add_collectibles": "Import NFTs",
+    "nft_empty_description": "There's a world of NFTs out there. Start your collection today.",
+    "discover_nfts": "Import NFTs",
     "no_transactions": "You have no transactions!",
     "switch_network_to_view_transactions": "Please switch network to view transactions",
     "send_button": "Send",
@@ -5648,8 +5649,8 @@
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },
     "smart_account": {
-      "title": "Enable Smart Account",
-      "description": "You can enable smart account features on supported networks.",
+      "title": "Use smart account",
+      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
       "learn_more": "Learn more"
     },
     "edit_account_name": {
@@ -5779,54 +5780,61 @@
     "not_implemented": "Coming soon",
     "not_implemented_season_summary": "Season Summary Coming Soon",
 
-    "auth_fail_banner": {
-      "title": "Authentication Failed",
-      "description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
-      "cta_cancel": "Cancel",
-      "cta_retry": "Retry"
+
+    "optin_error": {
+      "title": "Opt-in failed",
+      "description": "Check your connection and try again."
     },
 
     "season_status_error": {
-      "error_fetching_title": "Failed to fetch season balance",
-      "error_fetching_description": "We couldn't load your current season balance. Please check your connection and try again.",
-      "retry_button": "Retry",
-      "dismiss_button": "Dismiss"
+      "error_fetching_title": "Season balance couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
     },
 
     "active_boosts_error": {
-      "error_fetching_title": "Failed to fetch active boosts",
-      "error_fetching_description": "We couldn't load your current active boosts. Please check your connection and try again.",
-      "retry_button": "Retry",
-      "dismiss_button": "Dismiss"
+      "error_fetching_title": "Boosts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
     },
 
     "unlocked_rewards_error": {
-      "error_fetching_title": "Failed to fetch unlocked rewards",
-      "error_fetching_description": "We couldn't load your unlocked rewards. Please check your connection and try again.",
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
 
     "upcoming_rewards_error": {
-      "error_fetching_title": "Failed to fetch upcoming rewards",
-      "error_fetching_description": "We couldn't load your upcoming rewards. Please check your connection and try again.",
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
 
     "referral_details_error": {
-      "error_fetching_title": "Failed to fetch referral details",
-      "error_fetching_description": "We couldn't load your referral details. Please check your connection and try again.",
+      "error_fetching_title": "Referral details couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
+    },
+
+    "referral_validation_unknown_error": {
+      "title": "Referral code couldn’t be validated",
+      "description": "Check your connection and try again."
     },
 
     "active_activity_error": {
-      "error_fetching_title": "Failed to fetch activity",
-      "error_fetching_description": "We couldn't load your activity data. Please check your connection and try again.",
+      "error_fetching_title": "Activity couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
 
-    "geo_rewards_metadata_error": {
-      "error_fetching_title": "Cannot determine opt-in eligibility",
-      "error_fetching_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
+
+    "claim_reward_error": {
+      "title": "Failed to claim reward"
+    },
+
+    "accounts_opt_in_state_error": {
+      "error_fetching_title": "Accounts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
 
@@ -5874,9 +5882,16 @@
     "onboarding": {
       "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_account_needed_title": "Ethereum account needed",
-      "not_supported_account_needed_description": "MetaMask Rewards aren't available for Solana accounts yet. Switch to an Ethereum account to claim your points.",
-      "not_supported_confirm": "Got it",
+      "not_supported_hardware_account_title": "Account not supported",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_account_type_title": "Account type not supported",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_confirm_go_back": "Go back",
+      "not_supported_confirm_retry": "Retry",
+      "auth_fail_title": "Authentication Failed",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
+      "geo_check_fail_title": "Cannot determine opt-in eligibility",
+      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
 
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
@@ -5921,10 +5936,7 @@
       "title": "Rewards Settings",
       "subtitle": "Accounts",
       "description": "Add multiple accounts to combine your points and unlock rewards faster.",
-      "error_title": "Unable to Load Opted-in Accounts",
-      "error_description": "We couldn't detect your opted-in accounts. Please check your connection and try again.",
-      "error_retry": "Retry",
- "tab_linked_accounts": "Added ({{count}})",
+      "tab_linked_accounts": "Added ({{count}})",
       "tab_unlinked_accounts": "Not added ({{count}})",
       "no_linked_accounts": "No accounts opted in",
       "all_accounts_linked_title": "All accounts opted in",
@@ -5957,7 +5969,9 @@
 
     "unlinked_account_info": {
       "title": "Account not earning points",
-      "description": "This account's activity is not being tracked for this season."
+      "title_optin_not_supported": "Account not supported",
+      "description": "This account's activity is not being tracked for this season.",
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
 
     "link_account": "Add account",
@@ -6056,5 +6070,10 @@
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
     }
+  },
+  "network_connection_banner": {
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
+    "update_rpc": "Update RPC"
   }
 }
