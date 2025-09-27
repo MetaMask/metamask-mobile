@@ -71,6 +71,7 @@ describe('useContacts', () => {
       isEvmNativeSendType: false,
       isNonEvmSendType: false,
       isNonEvmNativeSendType: false,
+      isBitcoinSendType: false,
     });
   });
 
@@ -82,6 +83,7 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
     });
 
@@ -136,6 +138,7 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
     });
 
@@ -180,6 +183,7 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
     });
 
@@ -303,6 +307,7 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
 
       const { result } = renderHook(() => useContacts());
@@ -320,6 +325,7 @@ describe('useContacts', () => {
         isEvmNativeSendType: false,
         isNonEvmSendType: false,
         isNonEvmNativeSendType: false,
+        isBitcoinSendType: false,
       });
 
       const { result } = renderHook(() => useContacts());

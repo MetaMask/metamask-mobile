@@ -4,6 +4,10 @@ import {
   BtcScope,
   SolAccountType,
   SolScope,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  TrxAccountType,
+  TrxScope,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { MultichainBlockExplorerFormatUrls } from './networks';
@@ -18,6 +22,11 @@ export const MULTICHAIN_TOKEN_IMAGES = {
   [SolScope.Mainnet]: imageIcons.SOLANA,
   [SolScope.Devnet]: imageIcons.SOLANA,
   [SolScope.Testnet]: imageIcons.SOLANA,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  [TrxScope.Mainnet]: imageIcons.TRON,
+  [TrxScope.Nile]: imageIcons.TRON,
+  [TrxScope.Shasta]: imageIcons.TRON,
+  ///: END:ONLY_INCLUDE_IF
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
@@ -59,6 +68,23 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     address: 'https://solscan.io/account/{address}?cluster=testnet',
     transaction: 'https://solscan.io/tx/{txId}?cluster=testnet',
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  [TrxScope.Mainnet]: {
+    url: 'https://tronscan.org',
+    address: 'https://tronscan.org/#/address/{address}',
+    transaction: 'https://tronscan.org/#/transaction/{txId}',
+  },
+  [TrxScope.Nile]: {
+    url: 'https://nile.tronscan.org',
+    address: 'https://nile.tronscan.org/#/address/{address}',
+    transaction: 'https://nile.tronscan.org/#/transaction/{txId}',
+  },
+  [TrxScope.Shasta]: {
+    url: 'https://shasta.tronscan.org',
+    address: 'https://shasta.tronscan.org/#/address/{address}',
+    transaction: 'https://shasta.tronscan.org/#/transaction/{txId}',
+  },
+  ///: END:ONLY_INCLUDE_IF
 } as const;
 
 export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
@@ -67,6 +93,9 @@ export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
   [BtcAccountType.P2tr]: BtcScope.Mainnet,
   [SolAccountType.DataAccount]: SolScope.Mainnet,
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  [TrxAccountType.Eoa]: TrxScope.Mainnet,
+  ///: END:ONLY_INCLUDE_IF
 } as const;
 
 export const PRICE_API_CURRENCIES = [

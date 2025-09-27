@@ -44,6 +44,9 @@ import XDC from './xdc.png';
 import MEGAETH_MAINNET from './megaeth-mainnet-logo.png';
 import AAVE from './aave-token-round.png';
 import HEMI from './hemi.png';
+/// BEGIN:ONLY_INCLUDE_IF(tron)
+import TRON from './tron.png';
+/// END:ONLY_INCLUDE_IF(tron)
 
 export default {
   PALM,
@@ -71,6 +74,9 @@ export default {
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,
   'BTC-SIGNET': BTC_SIGNET,
+  /// BEGIN:ONLY_INCLUDE_IF(tron)
+  TRON,
+  /// END:ONLY_INCLUDE_IF(tron)
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   XRP: XRPLEVM_TOKEN,
