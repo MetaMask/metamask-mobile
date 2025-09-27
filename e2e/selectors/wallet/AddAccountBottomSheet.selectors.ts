@@ -5,4 +5,5 @@ export const AddAccountBottomSheetSelectorsIDs = {
   ADD_SOLANA_ACCOUNT_BUTTON: 'add-account-add-solana-account',
   ADD_BITCOIN_ACCOUNT_BUTTON: 'add-account-add-bitcoin-account',
   ADD_HARDWARE_WALLET_BUTTON: 'add-account-add-hardware-wallet',
+  ADD_TRON_ACCOUNT_BUTTON: 'add-account-add-tron-account',
 };

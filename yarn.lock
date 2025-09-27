@@ -8589,6 +8589,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/tron-wallet-snap@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@metamask/tron-wallet-snap@npm:1.0.3"
+  checksum: b9bc2c620369d77a7fc3d435d0728bca5b32369d969babc3b1de78e020c0fe7fceabf1e6755520554debfd5c6fa2ee0798d1227d2c28933a39c6911dc94108b9
+  languageName: node
+  linkType: hard
+
 "@metamask/utils@npm:^10.0.0":
   version: 10.0.1
   resolution: "@metamask/utils@npm:10.0.1"
@@ -33777,6 +33784,7 @@ __metadata:
     "@metamask/test-dapp-solana": ^0.3.0
     "@metamask/token-search-discovery-controller": ^3.1.0
     "@metamask/transaction-controller": ^60.3.0
+    "@metamask/tron-wallet-snap": ^1.0.3
     "@metamask/utils": ^11.8.1
     "@ngraveio/bc-ur": ^1.1.6
     "@notifee/react-native": ^9.0.0

@@ -164,6 +164,10 @@ const AddNewAccount = ({
         return strings('account_actions.add_multichain_account', {
           networkName: strings('account_actions.headers.solana'),
         });
+      case WalletClientType.Tron:
+        return strings('account_actions.add_multichain_account', {
+          networkName: strings('account_actions.headers.tron'),
+        });
       default:
         return strings('account_actions.add_account');
     }
