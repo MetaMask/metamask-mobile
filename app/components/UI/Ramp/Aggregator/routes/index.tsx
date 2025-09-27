@@ -2,7 +2,6 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Regions from '../Views/Regions';
 import Quotes from '../Views/Quotes';
-import NetworkSwitcher from '../Views/NetworkSwitcher';
 import GetStarted from '../Views/GetStarted';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
@@ -28,11 +27,6 @@ const MainRoutes = () => (
     headerMode="screen"
   >
     <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
-    <Stack.Screen
-      name={Routes.RAMP.NETWORK_SWITCHER}
-      component={NetworkSwitcher}
-      options={{ animationEnabled: false }}
-    />
     <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
     <Stack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
