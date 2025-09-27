@@ -76,6 +76,7 @@ import ApprovalText from '../../components/ApprovalText';
 import { RootState } from '../../../../../reducers/index.ts';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
+import { formatUnits } from 'ethers/lib/utils';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -467,8 +468,12 @@ const BridgeView = () => {
             onBlur={() => setIsInputFocused(false)}
             onInputPress={() => setIsInputFocused(true)}
             onMaxPress={() => {
-              if (latestSourceBalance?.displayBalance) {
-                dispatch(setSourceAmount(latestSourceBalance.displayBalance));
+              if (latestSourceBalance?.atomicBalance) {
+                const parsedAtomicBalance = formatUnits(
+                  latestSourceBalance.atomicBalance.toString(),
+                  sourceToken?.decimals,
+                );
+                dispatch(setSourceAmount(parsedAtomicBalance));
               }
             }}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}

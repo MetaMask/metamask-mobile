@@ -237,17 +237,25 @@ jest.mock('@react-navigation/native', () => {
 
 // Mock useLatestBalance hook
 jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn().mockImplementation(({ address, chainId }) => {
-    if (!address || !chainId) return undefined;
+  useLatestBalance: jest
+    .fn()
+    .mockImplementation(({ address, chainId, decimals }) => {
+      if (!address || !chainId) return undefined;
 
-    // Need to do this due to this error: "The module factory of `jest.mock()` is not allowed to reference any out-of-scope variables.""
-    const actualEthers = jest.requireActual('ethers');
+      // Need to do this due to this error: "The module factory of `jest.mock()` is not allowed to reference any out-of-scope variables.""
+      const actualEthers = jest.requireActual('ethers');
 
-    return {
-      displayBalance: '2.0',
-      atomicBalance: actualEthers.BigNumber.from('2000000000000000000'), // 2 ETH
-    };
-  }),
+      // Calculate atomic balance for 2.0 tokens based on the token's decimals
+      const tokenDecimals = decimals || 18;
+      const atomicBalance = actualEthers.BigNumber.from('2').mul(
+        actualEthers.BigNumber.from('10').pow(tokenDecimals),
+      );
+
+      return {
+        displayBalance: '2.0',
+        atomicBalance,
+      };
+    }),
 }));
 
 // Mock Skeleton component to prevent animation
