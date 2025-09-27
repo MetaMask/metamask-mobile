@@ -7762,6 +7762,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/multichain-network-controller@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/multichain-network-controller@npm:1.0.0"
+  dependencies:
+    "@metamask/base-controller": ^8.4.0
+    "@metamask/controller-utils": ^11.14.0
+    "@metamask/keyring-api": ^21.0.0
+    "@metamask/keyring-internal-api": ^9.0.0
+    "@metamask/superstruct": ^3.1.0
+    "@metamask/utils": ^11.8.0
+    "@solana/addresses": ^2.0.0
+    lodash: ^4.17.21
+  peerDependencies:
+    "@metamask/accounts-controller": ^33.0.0
+    "@metamask/network-controller": ^24.0.0
+  checksum: 5de679e60e39d99c5bf995a624606260babf494f16215591bbc0eca49db061f29e8920498d47f2e71034c5a7a72c69ba84d378f6c489090167034f3d8254a97e
+  languageName: node
+  linkType: hard
+
 "@metamask/multichain-transactions-controller@npm:^5.0.0":
   version: 5.0.0
   resolution: "@metamask/multichain-transactions-controller@npm:5.0.0"
