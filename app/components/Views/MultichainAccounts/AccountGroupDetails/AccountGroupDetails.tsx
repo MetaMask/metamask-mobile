@@ -1,5 +1,10 @@
-import React, { useCallback, useMemo } from 'react';
-import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  BackHandler,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
 import Text, {
@@ -159,6 +164,18 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
       ...createEditAccountNameNavigationDetails(accountGroup),
     );
   }, [navigation, accountGroup]);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        navigation.goBack();
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

@@ -7,6 +7,15 @@ const mockAccountsState = {};
 
 const mockAddress = '0x1234567890123456789012345678901234567890';
 
+// Mock navigation
+const mockGoBack = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+}));
+
 jest.mock('../../../../confirmations/hooks/7702/useEIP7702Networks', () => ({
   useEIP7702Networks: jest.fn(),
 }));
@@ -25,6 +34,7 @@ const mockUseEIP7702Networks = useEIP7702Networks as jest.MockedFunction<
 describe('SmartAccountNetworkList', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockGoBack.mockClear();
     mockUseEIP7702Networks.mockReturnValue({
       network7702List: [
         {
