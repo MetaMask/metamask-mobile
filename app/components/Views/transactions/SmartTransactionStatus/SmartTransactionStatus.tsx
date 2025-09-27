@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -9,10 +10,9 @@ import Icon, {
 import ProgressBar from './ProgressBar';
 import { useTheme } from '../../../../util/theme';
 import {
-  Hex,
   SmartTransaction,
   SmartTransactionStatuses,
-} from '@metamask/smart-transactions-controller/dist/types';
+} from '@metamask/smart-transactions-controller';
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';

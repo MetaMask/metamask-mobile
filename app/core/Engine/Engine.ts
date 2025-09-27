@@ -127,11 +127,17 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import {
+  SmartTransactionsController,
+  ClientId,
+  MetaMetricsEventName,
+  MetaMetricsEventCategory,
+  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
+  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
+} from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ChainId,
@@ -142,14 +148,6 @@ import {
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
-import {
-  MetaMetricsEventCategory,
-  MetaMetricsEventName,
-} from '@metamask/smart-transactions-controller/dist/constants';
-import {
-  getSmartTransactionMetricsProperties as getSmartTransactionMetricsPropertiesType,
-  getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
-} from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
@@ -1121,25 +1119,20 @@ export class Engine {
       // @ts-expect-error TODO: resolve types
       supportedChainIds: getAllowedSmartTransactionsChainIds(),
       clientId: ClientId.Mobile,
-      getNonceLock: (...args) =>
-        this.transactionController.getNonceLock(...args),
-      confirmExternalTransaction: (...args) =>
-        this.transactionController.confirmExternalTransaction(...args),
       trackMetaMetricsEvent: smartTransactionsControllerTrackMetaMetricsEvent,
       state: initialState.SmartTransactionsController,
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SmartTransactionsController',
         allowedActions: [
           'NetworkController:getNetworkClientById',
           'NetworkController:getState',
+          'TransactionController:getNonceLock',
+          `TransactionController:confirmExternalTransaction`,
+          `TransactionController:getTransactions`,
+          `TransactionController:updateTransaction`,
         ],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      getTransactions: (...args) =>
-        this.transactionController.getTransactions(...args),
-      updateTransaction: (...args) =>
-        this.transactionController.updateTransaction(...args),
       getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
       trace: trace as TraceCallback,
