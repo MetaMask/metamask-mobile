@@ -13,7 +13,7 @@ export function getBridgeStatusControllerMessenger(
   return baseControllerMessenger.getRestricted({
     name: 'BridgeStatusController',
     allowedActions: [
-      'AccountsController:getSelectedMultichainAccount',
+      'AccountsController:getAccountByAddress',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getState',
