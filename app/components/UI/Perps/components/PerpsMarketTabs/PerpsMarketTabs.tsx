@@ -43,6 +43,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   isLoadingPosition,
   unfilledOrders = [],
   onActiveTabChange,
+  activeTabId: externalActiveTabId,
   initialTab,
   nextFundingTime,
   fundingIntervalHours,
@@ -255,6 +256,17 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
       onActiveTabChange?.(newTabId);
     }
   }, [tabs, activeTabId, onActiveTabChange]);
+
+  // Handle programmatic tab control from external activeTabId prop
+  useEffect(() => {
+    if (externalActiveTabId) {
+      const availableTabs = tabs.map((t) => t.id);
+      if (availableTabs.includes(externalActiveTabId)) {
+        setActiveTabId(externalActiveTabId as PerpsTabId);
+        onActiveTabChange?.(externalActiveTabId);
+      }
+    }
+  }, [externalActiveTabId, tabs, onActiveTabChange]);
 
   // Notify parent when tab changes
   const handleTabChange = useCallback(

@@ -51,7 +51,10 @@ const mockRouteParams: {
     volume: string;
     maxLeverage: string;
   };
-  isNavigationFromOrderSuccess: boolean;
+  monitoringIntent?: {
+    asset: string;
+    monitor: 'orders' | 'positions' | 'both';
+  };
 } = {
   market: {
     symbol: 'BTC',
@@ -62,7 +65,7 @@ const mockRouteParams: {
     volume: '$1.23B',
     maxLeverage: '40x',
   },
-  isNavigationFromOrderSuccess: false,
+  monitoringIntent: undefined,
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -399,7 +402,6 @@ describe('PerpsMarketDetailsView', () => {
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
 
     // Reset route params to default
-    mockRouteParams.isNavigationFromOrderSuccess = false;
     mockRouteParams.market = {
       symbol: 'BTC',
       name: 'Bitcoin',
@@ -1183,7 +1185,10 @@ describe('PerpsMarketDetailsView', () => {
   describe('notification tooltip functionality', () => {
     it('renders tooltip when flags are true and from successful order', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-      mockRouteParams.isNavigationFromOrderSuccess = true;
+      mockRouteParams.monitoringIntent = {
+        asset: 'BTC',
+        monitor: 'orders',
+      };
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -1201,7 +1206,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('does not show PerpsNotificationTooltip when not navigating from order success', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-      mockRouteParams.isNavigationFromOrderSuccess = false;
+      mockRouteParams.monitoringIntent = undefined;
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -1219,7 +1224,10 @@ describe('PerpsMarketDetailsView', () => {
 
     it('does not show PerpsNotificationTooltip when notifications feature is disabled', () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(false);
-      mockRouteParams.isNavigationFromOrderSuccess = true;
+      mockRouteParams.monitoringIntent = {
+        asset: 'BTC',
+        monitor: 'orders',
+      };
 
       const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>

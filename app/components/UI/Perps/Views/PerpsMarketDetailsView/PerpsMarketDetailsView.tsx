@@ -39,6 +39,7 @@ import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
@@ -54,6 +55,10 @@ import {
   usePerpsTrading,
   usePerpsNetworkManagement,
 } from '../../hooks';
+import {
+  usePerpsDataMonitor,
+  type DataMonitorParams,
+} from '../../hooks/usePerpsDataMonitor';
 import { usePerpsLiveOrders, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import type { PerpsTabId } from '../../components/PerpsMarketTabs/PerpsMarketTabs.types';
@@ -76,15 +81,14 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   initialTab?: PerpsTabId;
-  isNavigationFromOrderSuccess?: boolean;
+  monitoringIntent?: Partial<DataMonitorParams>;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market, initialTab, isNavigationFromOrderSuccess } =
-    route.params || {};
+  const { market, initialTab, monitoringIntent } = route.params || {};
   const { track } = usePerpsEventTracking();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -126,9 +130,48 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [activeTPOrderId, setActiveTPOrderId] = useState<string | null>(null);
   const [activeSLOrderId, setActiveSLOrderId] = useState<string | null>(null);
 
+  // Programmatic tab control state for data-driven navigation
+  const [programmaticActiveTab, setProgrammaticActiveTab] = useState<
+    string | null
+  >(null);
+
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
+  // Callback to handle data detection from monitoring hook
+  const handleDataDetected = useCallback(
+    ({
+      detectedData,
+    }: {
+      detectedData: 'positions' | 'orders';
+      asset: string;
+      reason: string;
+    }) => {
+      const targetTab = detectedData === 'positions' ? 'position' : 'orders';
+      setProgrammaticActiveTab(targetTab);
+
+      // Reset programmatic tab control after a brief delay to prevent render loops
+      setTimeout(() => {
+        setProgrammaticActiveTab(null);
+      }, PERFORMANCE_CONFIG.TAB_CONTROL_RESET_DELAY_MS);
+    },
+    [],
+  );
+
+  // Handle data-driven monitoring when coming from order success (declarative API)
+  usePerpsDataMonitor({
+    asset: monitoringIntent?.asset,
+    monitor: monitoringIntent?.monitor,
+    timeoutMs: monitoringIntent?.timeoutMs,
+    onDataDetected: handleDataDetected,
+    enabled: !!(
+      monitoringIntent &&
+      market &&
+      monitoringIntent.asset &&
+      monitoringIntent.monitor
+    ),
+  });
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({});
   // Filter orders for the current market
@@ -536,6 +579,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               isLoadingPosition={isLoadingPosition}
               unfilledOrders={openOrders}
               initialTab={initialTab}
+              activeTabId={programmaticActiveTab || undefined}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
               onOrderSelect={handleOrderSelect}
@@ -638,9 +682,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       )}
 
       {/* Notification Tooltip - Shows after first successful order */}
-      {isNotificationsEnabled && isNavigationFromOrderSuccess && (
+      {isNotificationsEnabled && !!monitoringIntent && (
         <PerpsNotificationTooltip
-          orderSuccess={isNavigationFromOrderSuccess}
+          orderSuccess={!!monitoringIntent}
           testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
         />
       )}
