@@ -2,10 +2,12 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
 import { PerpsLaunchDarklyFlag } from '../../types';
+import { isRemoteFeatureFlagOverrideActivated } from '../../../../../core/Engine/controllers/remote-feature-flag-controller';
 
 export const perpsRemoteFeatureFlag = (remoteFlag: PerpsLaunchDarklyFlag) => {
-  // If failed to fetch remote flag or flag is misconfigured, return undefined to trigger fallback
+  // If failed to fetch remote flag or flag is overridden or misconfigured return undefined to trigger fallback
   if (
+    isRemoteFeatureFlagOverrideActivated ||
     !remoteFlag ||
     typeof remoteFlag.enabled !== 'boolean' ||
     typeof remoteFlag.minimumVersion !== 'string'

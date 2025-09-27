@@ -1,24 +1,23 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
-import { isProduction } from '../../../../../util/environment';
 import { EarnLaunchDarklyFlag } from './types';
 import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
+import { isRemoteFeatureFlagOverrideActivated } from '../../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 
-const earnRemoteFeatureFlag = (remoteFlag: EarnLaunchDarklyFlag) =>
-  Boolean(remoteFlag?.enabled) &&
-  hasMinimumRequiredVersion(remoteFlag?.minimumVersion);
-
-export const prioritizeFlagsByEnv = (
-  localFlag: boolean,
-  remoteFlag: EarnLaunchDarklyFlag,
-) => {
-  if (isProduction()) {
-    // Prioritize remote flag in production
-    return earnRemoteFeatureFlag(remoteFlag) ?? localFlag;
+export const earnRemoteFeatureFlag = (remoteFlag: EarnLaunchDarklyFlag) => {
+  // If failed to fetch remote flag or flag is overridden or misconfigured return undefined to trigger fallback
+  if (
+    isRemoteFeatureFlagOverrideActivated ||
+    !remoteFlag ||
+    typeof remoteFlag.enabled !== 'boolean' ||
+    typeof remoteFlag.minimumVersion !== 'string'
+  ) {
+    return undefined;
   }
 
-  // Prioritize local flag in development
-  return localFlag ?? earnRemoteFeatureFlag(remoteFlag);
+  return (
+    remoteFlag.enabled && hasMinimumRequiredVersion(remoteFlag.minimumVersion)
+  );
 };
 
 export const selectPooledStakingEnabledFlag = createSelector(
@@ -28,7 +27,8 @@ export const selectPooledStakingEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingEnabled as unknown as EarnLaunchDarklyFlag;
 
-    return prioritizeFlagsByEnv(localFlag, remoteFlag);
+    // Fallback to local flag if remote flag is not available
+    return earnRemoteFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -40,7 +40,8 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled as unknown as EarnLaunchDarklyFlag;
 
-    return prioritizeFlagsByEnv(localFlag, remoteFlag);
+    // Fallback to local flag if remote flag is not available
+    return earnRemoteFeatureFlag(remoteFlag) ?? localFlag;
   });
 
 export const selectStablecoinLendingEnabledFlag = createSelector(
@@ -50,7 +51,8 @@ export const selectStablecoinLendingEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingEnabled as unknown as EarnLaunchDarklyFlag;
 
-    return prioritizeFlagsByEnv(localFlag, remoteFlag);
+    // Fallback to local flag if remote flag is not available
+    return earnRemoteFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -61,5 +63,6 @@ export const selectStablecoinLendingServiceInterruptionBannerEnabledFlag =
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled as unknown as EarnLaunchDarklyFlag;
 
-    return prioritizeFlagsByEnv(localFlag, remoteFlag);
+    // Fallback to local flag if remote flag is not available
+    return earnRemoteFeatureFlag(remoteFlag) ?? localFlag;
   });
