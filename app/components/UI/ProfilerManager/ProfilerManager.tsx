@@ -11,14 +11,14 @@ import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import { isRc } from '../../../util/test/utils';
+import { isRc, isExp } from '../../../util/test/utils';
 
 interface ProfilerManagerProps {
   enabled?: boolean;
 }
 
 const ProfilerManager: React.FC<ProfilerManagerProps> = ({
-  enabled = isRc,
+  enabled = isRc || isExp,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
