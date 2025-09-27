@@ -2,15 +2,21 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ImportFromSeedSelectorsIDs } from '../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect as appwrightExpect, ScrollDirection } from 'appwright';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
+import { expect as appwrightExpect } from 'appwright';
 
-class ImportFromSeedScreen {
+class ImportFromSeedScreen extends AppwrightGestures {
+  constructor() {
+    super();
+  }
+
   get device() {
     return this._device;
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get screenTitle() {
@@ -85,7 +91,7 @@ class ImportFromSeedScreen {
         const lastWord = phraseArray[phraseArray.length - 1];
         const form = await this.seedPhraseInput
 
-        await form.fill(`${firstWord} `);
+        await this.typeText(form, `${firstWord} `); // Use inherited typeText method with retry logic
         for (let i = 1; i < phraseArray.length - 1; i++) {
           let index = i;  
           if (AppwrightSelectors.isIOS(this._device)) { // SRP fields on iOS starts from 1
@@ -98,17 +104,17 @@ class ImportFromSeedScreen {
             input = await AppwrightSelectors.getElementByID(this.device, wordElement);
           else
             input = await AppwrightSelectors.getElementByXpath(this.device, wordElement);
-          await input.fill(`${phraseArray[i]} `);
+          await this.typeText(input, `${phraseArray[i]} `); // Use inherited typeText method with retry logic
           await input.tap();
         }
         const wordElement = await this.inputOfIndex(AppwrightSelectors.isAndroid(this._device) ? phraseArray.length - 1 : phraseArray.length);
         const lastInput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
-        await lastInput.fill(lastWord);
+        await this.typeText(lastInput, lastWord); // Use inherited typeText method with retry logic
       } else {
         for (let i = 1; i <= phraseArray.length; i++) {
           const wordElement = await this.inputOfIndex(i, false);
           const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
-          await input.fill(`${phraseArray[i-1]} `);
+          await this.typeText(input, `${phraseArray[i-1]} `); // Use inherited typeText method with retry logic
           await input.tap();
         }
       }
@@ -122,7 +128,7 @@ class ImportFromSeedScreen {
       } else {
         const element = await this.continueButton;
         await AppwrightSelectors.hideKeyboard(this.device);
-        await element.tap();
+        await this.tap(element); // Use inherited tap method with retry logic
       }
     } else {
       if (!this._device) {
@@ -131,10 +137,10 @@ class ImportFromSeedScreen {
         const isIOS = await AppwrightSelectors.isIOS(this.device);
         if (isIOS) {
           const element = await AppwrightSelectors.getElementByID(this.device, 'import-button');
-          await element.tap();
+          await this.tap(element); // Use inherited tap method with retry logic
         } else {
           const element = await AppwrightSelectors.getElementByText(this.device, 'Continue');
-          await element.tap();
+          await this.tap(element); // Use inherited tap method with retry logic
         }
       }
     }
@@ -146,14 +152,14 @@ class ImportFromSeedScreen {
           await Gestures.waitAndTap(this.screenTitle);
       } else {
         const element = await this.screenTitle;
-        await element.tap();
+        await this.tap(element); // Use inherited tap method with retry logic
       }
     } else {
       if (!this._device) {
         await Gestures.waitAndTap(this.screenTitle);
     } else {
       const element = await AppwrightSelectors.getElementByText(this.device, 'Import Secret Recovery Phrase');
-      await element.tap();
+      await this.tap(element); // Use inherited tap method with retry logic
     }
     }
   }

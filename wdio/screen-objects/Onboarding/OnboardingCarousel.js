@@ -7,10 +7,12 @@ import { OnboardingCarouselSelectorIDs } from '../../../e2e/selectors/Onboarding
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import AppwrightGestures from '../../../appwright/utils/AppwrightGestures.js';
 import { expect as appwrightExpect } from 'appwright';
 
-class WelcomeScreen  {
+class WelcomeScreen extends AppwrightGestures {
   constructor() {
+    super();
     this.CAROUSEL_RECTANGLES = null;
   }
 
@@ -20,6 +22,7 @@ class WelcomeScreen  {
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get splashScreenMetamaskAnimationId() {
@@ -156,7 +159,7 @@ class WelcomeScreen  {
       screenExist = await element.isExisting();
     } else {
       const button = await AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID);
-      await button.tap();
+      await this.tap(button); // Use inherited tap method with retry logic
     }
   }
 

@@ -1,15 +1,17 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../appwright/utils/AppwrightGestures.js';
 import { expect as appwrightExpect } from 'appwright';
 import TimerHelper from '../../appwright/utils/TimersHelper.js';
 import { SendActionViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendActionView.selectors';
 
-class SendSolanaScreen {
-  get device() {
-    return this._device;
+class SendSolanaScreen extends AppwrightGestures {
+  constructor() {
+    super();
   }
 
   set device(device) {
     this._device = device;
+    super.device = device; // Set device in parent class too
   }
 
   get addressField() {
@@ -42,16 +44,15 @@ class SendSolanaScreen {
   async fillAddressField(address) {
     const element = await this.addressField;
     if (AppwrightSelectors.isIOS(this._device)) {
-      await element.fill(`${address}\n`);
+      await this.typeText(element, `${address}\n`); // Use inherited typeText method with retry logic
     } else{
-      await element.fill(`${address}`);
-
+      await this.typeText(element, `${address}`); // Use inherited typeText method with retry logic
     }
   }
 
   async fillAmountField(amount) {
     const element = await this.amountField;
-    await element.fill(amount);
+    await this.typeText(element, amount); // Use inherited typeText method with retry logic
     const continueButton = await this.continueButton;
     await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });
   }
