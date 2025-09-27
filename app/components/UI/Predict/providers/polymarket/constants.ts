@@ -5,6 +5,9 @@ export const POLYGON_MAINNET_CHAIN_ID = 137;
 export const COLLATERAL_TOKEN_DECIMALS = 6;
 export const CONDITIONAL_TOKEN_DECIMALS = 6;
 
+export const HASH_ZERO_BYTES32 =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
+
 export const EIP712Domain = [
   { name: 'name', type: 'string' },
   { name: 'version', type: 'string' },

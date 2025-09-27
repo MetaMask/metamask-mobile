@@ -16,6 +16,7 @@ export function getPredictControllerMessenger(
       'TransactionController:transactionSubmitted',
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionFailed',
+      'TransactionController:transactionRejected',
     ],
     allowedActions: [
       'AccountsController:getSelectedAccount',
