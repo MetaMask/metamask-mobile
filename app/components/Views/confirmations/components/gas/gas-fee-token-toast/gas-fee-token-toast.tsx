@@ -4,17 +4,17 @@ import {
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import { strings } from '../../../../../../../locales/i18n';
-import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import {
   useGasFeeToken,
   useSelectedGasFeeToken,
 } from '../../../hooks/gas/useGasFeeToken';
-import { selectTokensByChainIdAndAddress } from '../../../../../../selectors/tokensController';
-import { RootState } from '../../../../../../reducers';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import useNetworkInfo from '../../../hooks/useNetworkInfo';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button';
+import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { getNetworkImageSource } from '../../../../../../util/networks';
 
 export function GasFeeTokenToast() {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -24,19 +24,16 @@ export function GasFeeTokenToast() {
   const nativeGasFeeToken = useGasFeeToken({
     tokenAddress: NATIVE_TOKEN_ADDRESS,
   });
-  const { networkImage } = useNetworkInfo(chainId);
   const gasFeeToken = useSelectedGasFeeToken() ?? nativeGasFeeToken;
   const prevRef = useRef(NATIVE_TOKEN_ADDRESS);
 
-  const tokensResult = useSelector((state: RootState) =>
-    selectTokensByChainIdAndAddress(state, chainId as Hex),
+  const tokenSelected = useTokenWithBalance(
+    gasFeeToken?.tokenAddress,
+    chainId as Hex,
   );
-
-  const tokenSelected = Object.values(tokensResult || {}).find(
-    (t) =>
-      gasFeeToken &&
-      t.address.toLowerCase() === gasFeeToken.tokenAddress.toLowerCase(),
-  );
+  const networkImageSource = getNetworkImageSource({
+    chainId: chainId as Hex,
+  });
 
   useEffect(() => {
     if (!toast || !gasFeeToken) return;
@@ -52,11 +49,26 @@ export function GasFeeTokenToast() {
       ],
       variant: ToastVariants.Network,
       hasNoTimeout: false,
-      networkImageSource: tokenSelected
+      customBottomOffset: 24, // Add custom offset to avoid overlapping with confirmation buttons
+      networkImageSource: tokenSelected?.image
         ? { uri: tokenSelected.image }
-        : networkImage ?? { uri: '' },
+        : networkImageSource,
+      closeButtonOptions: {
+        variant: ButtonVariants.Primary,
+        endIconName: IconName.Close,
+        label: undefined,
+        onPress: () => {
+          toast?.closeToast();
+        },
+        style: {
+          backgroundColor: 'transparent',
+          paddingHorizontal: 4,
+          paddingVertical: 10,
+          height: 20,
+        },
+      },
     });
-  }, [gasFeeToken, tokenSelected, toast, networkImage]);
+  }, [gasFeeToken, tokenSelected, toast, networkImageSource]);
 
   return null;
 }

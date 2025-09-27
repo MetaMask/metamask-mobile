@@ -16,6 +16,7 @@ interface ReferralStatsSectionProps {
   earnedPointsFromRefereesLoading?: boolean;
   refereeCount?: number | null;
   refereeCountLoading?: boolean;
+  refereeCountError?: boolean;
 }
 
 const ReferralStatsSection: React.FC<ReferralStatsSectionProps> = ({
@@ -23,6 +24,7 @@ const ReferralStatsSection: React.FC<ReferralStatsSectionProps> = ({
   earnedPointsFromRefereesLoading = false,
   refereeCount = undefined,
   refereeCountLoading = false,
+  refereeCountError = false,
 }) => (
   <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-12">
     <Box twClassName="gap-2">
@@ -46,26 +48,27 @@ const ReferralStatsSection: React.FC<ReferralStatsSectionProps> = ({
         )}
       </Box>
     </Box>
-
-    <Box twClassName="gap-2">
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {strings('rewards.referral_stats_referrals')}
-      </Text>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="gap-2 items-center"
-      >
-        {refereeCountLoading ? (
-          <Skeleton height={32} width={100} />
-        ) : (
-          <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Bold}>
-            {typeof refereeCount === 'number'
-              ? refereeCount.toLocaleString()
-              : '-'}
-          </Text>
-        )}
+    {(!refereeCountError || refereeCountLoading || refereeCount !== null) && (
+      <Box twClassName="gap-2">
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('rewards.referral_stats_referrals')}
+        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="gap-2 items-center"
+        >
+          {refereeCountLoading ? (
+            <Skeleton height={32} width={100} />
+          ) : (
+            <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Bold}>
+              {typeof refereeCount === 'number'
+                ? refereeCount.toLocaleString()
+                : '-'}
+            </Text>
+          )}
+        </Box>
       </Box>
-    </Box>
+    )}
   </Box>
 );
 

@@ -129,7 +129,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -153,30 +153,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -403,7 +379,15 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1575,7 +1559,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -1607,7 +1591,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1749,7 +1733,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -1773,30 +1757,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -2023,7 +1983,15 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2646,7 +2614,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -2678,7 +2646,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2820,7 +2788,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -2844,30 +2812,6 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -3094,7 +3038,15 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3717,7 +3669,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -3749,7 +3701,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3891,7 +3843,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -3915,30 +3867,6 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                 >
                   Unsupported sell Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -4165,7 +4093,15 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -4788,7 +4724,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         ]
                                       }
                                     >
-                                      Polygon Mainnet
+                                      Polygon
                                     </Text>
                                   </View>
                                   <View
@@ -4820,7 +4756,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -4962,7 +4898,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -4986,30 +4922,6 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -5236,7 +5148,15 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -6155,7 +6075,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -6297,7 +6217,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -6321,30 +6241,6 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -6571,7 +6467,15 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -7490,7 +7394,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -7632,7 +7536,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -7656,30 +7560,6 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -7906,7 +7786,15 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -8128,7 +8016,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -8270,7 +8158,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -8294,30 +8182,6 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -8544,7 +8408,15 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -8766,7 +8638,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -8908,7 +8780,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
               }
             >
               <TouchableOpacity
-                activeOpacity={0.2}
+                activeOpacity={1}
                 onPress={[Function]}
                 style={
                   {
@@ -8932,30 +8804,6 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                 >
                   Unsupported buy Network
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    BNB Smart Chain
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -9182,7 +9030,15 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -9404,7 +9260,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

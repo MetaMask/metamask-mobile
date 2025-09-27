@@ -60,6 +60,12 @@ const mockGetNavigationOptionsTitle =
     typeof getNavigationOptionsTitle
   >;
 
+// Import hook mocks
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
+const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
+  typeof useSeasonStatus
+>;
+
 // Mock ErrorBoundary
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
@@ -79,6 +85,11 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
       children,
     );
   },
+}));
+
+// Mock hooks
+jest.mock('../hooks/useSeasonStatus', () => ({
+  useSeasonStatus: jest.fn(),
 }));
 
 // Mock ReferralDetails component
@@ -119,6 +130,11 @@ describe('RewardsReferralView', () => {
       }
       return undefined;
     });
+
+    // Setup default hook mock return values
+    mockUseSeasonStatus.mockReturnValue({
+      fetchSeasonStatus: jest.fn(),
+    });
   });
 
   describe('rendering', () => {
@@ -142,14 +158,6 @@ describe('RewardsReferralView', () => {
 
       // Assert
       expect(getByTestId('error-boundary-referralrewardsview')).toBeTruthy();
-    });
-
-    it('should wrap content in SafeAreaView', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      // Assert
-      expect(getByTestId('safe-area-view')).toBeTruthy();
     });
   });
 
@@ -212,17 +220,6 @@ describe('RewardsReferralView', () => {
     });
   });
 
-  describe('styling', () => {
-    it('should apply correct styles to SafeAreaView', () => {
-      // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-      const safeAreaView = getByTestId('safe-area-view');
-
-      // Assert - Check if Tailwind classes are applied correctly
-      expect(safeAreaView.props.style).toBeDefined();
-    });
-  });
-
   describe('error boundary integration', () => {
     it('should pass correct view prop to ErrorBoundary', () => {
       // Act
@@ -276,14 +273,24 @@ describe('RewardsReferralView', () => {
     });
   });
 
-  describe('accessibility', () => {
-    it('should be accessible with screen readers', () => {
+  describe('hook integration', () => {
+    it('should call useSeasonStatus hook on mount', () => {
       // Act
-      const { getByTestId } = render(<RewardsReferralView />);
-      const safeAreaView = getByTestId('safe-area-view');
+      render(<RewardsReferralView />);
 
-      // Assert - The component should be accessible
-      expect(safeAreaView).toBeTruthy();
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalled();
+    });
+
+    it('should call useSeasonStatus hook for season data availability', () => {
+      // Given that this view doesn't have seasonstatus component
+      // When the component renders
+
+      // Act
+      render(<RewardsReferralView />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
     });
   });
 });

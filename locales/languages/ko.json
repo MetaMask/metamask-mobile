@@ -846,6 +846,14 @@
       "title": "오류가 발생했습니다",
       "description": "입금 처리 중 오류가 발생했습니다. 문제가 지속되면 지원팀에 문의하세요.",
       "try_again": "다시 시도"
+    },
+    "errors": {
+      "fetch_regions": "There was an issue fetching the regions.",
+      "fetch_tokens": "There was an issue fetching the tokens.",
+      "fetch_payment_methods": "There was an issue fetching the payment methods.",
+      "try_again": "Try Again",
+      "error_details_title": "Error Details",
+      "see_more": "See more"
     }
   },
   "perps": {
@@ -858,10 +866,12 @@
     "margin_used": "사용된 마진",
     "gtm_content": {
       "title": "이제 무기한 선물을 지원합니다",
-      "title_description": "최대 40배 레버리지로 토큰을 롱 또는 숏하세요. 한 번의 클릭으로 모든 EVM 토큰으로 계정에 자금을 조달하세요.",
+      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "나중에",
       "try_now": "시작하기"
     },
+    "today": "Today",
+    "yesterday": "Yesterday",
     "unrealized_pnl": "미실현 손익",
     "withdraw": "출금",
     "refresh_balance": "잔액 새로고침",
@@ -1051,6 +1061,8 @@
       "take_profit": "익절",
       "stop_loss": "손절",
       "tp_sl": "익절/손절",
+      "tp": "TP",
+      "sl": "SL",
       "button": {
         "long": "{{asset}} 롱",
         "short": "{{asset}} 숏"
@@ -1082,7 +1094,11 @@
         "entry_price": "진입 가격",
         "current_price": "현재가",
         "liquidation_price": "청산 가격",
-        "liquidation_distance": "청산 가격과의 차이"
+        "liquidation_distance": "청산 가격과의 차이",
+        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
+        "drops": "drops",
+        "rises": "rises",
+        "set_leverage": "Set {{leverage}}x"
       },
       "type": {
         "title": "주문 유형",
@@ -1167,6 +1183,7 @@
       "description": "자동으로 포지션을 종료하려면 이익 또는 손실 퍼센트를 선택하거나 사용자 지정 가격을 입력하세요.",
       "off": "비활성화",
       "current_price": "현재가",
+      "entry_price": "Entry price",
       "leverage": "레버리지",
       "margin": "증거금",
       "liquidation_price": "청산 가격",
@@ -1279,7 +1296,7 @@
         "empty_title": "열린 포지션 없음",
         "empty_description": "아직 열린 포지션이 없습니다.\n거래를 시작한 후 여기서 포지션을 확인하세요.",
         "first_time_title": "무기한 선물",
-        "first_time_description": "최대 40배 레버리지로 가격 변동을 예측하세요.",
+        "first_time_description": "Bet on price movements with up to 40x leverage.",
         "start_trading": "거래 시작",
         "start_new_trade": "새 거래 시작",
         "open_positions": "열린 포지션",
@@ -1320,6 +1337,8 @@
       "countdown": "카운트다운",
       "long": "롱",
       "short": "숏",
+      "long_lowercase": "long",
+      "short_lowercase": "short",
       "add_funds": "자금 추가",
       "add_funds_to_start_trading_perps": "무기한 선물 거래를 시작하려면 자금을 추가하세요",
       "position": "포지션",
@@ -1425,6 +1444,11 @@
       "candle_intervals": "캔들 간격",
       "candle_period_selector": {
         "show_more": "더 보기"
+      },
+      "time_periods": {
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days"
       }
     },
     "perps_markets": "무기한 선물 시장",
@@ -1494,20 +1518,20 @@
       },
       "choose_leverage": {
         "title": "레버리지 선택",
-        "description": "레버리지는 수익과 손실 모두를 증폭시킵니다. 예를 들어 10배 레버리지의 경우 가격이 1% 변동할 경우, 증거금에서 10%의 수익 또는 손실이 발생합니다."
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "청산 주의",
-        "description": "토큰 가격이 청산 가격에 도달하면 증거금 전액을 잃게 됩니다. 레버리지가 높을수록 청산까지의 여유가 줄어듭니다."
+        "description": "토큰 가격이 청산 가격에 도달하면 마진 전액을 잃게 됩니다. 레버리지가 높을수록 청산될 위험이 커집니다."
       },
       "close_anytime": {
         "title": "언제든 종료 가능",
-        "description": "원할 때 언제든 포지션을 종료할 수 있습니다. 종료 시 마진에 수익을 더하거나 손실을 뺀 금액을 돌려받습니다."
+        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
       },
       "ready_to_trade": {
         "title": "거래할 준비가 되셨나요?",
-        "fund_text_helper": "MetaMask가 자금을 Arbitrum의 USDC로 스왑하고 추가 수수료 없이 HyperEVM에 입금합니다.",
-        "description": "원하는 토큰으로 무기한 선물 계정에 입금하고, 바로 첫 거래를 시작하세요."
+        "description": "원하는 토큰으로 무기한 선물 계정에 입금하고, 바로 첫 거래를 시작하세요.",
+        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
       },
       "got_it": "확인"
     },
@@ -1517,6 +1541,51 @@
     "points_error_content": "걱정하지 마세요. 여전히 보상이 적립되고 있습니다. 곧 계정에 표시되거나 나중에 보상 탭에서 확인할 수 있습니다.",
     "tp_on_chart": "차트 상 익절",
     "sl_on_chart": "차트 상 손절"
+  },
+  "predict": {
+    "title": "MetaMask Predict",
+    "prediction_markets": "Prediction Markets",
+    "market_list": "Market List",
+    "market_details": "Market Details",
+    "tab": {
+      "no_predictions": "No predictions yet",
+      "no_predictions_description": "Open a prediction to get started.",
+      "explore": "Explore markets",
+      "new_prediction": "New prediction"
+    },
+    "sell_position": "Sell Position",
+    "cash_out": "Cash Out",
+    "buy_yes": "Yes",
+    "buy_no": "No",
+    "outcomes": "outcomes",
+    "volume_abbreviated": "Vol.",
+    "recurrence": {
+      "none": "None",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "quarterly": "Quarterly"
+    },
+    "outcomes_singular": "more outcome",
+    "outcomes_plural": "more outcomes",
+    "category": {
+      "trending": "Trending",
+      "new": "New",
+      "sports": "Sports",
+      "crypto": "Crypto",
+      "politics": "Politics"
+    },
+    "search_placeholder": "Search prediction markets",
+    "search_cancel": "Cancel",
+    "claim_button": "Claim",
+    "markets_won": "Markets won",
+    "won_markets_text": "Won {{count}} market{{s}}",
+    "won_markets_text_singular": "Won {{count}} market",
+    "won_markets_text_plural": "Won {{count}} markets",
+    "claim_amount_text": "Claim ${{amount}}",
+    "unrealized_pnl_label": "Unrealized P&L",
+    "unrealized_pnl_value": "{{amount}} ({{percent}})"
   },
   "receive": {
     "title": "받기"
@@ -1587,6 +1656,7 @@
     "collectibles": "NFT",
     "defi": "디파이",
     "perps": "무기한 선물",
+    "predict": "Predictions",
     "transactions": "거래",
     "no_collectibles": "귀하의 NFT가 보이지 않나요?",
     "no_available_tokens": "토큰이 보이지 않나요?",
@@ -1632,7 +1702,6 @@
     "buy_asset": "{{asset}} 구매",
     "no_tokens": "토큰이 없습니다!",
     "show_tokens_without_balance": "잔액 없는 토큰 표시",
-    "no_nfts_yet": "아직 NFT가 없습니다",
     "nfts_autodetection_title": "NFT 감지",
     "nfts_autodetection_desc": "MetaMask를 통해 자동으로 NFT를 감지하여 지갑에 표시할 수 있습니다.",
     "network_details_check": "네트워크 세부 정보 확인",
@@ -1652,6 +1721,8 @@
     "nfts_autodetection_cta": "설정에서 NFT 감지를 켜세요",
     "learn_more": "더 알아보기",
     "add_collectibles": "NFT 불러오기",
+    "nft_empty_description": "There's a world of NFTs out there. Start your collection today.",
+    "discover_nfts": "Import NFTs",
     "no_transactions": "거래가 없습니다!",
     "switch_network_to_view_transactions": "트랜잭션을 보려면 네트워크를 전환하세요",
     "send_button": "보내기",
@@ -1761,8 +1832,10 @@
   },
   "defi_positions": {
     "loading_positions": "디파이 포지션 로드 중...",
-    "no_visible_positions": "찾으시는 것이 없나요?",
-    "not_supported": "아직 해당 프로토콜을 지원하지 않을 수도 있습니다.",
+    "empty_state": {
+      "description": "Lend, borrow, and trade, right in your wallet.",
+      "explore_defi": "Explore DeFi"
+    },
     "error_cannot_load_page": "페이지를 로드할 수 없습니다.",
     "error_visit_again": "나중에 다시 방문해 주세요.",
     "single_token": "{{symbol}} 전용",
@@ -2445,10 +2518,9 @@
     "disconnect_confirm": "연결 해제",
     "cancel": "취소"
   },
-  "sdk_return_to_app_modal": {
-    "title": "앱으로 돌아가기",
-    "postNetworkSwitchTitle": "네트워크 전환 성공",
-    "description": "서비스를 계속 이용하려면 앱으로 돌아가세요."
+  "sdk_return_to_app_toast": {
+    "returnToAppLabel": "Now you can return to app",
+    "networkSwitchMethodLabel": "Network successfully switched"
   },
   "sdk_feedback_modal": {
     "ok": "확인",
@@ -2554,6 +2626,7 @@
     "deposit_button": "예치",
     "earn_button": "수익 창출",
     "perps_button": "무기한 선물",
+    "predict_button": "Predictions",
     "add_collectible_button": "추가",
     "info": "정보",
     "swap": "스와프",
@@ -2587,6 +2660,7 @@
     "receive_description": "암호화폐 수령",
     "earn_description": "토큰으로 보상을 획득하세요",
     "perps_description": "무기한 선물 계약 거래",
+    "predict_description": "Trade on real-world events",
     "chart_time_period": {
       "1d": "오늘",
       "7d": "지난 7일",
@@ -3048,6 +3122,8 @@
     "request_from": "요청자:",
     "network_fee": "네트워크 수수료",
     "network_fee_tooltip": "네트워크에서 트랜잭션 처리를 위해 지불된 금액입니다.",
+    "confirm_gas_fee_token_tooltip": "This is paid to the network to process your transaction. It includes a {{metamaskFeeFiat}} MetaMask fee for non-ETH tokens or pre-funded ETH.",
+    "confirm_gas_fee_token_metamask_fee": "Includes {{metamaskFeeFiat}} fee",
     "smart_account_upgrade": "스마트 계정으로 업그레이드",
     "smart_account_downgrade": "일반 계정으로 전환",
     "batched_transactions": "일괄 트랜잭션",
@@ -4070,6 +4146,11 @@
     "change_cash_destination": "현금 송금처 변경",
     "try_different_region": "다른 지역을 시도",
     "return_home": "홈 화면으로 돌아가기",
+    "incompatible_token_account_modal": {
+      "title": "Incompatible Account",
+      "description": "Your current account cannot support tokens on {{networkName}}. Please switch to a compatible account to continue.",
+      "cta": "Got it"
+    },
     "region": {
       "buy_crypto_tokens": "암호화폐 토큰 구매",
       "sell_crypto_tokens": "암호화폐 토큰 매도",
@@ -5361,7 +5442,7 @@
     "title": "브릿지",
     "submitting_transaction": "제출 중",
     "fetching_quote": "견적 가져오기",
-    "fee_disclaimer": "MetaMask 수수료 0.875% 포함",
+    "fee_disclaimer": "Includes {{feePercentage}}% MM fee",
     "no_mm_fee": "No MM fee",
     "no_mm_fee_disclaimer": "No MM fee swapping into {{destTokenSymbol}}",
     "hardware_wallet_not_supported": "하드웨어 지갑은 아직 지원되지 않습니다. 핫월렛을 사용하여 계속하세요.",
@@ -5567,8 +5648,8 @@
       "reveal_recovery_phrase_with_index": "복구구문 {{index}} 공개"
     },
     "smart_account": {
-      "title": "스마트 계정 활성화",
-      "description": "지원되는 네트워크에서 스마트 계정 기능을 활성화할 수 있습니다.",
+      "title": "Use smart account",
+      "description": "Unlock faster transactions, lower network fees, and added security on supported networks.",
       "learn_more": "더 보기"
     },
     "edit_account_name": {
@@ -5697,6 +5778,52 @@
     "failed_to_authenticate": "Failed to authenticate with rewards program",
     "not_implemented": "곧 추가 예정",
     "not_implemented_season_summary": "시즌 요약이 곧 추가될 예정입니다",
+    "optin_error": {
+      "title": "Opt-in failed",
+      "description": "Check your connection and try again."
+    },
+    "season_status_error": {
+      "error_fetching_title": "Season balance couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "active_boosts_error": {
+      "error_fetching_title": "Boosts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "unlocked_rewards_error": {
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "upcoming_rewards_error": {
+      "error_fetching_title": "Rewards couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "referral_details_error": {
+      "error_fetching_title": "Referral details couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "referral_validation_unknown_error": {
+      "title": "Referral code couldn’t be validated",
+      "description": "Check your connection and try again."
+    },
+    "active_activity_error": {
+      "error_fetching_title": "Activity couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "claim_reward_error": {
+      "title": "Failed to claim reward"
+    },
+    "accounts_opt_in_state_error": {
+      "error_fetching_title": "Accounts couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "referral_rewards_title": "추천",
     "points": "포인트",
     "point": "포인트",
@@ -5716,8 +5843,8 @@
     "activity_empty_title": "No recent activity.",
     "activity_empty_description": "Use MetaMask to earn points, level up, and unlock rewards.",
     "activity_empty_link": "See ways to earn",
-    "toast_dismiss": "Dismiss",
     "events": {
+      "to": "to",
       "type": {
         "swap": "스왑",
         "perps": "무기한 선물",
@@ -5736,21 +5863,28 @@
     "onboarding": {
       "not_supported_region_title": "지원되지 않는 지역입니다",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_account_needed_title": "Ethereum account needed",
-      "not_supported_account_needed_description": "MetaMask Rewards aren't available for Solana accounts yet. Switch to an Ethereum account to claim your points.",
-      "not_supported_confirm": "컨펌",
+      "not_supported_hardware_account_title": "Account not supported",
+      "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Please switch to a different account to proceed.",
+      "not_supported_account_type_title": "Account type not supported",
+      "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be opted into the Rewards program. Please switch to a different account to proceed.",
+      "not_supported_confirm_go_back": "Go back",
+      "not_supported_confirm_retry": "Retry",
+      "auth_fail_title": "Authentication Failed",
+      "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
+      "geo_check_fail_title": "Cannot determine opt-in eligibility",
+      "geo_check_fail_description": "We cannot determine if your country allows opting into the rewards program. Please check your connection and try again.",
       "intro_title_1": "Season 1",
       "intro_title_2": "is Live",
       "intro_description": "Earn points for your activity. \nAdvance through levels to unlock rewards.",
       "intro_confirm": "Claim 250 points",
       "intro_confirm_geo_loading": "Checking region...",
-      "checking_opt_in": "Checking opt-in for accounts...",
-      "redirecting_to_dashboard": "Redirecting to dashboard...",
+      "checking_opt_in": "Checking accounts...",
+      "redirecting_to_dashboard": "Redirecting...",
       "intro_skip": "나중에",
       "step_confirm": "다음",
       "step_skip": "Skip",
       "step1_title": "Earn points on every trade",
-      "step1_description": "MetaMask에서 스왑과 무기한 선물 거래를 할 때마다 보상 적립에 한 걸음 더 가까워집니다. 계정을 연결하고 포인트가 쌓이는 것을 확인하세요.",
+      "step1_description": "MetaMask에서 스왑과 무기한 선물 거래를 할 때마다 보상 포인트가 적립됩니다. 계정을 추가하고 포인트가 쌓이는 것을 확인하세요.",
       "step2_title": "Level up for bigger perks",
       "step2_description": "포인트 마일스톤을 달성하면 무기한 선물 수수료 50% 할인, 독점 토큰, 무료 MetaMask 메탈 카드와 같은 특전을 받을 수 있습니다.",
       "step3_title": "Exclusive seasonal rewards",
@@ -5763,10 +5897,10 @@
       "step4_referral_input_error": "Invalid referral code",
       "step4_confirm": "Claim points",
       "step4_confirm_loading": "Claiming points...",
-      "step4_linking_accounts": "Linking accounts... ({{current}}/{{total}})",
-      "step4_linking_accounts_loading": "Linking additional accounts...",
+      "step4_linking_accounts": "Adding accounts... ({{current}}/{{total}})",
+      "step4_linking_accounts_loading": "Adding additional accounts...",
       "step4_success_description": "You have successfully signed up for MetaMask Rewards!",
-      "step4_legal_disclaimer_1": "By tapping 'Claim Points', you agree to the MetaMask Rewards",
+      "step4_legal_disclaimer_1": "By selecting 'Claim Points', you agree to the MetaMask Rewards",
       "step4_legal_disclaimer_2": "Supplemental Terms of Use and Privacy Notice",
       "step4_legal_disclaimer_3": ". We'll track onchain activity to reward you automatically –",
       "step4_legal_disclaimer_4": "learn more"
@@ -5774,82 +5908,94 @@
     "settings": {
       "title": "Rewards Settings",
       "subtitle": "Accounts",
-      "description": "Connect multiple accounts to combine your points and unlock rewards faster.",
-      "error_title": "Unable to Load Linked Accounts",
-      "error_description": "We couldn't detect your linked accounts. Please check your internet connection and try again.",
-      "error_retry": "Retry",
-      "tab_linked_accounts": "Linked ({{count}})",
-      "tab_unlinked_accounts": "Unlinked ({{count}})",
-      "no_linked_accounts": "No linked accounts",
-      "all_accounts_linked_title": "All accounts are linked",
-      "all_accounts_linked_description": "You have linked all your accounts to the rewards program.",
-      "link_account_success_title": "Account {{accountName}} successfully linked",
-      "link_account_error_title": "Failed to link account",
-      "link_account_button": "Link"
+      "description": "Add multiple accounts to combine your points and unlock rewards faster.",
+      "tab_linked_accounts": "Added ({{count}})",
+      "tab_unlinked_accounts": "Not added ({{count}})",
+      "no_linked_accounts": "No accounts opted in",
+      "all_accounts_linked_title": "All accounts opted in",
+      "all_accounts_linked_description": "You have added all your accounts to Rewards.",
+      "link_account_success_title": "{{accountName}} successfully added",
+      "link_account_error_title": "Failed to add account",
+      "link_account_button": "Add",
+      "accounts_syncing": "Your accounts are syncing. They will show up as they are discovered."
     },
     "optout": {
       "title": "Opt out of Rewards",
-      "description": "This will erase your points and progress. You won't be able to undo this.",
+      "description": "This will remove your accounts from the Rewards program and erase your points and progress. You won't be able to undo this.",
       "confirm": "Opt out",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll restart at 0.",
+        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
         "cancel": "Cancel",
         "confirm": "Confirm",
-        "error_message": "Failed to opt out of rewards program. Please try again.",
+        "error_message": "Failed to opt out of Rewards. Please try again.",
         "processing": "Processing..."
       }
     },
     "unlinked_accounts_info": {
-      "title": "There are unlinked accounts",
-      "description": "If you want to earn points for the activity of these accounts you can link them in the settings page.",
+      "title": "Accounts not earning points",
+      "description": "If you want to earn points for trades on these accounts you can add them in the settings page.",
       "go_to_settings": "Go to settings"
     },
     "unlinked_account_info": {
-      "title": "Account not linked",
-      "description": "This account's activity is not being tracked for this season."
+      "title": "Account not earning points",
+      "title_optin_not_supported": "Account not supported",
+      "description": "This account's activity is not being tracked for this season.",
+      "description_optin_not_supported": "Currently only non-hardware internal Ethereum and Solana accounts can be opted into the Rewards program."
     },
-    "link_account": "Link account",
-    "linking_account": "Linking...",
+    "link_account": "Add account",
+    "linking_account": "Adding...",
     "ways_to_earn": {
       "title": "Ways to earn",
       "supported_networks": "Supported Networks",
       "swap": {
         "title": "Swap",
-        "sheet_title": "Swap tokens",
-        "sheet_description": "Swap tokens on supported networks to earn points for every dollar you trade.",
-        "points": "80 points per $100",
-        "cta_label": "Start a swap"
+        "description": "80 points per $100",
+        "sheet": {
+          "title": "Swap tokens",
+          "points": "80 points per $100",
+          "description": "Swap tokens on supported networks to earn points for every dollar you trade.",
+          "cta_label": "Start a swap"
+        }
       },
       "perps": {
         "title": "무기한 선물",
-        "sheet_title": "무기한 선물 거래하기",
-        "sheet_description": "시작과 종료, 손절과 익절 주문, 증거금 조정을 포함한 모든 거래에서 포인트를 획득하세요.",
-        "points": "$100당 10포인트",
-        "cta_label": "거래 시작"
+        "description": "10 points per $100",
+        "sheet": {
+          "title": "Trade perps",
+          "points": "10 points per $100",
+          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
+          "cta_label": "Start a trade"
+        }
       },
       "referrals": {
-        "title": "Referrals",
-        "points": "Get 20% from friends you refer"
+        "title": "Refer friends",
+        "description": "10 points per 50 from friends"
+      },
+      "loyalty": {
+        "title": "Loyalty bonus",
+        "description": "Earn points from past trades",
+        "sheet": {
+          "title": "Loyalty bonus",
+          "points": "250 points per $1250",
+          "description": "Add accounts with past swaps or bridges in MetaMask to earn loyalty bonuses. Each eligible account unlocks points in increments of 250, up to a total of 50,000. Bonuses appear shortly after you add an account.",
+          "cta_label": "Add accounts"
+        }
       }
     },
     "referral": {
       "referral_code": "Referral code",
       "referral_link": "Referral link",
-      "share_referral_message_prefix": "I’m earning rewards with MetaMask! Sign up with my referral to claim 500 points: ",
       "actions": {
         "share_referral_link": "친구 추천",
         "share_referral_subject": "MetaMask 보상 프로그램 가입"
       },
       "info": {
         "title": "코드를 공유하고 더 많이 적립하세요",
-        "description": "친구는 보너스 포인트를 받고, 회원님은 친구가 받는 보상의 20%를 받습니다."
+        "description": "Your friends get a 2x sign up bonus. You get 10 points for every 50 they earn from trading."
       }
     },
-    "active_boosts": {
-      "title": "Active boosts",
-      "error": "Failed to load active boosts"
-    },
+    "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "upcoming_rewards": {
       "title": "Upcoming rewards",
@@ -5859,8 +6005,6 @@
     },
     "unlocked_rewards": {
       "title": "Unlocked rewards",
-      "empty": "No rewards yet. \nEarn points and level up.",
-      "see_ways_to_earn": "See ways to earn",
       "cta_label": "Claim now",
       "cta_request_invite": "Request invite",
       "claim_label": "Claim",
@@ -5887,10 +6031,17 @@
     "summary_title": {
       "bridge": "{{sourceSymbol}}에서 {{targetSymbol}}(으)로 브릿지",
       "bridge_approval": "Approve {{approveSymbol}}",
+      "bridge_approval_loading": "Approve",
+      "bridge_loading": "Bridge",
       "default": "트랜잭션",
       "perps_deposit": "자금 추가",
       "swap": "토큰 스왑",
       "swap_approval": "Approve tokens"
     }
+  },
+  "network_connection_banner": {
+    "still_connecting_network": "Still connecting to {{networkName}}...",
+    "unable_to_connect_network": "Unable to connect to {{networkName}}.",
+    "update_rpc": "Update RPC"
   }
 }

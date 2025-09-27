@@ -197,12 +197,6 @@ export interface EventAssetDto {
    * @example 'ETH'
    */
   symbol?: string;
-
-  /**
-   * Icon URL of the token
-   * @example 'https://example.com/icon.png'
-   */
-  iconUrl?: string;
 }
 
 /**
@@ -284,6 +278,12 @@ interface BasePointsEventDto {
    * @example '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
    */
   accountAddress: string | null;
+
+  /**
+   * Timestamp of the point earning activity
+   * @example '2021-01-01T00:00:00.000Z'
+   */
+  updatedAt: Date;
 }
 
 /**
@@ -603,6 +603,19 @@ export interface RewardsControllerRewardClaimedEvent {
 }
 
 /**
+ * Event emitted when balance data should be invalidated
+ */
+export interface RewardsControllerBalanceUpdatedEvent {
+  type: 'RewardsController:balanceUpdated';
+  payload: [
+    {
+      seasonId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -611,7 +624,8 @@ export type RewardsControllerEvents =
       payload: [RewardsControllerState, Patch[]];
     }
   | RewardsControllerAccountLinkedEvent
-  | RewardsControllerRewardClaimedEvent;
+  | RewardsControllerRewardClaimedEvent
+  | RewardsControllerBalanceUpdatedEvent;
 
 /**
  * Patch type for state changes
@@ -767,6 +781,14 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for checking if an account supports opt-in
+ */
+export interface RewardsControllerIsOptInSupportedAction {
+  type: 'RewardsController:isOptInSupported';
+  handler: (account: InternalAccount) => boolean;
+}
+
+/**
  * Action for linking an account to a subscription
  */
 export interface RewardsControllerLinkAccountToSubscriptionAction {
@@ -838,6 +860,7 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerIsOptInSupportedAction
   | RewardsControllerLinkAccountToSubscriptionAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerOptOutAction
