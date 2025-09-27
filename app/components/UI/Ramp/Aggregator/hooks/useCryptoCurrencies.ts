@@ -71,13 +71,8 @@ export default function useCryptoCurrencies() {
   useEffect(() => {
     if (cryptoCurrencies) {
       if (intent?.assetId) {
-        try {
-          const intentParsedCaip19 = parseCAIP19AssetId(intent.assetId);
-          // If we can't parse the assetId, we can't match it to a token
-          if (!intentParsedCaip19) {
-            return;
-          }
-
+        const intentParsedCaip19 = parseCAIP19AssetId(intent.assetId);
+        if (intentParsedCaip19) {
           const intentAsset = cryptoCurrencies.find((token) => {
             if (!token.assetId) {
               // Legacy token with EVM chainId and address only
@@ -88,8 +83,11 @@ export default function useCryptoCurrencies() {
               }
 
               // If the token address is the native address, we match it to slip44 namespace
-              if (token.address === NATIVE_ADDRESS) {
-                return intentParsedCaip19.assetNamespace === 'slip44';
+              if (
+                token.address === NATIVE_ADDRESS &&
+                intentParsedCaip19.assetNamespace === 'slip44'
+              ) {
+                return true;
               }
 
               // Finally we match by address
@@ -116,22 +114,20 @@ export default function useCryptoCurrencies() {
             return false;
           });
 
-          if (intentAsset) {
-            setSelectedAsset(intentAsset);
-            setIntent((prevIntent) => ({
-              ...prevIntent,
-              assetId: undefined,
-            }));
-            return;
-          }
-        } catch {
-          // do nothing and clear the intent assetId below
-        } finally {
           setIntent((prevIntent) => ({
             ...prevIntent,
             assetId: undefined,
           }));
+
+          if (intentAsset) {
+            setSelectedAsset(intentAsset);
+            return;
+          }
         }
+        setIntent((prevIntent) => ({
+          ...prevIntent,
+          assetId: undefined,
+        }));
       }
 
       if (
