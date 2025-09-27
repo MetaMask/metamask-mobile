@@ -62,6 +62,7 @@ import {
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
+import { TransactionActivityEmptyState } from '../TransactionActivityEmptyState';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
@@ -390,7 +391,7 @@ class Transactions extends PureComponent {
     }
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+        <TransactionActivityEmptyState />
       </View>
     );
   };
