@@ -1518,7 +1518,7 @@
       },
       "choose_leverage": {
         "title": "Choisissez votre effet de levier",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 1% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "Évitez la liquidation de vos positions",
