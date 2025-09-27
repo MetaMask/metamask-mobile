@@ -126,9 +126,12 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   );
 
   // Cleanup debounced function on unmount and dependency changes
-  useEffect(() => () => {
+  useEffect(
+    () => () => {
       debouncedTokenPress.cancel();
-    }, [debouncedTokenPress]);
+    },
+    [debouncedTokenPress],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: BridgeToken | null }) => {
