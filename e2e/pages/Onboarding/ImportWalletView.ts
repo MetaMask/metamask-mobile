@@ -56,7 +56,7 @@ class ImportWalletView {
   }
 
   async tapContinueButton(): Promise<void> {
-    await Gestures.tap(this.continueButton, {
+    await Gestures.waitAndTap(this.continueButton, {
       elemDescription: 'Import Wallet Continue Button',
     });
   }
