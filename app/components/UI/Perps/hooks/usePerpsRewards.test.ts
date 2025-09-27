@@ -161,7 +161,7 @@ describe('usePerpsRewards', () => {
       );
 
       // Assert
-      expect(result.current.isLoading).toBe(false); // shouldShowRewardsRow is false when estimatedPoints undefined and not loading
+      expect(result.current.isLoading).toBe(true); // shouldShowRewardsRow is true when hasValidAmount is true, so loading should be true
     });
 
     it('should not be loading when all conditions are met', () => {

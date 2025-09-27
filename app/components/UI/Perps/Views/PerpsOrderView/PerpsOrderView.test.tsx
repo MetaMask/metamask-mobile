@@ -1830,7 +1830,7 @@ describe('PerpsOrderView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeTruthy();
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
       });
     });
 
@@ -1858,7 +1858,7 @@ describe('PerpsOrderView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.queryByText('Points')).toBeFalsy();
+        expect(screen.queryByText('perps.estimated_points')).toBeFalsy();
       });
     });
 
@@ -1885,11 +1885,11 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeTruthy();
+        expect(screen.getByText('perps.estimated_points')).toBeTruthy();
       });
 
       // Assert - Points text and tooltip should be present
-      expect(screen.getByText('Points')).toBeTruthy();
+      expect(screen.getByText('perps.estimated_points')).toBeTruthy();
     });
   });
 
@@ -2088,7 +2088,7 @@ describe('PerpsOrderView', () => {
 
       // Verify points section is displayed
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
 
       // The points tooltip is handled by the handleTooltipPress('points') function
@@ -2120,7 +2120,7 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
       });
 
       // The RewardPointsDisplay component is rendered with the correct props
@@ -2331,7 +2331,7 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       await waitFor(() => {
-        expect(screen.getByText('Points')).toBeDefined();
+        expect(screen.getByText('perps.estimated_points')).toBeDefined();
         expect(screen.getByText('Fees')).toBeDefined();
         // Should render both points and fees with discount integration (targets lines 1081, 214-229)
       });

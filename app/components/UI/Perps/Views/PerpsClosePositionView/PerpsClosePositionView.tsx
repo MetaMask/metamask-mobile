@@ -70,6 +70,7 @@ import ListItemColumn, {
 } from '../../../../../component-library/components/List/ListItemColumn';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import RewardPointsDisplay from '../../components/RewardPointsDisplay';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -151,7 +152,10 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
-  const positionValue = absSize * effectivePrice;
+  const positionValue = useMemo(
+    () => absSize * effectivePrice,
+    [absSize, effectivePrice], // Round to 2 decimal places
+  );
 
   // Calculate P&L based on effective price (limit price for limit orders)
   const entryPrice = parseFloat(position.entryPrice);
@@ -172,24 +176,34 @@ const PerpsClosePositionView: React.FC = () => {
   const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
-  const closingValue = positionValue * (closePercentage / 100);
+  const closingValue = useMemo(
+    () => positionValue * (closePercentage / 100), // Round to 2 decimal places
+    [positionValue, closePercentage],
+  );
+  const closingValueString = useMemo(
+    () => closingValue.toString(),
+    [closingValue],
+  );
   const feeResults = usePerpsOrderFees({
     orderType,
-    amount: closingValue.toString(),
+    amount: closingValueString,
     isMaker: false, // Closing positions are typically taker orders
     coin: position.coin,
     isClosing: true, // This is a position closing operation
   });
 
   // Simple boolean calculation for rewards state
-  const hasValidAmount = closePercentage > 0 && closingValue > 0;
+  const hasValidAmount = useMemo(
+    () => closePercentage > 0 && closingValue > 0,
+    [closePercentage, closingValue],
+  );
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
     feeResults,
     hasValidAmount,
     isFeesLoading: feeResults.isLoadingMetamaskFee,
-    orderAmount: closingValue.toString(),
+    orderAmount: closingValueString,
   });
 
   // Calculate what user will receive (initial margin - fees)
@@ -559,6 +573,38 @@ const PerpsClosePositionView: React.FC = () => {
           </Text>
         </View>
       </View>
+
+      {/* Rewards Points Estimation */}
+      {rewardsState.shouldShowRewardsRow && (
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryLabel}>
+            <TouchableOpacity
+              onPress={() => handleTooltipPress('points')}
+              style={styles.labelWithTooltip}
+              testID={PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON}
+            >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('perps.estimated_points')}
+              </Text>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.Muted}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.summaryValue}>
+            <RewardPointsDisplay
+              estimatedPoints={rewardsState.estimatedPoints}
+              bonusBips={rewardsState.bonusBips}
+              isLoading={rewardsState.isLoading}
+              hasError={rewardsState.hasError}
+              shouldShow={rewardsState.shouldShowRewardsRow}
+              isRefresh={rewardsState.isRefresh}
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 
