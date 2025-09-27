@@ -866,12 +866,12 @@
     "margin_used": "उपयोग किया गया मार्जिन",
     "gtm_content": {
       "title": "पर्प्स आ गए हैं",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "40x तक लीवरेज के साथ लॉन्ग या शॉर्ट। सिर्फ़ एक क्लिक में अपना अकाउंट फंड करें।",
       "not_now": "अभी नहीं",
       "try_now": "शुरू करें"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "आज",
+    "yesterday": "कल",
     "unrealized_pnl": "अनरियलाइज्ड PnL",
     "withdraw": "निकालें",
     "refresh_balance": "बैलेंस रीफ्रेश करें",
@@ -1095,10 +1095,10 @@
         "current_price": "वर्तमान प्राइस",
         "liquidation_price": "लिक्विडेशन प्राइस",
         "liquidation_distance": "लिक्विडेशन डिस्टेन्स",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "यदि प्राइस {{percentage}} तक {{direction}} है तो आपकी पोजीशन लिक्विडेट कर दी जाएगी",
+        "drops": "गिरती है",
+        "rises": "बढ़ती है",
+        "set_leverage": "{{leverage}}x सेट करें"
       },
       "type": {
         "title": "ऑर्डर प्रकार",
@@ -1183,7 +1183,7 @@
       "description": "प्रतिशत मुनाफ़ा या नुकसान चुनें, या अपनी पोजीशन को स्वचालित रूप से बंद करने के लिए एक कस्टम ट्रिगर प्राइस दर्ज करें।",
       "off": "बंद",
       "current_price": "वर्तमान प्राइस",
-      "entry_price": "Entry price",
+      "entry_price": "एंट्री प्राइस",
       "leverage": "लीवरेज",
       "margin": "मार्जिन",
       "liquidation_price": "लिक्विडेशन प्राइस",
@@ -1296,7 +1296,7 @@
         "empty_title": "कोइ खुला पोजीशन नहीं",
         "empty_description": "आपके पास अभी तक कोई भी खुला पोजीशन नहीं है।\nयहां अपनी पोजीशन्स देखने के लिए ट्रेडिंग शुरू करें।",
         "first_time_title": "पर्प्स",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "प्राइस में उतार-चढ़ाव पर दांव लगाएं, अधिकतम 40x लीवरेज के साथ।",
         "start_trading": "ट्रेडिंग शुरू करें",
         "start_new_trade": "एक नया ट्रेड शुरू करें",
         "open_positions": "खुले पोजीशन्स",
@@ -1337,8 +1337,8 @@
       "countdown": "उलटी गिनती",
       "long": "लॉन्ग",
       "short": "शॉर्ट",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "लॉन्ग",
+      "short_lowercase": "शॉर्ट",
       "add_funds": "फंड जोड़ें",
       "add_funds_to_start_trading_perps": "पर्प्स ट्रेडिंग शुरू करने के लिए फंड जोड़ें",
       "position": "पोज़िशन",
@@ -1446,9 +1446,9 @@
         "show_more": "अधिक"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "मिनट",
+        "hours": "घंटे",
+        "days": "दिन"
       }
     },
     "perps_markets": "पर्प्स मार्केट",
@@ -1518,7 +1518,7 @@
       },
       "choose_leverage": {
         "title": "अपना लीवरेज चुनें",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "लीवरेज आपके लाभ और हानि दोनों को बढ़ा देता है। 40x लीवरेज के साथ, प्राइस में 4% का बदलाव आपके मार्जिन पर 40% लाभ या हानि के बराबर होता है।"
       },
       "watch_liquidation": {
         "title": "लिक्विडेशन से सावधान रहें।",
@@ -1526,12 +1526,12 @@
       },
       "close_anytime": {
         "title": "किसी भी समय बंद करें",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "जब चाहें बाहर निकलें। आपको अपना मार्जिन वापस मिलेगा, साथ ही लाभ या हानि शामिल होगी।"
       },
       "ready_to_trade": {
         "title": "ट्रेड करने के लिए तैयार हैं?",
         "description": "अपने पर्प्स अकाउंट को किसी भी टोकन से फंड करें और सेकंडों में अपना पहला ट्रेड करें।",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask आपके फंड को Arbitrum पर USDC में स्वैप करेगा और बिना किसी अतिरिक्त फीस के उन्हें HyperEVM में डिपॉज़िट करेगा।"
       },
       "got_it": "समझ गए"
     },
@@ -5960,12 +5960,12 @@
       },
       "perps": {
         "title": "पर्प्स",
-        "description": "10 points per $100",
+        "description": "प्रति $100 पर 10 पॉइंट्स",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "पर्प्स ट्रेड करें",
+          "points": "प्रति $100 पर 10 पॉइंट्स",
+          "description": "हर ट्रेड पर पॉइंट्स कमाएँ, जिसमें ओपन और क्लोज़, स्टॉप लॉस और टेक प्रॉफिट ऑर्डर, और मार्जिन एडजस्टमेंट शामिल हैं।",
+          "cta_label": "एक ट्रेड शुरू करें"
         }
       },
       "referrals": {

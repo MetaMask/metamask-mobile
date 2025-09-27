@@ -866,12 +866,12 @@
     "margin_used": "Marge utilisée",
     "gtm_content": {
       "title": "LES PERPS SONT ENFIN DISPONIBLES",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "Prenez des positions longues ou courtes avec un effet de levier allant jusqu’à 40x. Approvisionnez votre compte en un seul clic.",
       "not_now": "Pas maintenant",
       "try_now": "Commencer"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "Aujourd’hui",
+    "yesterday": "Hier",
     "unrealized_pnl": "Profits et pertes non réalisés",
     "withdraw": "Retirer",
     "refresh_balance": "Actualiser le solde",
@@ -1095,10 +1095,10 @@
         "current_price": "Prix actuel",
         "liquidation_price": "Prix de liquidation",
         "liquidation_distance": "Distance de liquidation",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "Votre position sera liquidée si le prix {{direction}} de {{percentage}}",
+        "drops": "baisse",
+        "rises": "augmente",
+        "set_leverage": "Régler sur {{leverage}}x"
       },
       "type": {
         "title": "Type d’ordre",
@@ -1183,7 +1183,7 @@
       "description": "Choisissez un pourcentage de gain ou de perte, ou entrez un prix déclencheur personnalisé pour fermer automatiquement votre position.",
       "off": "Off",
       "current_price": "Prix actuel ",
-      "entry_price": "Entry price",
+      "entry_price": "Prix d’ouverture",
       "leverage": "Effet de levier",
       "margin": "Marge",
       "liquidation_price": "Prix de liquidation",
@@ -1296,7 +1296,7 @@
         "empty_title": "Aucune position ouverte",
         "empty_description": "Vous n’avez actuellement aucune position ouverte.\nCommencez à trader pour voir vos positions ici.",
         "first_time_title": "Perps",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "Spéculez sur les fluctuations de prix avec un effet de levier pouvant atteindre 40x.",
         "start_trading": "Commencez à trader",
         "start_new_trade": "Commencez un nouveau trade",
         "open_positions": "Positions ouvertes",
@@ -1337,8 +1337,8 @@
       "countdown": "Compte à rebours",
       "long": "Position longue",
       "short": "Position courte",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "position longue",
+      "short_lowercase": "position courte",
       "add_funds": "Ajouter des fonds",
       "add_funds_to_start_trading_perps": "Ajoutez des fonds pour commencer à trader sur le marché des contrats à terme perpétuels (perps)",
       "position": "Position",
@@ -1447,8 +1447,8 @@
       },
       "time_periods": {
         "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "hours": "Heures",
+        "days": "Jours"
       }
     },
     "perps_markets": "Marchés de contrats à terme perpétuels (perps)",
@@ -1518,7 +1518,7 @@
       },
       "choose_leverage": {
         "title": "Choisissez votre effet de levier",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "L’effet de levier amplifie à la fois les gains et les pertes. Avec un effet de levier de 40x, une variation de prix de 4 % équivaut à un gain ou à une perte de 40 % sur votre marge."
       },
       "watch_liquidation": {
         "title": "Évitez la liquidation de vos positions",
@@ -1526,12 +1526,12 @@
       },
       "close_anytime": {
         "title": "Fermer à tout moment",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "Fermez la position quand vous le souhaitez. Vous récupérerez votre marge, majorée des bénéfices ou minorée des pertes."
       },
       "ready_to_trade": {
         "title": "Prêt à trader ?",
         "description": "Approvisionnez votre compte de trading de contrats à terme perpétuels avec n’importe quel jeton, puis ouvrez votre première position en quelques secondes.",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask échangera vos fonds contre des USDC sur Arbitrum et les déposera sur HyperEVM sans frais supplémentaires."
       },
       "got_it": "J’ai compris"
     },
@@ -5960,12 +5960,12 @@
       },
       "perps": {
         "title": "Contrats à terme perpétuels",
-        "description": "10 points per $100",
+        "description": "10 points par tranche de 100 $",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "Tradez des contrats à terme perpétuels",
+          "points": "10 points par tranche de 100 $",
+          "description": "Gagnez des points sur chaque transaction, y compris les ouvertures et les fermetures de position, les ordres stop loss et take profit, et les ajustements de marge.",
+          "cta_label": "Ouvrez une position"
         }
       },
       "referrals": {

@@ -866,12 +866,12 @@
     "margin_used": "已用保证金",
     "gtm_content": {
       "title": "永续合约已上线",
-      "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
+      "title_description": "支持最高 40 倍杠杆的多头仓位或空头仓位。一键即可为账户充值。",
       "not_now": "暂时不",
       "try_now": "开始"
     },
-    "today": "Today",
-    "yesterday": "Yesterday",
+    "today": "今天",
+    "yesterday": "昨天",
     "unrealized_pnl": "未实现盈亏",
     "withdraw": "提取",
     "refresh_balance": "刷新余额",
@@ -1061,8 +1061,8 @@
       "take_profit": "止盈",
       "stop_loss": "止损",
       "tp_sl": "止盈/止损",
-      "tp": "TP",
-      "sl": "SL",
+      "tp": "止盈",
+      "sl": "止损",
       "button": {
         "long": "做多 {{asset}}",
         "short": "做空 {{asset}}"
@@ -1095,10 +1095,10 @@
         "current_price": "当前价格",
         "liquidation_price": "清算价格",
         "liquidation_distance": "清算距离",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "liquidation_warning": "如果价格{{direction}} {{percentage}}，您将被平仓",
+        "drops": "下跌",
+        "rises": "上涨",
+        "set_leverage": "设置 {{leverage}} 倍"
       },
       "type": {
         "title": "订单类型",
@@ -1183,7 +1183,7 @@
       "description": "选择盈利或亏损百分比，或输入自定义触发价，以自动平仓。",
       "off": "关闭",
       "current_price": "当前价格",
-      "entry_price": "Entry price",
+      "entry_price": "入场价格",
       "leverage": "杠杆",
       "margin": "保证金",
       "liquidation_price": "清算价格",
@@ -1296,7 +1296,7 @@
         "empty_title": "无未平仓头寸",
         "empty_description": "您目前没有任何未平仓头寸。\n开始交易后，即可在此处将查看您的头寸。",
         "first_time_title": "永续合约",
-        "first_time_description": "Bet on price movements with up to 40x leverage.",
+        "first_time_description": "利用高达 40 倍杠杆押注价格走势。",
         "start_trading": "开始交易",
         "start_new_trade": "开始新交易",
         "open_positions": "未平仓头寸",
@@ -1337,8 +1337,8 @@
       "countdown": "倒计时",
       "long": "做多",
       "short": "做空",
-      "long_lowercase": "long",
-      "short_lowercase": "short",
+      "long_lowercase": "多头仓位",
+      "short_lowercase": "空头仓位",
       "add_funds": "充值",
       "add_funds_to_start_trading_perps": "充值以开始交易永续合约",
       "position": "仓位",
@@ -1446,9 +1446,9 @@
         "show_more": "展开"
       },
       "time_periods": {
-        "minutes": "Minutes",
-        "hours": "Hours",
-        "days": "Days"
+        "minutes": "分钟",
+        "hours": "小时",
+        "days": "天"
       }
     },
     "perps_markets": "永续合约市场",
@@ -1518,7 +1518,7 @@
       },
       "choose_leverage": {
         "title": "选择您的杠杆",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "杠杆交易会同步放大收益和亏损。使用 40 倍杠杆时，4% 的价格波动将导致保证金产生 40% 的盈利或亏损。"
       },
       "watch_liquidation": {
         "title": "注意清算风险",
@@ -1526,12 +1526,12 @@
       },
       "close_anytime": {
         "title": "随时平仓",
-        "description": "Exit whenever you want. You’ll get back your margin, plus profits or minus losses."
+        "description": "随时可以平仓。平仓后将获得保证金余额，并获得盈利或扣除亏损。"
       },
       "ready_to_trade": {
         "title": "准备好交易了吗？",
         "description": "可使用任意代币为永续合约账户注资，极速完成首笔交易。",
-        "footer_text": "MetaMask will swap your funds to USDC on Arbitrum, and deposit them onto HyperEVM for no added fee."
+        "footer_text": "MetaMask 将在 Arbitrum 网络上将您的资金兑换为 USDC，并存入 HyperEVM，无需任何额外费用。"
       },
       "got_it": "知道了"
     },
@@ -5960,12 +5960,12 @@
       },
       "perps": {
         "title": "永续合约",
-        "description": "10 points per $100",
+        "description": "每 100 美元 10 积分",
         "sheet": {
-          "title": "Trade perps",
-          "points": "10 points per $100",
-          "description": "Earn points on every trade, including opens and closes, stop loss and take profit orders, and margin adjustments.",
-          "cta_label": "Start a trade"
+          "title": "交易永续合约",
+          "points": "每 100 美元 10 积分",
+          "description": "每笔交易均可赚取积分，包括开仓与平仓、止损与止盈订单设置以及保证金调整等操作。",
+          "cta_label": "开始交易"
         }
       },
       "referrals": {
