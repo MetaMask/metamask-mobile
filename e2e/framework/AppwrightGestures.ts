@@ -7,7 +7,13 @@ Once we have migrated the page objects to ts, we will remove the js version of t
 interface Device {
   webDriverClient: {
     executeScript: (script: string, args: unknown[]) => Promise<void>;
+    hideKeyboard: () => Promise<void>;
+    background: (time: number) => Promise<void>;
+    dismissAlert: () => Promise<void>;
   };
+  terminateApp: (packageId: string) => Promise<void>;
+  activateApp: (packageId: string) => Promise<unknown>;
+  waitForTimeout: (timeout: number) => Promise<void>;
 }
 
 interface Element {
@@ -177,54 +183,104 @@ export default class AppwrightGestures {
   }
 
   /**
-   * Static method to scroll element into view (compatible with AppwrightSelectors.scrollIntoView)
+   * Terminate the MetaMask app
    * @param deviceInstance - The device object
-   * @param elementPromise - The element promise to scroll into view
    */
-  static async scrollIntoView(
-    deviceInstance: Device,
-    elementPromise: Promise<Element>,
-  ): Promise<Element> {
-    for (let i = 0; i < 20; i++) {
+  static async terminateApp(deviceInstance: Device): Promise<void> {
+    let retries = 3;
+    const packageId = AppwrightSelectors.isIOS(deviceInstance)
+      ? 'io.metamask.MetaMask'
+      : 'io.metamask';
+    while (retries > 0) {
       try {
-        const elementInstance = await elementPromise;
-        const isVisible = await elementInstance.isVisible({ timeout: 2000 });
-
-        if (isVisible) {
-          return elementInstance;
-        }
+        await deviceInstance.terminateApp(packageId);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        retries--;
       } catch (error) {
-        // Element not found or not visible, continue scrolling
-      }
-      const webDriverClient = deviceInstance.webDriverClient;
-      // Perform a scroll action
-      if (AppwrightSelectors.isAndroid(deviceInstance)) {
-        // For Android, use a swipe gesture
-        //await webDriverClient.tap({ x: 500, y: 1500 });
-        await webDriverClient.executeScript('mobile: swipeGesture', [
-          {
-            left: 100,
-            top: 500,
-            width: 200,
-            height: 1000,
-            direction: 'up',
-            percent: 0.75,
-          },
-        ]);
-      } else {
-        // For iOS, use mobile: scroll command
-        await webDriverClient.executeScript('mobile: scroll', [
-          {
-            direction: 'down',
-            percent: 0.75,
-          },
-        ]);
-      }
+        console.log('Error terminating app', packageId);
+        console.log('Error terminating app, retrying...', error);
+        retries--;
 
-      // Wait a bit for the scroll to complete
-      await new Promise((resolve) => setTimeout(resolve, 500));
+        if (retries > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          try {
+            await deviceInstance.terminateApp(packageId);
+          } catch (retryError) {
+            console.log('Retry also failed:', (retryError as Error).message);
+          }
+        }
+      }
     }
+    // Timeout to ensure the app is terminated
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
 
-    throw new Error(`Element not found after 5 scroll attempts`);
+  /**
+   * Activate the MetaMask app
+   * @param deviceInstance - The device object
+   */
+  static async activateApp(deviceInstance: Device): Promise<unknown> {
+    const packageId = AppwrightSelectors.isIOS(deviceInstance)
+      ? 'io.metamask.MetaMask'
+      : 'io.metamask';
+    let retries = 3;
+
+    while (retries > 0) {
+      try {
+        const result = await deviceInstance.activateApp(packageId);
+        console.log(`Successfully activated app: ${packageId}`);
+        // Wait a moment for the app to initialize completely
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return result;
+      } catch (error) {
+        console.log(
+          `Error activating app ${packageId}, attempt ${4 - retries}`,
+        );
+        console.log('Error details:', (error as Error).message);
+        retries--;
+
+        if (retries > 0) {
+          console.log(`Retrying activation... ${retries} attempts left`);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        } else {
+          console.log('All activation attempts failed');
+          throw error; // Re-throw the last error
+        }
+      }
+    }
+  }
+
+  /**
+   * Hide keyboard (Android only)
+   * @param deviceInstance - The device object
+   */
+  static async hideKeyboard(deviceInstance: Device): Promise<void> {
+    if (AppwrightSelectors.isAndroid(deviceInstance))
+      await deviceInstance.webDriverClient.hideKeyboard(); // only needed for Android
+  }
+
+  /**
+   * Background the app for specified time
+   * @param deviceInstance - The device object
+   * @param time - Time in seconds to background the app
+   */
+  static async backgroundApp(
+    deviceInstance: Device,
+    time: number,
+  ): Promise<void> {
+    const webDriverClient = deviceInstance.webDriverClient;
+    await webDriverClient.background(time);
+  }
+
+  /**
+   * Dismiss alert with platform-specific timeout
+   * @param deviceInstance - The device object
+   */
+  static async dismissAlert(deviceInstance: Device): Promise<void> {
+    // Simple wrapper that uses appropriate timeout for platform
+    const isIOS = AppwrightSelectors.isIOS(deviceInstance);
+    const timeout = isIOS ? 8000 : 2000; // 8 seconds for iOS, 2 for Android
+    await deviceInstance.waitForTimeout(timeout);
+    return await deviceInstance.webDriverClient.dismissAlert();
   }
 }

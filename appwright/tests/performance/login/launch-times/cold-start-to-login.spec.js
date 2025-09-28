@@ -19,7 +19,7 @@ import SendScreen from '../../../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../../wdio/screen-objects/AmountScreen.js';
-import AppwrightSelectors from '../../../../../wdio/helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures.js';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
 
 test('Cold Start: Measure ColdStart To Login Screen', async ({
@@ -48,8 +48,8 @@ test('Cold Start: Measure ColdStart To Login Screen', async ({
   await login(device);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
-  await AppwrightSelectors.terminateApp(device);
-  await AppwrightSelectors.activateApp(device);
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
   const timer1 = new TimerHelper(
     'Time since the the app is launched, until login screen appears',
   );

@@ -1,8 +1,8 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ImportFromSeedSelectorsIDs } from '../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
-import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors.js';
 import { expect as appwrightExpect } from 'appwright';
 
 class ImportFromSeedScreen extends AppwrightGestures {
@@ -127,7 +127,7 @@ class ImportFromSeedScreen extends AppwrightGestures {
         await Gestures.waitAndTap(this.continueButton);
       } else {
         const element = await this.continueButton;
-        await AppwrightSelectors.hideKeyboard(this.device);
+        await AppwrightGestures.hideKeyboard(this.device);
         await this.tap(element); // Use inherited tap method with retry logic
       }
     } else {

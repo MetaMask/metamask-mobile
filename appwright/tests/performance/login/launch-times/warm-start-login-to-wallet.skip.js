@@ -3,7 +3,7 @@ import TimerHelper from '../../../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../../../wdio/screen-objects/WalletMainScreen.js';
 import { login } from '../../../../utils/Flows.js';
 
-import AppwrightSelectors from '../../../../../wdio/helpers/AppwrightSelectors.js';
+import AppwrightGestures from '../../../../../e2e/framework/AppwrightGestures.js';
 import LoginScreen from '../../../../../wdio/screen-objects/LoginScreen.js';
 
 import TabBarModal from '../../../../../wdio/screen-objects/Modals/TabBarModal.js';
@@ -46,8 +46,8 @@ test('Measure Warm Start: Login To Wallet Screen', async ({
   // console.log('Waiting for 30 seconds');
 */
   await TabBarModal.tapWalletButton();
-  await AppwrightSelectors.backgroundApp(device, 30);
-  await AppwrightSelectors.activateApp(device);
+  await AppwrightGestures.backgroundApp(device, 30);
+  await AppwrightGestures.activateApp(device);
   await LoginScreen.waitForScreenToDisplay();
   await login(device);
 
