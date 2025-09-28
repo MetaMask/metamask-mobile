@@ -302,7 +302,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions"
+            testID="multichain-account-cell-menu"
           >
             <SvgMock
               color="#121314"
@@ -536,7 +536,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions"
+            testID="multichain-account-cell-menu"
           >
             <SvgMock
               color="#121314"
@@ -824,7 +824,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions"
+            testID="multichain-account-cell-menu"
           >
             <SvgMock
               color="#121314"
@@ -1021,7 +1021,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions"
+            testID="multichain-account-cell-menu"
           >
             <SvgMock
               color="#121314"
@@ -1346,7 +1346,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions"
+            testID="multichain-account-cell-menu"
           >
             <SvgMock
               color="#121314"
@@ -1580,7 +1580,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions"
+            testID="multichain-account-cell-menu"
           >
             <SvgMock
               color="#121314"
@@ -1905,7 +1905,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions"
+            testID="multichain-account-cell-menu"
           >
             <SvgMock
               color="#121314"
@@ -2139,7 +2139,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                 "width": 24,
               }
             }
-            testID="main-wallet-account-actions"
+            testID="multichain-account-cell-menu"
           >
             <SvgMock
               color="#121314"

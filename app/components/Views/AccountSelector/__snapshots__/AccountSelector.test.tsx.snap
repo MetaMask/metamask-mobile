@@ -716,7 +716,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                 "width": 24,
                                               }
                                             }
-                                            testID="main-wallet-account-actions"
+                                            testID="multichain-account-cell-menu"
                                           >
                                             <SvgMock
                                               color="#121314"
@@ -913,7 +913,7 @@ exports[`AccountSelector should render correctly 1`] = `
                                                 "width": 24,
                                               }
                                             }
-                                            testID="main-wallet-account-actions"
+                                            testID="multichain-account-cell-menu"
                                           >
                                             <SvgMock
                                               color="#121314"
