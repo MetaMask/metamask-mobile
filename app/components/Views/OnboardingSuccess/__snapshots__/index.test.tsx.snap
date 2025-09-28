@@ -5,7 +5,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
   contentContainerStyle={
     [
       {
-        "backgroundColor": "#3D065F",
+        "backgroundColor": "#FFFFFF",
         "flexGrow": 1,
         "paddingBottom": 16,
       },
@@ -60,12 +60,13 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 24,
+                  "marginHorizontal": 60,
                   "textAlign": "center",
                 }
               }
@@ -85,7 +86,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
   contentContainerStyle={
     [
       {
-        "backgroundColor": "#3D065F",
+        "backgroundColor": "#FFFFFF",
         "flexGrow": 1,
         "paddingBottom": 16,
       },
@@ -140,12 +141,13 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE a
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 24,
+                  "marginHorizontal": 60,
                   "textAlign": "center",
                 }
               }
@@ -165,7 +167,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
   contentContainerStyle={
     [
       {
-        "backgroundColor": "#3D065F",
+        "backgroundColor": "#FFFFFF",
         "flexGrow": 1,
         "paddingBottom": 16,
       },
@@ -220,12 +222,13 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 24,
+                  "marginHorizontal": 60,
                   "textAlign": "center",
                 }
               }
@@ -245,7 +248,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
   contentContainerStyle={
     [
       {
-        "backgroundColor": "#3D065F",
+        "backgroundColor": "#FFFFFF",
         "flexGrow": 1,
         "paddingBottom": 16,
       },
@@ -300,12 +303,13 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 24,
+                  "marginHorizontal": 60,
                   "textAlign": "center",
                 }
               }
@@ -325,7 +329,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
   contentContainerStyle={
     [
       {
-        "backgroundColor": "#3D065F",
+        "backgroundColor": "#FFFFFF",
         "flexGrow": 1,
         "paddingBottom": 16,
       },
@@ -380,12 +384,13 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 24,
+                  "marginHorizontal": 60,
                   "textAlign": "center",
                 }
               }
@@ -405,7 +410,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
   contentContainerStyle={
     [
       {
-        "backgroundColor": "#3D065F",
+        "backgroundColor": "#FFFFFF",
         "flexGrow": 1,
         "paddingBottom": 16,
       },
@@ -460,12 +465,13 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 24,
+                  "marginHorizontal": 60,
                   "textAlign": "center",
                 }
               }
@@ -485,7 +491,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
   contentContainerStyle={
     [
       {
-        "backgroundColor": "#3D065F",
+        "backgroundColor": "#FFFFFF",
         "flexGrow": 1,
         "paddingBottom": 16,
       },
@@ -540,12 +546,13 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 24,
+                  "marginHorizontal": 60,
                   "textAlign": "center",
                 }
               }
@@ -565,7 +572,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
   contentContainerStyle={
     [
       {
-        "backgroundColor": "#3D065F",
+        "backgroundColor": "#FFFFFF",
         "flexGrow": 1,
         "paddingBottom": 16,
       },
@@ -620,12 +627,13 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 24,
+                  "marginHorizontal": 60,
                   "textAlign": "center",
                 }
               }

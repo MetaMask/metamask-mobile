@@ -119,10 +119,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     });
   };
 
-  const getTextColor = useCallback(
-    () => (isDarkMode ? TextColor.Default : TextColor.Inverse),
-    [isDarkMode],
-  );
+  const getTextColor = useCallback(() => TextColor.Default, []);
 
   const renderAnimatedDots = useCallback(() => {
     const count = Math.max(1, Math.min(3, dotsCount));

@@ -9,7 +9,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
       paddingBottom: 16,
       backgroundColor: isDarkMode
         ? colors.background.default
-        : importedColors.gettingStartedTextColor,
+        : importedColors.white,
     },
     contentContainer: {
       flexDirection: 'column',
@@ -59,6 +59,7 @@ const createStyles = (colors: ThemeColors, isDarkMode: boolean = false) =>
     },
     textTitle: {
       marginBottom: 24,
+      marginHorizontal: 60,
       textAlign: 'center',
     },
     imageWrapper: {

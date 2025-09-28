@@ -282,14 +282,14 @@ describe('OnboardingSuccessComponent', () => {
 describe('OnboardingSuccess', () => {
   mockImportAdditionalAccounts.mockResolvedValue(true);
 
-    beforeEach(() => {
-      (useSelector as jest.Mock).mockReset();
-      mockIsE2EValue = false; // Reset to default value
-    });
+  beforeEach(() => {
+    (useSelector as jest.Mock).mockReset();
+    mockIsE2EValue = false; // Reset to default value
+  });
 
-    afterEach(() => {
-      mockIsE2EValue = false; // Ensure cleanup after each test
-    });
+  afterEach(() => {
+    mockIsE2EValue = false; // Ensure cleanup after each test
+  });
 
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
     mockRoute.mockReturnValue({
@@ -368,7 +368,6 @@ describe('OnboardingSuccess', () => {
     });
 
     it('shows done button and footer link when showButtons is true', () => {
-      // Set E2E mode before rendering
       mockIsE2EValue = true;
 
       const { getByTestId } = renderWithProvider(
@@ -378,11 +377,15 @@ describe('OnboardingSuccess', () => {
         />,
       );
 
-      // In E2E mode, buttons should be visible immediately
-      expect(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeTruthy();
-      expect(getByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON)).toBeTruthy();
+      expect(
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      ).toBeTruthy();
+      expect(
+        getByTestId(
+          OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+        ),
+      ).toBeTruthy();
 
-      // Reset mock
       mockIsE2EValue = false;
     });
 
@@ -394,12 +397,17 @@ describe('OnboardingSuccess', () => {
         />,
       );
 
-      expect(queryByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeNull();
-      expect(queryByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(
+          OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+        ),
+      ).toBeNull();
     });
 
     it('shows buttons immediately in E2E mode', () => {
-      // Set E2E mode before rendering
       mockIsE2EValue = true;
 
       const { getByTestId } = renderWithProvider(
@@ -409,10 +417,15 @@ describe('OnboardingSuccess', () => {
         />,
       );
 
-      expect(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeTruthy();
-      expect(getByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON)).toBeTruthy();
+      expect(
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      ).toBeTruthy();
+      expect(
+        getByTestId(
+          OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+        ),
+      ).toBeTruthy();
 
-      // Reset mock
       mockIsE2EValue = false;
     });
 
@@ -426,8 +439,14 @@ describe('OnboardingSuccess', () => {
         />,
       );
 
-      expect(queryByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON)).toBeNull();
-      expect(queryByTestId(OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(
+          OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
+        ),
+      ).toBeNull();
     });
   });
 
@@ -2249,16 +2268,12 @@ describe('OnboardingSuccess', () => {
   describe('Critical Utility Functions tests', () => {
     it('should test getTextColor and renderAnimatedDots utility functions', () => {
       const TestUtilityFunctions = ({
-        isDarkMode,
         dotsCount,
       }: {
         isDarkMode: boolean;
         dotsCount: number;
       }) => {
-        const getTextColor = React.useCallback(
-          () => (isDarkMode ? 'text-default' : 'text-inverse'),
-          [isDarkMode],
-        );
+        const getTextColor = React.useCallback(() => 'text-default', []);
 
         const renderAnimatedDots = React.useCallback(() => {
           const count = Math.max(1, Math.min(3, dotsCount));
@@ -2280,7 +2295,7 @@ describe('OnboardingSuccess', () => {
         { state: {} },
       );
 
-      expect(getByTestId('text-color')).toHaveTextContent('text-inverse');
+      expect(getByTestId('text-color')).toHaveTextContent('text-default');
       expect(getByTestId('animated-dots')).toHaveTextContent('..');
       expect(getByTestId('dots-count')).toHaveTextContent('2');
 
