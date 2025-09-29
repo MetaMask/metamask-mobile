@@ -1,8 +1,7 @@
 import { SdkEnvironment } from '@consensys/native-ramps-sdk';
 
-const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-
 export function getSdkEnvironment() {
+  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
   switch (metamaskEnvironment) {
     case 'production':
     case 'beta':
