@@ -4,6 +4,24 @@ import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 
+// Navigation mock functions
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
+      setOptions: jest.fn(),
+    }),
+  };
+});
+
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -75,7 +93,7 @@ describe('PerpsMarketStatisticsCard', () => {
   });
 
   it('renders all statistics rows correctly', () => {
-    const { getByText } = render(
+    const { getByText, getByTestId } = render(
       <PerpsMarketStatisticsCard {...defaultProps} />,
     );
 
@@ -94,6 +112,9 @@ describe('PerpsMarketStatisticsCard', () => {
     // Check funding rate row
     expect(getByText('perps.market.funding_rate')).toBeOnTheScreen();
     expect(getByText('0.0125%')).toBeOnTheScreen();
+
+    // Check tutorial card
+    expect(getByTestId('perps-tutorial-card')).toBeOnTheScreen();
   });
 
   it('displays positive funding rate in success color', () => {
