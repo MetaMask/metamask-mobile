@@ -247,9 +247,10 @@ export default class AppwrightGestures {
 
     while (retries > 0) {
       try {
-        await deviceInstance.terminateApp(packageId);
+        const result = await deviceInstance.terminateApp(packageId);
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
-        retries--;
+        return result;
+
       } catch (error) {
         console.log('Error terminating app', packageId);
         retries--;
