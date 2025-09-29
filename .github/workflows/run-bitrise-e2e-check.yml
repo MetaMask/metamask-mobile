@@ -23,11 +23,9 @@ jobs:
     # - Also allow merge queue events (merge_group) if retained
     # - Always run when the PR receives the label "run-ios-e2e-smoke", regardless of branch
     if: >-
-      ${ {
-        (github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/')) ||
-        (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'run-ios-e2e-smoke') ||
-        github.event_name == 'merge_group'
-      } }
+      (github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/')) ||
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'run-ios-e2e-smoke') ||
+      (github.event_name == 'merge_group')
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
