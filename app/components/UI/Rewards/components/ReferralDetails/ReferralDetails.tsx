@@ -58,15 +58,15 @@ const ReferralDetails: React.FC = () => {
   };
 
   const handleShareLink = async (link: string) => {
-    await Share.open({
-      message: `${strings('rewards.referral.actions.share_referral_subject')}`,
-      url: link,
-    });
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.REWARDS_REFERRAL_SHARE_CLICKED,
       ).build(),
     );
+    await Share.open({
+      message: `${strings('rewards.referral.actions.share_referral_subject')}`,
+      url: link,
+    });
   };
 
   if (seasonStatusError && !seasonStartDate) {

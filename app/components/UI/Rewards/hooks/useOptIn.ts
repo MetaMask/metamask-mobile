@@ -5,7 +5,6 @@ import { handleRewardsErrorMessage } from '../utils';
 import Engine from '../../../../core/Engine';
 import { setCandidateSubscriptionId } from '../../../../reducers/rewards';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 export interface UseOptinResult {
   /**
@@ -32,7 +31,7 @@ export const useOptin = (): UseOptinResult => {
   const [optinError, setOptinError] = useState<string | null>(null);
   const dispatch = useDispatch();
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const handleOptin = useCallback(
     async ({ referralCode }: { referralCode?: string }) => {
@@ -60,14 +59,6 @@ export const useOptin = (): UseOptinResult => {
               })
               .build(),
           );
-          const traits = {
-            [UserProfileProperty.IS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
-            // TODO: Add Points
-            [UserProfileProperty.REWARDS_TOTAL_POINTS]: 0,
-            // TODO: Add Level
-            [UserProfileProperty.REWARDS_LEVEL]: 0,
-          };
-          addTraitsToUser(traits);
         }
       } catch (error) {
         const errorMessage = handleRewardsErrorMessage(error);
@@ -76,7 +67,7 @@ export const useOptin = (): UseOptinResult => {
         setOptinLoading(false);
       }
     },
-    [account, createEventBuilder, dispatch, trackEvent, addTraitsToUser],
+    [account, createEventBuilder, dispatch, trackEvent],
   );
 
   const clearOptinError = useCallback(() => setOptinError(null), []);
