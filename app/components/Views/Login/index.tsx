@@ -281,7 +281,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
     // Track vault corruption handling attempt
-    trackVaultCorruption('vault_corruption_handling', {
+    trackVaultCorruption(VAULT_ERROR, {
       error_type: 'vault_corruption_handling',
       context: 'vault_corruption_recovery_attempt',
       oauth_login: isComingFromOauthOnboarding,
