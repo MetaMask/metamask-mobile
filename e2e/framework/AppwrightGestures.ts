@@ -245,17 +245,7 @@ export default class AppwrightGestures {
         retries--;
       } catch (error) {
         console.log('Error terminating app', packageId);
-        console.log('Error terminating app, retrying...', error);
         retries--;
-
-        if (retries > 0) {
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
-          try {
-            await deviceInstance.terminateApp(packageId);
-          } catch (retryError) {
-            console.log('Retry also failed:', (retryError as Error).message);
-          }
-        }
       }
     }
 
@@ -276,7 +266,7 @@ export default class AppwrightGestures {
       initDelay?: number;
     } = {},
   ): Promise<unknown> {
-    const { maxRetries = 3, retryDelay = 2000, initDelay = 1000 } = options;
+    const { maxRetries = 3, initDelay = 1000 } = options;
     const packageId = AppwrightSelectors.isIOS(deviceInstance)
       ? APP_PACKAGE_IDS.IOS
       : APP_PACKAGE_IDS.ANDROID;
@@ -296,13 +286,7 @@ export default class AppwrightGestures {
         console.log(
           `Error activating app ${packageId}, attempt ${4 - retries}`,
         );
-        console.log('Error details:', lastError.message);
         retries--;
-
-        if (retries > 0) {
-          console.log(`Retrying activation... ${retries} attempts left`);
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
-        }
       }
     }
 
