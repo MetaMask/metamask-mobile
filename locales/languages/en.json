@@ -1036,6 +1036,7 @@
         "insufficient_funds": "Insufficient funds",
         "insufficient_balance": "Insufficient balance. Required: ${{required}}, Available: ${{available}}",
         "invalid_leverage": "Leverage must be between {{min}}x and {{max}}x",
+        "max_order_value": "Order size must be below ${{maxValue}}",
         "high_leverage_warning": "High leverage increases liquidation risk",
         "invalid_take_profit": "Take profit must be {{direction}} current price for {{positionType}} positions",
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",

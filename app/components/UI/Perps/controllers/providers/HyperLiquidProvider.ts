@@ -34,6 +34,7 @@ import {
 } from '../../utils/hyperLiquidAdapter';
 import {
   createErrorResult,
+  getMaxOrderValue,
   getSupportedPaths,
   validateAssetSupport,
   validateBalance,
@@ -1627,6 +1628,28 @@ export class HyperLiquidProvider implements IPerpsProvider {
           isValid: false,
           error: strings('perps.order.validation.limit_price_required'),
         };
+      }
+
+      // Validate order value against max limits
+      if (params.currentPrice && params.leverage) {
+        try {
+          const maxLeverage = await this.getMaxLeverage(params.coin);
+
+          const maxOrderValue = getMaxOrderValue(maxLeverage, params.orderType);
+          const orderValue = parseFloat(params.size) * params.currentPrice;
+
+          if (orderValue > maxOrderValue) {
+            return {
+              isValid: false,
+              error: strings('perps.order.validation.max_order_value', {
+                maxValue: maxOrderValue.toLocaleString(),
+              }),
+            };
+          }
+        } catch (error) {
+          DevLogger.log('Failed to validate max order value', error);
+          // Continue without max order validation if we can't get leverage
+        }
       }
 
       return { isValid: true };
