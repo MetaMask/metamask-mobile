@@ -11,7 +11,7 @@ import {
 } from './testIDs/Screens/SendScreen.testIds';
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 import { expect as appwrightExpect } from 'appwright';
 import { NETWORK_SELECTOR_TEST_IDS } from '../../app/constants/networkSelector.js';

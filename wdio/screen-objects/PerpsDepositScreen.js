@@ -1,5 +1,5 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
 class PerpsDepositScreen extends AppwrightGestures {
   constructor() {

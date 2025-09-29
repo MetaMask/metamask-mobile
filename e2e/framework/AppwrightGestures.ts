@@ -1,4 +1,5 @@
 import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
+import { APP_PACKAGE_IDS } from './Constants';
 /* This file is not in used at the moment because files in the wdio folder are expecting to be in js and not ts
 so we are keeping it here for reference but not using it in the project.
 Once we have migrated the page objects to ts, we will remove the js version of this file.
@@ -44,14 +45,16 @@ export default class AppwrightGestures {
   /**
    * Tap method with retry logic
    * @param elementPromise - The element promise to tap
-   * @param maxRetries - Maximum number of retry attempts (default: 1)
-   * @param retryDelay - Delay between retries in ms (default: 1000)
+   * @param options - Configuration options for retry behavior
    */
   async tap(
     elementPromise: Promise<Element>,
-    maxRetries: number = 1,
-    retryDelay: number = 1000,
+    options: {
+      maxRetries?: number;
+      retryDelay?: number;
+    } = {},
   ): Promise<void> {
+    const { maxRetries = 1, retryDelay = 1000 } = options;
     let lastError: Error | undefined;
     const elementToTap = await elementPromise;
 
@@ -85,15 +88,17 @@ export default class AppwrightGestures {
    * Type text into an element with retry logic
    * @param elementPromise - The element promise to type into
    * @param text - The text to type
-   * @param maxRetries - Maximum number of retry attempts (default: 1)
-   * @param retryDelay - Delay between retries in ms (default: 1000)
+   * @param options - Configuration options for retry behavior
    */
   async typeText(
     elementPromise: Promise<Element>,
     text: string,
-    maxRetries: number = 1,
-    retryDelay: number = 1000,
+    options: {
+      maxRetries?: number;
+      retryDelay?: number;
+    } = {},
   ): Promise<void> {
+    const { maxRetries = 1, retryDelay = 1000 } = options;
     let lastError: Error | undefined;
     const elementToType = await elementPromise;
 
@@ -133,12 +138,44 @@ export default class AppwrightGestures {
   /**
    * Scroll element into view with platform-specific scrolling
    * @param elementPromise - The element promise to scroll into view
+   * @param options - Configuration options for scrolling behavior
    */
-  async scrollIntoView(elementPromise: Promise<Element>): Promise<Element> {
-    for (let i = 0; i < 20; i++) {
+  async scrollIntoView(
+    elementPromise: Promise<Element>,
+    options: {
+      maxScrollAttempts?: number;
+      scrollTimeout?: number;
+      scrollParams?: {
+        left?: number;
+        top?: number;
+        width?: number;
+        height?: number;
+        direction?: 'up' | 'down';
+        percent?: number;
+      };
+    } = {},
+  ): Promise<Element> {
+    const {
+      maxScrollAttempts = 20,
+      scrollTimeout = 2000,
+      scrollParams = {},
+    } = options;
+
+    const {
+      left = 100,
+      top = 500,
+      width = 200,
+      height = 1000,
+      direction = 'up',
+      percent = 0.75,
+    } = scrollParams;
+
+    for (let i = 0; i < maxScrollAttempts; i++) {
       try {
         const elementInstance = await elementPromise;
-        const isVisible = await elementInstance.isVisible({ timeout: 2000 });
+        const isVisible = await elementInstance.isVisible({
+          timeout: scrollTimeout,
+        });
 
         if (isVisible) {
           return elementInstance;
@@ -157,20 +194,20 @@ export default class AppwrightGestures {
         //await webDriverClient.tap({ x: 500, y: 1500 });
         await webDriverClient.executeScript('mobile: swipeGesture', [
           {
-            left: 100,
-            top: 500,
-            width: 200,
-            height: 1000,
-            direction: 'up',
-            percent: 0.75,
+            left,
+            top,
+            width,
+            height,
+            direction,
+            percent,
           },
         ]);
       } else {
         // For iOS, use mobile: scroll command
         await webDriverClient.executeScript('mobile: scroll', [
           {
-            direction: 'down',
-            percent: 0.75,
+            direction,
+            percent,
           },
         ]);
       }
@@ -185,16 +222,26 @@ export default class AppwrightGestures {
   /**
    * Terminate the MetaMask app
    * @param deviceInstance - The device object
+   * @param options - Configuration options for termination behavior
    */
-  static async terminateApp(deviceInstance: Device): Promise<void> {
-    let retries = 3;
+  static async terminateApp(
+    deviceInstance: Device,
+    options: {
+      maxRetries?: number;
+      retryDelay?: number;
+      finalTimeout?: number;
+    } = {},
+  ): Promise<void> {
+    const { maxRetries = 3, retryDelay = 1000, finalTimeout = 2000 } = options;
+    let retries = maxRetries;
     const packageId = AppwrightSelectors.isIOS(deviceInstance)
-      ? 'io.metamask.MetaMask'
-      : 'io.metamask';
+      ? APP_PACKAGE_IDS.IOS
+      : APP_PACKAGE_IDS.ANDROID;
+
     while (retries > 0) {
       try {
         await deviceInstance.terminateApp(packageId);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
         retries--;
       } catch (error) {
         console.log('Error terminating app', packageId);
@@ -202,7 +249,7 @@ export default class AppwrightGestures {
         retries--;
 
         if (retries > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
           try {
             await deviceInstance.terminateApp(packageId);
           } catch (retryError) {
@@ -211,43 +258,56 @@ export default class AppwrightGestures {
         }
       }
     }
+
     // Timeout to ensure the app is terminated
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, finalTimeout));
   }
 
   /**
    * Activate the MetaMask app
    * @param deviceInstance - The device object
+   * @param options - Configuration options for activation behavior
    */
-  static async activateApp(deviceInstance: Device): Promise<unknown> {
+  static async activateApp(
+    deviceInstance: Device,
+    options: {
+      maxRetries?: number;
+      retryDelay?: number;
+      initDelay?: number;
+    } = {},
+  ): Promise<unknown> {
+    const { maxRetries = 3, retryDelay = 2000, initDelay = 1000 } = options;
     const packageId = AppwrightSelectors.isIOS(deviceInstance)
-      ? 'io.metamask.MetaMask'
-      : 'io.metamask';
-    let retries = 3;
+      ? APP_PACKAGE_IDS.IOS
+      : APP_PACKAGE_IDS.ANDROID;
+    let retries = maxRetries;
+
+    let lastError: Error | undefined;
 
     while (retries > 0) {
       try {
         const result = await deviceInstance.activateApp(packageId);
         console.log(`Successfully activated app: ${packageId}`);
         // Wait a moment for the app to initialize completely
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, initDelay));
         return result;
       } catch (error) {
+        lastError = error as Error;
         console.log(
           `Error activating app ${packageId}, attempt ${4 - retries}`,
         );
-        console.log('Error details:', (error as Error).message);
+        console.log('Error details:', lastError.message);
         retries--;
 
         if (retries > 0) {
           console.log(`Retrying activation... ${retries} attempts left`);
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-        } else {
-          console.log('All activation attempts failed');
-          throw error; // Re-throw the last error
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
       }
     }
+
+    console.log('All activation attempts failed');
+    throw lastError;
   }
 
   /**

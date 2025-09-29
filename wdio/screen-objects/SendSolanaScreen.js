@@ -1,5 +1,5 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 import TimerHelper from '../../appwright/utils/TimersHelper.js';
 import { SendActionViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendActionView.selectors';

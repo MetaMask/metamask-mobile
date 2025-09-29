@@ -2,7 +2,7 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class OnBoardingScreen extends AppwrightGestures {

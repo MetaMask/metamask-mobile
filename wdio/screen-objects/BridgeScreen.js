@@ -1,4 +1,4 @@
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';

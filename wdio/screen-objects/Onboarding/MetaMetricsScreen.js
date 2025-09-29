@@ -7,7 +7,7 @@ import {
 import Selectors from '../../helpers/Selectors';
 import { MetaMetricsOptInSelectorsIDs } from '../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import AppwrightGestures from '../../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../../e2e/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
 class MetaMetricsScreen extends AppwrightGestures {

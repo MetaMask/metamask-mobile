@@ -4,7 +4,7 @@ import {
   AccountListBottomSheetSelectorsIDs,
 } from '../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 import { expect } from 'appwright';
 
 class AccountListComponent extends AppwrightGestures {

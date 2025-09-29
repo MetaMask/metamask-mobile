@@ -1,6 +1,6 @@
 import { expect } from 'appwright';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
-import AppwrightGestures from '../../e2e/framework/AppwrightGestures.js';
+import AppwrightGestures from '../../e2e/framework/AppwrightGestures';
 
 class PerpsTutorialScreen extends AppwrightGestures {
   constructor() {
