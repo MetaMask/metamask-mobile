@@ -171,7 +171,7 @@ interface CacheOptions<T> {
 /**
  * Get a value, from cache if exist
  */
-async function wrapWithCache<T>({
+export async function wrapWithCache<T>({
   key,
   ttl,
   readCache,
