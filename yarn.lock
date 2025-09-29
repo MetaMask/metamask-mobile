@@ -7732,9 +7732,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-api-middleware@npm:1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/multichain-api-middleware@npm:1.1.0"
+"@metamask/multichain-api-middleware@npm:1.2.0":
+  version: 1.2.0
+  resolution: "@metamask/multichain-api-middleware@npm:1.2.0"
   dependencies:
     "@metamask/api-specs": ^0.14.0
     "@metamask/chain-agnostic-permission": ^1.1.1
@@ -7743,11 +7743,11 @@ __metadata:
     "@metamask/network-controller": ^24.2.0
     "@metamask/permission-controller": ^11.0.6
     "@metamask/rpc-errors": ^7.0.2
-    "@metamask/utils": ^11.8.0
+    "@metamask/utils": ^11.8.1
     "@open-rpc/meta-schema": ^1.14.6
     "@open-rpc/schema-utils-js": ^2.0.5
     jsonschema: ^1.4.1
-  checksum: 44901fba2f243bcbf37139179d5a6e24029566688ae44f59de81531ddeb9d8a77c5fe728f522048d64e23fb079195530962c87217d9f2a21975989de654f5b0a
+  checksum: 3365936a3a0f0e760ab207c632ac18834094a57601850a5af97f1e6a6e87530fed564400ecbabae80311326043e9cdd5057f9adfd77062c7401628901dc27e2d
   languageName: node
   linkType: hard
 
@@ -33740,7 +33740,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-wallet-client": ^0.1.1
     "@metamask/multichain-account-service": ^1.2.0
     "@metamask/multichain-api-client": ^0.7.0
-    "@metamask/multichain-api-middleware": 1.1.0
+    "@metamask/multichain-api-middleware": 1.2.0
     "@metamask/multichain-network-controller": ^0.12.0
     "@metamask/multichain-transactions-controller": ^5.0.0
     "@metamask/network-controller": ^24.1.0
