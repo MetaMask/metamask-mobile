@@ -17,7 +17,7 @@ export const useNameValidation = () => {
           to,
         );
 
-        if (!resolutions) {
+        if (resolutions.length === 0) {
           return {
             error: strings('send.could_not_resolve_name'),
           };
