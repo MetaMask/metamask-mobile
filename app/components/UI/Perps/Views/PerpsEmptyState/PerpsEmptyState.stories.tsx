@@ -7,4 +7,11 @@ const PerpsEmptyStateMeta = {
 
 export default PerpsEmptyStateMeta;
 
-export const Default = {};
+export const Default = {
+  args: {
+    onAction: () => {
+      // eslint-disable-next-line no-console
+      console.log('Start Trading pressed');
+    },
+  },
+};
