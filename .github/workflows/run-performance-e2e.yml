@@ -1,7 +1,7 @@
 name: Build Apps and Run Performance E2E Tests
 # This workflow runs performance E2E tests every 3 hours during weekdays (Monday-Friday)
 # Schedule: Every 3 hours at the top of the hour (00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00)
-# Days: Monday (1) through Friday (5)
+# Days: Monday (1) through Friday (6)
 on:
   schedule:
     - cron: '0 */3 * * 1-6'
