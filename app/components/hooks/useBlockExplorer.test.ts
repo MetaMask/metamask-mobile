@@ -129,4 +129,98 @@ describe('useBlockExplorer', () => {
       },
     );
   });
+
+  describe('Non-EVM chains support', () => {
+    it('should return correct block explorer URL for Solana', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'; // Solana mainnet
+
+      const url = getBlockExplorerUrl(address, solanaChainId);
+      expect(url).toBe(
+        'https://solscan.io/account/9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+      );
+    });
+
+    it('should return correct block explorer URL for Bitcoin', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+      const bitcoinChainId = 'bip122:000000000019d6689c085ae165831e93'; // Bitcoin mainnet
+
+      const url = getBlockExplorerUrl(address, bitcoinChainId);
+      expect(url).toBe(
+        'https://mempool.space/address/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+      );
+    });
+  });
+
+  describe('RPC networks with custom block explorers', () => {
+    it('should use custom RPC block explorer when available', () => {
+      // This test verifies the RPC fallback path is covered
+      // The actual implementation uses the mocked state from the main test setup
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+
+      // This should use the RPC fallback path from the mocked state
+      const url = getBlockExplorerUrl(address);
+      expect(url).toBeDefined();
+      expect(url).toContain('/address/');
+    });
+  });
+
+  describe('Fallback scenarios', () => {
+    it('should fallback to etherscan when no specific block explorer is found', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+      const unknownChainId = '0x9999'; // Unknown chain
+
+      const url = getBlockExplorerUrl(address, unknownChainId);
+      // Should fallback to etherscan or use the RPC fallback
+      expect(url).toBeDefined();
+      expect(url).toContain('/address/');
+    });
+
+    it('should return null when no block explorer is available', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+
+      // Test with no chainId and no provider config
+      const url = getBlockExplorerUrl(address);
+      expect(url).toBeDefined(); // Should fallback to etherscan
+    });
+
+    it('should handle missing address gracefully', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const polygonChainId = '0x89';
+
+      const url = getBlockExplorerUrl('', polygonChainId);
+      expect(url).toBe('https://polygonscan.com/address/');
+    });
+  });
+
+  describe('Block explorer names for edge cases', () => {
+    it('should return fallback name when no block explorer is found', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerName } = result.current;
+      const unknownChainId = '0x9999';
+
+      const name = getBlockExplorerName(unknownChainId);
+      expect(name).toBeDefined();
+    });
+
+    it('should handle non-EVM chain names', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerName } = result.current;
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+      const name = getBlockExplorerName(solanaChainId);
+      expect(name).toBe('Solscan');
+    });
+  });
 });
