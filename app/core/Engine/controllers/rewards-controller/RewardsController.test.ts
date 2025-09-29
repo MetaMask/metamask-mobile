@@ -3225,6 +3225,60 @@ describe('RewardsController', () => {
       );
     });
 
+    it('should handle InvalidTimestampError and retry with server timestamp', async () => {
+      // Arrange
+      const mockSubscriptionId = 'test-subscription-id';
+      const mockOptinResponse = {
+        subscription: { id: mockSubscriptionId },
+        sessionId: 'test-session-id',
+      };
+
+      // Import the actual InvalidTimestampError
+      const { InvalidTimestampError } = jest.requireActual(
+        './services/rewards-data-service',
+      );
+      const mockError = new InvalidTimestampError('Invalid timestamp', 12345);
+
+      // Mock the messaging system calls
+      let callCount = 0;
+
+      mockMessenger.call.mockImplementation((method, ..._args): any => {
+        if (method === 'RewardsDataService:mobileOptin') {
+          callCount++;
+          const { account, signature, timestamp } = _args[0] as any;
+
+          // First call fails with timestamp error, second call succeeds
+          if (callCount === 1) {
+            expect(account).toBe(mockEvmInternalAccount.address);
+            expect(signature).toBeDefined();
+            expect(timestamp).toBeDefined();
+            return Promise.reject(mockError);
+          }
+          // Verify the second call uses the server timestamp
+          expect(account).toBe(mockEvmInternalAccount.address);
+          expect(signature).toBeDefined();
+          expect(timestamp).toBe(12345);
+          return Promise.resolve(mockOptinResponse);
+        } else if (method === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.optIn(mockEvmInternalAccount);
+
+      // Assert
+      expect(result).toBe(mockSubscriptionId);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.objectContaining({
+          from: mockEvmInternalAccount.address,
+        }),
+      );
+      expect(callCount).toBe(2); // Verify retry happened
+    });
+
     it('should store subscription token when optin response has subscription id and session id', async () => {
       // Arrange
       const mockOptinResponse = {
