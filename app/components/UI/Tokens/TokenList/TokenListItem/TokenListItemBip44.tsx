@@ -1,6 +1,6 @@
 import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Badge, {
@@ -67,15 +67,6 @@ export const TokenListItemBip44 = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
-
-    useEffect(() => {
-      // eslint-disable-next-line no-console
-      console.log('TokenListItem MOUNTED:', assetKey.address);
-      return () => {
-        // eslint-disable-next-line no-console
-        console.log('TokenListItem UNMOUNTED:', assetKey.address);
-      };
-    }, [assetKey.address]);
 
     const chainId = asset?.chainId as Hex;
 

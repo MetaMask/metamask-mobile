@@ -132,8 +132,13 @@ const TokenListComponent = ({
         scrollEnabled={false}
         removeClippedSubviews
         maxToRenderPerBatch={6}
-        updateCellsBatchingPeriod={50}
-        windowSize={10}
+        updateCellsBatchingPeriod={100}
+        windowSize={5}
+        getItemLayout={(_data, index) => ({
+          length: 70, // Approximate height of each token item
+          offset: 70 * index,
+          index,
+        })}
       />
     </>
   ) : (
