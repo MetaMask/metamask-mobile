@@ -3,11 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from 'react-native';
 import RewardsDashboard from './RewardsDashboard';
-import {
-  setActiveTab,
-  setHideUnlinkedAccountsBanner,
-} from '../../../../actions/rewards';
-import { setHideCurrentAccountNotOptedInBanner } from '../../../../reducers/rewards';
+import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
@@ -24,16 +20,24 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    setOptions: mockSetOptions,
-  }),
-  useFocusEffect: jest.fn(() => {
-    // Mock useFocusEffect as a no-op to prevent infinite re-renders
-    // In real usage, this would be called when screen gains focus
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+    }),
+    // Run focus effects as a normal effect during tests
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = effect();
+        return cleanup;
+      }, []);
+    },
+  };
+});
 
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
@@ -44,7 +48,6 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
 }));
 
@@ -59,7 +62,6 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import {
   selectRewardsSubscriptionId,
-  selectRewardsActiveAccountHasOptedIn,
   selectHideUnlinkedAccountsBanner,
 } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
@@ -75,10 +77,6 @@ const mockSelectRewardsSubscriptionId =
 const mockSelectSeasonId = selectSeasonId as jest.MockedFunction<
   typeof selectSeasonId
 >;
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
 const mockSelectHideUnlinkedAccountsBanner =
   selectHideUnlinkedAccountsBanner as jest.MockedFunction<
     typeof selectHideUnlinkedAccountsBanner
@@ -282,6 +280,10 @@ jest.mock('../hooks/useLinkAccount', () => ({
   useLinkAccount: jest.fn(),
 }));
 
+jest.mock('../hooks/useRewardDashboardModals', () => ({
+  useRewardDashboardModals: jest.fn(),
+}));
+
 jest.mock('../utils', () => ({
   convertInternalAccountToCaipAccountId: jest.fn(),
 }));
@@ -301,10 +303,11 @@ jest.mock('../../../../component-library/components-temp/Tabs', () => ({
   }) {
     const ReactActual = jest.requireActual('react');
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    const [activeTab, setActiveTab] = ReactActual.useState(initialActiveIndex);
+    const [activeTab, setActiveTabLocal] =
+      ReactActual.useState(initialActiveIndex);
 
     const handleTabPress = (index: number) => {
-      setActiveTab(index);
+      setActiveTabLocal(index);
       if (onChangeTab) {
         onChangeTab({ i: index, ref: children });
       }
@@ -441,6 +444,7 @@ jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../hooks/useLinkAccount';
+import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
 import { convertInternalAccountToCaipAccountId } from '../utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
@@ -450,6 +454,10 @@ const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
 const mockUseLinkAccount = useLinkAccount as jest.MockedFunction<
   typeof useLinkAccount
 >;
+const mockUseRewardDashboardModals =
+  useRewardDashboardModals as jest.MockedFunction<
+    typeof useRewardDashboardModals
+  >;
 const mockConvertInternalAccountToCaipAccountId =
   convertInternalAccountToCaipAccountId as jest.MockedFunction<
     typeof convertInternalAccountToCaipAccountId
@@ -458,6 +466,11 @@ const mockConvertInternalAccountToCaipAccountId =
 describe('RewardsDashboard', () => {
   const mockDispatch = jest.fn();
   const mockLinkAccount = jest.fn();
+  const mockShowUnlinkedAccountsModal = jest.fn();
+  const mockShowNotOptedInModal = jest.fn();
+  const mockShowNotSupportedModal = jest.fn();
+  const mockHasShownModal = jest.fn();
+  const mockResetSessionTracking = jest.fn();
 
   const mockSelectedAccount = {
     id: 'account-1',
@@ -477,7 +490,6 @@ describe('RewardsDashboard', () => {
     activeTab: 'overview' as const,
     subscriptionId: 'test-subscription-id',
     seasonId: CURRENT_SEASON_ID,
-    hasAccountedOptedIn: true,
     hideUnlinkedAccountsBanner: false,
     hideCurrentAccountNotOptedInBannerArray: [],
     selectedAccount: mockSelectedAccount,
@@ -499,12 +511,26 @@ describe('RewardsDashboard', () => {
       isError: false,
       error: null,
     },
+    useRewardDashboardModals: {
+      showUnlinkedAccountsModal: mockShowUnlinkedAccountsModal,
+      showNotOptedInModal: mockShowNotOptedInModal,
+      showNotSupportedModal: mockShowNotSupportedModal,
+      hasShownModal: mockHasShownModal,
+      resetSessionTracking: mockResetSessionTracking,
+      resetSessionTrackingForCurrentAccountGroup: jest.fn(),
+      resetAllSessionTracking: jest.fn(),
+    },
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockAlert.mockClear();
     mockLinkAccount.mockClear();
+    mockShowUnlinkedAccountsModal.mockClear();
+    mockShowNotOptedInModal.mockClear();
+    mockShowNotSupportedModal.mockClear();
+    mockHasShownModal.mockClear();
+    mockResetSessionTracking.mockClear();
 
     mockUseDispatch.mockReturnValue(mockDispatch);
 
@@ -514,9 +540,6 @@ describe('RewardsDashboard', () => {
       defaultSelectorValues.subscriptionId,
     );
     mockSelectSeasonId.mockReturnValue(defaultSelectorValues.seasonId);
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(
-      defaultSelectorValues.hasAccountedOptedIn,
-    );
     mockSelectHideUnlinkedAccountsBanner.mockReturnValue(
       defaultSelectorValues.hideUnlinkedAccountsBanner,
     );
@@ -532,15 +555,19 @@ describe('RewardsDashboard', () => {
       defaultHookValues.useRewardOptinSummary,
     );
     mockUseLinkAccount.mockReturnValue(defaultHookValues.useLinkAccount);
+    mockUseRewardDashboardModals.mockReturnValue(
+      defaultHookValues.useRewardDashboardModals,
+    );
     mockConvertInternalAccountToCaipAccountId.mockReturnValue('eip155:1:0x123');
+
+    // Setup default modal hook behavior - return false for all modal types by default
+    mockHasShownModal.mockReturnValue(false);
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectActiveTab) return defaultSelectorValues.activeTab;
       if (selector === selectRewardsSubscriptionId)
         return defaultSelectorValues.subscriptionId;
       if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-      if (selector === selectRewardsActiveAccountHasOptedIn)
-        return defaultSelectorValues.hasAccountedOptedIn;
       if (selector === selectHideUnlinkedAccountsBanner)
         return defaultSelectorValues.hideUnlinkedAccountsBanner;
       if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -574,14 +601,12 @@ describe('RewardsDashboard', () => {
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
     });
 
-    it('should not render overlay when user has subscription', () => {
+    it('should call modal hooks when component is rendered', () => {
       // Act
-      const { queryByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
 
       // Assert
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.NOT_OPTED_IN_OVERLAY),
-      ).toBeNull();
+      expect(mockUseRewardDashboardModals).toHaveBeenCalled();
     });
   });
 
@@ -757,36 +782,23 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('current account not opted in banner', () => {
-    it('should show banner when account has not opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return false;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
-        return undefined;
+  describe('modal triggering for current account', () => {
+    it('should show not opted in modal when account has not opted in and modal has not been shown', () => {
+      // Arrange - Mock account as not opted in
+      mockUseRewardOptinSummary.mockReturnValue({
+        ...defaultHookValues.useRewardOptinSummary,
+        currentAccountOptedIn: false,
+        currentAccountSupported: true,
       });
 
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
 
       // Assert
-      expect(getByTestId('rewards-info-banner')).toBeTruthy();
-      expect(getByTestId('banner-confirm-button')).toBeTruthy();
-      expect(getByTestId('banner-dismiss-button')).toBeTruthy();
+      expect(mockShowNotOptedInModal).toHaveBeenCalled();
     });
 
-    it('should show banner when account is not supported', () => {
+    it('should show not supported modal when account is not supported and modal has not been shown', () => {
       // Arrange
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
@@ -794,18 +806,14 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
 
       // Assert
-      expect(getByTestId('rewards-info-banner')).toBeTruthy();
-      expect(getByTestId('banner-dismiss-button')).toBeTruthy();
-      // Should not show confirm button for unsupported accounts
-      expect(() => getByTestId('banner-confirm-button')).toThrow();
+      expect(mockShowNotSupportedModal).toHaveBeenCalled();
     });
 
-    it('should hide banner when banner is dismissed via state', () => {
+    it('should not show modal when banner is dismissed via state', () => {
       // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
       mockSelectHideCurrentAccountNotOptedInBannerArray.mockReturnValue([
         { caipAccountId: 'eip155:1:0x123', hide: true },
       ]);
@@ -815,7 +823,6 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return false;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -826,22 +833,21 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { queryByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
 
       // Assert
-      expect(queryByTestId('rewards-info-banner')).toBeNull();
+      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
     });
 
-    it('should call dismiss action when dismiss button is pressed', () => {
+    it('should not show modal when modal has already been shown in session', () => {
       // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+      mockHasShownModal.mockReturnValue(true); // Modal already shown
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return false;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -852,54 +858,16 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const dismissButton = getByTestId('banner-dismiss-button');
-      fireEvent.press(dismissButton);
+      render(<RewardsDashboard />);
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setHideCurrentAccountNotOptedInBanner({
-          accountId: 'eip155:1:0x123',
-          hide: true,
-        }),
-      );
-    });
-
-    it('should call link account when confirm button is pressed', async () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return false;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
-        return undefined;
-      });
-
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const confirmButton = getByTestId('banner-confirm-button');
-      fireEvent.press(confirmButton);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockLinkAccount).toHaveBeenCalledWith(mockSelectedAccount);
-      });
+      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
     });
   });
 
-  describe('unlinked accounts banner', () => {
+  describe('modal triggering for unlinked accounts', () => {
     beforeEach(() => {
-      // Set up default state for unlinked accounts banner tests
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
+      // Set up default state for unlinked accounts modal tests
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
         unlinkedAccounts: [
@@ -921,44 +889,37 @@ describe('RewardsDashboard', () => {
       });
     });
 
-    it('should show unlinked accounts banner when there are unlinked accounts', () => {
-      // Act
-      const { getAllByTestId } = render(<RewardsDashboard />);
-      const banners = getAllByTestId('rewards-info-banner');
-
-      // Assert - Should have unlinked accounts banner
-      expect(banners.length).toBeGreaterThan(0);
-    });
-
-    it('should navigate to settings when confirm button is pressed', () => {
-      // Act
-      const { getAllByTestId } = render(<RewardsDashboard />);
-      const confirmButtons = getAllByTestId('banner-confirm-button');
-
-      // Press the confirm button (should be the unlinked accounts banner)
-      fireEvent.press(confirmButtons[confirmButtons.length - 1]);
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW, {
-        focusUnlinkedTab: true,
+    it('should show unlinked accounts modal when there are unlinked accounts and user has subscription', () => {
+      // Arrange - Mock account as opted in and has unlinked accounts
+      mockUseRewardOptinSummary.mockReturnValue({
+        ...defaultHookValues.useRewardOptinSummary,
+        currentAccountOptedIn: true,
+        unlinkedAccounts: [
+          {
+            id: 'account-2',
+            address: '0x456',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {
+              name: 'Account 2',
+              importTime: Date.now(),
+              keyring: { type: 'HD Key Tree' },
+            },
+            scopes: ['eip155:1'] as `${string}:${string}`[],
+            methods: ['eth_sendTransaction'],
+            hasOptedIn: false,
+          },
+        ],
       });
-    });
 
-    it('should dispatch hide action when dismiss button is pressed', () => {
       // Act
-      const { getAllByTestId } = render(<RewardsDashboard />);
-      const dismissButtons = getAllByTestId('banner-dismiss-button');
-
-      // Press the dismiss button (should be the unlinked accounts banner)
-      fireEvent.press(dismissButtons[dismissButtons.length - 1]);
+      render(<RewardsDashboard />);
 
       // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setHideUnlinkedAccountsBanner(true),
-      );
+      expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
     });
 
-    it('should hide banner when hideUnlinkedAccountsBanner is true', () => {
+    it('should not show unlinked accounts modal when hideUnlinkedAccountsBanner is true', () => {
       // Arrange
       mockSelectHideUnlinkedAccountsBanner.mockReturnValue(true);
       mockUseSelector.mockImplementation((selector) => {
@@ -967,7 +928,6 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return true;
         if (selector === selectHideUnlinkedAccountsBanner) return true;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
@@ -977,46 +937,18 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { queryByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
 
-      // Assert - Should not show unlinked accounts banner
-      expect(queryByTestId('rewards-info-banner')).toBeNull();
+      // Assert
+      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
     });
 
-    it('should hide banner when user is not opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return false;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
-        return undefined;
-      });
-
-      // Act
-      const { getAllByTestId } = render(<RewardsDashboard />);
-      const banners = getAllByTestId('rewards-info-banner');
-
-      // Assert - Should only show current account banner, not unlinked accounts banner
-      expect(banners.length).toBe(1);
-    });
-  });
-
-  describe('banner prioritization', () => {
-    it('should show current account banner when account not opted in and has unlinked accounts', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
+    it('should not show unlinked accounts modal when current account is not opted in', () => {
+      // Arrange - Mock account as not opted in but with unlinked accounts
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
+        currentAccountOptedIn: false,
+        currentAccountSupported: true,
         unlinkedAccounts: [
           {
             id: 'account-2',
@@ -1034,38 +966,70 @@ describe('RewardsDashboard', () => {
           },
         ],
       });
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return false;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
-        return undefined;
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert - Should prioritize current account modal over unlinked accounts
+      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
+      expect(mockShowNotOptedInModal).toHaveBeenCalled();
+    });
+
+    it('should not show unlinked accounts modal when modal has already been shown', () => {
+      // Arrange - setup mock to return true for unlinked accounts modal
+      mockHasShownModal.mockImplementation(
+        (modalType) => modalType === 'unlinked-accounts',
+      );
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('modal prioritization', () => {
+    it('should prioritize current account modal when account not opted in and has unlinked accounts', () => {
+      // Arrange - Mock account as not opted in but with unlinked accounts
+      mockUseRewardOptinSummary.mockReturnValue({
+        ...defaultHookValues.useRewardOptinSummary,
+        currentAccountOptedIn: false,
+        currentAccountSupported: true,
+        unlinkedAccounts: [
+          {
+            id: 'account-2',
+            address: '0x456',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {
+              name: 'Account 2',
+              importTime: Date.now(),
+              keyring: { type: 'HD Key Tree' },
+            },
+            scopes: ['eip155:1'] as `${string}:${string}`[],
+            methods: ['eth_sendTransaction'],
+            hasOptedIn: false,
+          },
+        ],
       });
 
       // Act
-      const { getAllByTestId } = render(<RewardsDashboard />);
-      const banners = getAllByTestId('rewards-info-banner');
+      render(<RewardsDashboard />);
 
-      // Assert - Should only show current account banner
-      expect(banners.length).toBe(1);
+      // Assert - Should only show current account modal, not unlinked accounts
+      expect(mockShowNotOptedInModal).toHaveBeenCalled();
+      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
     });
 
-    it('should show unlinked accounts banner when current account dismissed and opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
+    it('should show unlinked accounts modal when current account banner dismissed and account is opted in', () => {
+      // Arrange - Mock account as opted in and banner dismissed
       mockSelectHideCurrentAccountNotOptedInBannerArray.mockReturnValue([
         { caipAccountId: 'eip155:1:0x123', hide: true },
       ]);
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
+        currentAccountOptedIn: true,
         unlinkedAccounts: [
           {
             id: 'account-2',
@@ -1089,7 +1053,6 @@ describe('RewardsDashboard', () => {
         if (selector === selectRewardsSubscriptionId)
           return defaultSelectorValues.subscriptionId;
         if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return true;
         if (selector === selectHideUnlinkedAccountsBanner)
           return defaultSelectorValues.hideUnlinkedAccountsBanner;
         if (selector === selectHideCurrentAccountNotOptedInBannerArray)
@@ -1100,59 +1063,53 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { getAllByTestId } = render(<RewardsDashboard />);
-      const banners = getAllByTestId('rewards-info-banner');
+      render(<RewardsDashboard />);
 
-      // Assert - Should show unlinked accounts banner
-      expect(banners.length).toBe(1);
+      // Assert - Should show unlinked accounts modal
+      expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
+      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
+    });
+
+    it('should prioritize not supported modal over other modals', () => {
+      // Arrange
+      mockUseRewardOptinSummary.mockReturnValue({
+        ...defaultHookValues.useRewardOptinSummary,
+        currentAccountSupported: false,
+        unlinkedAccounts: [
+          {
+            id: 'account-2',
+            address: '0x456',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {
+              name: 'Account 2',
+              importTime: Date.now(),
+              keyring: { type: 'HD Key Tree' },
+            },
+            scopes: ['eip155:1'] as `${string}:${string}`[],
+            methods: ['eth_sendTransaction'],
+            hasOptedIn: false,
+          },
+        ],
+      });
+
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert - Should prioritize not supported modal
+      expect(mockShowNotSupportedModal).toHaveBeenCalled();
+      expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
+      expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
     });
   });
 
   describe('hook integration', () => {
-    it('should call useRewardOptinSummary with correct parameters', () => {
+    it('should call useRewardDashboardModals hook', () => {
       // Act
       render(<RewardsDashboard />);
 
       // Assert
-      expect(mockUseRewardOptinSummary).toHaveBeenCalledWith({
-        enabled: !defaultSelectorValues.hideUnlinkedAccountsBanner,
-      });
-    });
-
-    it('should call useLinkAccount hook', () => {
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockUseLinkAccount).toHaveBeenCalled();
-    });
-
-    it('should call convertInternalAccountToCaipAccountId when needed', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return defaultSelectorValues.seasonId;
-        if (selector === selectRewardsActiveAccountHasOptedIn) return false;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedInternalAccount)
-          return defaultSelectorValues.selectedAccount;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockConvertInternalAccountToCaipAccountId).toHaveBeenCalledWith(
-        mockSelectedAccount,
-      );
+      expect(mockUseRewardDashboardModals).toHaveBeenCalled();
     });
   });
 
