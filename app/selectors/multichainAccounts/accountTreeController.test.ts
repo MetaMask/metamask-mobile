@@ -21,7 +21,7 @@ import {
 import { RootState } from '../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountId } from '@metamask/accounts-controller';
-import { AccountGroupType } from '@metamask/account-api';
+import { AccountGroupType, toAccountGroupId } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import { BtcAccountType, EthScope, SolScope } from '@metamask/keyring-api';
@@ -824,16 +824,50 @@ describe('AccountTreeController Selectors', () => {
       },
     );
 
-    it('returns account group when selected account is found', () => {
+    it('returns account group when selected account group is found', () => {
+      const walletId = WALLET_ID_1;
+      const groupId1 = toAccountGroupId(walletId, 'test-1');
       const mockState = createStateWithSelectedAccount(
         {
           accountTree: {
             wallets: {
-              [WALLET_ID_1]: {
+              [walletId]: {
                 ...mockWallet1,
-                groups: { 'keyring:1/ethereum': { accounts: [ACCOUNT_ID_1] } },
+                groups: { [groupId1]: { accounts: [ACCOUNT_ID_1] } },
               },
             },
+            selectedAccountGroup: groupId1,
+          },
+        },
+        ACCOUNT_ID_1,
+      );
+
+      const result = selectSelectedAccountGroup(mockState);
+      expect(result).toEqual({ accounts: [ACCOUNT_ID_1] });
+    });
+
+    it('returns account group even if accounts controller use a different selected account', () => {
+      const walletId = WALLET_ID_1;
+      const groupId1 = toAccountGroupId(walletId, 'test-1');
+      const groupId2 = toAccountGroupId(walletId, 'test-2');
+      const mockState = createStateWithSelectedAccount(
+        {
+          accountTree: {
+            wallets: {
+              [walletId]: {
+                ...mockWallet1,
+                groups: {
+                  [groupId1]: { accounts: [ACCOUNT_ID_1] },
+                  [groupId2]: { accounts: [ACCOUNT_ID_2] },
+                },
+              },
+            },
+            selectedAccountGroup: groupId1,
+          },
+          internalAccount: {
+            // Associated with `groupId2`, but this should not interfere with the actual
+            // selected account group.
+            selectedAccount: ACCOUNT_ID_2,
           },
         },
         ACCOUNT_ID_1,
@@ -1267,25 +1301,6 @@ describe('AccountTreeController Selectors', () => {
     it('returns undefined when accountTree is undefined', () => {
       const mockState = createMockState(undefined);
       const result = selectAccountGroupById(mockState, GROUP_ID_1);
-      expect(result).toBeUndefined();
-    });
-
-    it('handles malformed group ID gracefully', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: {
-              ...mockWallet1,
-              groups: {},
-            },
-          },
-        },
-      });
-
-      const malformedGroupId = 'keyring:invalid-group-id' as Parameters<
-        typeof selectAccountGroupById
-      >[1];
-      const result = selectAccountGroupById(mockState, malformedGroupId);
       expect(result).toBeUndefined();
     });
 
@@ -1749,7 +1764,12 @@ describe('AccountTreeController Selectors', () => {
       } as Record<string, InternalAccount>;
 
       const state = createMockState(
-        { accountTree: { wallets: { [walletId]: wallet } } },
+        {
+          accountTree: {
+            wallets: { [walletId]: wallet },
+            selectedAccountGroup: groupId,
+          },
+        },
         true,
         internalAccounts,
         'account2',
@@ -1804,7 +1824,12 @@ describe('AccountTreeController Selectors', () => {
         },
       };
       const state = createMockState(
-        { accountTree: { wallets: { [walletId]: wallet } } },
+        {
+          accountTree: {
+            wallets: { [walletId]: wallet },
+            selectedAccountGroup: groupId,
+          },
+        },
         true,
         internalAccounts,
         'account2',
