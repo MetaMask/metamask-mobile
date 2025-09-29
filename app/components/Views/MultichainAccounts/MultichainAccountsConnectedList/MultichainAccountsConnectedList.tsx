@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 // external dependencies
@@ -53,11 +53,14 @@ const MultichainAccountsConnectedList = ({
 
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const accountGroups = useSelector(selectAccountGroups);
+
+  const accountGroupIds = useMemo(
+    () => selectedAccountGroups.map((group) => group.id),
+    [selectedAccountGroups],
+  );
+
   const iconSeedAddresses = useSelector((state: RootState) =>
-    selectIconSeedAddressesByAccountGroupIds(
-      state,
-      selectedAccountGroups.map((group) => group.id),
-    ),
+    selectIconSeedAddressesByAccountGroupIds(state, accountGroupIds),
   );
 
   const handleSelectAccount = useCallback(
