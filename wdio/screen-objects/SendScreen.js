@@ -210,11 +210,6 @@ class SendScreen {
     const selectAddressScreen = await AppwrightSelectors.getElementByCatchAll(this._device, 'Enter address to send to');
     appwrightExpect(await selectAddressScreen).toBeVisible();
   }
-
-  async clickOnReviewButton() {
-    const reviewButton = await this.reviewButton;
-    await reviewButton.tap();
-  }
 }
 
 export default new SendScreen();
