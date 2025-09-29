@@ -131,10 +131,12 @@ import {
   SelectedNetworkControllerState,
 } from '@metamask/selected-network-controller';
 import {
+  type CaveatSpecificationConstraint,
   PermissionController,
   PermissionControllerActions,
   PermissionControllerEvents,
   PermissionControllerState,
+  type PermissionSpecificationConstraint,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
   SubjectMetadataControllerActions,
@@ -517,10 +519,10 @@ export type Controllers = {
   NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
   NftDetectionController: NftDetectionController;
-  // TODO: Fix permission types
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  PermissionController: PermissionController<any, any>;
+  PermissionController: PermissionController<
+    PermissionSpecificationConstraint,
+    CaveatSpecificationConstraint
+  >;
   SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
@@ -698,6 +700,7 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TransactionController'
+  | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
   | 'BridgeController'
