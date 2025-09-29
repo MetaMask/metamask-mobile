@@ -682,14 +682,19 @@ startWatcher() {
 	fi
 }
 
+# TODO: Refactor this check to be environment specific
 checkAuthToken() {
 	local propertiesFileName="$1"
 
 	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
 		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
-		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
-		exit 1
+		if [ "$ENVIRONMENT" == "production" ]; then
+			printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
+			exit 1
+		else
+			echo "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
+		fi
 	fi
 
 	if [ ! -e "./${propertiesFileName}" ]; then
@@ -697,8 +702,12 @@ checkAuthToken() {
 			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
 			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
 		else
-			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
-			exit 1
+			if [ "$ENVIRONMENT" == "production" ]; then
+				printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
+				exit 1
+			else
+				echo "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
+			fi
 		fi
 	fi
 }
