@@ -13,6 +13,7 @@ import {
   Dimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  View,
 } from 'react-native';
 
 // External dependencies.
@@ -34,7 +35,14 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       Dimensions.get('window').width,
     );
     const [loadedTabs, setLoadedTabs] = useState<Set<number>>(new Set());
+    const [tabHeights, setTabHeights] = useState<Map<number, number>>(
+      new Map(),
+    );
+    const [scrollViewHeight, setScrollViewHeight] = useState<
+      number | undefined
+    >(undefined);
     const scrollViewRef = useRef<ScrollView>(null);
+    const tabContentRefs = useRef<Map<number, View>>(new Map());
     const isScrolling = useRef(false);
     const isProgrammaticScroll = useRef(false);
     const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -121,6 +129,44 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       if (activeIndex < 0 || activeIndex >= tabs.length) return false;
       return !tabs[activeIndex]?.isDisabled;
     }, [hasAnyEnabledTabs, activeIndex, tabs]);
+
+    // Function to measure tab content height
+    const measureTabHeight = useCallback((tabIndex: number) => {
+      const tabContentRef = tabContentRefs.current.get(tabIndex);
+      if (tabContentRef) {
+        // Use requestAnimationFrame to ensure measurement happens after render
+        requestAnimationFrame(() => {
+          tabContentRef.measure(
+            (_x: number, _y: number, _width: number, height: number) => {
+              if (height > 0) {
+                setTabHeights((prev) => {
+                  const newHeights = new Map(prev);
+                  newHeights.set(tabIndex, height);
+                  return newHeights;
+                });
+              }
+            },
+          );
+        });
+      }
+    }, []);
+
+    // Update ScrollView height when active tab changes
+    useEffect(() => {
+      const currentTabHeight = tabHeights.get(activeIndex);
+      if (currentTabHeight && currentTabHeight > 0) {
+        setScrollViewHeight(currentTabHeight);
+      } else if (activeIndex >= 0 && loadedTabs.has(activeIndex)) {
+        // If height not measured yet, trigger measurement
+        // Small delay to ensure content is rendered
+        setTimeout(() => {
+          measureTabHeight(activeIndex);
+        }, 100);
+      } else {
+        // Reset to undefined when no height is available
+        setScrollViewHeight(undefined);
+      }
+    }, [activeIndex, tabHeights, loadedTabs, measureTabHeight]);
 
     // Load tab content on-demand when tab becomes active for the first time
     useEffect(() => {
@@ -428,39 +474,69 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     );
 
     return (
-      <Box twClassName="flex-1" testID={testID} {...boxProps}>
+      <Box testID={testID} {...boxProps}>
         {/* Render TabsBar */}
         <TabsBar {...tabBarProps} />
 
         {/* Horizontal ScrollView for tab contents */}
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          onScrollAnimationEnd={handleScrollEnd}
-          onScrollBeginDrag={handleScrollBegin}
-          onScrollEndDrag={handleScrollEnd}
-          onMomentumScrollBegin={handleScrollBegin}
-          onMomentumScrollEnd={handleScrollEnd}
-          scrollEventThrottle={16}
-          onLayout={handleLayout}
-          style={tw.style('flex-1 mt-2')}
-          decelerationRate="fast"
-          testID={testID ? `${testID}-content` : undefined}
+        <View
+          style={tw.style(
+            'mt-2',
+            scrollViewHeight ? 'overflow-hidden' : '',
+            scrollViewHeight ? { height: scrollViewHeight } : {},
+          )}
         >
-          {enabledTabs.map((enabledTab) => (
-            <Box
-              key={enabledTab.key}
-              style={tw.style('flex-1', { width: containerWidth })}
-            >
-              {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
-                ? enabledTab.content
-                : null}
-            </Box>
-          ))}
-        </ScrollView>
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            onScrollAnimationEnd={handleScrollEnd}
+            onScrollBeginDrag={handleScrollBegin}
+            onScrollEndDrag={handleScrollEnd}
+            onMomentumScrollBegin={handleScrollBegin}
+            onMomentumScrollEnd={handleScrollEnd}
+            scrollEventThrottle={16}
+            onLayout={handleLayout}
+            style={tw.style('w-full h-full')}
+            decelerationRate="fast"
+            testID={testID ? `${testID}-content` : undefined}
+          >
+            {enabledTabs.map((enabledTab) => (
+              <View
+                key={enabledTab.key}
+                style={tw.style({ width: containerWidth })}
+              >
+                <View
+                  ref={(viewRef) => {
+                    if (viewRef) {
+                      tabContentRefs.current.set(
+                        enabledTab.originalIndex,
+                        viewRef,
+                      );
+                    }
+                  }}
+                  onLayout={(layoutEvent) => {
+                    // Get height directly from layout event
+                    const { height } = layoutEvent.nativeEvent.layout;
+                    if (height > 0) {
+                      setTabHeights((prev) => {
+                        const newHeights = new Map(prev);
+                        newHeights.set(enabledTab.originalIndex, height);
+                        return newHeights;
+                      });
+                    }
+                  }}
+                >
+                  {loadedTabs.has(enabledTab.originalIndex) && shouldShowContent
+                    ? enabledTab.content
+                    : null}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
       </Box>
     );
   },

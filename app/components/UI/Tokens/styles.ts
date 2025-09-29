@@ -11,7 +11,6 @@ const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      flex: 1,
     },
     bottomSheetWrapper: {
       alignItems: 'flex-start',
@@ -64,7 +63,6 @@ const createStyles = (colors: Colors) =>
       ...fontStyles.normal,
     },
     footer: {
-      flex: 1,
       paddingBottom: 30,
       alignItems: 'center',
       marginTop: 9,

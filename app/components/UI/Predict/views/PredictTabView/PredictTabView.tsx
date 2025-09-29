@@ -85,7 +85,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   );
 
   const renderLoadingState = () => (
-    <Box style={tw.style('flex-1 px-4 py-4')}>
+    <Box style={tw.style('px-4 py-4')}>
       <Skeleton
         testID="skeleton-loading-1"
         height={40}
@@ -120,7 +120,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   );
 
   const renderErrorState = () => (
-    <View style={tw.style('flex-1 justify-center items-center px-6 py-12')}>
+    <View style={tw.style('justify-center items-center px-6 py-12 min-h-48')}>
       <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
         {error}
       </Text>
@@ -128,19 +128,15 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   );
 
   if (isLoading || (isRefreshing && positions.length === 0)) {
-    return (
-      <View style={tw.style('flex-1 bg-default')}>{renderLoadingState()}</View>
-    );
+    return <View style={tw.style('bg-default')}>{renderLoadingState()}</View>;
   }
 
   if (error) {
-    return (
-      <View style={tw.style('flex-1 bg-default')}>{renderErrorState()}</View>
-    );
+    return <View style={tw.style('bg-default')}>{renderErrorState()}</View>;
   }
 
   return (
-    <View style={tw.style('flex-1 bg-default')}>
+    <View style={tw.style('bg-default')}>
       <FlashList
         ref={listRef}
         data={positions}

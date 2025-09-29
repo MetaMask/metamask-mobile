@@ -16,12 +16,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 8,
     },
     wrapper: {
-      flex: 1,
       backgroundColor: colors.background.default,
     },
-    content: {
-      flex: 1,
-    },
+    content: {},
     contentContainer: {
       flexGrow: 1,
     },

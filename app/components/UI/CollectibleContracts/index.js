@@ -88,12 +88,10 @@ const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      flex: 1,
       marginTop: 16,
     },
     BarWrapper: {
       backgroundColor: colors.background.default,
-      flex: 1,
     },
     actionBarWrapper: {
       flexDirection: 'row',
@@ -137,7 +135,6 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     footer: {
-      flex: 1,
       alignItems: 'center',
       marginTop: 8,
     },

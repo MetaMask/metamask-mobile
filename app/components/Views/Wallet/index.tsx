@@ -198,7 +198,6 @@ const createStyles = ({ colors }: Theme) =>
 
     tabContainer: {
       paddingHorizontal: 16,
-      flex: 1,
     },
     loader: {
       backgroundColor: colors.background.default,
