@@ -87,7 +87,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         {children}
       </Text>
     ),
-    ButtonBase: ({
+    Button: ({
       children,
       onPress,
       testID,
@@ -101,7 +101,7 @@ jest.mock('@metamask/design-system-react-native', () => {
         accessibilityState={{ disabled }}
         {...props}
       >
-        {children}
+        <Text>{children}</Text>
       </TouchableOpacity>
     ),
     BoxFlexDirection: {
@@ -109,6 +109,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     BoxAlignItems: {
       Center: 'center',
+    },
+    ButtonSize: {
+      Sm: 'sm',
+      Md: 'md',
+      Lg: 'lg',
+    },
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+      Link: 'link',
     },
     FontWeight: {
       Medium: 'medium',

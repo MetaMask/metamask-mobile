@@ -5,9 +5,11 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  ButtonBase,
   BoxFlexDirection,
   BoxAlignItems,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
@@ -40,7 +42,9 @@ import {
   USDC_TOKEN_ICON_URL,
 } from '../../constants/hyperLiquidConfig';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
-import images from '../../../../../images/image-icons';
+import HyperLiquidLogo from '../../../../../images/hl_icon.png';
+import stylesheet from './PerpsMarketBalanceActions.styles';
+import { useStyles } from '../../../../hooks/useStyles';
 
 interface PerpsMarketBalanceActionsProps {}
 
@@ -50,6 +54,8 @@ const PerpsMarketBalanceActions: React.FC<
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isEligible = useSelector(selectPerpsEligibility);
+
+  const { styles } = useStyles(stylesheet, {});
 
   // State for eligibility modal
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -170,20 +176,13 @@ const PerpsMarketBalanceActions: React.FC<
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
       >
         {/* Balance Section */}
-        <Box twClassName="mb-4">
+        <Box twClassName="mb-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="justify-between"
           >
             <Box>
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                style={tw.style('mb-1')}
-              >
-                {strings('perps.available_balance')}
-              </Text>
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <Text
                   variant={TextVariant.HeadingMD}
@@ -193,23 +192,28 @@ const PerpsMarketBalanceActions: React.FC<
                   {formatPerpsFiat(availableBalance)}
                 </Text>
               </Animated.View>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {strings('perps.available_balance')}
+              </Text>
             </Box>
 
             {/* USDC Token Avatar with HyperLiquid Badge */}
             <BadgeWrapper
+              style={styles.assetIconWrapper}
               badgePosition={BadgePosition.BottomRight}
               badgeElement={
                 <Badge
                   variant={BadgeVariant.Network}
-                  imageSource={images.HL}
+                  imageSource={HyperLiquidLogo}
                   name="HyperLiquid"
+                  style={styles.hyperliquidIcon}
                 />
               }
             >
               <AvatarToken
                 name={USDC_SYMBOL}
                 imageSource={{ uri: USDC_TOKEN_ICON_URL }}
-                size={AvatarSize.Lg}
+                size={AvatarSize.Md}
               />
             </BadgeWrapper>
           </Box>
@@ -219,47 +223,31 @@ const PerpsMarketBalanceActions: React.FC<
         <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
           {/* Add Funds Button */}
           <Box twClassName="flex-1">
-            <ButtonBase
-              twClassName="h-12 rounded-xl"
-              style={({ pressed }) =>
-                tw.style(
-                  'bg-subsection flex-row items-center justify-center w-full',
-                  pressed && 'bg-background-pressed',
-                )
+            <Button
+              variant={
+                isBalanceEmpty ? ButtonVariant.Primary : ButtonVariant.Secondary
               }
+              size={ButtonSize.Lg}
               onPress={handleAddFunds}
+              isFullWidth
               testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
             >
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-              >
-                {strings('perps.add_funds')}
-              </Text>
-            </ButtonBase>
+              {strings('perps.add_funds')}
+            </Button>
           </Box>
 
           {/* Withdraw Button */}
           {!isBalanceEmpty && (
             <Box twClassName="flex-1">
-              <ButtonBase
-                twClassName="h-12 rounded-xl"
-                style={({ pressed }) =>
-                  tw.style(
-                    'bg-subsection flex-row items-center justify-center w-full',
-                    pressed && 'bg-background-pressed',
-                  )
-                }
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
                 onPress={handleWithdraw}
+                isFullWidth
                 testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
               >
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {strings('perps.withdraw')}
-                </Text>
-              </ButtonBase>
+                {strings('perps.withdraw')}
+              </Button>
             </Box>
           )}
         </Box>
