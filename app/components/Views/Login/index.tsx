@@ -55,6 +55,7 @@ import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import {
   trace,
@@ -279,6 +280,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
+    // Track vault corruption handling attempt
+    trackVaultCorruption(VAULT_ERROR, {
+      error_type: 'vault_corruption_handling',
+      context: 'vault_corruption_recovery_attempt',
+      oauth_login: isComingFromOauthOnboarding,
+    });
+
     // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
@@ -314,8 +322,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
       }
     } catch (e: unknown) {
+      // Track vault corruption handling failure
+      trackVaultCorruption((e as Error).message, {
+        error_type: 'vault_corruption_handling_failed',
+        context: 'vault_corruption_recovery_failed',
+        oauth_login: isComingFromOauthOnboarding,
+      });
+
       Logger.error(e as Error);
       setLoading(false);
+
       setError(strings('login.invalid_password'));
     }
   };
@@ -506,6 +522,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
 
     setLoading(false);
+
     setError(strings('login.invalid_password'));
     trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   };
@@ -550,6 +567,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       containsErrorMessage(loginError, VAULT_ERROR) ||
       containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
     ) {
+      // Track vault corruption detected
+      trackVaultCorruption(loginErrorMessage, {
+        error_type: containsErrorMessage(loginError, VAULT_ERROR)
+          ? 'vault_error'
+          : 'json_parse_error',
+        context: 'login_authentication',
+        oauth_login: isComingFromOauthOnboarding,
+      });
+
       await handleVaultCorruption();
     } else if (toLowerCaseEquals(loginErrorMessage, DENY_PIN_ERROR_ANDROID)) {
       updateBiometryChoice(false);

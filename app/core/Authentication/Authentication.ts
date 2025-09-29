@@ -72,6 +72,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { renewSeedlessControllerRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
+import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -614,7 +615,6 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
-
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -651,10 +651,18 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      const errorMessage = (e as Error).message;
+
+      // Track authentication failures that could indicate vault/keychain issues to Segment
+      trackVaultCorruption(errorMessage, {
+        error_type: 'authentication_service_failure',
+        context: 'app_triggered_auth_failed',
+      });
+
       ReduxService.store.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
-        (e as Error).message,
+        errorMessage,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
         this.authData,
       );
