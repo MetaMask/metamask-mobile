@@ -118,7 +118,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             requiredScopes: {},
             optionalScopes: {},
             sessionProperties: {},
-            isMultichainOrigin: true,
+            isMultichainOrigin: false,
           },
     [existingPermissionsForHost, hostInfo?.metadata?.origin],
   );
