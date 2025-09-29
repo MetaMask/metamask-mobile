@@ -36,12 +36,6 @@ export const selectRewardsSubscriptionId = createSelector(
   },
 );
 
-export const selectRewardsActiveAccountHasOptedIn = createSelector(
-  selectRewardsControllerState,
-  (rewardsControllerState): boolean | null =>
-    rewardsControllerState.activeAccount?.hasOptedIn ?? null,
-);
-
 export const selectRewardsActiveAccountAddress = createSelector(
   selectRewardsControllerState,
   (rewardsControllerState): string | null => {
