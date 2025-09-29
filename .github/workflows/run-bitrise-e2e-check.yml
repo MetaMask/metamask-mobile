@@ -58,4 +58,4 @@ jobs:
         run: yarn run run-bitrise-e2e-check
         working-directory: '.github/scripts'
 
-        
+
