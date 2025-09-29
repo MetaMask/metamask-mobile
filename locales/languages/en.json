@@ -885,6 +885,7 @@
       "title": "Amount to deposit",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "Insufficient funds",
+      "no_funds_available": "No funds available. Please deposit first.",
       "enter_amount": "Enter amount",
       "fetching_quote": "Fetching quote",
       "submitting": "Submitting transaction",
