@@ -189,9 +189,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     if (isE2E) {
       setAnimationStep(3);
       setShowButtons(true);
-      if (currentOnDone) {
-        setTimeout(() => currentOnDone(), 500);
-      }
       return;
     }
 
