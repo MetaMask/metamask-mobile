@@ -39,18 +39,12 @@ export const segmentPersistor: Persistor = {
         // TODO: Remove this once the issue is fixed in the Segment SDK
         if (parsed && typeof parsed === 'object' && parsed.events) {
           // Old format: {"events": [...]} - extract the events array
-          // eslint-disable-next-line no-console
-          console.debug(
-            'SegmentPersistor: Migrating from object format to array format',
-          );
           return (Array.isArray(parsed.events) ? parsed.events : []) as T;
         } else if (Array.isArray(parsed)) {
           // New format: [...] - return as is
           return parsed as T;
         }
         // Fallback: return empty array
-        // eslint-disable-next-line no-console
-        console.debug('SegmentPersistor: Using fallback empty array');
         return [] as T;
       }
 
