@@ -57,3 +57,5 @@ jobs:
         # For example, the status check may show as `CLA Signature Bot / Bitrise E2E Status`. This is a bug on Github's UI. https://github.com/orgs/community/discussions/24616
         run: yarn run run-bitrise-e2e-check
         working-directory: '.github/scripts'
+
+        
