@@ -70,7 +70,7 @@ describe('useRewardsToast', () => {
   });
 
   describe('showToast function', () => {
-    it('calls toastRef showToast and triggers haptic feedback', () => {
+    it('calls toastRef showToast and triggers haptic feedback', async () => {
       const { result } = renderHook(() => useRewardsToast());
 
       const testConfig: RewardsToastOptions = {
@@ -81,8 +81,10 @@ describe('useRewardsToast', () => {
         hasNoTimeout: false,
       };
 
-      act(() => {
+      await act(async () => {
         result.current.showToast(testConfig);
+        // Wait for any pending promises to settle
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       expect(mockShowToast).toHaveBeenCalledWith(testConfig);
@@ -199,6 +201,138 @@ describe('useRewardsToast', () => {
       config.closeButtonOptions?.onPress?.();
 
       expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('edge cases and error handling', () => {
+    it('handles null toastRef gracefully in showToast', async () => {
+      (useContext as jest.Mock).mockReturnValue({ toastRef: null });
+      const { result } = renderHook(() => useRewardsToast());
+
+      const testConfig: RewardsToastOptions = {
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        hapticsType: NotificationFeedbackType.Success,
+        labelOptions: [{ label: 'Test', isBold: true }],
+        hasNoTimeout: false,
+      };
+
+      // Should not throw error when toastRef is null
+      expect(() => {
+        act(() => {
+          result.current.showToast(testConfig);
+        });
+      }).not.toThrow();
+
+      // Wait for any pending promises to settle
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Haptic feedback should still be called
+      expect(notificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Success,
+      );
+    });
+
+    it('handles undefined toastRef.current gracefully in showToast', async () => {
+      (useContext as jest.Mock).mockReturnValue({
+        toastRef: { current: null },
+      });
+      const { result } = renderHook(() => useRewardsToast());
+
+      const testConfig: RewardsToastOptions = {
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        hapticsType: NotificationFeedbackType.Success,
+        labelOptions: [{ label: 'Test', isBold: true }],
+        hasNoTimeout: false,
+      };
+
+      // Should not throw error when toastRef.current is null
+      expect(() => {
+        act(() => {
+          result.current.showToast(testConfig);
+        });
+      }).not.toThrow();
+
+      // Wait for any pending promises to settle
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Haptic feedback should still be called
+      expect(notificationAsync).toHaveBeenCalledWith(
+        NotificationFeedbackType.Success,
+      );
+    });
+
+    it('handles null toastRef gracefully in close button', () => {
+      (useContext as jest.Mock).mockReturnValue({ toastRef: null });
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.success('Test Title');
+
+      // Should not throw error when toastRef is null
+      expect(() => {
+        config.closeButtonOptions?.onPress?.();
+      }).not.toThrow();
+    });
+
+    it('handles empty string title', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.success('');
+
+      expect(config.labelOptions).toEqual([{ label: '', isBold: true }]);
+    });
+
+    it('handles only whitespace title', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.success('   ');
+
+      expect(config.labelOptions).toEqual([{ label: '   ', isBold: true }]);
+    });
+  });
+
+  describe('memoization and dependency changes', () => {
+    it('recreates RewardsToastOptions when toastRef changes', () => {
+      const mockToastRef1 = {
+        current: { showToast: jest.fn(), closeToast: jest.fn() },
+      };
+      const mockToastRef2 = {
+        current: { showToast: jest.fn(), closeToast: jest.fn() },
+      };
+
+      (useContext as jest.Mock).mockReturnValue({ toastRef: mockToastRef1 });
+      const { result, rerender } = renderHook(() => useRewardsToast());
+
+      // Change toastRef
+      (useContext as jest.Mock).mockReturnValue({ toastRef: mockToastRef2 });
+      rerender();
+
+      const newConfig = result.current.RewardsToastOptions.success('Test');
+
+      // Call close button onPress to verify it uses new toastRef
+      newConfig.closeButtonOptions?.onPress?.();
+      expect(mockToastRef2.current.closeToast).toHaveBeenCalled();
+      expect(mockToastRef1.current.closeToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('default options merging', () => {
+    it('applies default options to success configuration', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.success('Test Title');
+
+      // Default options should be applied
+      expect(config.hasNoTimeout).toBe(false);
+    });
+
+    it('applies default options to error configuration', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.error('Error Title');
+
+      // Default options should be applied
+      expect(config.hasNoTimeout).toBe(false);
     });
   });
 

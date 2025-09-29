@@ -129,14 +129,19 @@ describe('useOptout', () => {
       const { result } = renderHook(() => useOptout());
 
       // Act
+      let optoutResult: boolean | undefined;
       await act(async () => {
-        await result.current.optout();
+        optoutResult = await result.current.optout();
       });
 
       // Assert
+      expect(optoutResult).toBe(true);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optOut',
         mockSubscriptionId,
+      );
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'useOptout: Starting opt-out process',
       );
       expect(mockLoggerLog).toHaveBeenCalledWith(
         'useOptout: Opt-out successful, resetting state',
@@ -153,14 +158,19 @@ describe('useOptout', () => {
       const { result } = renderHook(() => useOptout());
 
       // Act
+      let optoutResult: boolean | undefined;
       await act(async () => {
-        await result.current.optout();
+        optoutResult = await result.current.optout();
       });
 
       // Assert
+      expect(optoutResult).toBe(false);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optOut',
         mockSubscriptionId,
+      );
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'useOptout: Starting opt-out process',
       );
       expect(mockLoggerLog).toHaveBeenCalledWith(
         'useOptout: Opt-out failed - controller returned false',
@@ -178,14 +188,19 @@ describe('useOptout', () => {
       const { result } = renderHook(() => useOptout());
 
       // Act
+      let optoutResult: boolean | undefined;
       await act(async () => {
-        await result.current.optout();
+        optoutResult = await result.current.optout();
       });
 
       // Assert
+      expect(optoutResult).toBe(false);
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optOut',
         mockSubscriptionId,
+      );
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'useOptout: Starting opt-out process',
       );
       expect(mockLoggerLog).toHaveBeenCalledWith(
         'useOptout: Opt-out failed with exception:',
@@ -197,26 +212,29 @@ describe('useOptout', () => {
     });
 
     it('should not proceed if already loading', async () => {
-      // Mock implementation with loading state
-      jest
-        .spyOn(jest.requireActual('./useOptout'), 'useOptout')
-        .mockImplementation(() => ({
-          optout: async () => {
-            // This function should do nothing when isLoading is true
-          },
-          isLoading: true,
-          showOptoutBottomSheet: jest.fn(),
-        }));
-
+      // Arrange
       const { result } = renderHook(() => useOptout());
 
-      // Act
-      await act(async () => {
-        await result.current.optout();
-      });
+      // Set loading to true by triggering an optout that doesn't resolve immediately
+      const slowPromise = new Promise((resolve) =>
+        setTimeout(() => resolve(true), 100),
+      );
+      mockEngineCall.mockReturnValueOnce(slowPromise);
 
-      // Assert
-      expect(mockEngineCall).not.toHaveBeenCalled();
+      // Start first opt-out (this will set isLoading to true)
+      const firstOptoutPromise = result.current.optout();
+
+      // Act - Try to call optout while already loading
+      const secondOptoutResult = await result.current.optout();
+
+      // Assert - Second call should return false immediately without calling controller
+      expect(secondOptoutResult).toBe(false);
+      expect(mockEngineCall).toHaveBeenCalledTimes(1); // Only called once from the first optout
+
+      // Clean up the first promise
+      await act(async () => {
+        await firstOptoutPromise;
+      });
     });
 
     it('should not proceed if no subscription ID', async () => {
@@ -231,12 +249,15 @@ describe('useOptout', () => {
       const { result } = renderHook(() => useOptout());
 
       // Act
+      let optoutResult: boolean | undefined;
       await act(async () => {
-        await result.current.optout();
+        optoutResult = await result.current.optout();
       });
 
       // Assert
+      expect(optoutResult).toBe(false);
       expect(mockEngineCall).not.toHaveBeenCalled();
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -406,6 +427,257 @@ describe('useOptout', () => {
           }),
         }),
       );
+    });
+
+    it('should navigate to WALLET_VIEW after successful opt-out from modal', async () => {
+      // Arrange
+      mockEngineCall.mockResolvedValueOnce(true);
+      const { result } = renderHook(() => useOptout());
+
+      // Act - Show the modal
+      act(() => {
+        result.current.showOptoutBottomSheet();
+      });
+
+      // Get the confirmAction onPress function from the modal params
+      const modalParams = mockNavigate.mock.calls[0][1];
+      const handleOptoutConfirm = modalParams.confirmAction.onPress;
+
+      // Act - Trigger confirm action (this should call optout and navigate on success)
+      await act(async () => {
+        await handleOptoutConfirm();
+      });
+
+      // Assert
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optOut',
+        mockSubscriptionId,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(mockResetRewardsState());
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    });
+
+    it('should not navigate after failed opt-out from modal', async () => {
+      // Arrange
+      mockEngineCall.mockResolvedValueOnce(false);
+      const { result } = renderHook(() => useOptout());
+
+      // Reset navigate mock to only track calls after modal is shown
+      jest.clearAllMocks();
+
+      // Act - Show the modal
+      act(() => {
+        result.current.showOptoutBottomSheet();
+      });
+
+      // Get the confirmAction onPress function from the modal params
+      const modalParams = mockNavigate.mock.calls[0][1];
+      const handleOptoutConfirm = modalParams.confirmAction.onPress;
+
+      // Act - Trigger confirm action (this should call optout but not navigate on failure)
+      await act(async () => {
+        await handleOptoutConfirm();
+      });
+
+      // Assert
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optOut',
+        mockSubscriptionId,
+      );
+      expect(mockErrorToast).toHaveBeenCalledWith('Failed to opt out');
+      expect(mockShowToast).toHaveBeenCalled();
+      // Should not navigate to WALLET_VIEW after failure
+      expect(mockNavigate).toHaveBeenCalledTimes(1); // Only the initial modal navigation
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    });
+
+    it('should not navigate after exception during opt-out from modal', async () => {
+      // Arrange
+      const testError = new Error('Controller error');
+      mockEngineCall.mockRejectedValueOnce(testError);
+      const { result } = renderHook(() => useOptout());
+
+      // Reset navigate mock to only track calls after modal is shown
+      jest.clearAllMocks();
+
+      // Act - Show the modal
+      act(() => {
+        result.current.showOptoutBottomSheet();
+      });
+
+      // Get the confirmAction onPress function from the modal params
+      const modalParams = mockNavigate.mock.calls[0][1];
+      const handleOptoutConfirm = modalParams.confirmAction.onPress;
+
+      // Act - Trigger confirm action (this should call optout but not navigate on exception)
+      await act(async () => {
+        await handleOptoutConfirm();
+      });
+
+      // Assert
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:optOut',
+        mockSubscriptionId,
+      );
+      expect(mockErrorToast).toHaveBeenCalledWith('Failed to opt out');
+      expect(mockShowToast).toHaveBeenCalled();
+      // Should not navigate to WALLET_VIEW after exception
+      expect(mockNavigate).toHaveBeenCalledTimes(1); // Only the initial modal navigation
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    });
+  });
+
+  describe('edge cases and scenarios', () => {
+    it('should handle empty/undefined subscription ID', async () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectRewardsSubscriptionId) {
+          return undefined;
+        }
+        return selector({});
+      });
+
+      const { result } = renderHook(() => useOptout());
+
+      // Act
+      let optoutResult: boolean | undefined;
+      await act(async () => {
+        optoutResult = await result.current.optout();
+      });
+
+      // Assert
+      expect(optoutResult).toBe(false);
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
+
+    it('should handle empty string subscription ID', async () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectRewardsSubscriptionId) {
+          return '';
+        }
+        return selector({});
+      });
+
+      const { result } = renderHook(() => useOptout());
+
+      // Act
+      let optoutResult: boolean | undefined;
+      await act(async () => {
+        optoutResult = await result.current.optout();
+      });
+
+      // Assert
+      expect(optoutResult).toBe(false);
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    });
+
+    it('should show correct modal params with custom dismiss route', () => {
+      // Arrange
+      const customDismissRoute = 'CustomRoute';
+      const { result } = renderHook(() => useOptout());
+
+      // Act
+      act(() => {
+        result.current.showOptoutBottomSheet(customDismissRoute);
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.objectContaining({
+          title: 'Are you sure?',
+          description: 'This action cannot be undone',
+          type: ModalType.Danger,
+          onCancel: expect.any(Function),
+          confirmAction: expect.objectContaining({
+            label: 'Confirm',
+            onPress: expect.any(Function),
+            variant: ButtonVariant.Primary,
+            disabled: false,
+          }),
+        }),
+      );
+
+      // Test the cancel action with custom dismiss route
+      const onCancel = mockNavigate.mock.calls[0][1].onCancel;
+      act(() => {
+        onCancel();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(customDismissRoute);
+    });
+
+    it('should handle multiple rapid calls to showOptoutBottomSheet', () => {
+      // Arrange
+      const { result } = renderHook(() => useOptout());
+
+      // Act - Call showOptoutBottomSheet multiple times rapidly
+      act(() => {
+        result.current.showOptoutBottomSheet('Route1');
+        result.current.showOptoutBottomSheet('Route2');
+        result.current.showOptoutBottomSheet('Route3');
+      });
+
+      // Assert - Should have been called 3 times, with the last call using 'Route3'
+      expect(mockNavigate).toHaveBeenCalledTimes(3);
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+        expect.any(Object),
+      );
+    });
+  });
+
+  describe('callback dependencies and memoization', () => {
+    it('should recreate optout callback when dependencies change', () => {
+      // Arrange
+      const { result, rerender } = renderHook(() => useOptout());
+      const initialOptout = result.current.optout;
+
+      // Change subscription ID
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectRewardsSubscriptionId) {
+          return 'new-subscription-id';
+        }
+        return selector({});
+      });
+
+      // Act
+      rerender();
+
+      // Assert
+      expect(result.current.optout).not.toBe(initialOptout);
+    });
+
+    it('should recreate showOptoutBottomSheet callback when dependencies change', () => {
+      // Arrange
+      const { result, rerender } = renderHook(() => useOptout());
+      const initialShowOptoutBottomSheet = result.current.showOptoutBottomSheet;
+
+      // Simulate loading state change by mocking a loading scenario
+      let resolveController: (value: boolean) => void;
+      const controllerPromise = new Promise<boolean>((resolve) => {
+        resolveController = resolve;
+      });
+      mockEngineCall.mockReturnValueOnce(controllerPromise);
+
+      // Start optout to change loading state
+      act(() => {
+        result.current.optout();
+      });
+
+      // Act - Rerender to see if callback changed
+      rerender();
+
+      // Assert - The callback should be different due to isLoading dependency change
+      expect(result.current.showOptoutBottomSheet).not.toBe(
+        initialShowOptoutBottomSheet,
+      );
+
+      // Clean up
+      act(async () => {
+        resolveController?.(true);
+      });
     });
   });
 });

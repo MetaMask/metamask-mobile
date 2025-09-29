@@ -1,4 +1,4 @@
-import React, { useCallback, memo } from 'react';
+import React, { useCallback, memo, useState } from 'react';
 import { FlatList, ListRenderItem, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -115,6 +115,9 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
   } = useRewardOptinSummary();
   const tw = useTailwind();
 
+  // State to track the current active tab
+  const [activeTabIndex, setActiveTabIndex] = useState(initialTabIndex);
+
   // Memoize the onSuccess callback to prevent unnecessary re-renders
   const onLinkSuccess = useCallback(() => {
     fetchOptInStatus();
@@ -135,6 +138,91 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
       ),
       [onLinkSuccess],
     );
+
+  // Handle tab change
+  const handleTabChange = useCallback((changeTabProperties: { i: number }) => {
+    setActiveTabIndex(changeTabProperties.i);
+  }, []);
+
+  // Separate content components
+  const LinkedAccountsContent = useCallback(
+    () => (
+      <>
+        {linkedAccounts.length > 0 ? (
+          <FlatList
+            data={linkedAccounts}
+            keyExtractor={(item) => `linked-${item.id}`}
+            renderItem={renderLinkedAccountItem}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('gap-3 pt-4')}
+          />
+        ) : (
+          <Box twClassName="py-8 items-center">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-alternative text-center"
+            >
+              {strings('rewards.settings.no_linked_accounts')}
+            </Text>
+          </Box>
+        )}
+      </>
+    ),
+    [linkedAccounts, renderLinkedAccountItem, tw],
+  );
+
+  const UnlinkedAccountsContent = useCallback(
+    () => (
+      <>
+        {unlinkedAccounts.length > 0 ? (
+          <Box twClassName="flex-1 relative">
+            <FlatList
+              data={unlinkedAccounts}
+              keyExtractor={(item) => `unlinked-${item.id}`}
+              renderItem={renderUnlinkedAccountItem}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+              getItemLayout={(_, index) => ({
+                length: 50,
+                offset: 50 * index,
+                index,
+              })}
+              contentContainerStyle={tw.style('gap-3 pt-4')}
+            />
+          </Box>
+        ) : (
+          <Box twClassName="py-8">
+            <RewardsInfoBanner
+              title={strings('rewards.settings.all_accounts_linked_title')}
+              description={strings(
+                'rewards.settings.all_accounts_linked_description',
+              )}
+            />
+          </Box>
+        )}
+      </>
+    ),
+    [unlinkedAccounts, renderUnlinkedAccountItem, tw],
+  );
+
+  // Tab configurations
+  const tabConfigs = [
+    {
+      key: 'linked',
+      label: strings('rewards.settings.tab_linked_accounts', {
+        count: linkedAccounts.length,
+      }),
+      content: <LinkedAccountsContent />,
+    },
+    {
+      key: 'unlinked',
+      label: strings('rewards.settings.tab_unlinked_accounts', {
+        count: unlinkedAccounts.length,
+      }),
+      content: <UnlinkedAccountsContent />,
+    },
+  ];
 
   if (isLoadingOptInSummary) {
     // Create an array of unique identifiers for skeleton items
@@ -184,78 +272,23 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     );
   }
 
-  // Tab-based account list
+  // Tab-based account list - only render active tab content
   return (
-    <TabsList initialActiveIndex={initialTabIndex}>
-      {/* Linked Accounts Tab */}
-      <View
-        key="linked"
-        {...({
-          tabLabel: strings('rewards.settings.tab_linked_accounts', {
-            count: linkedAccounts.length,
-          }),
-        } as TabViewProps)}
-        style={tw.style('flex-1')}
-      >
-        {linkedAccounts.length > 0 ? (
-          <FlatList
-            data={linkedAccounts}
-            keyExtractor={(item) => `linked-${item.id}`}
-            renderItem={renderLinkedAccountItem}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('gap-3 pt-4')}
-          />
-        ) : (
-          <Box twClassName="py-8 items-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-alternative text-center"
-            >
-              {strings('rewards.settings.no_linked_accounts')}
-            </Text>
-          </Box>
-        )}
-      </View>
-
-      {/* Unlinked Accounts Tab */}
-      <View
-        key="unlinked"
-        {...({
-          tabLabel: strings('rewards.settings.tab_unlinked_accounts', {
-            count: unlinkedAccounts.length,
-          }),
-        } as TabViewProps)}
-        style={tw.style('flex-1')}
-      >
-        {unlinkedAccounts.length > 0 ? (
-          <Box twClassName="flex-1 relative">
-            <FlatList
-              data={unlinkedAccounts}
-              keyExtractor={(item) => `unlinked-${item.id}`}
-              renderItem={renderUnlinkedAccountItem}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-              getItemLayout={(_, index) => ({
-                length: 50,
-                offset: 50 * index,
-                index,
-              })}
-              initialNumToRender={20}
-              contentContainerStyle={tw.style('gap-3 pt-4')}
-            />
-          </Box>
-        ) : (
-          <Box twClassName="py-8">
-            <RewardsInfoBanner
-              title={strings('rewards.settings.all_accounts_linked_title')}
-              description={strings(
-                'rewards.settings.all_accounts_linked_description',
-              )}
-            />
-          </Box>
-        )}
-      </View>
+    <TabsList
+      initialActiveIndex={initialTabIndex}
+      onChangeTab={handleTabChange}
+    >
+      {tabConfigs.map((tab, index) => (
+        <View
+          key={tab.key}
+          {...({
+            tabLabel: tab.label,
+          } as TabViewProps)}
+          style={tw.style('flex-1')}
+        >
+          {index === activeTabIndex ? tab.content : null}
+        </View>
+      ))}
     </TabsList>
   );
 };
