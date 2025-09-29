@@ -6739,9 +6739,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^77.0.0":
-  version: 77.0.0
-  resolution: "@metamask/assets-controllers@npm:77.0.0"
+"@metamask/assets-controllers@npm:^77.0.1":
+  version: 77.0.1
+  resolution: "@metamask/assets-controllers@npm:77.0.1"
   dependencies:
     "@ethereumjs/util": ^9.1.0
     "@ethersproject/abi": ^5.7.0
@@ -6760,7 +6760,7 @@ __metadata:
     "@metamask/rpc-errors": ^7.0.2
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
-    "@metamask/utils": ^11.8.0
+    "@metamask/utils": ^11.8.1
     "@types/bn.js": ^5.1.5
     "@types/uuid": ^8.3.0
     async-mutex: ^0.5.0
@@ -6785,7 +6785,7 @@ __metadata:
     "@metamask/snaps-controllers": ^14.0.0
     "@metamask/transaction-controller": ^60.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 4efb072819a150ec4b4b9b878c8a7495c9a2eac4c0e039616bba51709a47b7481a8d67daebf7197034ea4b0dbfaf6f7a6b2e12808b6d82610371e7bc6cc886a6
+  checksum: 0c827bc1a6b4f9d60b89630efb48caa6a78c95161d10a1ad83396c452d8d7d2de63468386a2a29fddecf91be5554d062c86ebaa6fccdd2e95c44e097cfe58926
   languageName: node
   linkType: hard
 
@@ -7078,6 +7078,13 @@ __metadata:
     "@metamask/utils": ^11.2.0
     lodash: ^4.17.21
   checksum: 1c3dc7c8ff5cb97a5522fdeeefa8db96df1fc7560d987b6f0e0267bc7f20b130c86cae4d0e61072c98ebec7ee657a6b19ad40bbd4d149d34e8c6e21a391b6998
+  languageName: node
+  linkType: hard
+
+"@metamask/ens-resolver-snap@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@metamask/ens-resolver-snap@npm:0.1.4"
+  checksum: 9546868daae98a36cc1760a1424d0ca2622caf217b566ddc7a598bc00f5171423eb251285fcd991cf2ad8099e83bee305a3ead432e637b7908ef405bbe219c90
   languageName: node
   linkType: hard
 
@@ -8007,13 +8014,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^25.0.0":
-  version: 25.0.0
-  resolution: "@metamask/profile-sync-controller@npm:25.0.0"
+"@metamask/profile-sync-controller@npm:^25.1.0":
+  version: 25.1.0
+  resolution: "@metamask/profile-sync-controller@npm:25.1.0"
   dependencies:
-    "@metamask/base-controller": ^8.3.0
+    "@metamask/base-controller": ^8.4.0
     "@metamask/snaps-sdk": ^9.0.0
     "@metamask/snaps-utils": ^11.0.0
+    "@metamask/utils": ^11.8.1
     "@noble/ciphers": ^1.3.0
     "@noble/hashes": ^1.8.0
     immer: ^9.0.6
@@ -8025,7 +8033,7 @@ __metadata:
     "@metamask/providers": ^22.0.0
     "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: ed0dabe3c2634801fe25e82384c1893868088705f9dded05eb14be646583ecfa5ed18a71d73408bbfe50fa19fee7f389e8ddcd931d9ad88a2d8f9f2c49ddec0d
+  checksum: f497cd5911fd063cea322ddb5f798959da4fb135c4cb8c9513317645c29740c5697ca10bbfefcfecf4c7b1b96c4b9096ca14e75d9160779403c404e73013fc1c
   languageName: node
   linkType: hard
 
@@ -33682,7 +33690,7 @@ __metadata:
     "@metamask/address-book-controller": ^6.1.0
     "@metamask/app-metadata-controller": ^1.0.0
     "@metamask/approval-controller": ^7.1.3
-    "@metamask/assets-controllers": ^77.0.0
+    "@metamask/assets-controllers": ^77.0.1
     "@metamask/base-controller": ^8.3.0
     "@metamask/bitcoin-wallet-snap": ^1.0.0
     "@metamask/bridge-controller": ^43.2.0
@@ -33698,6 +33706,7 @@ __metadata:
     "@metamask/earn-controller": ^7.0.0
     "@metamask/eip-5792-middleware": ^1.2.0
     "@metamask/eip1193-permission-middleware": ^1.0.0
+    "@metamask/ens-resolver-snap": ^0.1.4
     "@metamask/error-reporting-service": ^2.0.0
     "@metamask/eslint-config-typescript": ^9.0.0
     "@metamask/eslint-plugin-design-tokens": ^1.0.0
@@ -33744,7 +33753,7 @@ __metadata:
     "@metamask/ppom-validator": ^0.38.0
     "@metamask/preferences-controller": ^20.0.1
     "@metamask/preinstalled-example-snap": ^0.7.1
-    "@metamask/profile-sync-controller": ^25.0.0
+    "@metamask/profile-sync-controller": ^25.1.0
     "@metamask/providers": ^18.3.1
     "@metamask/react-native-acm": ^1.0.1
     "@metamask/react-native-actionsheet": 2.4.2
