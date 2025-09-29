@@ -70,8 +70,8 @@ export class ConnectionRegistry {
    * @param url - The url to check
    * @returns - True if the deeplink is a connect deeplink
    */
-  public isConnectDeeplink(url: string | undefined): url is string {
-    return !!url?.startsWith(this.DEEPLINK_PREFIX);
+  public isConnectDeeplink(url: unknown): url is string {
+    return typeof url === 'string' && url.startsWith(this.DEEPLINK_PREFIX);
   }
 
   /**

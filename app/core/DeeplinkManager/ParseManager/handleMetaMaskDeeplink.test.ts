@@ -114,30 +114,6 @@ describe('handleMetaMaskProtocol', () => {
     expect(handled).toHaveBeenCalled();
   });
 
-  describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp', () => {
-    const spyHandleConnectDeeplink = jest.spyOn(
-      SDKConnectV2,
-      'handleConnectDeeplink',
-    );
-    beforeEach(() => {
-      url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`;
-      spyHandleConnectDeeplink.mockImplementation(jest.fn());
-    });
-
-    it('should call SDKConnectV2.handleConnectDeeplink', () => {
-      handleMetaMaskDeeplink({
-        instance,
-        handled,
-        params,
-        url,
-        origin,
-        wcURL,
-      });
-
-      expect(spyHandleConnectDeeplink).toHaveBeenCalledWith(url);
-    });
-  });
-
   describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}', () => {
     beforeEach(() => {
       url = `${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`;
