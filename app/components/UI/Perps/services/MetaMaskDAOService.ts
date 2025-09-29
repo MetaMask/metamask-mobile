@@ -145,35 +145,27 @@ export class MetaMaskDAOService {
    * Check if a specific address has MMGD tokens by querying balance directly
    * @param address - The address to check
    * @returns Promise<boolean> - True if the address has a non-zero balance
+   * @throws Error if contract interaction fails
    */
   private async checkAddressBalance(address: string): Promise<boolean> {
-    try {
-      if (!this.contract) {
-        await this.initialize();
-      }
-
-      if (!this.contract) {
-        throw new Error('Contract not initialized');
-      }
-
-      const balance = await this.contract.balanceOf(address);
-      const hasTokens = !balance.isZero();
-
-      DevLogger.log('MetaMaskDAOService: Balance check result', {
-        address,
-        balance: balance.toString(),
-        hasTokens,
-      });
-
-      return hasTokens;
-    } catch (error) {
-      DevLogger.log('MetaMaskDAOService: Error checking address balance', {
-        error: error instanceof Error ? error.message : String(error),
-        address,
-      });
-      // Return false on error to avoid blocking trades
-      return false;
+    if (!this.contract) {
+      await this.initialize();
     }
+
+    if (!this.contract) {
+      throw new Error('Contract not initialized');
+    }
+
+    const balance = await this.contract.balanceOf(address);
+    const hasTokens = !balance.isZero();
+
+    DevLogger.log('MetaMaskDAOService: Balance check result', {
+      address,
+      balance: balance.toString(),
+      hasTokens,
+    });
+
+    return hasTokens;
   }
 
   /**
