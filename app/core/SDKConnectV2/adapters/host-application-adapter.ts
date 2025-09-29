@@ -4,10 +4,9 @@ import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
-import {
-  getPermittedAccounts,
-  removePermittedAccounts,
-} from '../../../core/Permissions';
+import { getPermittedAccounts } from '../../../core/Permissions';
+import Engine from '../../Engine';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showLoading(): void {
@@ -58,10 +57,17 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     store.dispatch(setSdkV2Connections(v2Sessions));
   }
 
+  /**
+   * Revokes {@link Caip25EndowmentPermissionName} permission from a connection / origin.
+   * @param connectionId - The origin of the connection.
+   */
   revokePermissions(connectionId: string): void {
     const allAccountsForOrigin = getPermittedAccounts(connectionId);
     if (allAccountsForOrigin.length > 0) {
-      removePermittedAccounts(connectionId, allAccountsForOrigin);
+      Engine.context.PermissionController.revokePermission(
+        connectionId,
+        Caip25EndowmentPermissionName,
+      );
     }
   }
 }

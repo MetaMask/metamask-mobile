@@ -3,10 +3,9 @@ import { Connection } from '../services/connection';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
-import {
-  getPermittedAccounts,
-  removePermittedAccounts,
-} from '../../../core/Permissions';
+import { getPermittedAccounts } from '../../../core/Permissions';
+import Engine from '../../Engine';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -23,7 +22,6 @@ jest.mock('../../../actions/sdk', () => ({
 
 jest.mock('../../../core/Permissions', () => ({
   getPermittedAccounts: jest.fn(),
-  removePermittedAccounts: jest.fn(),
 }));
 
 const createMockConnection = (id: string, name: string): Connection =>
@@ -44,12 +42,14 @@ const createMockConnection = (id: string, name: string): Connection =>
 
 describe('HostApplicationAdapter', () => {
   let adapter: HostApplicationAdapter;
+  const revokePermission = Engine.context.PermissionController
+    .revokePermission as jest.Mock;
 
   beforeEach(() => {
     (store.dispatch as jest.Mock).mockClear();
     (setSdkV2Connections as jest.Mock).mockClear();
     (getPermittedAccounts as jest.Mock).mockClear();
-    (removePermittedAccounts as jest.Mock).mockClear();
+    (revokePermission as jest.Mock).mockClear();
     adapter = new HostApplicationAdapter();
   });
 
@@ -151,15 +151,17 @@ describe('HostApplicationAdapter', () => {
   describe('revokePermissions', () => {
     it('should call removePermittedAccounts when there are permitted accounts', () => {
       const connectionId = 'test-connection-id';
-      const mockAccounts = ['0x123...', '0x456...'];
-      (getPermittedAccounts as jest.Mock).mockReturnValue(mockAccounts);
+      (getPermittedAccounts as jest.Mock).mockReturnValue([
+        '0x123...',
+        '0x456...',
+      ]);
 
       adapter.revokePermissions(connectionId);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(
+      expect(revokePermission).toHaveBeenCalledWith(
         connectionId,
-        mockAccounts,
+        Caip25EndowmentPermissionName,
       );
     });
 
@@ -170,34 +172,36 @@ describe('HostApplicationAdapter', () => {
       adapter.revokePermissions(connectionId);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).not.toHaveBeenCalled();
+      expect(revokePermission).not.toHaveBeenCalled();
     });
 
     it('should handle single permitted account correctly', () => {
       const connectionId = 'test-connection-id';
-      const mockAccount = ['0x123...'];
-      (getPermittedAccounts as jest.Mock).mockReturnValue(mockAccount);
+      (getPermittedAccounts as jest.Mock).mockReturnValue(['0x123...']);
 
       adapter.revokePermissions(connectionId);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(
+      expect(revokePermission).toHaveBeenCalledWith(
         connectionId,
-        mockAccount,
+        Caip25EndowmentPermissionName,
       );
     });
 
     it('should handle multiple permitted accounts correctly', () => {
       const connectionId = 'test-connection-id';
-      const mockAccounts = ['0x123...', '0x456...', '0x789...'];
-      (getPermittedAccounts as jest.Mock).mockReturnValue(mockAccounts);
+      (getPermittedAccounts as jest.Mock).mockReturnValue([
+        '0x123...',
+        '0x456...',
+        '0x789...',
+      ]);
 
       adapter.revokePermissions(connectionId);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(
+      expect(revokePermission).toHaveBeenCalledWith(
         connectionId,
-        mockAccounts,
+        Caip25EndowmentPermissionName,
       );
     });
   });
