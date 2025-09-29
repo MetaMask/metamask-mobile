@@ -792,6 +792,147 @@ describe('MultichainAccountSelectorList', () => {
     });
   });
 
+  describe('Keyboard Avoiding View', () => {
+    it('enables keyboard avoiding view when there is 1 account', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
+
+      renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Should be called with true since there is only 1 account
+      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(true);
+    });
+
+    it('disables keyboard avoiding view when there are more than 2 accounts', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Account 2',
+      );
+      const account3 = createMockAccountGroup(
+        'keyring:wallet1/group3',
+        'Account 3',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+        account3,
+      ]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+        account3,
+      ]);
+      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
+
+      renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Should be called with false since there are 3 accounts
+      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(false);
+    });
+
+    it('does not call setKeyboardAvoidingViewEnabled when prop is not provided', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      // Render without setKeyboardAvoidingViewEnabled prop
+      const result = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Should render without errors when prop is not provided
+      expect(result).toBeTruthy();
+    });
+
+    it('updates keyboard avoiding view when filtered data changes', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Test Account',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'My Account',
+      );
+      const account3 = createMockAccountGroup(
+        'keyring:wallet1/group3',
+        'Another Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+        account3,
+      ]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+        account3,
+      ]);
+      const mockSetKeyboardAvoidingViewEnabled = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[]}
+          setKeyboardAvoidingViewEnabled={mockSetKeyboardAvoidingViewEnabled}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Initially called with false (3 accounts)
+      expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenCalledWith(false);
+
+      // Search to filter down to 1 account
+      const searchInput = getByTestId(
+        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      );
+      fireEvent.changeText(searchInput, 'Test');
+
+      // Wait for debounce and re-render
+      await waitFor(
+        () => {
+          // Should be called with true since filtered results show only 1 account
+          expect(mockSetKeyboardAvoidingViewEnabled).toHaveBeenLastCalledWith(
+            true,
+          );
+        },
+        { timeout: 500 },
+      );
+    });
+  });
+
   describe('Checkbox functionality', () => {
     it('shows checkboxes when showCheckbox prop is true', () => {
       const account1 = createMockAccountGroup(
