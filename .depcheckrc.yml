@@ -91,7 +91,6 @@ ignores:
   - 'react-native-os'
   - 'react-native-randombytes'
   - 'react-native-swipe-gestures'
-  - 'react-native-tcp'
   - 'socket.io-client'
   - 'stream-browserify'
   - 'url'

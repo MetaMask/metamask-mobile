@@ -7,11 +7,14 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useTheme } from '../../../../util/theme';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
 import { ScrollView } from 'react-native';
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
+
+  useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
 
   // Set navigation title with back button
   useEffect(() => {

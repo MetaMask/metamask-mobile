@@ -6,7 +6,6 @@ import React, {
   useRef,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
@@ -15,9 +14,9 @@ import {
   Text,
   TextVariant,
   IconName as IconNameDS,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ActivityIndicator, Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
@@ -30,7 +29,10 @@ import {
 } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { RewardsTab } from '../../../../reducers/rewards/types';
-import { selectActiveTab } from '../../../../reducers/rewards/selectors';
+import {
+  selectActiveTab,
+  selectHideCurrentAccountNotOptedInBannerArray,
+} from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import {
   selectRewardsActiveAccountHasOptedIn,
@@ -40,11 +42,7 @@ import {
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useLinkAccount } from '../hooks/useLinkAccount';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../component-library/components/Banners/Banner';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import AccountDisplayItem from '../components/AccountDisplayItem/AccountDisplayItem';
 import RewardsOverview from '../components/Tabs/RewardsOverview';
 import RewardsLevels from '../components/Tabs/RewardsLevels';
@@ -53,9 +51,11 @@ import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
+import { CaipAccountId } from '@metamask/utils';
+import { setHideCurrentAccountNotOptedInBanner } from '../../../../reducers/rewards';
+import { convertInternalAccountToCaipAccountId } from '../utils';
 
 const RewardsDashboard: React.FC = () => {
-  const tw = useTailwind();
   const navigation = useNavigation();
   const theme = useTheme();
   const { colors } = theme;
@@ -67,7 +67,22 @@ const RewardsDashboard: React.FC = () => {
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
   );
+  const hideCurrentAccountNotOptedInBannerMap = useSelector(
+    selectHideCurrentAccountNotOptedInBannerArray,
+  );
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const hideCurrentAccountNotOptedInBanner = useMemo((): boolean => {
+    if (selectedAccount && hideCurrentAccountNotOptedInBannerMap) {
+      const caipAccountId =
+        convertInternalAccountToCaipAccountId(selectedAccount);
+      return (
+        hideCurrentAccountNotOptedInBannerMap.find(
+          (item) => item.caipAccountId === caipAccountId,
+        )?.hide || false
+      );
+    }
+    return false;
+  }, [selectedAccount, hideCurrentAccountNotOptedInBannerMap]);
   const insets = useSafeAreaInsets();
 
   // Track linking operation state
@@ -80,7 +95,7 @@ const RewardsDashboard: React.FC = () => {
   const { linkAccount } = useLinkAccount();
 
   // Use the opt-in summary hook to check for unlinked accounts
-  const { unlinkedAccounts } = useRewardOptinSummary({
+  const { unlinkedAccounts, currentAccountSupported } = useRewardOptinSummary({
     enabled: !hideUnlinkedAccountsBanner,
   });
 
@@ -141,10 +156,6 @@ const RewardsDashboard: React.FC = () => {
     [dispatch, tabOptions, activeTab],
   );
 
-  const handleHideUnlinkedAccountsBanner = useCallback(() => {
-    dispatch(setHideUnlinkedAccountsBanner(true));
-  }, [dispatch]);
-
   const handleLinkCurrentAccount = useCallback(async () => {
     if (!selectedAccount || isLinking) return;
 
@@ -155,6 +166,21 @@ const RewardsDashboard: React.FC = () => {
       setIsLinking(false);
     }
   }, [selectedAccount, linkAccount, isLinking]);
+
+  const handleDismissCurrentAccountBanner = useCallback(() => {
+    if (selectedAccount) {
+      const caipAccountId =
+        convertInternalAccountToCaipAccountId(selectedAccount);
+      if (caipAccountId) {
+        dispatch(
+          setHideCurrentAccountNotOptedInBanner({
+            accountId: caipAccountId as CaipAccountId,
+            hide: true,
+          }),
+        );
+      }
+    }
+  }, [selectedAccount, dispatch]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
@@ -191,104 +217,78 @@ const RewardsDashboard: React.FC = () => {
           </Box>
         </Box>
 
-        <SeasonStatus />
-
-        {/* Current Account Not Opted In Banner */}
-        {hasAccountedOptedIn === false && selectedAccount && (
-          <Box twClassName="-mx-4">
-            <Banner
-              variant={BannerVariant.Alert}
-              severity={BannerAlertSeverity.Info}
-              startAccessory={null}
+        {/* Current Account Not Opted In or Not Supported Banner */}
+        {(hasAccountedOptedIn === false || currentAccountSupported === false) &&
+          !hideCurrentAccountNotOptedInBanner &&
+          selectedAccount && (
+            <RewardsInfoBanner
               title={
                 <Box twClassName="mb-3">
                   <AccountDisplayItem account={selectedAccount} />
-                  <Text variant={TextVariant.BodyMd}>
-                    {strings('rewards.unlinked_account_info.title')}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Bold}
+                    twClassName="text-default"
+                  >
+                    {currentAccountSupported === false
+                      ? strings(
+                          'rewards.unlinked_account_info.title_optin_not_supported',
+                        )
+                      : strings('rewards.unlinked_account_info.title')}
                   </Text>
                 </Box>
               }
               description={
-                <Box twClassName="flex-row items-center gap-2 flex-wrap">
-                  <Text variant={TextVariant.BodyMd}>
-                    {strings('rewards.unlinked_account_info.description')}
-                  </Text>
-                  <Pressable
-                    onPress={handleLinkCurrentAccount}
-                    disabled={isLinking}
-                    style={({ pressed }: { pressed: boolean }) =>
-                      tw.style('flex-row', pressed && 'opacity-70')
-                    }
-                  >
-                    {isLinking && (
-                      <Box twClassName="mr-2">
-                        <ActivityIndicator
-                          size="small"
-                          color={tw.color('primary-default')}
-                          style={tw.style('mr-2')}
-                        />
-                      </Box>
-                    )}
-
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      twClassName="text-primary-default underline"
-                    >
-                      {isLinking
-                        ? strings('rewards.linking_account')
-                        : strings('rewards.link_account')}
-                    </Text>
-                  </Pressable>
-                </Box>
+                currentAccountSupported === false
+                  ? strings(
+                      'rewards.unlinked_account_info.description_optin_not_supported',
+                    )
+                  : strings('rewards.unlinked_account_info.description')
               }
-            ></Banner>
-          </Box>
-        )}
+              confirmButtonLabel={
+                currentAccountSupported !== false
+                  ? isLinking
+                    ? strings('rewards.linking_account')
+                    : strings('rewards.link_account')
+                  : undefined
+              }
+              showInfoIcon={false}
+              onConfirm={
+                currentAccountSupported !== false
+                  ? handleLinkCurrentAccount
+                  : undefined
+              }
+              onConfirmLoading={isLinking}
+              onDismiss={handleDismissCurrentAccountBanner}
+            />
+          )}
 
         {/* Unlinked Accounts Banner */}
         {subscriptionId &&
-          hasAccountedOptedIn === true &&
+          (hasAccountedOptedIn === true ||
+            hideCurrentAccountNotOptedInBanner) &&
           unlinkedAccounts.length > 0 &&
           !hideUnlinkedAccountsBanner && (
-            <Box twClassName="-mx-4">
-              <Banner
-                variant={BannerVariant.Alert}
-                severity={BannerAlertSeverity.Info}
-                startAccessory={null}
-                title={strings('rewards.unlinked_accounts_info.title')}
-                description={
-                  <Box twClassName="flex-row items-center gap-2 flex-wrap">
-                    <Text variant={TextVariant.BodyMd}>
-                      {strings('rewards.unlinked_accounts_info.description')}
-                    </Text>
-                    <Pressable
-                      onPress={() => {
-                        navigation.navigate(Routes.REWARDS_SETTINGS_VIEW, {
-                          focusUnlinkedTab: true,
-                        });
-                      }}
-                      style={({ pressed }: { pressed: boolean }) =>
-                        tw.style(pressed && 'opacity-70')
-                      }
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        twClassName="text-primary-default underline"
-                      >
-                        {strings(
-                          'rewards.unlinked_accounts_info.go_to_settings',
-                        )}
-                      </Text>
-                    </Pressable>
-                  </Box>
-                }
-                closeButtonProps={{
-                  iconName: IconName.Close,
-                  onPress: handleHideUnlinkedAccountsBanner,
-                }}
-              />
-            </Box>
+            <RewardsInfoBanner
+              title={strings('rewards.unlinked_accounts_info.title')}
+              description={strings(
+                'rewards.unlinked_accounts_info.description',
+              )}
+              onConfirm={() => {
+                navigation.navigate(Routes.REWARDS_SETTINGS_VIEW, {
+                  focusUnlinkedTab: true,
+                });
+              }}
+              confirmButtonLabel={strings(
+                'rewards.unlinked_accounts_info.go_to_settings',
+              )}
+              onDismiss={() => {
+                dispatch(setHideUnlinkedAccountsBanner(true));
+              }}
+            />
           )}
+
+        <SeasonStatus />
 
         {/* Tab View */}
         <TabsList

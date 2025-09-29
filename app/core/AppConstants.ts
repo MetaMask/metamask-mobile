@@ -34,6 +34,9 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
+  EXPLORE_TOKENS: {
+    URL: `${PORTFOLIO_URL}/explore/tokens?MetaMaskEntry=mobile`,
+  },
   CARD: {
     URL: 'https://card.metamask.io',
   },
@@ -131,7 +134,6 @@ export default {
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
       'https://support.metamask.io/troubleshooting/why-infura-cannot-serve-certain-areas/',
-    NFT: 'https://support.metamask.io/nfts/nft-tokens-in-your-metamask-wallet/',
     SECURITY:
       'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
     TOKEN_BALANCE:

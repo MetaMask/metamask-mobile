@@ -20,11 +20,8 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../locales/i18n';
 import { TabsList } from '../../../../../component-library/components-temp/Tabs';
 import AccountDisplayItem from '../AccountDisplayItem/AccountDisplayItem';
-import Banner, {
-  BannerVariant,
-  BannerAlertSeverity,
-} from '../../../../../component-library/components/Banners/Banner';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import RewardsInfoBanner from '../RewardsInfoBanner';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 import { TabViewProps } from '../../../Perps/components/PerpsMarketTabs/PerpsMarketTabs.types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
@@ -185,21 +182,26 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
     );
   }
 
-  if (hasErrorOptInSummary) {
+  if (
+    hasErrorOptInSummary &&
+    !linkedAccounts.length &&
+    !unlinkedAccounts.length
+  ) {
     return (
       <Box twClassName="py-8">
-        <Banner
-          variant={BannerVariant.Alert}
-          severity={BannerAlertSeverity.Error}
-          title={strings('rewards.settings.error_title')}
-          description={strings('rewards.settings.error_description')}
-          actionButtonProps={{
-            variant: ButtonVariants.Link,
-            label: strings('rewards.settings.error_retry'),
-            onPress: () => {
-              fetchOptInStatus();
-            },
+        <RewardsErrorBanner
+          title={strings(
+            'rewards.accounts_opt_in_state_error.error_fetching_title',
+          )}
+          description={strings(
+            'rewards.accounts_opt_in_state_error.error_fetching_description',
+          )}
+          onConfirm={() => {
+            fetchOptInStatus();
           }}
+          confirmButtonLabel={strings(
+            'rewards.accounts_opt_in_state_error.retry_button',
+          )}
         />
       </Box>
     );
@@ -264,9 +266,7 @@ const RewardSettingsTabs: React.FC<RewardSettingsTabsProps> = ({
           </Box>
         ) : (
           <Box twClassName="py-8">
-            <Banner
-              variant={BannerVariant.Alert}
-              severity={BannerAlertSeverity.Info}
+            <RewardsInfoBanner
               title={strings('rewards.settings.all_accounts_linked_title')}
               description={strings(
                 'rewards.settings.all_accounts_linked_description',

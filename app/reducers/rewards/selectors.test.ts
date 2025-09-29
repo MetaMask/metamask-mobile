@@ -24,11 +24,13 @@ import {
   selectReferralDetailsLoading,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
+  selectHideCurrentAccountNotOptedInBannerArray,
   selectActiveBoosts,
   selectActiveBoostsLoading,
   selectActiveBoostsError,
   selectUnlockedRewards,
   selectUnlockedRewardLoading,
+  selectUnlockedRewardError,
   selectSeasonRewardById,
 } from './selectors';
 import { OnboardingStep } from './types';
@@ -37,7 +39,7 @@ import {
   SeasonTierDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
-import { RewardsState } from '.';
+import { RewardsState, AccountOptInBannerInfoStatus } from '.';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -724,6 +726,198 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectHideCurrentAccountNotOptedInBannerArray', () => {
+    it('returns empty array when no accounts are configured', () => {
+      const mockState = { rewards: { hideCurrentAccountNotOptedInBanner: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([]);
+      expect(result.current).toHaveLength(0);
+    });
+
+    it('returns single account configuration when set', () => {
+      const mockAccountConfig: AccountOptInBannerInfoStatus = {
+        caipAccountId: 'eip155:1:0x123456789abcdef',
+        hide: true,
+      };
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: [mockAccountConfig] },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([mockAccountConfig]);
+      expect(result.current).toHaveLength(1);
+      expect(result.current?.[0]?.caipAccountId).toBe(
+        'eip155:1:0x123456789abcdef',
+      );
+      expect(result.current?.[0]?.hide).toBe(true);
+    });
+
+    it('returns multiple account configurations when set', () => {
+      const mockAccountConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0x123456789abcdef',
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:1:0xabcdef123456789',
+          hide: false,
+        },
+        {
+          caipAccountId: 'eip155:137:0x987654321fedcba',
+          hide: true,
+        },
+      ];
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: mockAccountConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual(mockAccountConfigs);
+      expect(result.current).toHaveLength(3);
+      expect(result.current?.[0]?.hide).toBe(true);
+      expect(result.current?.[1]?.hide).toBe(false);
+      expect(result.current?.[2]?.hide).toBe(true);
+    });
+
+    it('handles mixed hide states correctly', () => {
+      const mockAccountConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0x111111111111111',
+          hide: false,
+        },
+        {
+          caipAccountId: 'eip155:1:0x222222222222222',
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:1:0x333333333333333',
+          hide: false,
+        },
+      ];
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: mockAccountConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual(mockAccountConfigs);
+      expect(result.current?.filter((config) => config.hide)).toHaveLength(1);
+      expect(result.current?.filter((config) => !config.hide)).toHaveLength(2);
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = {
+        rewards: {
+          hideCurrentAccountNotOptedInBanner:
+            [] as AccountOptInBannerInfoStatus[],
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([]);
+
+      // Change state to have account configs
+      const newAccountConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0x444444444444444',
+          hide: true,
+        },
+      ];
+      mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: newAccountConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toEqual(newAccountConfigs);
+      expect(result.current).toHaveLength(1);
+    });
+
+    it('preserves account configuration order', () => {
+      const orderedConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0xaaa',
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:1:0xbbb',
+          hide: false,
+        },
+        {
+          caipAccountId: 'eip155:1:0xccc',
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:1:0xddd',
+          hide: false,
+        },
+      ];
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: orderedConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual(orderedConfigs);
+      expect(result.current?.[0]?.caipAccountId).toBe('eip155:1:0xaaa');
+      expect(result.current?.[1]?.caipAccountId).toBe('eip155:1:0xbbb');
+      expect(result.current?.[2]?.caipAccountId).toBe('eip155:1:0xccc');
+      expect(result.current?.[3]?.caipAccountId).toBe('eip155:1:0xddd');
+    });
+
+    it('handles different CAIP account ID formats correctly', () => {
+      const differentFormatConfigs: AccountOptInBannerInfoStatus[] = [
+        {
+          caipAccountId: 'eip155:1:0x123456789abcdef', // Ethereum mainnet
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:137:0xabcdef123456789', // Polygon
+          hide: false,
+        },
+        {
+          caipAccountId: 'eip155:56:0x987654321fedcba', // BSC
+          hide: true,
+        },
+        {
+          caipAccountId: 'eip155:42161:0x555666777888999', // Arbitrum
+          hide: false,
+        },
+      ];
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: differentFormatConfigs },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual(differentFormatConfigs);
+      expect(result.current).toHaveLength(4);
+      expect(
+        result.current?.every((config) =>
+          config.caipAccountId.startsWith('eip155:'),
+        ),
+      ).toBe(true);
+    });
+  });
+
   describe('selectCurrentSeasonId', () => {
     it('returns null when season ID is null', () => {
       const mockState = { rewards: { seasonId: null } };
@@ -832,12 +1026,12 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe(false);
     });
 
-    it('returns true when banner should be hidden', () => {
-      const mockState = { rewards: { hideUnlinkedAccountsBanner: true } };
+    it('returns true when loading', () => {
+      const mockState = { rewards: { activeBoostsLoading: true } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() =>
-        useSelector(selectHideUnlinkedAccountsBanner),
+        useSelector(selectActiveBoostsLoading),
       );
       expect(result.current).toBe(true);
     });
@@ -1039,6 +1233,74 @@ describe('Rewards selectors', () => {
       it('returns true when error occurs', () => {
         const state = createMockRootState({ activeBoostsError: true });
         expect(selectActiveBoostsError(state)).toBe(true);
+      });
+    });
+
+    describe('selectHideCurrentAccountNotOptedInBannerArray direct calls', () => {
+      it('returns empty array when no accounts configured', () => {
+        const state = createMockRootState({
+          hideCurrentAccountNotOptedInBanner: [],
+        });
+        expect(selectHideCurrentAccountNotOptedInBannerArray(state)).toEqual(
+          [],
+        );
+      });
+
+      it('returns account configurations when set', () => {
+        const accountConfigs: AccountOptInBannerInfoStatus[] = [
+          {
+            caipAccountId: 'eip155:1:0x123456789abcdef',
+            hide: true,
+          },
+          {
+            caipAccountId: 'eip155:1:0xabcdef123456789',
+            hide: false,
+          },
+        ];
+        const state = createMockRootState({
+          hideCurrentAccountNotOptedInBanner: accountConfigs,
+        });
+        expect(selectHideCurrentAccountNotOptedInBannerArray(state)).toEqual(
+          accountConfigs,
+        );
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(state),
+        ).toHaveLength(2);
+      });
+
+      it('preserves account configuration references', () => {
+        const accountConfig: AccountOptInBannerInfoStatus = {
+          caipAccountId: 'eip155:1:0x987654321fedcba',
+          hide: true,
+        };
+        const state = createMockRootState({
+          hideCurrentAccountNotOptedInBanner: [accountConfig],
+        });
+
+        const result1 = selectHideCurrentAccountNotOptedInBannerArray(state);
+        const result2 = selectHideCurrentAccountNotOptedInBannerArray(state);
+
+        expect(result1).toBe(result2); // Same reference
+        expect(result1).toEqual(result2); // Same value
+        expect(result1[0]).toBe(accountConfig); // Original reference preserved
+      });
+
+      it('handles large arrays correctly', () => {
+        const largeAccountConfigs: AccountOptInBannerInfoStatus[] = Array.from(
+          { length: 50 },
+          (_, i) => ({
+            caipAccountId: `eip155:1:0x${i.toString().padStart(40, '0')}`,
+            hide: i % 2 === 0,
+          }),
+        );
+        const state = createMockRootState({
+          hideCurrentAccountNotOptedInBanner: largeAccountConfigs,
+        });
+
+        const result = selectHideCurrentAccountNotOptedInBannerArray(state);
+        expect(result).toHaveLength(50);
+        expect(result.filter((config) => config.hide)).toHaveLength(25);
+        expect(result.filter((config) => !config.hide)).toHaveLength(25);
       });
     });
   });
@@ -1361,9 +1623,22 @@ describe('Rewards selectors', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        hideCurrentAccountNotOptedInBanner: [
+          {
+            caipAccountId: 'eip155:1:0x123456789abcdef',
+            hide: true,
+          },
+          {
+            caipAccountId: 'eip155:137:0xabcdef123456789',
+            hide: false,
+          },
+        ],
         activeBoosts: [],
         activeBoostsLoading: false,
         activeBoostsError: false,
+        unlockedRewards: [],
+        unlockedRewardLoading: false,
+        unlockedRewardError: false,
       });
 
       it('all selectors return expected values from comprehensive state', () => {
@@ -1399,9 +1674,31 @@ describe('Rewards selectors', () => {
         expect(selectOptinAllowedForGeo(comprehensiveState)).toBe(true);
         expect(selectOptinAllowedForGeoLoading(comprehensiveState)).toBe(false);
         expect(selectHideUnlinkedAccountsBanner(comprehensiveState)).toBe(true);
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState),
+        ).toHaveLength(2);
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[0]
+            .caipAccountId,
+        ).toBe('eip155:1:0x123456789abcdef');
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[0]
+            .hide,
+        ).toBe(true);
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[1]
+            .caipAccountId,
+        ).toBe('eip155:137:0xabcdef123456789');
+        expect(
+          selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState)[1]
+            .hide,
+        ).toBe(false);
         expect(selectActiveBoosts(comprehensiveState)).toEqual([]);
         expect(selectActiveBoostsLoading(comprehensiveState)).toBe(false);
         expect(selectActiveBoostsError(comprehensiveState)).toBe(false);
+        expect(selectUnlockedRewards(comprehensiveState)).toEqual([]);
+        expect(selectUnlockedRewardLoading(comprehensiveState)).toBe(false);
+        expect(selectUnlockedRewardError(comprehensiveState)).toBe(false);
       });
       it('returns true when loading', () => {
         const mockState = { rewards: { activeBoostsLoading: true } };
@@ -1467,8 +1764,8 @@ describe('Rewards selectors', () => {
       const { result } = renderHook(() => useSelector(selectUnlockedRewards));
       expect(result.current).toEqual(mockUnlockedRewards);
       expect(result.current).toHaveLength(2);
-      expect(result.current[0].id).toBe('reward-1');
-      expect(result.current[1].claimStatus).toBe('UNCLAIMED');
+      expect(result.current?.[0]?.id).toBe('reward-1');
+      expect(result.current?.[1]?.claimStatus).toBe('UNCLAIMED');
     });
 
     it('handles state changes correctly', () => {
@@ -1540,6 +1837,60 @@ describe('Rewards selectors', () => {
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
       rerender();
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('selectUnlockedRewardError', () => {
+    it('returns false when unlockedRewardError is false', () => {
+      const mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when unlockedRewardError is true', () => {
+      const mockState = { rewards: { unlockedRewardError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when unlockedRewardError is undefined', () => {
+      const mockState = { rewards: { unlockedRewardError: undefined } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBeUndefined();
+    });
+
+    it('handles error state changes correctly', () => {
+      let mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectUnlockedRewardError),
+      );
+      expect(result.current).toBe(false);
+
+      // Change state to error
+      mockState = { rewards: { unlockedRewardError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Change back to no error
+      mockState = { rewards: { unlockedRewardError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
     });
   });
 
