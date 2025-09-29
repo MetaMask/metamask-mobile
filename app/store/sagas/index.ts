@@ -33,7 +33,6 @@ import { applyVaultInitialization } from '../../util/generateSkipOnboardingState
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
-import SDKConnectV2 from '../../core/SDKConnectV2';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;

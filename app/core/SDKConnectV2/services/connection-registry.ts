@@ -71,7 +71,7 @@ export class ConnectionRegistry {
    * @returns - True if the deeplink is a connect deeplink
    */
   public isConnectDeeplink(url: string | undefined): url is string {
-    return url !== undefined && url.startsWith(this.DEEPLINK_PREFIX);
+    return !!url?.startsWith(this.DEEPLINK_PREFIX);
   }
 
   /**
@@ -167,7 +167,7 @@ export class ConnectionRegistry {
   /**
    * Sets up the listener for app state lifecycle events to handle reconnection.
    */
-  private async setupAppStateListener(): Promise<void> {
+  private setupAppStateListener(): void {
     let isColdStart = true;
 
     AppState.addEventListener(
@@ -183,6 +183,8 @@ export class ConnectionRegistry {
           return;
         }
 
+        // For all subsequent 'active' events, we reconnect, but only after
+        // the initial setup is guaranteed to be complete to avoid race conditions.
         this.ready.then(() => this.reconnectAll());
       },
     );
