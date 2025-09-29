@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ScrollView } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { getNavigationOptionsTitle } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
@@ -19,17 +19,9 @@ import { useOptout } from '../hooks/useOptout';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
-interface RewardsSettingsViewRouteParams {
-  focusUnlinkedTab?: boolean;
-}
-
 const RewardsSettingsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const route = useRoute();
-  const routeParams = route.params as
-    | RewardsSettingsViewRouteParams
-    | undefined;
   const { colors } = useTheme();
   const toastRef = useRef<ToastRef>(null);
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
@@ -54,16 +46,6 @@ const RewardsSettingsView: React.FC = () => {
       headerTitleAlign: 'center',
     });
   }, [colors, navigation]);
-
-  // Determine initial tab based on route params or current account opt-in status
-  const initialTabIndex = useMemo(() => {
-    // If route specifies to focus unlinked tab, use that
-    if (routeParams?.focusUnlinkedTab) {
-      return 1;
-    }
-    // Otherwise, start with linked tab (index 0)
-    return 0;
-  }, [routeParams?.focusUnlinkedTab]);
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
@@ -95,7 +77,7 @@ const RewardsSettingsView: React.FC = () => {
           )}
 
           {/* Section 2: Account Tabs */}
-          <RewardSettingsTabs initialTabIndex={initialTabIndex} />
+          <RewardSettingsTabs initialTabIndex={0} />
 
           {/* Section 3: Opt Out */}
           <Box twClassName="gap-4 flex-col">

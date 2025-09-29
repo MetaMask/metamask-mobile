@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useCallback,
-  useMemo,
-  useState,
-  useRef,
-} from 'react';
+import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -36,7 +30,6 @@ import {
 } from '../../../../selectors/rewards';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
-import { useLinkAccount } from '../hooks/useLinkAccount';
 import {
   useRewardDashboardModals,
   RewardsDashboardModalType,
@@ -83,14 +76,8 @@ const RewardsDashboard: React.FC = () => {
   }, [selectedAccount, hideCurrentAccountNotOptedInBannerMap]);
   const insets = useSafeAreaInsets();
 
-  // Track linking operation state
-  const [isLinking, setIsLinking] = useState(false);
-
   // Ref for TabsList to control active tab programmatically
   const tabsListRef = useRef<TabsListRef>(null);
-
-  // Use the link account hook
-  const { linkAccount } = useLinkAccount();
 
   // Use the reward dashboard modals hook
   const {
@@ -161,17 +148,6 @@ const RewardsDashboard: React.FC = () => {
     [dispatch, tabOptions, activeTab],
   );
 
-  const handleLinkCurrentAccount = useCallback(async () => {
-    if (!selectedAccount || isLinking) return;
-
-    setIsLinking(true);
-    try {
-      await linkAccount(selectedAccount);
-    } finally {
-      setIsLinking(false);
-    }
-  }, [selectedAccount, linkAccount, isLinking]);
-
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
   // This effect runs whenever key dependencies change and determines which informational
   // modal should be shown to guide the user. Each modal type is only shown once per app session.
@@ -206,7 +182,6 @@ const RewardsDashboard: React.FC = () => {
       }
     }
   }, [
-    // Account and rewards state
     currentAccountOptedIn,
     currentAccountSupported,
     hideCurrentAccountNotOptedInBanner,
@@ -214,18 +189,10 @@ const RewardsDashboard: React.FC = () => {
     subscriptionId,
     unlinkedAccounts.length,
     hideUnlinkedAccountsBanner,
-
-    // UI state for linking
-    isLinking,
-
-    // Modal hook functions (stable references)
     showNotOptedInModal,
     showUnlinkedAccountsModal,
     showNotSupportedModal,
     hasShownModal,
-
-    // Account linking action
-    handleLinkCurrentAccount,
   ]);
 
   return (

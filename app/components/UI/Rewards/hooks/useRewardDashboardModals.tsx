@@ -131,9 +131,7 @@ export const useRewardDashboardModals = () => {
         onPress: () => {
           dispatch(setHideUnlinkedAccountsBanner(true));
           navigation.goBack();
-          navigation.navigate(Routes.REWARDS_SETTINGS_VIEW, {
-            focusUnlinkedTab: true,
-          });
+          navigation.navigate(Routes.REWARDS_SETTINGS_VIEW);
         },
         variant: ButtonVariant.Primary,
       },

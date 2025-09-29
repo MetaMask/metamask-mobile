@@ -1103,14 +1103,6 @@ describe('RewardsDashboard', () => {
   });
 
   describe('hook integration', () => {
-    it('should call useLinkAccount hook', () => {
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert
-      expect(mockUseLinkAccount).toHaveBeenCalled();
-    });
-
     it('should call useRewardDashboardModals hook', () => {
       // Act
       render(<RewardsDashboard />);

@@ -364,24 +364,6 @@ describe('RewardsSettingsView', () => {
     });
   });
 
-  describe('Route params handling', () => {
-    it('uses focusUnlinkedTab param when provided', () => {
-      // Arrange
-      mockUseRoute.mockReturnValue({
-        params: { focusUnlinkedTab: true },
-      });
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
-      expect(getByText('Tab Index: 1')).toBeOnTheScreen();
-    });
-  });
-
   describe('Opt out section', () => {
     it('renders opt out title and description', () => {
       // Act
