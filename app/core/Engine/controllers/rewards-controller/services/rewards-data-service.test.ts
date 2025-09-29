@@ -12,6 +12,7 @@ import type {
   PointsBoostEnvelopeDto,
   ClaimRewardDto,
   MobileLoginDto,
+  MobileOptinDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import type { CaipAccountId } from '@metamask/utils';
@@ -88,15 +89,11 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:optin',
+        'RewardsDataService:mobileOptin',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:logout',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:generateChallenge',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -1119,12 +1116,20 @@ describe('RewardsDataService', () => {
 
   describe('optin', () => {
     const mockOptinRequest = {
-      challengeId: 'challenge-123',
+      account: '0x123',
+      timestamp: 1234567890,
       signature: '0xsignature123',
       referralCode: 'REF123',
-    };
+    } as MobileOptinDto;
 
-    it('should successfully perform optin', async () => {
+    const mockSolanaOptinRequest = {
+      account: '0x123',
+      timestamp: 1234567890,
+      signature: '0xsignature123',
+      referralCode: 'REF123',
+    } as MobileOptinDto;
+
+    it('should successfully perform optin for EVM accounts', async () => {
       // Arrange
       const mockOptinResponse = {
         sessionId: 'session-456',
@@ -1142,12 +1147,12 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.optin(mockOptinRequest);
+      const result = await service.mobileOptin(mockOptinRequest);
 
       // Assert
       expect(result).toEqual(mockOptinResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/login',
+        'https://api.rewards.test/auth/mobile-optin',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockOptinRequest),
@@ -1159,12 +1164,48 @@ describe('RewardsDataService', () => {
       );
     });
 
+    it('should successfully perform optin for Solana accounts', async () => {
+      // Arrange
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sol-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOptinResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.mobileOptin(mockSolanaOptinRequest);
+
+      // Assert
+      expect(result).toEqual(mockOptinResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/mobile-optin',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(mockSolanaOptinRequest),
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+
     it('should handle optin without referral code', async () => {
       // Arrange
       const requestWithoutReferral = {
-        challengeId: 'challenge-123',
+        account: '0x123',
+        timestamp: 1234567890,
         signature: '0xsignature123',
-      };
+      } as MobileOptinDto;
 
       const mockOptinResponse = {
         sessionId: 'session-456',
@@ -1182,12 +1223,12 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.optin(requestWithoutReferral);
+      const result = await service.mobileOptin(requestWithoutReferral);
 
       // Assert
       expect(result).toEqual(mockOptinResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/login',
+        'https://api.rewards.test/auth/mobile-optin',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(requestWithoutReferral),
@@ -1204,7 +1245,7 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act & Assert
-      await expect(service.optin(mockOptinRequest)).rejects.toThrow(
+      await expect(service.mobileOptin(mockOptinRequest)).rejects.toThrow(
         'Optin failed: 400',
       );
     });
@@ -1214,7 +1255,7 @@ describe('RewardsDataService', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       // Act & Assert
-      await expect(service.optin(mockOptinRequest)).rejects.toThrow(
+      await expect(service.mobileOptin(mockOptinRequest)).rejects.toThrow(
         'Network error',
       );
     });
