@@ -43,6 +43,7 @@ import {
   validateOrderParams,
   validateWithdrawalParams,
 } from '../../utils/hyperLiquidValidation';
+import { formatPerpsFiat } from '../../utils/formatUtils';
 import { transformMarketData } from '../../utils/marketDataTransform';
 import type {
   AccountState,
@@ -1642,7 +1643,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
             return {
               isValid: false,
               error: strings('perps.order.validation.max_order_value', {
-                maxValue: maxOrderValue.toLocaleString(),
+                maxValue: formatPerpsFiat(maxOrderValue, {
+                  minimumDecimals: 0,
+                  maximumDecimals: 0,
+                }).replace('$', ''),
               }),
             };
           }
