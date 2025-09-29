@@ -18,16 +18,9 @@ import {
   selectSeasonStartDate,
 } from '../../../../../reducers/rewards/selectors';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 
 const ReferralDetails: React.FC = () => {
-  const tw = useTailwind();
   const referralCode = useSelector(selectReferralCode);
   const refereeCount = useSelector(selectReferralCount);
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
@@ -60,8 +53,7 @@ const ReferralDetails: React.FC = () => {
 
   if (seasonStatusError && !seasonStartDate) {
     return (
-      <BannerAlert
-        severity={BannerAlertSeverity.Error}
+      <RewardsErrorBanner
         title={strings('rewards.season_status_error.error_fetching_title')}
         description={strings(
           'rewards.season_status_error.error_fetching_description',
@@ -75,19 +67,15 @@ const ReferralDetails: React.FC = () => {
       <ReferralInfoSection />
 
       {!referralDetailsLoading && referralDetailsError && !referralCode ? (
-        <BannerAlert
-          severity={BannerAlertSeverity.Error}
+        <RewardsErrorBanner
           title={strings('rewards.referral_details_error.error_fetching_title')}
           description={strings(
             'rewards.referral_details_error.error_fetching_description',
           )}
-          actionButtonProps={{
-            size: ButtonSize.Md,
-            style: tw.style('mt-2'),
-            onPress: fetchReferralDetails,
-            label: strings('rewards.referral_details_error.retry_button'),
-            variant: ButtonVariants.Primary,
-          }}
+          onConfirm={fetchReferralDetails}
+          confirmButtonLabel={strings(
+            'rewards.referral_details_error.retry_button',
+          )}
         />
       ) : (
         <>
