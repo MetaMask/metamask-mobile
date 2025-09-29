@@ -23,6 +23,11 @@ export interface UseValidateReferralCodeResult {
    * Whether the current referral code is valid
    */
   isValid: boolean;
+
+  /**
+   * Whether an unknown error occurred while validating the referral code
+   */
+  isUnknownError: boolean;
 }
 
 /**
@@ -40,22 +45,29 @@ export const useValidateReferralCode = (
   const [referralCode, setReferralCodeState] = useState(initialValue);
   const [error, setError] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+  const [unknownError, setUnknownError] = useState(false);
 
   const validateCode = useCallback(async (code: string): Promise<string> => {
-    const valid = await Engine.controllerMessenger.call(
-      'RewardsController:validateReferralCode',
-      code,
-    );
-    if (!valid) {
-      return 'Invalid code';
+    try {
+      const valid = await Engine.controllerMessenger.call(
+        'RewardsController:validateReferralCode',
+        code,
+      );
+      if (!valid) {
+        return 'Invalid code';
+      }
+      return '';
+    } catch (error) {
+      setUnknownError(true);
+      return 'Unknown error';
     }
-    return '';
   }, []);
 
   // Debounced validation
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedValidation = useCallback(
     debounce(async (code: string) => {
+      setUnknownError(false);
       const validationError = await validateCode(code);
       setError(validationError);
       setIsValidating(false);
@@ -94,6 +106,7 @@ export const useValidateReferralCode = (
     validateCode,
     isValidating,
     isValid,
+    isUnknownError: unknownError,
   };
 };
 

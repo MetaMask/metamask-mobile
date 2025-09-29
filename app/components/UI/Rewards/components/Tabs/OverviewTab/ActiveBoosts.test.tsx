@@ -43,11 +43,10 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'rewards.active_boosts_title': 'Active boosts',
       'rewards.season_1': 'Season 1',
       'rewards.active_boosts_error.error_fetching_title':
-        'Failed to load active boosts',
+        "Boosts couldn't be loaded",
       'rewards.active_boosts_error.error_fetching_description':
-        "We couldn't load your current active boosts. Please check your connection and try again.",
+        'Check your connection and try again.',
       'rewards.active_boosts_error.retry_button': 'Retry',
-      'rewards.active_boosts_error.dismiss_button': 'Dismiss',
     };
     return translations[key] || key;
   }),
@@ -112,6 +111,49 @@ jest.mock('../../ThemeImageComponent', () => {
           ref,
         }),
     ),
+  };
+});
+
+// Mock RewardsErrorBanner
+jest.mock('../../RewardsErrorBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      onConfirm,
+      confirmButtonLabel,
+    }: {
+      title: string;
+      description: string;
+      onConfirm?: () => void;
+      confirmButtonLabel?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'rewards-error-banner' },
+        ReactActual.createElement(Text, { testID: 'error-title' }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: 'error-description' },
+          description,
+        ),
+        onConfirm &&
+          ReactActual.createElement(
+            TouchableOpacity,
+            {
+              onPress: onConfirm,
+              testID: 'error-retry-button',
+            },
+            ReactActual.createElement(
+              Text,
+              {},
+              confirmButtonLabel || 'Confirm',
+            ),
+          ),
+      ),
   };
 });
 
@@ -283,13 +325,13 @@ describe('ActiveBoosts', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(errorState);
+      const { getByText, getByTestId } = renderWithProvider(errorState);
 
       // Should show section header
       expect(getByText('Active boosts')).toBeTruthy();
 
-      // Should show error message
-      expect(getByText('Failed to load active boosts')).toBeTruthy();
+      // Should show error banner
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
     });
 
     it('should not render anything when error and no boosts and not loading', () => {
@@ -302,11 +344,11 @@ describe('ActiveBoosts', () => {
         },
       };
 
-      const { getByText } = renderWithProvider(errorEmptyState);
+      const { getByText, getByTestId } = renderWithProvider(errorEmptyState);
 
       // Should still show section header and error banner even with empty boosts
       expect(getByText('Active boosts')).toBeTruthy();
-      expect(getByText('Failed to load active boosts')).toBeTruthy();
+      expect(getByTestId('rewards-error-banner')).toBeTruthy();
     });
   });
 
