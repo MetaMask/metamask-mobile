@@ -288,9 +288,10 @@ export function usePerpsOrderFees({
       }
 
       try {
-        // For debugging: always clear cache for the specific problematic address
+        // For debugging: clear cache in development mode for testing
         if (
-          address.toLowerCase() === '0x32d588a7263c06791006e670738f31e9ed7121b3'
+          __DEV__ &&
+          address.toLowerCase() === '0x1234567890123456789012345678901234567890'
         ) {
           DevLogger.log('DAO: Clearing cache for test address', { address });
           metamaskDAOService.clearCache();
@@ -316,8 +317,9 @@ export function usePerpsOrderFees({
         DevLogger.log('DAO: Checking token holder status with improved logic', {
           address,
           cacheCleared:
+            __DEV__ &&
             address.toLowerCase() ===
-            '0x32d588a7263c06791006e670738f31e9ed7121b3',
+              '0x1234567890123456789012345678901234567890',
         });
 
         // Check with DAO service
