@@ -663,6 +663,7 @@ const MultichainAccountGroupDetails = () => {
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
         component={WalletDetails}
+        initialParams={route?.params}
         options={{
           headerShown: false,
           animationEnabled: true,
