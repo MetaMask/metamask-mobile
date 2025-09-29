@@ -7,6 +7,7 @@ import {
 import { getEtherscanAddressUrl } from '../../util/etherscan';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../locales/i18n';
 import {
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -152,7 +153,7 @@ const useBlockExplorer = (chainId?: string) => {
           ];
         return blockExplorerUrls
           ? getBlockExplorerNameFromUrl(blockExplorerUrls.url)
-          : 'Block Explorer';
+          : strings('swaps.block_explorer');
       }
 
       // For specific EVM chain block explorers
@@ -173,7 +174,7 @@ const useBlockExplorer = (chainId?: string) => {
         );
         return blockExplorer
           ? getBlockExplorerNameFromUrl(blockExplorer)
-          : 'Block Explorer';
+          : strings('swaps.block_explorer');
       }
 
       // Fallback to etherscan-based URL
