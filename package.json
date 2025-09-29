@@ -281,7 +281,7 @@
     "@metamask/swaps-controller": "^14.0.0",
     "@metamask/token-search-discovery-controller": "^3.1.0",
     "@metamask/transaction-controller": "^60.3.0",
-    "@metamask/tron-wallet-snap": "^1.0.3",
+    "@metamask/tron-wallet-snap": "^1.1.0",
     "@metamask/utils": "^11.8.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
