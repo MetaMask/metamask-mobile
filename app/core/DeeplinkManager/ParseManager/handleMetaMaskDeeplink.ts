@@ -10,7 +10,6 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
-import SDKConnectV2 from '../../SDKConnectV2';
 
 export function handleMetaMaskDeeplink({
   instance,
@@ -40,7 +39,6 @@ export function handleMetaMaskDeeplink({
       });
     return;
   }
-
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {

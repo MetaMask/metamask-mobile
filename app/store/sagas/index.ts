@@ -164,13 +164,6 @@ export function* handleDeeplinkSaga() {
       SET_COMPLETED_ONBOARDING,
     ])) as LoginAction | CheckForDeeplinkAction | SetCompletedOnboardingAction;
 
-    const deeplink = AppStateEventProcessor.pendingDeeplink;
-    if (SDKConnectV2.isConnectDeeplink(deeplink)) {
-      SDKConnectV2.handleConnectDeeplink(deeplink);
-      AppStateEventProcessor.clearPendingDeeplink();
-      continue;
-    }
-
     let completedOnboarding = false;
 
     // Check if triggering action is SET_COMPLETED_ONBOARDING
@@ -193,6 +186,8 @@ export function* handleDeeplinkSaga() {
       yield call(initializeSDKServices);
       hasInitializedSDKServices = true;
     }
+
+    const deeplink = AppStateEventProcessor.pendingDeeplink;
 
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events

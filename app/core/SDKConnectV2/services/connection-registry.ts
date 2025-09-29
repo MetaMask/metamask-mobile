@@ -16,6 +16,8 @@ import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
  * lifecycle of all SDKConnectV2 connections.
  */
 export class ConnectionRegistry {
+  private readonly DEEPLINK_PREFIX = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`;
+
   private readonly RELAY_URL: string;
   private readonly keymanager: IKeyManager;
   private readonly hostapp: IHostApplicationAdapter;
@@ -68,8 +70,8 @@ export class ConnectionRegistry {
    * @param url - The url to check
    * @returns - True if the deeplink is a connect deeplink
    */
-  public isConnectDeeplink(url: string | null): url is string {
-    return !!url && url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`);
+  public isConnectDeeplink(url: string | undefined): url is string {
+    return url !== undefined && url.startsWith(this.DEEPLINK_PREFIX);
   }
 
   /**
@@ -166,7 +168,6 @@ export class ConnectionRegistry {
    * Sets up the listener for app state lifecycle events to handle reconnection.
    */
   private async setupAppStateListener(): Promise<void> {
-    await this.ready;
     let isColdStart = true;
 
     AppState.addEventListener(
@@ -182,7 +183,7 @@ export class ConnectionRegistry {
           return;
         }
 
-        this.reconnectAll();
+        this.ready.then(() => this.reconnectAll());
       },
     );
   }

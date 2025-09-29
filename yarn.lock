@@ -7679,14 +7679,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mobile-wallet-protocol-wallet-client@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/mobile-wallet-protocol-wallet-client@npm:0.2.0"
+"@metamask/mobile-wallet-protocol-wallet-client@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "@metamask/mobile-wallet-protocol-wallet-client@npm:0.2.1"
   dependencies:
     "@metamask/mobile-wallet-protocol-core": ^0.2.0
     "@metamask/utils": ^9.1.0
     uuid: ^11.1.0
-  checksum: 882249df4fd9c86d030b9778da6474cfc833998a5ed7cb95288f905558efa63b2bbc519cd7a088fa081001cba2ed2e26cd221c23db6b1e4c01143f46477393c8
+  checksum: 53c4965a81bf9d93c3ed6b1317045190c6c7b31dcd764e9c7a38b7b7855afd11eb4ad644cb9d27c68f2257a698ed7f1eea1923b14bf8aa6193500941b44bf4d8
   languageName: node
   linkType: hard
 
@@ -33728,7 +33728,7 @@ __metadata:
     "@metamask/metamask-eth-abis": 3.1.1
     "@metamask/mobile-provider": ^3.0.0
     "@metamask/mobile-wallet-protocol-core": ^0.2.0
-    "@metamask/mobile-wallet-protocol-wallet-client": ^0.2.0
+    "@metamask/mobile-wallet-protocol-wallet-client": ^0.2.1
     "@metamask/multichain-account-service": ^1.2.0
     "@metamask/multichain-api-client": ^0.7.0
     "@metamask/multichain-api-middleware": 1.1.0
