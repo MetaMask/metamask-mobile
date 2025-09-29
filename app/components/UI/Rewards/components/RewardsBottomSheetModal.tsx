@@ -75,13 +75,26 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
     navigation.goBack();
   }, [navigation]);
 
+  const closeBottomSheetAndNavigate = useCallback(
+    (navigateFunc: () => void) => {
+      sheetRef.current?.onCloseBottomSheet(navigateFunc);
+    },
+    [],
+  );
+
   const handleCancel = useCallback(() => {
     if (onCancel) {
-      onCancel();
+      closeBottomSheetAndNavigate(onCancel);
     } else {
       handleDismiss();
     }
-  }, [onCancel, handleDismiss]);
+  }, [onCancel, handleDismiss, closeBottomSheetAndNavigate]);
+
+  const handleConfirmAction = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      confirmAction.onPress();
+    });
+  }, [closeBottomSheetAndNavigate, confirmAction]);
 
   const renderIcon = () => {
     // If custom icon is provided, use it
@@ -180,7 +193,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
             <Button
               variant={confirmAction.variant || ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              onPress={confirmAction.onPress}
+              onPress={handleConfirmAction}
               disabled={confirmAction.disabled}
               isLoading={confirmAction.isLoading}
               isDanger={type === ModalType.Danger}
@@ -210,7 +223,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
         <Button
           variant={confirmAction.variant || ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={confirmAction.onPress}
+          onPress={handleConfirmAction}
           disabled={confirmAction.disabled}
           isDanger={type === ModalType.Danger}
           twClassName="w-full"

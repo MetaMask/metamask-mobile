@@ -48,7 +48,6 @@ import { TabsList } from '../../../../component-library/components-temp/Tabs';
 import { TabsListRef } from '../../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import Logger from '../../../../util/Logger';
 import { convertInternalAccountToCaipAccountId } from '../utils';
 
 const RewardsDashboard: React.FC = () => {
@@ -66,7 +65,6 @@ const RewardsDashboard: React.FC = () => {
     selectHideCurrentAccountNotOptedInBannerArray,
   );
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  Logger.log('selectedAccount', selectedAccount);
   const hideCurrentAccountNotOptedInBanner = useMemo((): boolean => {
     if (
       selectedAccount &&

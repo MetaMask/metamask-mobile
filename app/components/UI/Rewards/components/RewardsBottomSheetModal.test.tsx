@@ -43,12 +43,21 @@ jest.mock(
 
     // Provide a properly typed forwardRef and children prop
     return ReactActual.forwardRef(
-      (props: { children?: React.ReactNode }, _ref: React.Ref<unknown>) =>
-        ReactActual.createElement(
+      (props: { children?: React.ReactNode }, ref: React.Ref<unknown>) => {
+        // Mock the ref with onCloseBottomSheet method
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback: () => void) => {
+            // Immediately call the callback to simulate closing the bottom sheet
+            callback();
+          },
+        }));
+
+        return ReactActual.createElement(
           View,
           { testID: 'bottom-sheet' },
           props.children,
-        ),
+        );
+      },
     );
   },
 );

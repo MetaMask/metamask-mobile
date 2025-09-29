@@ -139,10 +139,10 @@ describe('useOptout', () => {
         mockSubscriptionId,
       );
       expect(mockLoggerLog).toHaveBeenCalledWith(
-        'useOptout: Opt-out successful, resetting state and navigating',
+        'useOptout: Opt-out successful, resetting state',
       );
       expect(mockDispatch).toHaveBeenCalledWith(mockResetRewardsState());
-      expect(mockNavigate).toHaveBeenCalledWith('RewardsView');
+      // Navigation should not happen in the optout function itself
       expect(result.current.isLoading).toBe(false);
     });
 
