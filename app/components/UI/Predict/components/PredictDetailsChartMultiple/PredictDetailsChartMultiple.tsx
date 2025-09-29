@@ -23,11 +23,46 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
+import { PredictPriceHistoryInterval } from '../../types';
 
 export interface PredictDetailsChartMultiplePoint {
-  time: string;
+  timestamp: number;
   value: number;
 }
+
+const formatPriceHistoryLabel = (
+  timestamp: number,
+  interval: PredictPriceHistoryInterval | string,
+) => {
+  const isMilliseconds = timestamp > 1_000_000_000_000;
+  const date = new Date(isMilliseconds ? timestamp : timestamp * 1000);
+
+  switch (interval) {
+    case PredictPriceHistoryInterval.ONE_HOUR:
+    case PredictPriceHistoryInterval.SIX_HOUR:
+    case PredictPriceHistoryInterval.ONE_DAY:
+      return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+      }).format(date);
+    case PredictPriceHistoryInterval.ONE_WEEK:
+      return new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        hour: 'numeric',
+      }).format(date);
+    case PredictPriceHistoryInterval.ONE_MONTH:
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }).format(date);
+    case PredictPriceHistoryInterval.MAX:
+    default:
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        year: 'numeric',
+      }).format(date);
+  }
+};
 
 export interface PredictDetailsChartMultipleSeries {
   label: string;
@@ -85,7 +120,19 @@ const PredictDetailsChartMultiple: React.FC<
   const { colors } = useTheme();
 
   const seriesToRender = React.useMemo(() => data.slice(0, MAX_SERIES), [data]);
-  const nonEmptySeries = seriesToRender.filter(
+  const seriesWithLabels = React.useMemo(
+    () =>
+      seriesToRender.map((series) => ({
+        ...series,
+        data: series.data.map((point) => ({
+          ...point,
+          label: formatPriceHistoryLabel(point.timestamp, selectedTimeframe),
+        })),
+      })),
+    [seriesToRender, selectedTimeframe],
+  );
+
+  const nonEmptySeries = seriesWithLabels.filter(
     (series) => series.data.length > 0,
   );
   const hasData = nonEmptySeries.length > 0;
@@ -101,7 +148,7 @@ const PredictDetailsChartMultiple: React.FC<
   const chartMin = minValue - padding;
   const chartMax = maxValue + padding;
 
-  const primarySeries = nonEmptySeries[0] ?? seriesToRender[0];
+  const primarySeries = nonEmptySeries[0] ?? seriesWithLabels[0];
   const primaryData = primarySeries?.data ?? [];
   const primaryChartData = primaryData.length
     ? primaryData.map((point) => point.value)
@@ -109,7 +156,7 @@ const PredictDetailsChartMultiple: React.FC<
 
   const axisLabelSource = primaryData.length
     ? primaryData
-    : seriesToRender[0]?.data ?? [];
+    : seriesWithLabels[0]?.data ?? [];
 
   const Gradient = () => (
     <Defs>
@@ -241,7 +288,7 @@ const PredictDetailsChartMultiple: React.FC<
   );
 
   const renderLegend = () => {
-    if (!seriesToRender.length || (!hasData && !isLoading)) {
+    if (!seriesWithLabels.length || (!hasData && !isLoading)) {
       return null;
     }
 
@@ -251,7 +298,7 @@ const PredictDetailsChartMultiple: React.FC<
         alignItems={BoxAlignItems.Center}
         twClassName="px-4 mb-3 flex-wrap"
       >
-        {seriesToRender.map((series, index) => {
+        {seriesWithLabels.map((series, index) => {
           const lastPoint = series.data[series.data.length - 1];
           const seriesColor = series.color || colors.success.default;
           const valueLabel = lastPoint
@@ -334,22 +381,18 @@ const PredictDetailsChartMultiple: React.FC<
     }
 
     const showArea =
-      seriesToRender.length === 1 && (primarySeries?.data.length ?? 0) > 0;
-    const overlaySeries = seriesToRender.filter(
+      seriesWithLabels.length === 1 && (primarySeries?.data.length ?? 0) > 0;
+    const overlaySeries = seriesWithLabels.filter(
       (series) => series !== primarySeries && series.data.length > 0,
     );
     const axisLabelStep = Math.max(
       1,
       Math.floor(axisLabelSource.length / 4) || 1,
     );
-    const axisLabels = axisLabelSource.reduce<
-      PredictDetailsChartMultiplePoint[]
-    >((accumulator, point, index) => {
-      if (index % axisLabelStep === 0 || index === axisLabelSource.length - 1) {
-        accumulator.push(point);
-      }
-      return accumulator;
-    }, []);
+    const axisLabels = axisLabelSource.filter(
+      (_, index) =>
+        index % axisLabelStep === 0 || index === axisLabelSource.length - 1,
+    );
 
     return (
       <Box twClassName="mb-6">
@@ -397,11 +440,11 @@ const PredictDetailsChartMultiple: React.FC<
         >
           {axisLabels.map((point, index) => (
             <Text
-              key={`${point.time}-${index}`}
+              key={`${point.timestamp}-${index}`}
               variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
             >
-              {point.time}
+              {point.label}
             </Text>
           ))}
         </Box>

@@ -7,46 +7,35 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import PredictMarketDetails from './PredictMarketDetails';
-import { getNavigationOptionsTitle } from '../../../Navbar';
-import { formatPrice } from '../../utils/format';
-import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 
-// Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
 }));
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      content: {
-        flex: 1,
-        paddingHorizontal: 24,
-        paddingTop: 24,
-        paddingBottom: 32,
-        gap: 16,
-      },
-      headerContainer: {
-        alignItems: 'center',
-        marginBottom: 32,
-      },
-      button: {
-        width: '100%',
-      },
-      screen: {
-        flex: 1,
-      },
-      scrollView: {
-        flex: 1,
-      },
-      buttonContainer: {
-        flexDirection: 'row',
-      },
-    },
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: jest.fn(() => ({
+    style: jest.fn((...args) => args.join(' ')),
   })),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    Box: View,
+    BoxFlexDirection: {
+      Row: 'row',
+      Column: 'column',
+    },
+    BoxAlignItems: {
+      Center: 'center',
+    },
+    BoxJustifyContent: {
+      Between: 'space-between',
+    },
+  };
+});
 
 const mockUseTheme = jest.fn(() => ({
   colors: {
@@ -55,6 +44,19 @@ const mockUseTheme = jest.fn(() => ({
     },
     text: {
       default: '#121314',
+      muted: '#666666',
+    },
+    icon: {
+      default: '#121314',
+    },
+    primary: {
+      default: '#037DD6',
+    },
+    success: {
+      default: '#28A745',
+    },
+    error: {
+      default: '#DC3545',
     },
   },
 }));
@@ -101,7 +103,92 @@ jest.mock('../../utils/format', () => ({
     (value: number, options?: { maximumDecimals?: number }) =>
       `$${value.toFixed(options?.maximumDecimals || 2)}`,
   ),
+  formatVolume: jest.fn((value: number) => value.toLocaleString()),
 }));
+
+jest.mock('../../hooks/usePredictMarket', () => ({
+  usePredictMarket: jest.fn(() => ({
+    market: null,
+    isFetching: false,
+  })),
+}));
+
+jest.mock('../../hooks/usePredictPriceHistory', () => ({
+  usePredictPriceHistory: jest.fn(() => ({
+    priceHistory: [],
+    isFetching: false,
+    error: null,
+  })),
+}));
+
+jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockPredictDetailsChart() {
+    return (
+      <View testID="predict-details-chart">
+        <Text>Chart Component</Text>
+      </View>
+    );
+  };
+});
+
+jest.mock(
+  '../../components/PredictDetailsChartMultiple/PredictDetailsChartMultiple',
+  () => {
+    const { View, Text } = jest.requireActual('react-native');
+    return function MockPredictDetailsChartMultiple() {
+      return (
+        <View testID="predict-details-chart-multiple">
+          <Text>Multiple Chart Component</Text>
+        </View>
+      );
+    };
+  },
+);
+
+jest.mock('../../components/PredictMarketOutcome', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockPredictMarketOutcome({
+    outcome,
+  }: {
+    outcome: { title?: string };
+  }) {
+    return (
+      <View testID="predict-market-outcome">
+        <Text>{outcome?.title || 'Outcome'}</Text>
+      </View>
+    );
+  };
+});
+
+jest.mock('../../../../Base/TabBar', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockTabBar({ textStyle }: { textStyle: object }) {
+    return (
+      <View testID="tab-bar">
+        <Text style={textStyle}>Tab Bar</Text>
+      </View>
+    );
+  };
+});
+
+jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockScrollableTabView({
+    children,
+    renderTabBar,
+  }: {
+    children: React.ReactNode;
+    renderTabBar?: () => React.ReactNode;
+  }) {
+    return (
+      <View testID="scrollable-tab-view">
+        {renderTabBar?.()}
+        {children}
+      </View>
+    );
+  };
+});
 
 jest.mock('../../../../../component-library/components/Texts/Text', () => {
   const { Text } = jest.requireActual('react-native');
@@ -109,11 +196,17 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     __esModule: true,
     default: Text,
     TextVariant: {
-      HeadingLG: 'HeadingLG',
+      HeadingMD: 'HeadingMD',
       BodyMD: 'BodyMD',
+      BodyMDMedium: 'BodyMDMedium',
+      BodySM: 'BodySM',
     },
     TextColor: {
+      Default: 'Default',
       Alternative: 'Alternative',
+      Success: 'Success',
+      Error: 'Error',
+      Primary: 'Primary',
     },
   };
 });
@@ -126,69 +219,135 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
       onPress,
       style,
       children,
+      label,
+      testID,
     }: {
       onPress: () => void;
-      label: string;
+      label: string | React.ReactNode;
       variant: string;
+      size: string;
+      width: string;
       style: object;
-      children: React.ReactNode;
+      children?: React.ReactNode;
+      testID?: string;
     }) {
       return (
         <TouchableOpacity
           onPress={onPress}
-          testID="cash-out-button"
+          testID={testID || 'button'}
           style={style}
         >
-          <Text>{children}</Text>
+          <Text>{label || children}</Text>
         </TouchableOpacity>
       );
     },
     ButtonVariants: {
       Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
+    },
+    ButtonWidthTypes: {
+      Full: 'Full',
     },
   };
 });
 
-// Helper function to create mock position
-function createMockPosition(overrides = {}) {
+jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+  const { View } = jest.requireActual('react-native');
   return {
-    id: 'position-1',
-    marketId: 'market-1',
-    outcomeId: 'outcome-1',
+    __esModule: true,
+    default: function MockIcon({
+      name,
+    }: {
+      name: string;
+      size?: string;
+      color?: string;
+    }) {
+      return <View testID={`icon-${name}`} />;
+    },
+    IconName: {
+      ArrowLeft: 'ArrowLeft',
+      Flash: 'Flash',
+      Chart: 'Chart',
+      Clock: 'Clock',
+      Bank: 'Bank',
+      Export: 'Export',
+      Apps: 'Apps',
+    },
+    IconSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+    },
+  };
+});
+
+function createMockMarket(overrides = {}) {
+  return {
+    id: 'market-1',
     title: 'Will Bitcoin reach $100k by end of 2024?',
-    outcome: 'Yes',
-    currentValue: 150.75,
-    size: 100,
-    price: 0.65,
-    cashPnl: 25.5,
-    percentPnl: 20.4,
-    initialValue: 125.25,
-    avgPrice: 0.625,
+    image: 'https://example.com/bitcoin.png',
+    endDate: '2024-12-31T23:59:59Z',
+    providerId: 'polymarket',
+    outcomes: [
+      {
+        id: 'outcome-1',
+        title: 'Yes',
+        groupItemTitle: 'Yes',
+        tokens: [
+          {
+            id: 'token-1',
+            price: 0.65,
+          },
+        ],
+        volume: 1000000,
+      },
+      {
+        id: 'outcome-2',
+        title: 'No',
+        groupItemTitle: 'No',
+        tokens: [
+          {
+            id: 'token-2',
+            price: 0.35,
+          },
+        ],
+        volume: 500000,
+      },
+    ],
     ...overrides,
   };
 }
 
-// Helper function to setup test environment
 function setupPredictMarketDetailsTest(
-  positionOverrides = {},
+  marketOverrides = {},
   routeOverrides = {},
+  hookOverrides: { market?: object; priceHistory?: object } = {},
 ) {
   jest.clearAllMocks();
 
   const mockNavigate = jest.fn();
   const mockSetOptions = jest.fn();
+  const mockGoBack = jest.fn();
+  const mockCanGoBack = jest.fn(() => true);
+  const mockGetParent = jest.fn(() => ({
+    canGoBack: jest.fn(() => true),
+    goBack: jest.fn(),
+  }));
+
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
   const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 
-  const mockPosition = createMockPosition(positionOverrides);
+  const mockMarket = createMockMarket(marketOverrides);
 
   const mockRoute = {
     key: 'PredictMarketDetails',
     name: 'PredictMarketDetails' as const,
     params: {
-      position: mockPosition,
+      marketId: 'market-1',
     },
     ...routeOverrides,
   };
@@ -196,9 +355,30 @@ function setupPredictMarketDetailsTest(
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
     setOptions: mockSetOptions,
+    goBack: mockGoBack,
+    canGoBack: mockCanGoBack,
+    getParent: mockGetParent,
   } as unknown as NavigationProp<ParamListBase>);
 
   mockUseRoute.mockReturnValue(mockRoute);
+
+  const { usePredictMarket } = jest.requireMock('../../hooks/usePredictMarket');
+  const { usePredictPriceHistory } = jest.requireMock(
+    '../../hooks/usePredictPriceHistory',
+  );
+
+  usePredictMarket.mockReturnValue({
+    market: mockMarket,
+    isFetching: false,
+    ...hookOverrides.market,
+  });
+
+  usePredictPriceHistory.mockReturnValue({
+    priceHistory: [],
+    isFetching: false,
+    error: null,
+    ...hookOverrides.priceHistory,
+  });
 
   const result = render(<PredictMarketDetails />);
 
@@ -206,191 +386,17 @@ function setupPredictMarketDetailsTest(
     ...result,
     mockNavigate,
     mockSetOptions,
-    mockPosition,
+    mockGoBack,
+    mockCanGoBack,
+    mockGetParent,
+    mockMarket,
     mockRoute,
   };
 }
 
 describe('PredictMarketDetails', () => {
   describe('Component Rendering', () => {
-    it('renders the component with correct structure', () => {
-      setupPredictMarketDetailsTest();
-
-      expect(screen.getByTestId('screen-view')).toBeOnTheScreen();
-      expect(screen.getByText('Market Detail')).toBeOnTheScreen();
-      expect(screen.getByText('Cash Out')).toBeOnTheScreen();
-    });
-
-    it('displays position title correctly', () => {
-      const { mockPosition } = setupPredictMarketDetailsTest();
-
-      expect(screen.getByText(mockPosition.title)).toBeOnTheScreen();
-    });
-
-    it('displays position outcome correctly', () => {
-      const { mockPosition } = setupPredictMarketDetailsTest();
-
-      expect(
-        screen.getByText(`Outcome: ${mockPosition.outcome}`),
-      ).toBeOnTheScreen();
-    });
-
-    it('displays current value with proper formatting', () => {
-      setupPredictMarketDetailsTest();
-
-      expect(screen.getByText('Current Value: $150.75')).toBeOnTheScreen();
-    });
-
-    it('renders cash out button with correct properties', () => {
-      setupPredictMarketDetailsTest();
-
-      const cashOutButton = screen.getByTestId('cash-out-button');
-      expect(cashOutButton).toBeOnTheScreen();
-      expect(screen.getByText('Cash Out')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Navigation Setup', () => {
-    it('sets navigation options on mount', () => {
-      const { mockSetOptions } = setupPredictMarketDetailsTest();
-
-      expect(mockSetOptions).toHaveBeenCalledWith({});
-    });
-
-    it('calls getNavigationOptionsTitle with correct parameters', () => {
-      setupPredictMarketDetailsTest();
-
-      expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
-        'predict.title',
-        expect.any(Object),
-        false,
-        expect.any(Object),
-      );
-    });
-  });
-
-  describe('Cash Out Functionality', () => {
-    it('navigates to cash out modal when cash out button is pressed', () => {
-      const { mockNavigate, mockPosition } = setupPredictMarketDetailsTest();
-
-      const cashOutButton = screen.getByTestId('cash-out-button');
-      fireEvent.press(cashOutButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-        screen: 'PredictCashOut',
-        params: { position: mockPosition },
-      });
-    });
-
-    it('passes correct position data to cash out modal', () => {
-      const { mockNavigate, mockPosition } = setupPredictMarketDetailsTest();
-
-      const cashOutButton = screen.getByTestId('cash-out-button');
-      fireEvent.press(cashOutButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'PredictModals',
-        expect.objectContaining({
-          params: { position: mockPosition },
-        }),
-      );
-    });
-  });
-
-  describe('Data Display', () => {
-    it('displays all position information correctly', () => {
-      const { mockPosition } = setupPredictMarketDetailsTest();
-
-      expect(screen.getByText('Market Detail')).toBeOnTheScreen();
-      expect(screen.getByText(mockPosition.title)).toBeOnTheScreen();
-      expect(
-        screen.getByText(`Outcome: ${mockPosition.outcome}`),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('Current Value: $150.75')).toBeOnTheScreen();
-    });
-
-    it('formats price with correct decimal places', () => {
-      const { mockPosition } = setupPredictMarketDetailsTest();
-
-      expect(formatPrice).toHaveBeenCalledWith(mockPosition.currentValue, {
-        maximumDecimals: 2,
-      });
-    });
-
-    it('handles different position data correctly', () => {
-      const { mockPosition: differentPosition } = setupPredictMarketDetailsTest(
-        {
-          title: 'Will Ethereum reach $10k?',
-          outcome: 'No',
-          currentValue: 75.25,
-        },
-      );
-
-      expect(screen.getByText(differentPosition.title)).toBeOnTheScreen();
-      expect(
-        screen.getByText(`Outcome: ${differentPosition.outcome}`),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('Current Value: $75.25')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Component Props and Styling', () => {
-    it('applies correct styles to content container', () => {
-      setupPredictMarketDetailsTest();
-
-      expect(useStyles).toHaveBeenCalledWith(expect.any(Function), {});
-    });
-
-    it('renders with proper text variants', () => {
-      setupPredictMarketDetailsTest();
-
-      const headingText = screen.getByText('Market Detail');
-      const outcomeText = screen.getByText('Outcome: Yes');
-      const currentValueText = screen.getByText('Current Value: $150.75');
-
-      expect(headingText).toBeOnTheScreen();
-      expect(outcomeText).toBeOnTheScreen();
-      expect(currentValueText).toBeOnTheScreen();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('handles position with zero current value', () => {
-      setupPredictMarketDetailsTest({
-        currentValue: 0,
-      });
-
-      expect(screen.getByText('Current Value: $0.00')).toBeOnTheScreen();
-    });
-
-    it('handles position with very large current value', () => {
-      setupPredictMarketDetailsTest({
-        currentValue: 999999.999,
-      });
-
-      expect(screen.getByText('Current Value: $1000000.00')).toBeOnTheScreen();
-    });
-
-    it('handles position with empty title', () => {
-      setupPredictMarketDetailsTest({
-        title: '',
-      });
-
-      expect(screen.getByText('Outcome: Yes')).toBeOnTheScreen();
-      expect(screen.getByText('Current Value: $150.75')).toBeOnTheScreen();
-    });
-
-    it('handles position with special characters in outcome', () => {
-      setupPredictMarketDetailsTest({
-        outcome: 'Yes/No',
-      });
-
-      expect(screen.getByText('Outcome: Yes/No')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Component Integration', () => {
-    it('renders the SafeAreaView container', () => {
+    it('renders the main screen container', () => {
       setupPredictMarketDetailsTest();
 
       expect(
@@ -398,35 +404,293 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('integrates with internationalization', () => {
+    it('displays market title when market data is loaded', () => {
+      const { mockMarket } = setupPredictMarketDetailsTest();
+
+      expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
+    });
+
+    it('displays loading state when market is fetching', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        { market: { isFetching: true, market: null } },
+      );
+
+      expect(screen.getByText('Loading...')).toBeOnTheScreen();
+    });
+
+    it('displays fallback title when market data is unavailable', () => {
+      setupPredictMarketDetailsTest({}, {}, { market: { market: null } });
+
+      expect(screen.getByText('Market title unavailable')).toBeOnTheScreen();
+    });
+
+    it('renders back button with correct accessibility', () => {
       setupPredictMarketDetailsTest();
 
-      expect(strings).toHaveBeenCalledWith('predict.title');
+      expect(screen.getByTestId('icon-ArrowLeft')).toBeOnTheScreen();
     });
   });
 
-  describe('Button Interaction', () => {
-    it('button is pressable and responds to touch events', () => {
-      const { mockNavigate } = setupPredictMarketDetailsTest();
-
-      const cashOutButton = screen.getByTestId('cash-out-button');
-
-      expect(cashOutButton).toBeOnTheScreen();
-
-      fireEvent.press(cashOutButton);
-
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-    });
-
-    it('button maintains state after press', () => {
+  describe('Market Information Display', () => {
+    it('displays market volume correctly', () => {
       setupPredictMarketDetailsTest();
 
-      const cashOutButton = screen.getByTestId('cash-out-button');
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
+    });
 
-      fireEvent.press(cashOutButton);
+    it('displays market end date correctly', () => {
+      setupPredictMarketDetailsTest();
 
-      expect(cashOutButton).toBeOnTheScreen();
-      expect(screen.getByText('Cash Out')).toBeOnTheScreen();
+      expect(screen.getByText('End date')).toBeOnTheScreen();
+      expect(screen.getByText('12/31/2024')).toBeOnTheScreen();
+    });
+
+    it('displays provider information', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(screen.getByText('Powered by')).toBeOnTheScreen();
+      expect(screen.getByText('polymarket')).toBeOnTheScreen();
+    });
+
+    it('displays resolver information', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(screen.getByText('Resolver')).toBeOnTheScreen();
+      expect(screen.getByText('UMA')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Chart Rendering', () => {
+    it('renders single outcome chart for single outcome markets', () => {
+      const singleOutcomeMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.65 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
+
+      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+    });
+
+    it('renders multiple outcome chart for binary markets with two outcomes', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId('predict-details-chart-multiple'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders multiple outcome chart for multi-outcome markets', () => {
+      const multiOutcomeMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Option A',
+            tokens: [{ id: 'token-1', price: 0.4 }],
+            volume: 1000000,
+          },
+          {
+            id: 'outcome-2',
+            title: 'Option B',
+            tokens: [{ id: 'token-2', price: 0.3 }],
+            volume: 500000,
+          },
+          {
+            id: 'outcome-3',
+            title: 'Option C',
+            tokens: [{ id: 'token-3', price: 0.3 }],
+            volume: 300000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(multiOutcomeMarket);
+
+      expect(
+        screen.getByTestId('predict-details-chart-multiple'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Tab Navigation', () => {
+    it('renders tab bar with correct tabs', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(screen.getByTestId('tab-bar')).toBeOnTheScreen();
+      expect(screen.getByTestId('scrollable-tab-view')).toBeOnTheScreen();
+    });
+
+    it('displays About tab content', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('End date')).toBeOnTheScreen();
+      expect(screen.getByText('Resolver')).toBeOnTheScreen();
+    });
+
+    it('displays Positions tab content', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(screen.getByText('No positions found.')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Action Buttons', () => {
+    it('renders Yes and No action buttons for single outcome markets', () => {
+      const singleOutcomeMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.65 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
+
+      expect(screen.getByText(/Yes • 65¢/)).toBeOnTheScreen();
+      expect(screen.getByText(/No • 35¢/)).toBeOnTheScreen();
+    });
+
+    it('calculates percentage correctly from market price', () => {
+      const marketWithDifferentPrice = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.75 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithDifferentPrice);
+
+      expect(screen.getByText(/Yes • 75¢/)).toBeOnTheScreen();
+      expect(screen.getByText(/No • 25¢/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Navigation Functionality', () => {
+    it('handles back button press correctly', () => {
+      const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
+
+      const backButton = screen.getByTestId('icon-ArrowLeft');
+      fireEvent.press(backButton);
+
+      expect(mockCanGoBack).toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('navigates to parent when current navigation cannot go back', () => {
+      const { mockCanGoBack, mockGetParent } = setupPredictMarketDetailsTest();
+      mockCanGoBack.mockReturnValue(false);
+      const mockParentGoBack = jest.fn();
+      mockGetParent.mockReturnValue({
+        canGoBack: jest.fn(() => true),
+        goBack: mockParentGoBack,
+      });
+
+      const backButton = screen.getByTestId('icon-ArrowLeft');
+      fireEvent.press(backButton);
+
+      expect(mockParentGoBack).toHaveBeenCalled();
+    });
+  });
+
+  describe('Current Prediction Display', () => {
+    it('displays current prediction percentage for single outcome markets', () => {
+      const singleOutcomeMarket = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.65 }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
+
+      expect(
+        screen.getByText('Yes has a 65% chance of winning'),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles missing price data gracefully', () => {
+      const marketWithoutPrice = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: undefined }],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(marketWithoutPrice);
+
+      expect(
+        screen.getByText('Yes has a 0% chance of winning'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('handles market without image', () => {
+      const marketWithoutImage = createMockMarket({ image: null });
+
+      setupPredictMarketDetailsTest(marketWithoutImage);
+
+      expect(screen.getByText(marketWithoutImage.title)).toBeOnTheScreen();
+    });
+
+    it('handles market without end date', () => {
+      const marketWithoutEndDate = createMockMarket({ endDate: null });
+
+      setupPredictMarketDetailsTest(marketWithoutEndDate);
+
+      expect(screen.getByText('N/A')).toBeOnTheScreen();
+    });
+
+    it('handles market with minimal data', () => {
+      const marketWithMinimalData = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Yes',
+            tokens: [{ id: 'token-1', price: 0.5 }],
+            volume: 0,
+          },
+        ],
+        title: 'Test Market',
+        image: null,
+        endDate: null,
+      });
+
+      setupPredictMarketDetailsTest(marketWithMinimalData);
+
+      expect(screen.getByText('Test Market')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Internationalization', () => {
+    it('uses correct string keys for back button', () => {
+      setupPredictMarketDetailsTest();
+
+      expect(strings).toHaveBeenCalledWith('back');
     });
   });
 });

@@ -4,7 +4,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import {
@@ -23,7 +23,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { getNavigationOptionsTitle } from '../../../Navbar';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPrice, formatVolume } from '../../utils/format';
 import {
@@ -62,44 +61,6 @@ const DEFAULT_FIDELITY_BY_INTERVAL: Partial<
 };
 
 const MULTI_CHART_COLORS = ['#4459FF', '#CA3542', '#F0B034'] as const;
-
-const formatPriceHistoryLabel = (
-  timestamp: number,
-  interval: PredictPriceHistoryInterval,
-) => {
-  const isMilliseconds = timestamp > 1_000_000_000_000;
-  const date = new Date(isMilliseconds ? timestamp : timestamp * 1000);
-
-  switch (interval) {
-    case PredictPriceHistoryInterval.ONE_HOUR:
-    case PredictPriceHistoryInterval.SIX_HOUR:
-    case PredictPriceHistoryInterval.ONE_DAY: {
-      return new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-      }).format(date);
-    }
-    case PredictPriceHistoryInterval.ONE_WEEK: {
-      return new Intl.DateTimeFormat('en-US', {
-        weekday: 'short',
-        hour: 'numeric',
-      }).format(date);
-    }
-    case PredictPriceHistoryInterval.ONE_MONTH: {
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }).format(date);
-    }
-    case PredictPriceHistoryInterval.MAX:
-    default: {
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        year: 'numeric',
-      }).format(date);
-    }
-  }
-};
 
 interface PredictMarketDetailsProps {}
 
@@ -141,20 +102,17 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     [outcomeSlices],
   );
 
-  const multipleOutcomes = outcomeTokenIds.filter(Boolean).length > 1;
+  const loadedOutcomeTokenIds = useMemo(
+    () =>
+      outcomeTokenIds.filter((tokenId): tokenId is string => Boolean(tokenId)),
+    [outcomeTokenIds],
+  );
+
+  const hasAnyOutcomeToken = loadedOutcomeTokenIds.length > 0;
+  const multipleOutcomes = loadedOutcomeTokenIds.length > 1;
+  const singleOutcomeMarket = loadedOutcomeTokenIds.length === 1;
 
   const selectedFidelity = DEFAULT_FIDELITY_BY_INTERVAL[selectedTimeframe];
-
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('predict.title'),
-        navigation,
-        true,
-        colors,
-      ),
-    );
-  }, [navigation, colors]);
 
   const [outcomeTokenIdA, outcomeTokenIdB, outcomeTokenIdC] = outcomeTokenIds;
 
@@ -191,7 +149,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const chartSeries = priceHistoryResults.map(({ priceHistory }) =>
     priceHistory.map((point) => ({
-      time: formatPriceHistoryLabel(point.timestamp, selectedTimeframe),
+      timestamp: point.timestamp,
       value: Number((point.price * 100).toFixed(2)),
     })),
   );
@@ -203,7 +161,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const isPriceHistoryFetching = primaryPriceHistoryResult?.isFetching ?? false;
   const priceHistoryError = primaryPriceHistoryResult?.error ?? null;
-  const hasAnyOutcomeToken = outcomeTokenIds.some(Boolean);
 
   const chartData = chartSeries[fallbackOutcomeIndex] ?? [];
   const multiOutcomeSeriesData = outcomeSlices
@@ -243,6 +200,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     });
   };
 
+  const handleBackPress = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    const parentNavigation = navigation.getParent?.();
+    if (parentNavigation?.canGoBack?.()) {
+      parentNavigation.goBack();
+    }
+  };
+
   const getYesPercentage = (): number => {
     const firstOutcomePrice = market?.outcomes?.[0]?.tokens?.[0]?.price;
     if (typeof firstOutcomePrice === 'number') {
@@ -253,6 +222,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const renderHeader = () => (
     <Box twClassName="flex-row items-center gap-3 mb-6">
+      <Pressable
+        onPress={handleBackPress}
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={strings('back')}
+        style={tw.style('items-center justify-center rounded-full w-10 h-10')}
+      >
+        <Icon
+          name={IconName.ArrowLeft}
+          size={IconSize.Md}
+          color={colors.icon.default}
+        />
+      </Pressable>
       <Box twClassName="w-12 h-12 rounded-lg bg-muted overflow-hidden">
         {market?.image ? (
           <Image
@@ -564,11 +546,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     >
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-3 pt-3 pb-8 gap-4')}
+        contentContainerStyle={[
+          tw.style('px-3 pb-8 gap-4'),
+          { paddingTop: insets.top + 12 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {renderHeader()}
-        {!multipleOutcomes && renderCurrentPrediction()}
+        {singleOutcomeMarket && renderCurrentPrediction()}
         {multipleOutcomes ? (
           <PredictDetailsChartMultiple
             data={multiOutcomeSeriesData}
@@ -632,7 +617,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         twClassName="px-6 bg-default border-t border-muted"
         style={{ paddingBottom: insets.bottom }}
       >
-        {!multipleOutcomes && renderActionButtons()}
+        {singleOutcomeMarket && renderActionButtons()}
       </Box>
     </SafeAreaView>
   );

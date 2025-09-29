@@ -23,11 +23,46 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
+import { PredictPriceHistoryInterval } from '../../types';
 
 export interface PredictDetailsChartPoint {
-  time: string;
+  timestamp: number;
   value: number;
 }
+
+const formatPriceHistoryLabel = (
+  timestamp: number,
+  interval: PredictPriceHistoryInterval | string,
+) => {
+  const isMilliseconds = timestamp > 1_000_000_000_000;
+  const date = new Date(isMilliseconds ? timestamp : timestamp * 1000);
+
+  switch (interval) {
+    case PredictPriceHistoryInterval.ONE_HOUR:
+    case PredictPriceHistoryInterval.SIX_HOUR:
+    case PredictPriceHistoryInterval.ONE_DAY:
+      return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+      }).format(date);
+    case PredictPriceHistoryInterval.ONE_WEEK:
+      return new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        hour: 'numeric',
+      }).format(date);
+    case PredictPriceHistoryInterval.ONE_MONTH:
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }).format(date);
+    case PredictPriceHistoryInterval.MAX:
+    default:
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        year: 'numeric',
+      }).format(date);
+  }
+};
 
 const formatTickValue = (value: number, range: number) => {
   if (!Number.isFinite(value)) {
@@ -69,8 +104,19 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
 
-  const hasData = data.length > 0;
-  const chartValues = hasData ? data.map((point) => point.value) : [0];
+  const pointsWithLabels = React.useMemo(
+    () =>
+      data.map((point) => ({
+        ...point,
+        label: formatPriceHistoryLabel(point.timestamp, selectedTimeframe),
+      })),
+    [data, selectedTimeframe],
+  );
+
+  const hasData = pointsWithLabels.length > 0;
+  const chartValues = hasData
+    ? pointsWithLabels.map((point) => point.value)
+    : [0];
   const minValue = Math.min(...chartValues);
   const maxValue = Math.max(...chartValues);
   const range = maxValue - minValue;
@@ -84,7 +130,12 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
         <Stop
           offset="0%"
           stopColor={colors.success.default}
-          stopOpacity="0.3"
+          stopOpacity="0.6"
+        />
+        <Stop
+          offset="45%"
+          stopColor={colors.success.muted}
+          stopOpacity="0.25"
         />
         <Stop
           offset="100%"
@@ -257,7 +308,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
       );
     }
 
-    const chartData = data.map((point) => point.value);
+    const chartData = pointsWithLabels.map((point) => point.value);
 
     return (
       <Box twClassName="mb-6">
@@ -282,18 +333,19 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
           justifyContent={BoxJustifyContent.Between}
           twClassName="px-4"
         >
-          {data
+          {pointsWithLabels
             .filter(
               (_, index) =>
-                index % Math.max(1, Math.floor(data.length / 4)) === 0,
+                index % Math.max(1, Math.floor(pointsWithLabels.length / 4)) ===
+                0,
             )
             .map((point, index) => (
               <Text
-                key={`${point.time}-${index}`}
+                key={`${point.timestamp}-${index}`}
                 variant={TextVariant.BodyXS}
                 color={TextColor.Alternative}
               >
-                {point.time}
+                {point.label}
               </Text>
             ))}
         </Box>
