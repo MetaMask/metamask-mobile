@@ -28,11 +28,7 @@ export function useApprovalInfo(): {
   }
 
   if (signatureRequest) {
-    // Convert chainId to hex string if it's a number (common in V3/V4 typed signatures)
-    const rawChainId = signatureRequest?.chainId;
-    chainId = rawChainId && typeof rawChainId === 'number' 
-      ? toHex(rawChainId) 
-      : rawChainId as Hex | undefined;
+    chainId = signatureRequest?.chainId;
     isSIWEMessage = getSIWEDetails(signatureRequest).isSIWEMessage;
     fromAddress = signatureRequest?.messageParams?.from;
     url = approvalRequest?.requestData?.meta?.url;

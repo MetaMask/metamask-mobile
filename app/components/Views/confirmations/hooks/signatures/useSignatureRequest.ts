@@ -14,9 +14,12 @@ const SIGNATURE_APPROVAL_TYPES = [
 export function useSignatureRequest() {
   const { approvalRequest } = useApprovalRequest();
 
+  // console.log('useApprovalRequest', approvalRequest);
+
   const signatureRequest = useSelector((state: RootState) =>
     selectSignatureRequestById(state, approvalRequest?.id as string),
   );
+  console.log('useSignatureRequest', signatureRequest);
 
   if (
     !SIGNATURE_APPROVAL_TYPES.includes(approvalRequest?.type as ApprovalType) ||

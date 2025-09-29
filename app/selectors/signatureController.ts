@@ -2,8 +2,11 @@ import { SignatureRequest } from '@metamask/signature-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 
-const selectSignatureControllerState = (state: RootState) =>
-  state.engine.backgroundState.SignatureController;
+const selectSignatureControllerState = (state: RootState) => {
+  console.log('selectSignatureControllerState', state.engine.backgroundState.SignatureController);
+
+  return state.engine.backgroundState.SignatureController;
+}
 
 export const selectSignatureRequests = createDeepEqualSelector(
   (state: RootState) => selectSignatureControllerState(state).signatureRequests,
