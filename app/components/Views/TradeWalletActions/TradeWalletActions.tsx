@@ -83,7 +83,7 @@ function TradeWalletActions() {
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state, chainId),
+    selectIsSwapsEnabled(state),
   );
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 

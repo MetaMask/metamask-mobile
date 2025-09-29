@@ -54,7 +54,7 @@ const WalletActions = () => {
     selectStablecoinLendingEnabledFlag,
   );
   const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state, chainId),
+    selectIsSwapsEnabled(state),
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);

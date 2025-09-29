@@ -42,7 +42,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
   displayBridgeButton,
-  chainId,
   onBuy,
   goToSwaps,
   goToBridge,
@@ -58,7 +57,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state, chainId),
+    selectIsSwapsEnabled(state),
   );
   const { navigate } = useNavigation();
 
