@@ -574,7 +574,8 @@
     "show_more_nfts": "Show more NFTs",
     "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
     "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.",
-    "could_not_resolve_name": "Couldn't resolve name"
+    "could_not_resolve_name": "Couldn't resolve name",
+    "invalid_address": "Invalid address"
   },
   "deposit": {
     "title": "Deposit",
@@ -1518,7 +1519,7 @@
       },
       "choose_leverage": {
         "title": "Choose your leverage",
-        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 4% price move equals a 40% gain or loss on your margin."
+        "description": "Leverage amplifies both gains and losses. With 40x leverage, a 1% price move equals a 40% gain or loss on your margin."
       },
       "watch_liquidation": {
         "title": "Watch out for liquidation",
