@@ -219,7 +219,6 @@ describe('useRewardDashboardModals', () => {
         type: 'SET_HIDE_UNLINKED_ACCOUNTS_BANNER',
         payload: true,
       });
-      expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
     });
 
@@ -250,7 +249,7 @@ describe('useRewardDashboardModals', () => {
         type: 'SET_HIDE_UNLINKED_ACCOUNTS_BANNER',
         payload: true,
       });
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
   });
 
@@ -707,6 +706,133 @@ describe('useRewardDashboardModals', () => {
       });
 
       // Assert - modal should be shown again
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('resetAllSessionTracking', () => {
+    it('clears all session tracking and allows all modals to be shown again', () => {
+      // Arrange
+      const { result } = renderHook(() => useRewardDashboardModals());
+
+      // Act - show multiple different modals to populate session tracking
+      act(() => {
+        result.current.showUnlinkedAccountsModal();
+      });
+      act(() => {
+        result.current.showNotOptedInModal();
+      });
+      act(() => {
+        result.current.showNotSupportedModal();
+      });
+
+      mockNavigate.mockClear();
+
+      // Verify modals are tracked and won't show again
+      act(() => {
+        result.current.showUnlinkedAccountsModal();
+      });
+      act(() => {
+        result.current.showNotOptedInModal();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      // Act - reset all session tracking
+      act(() => {
+        result.current.resetAllSessionTracking();
+      });
+
+      // Try to show modals again after reset
+      act(() => {
+        result.current.showUnlinkedAccountsModal();
+      });
+      act(() => {
+        result.current.showNotOptedInModal();
+      });
+
+      // Assert - both modals should be shown again after reset
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+    });
+
+    it('resets hasShownModal status for all modal types', () => {
+      // Arrange
+      const { result } = renderHook(() => useRewardDashboardModals());
+
+      // Act - show modals to set tracking status
+      act(() => {
+        result.current.showNotOptedInModal();
+      });
+
+      // Verify modal is tracked
+      expect(
+        result.current.hasShownModal(
+          'not-opted-in' as RewardsDashboardModalType,
+        ),
+      ).toBe(true);
+
+      // Act - reset all session tracking
+      act(() => {
+        result.current.resetAllSessionTracking();
+      });
+
+      // Assert - hasShownModal should return false after reset
+      expect(
+        result.current.hasShownModal(
+          'not-opted-in' as RewardsDashboardModalType,
+        ),
+      ).toBe(false);
+    });
+
+    it('affects all hook instances due to singleton behavior', () => {
+      // Arrange - first hook instance
+      const { result: result1 } = renderHook(() => useRewardDashboardModals());
+
+      // Show modal with first instance
+      act(() => {
+        result1.current.showNotOptedInModal();
+      });
+
+      // Arrange - second hook instance
+      const { result: result2 } = renderHook(() => useRewardDashboardModals());
+
+      // Verify both instances see the modal as shown
+      expect(
+        result1.current.hasShownModal(
+          'not-opted-in' as RewardsDashboardModalType,
+        ),
+      ).toBe(true);
+      expect(
+        result2.current.hasShownModal(
+          'not-opted-in' as RewardsDashboardModalType,
+        ),
+      ).toBe(true);
+
+      // Act - reset from second instance
+      act(() => {
+        result2.current.resetAllSessionTracking();
+      });
+
+      // Assert - both instances should see the reset effect
+      expect(
+        result1.current.hasShownModal(
+          'not-opted-in' as RewardsDashboardModalType,
+        ),
+      ).toBe(false);
+      expect(
+        result2.current.hasShownModal(
+          'not-opted-in' as RewardsDashboardModalType,
+        ),
+      ).toBe(false);
+
+      mockNavigate.mockClear();
+
+      // Act - both instances should be able to show modals again
+      act(() => {
+        result1.current.showNotOptedInModal();
+      });
+
+      // Assert - modal should show from first instance
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
   });
