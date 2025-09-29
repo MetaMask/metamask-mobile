@@ -518,6 +518,7 @@ describe('RewardsDashboard', () => {
       hasShownModal: mockHasShownModal,
       resetSessionTracking: mockResetSessionTracking,
       resetSessionTrackingForCurrentAccountGroup: jest.fn(),
+      resetAllSessionTracking: jest.fn(),
     },
   };
 
