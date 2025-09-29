@@ -33,9 +33,11 @@ export const selectPerpsServiceInterruptionBannerEnabledFlag = createSelector(
 export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_GTM_MODAL_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag);
+    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
