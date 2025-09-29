@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
-import { isProduction } from '../../../../../util/environment';
+import { isQa, isTest } from '../../../../../util/test/utils';
 import { EarnLaunchDarklyFlag } from './types';
 import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
 
@@ -12,7 +12,7 @@ export const prioritizeFlagsByEnv = (
   localFlag: boolean,
   remoteFlag: EarnLaunchDarklyFlag,
 ) => {
-  if (isProduction()) {
+  if (!isQa && !isTest) {
     // Prioritize remote flag in production
     return earnRemoteFeatureFlag(remoteFlag) ?? localFlag;
   }
