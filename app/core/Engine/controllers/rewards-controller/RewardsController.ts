@@ -21,12 +21,11 @@ import {
   type OptInStatusDto,
   type PointsBoostDto,
   type PointsEventDto,
-  type ActiveBoostsState,
-  type UnlockedRewardsState,
   type RewardDto,
   CURRENT_SEASON_ID,
   ClaimRewardDto,
-  PaginatedPointsEventsDtoState,
+  PointsEventsDtoState,
+  GetPointsEventsLastUpdatedDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -324,15 +323,12 @@ export class RewardsController extends BaseController<
 
   #convertPointsEventsToState(
     pointsEvents: PaginatedPointsEventsDto,
-  ): PaginatedPointsEventsDtoState {
+  ): PointsEventsDtoState {
     return {
-      has_more: pointsEvents.has_more,
-      cursor: pointsEvents.cursor,
-      total_results: pointsEvents.total_results,
-      results: pointsEvents.results.map((result) => ({
+      pointsEvents: pointsEvents.results.map((result) => ({
         ...result,
-        timestamp: result.timestamp.toISOString(),
-        updatedAt: result.updatedAt.toISOString(),
+        timestamp: new Date(result.timestamp).getTime(),
+        updatedAt: new Date(result.updatedAt).getTime(),
         type: result.type,
         payload: result.payload,
       })),
@@ -340,17 +336,17 @@ export class RewardsController extends BaseController<
   }
 
   #convertPointsEventsStateToDto(
-    state: PaginatedPointsEventsDtoState,
+    state: PointsEventsDtoState,
   ): PaginatedPointsEventsDto {
     return {
-      has_more: state.has_more,
-      cursor: state.cursor,
-      total_results: state.total_results,
-      results: state.results.map((r) => ({
+      results: state.pointsEvents.map((r) => ({
         ...r,
         timestamp: new Date(r.timestamp),
         updatedAt: new Date(r.updatedAt),
       })) as unknown as PointsEventDto[],
+      total_results: state.pointsEvents.length,
+      cursor: null,
+      has_more: false,
     };
   }
 
@@ -546,38 +542,6 @@ export class RewardsController extends BaseController<
       subscriptionId,
     );
     return this.state.seasonStatuses[compositeKey] || null;
-  }
-
-  /**
-   * Get stored active boosts for a given composite key
-   */
-  #getActiveBoosts(
-    subscriptionId: string,
-    seasonId: string,
-  ): ActiveBoostsState | null {
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-      seasonId,
-      subscriptionId,
-    );
-    return this.state.activeBoosts[compositeKey] || null;
-  }
-
-  /**
-   * Get cached unlocked rewards for a subscription and season
-   * @param subscriptionId - The subscription ID
-   * @param seasonId - The season ID (defaults to current season)
-   * @returns The cached unlocked rewards state or null if not found
-   */
-  #getUnlockedRewards(
-    // TODO: remove
-    subscriptionId: string,
-    seasonId: string,
-  ): UnlockedRewardsState | null {
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-      seasonId,
-      subscriptionId,
-    );
-    return this.state.unlockedRewards[compositeKey] || null;
   }
 
   /**
@@ -1269,6 +1233,24 @@ export class RewardsController extends BaseController<
               cursor: params.cursor,
             },
           );
+          const hasPointsEventsChanged = await this.hasPointsEventsChanged(
+            params,
+          );
+
+          // If no new points events have been added, return cached data
+          if (!hasPointsEventsChanged) {
+            return this.state.pointsEvents[cacheKey]
+              ? this.#convertPointsEventsStateToDto(
+                  this.state.pointsEvents[cacheKey],
+                )
+              : {
+                  has_more: false,
+                  cursor: null,
+                  total_results: 0,
+                  results: [],
+                };
+          }
+
           const pointsEvents = await this.messagingSystem.call(
             'RewardsDataService:getPointsEvents',
             params,
@@ -1287,8 +1269,10 @@ export class RewardsController extends BaseController<
         }
       },
       writeCache: (key, pointsEventsDto) => {
-        this.state.pointsEvents[key] =
-          this.#convertPointsEventsToState(pointsEventsDto);
+        this.update((state: RewardsControllerState) => {
+          state.pointsEvents[key] =
+            this.#convertPointsEventsToState(pointsEventsDto);
+        });
       },
       swrCallback: () => {
         // Let UI know first page cache has been refreshed so it can re-query
@@ -1300,6 +1284,52 @@ export class RewardsController extends BaseController<
     });
 
     return result;
+  }
+
+  /**
+   * Get points events last updated for a given season
+   * @param params - The request parameters
+   * @returns Promise<Date | null> - The points events last updated date
+   */
+  async getPointsEventsLastUpdated(
+    params: GetPointsEventsLastUpdatedDto,
+  ): Promise<Date | null> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) return null;
+    const result = await this.messagingSystem.call(
+      'RewardsDataService:getPointsEventsLastUpdated',
+      params,
+    );
+    return result;
+  }
+
+  /**
+   * Check if a new points events have been added since the last fetch
+   * @param params - The request parameters
+   * @returns Promise<boolean> - True if a new points events have been added since the last fetch, false otherwise
+   */
+  async hasPointsEventsChanged(
+    params: GetPointsEventsLastUpdatedDto,
+  ): Promise<boolean> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) return false;
+
+    const lastUpdated = await this.getPointsEventsLastUpdated(params);
+    const cached =
+      this.state.pointsEvents[
+        this.#createSeasonSubscriptionCompositeKey(
+          params.seasonId,
+          params.subscriptionId,
+        )
+      ];
+
+    const cachedLatestUpdatedAt = cached?.pointsEvents?.[0]?.updatedAt;
+    // If the cache is empty, we need to fetch fresh data
+    if (!cachedLatestUpdatedAt) return true;
+    return lastUpdated
+      ? lastUpdated.getTime() !== cachedLatestUpdatedAt
+      : // If the lastUpdated is null with non-empty cache, we need to fetch fresh data
+        true;
   }
 
   /**

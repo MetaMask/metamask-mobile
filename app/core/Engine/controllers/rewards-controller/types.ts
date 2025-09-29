@@ -161,6 +161,11 @@ export interface GetPointsEventsDto {
   forceFresh?: boolean;
 }
 
+export interface GetPointsEventsLastUpdatedDto {
+  seasonId: string;
+  subscriptionId: string;
+}
+
 /**
  * Paginated list of points events
  */
@@ -559,18 +564,15 @@ export type UnlockedRewardsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PaginatedPointsEventsDtoState = {
-  has_more: boolean;
-  cursor: string | null;
-  total_results: number;
-  results: {
+export type PointsEventsDtoState = {
+  pointsEvents: {
     id: string;
-    timestamp: string;
+    timestamp: number;
     value: number;
     bonus: { bips?: number | null; bonuses?: string[] | null } | null;
     accountAddress: string | null;
     type: string;
-    updatedAt: string;
+    updatedAt: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: any;
   }[];
@@ -599,7 +601,7 @@ export type RewardsControllerState = {
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
-  pointsEvents: { [compositeId: string]: PaginatedPointsEventsDtoState };
+  pointsEvents: { [compositeId: string]: PointsEventsDtoState };
 };
 
 /**
