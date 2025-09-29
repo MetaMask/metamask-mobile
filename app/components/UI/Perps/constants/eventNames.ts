@@ -196,6 +196,7 @@ export const PerpsEventValues = {
     POSITION_CLOSE: 'position_close',
     LEVERAGE: 'leverage',
     TUTORIAL: 'tutorial',
+    WITHDRAWAL: 'withdrawal',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',

@@ -85,8 +85,8 @@ export function usePerpsOrderExecution(
                 PerpsEventValues.STATUS.PARTIALLY_FILLED,
               [PerpsEventProperties.ASSET]: orderParams.coin,
               [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-                ? 'Long'
-                : 'Short',
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
               [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
               [PerpsEventProperties.ORDER_SIZE]: orderSize,
               [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,

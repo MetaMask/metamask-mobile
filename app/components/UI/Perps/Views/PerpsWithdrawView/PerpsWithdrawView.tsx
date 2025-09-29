@@ -160,7 +160,8 @@ const PerpsWithdrawView: React.FC = () => {
     if (!hasTrackedWithdrawView.current) {
       endMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
       trackEvent(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]: 'withdrawal',
+        [PerpsEventProperties.SCREEN_TYPE]:
+          PerpsEventValues.SCREEN_TYPE.WITHDRAWAL,
       });
       hasTrackedWithdrawView.current = true;
     }
