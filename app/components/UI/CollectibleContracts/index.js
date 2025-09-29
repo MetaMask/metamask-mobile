@@ -7,13 +7,12 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import {
-  TouchableOpacity,
   StyleSheet,
   View,
-  Image,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -27,7 +26,6 @@ import {
   multichainCollectibleContractsSelector,
   multichainCollectiblesSelector,
   multichainCollectiblesByEnabledNetworksSelector,
-  multichainCollectibleContractsByEnabledNetworksSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import AppConstants from '../../../core/AppConstants';
@@ -84,6 +82,7 @@ import Avatar, {
 } from '../../../component-library/components/Avatars/Avatar';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { multichainCollectibleForEvmAccount } from '../../../selectors/nftController';
+import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -137,35 +136,10 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    addText: {
-      fontSize: 14,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
     footer: {
       flex: 1,
       alignItems: 'center',
       marginTop: 8,
-    },
-    emptyContainer: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    emptyImageContainer: {
-      width: 76,
-      height: 76,
-      marginTop: 30,
-      marginBottom: 12,
-      tintColor: colors.icon.muted,
-    },
-    emptyTitleText: {
-      fontSize: 24,
-      color: colors.text.alternative,
-    },
-    emptyText: {
-      color: colors.text.alternative,
-      marginBottom: 8,
-      fontSize: 14,
     },
     spinner: {
       marginBottom: 8,
@@ -202,7 +176,7 @@ const CollectibleContracts = ({
 }) => {
   // Start tracing component loading
   const isFirstRender = useRef(true);
-
+  const tw = useTailwind();
   if (isFirstRender.current) {
     trace({ name: TraceName.CollectibleContractsComponent });
   }
@@ -414,22 +388,9 @@ const CollectibleContracts = ({
             testID={SpinnerTestId}
           />
         ) : null}
-
-        <TextComponent style={styles.emptyText}>
-          {strings('wallet.no_collectibles')}
-        </TextComponent>
-        <TouchableOpacity
-          onPress={goToAddCollectible}
-          disabled={!isAddNFTEnabled}
-          testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
-        >
-          <TextComponent style={styles.addText}>
-            {strings('wallet.add_collectibles')}
-          </TextComponent>
-        </TouchableOpacity>
       </View>
     ),
-    [goToAddCollectible, isAddNFTEnabled, styles, isNftFetchingProgress],
+    [styles, isNftFetchingProgress],
   );
 
   const renderCollectibleContract = useCallback(
@@ -537,32 +498,18 @@ const CollectibleContracts = ({
     allNetworkClientIds,
   ]);
 
-  const goToLearnMore = useCallback(
-    () =>
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: { url: AppConstants.URLS.NFT },
-      }),
-    [navigation],
-  );
-
   const renderEmpty = useCallback(
     () => (
-      <View style={styles.emptyContainer}>
-        <Image
-          style={styles.emptyImageContainer}
-          source={require('../../../images/no-nfts-placeholder.png')}
-          resizeMode={'contain'}
-        />
-        <TextComponent center style={styles.emptyTitleText} bold>
-          {strings('wallet.no_nfts_yet')}
-        </TextComponent>
-        <TextComponent center big link onPress={goToLearnMore}>
-          {strings('wallet.learn_more')}
-        </TextComponent>
-      </View>
+      <CollectiblesEmptyState
+        onDiscoverCollectibles={goToAddCollectible}
+        actionButtonProps={{
+          testID: WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+          isDisabled: !isAddNFTEnabled,
+        }}
+        style={tw.style('mx-auto')}
+      />
     ),
-    [goToLearnMore, styles],
+    [goToAddCollectible, tw, isAddNFTEnabled],
   );
 
   const renderList = useCallback(
@@ -631,7 +578,7 @@ const CollectibleContracts = ({
       <View style={styles.actionBarWrapper}>
         <View style={styles.controlButtonOuterWrapper}>
           <ButtonBase
-            testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            testID={WalletViewSelectorsIDs.COLLECTIBLES_NETWORK_FILTER}
             label={
               <>
                 {isRemoveGlobalNetworkSelectorEnabled() ? (
@@ -669,11 +616,7 @@ const CollectibleContracts = ({
               </>
             }
             isDisabled={isDisabled}
-            onPress={
-              isEvmSelected || isMultichainAccountsState2Enabled
-                ? showFilterControls
-                : () => null
-            }
+            onPress={showFilterControls}
             endIconName={
               isEvmSelected || isMultichainAccountsState2Enabled
                 ? IconName.ArrowDown

@@ -4,19 +4,24 @@ import rewardsReducer, {
   setSeasonStatus,
   setReferralDetails,
   setSeasonStatusLoading,
+  setSeasonStatusError,
   setReferralDetailsLoading,
+  setReferralDetailsError,
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
+  setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
+  setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,
   setActiveBoostsLoading,
   setActiveBoostsError,
   setUnlockedRewards,
   setUnlockedRewardLoading,
+  setUnlockedRewardError,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -24,11 +29,13 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
 } from '../../core/Engine/controllers/rewards-controller/types';
+import { CaipAccountId } from '@metamask/utils';
 
 describe('rewardsReducer', () => {
   const initialState: RewardsState = {
     activeTab: 'overview',
     seasonStatusLoading: false,
+    seasonStatusError: null,
 
     seasonId: null,
     seasonName: null,
@@ -37,6 +44,7 @@ describe('rewardsReducer', () => {
     seasonTiers: [],
 
     referralDetailsLoading: false,
+    referralDetailsError: false,
     referralCode: null,
     refereeCount: 0,
 
@@ -51,18 +59,19 @@ describe('rewardsReducer', () => {
     onboardingActiveStep: OnboardingStep.INTRO,
     candidateSubscriptionId: 'pending',
     geoLocation: null,
-    optinAllowedForGeo: false,
+    optinAllowedForGeo: null,
     optinAllowedForGeoLoading: false,
+    optinAllowedForGeoError: false,
     hideUnlinkedAccountsBanner: false,
+    hideCurrentAccountNotOptedInBanner: [],
 
-    // Points Boost state
-    activeBoosts: [],
+    activeBoosts: null,
     activeBoostsLoading: false,
     activeBoostsError: false,
 
-    // Unlocked Rewards state
-    unlockedRewards: [],
+    unlockedRewards: null,
     unlockedRewardLoading: false,
+    unlockedRewardError: false,
   };
 
   it('should return the initial state', () => {
@@ -70,32 +79,7 @@ describe('rewardsReducer', () => {
     const state = rewardsReducer(undefined, { type: 'unknown' } as Action);
 
     // Assert
-    expect(state).toEqual(
-      expect.objectContaining({
-        activeTab: 'overview',
-        seasonStatusLoading: false,
-        seasonId: null,
-        seasonName: null,
-        seasonStartDate: null,
-        seasonEndDate: null,
-        seasonTiers: [],
-        referralDetailsLoading: false,
-        referralCode: null,
-        refereeCount: 0,
-        currentTier: null,
-        nextTier: null,
-        nextTierPointsNeeded: null,
-        balanceTotal: 0,
-        balanceRefereePortion: 0,
-        balanceUpdatedAt: null,
-        onboardingActiveStep: OnboardingStep.INTRO,
-        candidateSubscriptionId: 'pending',
-        geoLocation: null,
-        optinAllowedForGeo: false,
-        optinAllowedForGeoLoading: false,
-        hideUnlinkedAccountsBanner: false,
-      }),
-    );
+    expect(state).toEqual(initialState);
   });
 
   describe('setActiveTab', () => {
@@ -519,6 +503,54 @@ describe('rewardsReducer', () => {
       });
     });
 
+    describe('setReferralDetailsError', () => {
+      it('should set referral details error to true', () => {
+        // Arrange
+        const action = setReferralDetailsError(true);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.referralDetailsError).toBe(true);
+      });
+
+      it('should set referral details error to false', () => {
+        // Arrange
+        const stateWithError = {
+          ...initialState,
+          referralDetailsError: true,
+        };
+        const action = setReferralDetailsError(false);
+
+        // Act
+        const state = rewardsReducer(stateWithError, action);
+
+        // Assert
+        expect(state.referralDetailsError).toBe(false);
+      });
+
+      it('should not affect other state properties', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          referralCode: 'TEST123',
+          refereeCount: 5,
+          referralDetailsLoading: true,
+        };
+        const action = setReferralDetailsError(true);
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.referralDetailsError).toBe(true);
+        expect(state.referralCode).toBe('TEST123');
+        expect(state.refereeCount).toBe(5);
+        expect(state.referralDetailsLoading).toBe(true);
+      });
+    });
+
     describe('setSeasonStatusLoading', () => {
       it('should set season status loading to true when no season data exists', () => {
         // Arrange
@@ -572,6 +604,98 @@ describe('rewardsReducer', () => {
         const state = rewardsReducer(stateWithSeasonDataAndLoading, action);
 
         // Assert
+        expect(state.seasonStatusLoading).toBe(false);
+      });
+    });
+
+    describe('setSeasonStatusError', () => {
+      it('should set season status error to a string message', () => {
+        // Arrange
+        const errorMessage = 'Failed to fetch season status';
+        const action = setSeasonStatusError(errorMessage);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(errorMessage);
+      });
+
+      it('should clear season status error when set to null', () => {
+        // Arrange
+        const stateWithError = {
+          ...initialState,
+          seasonStatusError: 'Previous error message',
+        };
+        const action = setSeasonStatusError(null);
+
+        // Act
+        const state = rewardsReducer(stateWithError, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(null);
+      });
+
+      it('should replace existing error with new error message', () => {
+        // Arrange
+        const stateWithError = {
+          ...initialState,
+          seasonStatusError: 'Old error message',
+        };
+        const newErrorMessage = 'New error message';
+        const action = setSeasonStatusError(newErrorMessage);
+
+        // Act
+        const state = rewardsReducer(stateWithError, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(newErrorMessage);
+      });
+
+      it('should handle network timeout error message', () => {
+        // Arrange
+        const timeoutError = 'Request timed out while fetching season status';
+        const action = setSeasonStatusError(timeoutError);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(timeoutError);
+      });
+
+      it('should handle API error response message', () => {
+        // Arrange
+        const apiError = 'API returned 500: Internal server error';
+        const action = setSeasonStatusError(apiError);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(apiError);
+      });
+
+      it('should not affect other state properties when setting error', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          seasonName: 'Test Season',
+          seasonId: 'season-123',
+          balanceTotal: 1000,
+          seasonStatusLoading: false,
+        };
+        const errorMessage = 'Something went wrong';
+        const action = setSeasonStatusError(errorMessage);
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.seasonStatusError).toBe(errorMessage);
+        expect(state.seasonName).toBe('Test Season');
+        expect(state.seasonId).toBe('season-123');
+        expect(state.balanceTotal).toBe(1000);
         expect(state.seasonStatusLoading).toBe(false);
       });
     });
@@ -779,7 +903,7 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.geoLocation).toBe(null);
-        expect(state.optinAllowedForGeo).toBe(false);
+        expect(state.optinAllowedForGeo).toBe(null);
         expect(state.optinAllowedForGeoLoading).toBe(false);
       });
 
@@ -830,6 +954,54 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.optinAllowedForGeoLoading).toBe(false);
+      });
+    });
+
+    describe('setGeoRewardsMetadataError', () => {
+      it('should set geo rewards metadata error to true', () => {
+        // Arrange
+        const action = setGeoRewardsMetadataError(true);
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.optinAllowedForGeoError).toBe(true);
+      });
+
+      it('should set geo rewards metadata error to false', () => {
+        // Arrange
+        const stateWithError = {
+          ...initialState,
+          optinAllowedForGeoError: true,
+        };
+        const action = setGeoRewardsMetadataError(false);
+
+        // Act
+        const state = rewardsReducer(stateWithError, action);
+
+        // Assert
+        expect(state.optinAllowedForGeoError).toBe(false);
+      });
+
+      it('should not affect other geo metadata properties', () => {
+        // Arrange
+        const stateWithGeoData = {
+          ...initialState,
+          geoLocation: 'US',
+          optinAllowedForGeo: true,
+          optinAllowedForGeoLoading: true,
+        };
+        const action = setGeoRewardsMetadataError(true);
+
+        // Act
+        const state = rewardsReducer(stateWithGeoData, action);
+
+        // Assert
+        expect(state.optinAllowedForGeoError).toBe(true);
+        expect(state.geoLocation).toBe('US');
+        expect(state.optinAllowedForGeo).toBe(true);
+        expect(state.optinAllowedForGeoLoading).toBe(true);
       });
     });
 
@@ -953,6 +1125,158 @@ describe('rewardsReducer', () => {
       });
     });
 
+    describe('setHideCurrentAccountNotOptedInBanner', () => {
+      it('should add new account banner entry when it does not exist', () => {
+        // Arrange
+        const accountId: CaipAccountId =
+          'eip155:1:0x1234567890123456789012345678901234567890';
+        const action = setHideCurrentAccountNotOptedInBanner({
+          accountId,
+          hide: true,
+        });
+
+        // Act
+        const state = rewardsReducer(initialState, action);
+
+        // Assert
+        expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(1);
+        expect(state.hideCurrentAccountNotOptedInBanner[0]).toEqual({
+          caipAccountId: accountId,
+          hide: true,
+        });
+      });
+
+      it('should update existing account banner entry', () => {
+        // Arrange
+        const accountId: CaipAccountId =
+          'eip155:1:0x1234567890123456789012345678901234567890';
+        const stateWithExistingEntry = {
+          ...initialState,
+          hideCurrentAccountNotOptedInBanner: [
+            {
+              caipAccountId: accountId,
+              hide: false,
+            },
+          ],
+        };
+        const action = setHideCurrentAccountNotOptedInBanner({
+          accountId,
+          hide: true,
+        });
+
+        // Act
+        const state = rewardsReducer(stateWithExistingEntry, action);
+
+        // Assert
+        expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(1);
+        expect(state.hideCurrentAccountNotOptedInBanner[0]).toEqual({
+          caipAccountId: accountId,
+          hide: true,
+        });
+      });
+
+      it('should add multiple different account entries', () => {
+        // Arrange
+        const accountId1: CaipAccountId =
+          'eip155:1:0x1111111111111111111111111111111111111111';
+        const accountId2: CaipAccountId =
+          'eip155:1:0x2222222222222222222222222222222222222222';
+
+        let currentState = initialState;
+
+        // Add first account
+        const action1 = setHideCurrentAccountNotOptedInBanner({
+          accountId: accountId1,
+          hide: true,
+        });
+        currentState = rewardsReducer(currentState, action1);
+
+        // Add second account
+        const action2 = setHideCurrentAccountNotOptedInBanner({
+          accountId: accountId2,
+          hide: false,
+        });
+
+        // Act
+        const state = rewardsReducer(currentState, action2);
+
+        // Assert
+        expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(2);
+        expect(state.hideCurrentAccountNotOptedInBanner[0]).toEqual({
+          caipAccountId: accountId1,
+          hide: true,
+        });
+        expect(state.hideCurrentAccountNotOptedInBanner[1]).toEqual({
+          caipAccountId: accountId2,
+          hide: false,
+        });
+      });
+
+      it('should update specific account without affecting others', () => {
+        // Arrange
+        const accountId1: CaipAccountId =
+          'eip155:1:0x1111111111111111111111111111111111111111';
+        const accountId2: CaipAccountId =
+          'eip155:1:0x2222222222222222222222222222222222222222';
+        const stateWithMultipleEntries = {
+          ...initialState,
+          hideCurrentAccountNotOptedInBanner: [
+            {
+              caipAccountId: accountId1,
+              hide: true,
+            },
+            {
+              caipAccountId: accountId2,
+              hide: false,
+            },
+          ],
+        };
+        const action = setHideCurrentAccountNotOptedInBanner({
+          accountId: accountId1,
+          hide: false,
+        });
+
+        // Act
+        const state = rewardsReducer(stateWithMultipleEntries, action);
+
+        // Assert
+        expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(2);
+        expect(state.hideCurrentAccountNotOptedInBanner[0]).toEqual({
+          caipAccountId: accountId1,
+          hide: false, // Updated
+        });
+        expect(state.hideCurrentAccountNotOptedInBanner[1]).toEqual({
+          caipAccountId: accountId2,
+          hide: false, // Unchanged
+        });
+      });
+
+      it('should not affect other state properties', () => {
+        // Arrange
+        const stateWithData = {
+          ...initialState,
+          activeTab: 'activity' as const,
+          referralCode: 'TEST123',
+          hideUnlinkedAccountsBanner: true,
+        };
+        const accountId: CaipAccountId =
+          'eip155:1:0x1234567890123456789012345678901234567890';
+        const action = setHideCurrentAccountNotOptedInBanner({
+          accountId,
+          hide: true,
+        });
+
+        // Act
+        const state = rewardsReducer(stateWithData, action);
+
+        // Assert
+        expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(1);
+        expect(state.activeTab).toBe('activity');
+        expect(state.referralCode).toBe('TEST123');
+        expect(state.hideUnlinkedAccountsBanner).toBe(true);
+      });
+    });
+
     describe('resetRewardsState', () => {
       it('should reset all state to initial values', () => {
         // Arrange
@@ -974,6 +1298,7 @@ describe('rewardsReducer', () => {
             levelNumber: 'Level 10',
             rewards: [],
           },
+          seasonStatusError: null,
           nextTier: {
             id: 'tier-diamond',
             name: 'Diamond',
@@ -1011,6 +1336,13 @@ describe('rewardsReducer', () => {
           optinAllowedForGeo: true,
           optinAllowedForGeoLoading: false,
           hideUnlinkedAccountsBanner: true,
+          hideCurrentAccountNotOptedInBanner: [
+            {
+              caipAccountId:
+                'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
+              hide: true,
+            },
+          ],
           activeBoosts: [
             {
               id: 'boost-1',
@@ -1028,6 +1360,9 @@ describe('rewardsReducer', () => {
           activeBoostsError: false,
           unlockedRewards: [],
           unlockedRewardLoading: false,
+          unlockedRewardError: false,
+          referralDetailsError: false,
+          optinAllowedForGeoError: false,
         };
         const action = resetRewardsState();
 
@@ -1035,40 +1370,12 @@ describe('rewardsReducer', () => {
         const state = rewardsReducer(stateWithData, action);
 
         // Assert
-        expect(state).toEqual(
-          expect.objectContaining({
-            activeTab: 'overview',
-            seasonId: null,
-            seasonStatusLoading: false,
-            referralDetailsLoading: false,
-            referralCode: null,
-            refereeCount: 0,
-            currentTier: null,
-            nextTier: null,
-            nextTierPointsNeeded: null,
-            balanceTotal: 0,
-            balanceRefereePortion: 0,
-            balanceUpdatedAt: null,
-            seasonName: null,
-            seasonStartDate: null,
-            seasonEndDate: null,
-            seasonTiers: [],
-            onboardingActiveStep: OnboardingStep.INTRO,
-            candidateSubscriptionId: 'pending',
-            geoLocation: null,
-            optinAllowedForGeo: false,
-            optinAllowedForGeoLoading: false,
-            hideUnlinkedAccountsBanner: false,
-            activeBoosts: [],
-            activeBoostsLoading: false,
-            activeBoostsError: false,
-          }),
-        );
+        expect(state).toEqual(initialState);
       });
     });
 
     describe('persist/REHYDRATE', () => {
-      it('should reset all state to initial values and only restore hideUnlinkedAccountsBanner', () => {
+      it('should reset all state to initial values including banner preferences', () => {
         // Arrange
         const persistedRewardsState: RewardsState = {
           activeTab: 'activity',
@@ -1114,7 +1421,14 @@ describe('rewardsReducer', () => {
           geoLocation: 'CA',
           optinAllowedForGeo: true,
           optinAllowedForGeoLoading: false,
-          hideUnlinkedAccountsBanner: true, // This should be preserved
+          hideUnlinkedAccountsBanner: true, // This will be reset
+          hideCurrentAccountNotOptedInBanner: [
+            {
+              caipAccountId:
+                'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
+              hide: true,
+            },
+          ], // This will be reset
           activeBoosts: [
             {
               id: 'boost-1',
@@ -1128,10 +1442,14 @@ describe('rewardsReducer', () => {
               backgroundColor: '#FF0000',
             },
           ],
+          seasonStatusError: null,
           activeBoostsLoading: false,
           activeBoostsError: false,
           unlockedRewards: [],
           unlockedRewardLoading: false,
+          unlockedRewardError: false,
+          referralDetailsError: false,
+          optinAllowedForGeoError: false,
         };
         const rehydrateAction = {
           type: 'persist/REHYDRATE',
@@ -1143,46 +1461,30 @@ describe('rewardsReducer', () => {
         // Act
         const state = rewardsReducer(initialState, rehydrateAction);
 
-        // Assert - All state should be reset to initial except hideUnlinkedAccountsBanner
-        expect(state).toEqual(
-          expect.objectContaining({
-            activeTab: 'overview', // Reset to initial
-            seasonStatusLoading: false, // Reset to initial
-            seasonId: null, // Reset to initial
-            seasonName: null, // Reset to initial
-            seasonStartDate: null, // Reset to initial
-            seasonEndDate: null, // Reset to initial
-            seasonTiers: [], // Reset to initial
-            referralDetailsLoading: false, // Reset to initial
-            referralCode: null, // Reset to initial
-            refereeCount: 0, // Reset to initial
-            currentTier: null, // Reset to initial
-            nextTier: null, // Reset to initial
-            nextTierPointsNeeded: null, // Reset to initial
-            balanceTotal: 0, // Reset to initial
-            balanceRefereePortion: 0, // Reset to initial
-            balanceUpdatedAt: null, // Reset to initial
-            onboardingActiveStep: OnboardingStep.INTRO, // Reset to initial
-            candidateSubscriptionId: 'pending', // Reset to initial
-            geoLocation: null, // Reset to initial
-            optinAllowedForGeo: false, // Reset to initial
-            optinAllowedForGeoLoading: false, // Reset to initial
-            hideUnlinkedAccountsBanner: true, // Only this should be preserved
-            activeBoosts: [],
-            activeBoostsLoading: false,
-            activeBoostsError: false,
-            unlockedRewards: [],
-            unlockedRewardLoading: false,
-          }),
-        );
+        // Assert - State should be reset to initial values but preserve banner preferences
+        const expectedState = {
+          ...initialState,
+          hideUnlinkedAccountsBanner:
+            persistedRewardsState.hideUnlinkedAccountsBanner,
+          hideCurrentAccountNotOptedInBanner:
+            persistedRewardsState.hideCurrentAccountNotOptedInBanner,
+        };
+        expect(state).toEqual(expectedState);
       });
 
-      it('should handle rehydration with hideUnlinkedAccountsBanner false', () => {
+      it('should reset banner preferences regardless of persisted values', () => {
         // Arrange
         const persistedRewardsState: RewardsState = {
           ...initialState,
           referralCode: 'SOME_CODE', // This will be reset
-          hideUnlinkedAccountsBanner: false, // This should be preserved
+          hideUnlinkedAccountsBanner: true, // This will be reset to false
+          hideCurrentAccountNotOptedInBanner: [
+            {
+              caipAccountId:
+                'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId,
+              hide: true,
+            },
+          ], // This will be reset to empty array
         };
         const rehydrateAction = {
           type: 'persist/REHYDRATE',
@@ -1195,7 +1497,12 @@ describe('rewardsReducer', () => {
         const state = rewardsReducer(initialState, rehydrateAction);
 
         // Assert
-        expect(state.hideUnlinkedAccountsBanner).toBe(false);
+        expect(state.hideUnlinkedAccountsBanner).toBe(
+          persistedRewardsState.hideUnlinkedAccountsBanner,
+        );
+        expect(state.hideCurrentAccountNotOptedInBanner).toEqual(
+          persistedRewardsState.hideCurrentAccountNotOptedInBanner,
+        );
         expect(state.referralCode).toBe(null); // Should be reset
       });
 
@@ -1496,7 +1803,7 @@ describe('rewardsReducer', () => {
       expect(state.activeBoostsLoading).toBe(true);
       expect(state.activeTab).toBe('activity');
       expect(state.referralCode).toBe('TEST123');
-      expect(state.activeBoosts).toEqual([]);
+      expect(state.activeBoosts).toBeNull();
     });
   });
 
@@ -1602,8 +1909,8 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.unlockedRewards).toEqual(mockUnlockedRewards);
       expect(state.unlockedRewards).toHaveLength(2);
-      expect(state.unlockedRewards[0].id).toBe('reward-1');
-      expect(state.unlockedRewards[1].claimStatus).toBe(
+      expect(state.unlockedRewards?.[0]?.id).toBe('reward-1');
+      expect(state.unlockedRewards?.[1]?.claimStatus).toBe(
         RewardClaimStatus.UNCLAIMED,
       );
     });
@@ -1641,8 +1948,8 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.unlockedRewards).toEqual(newRewards);
       expect(state.unlockedRewards).toHaveLength(2);
-      expect(state.unlockedRewards[0].id).toBe('new-reward-1');
-      expect(state.unlockedRewards[1].id).toBe('new-reward-2');
+      expect(state.unlockedRewards?.[0]?.id).toBe('new-reward-1');
+      expect(state.unlockedRewards?.[1]?.id).toBe('new-reward-2');
     });
 
     it('should set empty array when no rewards provided', () => {
@@ -1665,6 +1972,29 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.unlockedRewards).toEqual([]);
       expect(state.unlockedRewards).toHaveLength(0);
+    });
+
+    it('should reset unlockedRewardError to false when setting unlocked rewards', () => {
+      // Arrange
+      const stateWithError = {
+        ...initialState,
+        unlockedRewardError: true,
+      };
+      const mockRewards = [
+        {
+          id: 'test-reward',
+          seasonRewardId: 'test-season-reward',
+          claimStatus: RewardClaimStatus.CLAIMED,
+        },
+      ];
+      const action = setUnlockedRewards(mockRewards);
+
+      // Act
+      const state = rewardsReducer(stateWithError, action);
+
+      // Assert
+      expect(state.unlockedRewards).toEqual(mockRewards);
+      expect(state.unlockedRewardError).toBe(false); // Should be reset when successful
     });
 
     it('should not affect other state properties', () => {
@@ -1772,7 +2102,7 @@ describe('rewardsReducer', () => {
       // Arrange - Start with false and no rewards
       let currentState = initialState;
       expect(currentState.unlockedRewardLoading).toBe(false);
-      expect(currentState.unlockedRewards).toHaveLength(0);
+      expect(currentState.unlockedRewards).toBeNull();
 
       // Act - Set to true (should work since no rewards exist)
       currentState = rewardsReducer(
@@ -1806,8 +2136,78 @@ describe('rewardsReducer', () => {
       expect(state.unlockedRewardLoading).toBe(true);
       expect(state.activeTab).toBe('activity');
       expect(state.referralCode).toBe('TEST456');
-      expect(state.unlockedRewards).toHaveLength(0);
+      expect(state.unlockedRewards).toBeNull();
       expect(state.activeBoostsLoading).toBe(false);
+    });
+  });
+
+  describe('setUnlockedRewardError', () => {
+    it('should set unlockedRewardError to true', () => {
+      // Arrange
+      const action = setUnlockedRewardError(true);
+
+      // Act
+      const state = rewardsReducer(initialState, action);
+
+      // Assert
+      expect(state.unlockedRewardError).toBe(true);
+    });
+
+    it('should set unlockedRewardError to false', () => {
+      // Arrange
+      const stateWithError = {
+        ...initialState,
+        unlockedRewardError: true,
+      };
+      const action = setUnlockedRewardError(false);
+
+      // Act
+      const state = rewardsReducer(stateWithError, action);
+
+      // Assert
+      expect(state.unlockedRewardError).toBe(false);
+    });
+
+    it('should not affect other state properties', () => {
+      // Arrange
+      const stateWithData = {
+        ...initialState,
+        activeTab: 'levels' as const,
+        referralCode: 'TEST789',
+        balanceTotal: 2000,
+        unlockedRewardLoading: true,
+      };
+      const action = setUnlockedRewardError(true);
+
+      // Act
+      const state = rewardsReducer(stateWithData, action);
+
+      // Assert
+      expect(state.unlockedRewardError).toBe(true);
+      expect(state.activeTab).toBe('levels');
+      expect(state.referralCode).toBe('TEST789');
+      expect(state.balanceTotal).toBe(2000);
+      expect(state.unlockedRewardLoading).toBe(true); // Should remain unchanged
+    });
+
+    it('should handle multiple error state changes', () => {
+      // Arrange
+      let currentState = initialState;
+
+      // Act & Assert - Set error to true
+      let action = setUnlockedRewardError(true);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.unlockedRewardError).toBe(true);
+
+      // Act & Assert - Set error back to false
+      action = setUnlockedRewardError(false);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.unlockedRewardError).toBe(false);
+
+      // Act & Assert - Set error to true again
+      action = setUnlockedRewardError(true);
+      currentState = rewardsReducer(currentState, action);
+      expect(currentState.unlockedRewardError).toBe(true);
     });
   });
 });

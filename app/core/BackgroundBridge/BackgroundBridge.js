@@ -71,6 +71,7 @@ import {
   getSessionScopes,
   KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
+import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
 import {
   makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
@@ -115,6 +116,7 @@ export class BackgroundBridge extends EventEmitter {
     getApprovedHosts,
     remoteConnHost,
     isMMSDK,
+    sdkVersion = 'v1',
     channelId,
   }) {
     super();
@@ -125,6 +127,7 @@ export class BackgroundBridge extends EventEmitter {
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
     this.isMMSDK = isMMSDK;
+    this.sdkVersion = sdkVersion;
     this.isRemoteConn = isRemoteConn;
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
@@ -202,7 +205,8 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    if (!this.isMMSDK && !this.isWalletConnect) {
+    // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
+    if (!(this.isMMSDK && this.sdkVersion === 'v1') && !this.isWalletConnect) {
       this.multichainSubscriptionManager = new MultichainSubscriptionManager({
         getNetworkClientById:
           Engine.context.NetworkController.getNetworkClientById.bind(
@@ -463,7 +467,8 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
-    if (!this.isMMSDK && !this.isWalletConnect) {
+    // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
+    if (!(this.isMMSDK && this.sdkVersion === 'v1') && !this.isWalletConnect) {
       controllerMessenger.unsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
@@ -677,6 +682,10 @@ export class BackgroundBridge extends EventEmitter {
           PermissionController,
           origin,
         ),
+        updateCaveat: PermissionController.updateCaveat.bind(
+          PermissionController,
+          origin,
+        ),
         getSelectedNetworkClientId: () =>
           NetworkController.state.selectedNetworkClientId,
         revokePermissionForOrigin: PermissionController.revokePermission.bind(
@@ -813,6 +822,8 @@ export class BackgroundBridge extends EventEmitter {
               transactionMeta: { chainId },
               securityAlertId,
             }),
+          isAuxiliaryFundsSupported: (chainId) =>
+            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
         },
         Engine.controllerMessenger,
       ),
@@ -848,6 +859,8 @@ export class BackgroundBridge extends EventEmitter {
               {},
             );
           },
+          isAuxiliaryFundsSupported: (chainId) =>
+            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
         },
         Engine.controllerMessenger,
       ),

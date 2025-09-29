@@ -15,7 +15,6 @@ const Routes = {
     CHECKOUT: 'Checkout',
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
-    NETWORK_SWITCHER: 'BuyNetworkSwitcher',
     ORDER_DETAILS: 'OrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
@@ -23,6 +22,7 @@ const Routes = {
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
+      INCOMPATIBLE_ACCOUNT_TOKEN: 'RampIncompatibleAccountTokenModal',
     },
   },
   DEPOSIT: {
@@ -52,6 +52,7 @@ const Routes = {
       INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
       SSN_INFO: 'SsnInfoModal',
       CONFIGURATION: 'DepositConfigurationModal',
+      ERROR_DETAILS: 'DepositErrorDetailsModal',
     },
   },
   HW: {
@@ -162,7 +163,6 @@ const Routes = {
     CONNECTION_DETAILS: 'ConnectionDetails',
     PERMITTED_NETWORKS_INFO_SHEET: 'PermittedNetworksInfoSheet',
     NETWORK_SELECTOR: 'NetworkSelector',
-    RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
     FIAT_ON_TESTNETS_FRICTION: 'SettingsAdvancedFiatOnTestnetsFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -253,6 +253,15 @@ const Routes = {
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
+  PREDICT: {
+    ROOT: 'Predict',
+    MARKET_LIST: 'PredictMarketList',
+    MARKET_DETAILS: 'PredictMarketDetails',
+    MODALS: {
+      ROOT: 'PredictModals',
+      CASH_OUT: 'PredictCashOut',
+    },
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
@@ -331,6 +340,9 @@ const Routes = {
     ASSET: 'Asset',
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
+  },
+  SDK: {
+    RETURN_TO_DAPP_TOAST: 'ReturnToDappToast',
   },
 };
 

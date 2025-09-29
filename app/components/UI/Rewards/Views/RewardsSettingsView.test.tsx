@@ -38,15 +38,142 @@ jest.mock('../../Navbar', () => ({
   getNavigationOptionsTitle: jest.fn(() => ({ title: 'Settings' })),
 }));
 
+// Mock design system components
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    Box: function MockBox({
+      children,
+      testID,
+      twClassName,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      twClassName?: string;
+      [key: string]: unknown;
+    }) {
+      const ReactActual = jest.requireActual('react');
+      return ReactActual.createElement(View, { testID, ...props }, children);
+    },
+    Text: function MockText({
+      children,
+      variant,
+      twClassName,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      variant?: string;
+      twClassName?: string;
+      [key: string]: unknown;
+    }) {
+      const ReactActual = jest.requireActual('react');
+      return ReactActual.createElement(Text, { ...props }, children);
+    },
+    TextVariant: {
+      HeadingMd: 'HeadingMd',
+      HeadingSm: 'HeadingSm',
+      BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
+    },
+  };
+});
+
+// Mock useTailwind hook
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn((styles) => (typeof styles === 'string' ? {} : styles)),
+  }),
+}));
+
+// Mock Button component
+jest.mock('../../../../component-library/components/Buttons/Button', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockButton({
+      label,
+      onPress,
+      testID,
+      isDisabled,
+      isDanger,
+      ...props
+    }: {
+      label?: string;
+      onPress?: () => void;
+      testID?: string;
+      isDisabled?: boolean;
+      isDanger?: boolean;
+      [key: string]: unknown;
+    }) {
+      const ReactActual = jest.requireActual('react');
+      return ReactActual.createElement(
+        TouchableOpacity,
+        {
+          onPress: isDisabled ? undefined : onPress,
+          testID,
+          disabled: isDisabled,
+          ...props,
+        },
+        ReactActual.createElement(Text, null, label),
+      );
+    },
+    ButtonVariants: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+  };
+});
+
+// Mock RewardsInfoBanner component
+jest.mock('../components/RewardsInfoBanner', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockRewardsInfoBanner({
+      title,
+      description,
+      testID,
+    }: {
+      title?: string;
+      description?: string;
+      testID?: string;
+    }) {
+      const ReactActual = jest.requireActual('react');
+      return ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(Text, null, title),
+        ReactActual.createElement(Text, null, description),
+      );
+    },
+  };
+});
+
+// Mock Toast component
+jest.mock('../../../../component-library/components/Toast', () => {
+  const { View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+
+  const MockToast = (
+    _props: Record<string, unknown>,
+    ref: React.Ref<typeof View>,
+  ) => ReactActual.createElement(View, { testID: 'toast', ref });
+
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef(MockToast),
+  };
+});
+
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.settings.title': 'Settings',
       'rewards.settings.subtitle': 'Connect Multiple Accounts',
-      'rewards.unlinked_account_info.title': 'Account Not Connected',
-      'rewards.unlinked_account_info.description':
-        'Connect this account to earn rewards',
+      'rewards.settings.description':
+        'Connect multiple accounts to maximize your rewards. Each linked account earns rewards.',
       'rewards.optout.title': 'Opt Out of Rewards',
       'rewards.optout.description':
         'Remove all accounts from the rewards program',
@@ -86,24 +213,39 @@ jest.mock('../components/Settings/RewardSettingsTabs', () => {
 });
 
 // Mock selectors
-jest.mock('../../../../selectors/rewards', () => ({
-  selectRewardsActiveAccountHasOptedIn: jest.fn(),
-}));
+jest.mock('../../../../selectors/rewards', () => ({}));
 
 // Mock hooks
 jest.mock('../hooks/useOptout', () => ({
   useOptout: jest.fn(),
 }));
 
-// Import mocked selectors for setup
-import { selectRewardsActiveAccountHasOptedIn } from '../../../../selectors/rewards';
-import { useOptout } from '../hooks/useOptout';
+// Mock useAccountsOperationsLoadingStates hook
+jest.mock(
+  '../../../../util/accounts/useAccountsOperationsLoadingStates',
+  () => ({
+    useAccountsOperationsLoadingStates: jest.fn(),
+  }),
+);
 
-const mockSelectRewardsActiveAccountHasOptedIn =
-  selectRewardsActiveAccountHasOptedIn as jest.MockedFunction<
-    typeof selectRewardsActiveAccountHasOptedIn
-  >;
+// Mock useSeasonStatus hook
+jest.mock('../hooks/useSeasonStatus', () => ({
+  useSeasonStatus: jest.fn(),
+}));
+
+// Import mocked hooks for setup
+import { useOptout } from '../hooks/useOptout';
+import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
+import { useSeasonStatus } from '../hooks/useSeasonStatus';
+
 const mockUseOptout = useOptout as jest.MockedFunction<typeof useOptout>;
+const mockUseAccountsOperationsLoadingStates =
+  useAccountsOperationsLoadingStates as jest.MockedFunction<
+    typeof useAccountsOperationsLoadingStates
+  >;
+const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
+  typeof useSeasonStatus
+>;
 
 describe('RewardsSettingsView', () => {
   let store: ReturnType<typeof configureStore>;
@@ -147,14 +289,21 @@ describe('RewardsSettingsView', () => {
     store = createMockStore();
 
     // Set default mock return values
-    mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
     mockUseOptout.mockReturnValue({
       optout: jest.fn(),
       isLoading: false,
       showOptoutBottomSheet: jest.fn(),
     });
+    mockUseAccountsOperationsLoadingStates.mockReturnValue({
+      areAnyOperationsLoading: false,
+      isAccountSyncingInProgress: false,
+      loadingMessage: null,
+    });
     mockUseRoute.mockReturnValue({
       params: {},
+    });
+    mockUseSeasonStatus.mockReturnValue({
+      fetchSeasonStatus: jest.fn(),
     });
   });
 
@@ -190,10 +339,7 @@ describe('RewardsSettingsView', () => {
   });
 
   describe('Initial tab determination', () => {
-    it('starts with linked tab (index 0) when account is opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
-
+    it('starts with linked tab (index 0) by default', () => {
       // Act
       const { getByTestId, getByText } = renderWithNavigation(
         <RewardsSettingsView />,
@@ -204,24 +350,7 @@ describe('RewardsSettingsView', () => {
       expect(getByText('Tab Index: 0')).toBeOnTheScreen();
     });
 
-    it('starts with unlinked tab (index 1) when account is not opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
-      expect(getByText('Tab Index: 1')).toBeOnTheScreen();
-    });
-
-    it('starts with unlinked tab (index 1) when account status is null', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(null);
-
+    it('starts with linked tab (index 0) regardless of account status', () => {
       // Act
       const { getByTestId, getByText } = renderWithNavigation(
         <RewardsSettingsView />,
@@ -230,63 +359,6 @@ describe('RewardsSettingsView', () => {
       // Assert
       expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
       expect(getByText('Tab Index: 0')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Route params handling', () => {
-    it('uses focusUnlinkedTab param when provided', () => {
-      // Arrange
-      mockUseRoute.mockReturnValue({
-        params: { focusUnlinkedTab: true },
-      });
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
-
-      // Act
-      const { getByTestId, getByText } = renderWithNavigation(
-        <RewardsSettingsView />,
-      );
-
-      // Assert
-      expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
-      expect(getByText('Tab Index: 1')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Unlinked account banner', () => {
-    it('shows banner when account is not opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(false);
-
-      // Act
-      const { getByText } = renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(getByText('Account Not Connected')).toBeOnTheScreen();
-      expect(
-        getByText('Connect this account to earn rewards'),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not show banner when account is opted in', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(true);
-
-      // Act
-      const { queryByText } = renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(queryByText('Account Not Connected')).toBeNull();
-    });
-
-    it('does not show banner when account status is null', () => {
-      // Arrange
-      mockSelectRewardsActiveAccountHasOptedIn.mockReturnValue(null);
-
-      // Act
-      const { queryByText } = renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(queryByText('Account Not Connected')).toBeNull();
     });
   });
 
@@ -311,24 +383,6 @@ describe('RewardsSettingsView', () => {
     });
   });
 
-  describe('Hook integration', () => {
-    it('calls useOptout hook', () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(mockUseOptout).toHaveBeenCalled();
-    });
-
-    it('uses selectRewardsActiveAccountHasOptedIn selector', () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
-
-      // Assert
-      expect(mockSelectRewardsActiveAccountHasOptedIn).toHaveBeenCalled();
-    });
-  });
-
   describe('Component structure', () => {
     it('renders all main sections', () => {
       // Act
@@ -338,16 +392,62 @@ describe('RewardsSettingsView', () => {
 
       // Assert
       expect(getByText('Connect Multiple Accounts')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Connect multiple accounts to maximize your rewards. Each linked account earns rewards.',
+        ),
+      ).toBeOnTheScreen();
       expect(getByTestId('reward-settings-tabs')).toBeOnTheScreen();
       expect(getByText('Opt Out of Rewards')).toBeOnTheScreen();
+      expect(
+        getByText('Remove all accounts from the rewards program'),
+      ).toBeOnTheScreen();
+      expect(getByText('Opt Out')).toBeOnTheScreen();
     });
 
     it('renders toast component', () => {
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(getByTestId('toast')).toBeOnTheScreen();
+    });
+
+    it('renders scrollview with proper styling', () => {
       // Act
       const component = renderWithNavigation(<RewardsSettingsView />);
 
       // Assert - Component should render without errors
       expect(component).toBeTruthy();
+    });
+  });
+
+  describe('Hook integration', () => {
+    it('calls useOptout hook', () => {
+      // Act
+      renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(mockUseOptout).toHaveBeenCalled();
+    });
+
+    it('calls useSeasonStatus hook', () => {
+      // Act
+      renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalled();
+    });
+
+    it('calls useSeasonStatus hook for season data availability', () => {
+      // Given that this view doesn't have seasonstatus component
+      // When the component renders
+
+      // Act
+      renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
     });
   });
 
