@@ -18,7 +18,7 @@ const styleSheet = (params: { theme: Theme }) => {
     alignItems: 'center',
     gap: 8,
     alignSelf: 'stretch',
-    backgroundColor: colors.background.subsection,
+    backgroundColor: colors.background.muted,
   } as ViewStyle;
 
   return StyleSheet.create({
