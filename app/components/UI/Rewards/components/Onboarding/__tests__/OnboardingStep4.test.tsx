@@ -14,6 +14,7 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock route params
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => ({
     referral: undefined,
     isFromDeeplink: false,
