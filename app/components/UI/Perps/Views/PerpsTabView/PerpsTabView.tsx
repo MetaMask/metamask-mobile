@@ -38,6 +38,7 @@ import {
   usePerpsLivePositions,
   usePerpsPerformance,
 } from '../../hooks';
+import { getPositionDirection } from '../../utils/positionCalculations';
 import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import styleSheet from './PerpsTabView.styles';
@@ -94,14 +95,17 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
       // Track homescreen tab viewed event with exact property names from requirements
       track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
-        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
-          [PerpsEventProperties.ASSET]: p.coin,
-          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
-          [PerpsEventProperties.DIRECTION]:
-            parseFloat(p.size) > 0
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-        })),
+        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => {
+          const direction = getPositionDirection(p.size);
+          return {
+            [PerpsEventProperties.ASSET]: p.coin,
+            [PerpsEventProperties.LEVERAGE]: p.leverage.value,
+            [PerpsEventProperties.DIRECTION]:
+              direction === 'long'
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+          };
+        }),
       });
 
       hasTrackedHomescreen.current = true;
@@ -208,14 +212,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {positions.map((position, index) => {
-            const sizeValue = parseFloat(position.size);
-            const directionSegment = Number.isFinite(sizeValue)
-              ? sizeValue > 0
-                ? 'long'
-                : sizeValue < 0
-                ? 'short'
-                : 'unknown'
-              : 'unknown';
+            const directionSegment = getPositionDirection(position.size);
             return (
               <View
                 key={`${position.coin}-${index}`}
