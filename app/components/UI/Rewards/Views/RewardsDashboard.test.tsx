@@ -20,16 +20,24 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    setOptions: mockSetOptions,
-  }),
-  useFocusEffect: jest.fn(() => {
-    // Mock useFocusEffect as a no-op to prevent infinite re-renders
-    // In real usage, this would be called when screen gains focus
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+    }),
+    // Run focus effects as a normal effect during tests
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = effect();
+        return cleanup;
+      }, []);
+    },
+  };
+});
 
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
