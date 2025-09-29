@@ -1,5 +1,6 @@
 import React from 'react';
 import { waitFor } from '@testing-library/react-native';
+import { BackHandler, NativeEventSubscription } from 'react-native';
 import SmartAccountNetworkList from './SmartAccountNetworkList';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 
@@ -62,6 +63,52 @@ describe('SmartAccountNetworkList', () => {
     await waitFor(() => {
       expect(getByTestId('network-flat-list')).toBeTruthy();
     });
+  });
+
+  it('handles hardware back press by navigating back and prevents default', () => {
+    const removeMock = jest.fn();
+    const addListenerSpy = jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockImplementation(
+        (
+          event: 'hardwareBackPress',
+          _handler: () => boolean | null | undefined,
+        ): NativeEventSubscription => {
+          expect(event).toBe('hardwareBackPress');
+          return { remove: removeMock } as unknown as NativeEventSubscription;
+        },
+      );
+
+    const { unmount } = renderWithProvider(
+      <SmartAccountNetworkList address={mockAddress} />,
+      { state: mockAccountsState },
+    );
+
+    // Multiple subscriptions may exist; invoke until one triggers goBack
+    let foundHandlerCalledGoBack = false;
+    let observedResult: boolean | null | undefined;
+    for (const call of addListenerSpy.mock.calls) {
+      const maybeHandler = call?.[1] as
+        | (() => boolean | null | undefined)
+        | undefined;
+      if (!maybeHandler) {
+        continue;
+      }
+      mockGoBack.mockClear();
+      observedResult = maybeHandler();
+      if (mockGoBack.mock.calls.length > 0) {
+        foundHandlerCalledGoBack = true;
+        break;
+      }
+    }
+
+    expect(foundHandlerCalledGoBack).toBe(true);
+    expect(observedResult).toBe(true);
+
+    unmount();
+    expect(removeMock).toHaveBeenCalled();
+
+    addListenerSpy.mockRestore();
   });
 
   it('returns null when pending', () => {
