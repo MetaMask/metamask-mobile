@@ -6,22 +6,26 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast/Toast.types.ts';
 import { useFavicon } from '../../hooks/useFavicon/index.ts';
-import { RPC_METHODS } from '../../../core/SDKConnect/SDKConnectConstants.ts';
-import { sleep } from '../../../util/testUtils/index.ts';
+import {
+  METHODS_TO_DELAY,
+  RPC_METHODS,
+} from '../../../core/SDKConnect/SDKConnectConstants.ts';
 import { ImageURISource } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { wait } from '../../../core/SDKConnect/utils/wait.util.ts';
 
 export interface ReturnToAppToastProps {
   route: {
     params: {
       method?: string;
       origin?: string;
+      hideReturnToApp?: boolean;
     };
   };
 }
 
 // Get the secondary label to display if needed, depending on the method
-const getSecondaryLabel = (method?: string): string | undefined => {
+const getMethodLabel = (method?: string): string | undefined => {
   switch (method) {
     case RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN:
       return strings('sdk_return_to_app_toast.networkSwitchMethodLabel');
@@ -51,8 +55,9 @@ const diplayToast = (
  * We need to trigger a toast from an SDK service that cannot access a component.
  */
 const ReturnToAppToast = (props: ReturnToAppToastProps) => {
+  const delayAfterMethod: number = 1200;
   const delayBetweenToast: number = 1500;
-  const { method, origin } = props.route.params ?? {};
+  const { method, origin, hideReturnToApp } = props.route.params ?? {};
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const favicon = useFavicon(origin ?? '');
@@ -72,26 +77,33 @@ const ReturnToAppToast = (props: ReturnToAppToastProps) => {
           return;
         }
 
-        // Display specific information depending on the method
-        const secondaryLabel = getSecondaryLabel(method);
-        if (secondaryLabel !== undefined) {
-          diplayToast(toastRef.current, secondaryLabel, favicon.faviconURI);
+        // Add delay to display UI feedback before redirecting
+        if (method && METHODS_TO_DELAY[method]) {
+          await wait(delayAfterMethod);
         }
 
-        await sleep(delayBetweenToast);
+        // Display specific information depending on the method
+        const methodLabel = getMethodLabel(method);
+        if (methodLabel !== undefined) {
+          diplayToast(toastRef.current, methodLabel, favicon.faviconURI);
+        }
 
-        // Ask the user to go back to the app
-        diplayToast(
-          toastRef.current,
-          strings('sdk_return_to_app_toast.returnToAppLabel'),
-          favicon.faviconURI,
-        );
+        if (hideReturnToApp !== true) {
+          await wait(delayBetweenToast);
+
+          // Ask the user to go back to the app
+          diplayToast(
+            toastRef.current,
+            strings('sdk_return_to_app_toast.returnToAppLabel'),
+            favicon.faviconURI,
+          );
+        }
       })();
 
       // Hide the fake modal
       navigation?.goBack();
     }
-  }, [toastRef, method, favicon, navigation]);
+  }, [toastRef, method, favicon, navigation, hideReturnToApp]);
 
   return <></>;
 };

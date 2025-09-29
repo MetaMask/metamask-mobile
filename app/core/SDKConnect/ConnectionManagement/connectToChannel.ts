@@ -32,6 +32,7 @@ async function connectToChannel({
   origin,
   validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   instance,
+  hideReturnToApp,
 }: ConnectionProps & {
   instance: SDKConnect;
 }) {
@@ -107,6 +108,7 @@ async function connectToChannel({
       rpcQueueManager: instance.state.rpcqueueManager,
       originatorInfo,
       navigation: instance.state.navigation,
+      hideReturnToApp,
       updateOriginatorInfos: instance.updateOriginatorInfos.bind(instance),
       approveHost: instance._approveHost.bind(instance),
       disapprove: instance.disapproveChannel.bind(instance),

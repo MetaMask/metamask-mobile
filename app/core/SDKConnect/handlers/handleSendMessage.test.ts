@@ -9,6 +9,7 @@ import {
   isAnalyticsTrackedRpcMethod,
   OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
+import Routes from '../../../constants/navigation/Routes';
 
 // --- Start of Mocks ---
 jest.mock('@metamask/sdk-analytics', () => ({
@@ -254,6 +255,93 @@ describe('handleSendMessage', () => {
           id: 1,
         },
       });
+    });
+  });
+
+  describe('Navigation with hideReturnToApp parameter', () => {
+    beforeEach(() => {
+      mockRpcQueueManagerGetId.mockReturnValue('test-method');
+      mockCanRedirect.mockReturnValue(true);
+      // Make sure there are no batch RPCs for navigation tests
+      mockBatchRPCManagerGetById.mockReturnValue(null);
+      mockConnection.originatorInfo = {
+        url: 'https://example.com',
+      } as OriginatorInfo;
+    });
+
+    it('should navigate with hideReturnToApp set to true when connection has hideReturnToApp true', async () => {
+      mockConnection.hideReturnToApp = true;
+
+      await handleSendMessage({
+        msg: {
+          data: {
+            id: 1,
+          },
+        },
+        connection: mockConnection,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        method: 'test-method',
+        origin: 'https://example.com',
+        hideReturnToApp: true,
+      });
+    });
+
+    it('should navigate with hideReturnToApp set to false when connection has hideReturnToApp false', async () => {
+      mockConnection.hideReturnToApp = false;
+
+      await handleSendMessage({
+        msg: {
+          data: {
+            id: 1,
+          },
+        },
+        connection: mockConnection,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        method: 'test-method',
+        origin: 'https://example.com',
+        hideReturnToApp: false,
+      });
+    });
+
+    it('should navigate with hideReturnToApp set to undefined when connection does not have hideReturnToApp', async () => {
+      mockConnection.hideReturnToApp = undefined;
+
+      await handleSendMessage({
+        msg: {
+          data: {
+            id: 1,
+          },
+        },
+        connection: mockConnection,
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SDK.RETURN_TO_DAPP_TOAST,
+        method: 'test-method',
+        origin: 'https://example.com',
+        hideReturnToApp: undefined,
+      });
+    });
+
+    it('should set connection trigger to resume before navigation', async () => {
+      mockConnection.hideReturnToApp = true;
+
+      await handleSendMessage({
+        msg: {
+          data: {
+            id: 1,
+          },
+        },
+        connection: mockConnection,
+      });
+
+      expect(mockConnection.trigger).toBe('resume');
     });
   });
 });
