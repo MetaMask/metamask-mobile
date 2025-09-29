@@ -178,8 +178,6 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.optout.description':
         'Remove all accounts from the rewards program',
       'rewards.optout.confirm': 'Opt Out',
-      'rewards.settings.accounts_syncing':
-        'Your accounts are syncing. Please wait.',
     };
     return translations[key] || key;
   }),

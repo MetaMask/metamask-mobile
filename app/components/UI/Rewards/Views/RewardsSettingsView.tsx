@@ -10,13 +10,11 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import Toast from '../../../../component-library/components/Toast';
 import { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import RewardSettingsTabs from '../components/Settings/RewardSettingsTabs';
 import { useOptout } from '../hooks/useOptout';
-import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
 
 const RewardsSettingsView: React.FC = () => {
@@ -27,12 +25,6 @@ const RewardsSettingsView: React.FC = () => {
   const { isLoading: isOptingOut, showOptoutBottomSheet } = useOptout();
 
   useSeasonStatus(); // this view doesnt have seasonstatus component so we need this if this data shouldn't be available.
-
-  // Check if any account operations are loading
-  const {
-    isAccountSyncingInProgress,
-    loadingMessage: accountSyncingLoadingMessage,
-  } = useAccountsOperationsLoadingStates();
 
   // Set navigation title with back button
   useEffect(() => {
@@ -67,14 +59,6 @@ const RewardsSettingsView: React.FC = () => {
               </Text>
             </Box>
           </Box>
-
-          {isAccountSyncingInProgress && (
-            <RewardsInfoBanner
-              title={accountSyncingLoadingMessage}
-              description={strings('rewards.settings.accounts_syncing')}
-              testID="account-syncing-banner"
-            />
-          )}
 
           {/* Section 2: Account Tabs */}
           <RewardSettingsTabs initialTabIndex={0} />
