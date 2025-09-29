@@ -716,7 +716,10 @@ export function renderFiat(value, currencyCode, decimalsToShow = 5) {
   let fiatFixed = parseFloat(Math.round(value * base) / base);
   fiatFixed = isNaN(fiatFixed) ? 0.0 : fiatFixed;
   if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${fiatFixed}`;
+    const isNegative = fiatFixed < 0;
+    const absValue = Math.abs(fiatFixed);
+    const sign = isNegative ? '-' : '';
+    return `${sign}${currencySymbols[currencyCode]}${absValue}`;
   }
   return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
