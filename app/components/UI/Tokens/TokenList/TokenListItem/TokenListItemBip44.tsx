@@ -38,6 +38,9 @@ import SensitiveText, {
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
+import { strings } from '../../../../../../locales/i18n';
+import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../../Bridge/types';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -67,6 +70,8 @@ export const TokenListItemBip44 = React.memo(
         isStaked: assetKey.isStaked,
       }),
     );
+
+    const { isStockToken } = useRWAToken({ token: asset as BridgeToken });
 
     const chainId = asset?.chainId as Hex;
 
@@ -194,6 +199,13 @@ export const TokenListItemBip44 = React.memo(
             <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
             </Text>
+            {isStockToken() && (
+              <View style={styles.stockBadge}>
+                <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+                  {strings('token.stock')}
+                </Text>
+              </View>
+            )}
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
           </View>
           <View style={styles.percentageChange}>

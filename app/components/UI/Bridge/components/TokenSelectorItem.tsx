@@ -1,47 +1,48 @@
-import React, { useCallback } from 'react';
+import { ethers } from 'ethers';
+import React from 'react';
 import {
-  StyleSheet,
   ImageSourcePropType,
-  View,
-  TouchableOpacity,
   Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
+import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import TagBase, {
+  TagSeverity,
+  TagShape,
+} from '../../../../component-library/base-components/TagBase';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import TokenIcon from '../../Swaps/components/TokenIcon';
+import { useStyles } from '../../../../component-library/hooks';
+import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../reducers';
+import { fontStyles } from '../../../../styles/common';
+import { Theme } from '../../../../util/theme/models';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
-import { useStyles } from '../../../../component-library/hooks';
-import { Theme } from '../../../../util/theme/models';
-import { BridgeToken } from '../types';
-import { ethers } from 'ethers';
-import { fontStyles } from '../../../../styles/common';
+import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
+import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
+import TokenIcon from '../../Swaps/components/TokenIcon';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
 } from '../../Tokens/constants';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import SkeletonText from '../../Ramp/Aggregator/components/SkeletonText';
-import parseAmount from '../../Ramp/Aggregator/utils/parseAmount';
-import { useSelector } from 'react-redux';
-import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
-import { strings } from '../../../../../locales/i18n';
-import TagBase, {
-  TagShape,
-  TagSeverity,
-} from '../../../../component-library/base-components/TagBase';
-import { RootState } from '../../../../reducers';
+import { useRWAToken } from '../hooks/useRWAToken';
+import { BridgeToken } from '../types';
 
 const createStyles = ({
   theme,
@@ -142,15 +143,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const isNative = token.address === ethers.constants.AddressZero;
 
   // to check if the token is a stock by checking if the name includes 'ondo' or 'stock'
-  const isStock = useCallback(() => {
-    if (
-      token.name?.toLowerCase().includes('ondo') ||
-      token.name?.toLowerCase().includes('stock')
-    ) {
-      return true;
-    }
-    return false;
-  }, [token.name]);
+  const { isStockToken } = useRWAToken({ token: token as BridgeToken });
 
   const balance = shouldShowBalance ? fiatValue : undefined;
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
@@ -230,7 +223,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {token.name}
             </Text>
-            {isStock() && (
+            {isStockToken() && (
               <View style={styles.stockBadge}>
                 <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
                   {strings('token.stock')}

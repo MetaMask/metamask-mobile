@@ -16,6 +16,7 @@ export interface BridgeToken {
   balanceFiat?: string; // A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
   tokenFiatAmount?: number; // A sortable fiat value in the user's currency, e.g. 100.12345
   currencyExchangeRate?: number; // A rate of the token in the user's currency, e.g. 100.12345
+  aggregators?: string[];
 }
 
 // TODO: use type from @metamask/bridge-controller once "approval" is made optional
