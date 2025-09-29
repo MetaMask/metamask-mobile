@@ -97,9 +97,9 @@ describe('PerpsMarketStatisticsCard', () => {
       <PerpsMarketStatisticsCard {...defaultProps} />,
     );
 
-    // Check 24hr high/low row
-    expect(getByText('perps.market.24hr_high')).toBeOnTheScreen();
-    expect(getByText('perps.market.24hr_low')).toBeOnTheScreen();
+    // Check 24h high/low row
+    expect(getByText('perps.market.24h_high')).toBeOnTheScreen();
+    expect(getByText('perps.market.24h_low')).toBeOnTheScreen();
     expect(getByText('$50,000.00')).toBeOnTheScreen();
     expect(getByText('$45,000.00')).toBeOnTheScreen();
 

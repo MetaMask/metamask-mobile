@@ -1331,8 +1331,8 @@
         "error_message": "Dados de mercado não encontrados. Volte e tente novamente."
       },
       "statistics": "Visão geral",
-      "24hr_high": "Máxima em 24 horas",
-      "24hr_low": "Mínima em 24 horas",
+      "24h_high": "Máxima em 24 horas",
+      "24h_low": "Mínima em 24 horas",
       "24h_volume": "Volume em 24 horas",
       "open_interest": "Contratos em aberto",
       "funding_rate": "Taxa de depósito de fundos",

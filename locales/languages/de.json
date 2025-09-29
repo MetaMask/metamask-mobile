@@ -1331,8 +1331,8 @@
         "error_message": "Marktdaten nicht gefunden. Bitte kehren Sie zurück und versuchen Sie es erneut."
       },
       "statistics": "Übersicht",
-      "24hr_high": "24-Std.-Hoch",
-      "24hr_low": "24-Std.-Tief",
+      "24h_high": "24-Std.-Hoch",
+      "24h_low": "24-Std.-Tief",
       "24h_volume": "24-Std.-Volumen",
       "open_interest": "Open Interest",
       "funding_rate": "Finanzierungsrate",

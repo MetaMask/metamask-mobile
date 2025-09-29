@@ -75,7 +75,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
   return (
     <View style={styles.statisticsGrid}>
-      {/* Row 1: 24hr High/Low */}
+      {/* Row 1: 24h High/Low */}
       <View style={styles.statisticsRow}>
         <View
           style={styles.statisticsItem}
@@ -85,7 +85,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Alternative}
           >
-            {strings('perps.market.24hr_low')}
+            {strings('perps.market.24h_low')}
           </Text>
           <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
             {marketStats.low24h}
@@ -99,7 +99,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Alternative}
           >
-            {strings('perps.market.24hr_high')}
+            {strings('perps.market.24h_high')}
           </Text>
           <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
             {marketStats.high24h}

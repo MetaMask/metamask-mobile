@@ -1331,8 +1331,8 @@
         "error_message": "Piyasa verileri bulunamadı. Lütfen geri dönüp tekrar deneyin."
       },
       "statistics": "Genel Bakış",
-      "24hr_high": "Son 24 saatin en yüksek değeri",
-      "24hr_low": "Son 24 saatin en düşük değeri",
+      "24h_high": "Son 24 saatin en yüksek değeri",
+      "24h_low": "Son 24 saatin en düşük değeri",
       "24h_volume": "Son 24 saatin hacmi",
       "open_interest": "Açık faiz",
       "funding_rate": "Fonlama oranı",
