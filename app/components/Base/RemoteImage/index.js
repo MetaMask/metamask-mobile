@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Image, View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -70,9 +70,45 @@ const RemoteImage = (props) => {
       ? ''
       : source.uri);
 
-  const onError = ({ nativeEvent: { error } }) => setError(error);
+  const onError = ({ error }) => setError(error);
 
   const [dimensions, setDimensions] = useState(null);
+
+  const calculateImageDimensions = useCallback((imageWidth, imageHeight) => {
+    const deviceWidth = Dimensions.get('window').width;
+    const maxWidth = deviceWidth - 32;
+    const maxHeight = 0.75 * maxWidth;
+
+    if (imageWidth > imageHeight) {
+      // Horizontal image
+      const width = maxWidth;
+      const height = (imageHeight / imageWidth) * maxWidth;
+      return { width, height };
+    } else if (imageHeight > imageWidth) {
+      // Vertical image
+      const height = maxHeight;
+      const width = (imageWidth / imageHeight) * maxHeight;
+      return { width, height };
+    }
+    // Square image
+    return { width: maxHeight, height: maxHeight };
+  }, []);
+
+  const onImageLoad = useCallback(
+    (event) => {
+      try {
+        const { width, height } = event.source;
+        if (width && height) {
+          const { width: calculatedWidth, height: calculatedHeight } =
+            calculateImageDimensions(width, height);
+          setDimensions({ width: calculatedWidth, height: calculatedHeight });
+        }
+      } catch (err) {
+        Logger.log('Failed to get image dimensions');
+      }
+    },
+    [calculateImageDimensions],
+  );
 
   useEffect(() => {
     resolveIpfsUrl();
@@ -91,40 +127,6 @@ const RemoteImage = (props) => {
       }
     }
   }, [props.source.uri, ipfsGateway]);
-
-  useEffect(() => {
-    const calculateImageDimensions = (imageWidth, imageHeight) => {
-      const deviceWidth = Dimensions.get('window').width;
-      const maxWidth = deviceWidth - 32;
-      const maxHeight = 0.75 * maxWidth;
-
-      if (imageWidth > imageHeight) {
-        // Horizontal image
-        const width = maxWidth;
-        const height = (imageHeight / imageWidth) * maxWidth;
-        return { width, height };
-      } else if (imageHeight > imageWidth) {
-        // Vertical image
-        const height = maxHeight;
-        const width = (imageWidth / imageHeight) * maxHeight;
-        return { width, height };
-      }
-      // Square image
-      return { width: maxHeight, height: maxHeight };
-    };
-
-    Image.getSize(
-      uri,
-      (width, height) => {
-        const { width: calculatedWidth, height: calculatedHeight } =
-          calculateImageDimensions(width, height);
-        setDimensions({ width: calculatedWidth, height: calculatedHeight });
-      },
-      () => {
-        Logger.log('Failed to get image dimensions');
-      },
-    );
-  }, [uri]);
 
   const NetworkBadgeSource = useCallback(() => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -189,6 +191,8 @@ const RemoteImage = (props) => {
                       height: dimensions.height,
                       ...styles.detailedImageStyle,
                     }}
+                    onLoad={onImageLoad}
+                    onError={onError}
                   />
                 </BadgeWrapper>
               ) : (
@@ -210,6 +214,7 @@ const RemoteImage = (props) => {
                       style={styles.imageStyle}
                       {...restProps}
                       source={{ uri }}
+                      onLoad={onImageLoad}
                       onError={onError}
                       contentFit={'cover'}
                     />
@@ -220,14 +225,26 @@ const RemoteImage = (props) => {
           </FadeIn>
         ) : (
           <FadeIn placeholderStyle={props.placeholderStyle}>
-            <ExpoImage {...props} source={{ uri }} onError={onError} />
+            <ExpoImage
+              {...props}
+              source={{ uri }}
+              onLoad={onImageLoad}
+              onError={onError}
+            />
           </FadeIn>
         )}
       </>
     );
   }
 
-  return <ExpoImage {...props} source={{ uri }} onError={onError} />;
+  return (
+    <ExpoImage
+      {...props}
+      source={{ uri }}
+      onLoad={onImageLoad}
+      onError={onError}
+    />
+  );
 };
 
 RemoteImage.propTypes = {
