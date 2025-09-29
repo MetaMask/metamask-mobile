@@ -5,15 +5,14 @@ import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
 import {
-  getPermittedAccounts,
-  removePermittedAccounts,
-} from '../../../core/Permissions';
-import {
   hideNotificationById,
   showSimpleNotification,
 } from '../../../actions/notification';
 import { strings } from '../../../../locales/i18n';
 import { ConnectionInfo } from '../types/connection-info';
+import Engine from '../../Engine';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import logger from '../services/logger';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionLoading(conninfo: ConnectionInfo): void {
@@ -69,10 +68,21 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     store.dispatch(setSdkV2Connections(v2Sessions));
   }
 
+  /**
+   * Revokes {@link Caip25EndowmentPermissionName} permission from a connection / origin.
+   * @param connId - The origin of the connection.
+   */
   revokePermissions(connId: string): void {
-    const allAccountsForOrigin = getPermittedAccounts(connId);
-    if (allAccountsForOrigin.length > 0) {
-      removePermittedAccounts(connId, allAccountsForOrigin);
+    try {
+      Engine.context.PermissionController.revokePermission(
+        connId,
+        Caip25EndowmentPermissionName,
+      );
+    } catch {
+      logger.error(
+        `Failed to revoke ${Caip25EndowmentPermissionName} permission for connection`,
+        connId,
+      );
     }
   }
 }
