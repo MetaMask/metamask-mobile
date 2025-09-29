@@ -3,46 +3,52 @@ import {
   selectPooledStakingServiceInterruptionBannerEnabledFlag,
   selectStablecoinLendingEnabledFlag,
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
-  earnRemoteFeatureFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
   mockedEmptyFlagsState,
 } from '../../../../../selectors/featureFlagController/mocks';
-import { EarnLaunchDarklyFlag } from './types';
+import {
+  VersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+} from '../../../../../util/remoteFeatureFlag';
+// eslint-disable-next-line import/no-namespace
+import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
 
+jest.mock(
+  '../../../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
+
 jest.mock('../../../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-jest.mock('../../../../../util/remoteFeatureFlag', () => ({
-  hasMinimumRequiredVersion: jest.fn(),
-}));
-
-// Import the mocked function to control its behavior
-import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
-const mockHasMinimumRequiredVersion =
-  hasMinimumRequiredVersion as jest.MockedFunction<
-    typeof hasMinimumRequiredVersion
-  >;
-
 describe('Earn Feature Flag Selectors', () => {
   const originalEnv = process.env;
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
-    // Default to version check passing
+
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
     mockHasMinimumRequiredVersion.mockReturnValue(true);
   });
 
   afterEach(() => {
     process.env = originalEnv;
+    mockHasMinimumRequiredVersion?.mockRestore();
   });
 
   describe('selectPooledStakingEnabledFlag', () => {
@@ -705,34 +711,36 @@ describe('Earn Feature Flag Selectors', () => {
   });
 
   describe('earnRemoteFeatureFlag', () => {
-    const validRemoteFlag: EarnLaunchDarklyFlag = {
+    const validRemoteFlag: VersionGatedFeatureFlag = {
       enabled: true,
       minimumVersion: '1.0.0',
     };
 
-    const disabledRemoteFlag: EarnLaunchDarklyFlag = {
+    const disabledRemoteFlag: VersionGatedFeatureFlag = {
       enabled: false,
       minimumVersion: '1.0.0',
     };
 
     describe('valid remote flag scenarios', () => {
       it('returns true when flag is enabled and version check passes', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-        const result = earnRemoteFeatureFlag(validRemoteFlag);
+        // With device version 1.0.0 and minimum version 1.0.0, version check should pass
+        const result = validatedVersionGatedFeatureFlag(validRemoteFlag);
         expect(result).toBe(true);
-        expect(mockHasMinimumRequiredVersion).toHaveBeenCalledWith('1.0.0');
       });
 
       it('returns false when flag is enabled but version check fails', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(false);
-        const result = earnRemoteFeatureFlag(validRemoteFlag);
+        // Create a flag with a higher minimum version to simulate version check failure
+        const flagWithHigherVersion: VersionGatedFeatureFlag = {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        };
+        const result = validatedVersionGatedFeatureFlag(flagWithHigherVersion);
         expect(result).toBe(false);
-        expect(mockHasMinimumRequiredVersion).toHaveBeenCalledWith('1.0.0');
       });
 
       it('returns false when flag is disabled but version check passes', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        const result = earnRemoteFeatureFlag(disabledRemoteFlag);
+        const result = validatedVersionGatedFeatureFlag(disabledRemoteFlag);
         expect(result).toBe(false);
         // hasMinimumRequiredVersion should not be called due to short-circuit evaluation
         expect(mockHasMinimumRequiredVersion).not.toHaveBeenCalled();
@@ -740,7 +748,7 @@ describe('Earn Feature Flag Selectors', () => {
 
       it('returns false when flag is disabled and version check fails', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(false);
-        const result = earnRemoteFeatureFlag(disabledRemoteFlag);
+        const result = validatedVersionGatedFeatureFlag(disabledRemoteFlag);
         expect(result).toBe(false);
         // hasMinimumRequiredVersion should not be called due to short-circuit evaluation
         expect(mockHasMinimumRequiredVersion).not.toHaveBeenCalled();
@@ -749,15 +757,15 @@ describe('Earn Feature Flag Selectors', () => {
 
     describe('invalid remote flag scenarios', () => {
       it('returns undefined when remote flag is null', () => {
-        const result = earnRemoteFeatureFlag(
-          null as unknown as EarnLaunchDarklyFlag,
+        const result = validatedVersionGatedFeatureFlag(
+          null as unknown as VersionGatedFeatureFlag,
         );
         expect(result).toBeUndefined();
       });
 
       it('returns undefined when remote flag is undefined', () => {
-        const result = earnRemoteFeatureFlag(
-          undefined as unknown as EarnLaunchDarklyFlag,
+        const result = validatedVersionGatedFeatureFlag(
+          undefined as unknown as VersionGatedFeatureFlag,
         );
         expect(result).toBeUndefined();
       });
@@ -765,16 +773,16 @@ describe('Earn Feature Flag Selectors', () => {
       it('returns undefined when enabled property is missing', () => {
         const malformedFlag = {
           minimumVersion: '1.0.0',
-        } as EarnLaunchDarklyFlag;
-        const result = earnRemoteFeatureFlag(malformedFlag);
+        } as VersionGatedFeatureFlag;
+        const result = validatedVersionGatedFeatureFlag(malformedFlag);
         expect(result).toBeUndefined();
       });
 
       it('returns undefined when minimumVersion property is missing', () => {
         const malformedFlag = {
           enabled: true,
-        } as EarnLaunchDarklyFlag;
-        const result = earnRemoteFeatureFlag(malformedFlag);
+        } as VersionGatedFeatureFlag;
+        const result = validatedVersionGatedFeatureFlag(malformedFlag);
         expect(result).toBeUndefined();
       });
 
@@ -782,8 +790,8 @@ describe('Earn Feature Flag Selectors', () => {
         const wrongTypeFlag = {
           enabled: 'true',
           minimumVersion: '1.0.0',
-        } as unknown as EarnLaunchDarklyFlag;
-        const result = earnRemoteFeatureFlag(wrongTypeFlag);
+        } as unknown as VersionGatedFeatureFlag;
+        const result = validatedVersionGatedFeatureFlag(wrongTypeFlag);
         expect(result).toBeUndefined();
       });
 
@@ -791,8 +799,8 @@ describe('Earn Feature Flag Selectors', () => {
         const wrongTypeFlag = {
           enabled: true,
           minimumVersion: 100,
-        } as unknown as EarnLaunchDarklyFlag;
-        const result = earnRemoteFeatureFlag(wrongTypeFlag);
+        } as unknown as VersionGatedFeatureFlag;
+        const result = validatedVersionGatedFeatureFlag(wrongTypeFlag);
         expect(result).toBeUndefined();
       });
 
@@ -800,8 +808,8 @@ describe('Earn Feature Flag Selectors', () => {
         const wrongTypeFlag = {
           enabled: 'true',
           minimumVersion: 123,
-        } as unknown as EarnLaunchDarklyFlag;
-        const result = earnRemoteFeatureFlag(wrongTypeFlag);
+        } as unknown as VersionGatedFeatureFlag;
+        const result = validatedVersionGatedFeatureFlag(wrongTypeFlag);
         expect(result).toBeUndefined();
       });
     });
