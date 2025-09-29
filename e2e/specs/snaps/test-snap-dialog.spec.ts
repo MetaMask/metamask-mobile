@@ -32,6 +32,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendAlertButton');
@@ -51,6 +52,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -66,6 +68,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
+          skipReactNativeReload: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');

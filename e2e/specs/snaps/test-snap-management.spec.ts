@@ -31,6 +31,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TabBarComponent.tapSettings();
@@ -55,6 +56,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        skipReactNativeReload: true,
       },
       async () => {
         await TabBarComponent.tapSettings();
