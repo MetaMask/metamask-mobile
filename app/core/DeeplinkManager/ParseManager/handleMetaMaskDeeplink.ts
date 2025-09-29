@@ -29,6 +29,11 @@ export function handleMetaMaskDeeplink({
 }) {
   handled();
 
+  // write it in here.
+  if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SETTINGS_VIEW}`)) {
+    SDKConnect.getInstance().state.navigation?.navigate(Routes.SETTINGS_VIEW);
+  }
+
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
     DevLogger.log(
       `DeeplinkManager:: metamask launched via android sdk deeplink`,

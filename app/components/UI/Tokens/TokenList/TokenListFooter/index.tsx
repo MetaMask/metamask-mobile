@@ -1,7 +1,7 @@
 import React from 'react';
 import createStyles from '../../styles';
 import { useTheme } from '../../../../../util/theme';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import TextComponent, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -22,6 +22,7 @@ import { selectChainId } from '../../../../../selectors/networkController';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
 import { createDepositNavigationDetails } from '../../../Ramp/Deposit/routes/utils';
+import { ACTIONS, PREFIXES } from '../../../../../constants/deeplinks';
 
 export const TokenListFooter = () => {
   const chainId = useSelector(selectChainId);
@@ -60,6 +61,8 @@ export const TokenListFooter = () => {
     });
   };
 
+  const path = `${PREFIXES.METAMASK}${ACTIONS.SETTINGS_VIEW}`;
+
   return (
     <>
       {/* render buy button */}
@@ -78,6 +81,14 @@ export const TokenListFooter = () => {
             style={styles.buyButton}
             onPress={goToDeposit}
             label={strings('wallet.add_funds')}
+          />
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            style={styles.buyButton}
+            onPress={() => Linking.openURL(path)}
+            label={'Settings'}
           />
         </View>
       )}

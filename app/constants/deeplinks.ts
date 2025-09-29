@@ -35,6 +35,7 @@ export enum ACTIONS {
   PERPS = 'perps',
   PERPS_MARKETS = 'perps-markets',
   PERPS_ASSET = 'perps-asset',
+  SETTINGS_VIEW = 'settings-view',
 }
 
 export const PREFIXES = {
