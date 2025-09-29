@@ -578,7 +578,7 @@ const CollectibleContracts = ({
       <View style={styles.actionBarWrapper}>
         <View style={styles.controlButtonOuterWrapper}>
           <ButtonBase
-            testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+            testID={WalletViewSelectorsIDs.COLLECTIBLES_NETWORK_FILTER}
             label={
               <>
                 {isRemoveGlobalNetworkSelectorEnabled() ? (
