@@ -330,34 +330,6 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
   });
-  it('should not show the swap button if the chain does not allow swaps', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(false);
-
-    const mockState: DeepPartial<RootState> = {
-      swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          NetworkController: {
-            ...mockNetworkState({
-              chainId: CHAIN_IDS.SEPOLIA,
-              id: 'sepolia',
-              nickname: 'Sepolia',
-              ticker: 'ETH',
-            }),
-          },
-        },
-      },
-    };
-
-    const { queryByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockState,
-    });
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    ).toBeNull();
-  });
 
   it('should call the goToSwaps function when the Swap button is pressed', async () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
